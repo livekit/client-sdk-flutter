@@ -105,7 +105,28 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  negotiate() async {}
+  negotiate([Map<String, dynamic>? constraints]) async {
+    var pub = this.publisher;
+    if (pub == null) {
+      return;
+    }
+
+    var remoteDesc = await pub.pc.getRemoteDescription();
+    // handle cases that we couldn't create a new offer due to a pending answer
+    // that's lost in transit
+    if (remoteDesc != null &&
+        pub.pc.signalingState ==
+            RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+      await pub.pc.setRemoteDescription(remoteDesc);
+    }
+
+    if (constraints == null) {
+      constraints = {};
+    }
+    var offer = await pub.pc.createOffer(constraints);
+    await pub.pc.setLocalDescription(offer);
+    client.sendOffer(offer);
+  }
 
   _configurePeerConnections() async {
     if (publisher != null) {
