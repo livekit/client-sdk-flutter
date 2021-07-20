@@ -1,0 +1,18 @@
+class LiveKitError extends Error {
+  String message;
+
+  LiveKitError(this.message);
+
+  @override
+  String toString() {
+    return message;
+  }
+}
+
+class ConnectError extends LiveKitError {
+  ConnectError([String msg = 'Failed to connect to server']) : super(msg);
+}
+
+class TrackPublishError extends LiveKitError {
+  TrackPublishError([String msg = 'Failed to publish track']) : super(msg);
+}
