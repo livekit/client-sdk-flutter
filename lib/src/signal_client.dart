@@ -174,7 +174,7 @@ class SignalClient {
         delegate.onOffer(toRTCSessionDescription(msg.offer));
         break;
       case SignalResponse_Message.trickle:
-        delegate.onTrickle(toRTCIceCandidate(msg.trickle), msg.trickle.target);
+        delegate.onTrickle(toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
         break;
       case SignalResponse_Message.update:
         delegate.onParticipantUpdate(msg.update.participants);

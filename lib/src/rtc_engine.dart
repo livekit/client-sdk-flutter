@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client_flutter/src/track/track.dart';
-import './errors.dart';
-import './proto/livekit_rtc.pbserver.dart';
-import './proto/livekit_models.pb.dart';
-import './signal_client.dart';
-import './transport.dart';
+
+import 'errors.dart';
+import 'extensions.dart';
+import 'proto/livekit_rtc.pb.dart';
+import 'proto/livekit_models.pb.dart';
+import 'signal_client.dart';
+import 'track/track.dart';
+import 'transport.dart';
 
 const lossyDataChannel = '_lossy';
 const reliableDataChannel = '_reliable';
@@ -18,13 +20,15 @@ typedef ParticipantUpdateCallback = void Function(
     List<ParticipantInfo> participants);
 typedef ActiveSpeakerChangedCallback = void Function(
     List<SpeakerInfo> speakers);
+typedef DataPacketCallback = void Function(
+    UserPacket packet, DataPacket_Kind kind);
 
 class RTCEngine with SignalClientDelegate {
   PCTransport? publisher;
   PCTransport? subscriber;
   SignalClient client;
   // config for RTCPeerConnection
-  Map<String, dynamic> rtcConfig = {};
+  RTCConfiguration rtcConfig = new RTCConfiguration();
   // data channels for packets
   RTCDataChannel? reliableDC;
   RTCDataChannel? lossyDC;
@@ -42,9 +46,10 @@ class RTCEngine with SignalClientDelegate {
   TrackCallback? onTrack;
   ParticipantUpdateCallback? onParticipantUpdateCallback;
   ActiveSpeakerChangedCallback? onActiveSpeakerchangedCallback;
+  DataPacketCallback? onDataMessageCallback;
   GenericCallback? onDisconnected;
 
-  RTCEngine(this.client, Map<String, dynamic>? rtcConfig) {
+  RTCEngine(this.client, RTCConfiguration? rtcConfig) {
     if (rtcConfig != null) {
       this.rtcConfig = rtcConfig;
     }
@@ -133,9 +138,9 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    var pubPC = await createPeerConnection(rtcConfig);
+    var pubPC = await createPeerConnection(rtcConfig.toMap());
     publisher = new PCTransport(pubPC);
-    var subPC = await createPeerConnection(rtcConfig);
+    var subPC = await createPeerConnection(rtcConfig.toMap());
     subscriber = new PCTransport(subPC);
 
     pubPC.onIceCandidate = (RTCIceCandidate candidate) {
@@ -194,7 +199,24 @@ class RTCEngine with SignalClientDelegate {
     reliableDC?.onMessage = _handleDataMessage;
   }
 
-  _handleDataMessage(RTCDataChannelMessage message) {}
+  _handleDataMessage(RTCDataChannelMessage message) {
+    // always expect binary
+    if (!message.isBinary) {
+      return;
+    }
+
+    var dp = DataPacket.fromBuffer(message.binary);
+    switch (dp.whichValue()) {
+      case DataPacket_Value.speaker:
+        onActiveSpeakerchangedCallback?.call(dp.speaker.speakers);
+        break;
+      case DataPacket_Value.user:
+        onDataMessageCallback?.call(dp.user, dp.kind);
+        break;
+      default:
+      // do nothing
+    }
+  }
 
   _handleDisconnect(String reason) {
     // TODO: implement method
@@ -206,21 +228,19 @@ class RTCEngine with SignalClientDelegate {
     // create peer connections
     this.isClosed = false;
 
-    if (rtcConfig['iceServers'] == null && response.iceServers.length > 0) {
-      var iceServers = [];
+    if (rtcConfig.iceServers == null && response.iceServers.length > 0) {
+      List<RTCIceServer> iceServers = [];
       response.iceServers.forEach((item) {
-        Map<String, dynamic> iceServer = {
-          'urls': item.urls,
-        };
+        var iceServer = new RTCIceServer(urls: item.urls);
         if (item.username.isNotEmpty) {
-          iceServer['username'] = item.username;
+          iceServer.username = item.username;
         }
         if (item.credential.isNotEmpty) {
-          iceServer['credential'] = item.credential;
+          iceServer.credential = item.credential;
         }
         iceServers.add(iceServer);
       });
-      rtcConfig['iceServers'] = iceServers;
+      rtcConfig.iceServers = iceServers;
     }
 
     _configurePeerConnections();

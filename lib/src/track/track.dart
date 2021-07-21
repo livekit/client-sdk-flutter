@@ -4,3 +4,7 @@ class TrackDimension {
 
   TrackDimension(this.width, this.height);
 }
+
+class Track {
+  String? sid;
+}
