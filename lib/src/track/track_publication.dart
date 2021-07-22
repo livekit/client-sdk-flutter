@@ -10,18 +10,16 @@ class TrackPublication {
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get isSubscribed => track != null;
-
-  TrackPublication({required this.sid, required this.name, required this.kind});
+  bool get subscribed => track != null;
 
   TrackPublication.fromInfo(TrackInfo info)
       : sid = info.sid,
         name = info.name,
         kind = info.type {
-    _updateFromInfo(info);
+    updateFromInfo(info);
   }
 
-  _updateFromInfo(TrackInfo info) {
+  updateFromInfo(TrackInfo info) {
     muted = info.muted;
     simulcasted = info.simulcast;
     if (info.type == TrackType.VIDEO) {

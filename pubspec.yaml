@@ -14,6 +14,7 @@ dependencies:
   logging: ^1.0.1
   protobuf: ^2.0.0
   web_socket_channel: ^2.1.0
+  uuid: ^3.0.4
 
 dev_dependencies:
   flutter_test:

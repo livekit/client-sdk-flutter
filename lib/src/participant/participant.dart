@@ -1,9 +1,25 @@
+import 'remote_participant.dart';
 import '../proto/livekit_models.pb.dart';
+import '../track/remote_track_publication.dart';
+import '../track/track.dart';
 import '../track/track_publication.dart';
 
 mixin ParticipantDelegate {
-  void onMetadataChanged(Participant participant);
-  void onSpeakingChanged(Participant participant, bool speaking);
+  void onMetadataChanged(Participant participant) {}
+  void onSpeakingChanged(Participant participant, bool speaking) {}
+  void onTrackMuted(Participant participant, TrackPublication publication) {}
+  void onTrackUnmuted(Participant participant, TrackPublication publication) {}
+  void onTrackPublished(
+      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackUnpublished(
+      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackSubscribed(RemoteParticipant participant, Track track,
+      RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
+      RemoteTrackPublication publication) {}
+  void onDataReceived(RemoteParticipant participant, List<int> data) {}
+  void onTrackSubscriptionFailed(
+      RemoteParticipant participant, String sid, String? message) {}
 }
 
 class Participant {
@@ -28,9 +44,7 @@ class Participant {
   /// when the participant had last spoken
   DateTime? lastSpokeAt;
 
-  Participant(this.sid, this.identity);
-
-  ParticipantDelegate? _roomDelegate;
+  ParticipantDelegate? roomDelegate;
   ParticipantDelegate? delegate;
 
   ParticipantInfo? _participantInfo;
@@ -48,6 +62,10 @@ class Participant {
   /// if participant is currently speaking
   bool get isSpeaking => _isSpeaking;
 
+  bool get hasInfo => _participantInfo != null;
+
+  Participant(this.sid, this.identity);
+
   set isSpeaking(bool speaking) {
     if (_isSpeaking != speaking) {
       return;
@@ -57,7 +75,7 @@ class Participant {
       lastSpokeAt = DateTime.now();
     }
     delegate?.onSpeakingChanged(this, speaking);
-    _roomDelegate?.onSpeakingChanged(this, speaking);
+    roomDelegate?.onSpeakingChanged(this, speaking);
   }
 
   _setMetadata(String md) {
@@ -65,11 +83,11 @@ class Participant {
     this.metadata = md;
     if (changed) {
       delegate?.onMetadataChanged(this);
-      _roomDelegate?.onMetadataChanged(this);
+      roomDelegate?.onMetadataChanged(this);
     }
   }
 
-  _updateInfo(ParticipantInfo info) {
+  updateFromInfo(ParticipantInfo info) {
     this.identity = info.identity;
     this.sid = info.sid;
     if (info.metadata.isNotEmpty) {
@@ -78,7 +96,7 @@ class Participant {
     this._participantInfo = info;
   }
 
-  _addTrackPublication(TrackPublication pub) {
+  addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
     switch (pub.kind) {
@@ -89,7 +107,7 @@ class Participant {
         videoTracks[pub.sid] = pub;
         break;
       default:
-        // nothing
+      // nothing
     }
   }
 }

@@ -289,6 +289,7 @@ class RTCEngine with SignalClientDelegate {
     var completer = pendingTrackResolvers[response.cid];
     if (completer != null) {
       completer.complete(Future.value(response.track));
+      pendingTrackResolvers.remove(response.cid);
     }
   }
 

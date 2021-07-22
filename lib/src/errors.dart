@@ -16,3 +16,7 @@ class ConnectError extends LiveKitError {
 class TrackPublishError extends LiveKitError {
   TrackPublishError([String msg = 'Failed to publish track']) : super(msg);
 }
+
+class DataPublishError extends LiveKitError {
+  DataPublishError([String msg = 'Failed to publish data']) : super(msg);
+}
