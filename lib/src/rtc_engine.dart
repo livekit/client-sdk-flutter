@@ -286,11 +286,8 @@ class RTCEngine with SignalClientDelegate {
   }
 
   void onLocalTrackPublished(TrackPublishedResponse response) {
-    var completer = pendingTrackResolvers[response.cid];
-    if (completer != null) {
-      completer.complete(Future.value(response.track));
-      pendingTrackResolvers.remove(response.cid);
-    }
+    var completer = pendingTrackResolvers.remove(response.cid);
+    completer?.complete(Future.value(response.track));
   }
 
   void onActiveSpeakersChanged(List<SpeakerInfo> speakers) {

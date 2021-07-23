@@ -1,7 +1,18 @@
 library livekit_client;
 
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'src/errors.dart';
+export 'src/room.dart';
+export 'src/rtc_engine.dart';
+export 'src/participant/participant.dart';
+export 'src/participant/local_participant.dart';
+export 'src/participant/remote_participant.dart';
+export 'src/proto/livekit_models.pbenum.dart';
+export 'src/proto/livekit_rtc.pbenum.dart';
+export 'src/participant/local_participant.dart';
+export 'src/track/track.dart';
+export 'src/track/video_track.dart';
+export 'src/track/local_audio_track.dart';
+export 'src/track/local_video_track.dart';
+export 'src/track/track_publication.dart';
+export 'src/track/local_track_publication.dart';
+export 'src/track/remote_track_publication.dart';

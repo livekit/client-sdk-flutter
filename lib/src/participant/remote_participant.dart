@@ -26,7 +26,14 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  addSubscribedMediaTrack(MediaStreamTrack mediaTrack, String sid) async {
+  addSubscribedMediaTrack(MediaStreamTrack mediaTrack, String? sid) async {
+    if (sid == null) {
+      var msg = 'addSubscribedMediaTrack received null sid';
+      delegate?.onTrackSubscriptionFailed(this, '', msg);
+      roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
+      return;
+    }
+
     var pub = getTrackPublication(sid);
     if (pub == null) {
       // we may have received the track prior to metadata. wait up to 3s
