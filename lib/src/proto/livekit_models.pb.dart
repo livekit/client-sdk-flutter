@@ -208,6 +208,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     ..pc<TrackInfo>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tracks', $pb.PbFieldType.PM, subBuilder: TrackInfo.create)
     ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'metadata')
     ..aInt64(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'joinedAt')
+    ..aOB(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hidden')
     ..hasRequiredFields = false
   ;
 
@@ -219,6 +220,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.Iterable<TrackInfo>? tracks,
     $core.String? metadata,
     $fixnum.Int64? joinedAt,
+    $core.bool? hidden,
   }) {
     final _result = create();
     if (sid != null) {
@@ -238,6 +240,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (joinedAt != null) {
       _result.joinedAt = joinedAt;
+    }
+    if (hidden != null) {
+      _result.hidden = hidden;
     }
     return _result;
   }
@@ -309,6 +314,15 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasJoinedAt() => $_has(5);
   @$pb.TagNumber(6)
   void clearJoinedAt() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.bool get hidden => $_getBF(6);
+  @$pb.TagNumber(7)
+  set hidden($core.bool v) { $_setBool(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasHidden() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearHidden() => clearField(7);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
