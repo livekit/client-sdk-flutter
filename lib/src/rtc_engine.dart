@@ -64,6 +64,8 @@ class RTCEngine with SignalClientDelegate {
     var completer = new Completer<JoinResponse>();
     joinCompleter = completer;
 
+    client.join(url, token, opts);
+
     // if it's not complete after 5 seconds, fail
     new Timer(connectionTimeout, () {
       joinCompleter?.completeError(new ConnectError());
@@ -116,7 +118,12 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    var remoteDesc = await pub.pc.getRemoteDescription();
+    RTCSessionDescription? remoteDesc;
+    if (pub.pc.iceConnectionState != null) {
+      // when not initially connected, this crashes on iOS
+      remoteDesc = await pub.pc.getRemoteDescription();
+    }
+
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
     if (remoteDesc != null &&
@@ -151,8 +158,9 @@ class RTCEngine with SignalClientDelegate {
     };
 
     pubPC.onRenegotiationNeeded = () {
-      if (pubPC.iceConnectionState ==
-          RTCIceConnectionState.RTCIceConnectionStateNew) {
+      if (pubPC.iceConnectionState == null ||
+          pubPC.iceConnectionState ==
+              RTCIceConnectionState.RTCIceConnectionStateNew) {
         return;
       }
       negotiate();
@@ -185,13 +193,16 @@ class RTCEngine with SignalClientDelegate {
     };
 
     // create data channels
-    var lossyInit = new RTCDataChannelInit();
-    lossyInit.ordered = true;
-    lossyInit.maxRetransmits = 1;
+    var lossyInit = new RTCDataChannelInit()
+      ..maxRetransmits = 1
+      ..ordered = true
+      ..binaryType = 'binary';
     lossyDC = await pubPC.createDataChannel(lossyDataChannel, lossyInit);
 
-    var reliableInit = new RTCDataChannelInit();
-    reliableInit.ordered = true;
+    var reliableInit = new RTCDataChannelInit()
+      ..ordered = true
+      ..maxRetransmits = 50
+      ..binaryType = 'binary';
     reliableDC =
         await pubPC.createDataChannel(reliableDataChannel, reliableInit);
 
@@ -224,7 +235,7 @@ class RTCEngine with SignalClientDelegate {
 
   //------------------ SignalClient Delegate methods -------------------------//
 
-  void onConnected(JoinResponse response) {
+  void onConnected(JoinResponse response) async {
     // create peer connections
     this.isClosed = false;
 
@@ -243,7 +254,7 @@ class RTCEngine with SignalClientDelegate {
       rtcConfig.iceServers = iceServers;
     }
 
-    _configurePeerConnections();
+    await _configurePeerConnections();
 
     negotiate();
 
@@ -251,7 +262,9 @@ class RTCEngine with SignalClientDelegate {
     joinCompleter = null;
   }
 
-  void onClose(String? reason) {}
+  void onClose([String? reason]) {
+    // TODO: handle reconnect when signal interrupted
+  }
 
   void onOffer(RTCSessionDescription sd) async {
     var sub = subscriber;

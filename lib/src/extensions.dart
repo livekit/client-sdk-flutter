@@ -9,9 +9,11 @@ class RTCConfiguration {
       iceServersMap.add(element.toMap());
     });
     return {
+      // only supports unified plan
+      'sdpSemantics': 'unified-plan',
       if (iceCandidatePoolSize != null)
         "iceCandidatePoolSize": iceCandidatePoolSize,
-      if (iceServersMap.isNotEmpty) "iceServers": iceServersMap,
+      "iceServers": iceServersMap,
       if (iceTransportPolicy != null) "iceTransportPolicy": iceTransportPolicy,
     };
   }
@@ -27,10 +29,8 @@ class RTCIceServer {
   Map<String, dynamic> toMap() {
     return {
       "urls": urls,
-      if (username != null)
-        "username": username,
-      if (credential != null)
-        "credential": credential,
+      if (username != null) "username": username,
+      if (credential != null) "credential": credential,
     };
   }
 }

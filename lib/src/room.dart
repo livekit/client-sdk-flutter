@@ -73,8 +73,8 @@ class Room with ParticipantDelegate {
 
   Completer<Room>? _connectCompleter;
 
-  Room(SignalClient client, RTCConfiguration? rtcConfig)
-      : _engine = new RTCEngine(client, rtcConfig) {
+  Room([RTCConfiguration? rtcConfig])
+      : _engine = new RTCEngine(SignalClient(), rtcConfig) {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
@@ -85,7 +85,7 @@ class Room with ParticipantDelegate {
     // TODO: handle reconnecting & reconnected events
   }
 
-  Future<Room> connect(String url, String token, JoinOptions? opts) async {
+  Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
     var completer = new Completer<Room>();
     _connectCompleter = completer;
 
@@ -109,10 +109,10 @@ class Room with ParticipantDelegate {
 
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
-    Timer(Duration(seconds: 5), () {
-      _connectCompleter?.completeError(ConnectError());
-      _connectCompleter = null;
-    });
+    // Timer(Duration(seconds: 5), () {
+    //   _connectCompleter?.completeError(ConnectError());
+    //   _connectCompleter = null;
+    // });
 
     return completer.future;
   }

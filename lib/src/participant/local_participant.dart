@@ -34,6 +34,7 @@ class LocalParticipant extends Participant {
     return stream;
   }
 
+  /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
     if (audioTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
@@ -59,6 +60,7 @@ class LocalParticipant extends Participant {
     return pub;
   }
 
+  /// publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
     if (audioTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {

@@ -1,8 +1,8 @@
 library livekit_client;
 
+export 'src/livekit.dart';
 export 'src/errors.dart';
 export 'src/room.dart';
-export 'src/rtc_engine.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/local_participant.dart';
 export 'src/participant/remote_participant.dart';

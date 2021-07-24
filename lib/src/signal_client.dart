@@ -19,7 +19,7 @@ mixin SignalClientDelegate {
   // initial connection established
   void onConnected(JoinResponse response);
   // websocket has closed
-  void onClose(String? reason);
+  void onClose([String? reason]);
   // when a server offer is received
   void onOffer(RTCSessionDescription sd);
   // when an answer from server is received
@@ -37,19 +37,19 @@ mixin SignalClientDelegate {
 }
 
 class SignalClient {
-  SignalClientDelegate delegate;
+  SignalClientDelegate? delegate;
 
   bool _connected = false;
   WebSocketChannel? _ws;
 
-  SignalClient(this.delegate);
+  SignalClient();
 
   bool get connected => this._connected;
 
-  join(String url, String token, JoinOptions options) {
+  join(String url, String token, JoinOptions? options) {
     url += '/rtc';
     var params = _paramsForToken(token);
-    if (options.autoSubscribe != null) {
+    if (options != null && options.autoSubscribe != null) {
       params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
     }
     var uri = Uri.parse(url + params);
@@ -61,6 +61,7 @@ class SignalClient {
       _ws = ws;
     } catch (e) {
       // failed before error handler is installed, fail immediately
+      _handleError(e);
     }
   }
 
@@ -164,30 +165,30 @@ class SignalClient {
       case SignalResponse_Message.join:
         if (!_connected) {
           _connected = true;
-          delegate.onConnected(msg.join);
+          delegate?.onConnected(msg.join);
         }
         break;
       case SignalResponse_Message.answer:
-        delegate.onAnswer(toRTCSessionDescription(msg.answer));
+        delegate?.onAnswer(toRTCSessionDescription(msg.answer));
         break;
       case SignalResponse_Message.offer:
-        delegate.onOffer(toRTCSessionDescription(msg.offer));
+        delegate?.onOffer(toRTCSessionDescription(msg.offer));
         break;
       case SignalResponse_Message.trickle:
-        delegate.onTrickle(
+        delegate?.onTrickle(
             toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
         break;
       case SignalResponse_Message.update:
-        delegate.onParticipantUpdate(msg.update.participants);
+        delegate?.onParticipantUpdate(msg.update.participants);
         break;
       case SignalResponse_Message.trackPublished:
-        delegate.onLocalTrackPublished(msg.trackPublished);
+        delegate?.onLocalTrackPublished(msg.trackPublished);
         break;
       case SignalResponse_Message.speaker:
-        delegate.onActiveSpeakersChanged(msg.speaker.speakers);
+        delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
         break;
       case SignalResponse_Message.leave:
-        delegate.onLeave(msg.leave);
+        delegate?.onLeave(msg.leave);
         break;
       default:
         log('unsupported message: ' + jsonEncode(msg));
@@ -199,7 +200,12 @@ class SignalClient {
   }
 
   _handleDone() {
+    if (!_connected) {
+      return;
+    }
     _ws = null;
+    _connected = false;
+    delegate?.onClose();
   }
 }
 
