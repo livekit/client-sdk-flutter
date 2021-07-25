@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:collection';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:tuple/tuple.dart';
 
@@ -48,11 +51,24 @@ mixin RoomDelegate {
       RemoteParticipant participant, String sid, String? message) {}
 }
 
-class Room with ParticipantDelegate {
-  RoomState state = RoomState.Disconnected;
+/// Room is the main entrypoint to working with LiveKit. It provides
+/// updates to its state via two ways, by assigning a delegate, or using
+/// it as a provider.
+/// Room will trigger a change update when
+/// * state changes
+/// * participant membership changes
+/// * active speakers are different
+class Room extends ChangeNotifier with ParticipantDelegate {
+  RoomState _state = RoomState.Disconnected;
+
+  /// connection state of the room
+  RoomState get state => _state;
+
+  Map<String, RemoteParticipant> _participants = {};
 
   /// map of SID to RemoteParticipant
-  Map<String, RemoteParticipant> participants = {};
+  UnmodifiableMapView<String, RemoteParticipant> get participants =>
+      UnmodifiableMapView(_participants);
 
   /// the current participant
   late LocalParticipant localParticipant;
@@ -63,8 +79,11 @@ class Room with ParticipantDelegate {
   /// sid of the room
   late String sid;
 
+  List<Participant> _activeSpeakers = [];
+
   /// a list of participants that are actively speaking, including local participant.
-  List<Participant> activeSpeakers = [];
+  UnmodifiableListView<Participant> get activeSpeakers =>
+      UnmodifiableListView<Participant>(_activeSpeakers);
 
   /// delegate for room events
   RoomDelegate? delegate;
@@ -93,7 +112,6 @@ class Room with ParticipantDelegate {
     logger.fine(
         'connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-    state = RoomState.Connected;
     localParticipant = new LocalParticipant(
       engine: _engine,
       info: joinResponse.participant,
@@ -109,10 +127,12 @@ class Room with ParticipantDelegate {
 
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
-    // Timer(Duration(seconds: 5), () {
-    //   _connectCompleter?.completeError(ConnectError());
-    //   _connectCompleter = null;
-    // });
+    Timer(Duration(seconds: 5), () {
+      _state = RoomState.Disconnected;
+      _connectCompleter?.completeError(ConnectError());
+      _connectCompleter = null;
+      notifyListeners();
+    });
 
     return completer.future;
   }
@@ -143,14 +163,16 @@ class Room with ParticipantDelegate {
   _handleICEConnected() {
     _connectCompleter?.complete(this);
     _connectCompleter = null;
+    _state = RoomState.Connected;
+    notifyListeners();
   }
 
   _handleDisconnect() {
-    if (state == RoomState.Disconnected) {
+    if (_state == RoomState.Disconnected) {
       return;
     }
 
-    for (var p in participants.values) {
+    for (var p in _participants.values) {
       for (var pub in p.tracks.values) {
         p.unpublishTrack(pub.sid);
       }
@@ -160,13 +182,16 @@ class Room with ParticipantDelegate {
     }
 
     _engine.close();
-    participants.clear();
-    activeSpeakers.clear();
-    state = RoomState.Disconnected;
+    _participants.clear();
+    _activeSpeakers.clear();
+    _state = RoomState.Disconnected;
+    notifyListeners();
     delegate?.onDisconnected();
   }
 
   _handleParticipantUpdate(List<ParticipantInfo> updates) {
+    // trigger change notifier only if list of participants membership is changed
+    var hasChanged = false;
     for (var info in updates) {
       if (localParticipant.sid == info.sid) {
         localParticipant.updateFromInfo(info);
@@ -174,18 +199,24 @@ class Room with ParticipantDelegate {
       }
 
       if (info.state == ParticipantInfo_State.DISCONNECTED) {
+        hasChanged = true;
         _handleParticipantDisconnect(info.sid);
         continue;
       }
 
-      var isNew = !participants.containsKey(info.sid);
+      var isNew = !_participants.containsKey(info.sid);
       var participant = _getOrCreateRemoteParticipant(info.sid, info);
 
       if (isNew) {
+        hasChanged = true;
         delegate?.onParticipantConnected(participant);
       } else {
         participant.updateFromInfo(info);
       }
+    }
+
+    if (hasChanged) {
+      notifyListeners();
     }
   }
 
@@ -215,14 +246,16 @@ class Room with ParticipantDelegate {
       localParticipant.audioLevel = 0;
       localParticipant.isSpeaking = false;
     }
-    for (var participant in participants.values) {
+    for (var participant in _participants.values) {
       if (!seenSids.contains(participant.sid)) {
         participant.audioLevel = 0;
         participant.isSpeaking = false;
       }
     }
-    activeSpeakers = newSpeakers;
+
+    _activeSpeakers = newSpeakers;
     delegate?.onActiveSpeakersChanged(newSpeakers);
+    notifyListeners();
   }
 
   _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
@@ -254,7 +287,7 @@ class Room with ParticipantDelegate {
   }
 
   _handleParticipantDisconnect(String sid) {
-    var participant = participants.remove(sid);
+    var participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }

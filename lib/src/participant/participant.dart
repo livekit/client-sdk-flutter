@@ -67,7 +67,7 @@ class Participant {
   Participant(this.sid, this.identity);
 
   set isSpeaking(bool speaking) {
-    if (_isSpeaking != speaking) {
+    if (_isSpeaking == speaking) {
       return;
     }
     _isSpeaking = speaking;
