@@ -10,4 +10,22 @@ class LocalTrackPublication extends TrackPublication {
       : super.fromInfo(info) {
     this.track = track;
   }
+
+  set muted(bool val) {
+    if (val == muted) {
+      return;
+    }
+    super.muted = val;
+    track?.mediaTrack.enabled = !val;
+    _participant.engine.client.sendMuteTrack(sid, val);
+
+    if (val) {
+      _participant.delegate?.onTrackMuted(_participant, this);
+      _participant.roomDelegate?.onTrackMuted(_participant, this);
+    } else {
+      _participant.delegate?.onTrackUnmuted(_participant, this);
+      _participant.roomDelegate?.onTrackUnmuted(_participant, this);
+    }
+    _participant.muteChanged();
+  }
 }

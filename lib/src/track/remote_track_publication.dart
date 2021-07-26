@@ -46,6 +46,7 @@ class RemoteTrackPublication extends TrackPublication {
       _participant.delegate?.onTrackUnmuted(_participant, this);
       _participant.roomDelegate?.onTrackUnmuted(_participant, this);
     }
+    _participant.muteChanged();
   }
 
   RemoteTrackPublication(TrackInfo info, this._participant, [Track? track])

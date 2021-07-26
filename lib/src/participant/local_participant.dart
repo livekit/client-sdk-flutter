@@ -56,6 +56,7 @@ class LocalParticipant extends Participant {
 
     var pub = new LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
+    notifyListeners();
 
     return pub;
   }
@@ -83,15 +84,17 @@ class LocalParticipant extends Participant {
 
     var pub = new LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
+    notifyListeners();
 
     return pub;
   }
 
   unpublishTrack(Track track) {
-    var pub = tracks.values.firstWhere((element) => element.track == track);
-    if (pub == null) {
+    var existing = tracks.values.where((element) => element.track == track);
+    if (existing.isEmpty) {
       return;
     }
+    var pub = existing.first;
 
     track.stop();
     var sender = track.transceiver?.sender;

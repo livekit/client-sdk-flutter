@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:tuple/tuple.dart';
 

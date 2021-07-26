@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'remote_participant.dart';
 import '../proto/livekit_models.pb.dart';
 import '../track/remote_track_publication.dart';
@@ -22,7 +24,14 @@ mixin ParticipantDelegate {
       RemoteParticipant participant, String sid, String? message) {}
 }
 
-class Participant {
+/// Represents a Participant in the room, notifies changes via delegates as
+/// well as ChangeNotifier/providers.
+/// A change notification is triggered when
+/// - speaking status changed
+/// - mute status changed
+/// - added/removed subscribed tracks
+/// - metadata changed
+class Participant extends ChangeNotifier {
   Map<String, TrackPublication> audioTracks = {};
   Map<String, TrackPublication> videoTracks = {};
 
@@ -45,11 +54,14 @@ class Participant {
   DateTime? lastSpokeAt;
 
   ParticipantDelegate? roomDelegate;
+
+  /// delegate to receive participant callbacks
   ParticipantDelegate? delegate;
 
   ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
+  /// when the participant joined the room
   DateTime get joinedAt {
     var pi = _participantInfo;
     if (pi != null) {
@@ -62,6 +74,30 @@ class Participant {
   /// if participant is currently speaking
   bool get isSpeaking => _isSpeaking;
 
+  /// true if participant is publishing an audio track and is muted
+  bool get isMuted {
+    if (audioTracks.values.isEmpty) {
+      return false;
+    }
+    return audioTracks.values.first.muted;
+  }
+
+  bool get hasAudio => audioTracks.length > 0;
+
+  bool get hasVideo => videoTracks.length > 0;
+
+  /// tracks that are subscribed to
+  List<TrackPublication> get subscribedTracks {
+    List<TrackPublication> result = [];
+    for (var track in tracks.values) {
+      if (track.subscribed) {
+        result.add(track);
+      }
+    }
+    return result;
+  }
+
+  /// internal use
   bool get hasInfo => _participantInfo != null;
 
   Participant(this.sid, this.identity);
@@ -76,6 +112,7 @@ class Participant {
     }
     delegate?.onSpeakingChanged(this, speaking);
     roomDelegate?.onSpeakingChanged(this, speaking);
+    notifyListeners();
   }
 
   _setMetadata(String md) {
@@ -84,6 +121,7 @@ class Participant {
     if (changed) {
       delegate?.onMetadataChanged(this);
       roomDelegate?.onMetadataChanged(this);
+      notifyListeners();
     }
   }
 
@@ -94,6 +132,10 @@ class Participant {
       _setMetadata(info.metadata);
     }
     this._participantInfo = info;
+  }
+
+  muteChanged() {
+    notifyListeners();
   }
 
   addTrackPublication(TrackPublication pub) {

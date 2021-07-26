@@ -63,6 +63,7 @@ class RemoteParticipant extends Participant {
 
     delegate?.onTrackSubscribed(this, track, pub);
     roomDelegate?.onTrackSubscribed(this, track, pub);
+    notifyListeners();
   }
 
   @override
@@ -95,7 +96,6 @@ class RemoteParticipant extends Participant {
         delegate?.onTrackPublished(this, pub);
         roomDelegate?.onTrackPublished(this, pub);
       }
-      return;
     }
 
     // remove tracks
@@ -120,6 +120,7 @@ class RemoteParticipant extends Participant {
       track.stop();
       delegate?.onTrackUnsubscribed(this, track, pub);
       roomDelegate?.onTrackUnsubscribed(this, track, pub);
+      notifyListeners();
     }
     if (sendUnpublish) {
       delegate?.onTrackUnpublished(this, pub);
