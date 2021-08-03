@@ -26,7 +26,8 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  addSubscribedMediaTrack(MediaStreamTrack mediaTrack, String? sid) async {
+  addSubscribedMediaTrack(
+      MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
       var msg = 'addSubscribedMediaTrack received null sid';
       delegate?.onTrackSubscriptionFailed(this, '', msg);
@@ -50,7 +51,7 @@ class RemoteParticipant extends Participant {
     if (pub.kind == TrackType.AUDIO) {
       track = new Track(pub.kind, pub.name, mediaTrack);
     } else if (pub.kind == TrackType.VIDEO) {
-      track = new VideoTrack(pub.name, mediaTrack);
+      track = new VideoTrack(pub.name, mediaTrack, stream);
     } else {
       var msg = 'unsupported track type ${pub.kind}';
       delegate?.onTrackSubscriptionFailed(this, sid, msg);

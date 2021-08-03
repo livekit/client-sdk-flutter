@@ -19,6 +19,9 @@ class TrackPublication {
     updateFromInfo(info);
   }
 
+  bool get isScreenShare =>
+      kind == TrackType.VIDEO && name == Track.ScreenShareName;
+
   updateFromInfo(TrackInfo info) {
     muted = info.muted;
     simulcasted = info.simulcast;

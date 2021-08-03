@@ -144,7 +144,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   RemoteParticipant _getOrCreateRemoteParticipant(
       String sid, ParticipantInfo? info) {
-    var participant = participants[sid];
+    var participant = _participants[sid];
     if (participant != null) {
       return participant;
     }
@@ -155,7 +155,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       participant = RemoteParticipant.fromInfo(_engine.client, info);
     }
     participant.roomDelegate = this;
-    participants[sid] = participant;
+    _participants[sid] = participant;
 
     return participant;
   }
@@ -283,7 +283,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
 
     var participant = _getOrCreateRemoteParticipant(parsed.item1, null);
-    participant.addSubscribedMediaTrack(track, trackSid);
+    participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
   _handleParticipantDisconnect(String sid) {
@@ -292,7 +292,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    for (var track in participant.tracks.values) {
+    var toRemove = List.from(participant.tracks.values);
+    for (var track in toRemove) {
       participant.unpublishTrack(track.sid, true);
     }
     delegate?.onParticipantDisconnected(participant);

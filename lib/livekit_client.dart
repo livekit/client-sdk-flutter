@@ -16,3 +16,4 @@ export 'src/track/local_video_track.dart';
 export 'src/track/track_publication.dart';
 export 'src/track/local_track_publication.dart';
 export 'src/track/remote_track_publication.dart';
+export 'src/widget/video_track_renderer.dart';

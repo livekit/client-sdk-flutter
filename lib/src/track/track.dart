@@ -11,6 +11,8 @@ class TrackDimension {
 }
 
 class Track {
+  static const ScreenShareName = "screen";
+
   String name;
   TrackType kind;
   MediaStreamTrack mediaTrack;
