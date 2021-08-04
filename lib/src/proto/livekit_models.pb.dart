@@ -532,3 +532,461 @@ class DataMessage extends $pb.GeneratedMessage {
   void clearBinary() => clearField(2);
 }
 
+class RecordingInput extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingInput', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'url')
+    ..aOM<RecordingTemplate>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'template', subBuilder: RecordingTemplate.create)
+    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width', $pb.PbFieldType.O3)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height', $pb.PbFieldType.O3)
+    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'depth', $pb.PbFieldType.O3)
+    ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'framerate', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  RecordingInput._() : super();
+  factory RecordingInput({
+    $core.String? url,
+    RecordingTemplate? template,
+    $core.int? width,
+    $core.int? height,
+    $core.int? depth,
+    $core.int? framerate,
+  }) {
+    final _result = create();
+    if (url != null) {
+      _result.url = url;
+    }
+    if (template != null) {
+      _result.template = template;
+    }
+    if (width != null) {
+      _result.width = width;
+    }
+    if (height != null) {
+      _result.height = height;
+    }
+    if (depth != null) {
+      _result.depth = depth;
+    }
+    if (framerate != null) {
+      _result.framerate = framerate;
+    }
+    return _result;
+  }
+  factory RecordingInput.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RecordingInput.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RecordingInput clone() => RecordingInput()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RecordingInput copyWith(void Function(RecordingInput) updates) => super.copyWith((message) => updates(message as RecordingInput)) as RecordingInput; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RecordingInput create() => RecordingInput._();
+  RecordingInput createEmptyInstance() => create();
+  static $pb.PbList<RecordingInput> createRepeated() => $pb.PbList<RecordingInput>();
+  @$core.pragma('dart2js:noInline')
+  static RecordingInput getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingInput>(create);
+  static RecordingInput? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get url => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set url($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasUrl() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUrl() => clearField(1);
+
+  @$pb.TagNumber(2)
+  RecordingTemplate get template => $_getN(1);
+  @$pb.TagNumber(2)
+  set template(RecordingTemplate v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasTemplate() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTemplate() => clearField(2);
+  @$pb.TagNumber(2)
+  RecordingTemplate ensureTemplate() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.int get width => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set width($core.int v) { $_setSignedInt32(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasWidth() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWidth() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get height => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set height($core.int v) { $_setSignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasHeight() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearHeight() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get depth => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set depth($core.int v) { $_setSignedInt32(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasDepth() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearDepth() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get framerate => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set framerate($core.int v) { $_setSignedInt32(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasFramerate() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFramerate() => clearField(6);
+}
+
+class RecordingTemplate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingTemplate', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'wsUrl')
+    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'token')
+    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'roomName')
+    ..hasRequiredFields = false
+  ;
+
+  RecordingTemplate._() : super();
+  factory RecordingTemplate({
+    $core.String? type,
+    $core.String? wsUrl,
+    $core.String? token,
+    $core.String? roomName,
+  }) {
+    final _result = create();
+    if (type != null) {
+      _result.type = type;
+    }
+    if (wsUrl != null) {
+      _result.wsUrl = wsUrl;
+    }
+    if (token != null) {
+      _result.token = token;
+    }
+    if (roomName != null) {
+      _result.roomName = roomName;
+    }
+    return _result;
+  }
+  factory RecordingTemplate.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RecordingTemplate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RecordingTemplate clone() => RecordingTemplate()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RecordingTemplate copyWith(void Function(RecordingTemplate) updates) => super.copyWith((message) => updates(message as RecordingTemplate)) as RecordingTemplate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RecordingTemplate create() => RecordingTemplate._();
+  RecordingTemplate createEmptyInstance() => create();
+  static $pb.PbList<RecordingTemplate> createRepeated() => $pb.PbList<RecordingTemplate>();
+  @$core.pragma('dart2js:noInline')
+  static RecordingTemplate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingTemplate>(create);
+  static RecordingTemplate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get type => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set type($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearType() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get wsUrl => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set wsUrl($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasWsUrl() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWsUrl() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get token => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set token($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasToken() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearToken() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get roomName => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set roomName($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasRoomName() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRoomName() => clearField(4);
+}
+
+class RecordingOutput extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingOutput', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'file')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rtmp')
+    ..aOM<RecordingS3Output>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 's3', subBuilder: RecordingS3Output.create)
+    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width', $pb.PbFieldType.O3)
+    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height', $pb.PbFieldType.O3)
+    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'audioBitrate')
+    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'audioFrequency')
+    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'videoBitrate')
+    ..aOS(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'videoBuffer')
+    ..hasRequiredFields = false
+  ;
+
+  RecordingOutput._() : super();
+  factory RecordingOutput({
+    $core.String? file,
+    $core.String? rtmp,
+    RecordingS3Output? s3,
+    $core.int? width,
+    $core.int? height,
+    $core.String? audioBitrate,
+    $core.String? audioFrequency,
+    $core.String? videoBitrate,
+    $core.String? videoBuffer,
+  }) {
+    final _result = create();
+    if (file != null) {
+      _result.file = file;
+    }
+    if (rtmp != null) {
+      _result.rtmp = rtmp;
+    }
+    if (s3 != null) {
+      _result.s3 = s3;
+    }
+    if (width != null) {
+      _result.width = width;
+    }
+    if (height != null) {
+      _result.height = height;
+    }
+    if (audioBitrate != null) {
+      _result.audioBitrate = audioBitrate;
+    }
+    if (audioFrequency != null) {
+      _result.audioFrequency = audioFrequency;
+    }
+    if (videoBitrate != null) {
+      _result.videoBitrate = videoBitrate;
+    }
+    if (videoBuffer != null) {
+      _result.videoBuffer = videoBuffer;
+    }
+    return _result;
+  }
+  factory RecordingOutput.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RecordingOutput.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RecordingOutput clone() => RecordingOutput()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RecordingOutput copyWith(void Function(RecordingOutput) updates) => super.copyWith((message) => updates(message as RecordingOutput)) as RecordingOutput; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RecordingOutput create() => RecordingOutput._();
+  RecordingOutput createEmptyInstance() => create();
+  static $pb.PbList<RecordingOutput> createRepeated() => $pb.PbList<RecordingOutput>();
+  @$core.pragma('dart2js:noInline')
+  static RecordingOutput getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingOutput>(create);
+  static RecordingOutput? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get file => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set file($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasFile() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFile() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get rtmp => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set rtmp($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasRtmp() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRtmp() => clearField(2);
+
+  @$pb.TagNumber(3)
+  RecordingS3Output get s3 => $_getN(2);
+  @$pb.TagNumber(3)
+  set s3(RecordingS3Output v) { setField(3, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasS3() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearS3() => clearField(3);
+  @$pb.TagNumber(3)
+  RecordingS3Output ensureS3() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  $core.int get width => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set width($core.int v) { $_setSignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasWidth() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearWidth() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get height => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set height($core.int v) { $_setSignedInt32(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasHeight() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearHeight() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get audioBitrate => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set audioBitrate($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasAudioBitrate() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearAudioBitrate() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get audioFrequency => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set audioFrequency($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasAudioFrequency() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearAudioFrequency() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get videoBitrate => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set videoBitrate($core.String v) { $_setString(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasVideoBitrate() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearVideoBitrate() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get videoBuffer => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set videoBuffer($core.String v) { $_setString(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasVideoBuffer() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearVideoBuffer() => clearField(9);
+}
+
+class RecordingS3Output extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingS3Output', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bucket')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key')
+    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'accessKey')
+    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'secret')
+    ..hasRequiredFields = false
+  ;
+
+  RecordingS3Output._() : super();
+  factory RecordingS3Output({
+    $core.String? bucket,
+    $core.String? key,
+    $core.String? accessKey,
+    $core.String? secret,
+  }) {
+    final _result = create();
+    if (bucket != null) {
+      _result.bucket = bucket;
+    }
+    if (key != null) {
+      _result.key = key;
+    }
+    if (accessKey != null) {
+      _result.accessKey = accessKey;
+    }
+    if (secret != null) {
+      _result.secret = secret;
+    }
+    return _result;
+  }
+  factory RecordingS3Output.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RecordingS3Output.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RecordingS3Output clone() => RecordingS3Output()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RecordingS3Output copyWith(void Function(RecordingS3Output) updates) => super.copyWith((message) => updates(message as RecordingS3Output)) as RecordingS3Output; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RecordingS3Output create() => RecordingS3Output._();
+  RecordingS3Output createEmptyInstance() => create();
+  static $pb.PbList<RecordingS3Output> createRepeated() => $pb.PbList<RecordingS3Output>();
+  @$core.pragma('dart2js:noInline')
+  static RecordingS3Output getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingS3Output>(create);
+  static RecordingS3Output? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get bucket => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set bucket($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasBucket() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearBucket() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get key => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set key($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearKey() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get accessKey => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set accessKey($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasAccessKey() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAccessKey() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get secret => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set secret($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasSecret() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSecret() => clearField(4);
+}
+

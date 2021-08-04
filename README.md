@@ -1,3 +1,3 @@
 # LiveKit Flutter SDK
 
-Docs coming soon. package will be published as livekit_client to pub.dev
+Docs coming soon. package available on pub.dev as [livekit_client](https://pub.dev/packages/livekit_client)

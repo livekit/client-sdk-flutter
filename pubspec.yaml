@@ -1,5 +1,5 @@
 name: livekit_client
-description: Flutter client for LiveKit
+description: Flutter Client SDK for LiveKit
 version: 0.1.0
 homepage: https://livekit.io
 
@@ -8,6 +8,8 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  collection: ^1.15.0
+  fixnum: ^1.0.0
   flutter:
     sdk: flutter
   flutter_webrtc: ^0.6.4
