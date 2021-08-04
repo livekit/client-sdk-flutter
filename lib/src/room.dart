@@ -100,8 +100,16 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onParticipantUpdateCallback = _handleParticipantUpdate;
     _engine.onActiveSpeakerchangedCallback = _handleSpeakerUpdate;
     _engine.onDataMessageCallback = _handleDataPacket;
-
-    // TODO: handle reconnecting & reconnected events
+    _engine.onReconnected = () {
+      _state = RoomState.Connected;
+      delegate?.onReconnected();
+      notifyListeners();
+    };
+    _engine.onReconnecting = () {
+      _state = RoomState.Reconnecting;
+      delegate?.onReconnecting();
+      notifyListeners();
+    };
   }
 
   Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
@@ -128,6 +136,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
     Timer(Duration(seconds: 5), () {
+      if (_state != RoomState.Disconnected) {
+        return;
+      }
       _state = RoomState.Disconnected;
       _connectCompleter?.completeError(ConnectError());
       _connectCompleter = null;
@@ -173,7 +184,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
 
     for (var p in _participants.values) {
-      for (var pub in p.tracks.values) {
+      var tracks = List<TrackPublication>.from(p.tracks.values);
+      for (var pub in tracks) {
         p.unpublishTrack(pub.sid);
       }
     }

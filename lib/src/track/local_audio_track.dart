@@ -6,12 +6,13 @@ import 'options.dart';
 import 'track.dart';
 
 class LocalAudioTrack extends Track {
-  MediaStream mediaStream;
+  MediaStream? mediaStream;
 
   LocalAudioTrack(String name, MediaStreamTrack track, this.mediaStream)
       : super(TrackType.AUDIO, name, track);
 
-  Future<LocalAudioTrack> createTrack(LocalAudioTrackOptions? options) async {
+  static Future<LocalAudioTrack> createTrack(
+      [LocalAudioTrackOptions? options]) async {
     try {
       var stream = await navigator.mediaDevices.getUserMedia({
         "audio": true,
@@ -22,9 +23,16 @@ class LocalAudioTrack extends Track {
         return Future.error(TrackCreateError());
       }
 
-      return LocalAudioTrack("", stream.getVideoTracks().first, stream);
+      return LocalAudioTrack("", stream.getAudioTracks().first, stream);
     } catch (e) {
       return Future.error(e);
     }
+  }
+
+  @override
+  stop() {
+    super.stop();
+    mediaStream?.dispose();
+    mediaStream = null;
   }
 }

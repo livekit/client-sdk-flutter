@@ -7,6 +7,9 @@ import './track/track.dart';
 import './version.dart';
 import './proto/livekit_models.pb.dart';
 import './proto/livekit_rtc.pb.dart';
+import '_websocket_api.dart'
+    if (dart.library.io) '_websocket_io.dart'
+    if (dart.library.html) '_websocket_html.dart' as platform;
 
 class JoinOptions {
   final bool? autoSubscribe;
@@ -53,18 +56,30 @@ class SignalClient {
     }
     var uri = Uri.parse(url + params);
 
-    try {
-      var ws = WebSocketChannel.connect(uri);
+    platform.connectToWebSocket(uri).then((ws) {
       ws.stream
           .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
-    } catch (e) {
-      // failed before error handler is installed, fail immediately
-      _handleError(e);
-    }
+    }).catchError((error) {
+      // TODO: ping api endpoint
+      _handleError(error);
+    });
   }
 
-  Future<void> reconnect(String url, String token) async {}
+  Future<void> reconnect(String url, String token) async {
+    _connected = false;
+    _ws?.sink.close();
+    _ws = null;
+
+    url += '/rtc';
+    var params = _paramsForToken(token);
+    params += '&reconnect=1';
+    var uri = Uri.parse(url + params);
+
+    var ws = await platform.connectToWebSocket(uri);
+    _ws = ws;
+    _connected = true;
+  }
 
   close() {
     this._connected = false;
@@ -147,7 +162,7 @@ class SignalClient {
 
   _sendRequest(SignalRequest req) {
     if (this._ws == null) {
-      log('could not send message, not connected: ' + jsonEncode(req));
+      log('could not send message, not connected');
       return;
     }
 

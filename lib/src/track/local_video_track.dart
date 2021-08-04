@@ -8,8 +8,8 @@ class LocalVideoTrack extends VideoTrack {
   LocalVideoTrack(String name, MediaStreamTrack mediaTrack, MediaStream stream)
       : super(name, mediaTrack, stream);
 
-  Future<LocalVideoTrack> createCameraTrack(
-      LocalVideoTrackOptions? options) async {
+  static Future<LocalVideoTrack> createCameraTrack(
+      [LocalVideoTrackOptions? options]) async {
     if (options == null) {
       options = LocalVideoTrackOptions(params: VideoPresets.qhd);
     }
@@ -24,7 +24,7 @@ class LocalVideoTrack extends VideoTrack {
         return Future.error(TrackCreateError());
       }
 
-      return LocalVideoTrack("", stream.getVideoTracks().first, stream);
+      return LocalVideoTrack("camera", stream.getVideoTracks().first, stream);
     } catch (e) {
       return Future.error(e);
     }

@@ -1,6 +1,6 @@
 name: livekit_client
 description: Flutter client for LiveKit
-version: 0.0.1
+version: 0.1.0
 homepage: https://livekit.io
 
 environment:

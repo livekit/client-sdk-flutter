@@ -34,7 +34,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   _initRenderer() async {
     await _renderer.initialize();
-    _renderer.srcObject = widget.track.mediaStream;
+    setState(() {
+      _renderer.srcObject = widget.track.mediaStream;
+    });
   }
 
   @override

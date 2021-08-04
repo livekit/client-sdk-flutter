@@ -3,6 +3,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'errors.dart';
 import 'extensions.dart';
+import 'logger.dart';
 import 'proto/livekit_rtc.pb.dart';
 import 'proto/livekit_models.pb.dart';
 import 'signal_client.dart';
@@ -12,6 +13,8 @@ import 'transport.dart';
 const lossyDataChannel = '_lossy';
 const reliableDataChannel = '_reliable';
 final connectionTimeout = new Duration(seconds: 5);
+final maxReconnectAttempts = 5;
+final iceRestartTimeout = new Duration(seconds: 10);
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
@@ -33,8 +36,10 @@ class RTCEngine with SignalClientDelegate {
   RTCDataChannel? reliableDC;
   RTCDataChannel? lossyDC;
   bool iceConnected = false;
+  bool isReconnecting = false;
   bool isClosed = true;
   Map<String, Completer<TrackInfo>> pendingTrackResolvers = {};
+  int reconnectAttempts = 0;
   // to complete join request
   Completer<JoinResponse>? joinCompleter;
   // remember url and token for reconnect
@@ -47,6 +52,8 @@ class RTCEngine with SignalClientDelegate {
   ParticipantUpdateCallback? onParticipantUpdateCallback;
   ActiveSpeakerChangedCallback? onActiveSpeakerchangedCallback;
   DataPacketCallback? onDataMessageCallback;
+  GenericCallback? onReconnecting;
+  GenericCallback? onReconnected;
   GenericCallback? onDisconnected;
 
   RTCEngine(this.client, RTCConfiguration? rtcConfig) {
@@ -112,17 +119,13 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  negotiate([Map<String, dynamic>? constraints]) async {
+  negotiate({bool? iceRestart}) async {
     var pub = this.publisher;
     if (pub == null) {
       return;
     }
 
-    RTCSessionDescription? remoteDesc;
-    if (pub.pc.iceConnectionState != null) {
-      // when not initially connected, this crashes on iOS
-      remoteDesc = await pub.pc.getRemoteDescription();
-    }
+    var remoteDesc = await pub.getRemoteDescription();
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
@@ -132,12 +135,62 @@ class RTCEngine with SignalClientDelegate {
       await pub.pc.setRemoteDescription(remoteDesc);
     }
 
-    if (constraints == null) {
-      constraints = {};
+    var constraints = <String, dynamic>{};
+    if (iceRestart != null && iceRestart) {
+      constraints['mandatory'] = {
+        'IceRestart': true,
+      };
     }
     var offer = await pub.pc.createOffer(constraints);
     await pub.pc.setLocalDescription(offer);
     client.sendOffer(offer);
+  }
+
+  Future<void> reconnect() async {
+    if (isClosed) {
+      return;
+    }
+    var url = this.url;
+    var token = this.token;
+    if (url == null || token == null) {
+      throw ConnectError("could not reconnect without url and token");
+    }
+    if (reconnectAttempts == 0) {
+      onReconnecting?.call();
+    }
+    reconnectAttempts++;
+
+    try {
+      isReconnecting = true;
+      await client.reconnect(url, token);
+
+      var pub = this.publisher;
+      var sub = this.subscriber;
+      if (pub == null || sub == null) {
+        throw UnexpectedConnectionState('publisher or subscribers is null');
+      }
+
+      pub.restartingIce = true;
+      sub.restartingIce = true;
+
+      await negotiate(iceRestart: true);
+    } catch (e) {
+      isReconnecting = false;
+      return Future.error(e);
+    }
+
+    // wait for connectivity to change
+    var startTime = DateTime.now();
+    while (DateTime.now().difference(startTime) < iceRestartTimeout) {
+      if (iceConnected) {
+        isReconnecting = false;
+        return;
+      }
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+
+    isReconnecting = false;
+    return Future.error(ConnectError('could not reconnect ICE'));
   }
 
   _configurePeerConnections() async {
@@ -174,11 +227,16 @@ class RTCEngine with SignalClientDelegate {
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
           if (!iceConnected) {
             iceConnected = true;
-            onICEConnected?.call();
+            if (isReconnecting) {
+              onReconnected?.call();
+            } else {
+              onICEConnected?.call();
+            }
           }
           break;
 
         case RTCIceConnectionState.RTCIceConnectionStateFailed:
+          iceConnected = false;
           // trigger reconnect sequence
           _handleDisconnect('peerconnection');
           break;
@@ -230,7 +288,25 @@ class RTCEngine with SignalClientDelegate {
   }
 
   _handleDisconnect(String reason) {
-    // TODO: implement method
+    if (isClosed) {
+      return;
+    }
+    logger.fine('disconnected $reason');
+    if (this.reconnectAttempts >= maxReconnectAttempts) {
+      logger.info('could not connect after $reconnectAttempts, giving up');
+      this.close();
+      onDisconnected?.call();
+      return;
+    }
+
+    var delay = (reconnectAttempts * reconnectAttempts) * 300;
+    Future.delayed(Duration(milliseconds: delay), () {
+      reconnect().then((_) {
+        reconnectAttempts = 0;
+      }).catchError((e) {
+        _handleDisconnect(reason);
+      });
+    });
   }
 
   //------------------ SignalClient Delegate methods -------------------------//
@@ -263,7 +339,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   void onClose([String? reason]) {
-    // TODO: handle reconnect when signal interrupted
+    _handleDisconnect("signal");
   }
 
   void onOffer(RTCSessionDescription sd) async {

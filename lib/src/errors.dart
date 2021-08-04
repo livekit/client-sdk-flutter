@@ -13,6 +13,11 @@ class ConnectError extends LiveKitError {
   ConnectError([String msg = 'Failed to connect to server']) : super(msg);
 }
 
+class UnexpectedConnectionState extends LiveKitError {
+  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
+      : super(msg);
+}
+
 class TrackCreateError extends LiveKitError {
   TrackCreateError([String msg = 'Failed to create track']) : super(msg);
 }
