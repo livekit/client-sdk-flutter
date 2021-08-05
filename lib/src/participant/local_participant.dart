@@ -76,9 +76,6 @@ class LocalParticipant extends Participant {
       var trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
       var stream = await getMediaStream();
-      if (stream == null) {
-        return Future.error(TrackPublishError());
-      }
       var transceiverInit = new RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
         streams: [stream],
