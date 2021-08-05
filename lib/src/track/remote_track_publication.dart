@@ -12,12 +12,14 @@ class RemoteTrackPublication extends TrackPublication {
 
   VideoQuality get videoQuality => _videoQuality;
   set videoQuality(VideoQuality val) {
+    if (val == _videoQuality) return;
     _videoQuality = val;
     _sendUpdateTrackSettings();
   }
 
   bool get enabled => !_disabled;
   set enabled(bool val) {
+    if (_disabled == !val) return;
     _disabled = !val;
     _sendUpdateTrackSettings();
   }
@@ -30,6 +32,7 @@ class RemoteTrackPublication extends TrackPublication {
   }
 
   set subscribed(bool val) {
+    if (_unsubscribed == !val) return;
     _unsubscribed = !val;
     _sendUpdateTrackSettings();
   }

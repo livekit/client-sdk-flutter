@@ -38,58 +38,66 @@ class LocalParticipant extends Participant {
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
     if (audioTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
-      throw new TrackPublishError('track already exists');
+      return Future.error(TrackPublishError('track already exists'));
     }
 
-    var trackInfo = await _engine.addTrack(
-        cid: track.getCid(), name: track.name, kind: track.kind);
-    var stream = await getMediaStream();
-    var transceiverInit = new RTCRtpTransceiverInit(
-      direction: TransceiverDirection.SendOnly,
-      streams: [stream],
-    );
-    track.transceiver = await _engine.publisher?.pc.addTransceiver(
-      track: track.mediaTrack,
-      kind: track.mediaType,
-      init: transceiverInit,
-    );
+    try {
+      var trackInfo = await _engine.addTrack(
+          cid: track.getCid(), name: track.name, kind: track.kind);
+      var stream = await getMediaStream();
+      var transceiverInit = new RTCRtpTransceiverInit(
+        direction: TransceiverDirection.SendOnly,
+        streams: [stream],
+      );
+      track.transceiver = await _engine.publisher?.pc.addTransceiver(
+        track: track.mediaTrack,
+        kind: track.mediaType,
+        init: transceiverInit,
+      );
 
-    var pub = new LocalTrackPublication(trackInfo, track, this);
-    addTrackPublication(pub);
-    notifyListeners();
+      var pub = new LocalTrackPublication(trackInfo, track, this);
+      addTrackPublication(pub);
+      notifyListeners();
 
-    return pub;
+      return pub;
+    } catch (e) {
+      return Future.error(e);
+    }
   }
 
   /// publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
     if (audioTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
-      throw new TrackPublishError('track already exists');
+      return Future.error(TrackPublishError('track already exists'));
     }
 
-    var trackInfo = await _engine.addTrack(
-        cid: track.getCid(), name: track.name, kind: track.kind);
-    var stream = await getMediaStream();
-    if (stream == null) {
-      return Future.error(TrackPublishError());
+    try {
+      var trackInfo = await _engine.addTrack(
+          cid: track.getCid(), name: track.name, kind: track.kind);
+      var stream = await getMediaStream();
+      if (stream == null) {
+        return Future.error(TrackPublishError());
+      }
+      var transceiverInit = new RTCRtpTransceiverInit(
+        direction: TransceiverDirection.SendOnly,
+        streams: [stream],
+      );
+      // TODO: video encodings and simulcast
+      track.transceiver = await _engine.publisher?.pc.addTransceiver(
+        track: track.mediaTrack,
+        kind: track.mediaType,
+        init: transceiverInit,
+      );
+
+      var pub = new LocalTrackPublication(trackInfo, track, this);
+      addTrackPublication(pub);
+      notifyListeners();
+
+      return pub;
+    } catch (e) {
+      return Future.error(e);
     }
-    var transceiverInit = new RTCRtpTransceiverInit(
-      direction: TransceiverDirection.SendOnly,
-      streams: [stream],
-    );
-    // TODO: video encodings and simulcast
-    track.transceiver = await _engine.publisher?.pc.addTransceiver(
-      track: track.mediaTrack,
-      kind: track.mediaType,
-      init: transceiverInit,
-    );
-
-    var pub = new LocalTrackPublication(trackInfo, track, this);
-    addTrackPublication(pub);
-    notifyListeners();
-
-    return pub;
   }
 
   unpublishTrack(Track track) {

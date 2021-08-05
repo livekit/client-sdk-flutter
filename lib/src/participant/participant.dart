@@ -65,7 +65,7 @@ class Participant extends ChangeNotifier {
   DateTime get joinedAt {
     var pi = _participantInfo;
     if (pi != null) {
-      return DateTime.fromMillisecondsSinceEpoch((pi.joinedAt as int) * 1000,
+      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
           isUtc: true);
     }
     return DateTime.now();
@@ -82,9 +82,9 @@ class Participant extends ChangeNotifier {
     return audioTracks.values.first.muted;
   }
 
-  bool get hasAudio => audioTracks.length > 0;
+  bool get hasAudio => audioTracks.isNotEmpty;
 
-  bool get hasVideo => videoTracks.length > 0;
+  bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks {

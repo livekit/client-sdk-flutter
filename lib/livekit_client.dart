@@ -9,6 +9,7 @@ export 'src/participant/remote_participant.dart';
 export 'src/proto/livekit_models.pbenum.dart';
 export 'src/proto/livekit_rtc.pbenum.dart';
 export 'src/participant/local_participant.dart';
+export 'src/track/options.dart';
 export 'src/track/track.dart';
 export 'src/track/video_track.dart';
 export 'src/track/local_audio_track.dart';
