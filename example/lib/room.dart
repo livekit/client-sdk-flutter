@@ -1,16 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/src/controls.dart';
 import 'package:provider/provider.dart';
 
-class RoomWidget extends StatelessWidget with RoomDelegate {
-  final Room _room;
-  BuildContext? _lastContext;
+class RoomWidget extends StatefulWidget {
+  final Room room;
 
-  RoomWidget(this._room) {
-    // Room widget is created after connected to the room
-    // publish tracks to the room here.
+  RoomWidget(this.room);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _RoomState();
+  }
+}
+
+class _RoomState extends State<RoomWidget> with RoomDelegate {
+  BuildContext? _lastContext;
+  List<Participant> participants = [];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.room.delegate = this;
+    widget.room.addListener(_onChange);
     _onConnected();
-    _room.delegate = this;
+  }
+
+  @override
+  void dispose() {
+    widget.room.delegate = null;
+    super.dispose();
+  }
+
+  void _onChange() {
+    sortParticipants();
+  }
+
+  void sortParticipants() {
+    List<Participant> participants = [];
+    participants.addAll(widget.room.participants.values);
+    // sort speakers for the grid
+    participants.sort((a, b) {
+      // loudest speaker first
+      if (a.isSpeaking && b.isSpeaking) {
+        if (a.audioLevel > b.audioLevel) {
+          return -1;
+        } else {
+          return 1;
+        }
+      }
+
+      // last spoken at
+      var aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch;
+      var bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch;
+      if (aSpokeAt == null) {
+        aSpokeAt = 0;
+      }
+      if (bSpokeAt == null) {
+        bSpokeAt = 0;
+      }
+      if (aSpokeAt != bSpokeAt) {
+        return aSpokeAt > bSpokeAt ? -1 : 1;
+      }
+
+      // video on
+      if (a.hasVideo != b.hasVideo) {
+        return a.hasVideo ? -1 : 1;
+      }
+
+      // joinedAt
+      return a.joinedAt.millisecondsSinceEpoch -
+          b.joinedAt.millisecondsSinceEpoch;
+    });
+
+    if (participants.length > 1) {
+      participants.insert(1, widget.room.localParticipant);
+    } else {
+      participants.add(widget.room.localParticipant);
+    }
+    setState(() {
+      this.participants = participants;
+    });
   }
 
   @override
@@ -23,85 +93,74 @@ class RoomWidget extends StatelessWidget with RoomDelegate {
   }
 
   _onConnected() async {
-    var localVideo = await LocalVideoTrack.createCameraTrack();
-    await _room.localParticipant.publishVideoTrack(localVideo);
+    // video will fail when running in ios simulator
+    try {
+      var localVideo = await LocalVideoTrack.createCameraTrack();
+      await widget.room.localParticipant.publishVideoTrack(localVideo);
+    } catch (e) {
+      print('could not publish video: $e');
+    }
+
     var localAudio = await LocalAudioTrack.createTrack();
-    await _room.localParticipant.publishAudioTrack(localAudio);
+    await widget.room.localParticipant.publishAudioTrack(localAudio);
+    sortParticipants();
   }
 
   @override
   Widget build(BuildContext context) {
     _lastContext = context;
-    // with a provider, any child/descendent widget can be updated if they
-    // are a Consumer of Room.
-    return ChangeNotifierProvider.value(
-        value: _room,
-        child: Column(
-          children: [
-            Expanded(child: Consumer<Room>(builder: (context, room, child) {
-              // ensures the video grid gets updated each time participants change
-              return VideoGrid(room);
-            }))
-          ],
-        ));
-  }
-}
 
-class VideoGrid extends StatelessWidget {
-  final Room room;
-  final PageController controller = PageController(initialPage: 0);
+    var mainWidgets = <Widget>[];
+    var participants = this.participants;
+    if (participants.isNotEmpty) {
+      mainWidgets.add(Expanded(child: VideoView(participants.first)));
+    } else {
+      mainWidgets.add(Expanded(child: Container()));
+    }
 
-  VideoGrid(this.room);
-
-  List<Participant> get sortedParticipants {
-    List<Participant> participants = [];
-    participants.add(room.localParticipant);
-    participants.addAll(room.participants.values);
-    // TODO: sort speakers for the grid
-    // participants.sort((a, b) {
-    //   // loudest speaker first
-    //   if (a.isSpeaking && b.isSpeaking) {
-    //     if (a.audioLevel > b.audioLevel) {
-    //       return -1;
-    //     } else {x
-    //       return 1;
-    //     }
-    //   }
-    //   // speaker
-    // });
-    return participants;
-  }
-
-  @override
-  Widget build(Object context) {
-    List<Widget> pages = [];
-    var participants = sortedParticipants;
-    var numPages = (participants.length / 4.0).ceil();
-    for (var i = 0; i < numPages; i++) {
-      List<Widget> children = [];
-      for (var j = 4 * i; j < participants.length; j++) {
-        var participant = participants[j];
-        children.add(VideoView(participant));
-      }
-      pages.add(GridView.count(
-        crossAxisCount: 2,
-        primary: false,
-        children: children,
+    if (participants.length > 1) {
+      var videoList = ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: participants.length - 1,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+            width: 100,
+            height: 60,
+            padding: const EdgeInsets.all(2),
+            child:
+                VideoView(participants[index + 1], quality: VideoQuality.LOW),
+          );
+        },
+      );
+      mainWidgets.add(Container(
+        height: 60,
+        child: videoList,
       ));
     }
 
-    return PageView(
-      scrollDirection: Axis.horizontal,
-      controller: controller,
-      children: pages,
-    );
+    mainWidgets.add(Controls(widget.room));
+    return MaterialApp(
+        title: 'LiveKit Video Room',
+        theme: ThemeData(
+          primarySwatch: Colors.deepPurple,
+        ),
+        home: Scaffold(
+            // with a provider, any child/descendent widget can be updated if they
+            // are a Consumer of Room.
+            body: ChangeNotifierProvider.value(
+                value: widget.room,
+                child: Column(
+                  children: mainWidgets,
+                ))));
   }
 }
 
 class VideoView extends StatefulWidget {
   final Participant participant;
+  final VideoQuality quality;
 
-  VideoView(this.participant);
+  VideoView(this.participant, {VideoQuality quality = VideoQuality.MEDIUM})
+      : this.quality = quality;
 
   @override
   State<StatefulWidget> createState() {
@@ -110,15 +169,13 @@ class VideoView extends StatefulWidget {
 }
 
 class _VideoViewState extends State<VideoView> with ParticipantDelegate {
+  TrackPublication? videoPub;
+
   @override
   void initState() {
     super.initState();
     widget.participant.addListener(this._onParticipantChanged);
-  }
-
-  // register for change so Flutter will re-build the widget upon change
-  void _onParticipantChanged() {
-    setState(() {});
+    _onParticipantChanged();
   }
 
   @override
@@ -127,22 +184,36 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    var stackChildren = <Widget>[];
+  // register for change so Flutter will re-build the widget upon change
+  void _onParticipantChanged() {
     var subscribedVideos = widget.participant.videoTracks.values.where((pub) {
       return pub.kind == TrackType.VIDEO &&
           !pub.isScreenShare &&
           pub.subscribed;
     });
 
-    if (subscribedVideos.length > 0) {
-      var videoPub = subscribedVideos.first;
-      stackChildren.add(VideoTrackRenderer(videoPub.track as VideoTrack));
-    }
+    setState(() {
+      if (subscribedVideos.length > 0) {
+        var videoPub = subscribedVideos.first;
+        if (videoPub is RemoteTrackPublication) {
+          videoPub.videoQuality = widget.quality;
+        }
+        this.videoPub = videoPub;
+      } else {
+        this.videoPub = null;
+      }
+    });
+  }
 
-    return Stack(
-      children: stackChildren,
-    );
+  @override
+  Widget build(BuildContext context) {
+    var videoPub = this.videoPub;
+    if (videoPub != null) {
+      return VideoTrackRenderer(videoPub.track as VideoTrack);
+    } else {
+      return Container(
+        color: Colors.grey,
+      );
+    }
   }
 }
