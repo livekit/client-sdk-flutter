@@ -11,7 +11,6 @@ jobs:
     # This job will run on ubuntu virtual machine
     runs-on: ubuntu-latest
     steps:
-
       # # Setup Java environment in order to build the Android app.
       # - uses: actions/checkout@v1
       # - uses: actions/setup-java@v1
@@ -20,6 +19,14 @@ jobs:
 
       # Setup the flutter environment.
       - uses: subosito/flutter-action@v1
+
+      - uses: actions/checkout@v2
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v1
+        with:
+          path: /opt/hostedtoolcache/flutter
+          key: ${{ runner.OS }}-flutter-install-cache-${{ env.flutter_version }}
 
       # Get flutter dependencies.
       - run: flutter pub get
