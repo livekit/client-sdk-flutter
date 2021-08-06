@@ -13,7 +13,6 @@ import 'participant.dart';
 
 class LocalParticipant extends Participant {
   RTCEngine _engine;
-  MediaStream? _mediaStream;
 
   LocalParticipant({
     required RTCEngine engine,
@@ -25,15 +24,6 @@ class LocalParticipant extends Participant {
 
   RTCEngine get engine => _engine;
 
-  Future<MediaStream> getMediaStream() async {
-    var stream = _mediaStream;
-    if (stream == null) {
-      stream = await createLocalMediaStream(sid);
-      _mediaStream = stream;
-    }
-    return stream;
-  }
-
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
     if (audioTracks.values.any(
@@ -44,10 +34,8 @@ class LocalParticipant extends Participant {
     try {
       var trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var stream = await getMediaStream();
       var transceiverInit = new RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
-        streams: [stream],
       );
       track.transceiver = await _engine.publisher?.pc.addTransceiver(
         track: track.mediaTrack,
@@ -67,7 +55,7 @@ class LocalParticipant extends Participant {
 
   /// publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
-    if (audioTracks.values.any(
+    if (videoTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
@@ -75,10 +63,8 @@ class LocalParticipant extends Participant {
     try {
       var trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var stream = await getMediaStream();
       var transceiverInit = new RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
-        streams: [stream],
       );
       // TODO: video encodings and simulcast
       track.transceiver = await _engine.publisher?.pc.addTransceiver(

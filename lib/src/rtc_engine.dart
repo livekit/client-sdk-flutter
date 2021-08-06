@@ -64,14 +64,18 @@ class RTCEngine with SignalClientDelegate {
     this.client.delegate = this;
   }
 
-  Future<JoinResponse> join(String url, String token, JoinOptions? opts) {
+  Future<JoinResponse> join(String url, String token, JoinOptions? opts) async {
     this.url = url;
     this.token = token;
 
     var completer = new Completer<JoinResponse>();
     joinCompleter = completer;
 
-    client.join(url, token, opts);
+    try {
+      await client.join(url, token, opts);
+    } catch (e) {
+      return Future.error(e);
+    }
 
     // if it's not complete after 5 seconds, fail
     new Timer(connectionTimeout, () {

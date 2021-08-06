@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import './track/track.dart';
-import './version.dart';
-import './proto/livekit_models.pb.dart';
-import './proto/livekit_rtc.pb.dart';
+import 'package:http/http.dart' as http;
+
+import 'logger.dart';
+import 'track/track.dart';
+import 'version.dart';
+import 'proto/livekit_models.pb.dart';
+import 'proto/livekit_rtc.pb.dart';
 import '_websocket_api.dart'
     if (dart.library.io) '_websocket_io.dart'
     if (dart.library.html) '_websocket_html.dart' as platform;
@@ -48,22 +53,33 @@ class SignalClient {
 
   bool get connected => this._connected;
 
-  join(String url, String token, JoinOptions? options) {
-    url += '/rtc';
+  Future<void> join(String url, String token, JoinOptions? options) async {
+    var rtcUrl = '$url/rtc';
     var params = _paramsForToken(token);
     if (options != null && options.autoSubscribe != null) {
       params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
     }
-    var uri = Uri.parse(url + params);
 
-    platform.connectToWebSocket(uri).then((ws) {
+    try {
+      var ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
       ws.stream
           .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
-    }).catchError((error) {
-      // TODO: ping api endpoint
-      _handleError(error);
-    });
+    } catch (e) {
+      var completer = Completer();
+      var validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
+      http.get(validateUri).then((response) {
+        if (response.statusCode != 200) {
+          completer.completeError(ConnectError(response.body));
+        } else {
+          completer.completeError(ConnectError());
+        }
+      }).catchError((e) {
+        completer.completeError(ConnectError());
+      });
+
+      return completer.future;
+    }
   }
 
   Future<void> reconnect(String url, String token) async {
@@ -210,7 +226,7 @@ class SignalClient {
   }
 
   _handleError(Object error) {
-    // TODO: test HTTP endpoint
+    logger.warning('received websocket error $error');
   }
 
   _handleDone() {
