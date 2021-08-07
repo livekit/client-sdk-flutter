@@ -49,6 +49,9 @@ class RemoteTrackPublication extends TrackPublication {
       _participant.delegate?.onTrackUnmuted(_participant, this);
       _participant.roomDelegate?.onTrackUnmuted(_participant, this);
     }
+    if (subscribed) {
+      track?.mediaTrack.enabled = !val;
+    }
     _participant.muteChanged();
   }
 

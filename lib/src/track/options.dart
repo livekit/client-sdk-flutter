@@ -3,9 +3,12 @@ class LocalVideoTrackOptions {
   VideoParameter params;
 
   LocalVideoTrackOptions({
-    required VideoParameter params,
+    VideoParameter? params,
     CameraPosition? position,
-  }) : this.params = params {
+  }) : params = VideoPresets.qhd {
+    if (params != null) {
+      this.params = params;
+    }
     if (position != null) {
       this.position = position;
     }

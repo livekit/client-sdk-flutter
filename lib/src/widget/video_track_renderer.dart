@@ -23,20 +23,33 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void initState() {
     super.initState();
+    widget.track.addListener(_trackChanged);
     _initRenderer();
   }
 
   @override
   void dispose() {
+    widget.track.removeListener(_trackChanged);
     _renderer.dispose();
     super.dispose();
   }
 
-  _initRenderer() async {
-    await _renderer.initialize();
+  @override
+  void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
+    oldWidget.track.removeListener(_trackChanged);
+    widget.track.addListener(_trackChanged);
+    super.didUpdateWidget(oldWidget);
+  }
+
+  _trackChanged() {
     setState(() {
       _renderer.srcObject = widget.track.mediaStream;
     });
+  }
+
+  _initRenderer() async {
+    await _renderer.initialize();
+    _trackChanged();
   }
 
   @override

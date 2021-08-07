@@ -22,6 +22,8 @@ class Track {
 
   Track(this.kind, this.name, this.mediaTrack);
 
+  bool get muted => mediaTrack.muted == null ? false : mediaTrack.muted!;
+
   RTCRtpMediaType get mediaType {
     switch (kind) {
       case TrackType.AUDIO:
