@@ -1,3 +1,8 @@
+## 0.3.0
+
+* `replaceTrack` API to switch camera sources
+* example app works on Android
+
 ## 0.2.0
 
 * pass more detailed connect error message

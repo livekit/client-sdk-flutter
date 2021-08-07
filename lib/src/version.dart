@@ -1,2 +1,2 @@
-const version = '0.2.0';
+const version = '0.3.0';
 const protocolVersion = 2;
