@@ -31,8 +31,8 @@ class PreConnect extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     return _PreConnectState(
-      'ws://localhost:7880',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5ODQzNDMyMzUsImlzcyI6IkFQSU1teGlMOHJxdUt6dFpFb1pKVjlGYiIsImp0aSI6InNlY29uZCIsIm5iZiI6MTYyNDM0MzIzNSwidmlkZW8iOnsicm9vbSI6Im15cm9vbSIsInJvb21Kb2luIjp0cnVlfX0.USJmnqcLabtsX5A0ZIjguG7jnbVkbZxi5RyPxLOXgOg',
+      '<livekit_host>',
+      '<access_token>',
     );
   }
 }

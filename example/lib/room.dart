@@ -32,6 +32,20 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     super.dispose();
   }
 
+  _onConnected() async {
+    // video will fail when running in ios simulator
+    try {
+      var localVideo = await LocalVideoTrack.createCameraTrack();
+      await widget.room.localParticipant.publishVideoTrack(localVideo);
+    } catch (e) {
+      print('could not publish video: $e');
+    }
+
+    var localAudio = await LocalAudioTrack.createTrack();
+    await widget.room.localParticipant.publishAudioTrack(localAudio);
+    sortParticipants();
+  }
+
   void _onChange() {
     sortParticipants();
   }
@@ -90,20 +104,6 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     if (context != null) {
       Navigator.pop(context);
     }
-  }
-
-  _onConnected() async {
-    // video will fail when running in ios simulator
-    try {
-      var localVideo = await LocalVideoTrack.createCameraTrack();
-      await widget.room.localParticipant.publishVideoTrack(localVideo);
-    } catch (e) {
-      print('could not publish video: $e');
-    }
-
-    var localAudio = await LocalAudioTrack.createTrack();
-    await widget.room.localParticipant.publishAudioTrack(localAudio);
-    sortParticipants();
   }
 
   @override
@@ -184,6 +184,14 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant VideoView oldWidget) {
+    oldWidget.participant.removeListener(_onParticipantChanged);
+    widget.participant.addListener(_onParticipantChanged);
+    _onParticipantChanged();
+    super.didUpdateWidget(oldWidget);
+  }
+
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
     var subscribedVideos = widget.participant.videoTracks.values.where((pub) {
@@ -198,10 +206,13 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
         if (videoPub is RemoteTrackPublication) {
           videoPub.videoQuality = widget.quality;
         }
-        this.videoPub = videoPub;
-      } else {
-        this.videoPub = null;
+        // when muted, show placeholder
+        if (!videoPub.muted) {
+          this.videoPub = videoPub;
+          return;
+        }
       }
+      this.videoPub = null;
     });
   }
 

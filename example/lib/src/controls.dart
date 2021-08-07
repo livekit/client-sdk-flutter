@@ -14,15 +14,17 @@ class Controls extends StatefulWidget {
 }
 
 class _ControlsState extends State<Controls> {
+  CameraPosition position = CameraPosition.FRONT;
+
   @override
   void initState() {
     super.initState();
-    widget.participant.addListener(_onChange);
+    participant.addListener(_onChange);
   }
 
   @override
   void dispose() {
-    widget.participant.removeListener(_onChange);
+    participant.removeListener(_onChange);
     super.dispose();
   }
 
@@ -69,6 +71,31 @@ class _ControlsState extends State<Controls> {
     }
   }
 
+  _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
+    if (this.position == position) {
+      return;
+    }
+    LocalVideoTrack? track;
+    if (pub?.track is LocalVideoTrack) {
+      track = pub!.track as LocalVideoTrack;
+    }
+
+    if (track == null) {
+      return;
+    }
+
+    try {
+      await track.restartTrack(LocalVideoTrackOptions(position: position));
+    } catch (e) {
+      print('could not restart track: $e');
+      return;
+    }
+
+    setState(() {
+      this.position = position;
+    });
+  }
+
   _exit() {
     widget.room.disconnect();
   }
@@ -100,7 +127,8 @@ class _ControlsState extends State<Controls> {
       videoPub = participant.videoTracks.values.first;
     }
 
-    if (videoPub != null && videoPub.muted) {
+    var videoEnabled = videoPub != null && !videoPub.muted;
+    if (videoEnabled) {
       buttons.add(IconButton(
         onPressed: _muteVideo,
         icon: const Icon(Icons.videocam_rounded),
@@ -112,11 +140,34 @@ class _ControlsState extends State<Controls> {
       ));
     }
 
+    if (position == CameraPosition.FRONT) {
+      buttons.add(IconButton(
+        icon: const Icon(Icons.video_camera_front_rounded),
+        onPressed: videoEnabled
+            ? () {
+                _setCameraPosition(videoPub, CameraPosition.BACK);
+              }
+            : null,
+      ));
+    } else {
+      buttons.add(IconButton(
+        icon: const Icon(Icons.video_camera_back_rounded),
+        onPressed: videoEnabled
+            ? () {
+                _setCameraPosition(videoPub, CameraPosition.FRONT);
+              }
+            : null,
+      ));
+    }
+
     buttons.add(IconButton(
       onPressed: _exit,
       icon: const Icon(Icons.close_rounded),
     ));
 
-    return Row(children: buttons);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: buttons,
+    );
   }
 }
