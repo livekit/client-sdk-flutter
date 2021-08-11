@@ -37,9 +37,9 @@ class LocalParticipant extends Participant {
       var transceiverInit = new RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
+      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
       track.transceiver = await _engine.publisher?.pc.addTransceiver(
         track: track.mediaTrack,
-        kind: track.mediaType,
         init: transceiverInit,
       );
 
@@ -66,10 +66,10 @@ class LocalParticipant extends Participant {
       var transceiverInit = new RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
-      // TODO: video encodings and simulcast
+      // TODO: video encodings and simulcasts
+      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
       track.transceiver = await _engine.publisher?.pc.addTransceiver(
         track: track.mediaTrack,
-        kind: track.mediaType,
         init: transceiverInit,
       );
 
