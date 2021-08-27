@@ -155,6 +155,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
   }
 }
 
+// displays a participant in view
 class VideoView extends StatefulWidget {
   final Participant participant;
   final VideoQuality quality;
