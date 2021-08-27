@@ -55,7 +55,7 @@ class SignalClient {
 
   Future<void> join(String url, String token, JoinOptions? options) async {
     var rtcUrl = '$url/rtc';
-    var params = _paramsForToken(token);
+    var params = _joinParams(token);
     if (options != null && options.autoSubscribe != null) {
       params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
     }
@@ -88,7 +88,7 @@ class SignalClient {
     _ws = null;
 
     url += '/rtc';
-    var params = _paramsForToken(token);
+    var params = _joinParams(token);
     params += '&reconnect=1';
     var uri = Uri.parse(url + params);
 
@@ -239,7 +239,7 @@ class SignalClient {
   }
 }
 
-String _paramsForToken(String token) {
+String _joinParams(String token) {
   return '?access_token=$token&protocol=$protocolVersion';
 }
 
