@@ -1,15 +1,12 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/src/track/audio_track.dart';
 
 import '../errors.dart';
-import '../proto/livekit_models.pb.dart';
 import 'options.dart';
-import 'track.dart';
 
-class LocalAudioTrack extends Track {
-  MediaStream? mediaStream;
-
-  LocalAudioTrack(String name, MediaStreamTrack track, this.mediaStream)
-      : super(TrackType.AUDIO, name, track);
+class LocalAudioTrack extends AudioTrack {
+  LocalAudioTrack(String name, MediaStreamTrack track, MediaStream stream)
+      : super(name, track, stream);
 
   static Future<LocalAudioTrack> createTrack(
       [LocalAudioTrackOptions? options]) async {
@@ -27,12 +24,5 @@ class LocalAudioTrack extends Track {
     } catch (e) {
       return Future.error(e);
     }
-  }
-
-  @override
-  stop() {
-    super.stop();
-    mediaStream?.dispose();
-    mediaStream = null;
   }
 }

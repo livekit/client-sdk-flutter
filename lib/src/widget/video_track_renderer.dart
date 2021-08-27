@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../track/video_track.dart';
 import '../track/local_video_track.dart';
 
@@ -30,6 +31,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void dispose() {
     widget.track.removeListener(_trackChanged);
+    _renderer.srcObject = null;
     _renderer.dispose();
     super.dispose();
   }
@@ -38,6 +40,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     oldWidget.track.removeListener(_trackChanged);
     widget.track.addListener(_trackChanged);
+    _trackChanged();
     super.didUpdateWidget(oldWidget);
   }
 

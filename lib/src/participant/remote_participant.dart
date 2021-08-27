@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/src/track/audio_track.dart';
 import '../proto/livekit_models.pb.dart';
 import '../signal_client.dart';
 import '../track/remote_track_publication.dart';
@@ -49,7 +50,9 @@ class RemoteParticipant extends Participant {
 
     Track? track;
     if (pub.kind == TrackType.AUDIO) {
-      track = new Track(pub.kind, pub.name, mediaTrack);
+      var audioTrack = new AudioTrack(pub.name, mediaTrack, stream);
+      audioTrack.start();
+      track = audioTrack;
     } else if (pub.kind == TrackType.VIDEO) {
       track = new VideoTrack(pub.name, mediaTrack, stream);
     } else {
