@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 class Controls extends StatefulWidget {
+  //
   final Room room;
   final LocalParticipant participant;
 
-  Controls(this.room) : participant = room.localParticipant;
+  Controls(
+    this.room, {
+    Key? key,
+  })  : participant = room.localParticipant,
+        super(key: key);
 
   @override
   State<StatefulWidget> createState() {

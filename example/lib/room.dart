@@ -4,9 +4,13 @@ import 'package:livekit_example/src/controls.dart';
 import 'package:provider/provider.dart';
 
 class RoomWidget extends StatefulWidget {
+  //
   final Room room;
 
-  RoomWidget(this.room);
+  const RoomWidget(
+    this.room, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -157,11 +161,16 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
 
 // displays a participant in view
 class VideoView extends StatefulWidget {
+  //
   final Participant participant;
   final VideoQuality quality;
 
-  VideoView(this.participant, {VideoQuality quality = VideoQuality.MEDIUM})
-      : this.quality = quality;
+  const VideoView(
+    this.participant, {
+    VideoQuality quality = VideoQuality.MEDIUM,
+    Key? key,
+  })  : this.quality = quality,
+        super(key: key); 
 
   @override
   State<StatefulWidget> createState() {
