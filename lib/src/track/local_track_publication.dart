@@ -11,6 +11,7 @@ class LocalTrackPublication extends TrackPublication {
     this.track = track;
   }
 
+  @override
   set muted(bool val) {
     if (val == muted) {
       return;

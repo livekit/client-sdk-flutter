@@ -24,6 +24,7 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
+  @override
   bool get subscribed {
     if (_unsubscribed) {
       return false;
@@ -37,6 +38,7 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
+  @override
   set muted(bool val) {
     if (val == muted) {
       return;

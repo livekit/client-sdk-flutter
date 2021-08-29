@@ -315,6 +315,7 @@ class RTCEngine with SignalClientDelegate {
 
   //------------------ SignalClient Delegate methods -------------------------//
 
+  @override
   void onConnected(JoinResponse response) async {
     // create peer connections
     this.isClosed = false;
@@ -342,10 +343,12 @@ class RTCEngine with SignalClientDelegate {
     joinCompleter = null;
   }
 
+  @override
   void onClose([String? reason]) {
     _handleDisconnect("signal");
   }
 
+  @override
   void onOffer(RTCSessionDescription sd) async {
     var sub = subscriber;
     if (sub == null) {
@@ -358,6 +361,7 @@ class RTCEngine with SignalClientDelegate {
     client.sendAnswer(answer);
   }
 
+  @override
   void onAnswer(RTCSessionDescription sd) {
     if (publisher == null) {
       return;
@@ -366,6 +370,7 @@ class RTCEngine with SignalClientDelegate {
     publisher?.setRemoteDescription(sd);
   }
 
+  @override
   void onTrickle(RTCIceCandidate candidate, SignalTarget target) {
     if (target == SignalTarget.SUBSCRIBER) {
       subscriber?.addIceCandidate(candidate);
@@ -374,19 +379,23 @@ class RTCEngine with SignalClientDelegate {
     }
   }
 
+  @override
   void onParticipantUpdate(List<ParticipantInfo> updates) {
     onParticipantUpdateCallback?.call(updates);
   }
 
+  @override
   void onLocalTrackPublished(TrackPublishedResponse response) {
     var completer = pendingTrackResolvers.remove(response.cid);
     completer?.complete(Future.value(response.track));
   }
 
+  @override
   void onActiveSpeakersChanged(List<SpeakerInfo> speakers) {
     onActiveSpeakerchangedCallback?.call(speakers);
   }
 
+  @override
   void onLeave(LeaveRequest req) {
     close();
     onDisconnected?.call();

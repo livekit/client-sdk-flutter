@@ -313,41 +313,50 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   //----------------- forward participant delegate calls ---------------------//
 
+  @override
   void onMetadataChanged(Participant participant) {
     delegate?.onMetadataChanged(participant);
   }
 
+  @override
   void onTrackMuted(Participant participant, TrackPublication publication) {
     delegate?.onTrackMuted(participant, publication);
   }
 
+  @override
   void onTrackUnmuted(Participant participant, TrackPublication publication) {
     delegate?.onTrackUnmuted(participant, publication);
   }
 
+  @override
   void onTrackPublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackPublished(participant, publication);
   }
 
+  @override
   void onTrackUnpublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackUnpublished(participant, publication);
   }
 
+  @override
   void onTrackSubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {
     delegate?.onTrackSubscribed(participant, track, publication);
   }
 
+  @override
   void onTrackUnsubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {
     delegate?.onTrackUnsubscribed(participant, track, publication);
   }
 
   // omitted because data dispatching is handled in _handleDataPacket
+  @override
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
+  @override
   void onTrackSubscriptionFailed(
       RemoteParticipant participant, String sid, String? message) {
     delegate?.onTrackSubscriptionFailed(participant, sid, message);

@@ -135,6 +135,7 @@ class LocalParticipant extends Participant {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
+  @override
   updateFromInfo(ParticipantInfo info) {
     super.updateFromInfo(info);
   }
