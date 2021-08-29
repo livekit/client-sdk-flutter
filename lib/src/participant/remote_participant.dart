@@ -112,7 +112,7 @@ class RemoteParticipant extends Participant {
 
   unpublishTrack(String sid, [bool sendUnpublish = false]) {
     var pub = tracks.remove(sid);
-    if (pub == null || !(pub is RemoteTrackPublication)) {
+    if (pub == null || pub is! RemoteTrackPublication) {
       return;
     }
 

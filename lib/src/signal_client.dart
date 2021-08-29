@@ -187,7 +187,7 @@ class SignalClient {
   }
 
   _handleMessage(dynamic message) {
-    if (!(message is List<int>)) {
+    if (message is! List<int>) {
       return;
     }
     var msg = SignalResponse.fromBuffer(message);

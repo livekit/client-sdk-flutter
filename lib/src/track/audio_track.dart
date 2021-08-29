@@ -12,7 +12,7 @@ class AudioTrack extends Track {
       : super(TrackType.AUDIO, name, track);
 
   start() {
-    if (!(this is LocalAudioTrack)) {
+    if (this is! LocalAudioTrack) {
       audio.startAudio(getCid(), mediaTrack);
     }
   }

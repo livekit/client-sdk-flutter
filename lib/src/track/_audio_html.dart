@@ -9,7 +9,7 @@ const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
 void startAudio(String id, MediaStreamTrack track) {
-  if (!(track is MediaStreamTrackWeb)) {
+  if (track is! MediaStreamTrackWeb) {
     return;
   }
   var elementId = audioPrefix + id;
@@ -21,7 +21,7 @@ void startAudio(String id, MediaStreamTrack track) {
     findOrCreateAudioContainer().append(audioElement);
   }
 
-  if (!(audioElement is html.AudioElement)) {
+  if (audioElement is! html.AudioElement) {
     return;
   }
   var audioStream = html.MediaStream();
