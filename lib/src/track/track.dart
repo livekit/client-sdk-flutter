@@ -42,7 +42,7 @@ class Track {
       cid = mediaTrack.id;
     }
     if (cid == null) {
-      var uuid = Uuid();
+      var uuid = const Uuid();
       cid = uuid.v4();
       _cid = cid;
     }

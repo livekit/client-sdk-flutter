@@ -135,7 +135,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
-    Timer(Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 5), () {
       if (_state != RoomState.Disconnected) {
         return;
       }

@@ -39,7 +39,7 @@ class RemoteParticipant extends Participant {
     var pub = getTrackPublication(sid);
     if (pub == null) {
       // we may have received the track prior to metadata. wait up to 3s
-      pub = await _waitForTrackPublication(sid, Duration(seconds: 3));
+      pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
       if (pub == null) {
         var msg = 'no track metadata found';
         delegate?.onTrackSubscriptionFailed(this, sid, msg);
@@ -137,7 +137,7 @@ class RemoteParticipant extends Participant {
     var endTime = DateTime.now().add(delay);
     while (DateTime.now().isBefore(endTime)) {
       var pub = await Future<RemoteTrackPublication?>.delayed(
-          Duration(milliseconds: 100), () {
+          const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });
       if (pub != null) {

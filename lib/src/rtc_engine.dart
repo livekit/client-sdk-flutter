@@ -12,9 +12,9 @@ import 'transport.dart';
 
 const lossyDataChannel = '_lossy';
 const reliableDataChannel = '_reliable';
-final connectionTimeout = Duration(seconds: 5);
-final maxReconnectAttempts = 5;
-final iceRestartTimeout = Duration(seconds: 10);
+const connectionTimeout = Duration(seconds: 5);
+const maxReconnectAttempts = 5;
+const iceRestartTimeout = Duration(seconds: 10);
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
@@ -190,7 +190,7 @@ class RTCEngine with SignalClientDelegate {
         isReconnecting = false;
         return;
       }
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
     }
 
     isReconnecting = false;

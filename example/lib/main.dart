@@ -10,7 +10,7 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: PreConnect(),
+      home: const PreConnect(),
     );
   }
 }
@@ -70,7 +70,7 @@ class _PreConnectState extends State<PreConnect> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Connect to LiveKit'),
+        title: const Text('Connect to LiveKit'),
       ),
       body: Center(
         child: Container(
@@ -95,7 +95,7 @@ class _PreConnectState extends State<PreConnect> {
               ),
               TextButton(
                 onPressed: () => _connect(context),
-                child: Text('Connect'),
+                child: const Text('Connect'),
               ),
             ],
           ),
