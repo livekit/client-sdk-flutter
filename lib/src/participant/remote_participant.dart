@@ -8,7 +8,7 @@ import '../track/video_track.dart';
 import 'participant.dart';
 
 class RemoteParticipant extends Participant {
-  SignalClient _client;
+  final SignalClient _client;
 
   SignalClient get client => _client;
 

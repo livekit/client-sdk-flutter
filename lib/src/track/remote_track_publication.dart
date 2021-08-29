@@ -5,7 +5,7 @@ import 'track.dart';
 import 'track_publication.dart';
 
 class RemoteTrackPublication extends TrackPublication {
-  RemoteParticipant _participant;
+  final RemoteParticipant _participant;
   bool _unsubscribed = false;
   bool _disabled = false;
   VideoQuality _videoQuality = VideoQuality.HIGH;

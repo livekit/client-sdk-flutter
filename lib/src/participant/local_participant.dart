@@ -12,7 +12,7 @@ import '../track/track_publication.dart';
 import 'participant.dart';
 
 class LocalParticipant extends Participant {
-  RTCEngine _engine;
+  final RTCEngine _engine;
 
   LocalParticipant({
     required RTCEngine engine,

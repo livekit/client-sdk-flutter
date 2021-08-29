@@ -64,7 +64,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   /// connection state of the room
   RoomState get state => _state;
 
-  Map<String, RemoteParticipant> _participants = {};
+  final Map<String, RemoteParticipant> _participants = {};
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -88,7 +88,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   /// delegate for room events
   RoomDelegate? delegate;
 
-  RTCEngine _engine;
+  final RTCEngine _engine;
 
   Completer<Room>? _connectCompleter;
 
