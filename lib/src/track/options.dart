@@ -37,8 +37,8 @@ class VideoParameter {
     this.width,
     this.height,
     this.fps, {
-    int? bitrate,
-  }) : this.bitrate = bitrate;
+    this.bitrate,
+  });
 
   Map<String, dynamic> get mediaConstraints {
     return {
