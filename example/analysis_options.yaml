@@ -11,3 +11,17 @@
 # https://pub.dev/packages/flutter_lints
 
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # strong-mode:
+  #   implicit-casts: false
+  #   implicit-dynamic: false
+
+  #
+  # exclude protobuf files
+  #
+  exclude:
+    - '**/*.pb.dart'
+    - '**/*.pbenum.dart'
+    - '**/*.pbjson.dart'
+    - '**/*.pbserver.dart'
