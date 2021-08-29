@@ -51,7 +51,7 @@ class SignalClient {
 
   SignalClient();
 
-  bool get connected => this._connected;
+  bool get connected => _connected;
 
   Future<void> join(String url, String token, JoinOptions? options) async {
     var rtcUrl = '$url/rtc';
@@ -98,24 +98,24 @@ class SignalClient {
   }
 
   close() {
-    this._connected = false;
-    this._ws?.sink.close();
+    _connected = false;
+    _ws?.sink.close();
   }
 
   sendOffer(RTCSessionDescription offer) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       offer: fromRTCSessionDescription(offer),
     ));
   }
 
   sendAnswer(RTCSessionDescription answer) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       answer: fromRTCSessionDescription(answer),
     ));
   }
 
   sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
         trickle: TrickleRequest(
       candidateInit: fromRTCIceCandidate(candidate),
       target: target,
@@ -123,7 +123,7 @@ class SignalClient {
   }
 
   sendMuteTrack(String trackSid, bool muted) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       mute: MuteTrackRequest(
         sid: trackSid,
         muted: muted,
@@ -145,25 +145,25 @@ class SignalClient {
       req.width = dimension.width;
       req.height = dimension.height;
     }
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       addTrack: req,
     ));
   }
 
   sendUpdateTrackSettings(UpdateTrackSettings settings) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       trackSetting: settings,
     ));
   }
 
   sendUpdateSubscription(UpdateSubscription subscription) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       subscription: subscription,
     ));
   }
 
   sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
         simulcast: SetSimulcastLayers(
       trackSid: trackSid,
       layers: layers,
@@ -171,19 +171,19 @@ class SignalClient {
   }
 
   sendLeave() {
-    this._sendRequest(SignalRequest(
+    _sendRequest(SignalRequest(
       leave: LeaveRequest(),
     ));
   }
 
   _sendRequest(SignalRequest req) {
-    if (this._ws == null) {
+    if (_ws == null) {
       log('could not send message, not connected');
       return;
     }
 
     var buf = req.writeToBuffer();
-    this._ws?.sink.add(buf);
+    _ws?.sink.add(buf);
   }
 
   _handleMessage(dynamic message) {

@@ -116,8 +116,8 @@ class Participant extends ChangeNotifier {
   }
 
   _setMetadata(String md) {
-    var changed = this._participantInfo?.metadata != md;
-    this.metadata = md;
+    var changed = _participantInfo?.metadata != md;
+    metadata = md;
     if (changed) {
       delegate?.onMetadataChanged(this);
       roomDelegate?.onMetadataChanged(this);
@@ -126,12 +126,12 @@ class Participant extends ChangeNotifier {
   }
 
   updateFromInfo(ParticipantInfo info) {
-    this.identity = info.identity;
-    this.sid = info.sid;
+    identity = info.identity;
+    sid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
-    this._participantInfo = info;
+    _participantInfo = info;
   }
 
   muteChanged() {

@@ -42,9 +42,9 @@ class VideoParameter {
 
   Map<String, dynamic> get mediaConstraints {
     return {
-      "minWidth": this.width,
-      "minHeight": this.height,
-      "minFrameRate": this.fps,
+      "minWidth": width,
+      "minHeight": height,
+      "minFrameRate": fps,
     };
   }
 }

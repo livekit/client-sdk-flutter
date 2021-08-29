@@ -183,13 +183,13 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
   @override
   void initState() {
     super.initState();
-    widget.participant.addListener(this._onParticipantChanged);
+    widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
   }
 
   @override
   void dispose() {
-    widget.participant.removeListener(this._onParticipantChanged);
+    widget.participant.removeListener(_onParticipantChanged);
     super.dispose();
   }
 
@@ -221,7 +221,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
           return;
         }
       }
-      this.videoPub = null;
+      videoPub = null;
     });
   }
 

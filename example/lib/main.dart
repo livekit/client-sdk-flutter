@@ -54,7 +54,7 @@ class _PreConnectState extends State<PreConnect> {
 
   _connect(BuildContext context) async {
     try {
-      var room = await LiveKitClient.connect(this.url, this.token);
+      var room = await LiveKitClient.connect(url, token);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) {
@@ -83,15 +83,15 @@ class _PreConnectState extends State<PreConnect> {
                 decoration: const InputDecoration(
                   labelText: 'URL',
                 ),
-                onChanged: (value) => this.url,
-                initialValue: this.url,
+                onChanged: (value) => url,
+                initialValue: url,
               ),
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'Token',
                 ),
-                onChanged: (value) => this.token,
-                initialValue: this.token,
+                onChanged: (value) => token,
+                initialValue: token,
               ),
               TextButton(
                 onPressed: () => _connect(context),

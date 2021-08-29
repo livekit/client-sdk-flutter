@@ -61,7 +61,7 @@ class RTCEngine with SignalClientDelegate {
       this.rtcConfig = rtcConfig;
     }
 
-    this.client.delegate = this;
+    client.delegate = this;
   }
 
   Future<JoinResponse> join(String url, String token, JoinOptions? opts) async {
@@ -124,7 +124,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   negotiate({bool? iceRestart}) async {
-    var pub = this.publisher;
+    var pub = publisher;
     if (pub == null) {
       return;
     }
@@ -168,8 +168,8 @@ class RTCEngine with SignalClientDelegate {
       isReconnecting = true;
       await client.reconnect(url, token);
 
-      var pub = this.publisher;
-      var sub = this.subscriber;
+      var pub = publisher;
+      var sub = subscriber;
       if (pub == null || sub == null) {
         throw UnexpectedConnectionState('publisher or subscribers is null');
       }
@@ -296,9 +296,9 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
     logger.fine('disconnected $reason');
-    if (this.reconnectAttempts >= maxReconnectAttempts) {
+    if (reconnectAttempts >= maxReconnectAttempts) {
       logger.info('could not connect after $reconnectAttempts, giving up');
-      this.close();
+      close();
       onDisconnected?.call();
       return;
     }
@@ -318,7 +318,7 @@ class RTCEngine with SignalClientDelegate {
   @override
   void onConnected(JoinResponse response) async {
     // create peer connections
-    this.isClosed = false;
+    isClosed = false;
 
     if (rtcConfig.iceServers == null && response.iceServers.length > 0) {
       List<RTCIceServer> iceServers = [];
