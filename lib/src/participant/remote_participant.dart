@@ -76,8 +76,8 @@ class RemoteParticipant extends Participant {
     super.updateFromInfo(info);
 
     // figuring out deltas between tracks
-    var validPubs = Map<String, RemoteTrackPublication>();
-    var newPubs = Map<String, RemoteTrackPublication>();
+    var validPubs = <String, RemoteTrackPublication>{};
+    var newPubs = <String, RemoteTrackPublication>{};
 
     for (var info in info.tracks) {
       var sid = info.sid;

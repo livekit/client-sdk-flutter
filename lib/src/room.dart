@@ -233,7 +233,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
-    var seenSids = Set<String>();
+    var seenSids = <String>{};
     List<Participant> newSpeakers = [];
     for (var info in speakers) {
       seenSids.add(info.sid);
