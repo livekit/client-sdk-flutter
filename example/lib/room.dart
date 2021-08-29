@@ -210,7 +210,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
     });
 
     setState(() {
-      if (subscribedVideos.length > 0) {
+      if (subscribedVideos.isNotEmpty) {
         var videoPub = subscribedVideos.first;
         if (videoPub is RemoteTrackPublication) {
           videoPub.videoQuality = widget.quality;

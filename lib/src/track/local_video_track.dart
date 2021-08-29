@@ -57,7 +57,7 @@ class LocalVideoTrack extends VideoTrack {
         "video": options.mediaConstraints,
       });
 
-      if (stream.getVideoTracks().length == 0) {
+      if (stream.getVideoTracks().isEmpty) {
         return Future.error(TrackCreateError());
       }
 

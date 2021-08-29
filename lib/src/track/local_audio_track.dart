@@ -16,7 +16,7 @@ class LocalAudioTrack extends AudioTrack {
         "video": false,
       });
 
-      if (stream.getAudioTracks().length == 0) {
+      if (stream.getAudioTracks().isEmpty) {
         return Future.error(TrackCreateError());
       }
 

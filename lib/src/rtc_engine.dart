@@ -320,7 +320,7 @@ class RTCEngine with SignalClientDelegate {
     // create peer connections
     isClosed = false;
 
-    if (rtcConfig.iceServers == null && response.iceServers.length > 0) {
+    if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
       List<RTCIceServer> iceServers = [];
       response.iceServers.forEach((item) {
         var iceServer = RTCIceServer(urls: item.urls);
