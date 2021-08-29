@@ -93,7 +93,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   Completer<Room>? _connectCompleter;
 
   Room([RTCConfiguration? rtcConfig])
-      : _engine = new RTCEngine(SignalClient(), rtcConfig) {
+      : _engine = RTCEngine(SignalClient(), rtcConfig) {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
@@ -113,14 +113,14 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
-    var completer = new Completer<Room>();
+    var completer = Completer<Room>();
     _connectCompleter = completer;
 
     var joinResponse = await _engine.join(url, token, opts);
     logger.fine(
         'connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-    localParticipant = new LocalParticipant(
+    localParticipant = LocalParticipant(
       engine: _engine,
       info: joinResponse.participant,
     );

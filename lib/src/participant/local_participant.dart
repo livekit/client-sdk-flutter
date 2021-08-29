@@ -34,7 +34,7 @@ class LocalParticipant extends Participant {
     try {
       var trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = new RTCRtpTransceiverInit(
+      var transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
@@ -43,7 +43,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = new LocalTrackPublication(trackInfo, track, this);
+      var pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -63,7 +63,7 @@ class LocalParticipant extends Participant {
     try {
       var trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = new RTCRtpTransceiverInit(
+      var transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // TODO: video encodings and simulcasts
@@ -73,7 +73,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = new LocalTrackPublication(trackInfo, track, this);
+      var pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -122,9 +122,9 @@ class LocalParticipant extends Participant {
       return;
     }
 
-    var packet = new DataPacket(
+    var packet = DataPacket(
       kind: reliability,
-      user: new UserPacket(
+      user: UserPacket(
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,

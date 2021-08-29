@@ -31,7 +31,7 @@ mixin SignalClientDelegate {
   void onOffer(RTCSessionDescription sd);
   // when an answer from server is received
   void onAnswer(RTCSessionDescription sd);
-  // when server has a new ICE candidate
+  // when server has a ICE candidate
   void onTrickle(RTCIceCandidate candidate, SignalTarget target);
   // participant has changed
   void onParticipantUpdate(List<ParticipantInfo> updates);
@@ -103,28 +103,28 @@ class SignalClient {
   }
 
   sendOffer(RTCSessionDescription offer) {
-    this._sendRequest(new SignalRequest(
+    this._sendRequest(SignalRequest(
       offer: fromRTCSessionDescription(offer),
     ));
   }
 
   sendAnswer(RTCSessionDescription answer) {
-    this._sendRequest(new SignalRequest(
+    this._sendRequest(SignalRequest(
       answer: fromRTCSessionDescription(answer),
     ));
   }
 
   sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
-    this._sendRequest(new SignalRequest(
-        trickle: new TrickleRequest(
+    this._sendRequest(SignalRequest(
+        trickle: TrickleRequest(
       candidateInit: fromRTCIceCandidate(candidate),
       target: target,
     )));
   }
 
   sendMuteTrack(String trackSid, bool muted) {
-    this._sendRequest(new SignalRequest(
-      mute: new MuteTrackRequest(
+    this._sendRequest(SignalRequest(
+      mute: MuteTrackRequest(
         sid: trackSid,
         muted: muted,
       ),
@@ -136,7 +136,7 @@ class SignalClient {
       required String name,
       required TrackType type,
       TrackDimension? dimension}) {
-    var req = new AddTrackRequest(
+    var req = AddTrackRequest(
       cid: cid,
       name: name,
       type: type,
@@ -145,34 +145,34 @@ class SignalClient {
       req.width = dimension.width;
       req.height = dimension.height;
     }
-    this._sendRequest(new SignalRequest(
+    this._sendRequest(SignalRequest(
       addTrack: req,
     ));
   }
 
   sendUpdateTrackSettings(UpdateTrackSettings settings) {
-    this._sendRequest(new SignalRequest(
+    this._sendRequest(SignalRequest(
       trackSetting: settings,
     ));
   }
 
   sendUpdateSubscription(UpdateSubscription subscription) {
-    this._sendRequest(new SignalRequest(
+    this._sendRequest(SignalRequest(
       subscription: subscription,
     ));
   }
 
   sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
-    this._sendRequest(new SignalRequest(
-        simulcast: new SetSimulcastLayers(
+    this._sendRequest(SignalRequest(
+        simulcast: SetSimulcastLayers(
       trackSid: trackSid,
       layers: layers,
     )));
   }
 
   sendLeave() {
-    this._sendRequest(new SignalRequest(
-      leave: new LeaveRequest(),
+    this._sendRequest(SignalRequest(
+      leave: LeaveRequest(),
     ));
   }
 
@@ -244,16 +244,16 @@ String _joinParams(String token) {
 }
 
 RTCSessionDescription toRTCSessionDescription(SessionDescription sd) {
-  return new RTCSessionDescription(sd.sdp, sd.type);
+  return RTCSessionDescription(sd.sdp, sd.type);
 }
 
 SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
-  return new SessionDescription(type: rsd.type, sdp: rsd.sdp);
+  return SessionDescription(type: rsd.type, sdp: rsd.sdp);
 }
 
 RTCIceCandidate toRTCIceCandidate(String candidateInit) {
   var candInit = jsonDecode(candidateInit);
-  return new RTCIceCandidate(
+  return RTCIceCandidate(
       candInit['candidate'], candInit['sdpMid'], candInit['sdpMLineIndex']);
 }
 

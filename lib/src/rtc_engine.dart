@@ -12,9 +12,9 @@ import 'transport.dart';
 
 const lossyDataChannel = '_lossy';
 const reliableDataChannel = '_reliable';
-final connectionTimeout = new Duration(seconds: 5);
+final connectionTimeout = Duration(seconds: 5);
 final maxReconnectAttempts = 5;
-final iceRestartTimeout = new Duration(seconds: 10);
+final iceRestartTimeout = Duration(seconds: 10);
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
@@ -31,7 +31,7 @@ class RTCEngine with SignalClientDelegate {
   PCTransport? subscriber;
   SignalClient client;
   // config for RTCPeerConnection
-  RTCConfiguration rtcConfig = new RTCConfiguration();
+  RTCConfiguration rtcConfig = RTCConfiguration();
   // data channels for packets
   RTCDataChannel? reliableDC;
   RTCDataChannel? lossyDC;
@@ -68,7 +68,7 @@ class RTCEngine with SignalClientDelegate {
     this.url = url;
     this.token = token;
 
-    var completer = new Completer<JoinResponse>();
+    var completer = Completer<JoinResponse>();
     joinCompleter = completer;
 
     try {
@@ -78,8 +78,8 @@ class RTCEngine with SignalClientDelegate {
     }
 
     // if it's not complete after 5 seconds, fail
-    new Timer(connectionTimeout, () {
-      joinCompleter?.completeError(new ConnectError());
+    Timer(connectionTimeout, () {
+      joinCompleter?.completeError(ConnectError());
       joinCompleter = null;
     });
 
@@ -111,11 +111,11 @@ class RTCEngine with SignalClientDelegate {
       required TrackType kind,
       TrackDimension? dimension}) async {
     if (pendingTrackResolvers[cid] != null) {
-      throw new TrackPublishError(
+      throw TrackPublishError(
           'a track with the same CID has already been published');
     }
 
-    var completer = new Completer<TrackInfo>();
+    var completer = Completer<TrackInfo>();
     pendingTrackResolvers[cid] = completer;
 
     client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
@@ -131,7 +131,7 @@ class RTCEngine with SignalClientDelegate {
 
     var remoteDesc = await pub.getRemoteDescription();
 
-    // handle cases that we couldn't create a new offer due to a pending answer
+    // handle cases that we couldn't create a offer due to a pending answer
     // that's lost in transit
     if (remoteDesc != null &&
         pub.pc.signalingState ==
@@ -203,9 +203,9 @@ class RTCEngine with SignalClientDelegate {
     }
 
     var pubPC = await createPeerConnection(rtcConfig.toMap());
-    publisher = new PCTransport(pubPC);
+    publisher = PCTransport(pubPC);
     var subPC = await createPeerConnection(rtcConfig.toMap());
-    subscriber = new PCTransport(subPC);
+    subscriber = PCTransport(subPC);
 
     pubPC.onIceCandidate = (RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, SignalTarget.PUBLISHER);
@@ -255,13 +255,13 @@ class RTCEngine with SignalClientDelegate {
     };
 
     // create data channels
-    var lossyInit = new RTCDataChannelInit()
+    var lossyInit = RTCDataChannelInit()
       ..maxRetransmits = 1
       ..ordered = true
       ..binaryType = 'binary';
     lossyDC = await pubPC.createDataChannel(lossyDataChannel, lossyInit);
 
-    var reliableInit = new RTCDataChannelInit()
+    var reliableInit = RTCDataChannelInit()
       ..ordered = true
       ..maxRetransmits = 50
       ..binaryType = 'binary';
@@ -322,7 +322,7 @@ class RTCEngine with SignalClientDelegate {
     if (rtcConfig.iceServers == null && response.iceServers.length > 0) {
       List<RTCIceServer> iceServers = [];
       response.iceServers.forEach((item) {
-        var iceServer = new RTCIceServer(urls: item.urls);
+        var iceServer = RTCIceServer(urls: item.urls);
         if (item.username.isNotEmpty) {
           iceServer.username = item.username;
         }

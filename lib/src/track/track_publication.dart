@@ -26,7 +26,7 @@ class TrackPublication {
     muted = info.muted;
     simulcasted = info.simulcast;
     if (info.type == TrackType.VIDEO) {
-      dimension = new TrackDimension(info.width, info.height);
+      dimension = TrackDimension(info.width, info.height);
     }
   }
 }

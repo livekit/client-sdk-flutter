@@ -50,11 +50,11 @@ class RemoteParticipant extends Participant {
 
     Track? track;
     if (pub.kind == TrackType.AUDIO) {
-      var audioTrack = new AudioTrack(pub.name, mediaTrack, stream);
+      var audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
     } else if (pub.kind == TrackType.VIDEO) {
-      track = new VideoTrack(pub.name, mediaTrack, stream);
+      track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
       var msg = 'unsupported track type ${pub.kind}';
       delegate?.onTrackSubscriptionFailed(this, sid, msg);
@@ -94,7 +94,7 @@ class RemoteParticipant extends Participant {
       validPubs[sid] = pub;
     }
 
-    // notify listeners when it's not a new participant
+    // notify listeners when it's not a participant
     if (hadInfo) {
       for (var pub in newPubs.values) {
         delegate?.onTrackPublished(this, pub);
