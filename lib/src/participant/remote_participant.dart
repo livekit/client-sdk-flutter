@@ -94,7 +94,7 @@ class RemoteParticipant extends Participant {
       validPubs[sid] = pub;
     }
 
-    // notify listeners when it's not a participant
+    // notify listeners when it's not a new participant
     if (hadInfo) {
       for (var pub in newPubs.values) {
         delegate?.onTrackPublished(this, pub);

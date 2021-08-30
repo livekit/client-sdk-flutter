@@ -31,7 +31,7 @@ mixin SignalClientDelegate {
   void onOffer(RTCSessionDescription sd);
   // when an answer from server is received
   void onAnswer(RTCSessionDescription sd);
-  // when server has a ICE candidate
+  // when server has a new ICE candidate
   void onTrickle(RTCIceCandidate candidate, SignalTarget target);
   // participant has changed
   void onParticipantUpdate(List<ParticipantInfo> updates);

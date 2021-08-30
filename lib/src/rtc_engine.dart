@@ -131,7 +131,7 @@ class RTCEngine with SignalClientDelegate {
 
     var remoteDesc = await pub.getRemoteDescription();
 
-    // handle cases that we couldn't create a offer due to a pending answer
+    // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
     if (remoteDesc != null &&
         pub.pc.signalingState ==
