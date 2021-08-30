@@ -91,9 +91,9 @@ class RTCEngine with SignalClientDelegate {
 
     if (publisher != null) {
       var senders = await publisher?.pc.getSenders();
-      senders?.forEach((element) async {
+      for (final element in (senders ?? [])) {
         await publisher?.pc.removeTrack(element);
-      });
+      }
 
       publisher?.pc.close();
       publisher = null;
@@ -322,7 +322,7 @@ class RTCEngine with SignalClientDelegate {
 
     if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
       List<RTCIceServer> iceServers = [];
-      response.iceServers.forEach((item) {
+      for (final item in response.iceServers) {
         var iceServer = RTCIceServer(urls: item.urls);
         if (item.username.isNotEmpty) {
           iceServer.username = item.username;
@@ -331,7 +331,7 @@ class RTCEngine with SignalClientDelegate {
           iceServer.credential = item.credential;
         }
         iceServers.add(iceServer);
-      });
+      }
       rtcConfig.iceServers = iceServers;
     }
 

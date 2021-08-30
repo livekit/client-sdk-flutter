@@ -5,9 +5,9 @@ class RTCConfiguration {
 
   Map<String, dynamic> toMap() {
     var iceServersMap = [];
-    iceServers?.forEach((element) {
+    for (final element in (iceServers ?? [])) {
       iceServersMap.add(element.toMap());
-    });
+    }
     return {
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
