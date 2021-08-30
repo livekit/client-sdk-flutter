@@ -69,14 +69,9 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       }
 
       // last spoken at
-      var aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch;
-      var bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch;
-      if (aSpokeAt == null) {
-        aSpokeAt = 0;
-      }
-      if (bSpokeAt == null) {
-        bSpokeAt = 0;
-      }
+      var aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      var bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+
       if (aSpokeAt != bSpokeAt) {
         return aSpokeAt > bSpokeAt ? -1 : 1;
       }

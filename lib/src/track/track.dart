@@ -37,10 +37,8 @@ class Track {
   }
 
   String getCid() {
-    var cid = _cid;
-    if (cid == null) {
-      cid = mediaTrack.id;
-    }
+    var cid = _cid ?? mediaTrack.id;
+
     if (cid == null) {
       var uuid = const Uuid();
       cid = uuid.v4();

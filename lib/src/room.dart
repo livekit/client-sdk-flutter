@@ -289,10 +289,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
 
     var parsed = unpackStreamId(stream.id);
-    var trackSid = parsed.item2;
-    if (trackSid == null) {
-      trackSid = track.id;
-    }
+    var trackSid = parsed.item2 ?? track.id;
 
     var participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
