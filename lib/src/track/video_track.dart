@@ -13,6 +13,8 @@ class VideoTrack extends Track with ChangeNotifier {
 
   MediaStream? get mediaStream => _mediaStream;
 
+  /// internal use
+  /// {@nodoc}
   set mediaStream(MediaStream? stream) {
     _mediaStream = stream;
     notifyListeners();

@@ -11,6 +11,8 @@ class AudioTrack extends Track {
   AudioTrack(String name, MediaStreamTrack track, this.mediaStream)
       : super(TrackType.AUDIO, name, track);
 
+  /// Start playing audio track. On web platform, create an audio element and
+  /// start playback
   start() {
     if (!(this is LocalAudioTrack)) {
       audio.startAudio(getCid(), mediaTrack);

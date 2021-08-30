@@ -8,6 +8,7 @@ class LocalAudioTrack extends AudioTrack {
   LocalAudioTrack(String name, MediaStreamTrack track, MediaStream stream)
       : super(name, track, stream);
 
+  /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> createTrack(
       [LocalAudioTrackOptions? options]) async {
     try {

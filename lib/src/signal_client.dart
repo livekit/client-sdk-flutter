@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/livekit_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
+import 'errors.dart';
 import 'logger.dart';
+import 'options.dart';
 import 'track/track.dart';
 import 'version.dart';
 import 'proto/livekit_models.pb.dart';
@@ -15,12 +16,6 @@ import 'proto/livekit_rtc.pb.dart';
 import '_websocket_api.dart'
     if (dart.library.io) '_websocket_io.dart'
     if (dart.library.html) '_websocket_html.dart' as platform;
-
-class JoinOptions {
-  final bool? autoSubscribe;
-
-  const JoinOptions({this.autoSubscribe});
-}
 
 mixin SignalClientDelegate {
   // initial connection established

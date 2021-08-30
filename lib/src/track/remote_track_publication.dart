@@ -4,6 +4,8 @@ import '../participant/remote_participant.dart';
 import 'track.dart';
 import 'track_publication.dart';
 
+/// Represents a track publication from a RemoteParticipant. Provides methods to
+/// control if we should subscribe to the track, and its quality (for video).
 class RemoteTrackPublication extends TrackPublication {
   RemoteParticipant _participant;
   bool _unsubscribed = false;
@@ -37,6 +39,8 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
+  /// for internal use
+  /// {@nodoc}
   set muted(bool val) {
     if (val == muted) {
       return;

@@ -4,6 +4,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'errors.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'options.dart';
 import 'proto/livekit_rtc.pb.dart';
 import 'proto/livekit_models.pb.dart';
 import 'signal_client.dart';
