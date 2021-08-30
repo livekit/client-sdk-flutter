@@ -131,7 +131,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
           );
         },
       );
-      mainWidgets.add(Container(
+      mainWidgets.add(SizedBox(
         height: 60,
         child: videoList,
       ));

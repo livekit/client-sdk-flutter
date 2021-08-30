@@ -104,6 +104,8 @@ class LocalParticipant extends Participant {
       case TrackType.VIDEO:
         videoTracks.remove(pub.sid);
         break;
+      default:
+        break;
     }
   }
 
