@@ -39,13 +39,13 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
   _onConnected() async {
     // video will fail when running in ios simulator
     try {
-      var localVideo = await LocalVideoTrack.createCameraTrack();
+      final localVideo = await LocalVideoTrack.createCameraTrack();
       await widget.room.localParticipant.publishVideoTrack(localVideo);
     } catch (e) {
       print('could not publish video: $e');
     }
 
-    var localAudio = await LocalAudioTrack.createTrack();
+    final localAudio = await LocalAudioTrack.createTrack();
     await widget.room.localParticipant.publishAudioTrack(localAudio);
     sortParticipants();
   }
@@ -69,8 +69,8 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       }
 
       // last spoken at
-      var aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
-      var bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
 
       if (aSpokeAt != bSpokeAt) {
         return aSpokeAt > bSpokeAt ? -1 : 1;
@@ -98,7 +98,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
 
   @override
   void onDisconnected() {
-    var context = _lastContext;
+    final context = _lastContext;
     print("disconnected: $context");
     if (context != null) {
       Navigator.pop(context);
@@ -109,8 +109,8 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
   Widget build(BuildContext context) {
     _lastContext = context;
 
-    var mainWidgets = <Widget>[];
-    var participants = this.participants;
+    final mainWidgets = <Widget>[];
+    final participants = this.participants;
     if (participants.isNotEmpty) {
       mainWidgets.add(Expanded(child: VideoView(participants.first)));
     } else {
@@ -118,7 +118,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     }
 
     if (participants.length > 1) {
-      var videoList = ListView.builder(
+      final videoList = ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: participants.length - 1,
         itemBuilder: (BuildContext context, int index) {
@@ -198,7 +198,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
 
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
-    var subscribedVideos = widget.participant.videoTracks.values.where((pub) {
+    final subscribedVideos = widget.participant.videoTracks.values.where((pub) {
       return pub.kind == TrackType.VIDEO &&
           !pub.isScreenShare &&
           pub.subscribed;
@@ -206,7 +206,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
 
     setState(() {
       if (subscribedVideos.isNotEmpty) {
-        var videoPub = subscribedVideos.first;
+        final videoPub = subscribedVideos.first;
         if (videoPub is RemoteTrackPublication) {
           videoPub.videoQuality = widget.quality;
         }
@@ -222,7 +222,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
 
   @override
   Widget build(BuildContext context) {
-    var videoPub = this.videoPub;
+    final videoPub = this.videoPub;
     if (videoPub != null) {
       return VideoTrackRenderer(videoPub.track as VideoTrack);
     } else {

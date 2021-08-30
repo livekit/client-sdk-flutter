@@ -63,7 +63,7 @@ class RemoteTrackPublication extends TrackPublication {
   }
 
   _sendUpdateTrackSettings() {
-    var settings = UpdateTrackSettings(
+    final settings = UpdateTrackSettings(
       trackSids: [sid],
       disabled: _disabled,
     );

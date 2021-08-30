@@ -21,7 +21,7 @@ class RemoteParticipant extends Participant {
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
-    var pub = tracks[sid];
+    final pub = tracks[sid];
     if (pub is RemoteTrackPublication) {
       return pub;
     }
@@ -30,7 +30,7 @@ class RemoteParticipant extends Participant {
   addSubscribedMediaTrack(
       MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
-      var msg = 'addSubscribedMediaTrack received null sid';
+      const msg = 'addSubscribedMediaTrack received null sid';
       delegate?.onTrackSubscriptionFailed(this, '', msg);
       roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
       return;
@@ -41,7 +41,7 @@ class RemoteParticipant extends Participant {
       // we may have received the track prior to metadata. wait up to 3s
       pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
       if (pub == null) {
-        var msg = 'no track metadata found';
+        const msg = 'no track metadata found';
         delegate?.onTrackSubscriptionFailed(this, sid, msg);
         roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
         return;
@@ -50,13 +50,13 @@ class RemoteParticipant extends Participant {
 
     Track? track;
     if (pub.kind == TrackType.AUDIO) {
-      var audioTrack = AudioTrack(pub.name, mediaTrack, stream);
+      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
     } else if (pub.kind == TrackType.VIDEO) {
       track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
-      var msg = 'unsupported track type ${pub.kind}';
+      final msg = 'unsupported track type ${pub.kind}';
       delegate?.onTrackSubscriptionFailed(this, sid, msg);
       roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
       return;
@@ -72,15 +72,15 @@ class RemoteParticipant extends Participant {
 
   @override
   void updateFromInfo(ParticipantInfo info) {
-    var hadInfo = hasInfo;
+    final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
     // figuring out deltas between tracks
-    var validPubs = <String, RemoteTrackPublication>{};
-    var newPubs = <String, RemoteTrackPublication>{};
+    final validPubs = <String, RemoteTrackPublication>{};
+    final newPubs = <String, RemoteTrackPublication>{};
 
-    for (var info in info.tracks) {
-      var sid = info.sid;
+    for (final info in info.tracks) {
+      final sid = info.sid;
       var pub = getTrackPublication(sid);
 
       if (pub == null) {
@@ -96,14 +96,14 @@ class RemoteParticipant extends Participant {
 
     // notify listeners when it's not a new participant
     if (hadInfo) {
-      for (var pub in newPubs.values) {
+      for (final pub in newPubs.values) {
         delegate?.onTrackPublished(this, pub);
         roomDelegate?.onTrackPublished(this, pub);
       }
     }
 
     // remove tracks
-    for (var pub in tracks.values) {
+    for (final pub in tracks.values) {
       if (!validPubs.containsKey(pub.sid)) {
         unpublishTrack(sid, true);
       }
@@ -111,7 +111,7 @@ class RemoteParticipant extends Participant {
   }
 
   unpublishTrack(String sid, [bool sendUnpublish = false]) {
-    var pub = tracks.remove(sid);
+    final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) {
       return;
     }
@@ -119,7 +119,7 @@ class RemoteParticipant extends Participant {
     audioTracks.remove(sid);
     videoTracks.remove(sid);
 
-    var track = pub.track;
+    final track = pub.track;
     if (track != null) {
       track.stop();
       delegate?.onTrackUnsubscribed(this, track, pub);
@@ -134,9 +134,9 @@ class RemoteParticipant extends Participant {
 
   Future<RemoteTrackPublication?> _waitForTrackPublication(
       String sid, Duration delay) async {
-    var endTime = DateTime.now().add(delay);
+    final endTime = DateTime.now().add(delay);
     while (DateTime.now().isBefore(endTime)) {
-      var pub = await Future<RemoteTrackPublication?>.delayed(
+      final pub = await Future<RemoteTrackPublication?>.delayed(
           const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });

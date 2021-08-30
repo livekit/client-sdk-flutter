@@ -57,7 +57,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   Widget build(BuildContext context) {
-    var isLocal = widget.track is LocalVideoTrack;
+    final isLocal = widget.track is LocalVideoTrack;
     return RTCVideoView(
       _renderer,
       mirror: isLocal,

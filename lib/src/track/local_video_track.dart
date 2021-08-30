@@ -16,7 +16,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await _createCameraStream(options);
+      final stream = await _createCameraStream(options);
       return LocalVideoTrack("camera", stream.getVideoTracks().first, stream);
     } catch (e) {
       return Future.error(e);
@@ -31,8 +31,8 @@ class LocalVideoTrack extends VideoTrack {
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await _createCameraStream(options);
-      var track = stream.getVideoTracks().first;
+      final stream = await _createCameraStream(options);
+      final track = stream.getVideoTracks().first;
       mediaStream = stream;
       await mediaTrack.stop();
       mediaTrack = track;
@@ -48,7 +48,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await navigator.mediaDevices.getUserMedia({
+      final stream = await navigator.mediaDevices.getUserMedia({
         "audio": false,
         "video": options.mediaConstraints,
       });

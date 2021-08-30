@@ -113,10 +113,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
-    var completer = Completer<Room>();
+    final completer = Completer<Room>();
     _connectCompleter = completer;
 
-    var joinResponse = await _engine.join(url, token, opts);
+    final joinResponse = await _engine.join(url, token, opts);
     logger.fine(
         'connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
@@ -129,7 +129,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     sid = joinResponse.room.sid;
     name = joinResponse.room.name;
 
-    for (var info in joinResponse.otherParticipants) {
+    for (final info in joinResponse.otherParticipants) {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
 
@@ -183,13 +183,13 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    for (var p in _participants.values) {
-      var tracks = List<TrackPublication>.from(p.tracks.values);
-      for (var pub in tracks) {
+    for (final p in _participants.values) {
+      final tracks = List<TrackPublication>.from(p.tracks.values);
+      for (final pub in tracks) {
         p.unpublishTrack(pub.sid);
       }
     }
-    for (var pub in localParticipant.tracks.values) {
+    for (final pub in localParticipant.tracks.values) {
       pub.track?.stop();
     }
 
@@ -204,7 +204,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   _handleParticipantUpdate(List<ParticipantInfo> updates) {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
-    for (var info in updates) {
+    for (final info in updates) {
       if (localParticipant.sid == info.sid) {
         localParticipant.updateFromInfo(info);
         continue;
@@ -216,8 +216,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      var isNew = !_participants.containsKey(info.sid);
-      var participant = _getOrCreateRemoteParticipant(info.sid, info);
+      final isNew = !_participants.containsKey(info.sid);
+      final participant = _getOrCreateRemoteParticipant(info.sid, info);
 
       if (isNew) {
         hasChanged = true;
@@ -233,9 +233,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
-    var seenSids = <String>{};
+    final seenSids = <String>{};
     List<Participant> newSpeakers = [];
-    for (var info in speakers) {
+    for (final info in speakers) {
       seenSids.add(info.sid);
 
       if (info.sid == localParticipant.sid) {
@@ -245,7 +245,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      var participant = participants[info.sid];
+      final participant = participants[info.sid];
       if (participant != null) {
         participant.audioLevel = info.level;
         participant.isSpeaking = true;
@@ -258,7 +258,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       localParticipant.audioLevel = 0;
       localParticipant.isSpeaking = false;
     }
-    for (var participant in _participants.values) {
+    for (final participant in _participants.values) {
       if (!seenSids.contains(participant.sid)) {
         participant.audioLevel = 0;
         participant.isSpeaking = false;
@@ -271,7 +271,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
-    var participant = participants[packet.participantSid];
+    final participant = participants[packet.participantSid];
     if (participant == null) {
       return;
     }
@@ -288,21 +288,21 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    var parsed = unpackStreamId(stream.id);
-    var trackSid = parsed.item2 ?? track.id;
+    final parsed = unpackStreamId(stream.id);
+    final trackSid = parsed.item2 ?? track.id;
 
-    var participant = _getOrCreateRemoteParticipant(parsed.item1, null);
+    final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
   _handleParticipantDisconnect(String sid) {
-    var participant = _participants.remove(sid);
+    final participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }
 
-    var toRemove = List.from(participant.tracks.values);
-    for (var track in toRemove) {
+    final toRemove = List.from(participant.tracks.values);
+    for (final track in toRemove) {
       participant.unpublishTrack(track.sid, true);
     }
     delegate?.onParticipantDisconnected(participant);
@@ -361,7 +361,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 }
 
 Tuple2<String, String?> unpackStreamId(String streamId) {
-  var parts = streamId.split('|');
+  final parts = streamId.split('|');
   if (parts.length != 2) {
     return Tuple2(parts[0], null);
   }

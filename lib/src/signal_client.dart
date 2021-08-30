@@ -54,20 +54,20 @@ class SignalClient {
   bool get connected => _connected;
 
   Future<void> join(String url, String token, JoinOptions? options) async {
-    var rtcUrl = '$url/rtc';
+    final rtcUrl = '$url/rtc';
     var params = _joinParams(token);
     if (options != null && options.autoSubscribe != null) {
       params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
     }
 
     try {
-      var ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
+      final ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
       ws.stream
           .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
     } catch (e) {
-      var completer = Completer();
-      var validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
+      final completer = Completer();
+      final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
       http.get(validateUri).then((response) {
         if (response.statusCode != 200) {
           completer.completeError(ConnectError(response.body));
@@ -90,9 +90,9 @@ class SignalClient {
     url += '/rtc';
     var params = _joinParams(token);
     params += '&reconnect=1';
-    var uri = Uri.parse(url + params);
+    final uri = Uri.parse(url + params);
 
-    var ws = await platform.connectToWebSocket(uri);
+    final ws = await platform.connectToWebSocket(uri);
     _ws = ws;
     _connected = true;
   }
@@ -136,7 +136,7 @@ class SignalClient {
       required String name,
       required TrackType type,
       TrackDimension? dimension}) {
-    var req = AddTrackRequest(
+    final req = AddTrackRequest(
       cid: cid,
       name: name,
       type: type,
@@ -182,7 +182,7 @@ class SignalClient {
       return;
     }
 
-    var buf = req.writeToBuffer();
+    final buf = req.writeToBuffer();
     _ws?.sink.add(buf);
   }
 
@@ -190,7 +190,7 @@ class SignalClient {
     if (message is! List<int>) {
       return;
     }
-    var msg = SignalResponse.fromBuffer(message);
+    final msg = SignalResponse.fromBuffer(message);
     switch (msg.whichMessage()) {
       case SignalResponse_Message.join:
         if (!_connected) {
@@ -252,7 +252,7 @@ SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
 }
 
 RTCIceCandidate toRTCIceCandidate(String candidateInit) {
-  var candInit = jsonDecode(candidateInit);
+  final candInit = jsonDecode(candidateInit);
   return RTCIceCandidate(
       candInit['candidate'], candInit['sdpMid'], candInit['sdpMLineIndex']);
 }

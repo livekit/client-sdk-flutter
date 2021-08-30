@@ -20,7 +20,7 @@ class PCTransport {
   }
 
   Future<void> addIceCandidate(RTCIceCandidate candidate) async {
-    var desc = await getRemoteDescription();
+    final desc = await getRemoteDescription();
     if (desc != null && !restartingIce) {
       return pc.addCandidate(candidate);
     }

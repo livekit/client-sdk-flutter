@@ -32,9 +32,9 @@ class LocalParticipant extends Participant {
     }
 
     try {
-      var trackInfo = await _engine.addTrack(
+      final trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = RTCRtpTransceiverInit(
+      final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
@@ -43,7 +43,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = LocalTrackPublication(trackInfo, track, this);
+      final pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -61,9 +61,9 @@ class LocalParticipant extends Participant {
     }
 
     try {
-      var trackInfo = await _engine.addTrack(
+      final trackInfo = await _engine.addTrack(
           cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = RTCRtpTransceiverInit(
+      final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // TODO: video encodings and simulcasts
@@ -73,7 +73,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = LocalTrackPublication(trackInfo, track, this);
+      final pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -84,14 +84,14 @@ class LocalParticipant extends Participant {
   }
 
   unpublishTrack(Track track) {
-    var existing = tracks.values.where((element) => element.track == track);
+    final existing = tracks.values.where((element) => element.track == track);
     if (existing.isEmpty) {
       return;
     }
-    var pub = existing.first;
+    final pub = existing.first;
 
     track.stop();
-    var sender = track.transceiver?.sender;
+    final sender = track.transceiver?.sender;
     if (sender != null) {
       engine.publisher?.pc.removeTrack(sender);
     }
@@ -124,7 +124,7 @@ class LocalParticipant extends Participant {
       return;
     }
 
-    var packet = DataPacket(
+    final packet = DataPacket(
       kind: reliability,
       user: UserPacket(
         payload: data,
@@ -133,7 +133,7 @@ class LocalParticipant extends Participant {
       ),
     );
 
-    var buffer = packet.writeToBuffer();
+    final buffer = packet.writeToBuffer();
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 

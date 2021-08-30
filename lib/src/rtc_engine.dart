@@ -68,7 +68,7 @@ class RTCEngine with SignalClientDelegate {
     this.url = url;
     this.token = token;
 
-    var completer = Completer<JoinResponse>();
+    final completer = Completer<JoinResponse>();
     joinCompleter = completer;
 
     try {
@@ -90,7 +90,7 @@ class RTCEngine with SignalClientDelegate {
     isClosed = true;
 
     if (publisher != null) {
-      var senders = await publisher?.pc.getSenders();
+      final senders = await publisher?.pc.getSenders();
       for (final element in (senders ?? [])) {
         await publisher?.pc.removeTrack(element);
       }
@@ -115,7 +115,7 @@ class RTCEngine with SignalClientDelegate {
           'a track with the same CID has already been published');
     }
 
-    var completer = Completer<TrackInfo>();
+    final completer = Completer<TrackInfo>();
     pendingTrackResolvers[cid] = completer;
 
     client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
@@ -124,12 +124,12 @@ class RTCEngine with SignalClientDelegate {
   }
 
   negotiate({bool? iceRestart}) async {
-    var pub = publisher;
+    final pub = publisher;
     if (pub == null) {
       return;
     }
 
-    var remoteDesc = await pub.getRemoteDescription();
+    final remoteDesc = await pub.getRemoteDescription();
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
@@ -139,13 +139,13 @@ class RTCEngine with SignalClientDelegate {
       await pub.pc.setRemoteDescription(remoteDesc);
     }
 
-    var constraints = <String, dynamic>{};
+    final constraints = <String, dynamic>{};
     if (iceRestart != null && iceRestart) {
       constraints['mandatory'] = {
         'IceRestart': true,
       };
     }
-    var offer = await pub.pc.createOffer(constraints);
+    final offer = await pub.pc.createOffer(constraints);
     await pub.pc.setLocalDescription(offer);
     client.sendOffer(offer);
   }
@@ -154,8 +154,8 @@ class RTCEngine with SignalClientDelegate {
     if (isClosed) {
       return;
     }
-    var url = this.url;
-    var token = this.token;
+    final url = this.url;
+    final token = this.token;
     if (url == null || token == null) {
       throw ConnectError("could not reconnect without url and token");
     }
@@ -168,8 +168,8 @@ class RTCEngine with SignalClientDelegate {
       isReconnecting = true;
       await client.reconnect(url, token);
 
-      var pub = publisher;
-      var sub = subscriber;
+      final pub = publisher;
+      final sub = subscriber;
       if (pub == null || sub == null) {
         throw UnexpectedConnectionState('publisher or subscribers is null');
       }
@@ -184,7 +184,7 @@ class RTCEngine with SignalClientDelegate {
     }
 
     // wait for connectivity to change
-    var startTime = DateTime.now();
+    final startTime = DateTime.now();
     while (DateTime.now().difference(startTime) < iceRestartTimeout) {
       if (iceConnected) {
         isReconnecting = false;
@@ -202,9 +202,9 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    var pubPC = await createPeerConnection(rtcConfig.toMap());
+    final pubPC = await createPeerConnection(rtcConfig.toMap());
     publisher = PCTransport(pubPC);
-    var subPC = await createPeerConnection(rtcConfig.toMap());
+    final subPC = await createPeerConnection(rtcConfig.toMap());
     subscriber = PCTransport(subPC);
 
     pubPC.onIceCandidate = (RTCIceCandidate candidate) {
@@ -255,13 +255,13 @@ class RTCEngine with SignalClientDelegate {
     };
 
     // create data channels
-    var lossyInit = RTCDataChannelInit()
+    final lossyInit = RTCDataChannelInit()
       ..maxRetransmits = 1
       ..ordered = true
       ..binaryType = 'binary';
     lossyDC = await pubPC.createDataChannel(lossyDataChannel, lossyInit);
 
-    var reliableInit = RTCDataChannelInit()
+    final reliableInit = RTCDataChannelInit()
       ..ordered = true
       ..maxRetransmits = 50
       ..binaryType = 'binary';
@@ -278,7 +278,7 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    var dp = DataPacket.fromBuffer(message.binary);
+    final dp = DataPacket.fromBuffer(message.binary);
     switch (dp.whichValue()) {
       case DataPacket_Value.speaker:
         onActiveSpeakerchangedCallback?.call(dp.speaker.speakers);
@@ -303,7 +303,7 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    var delay = (reconnectAttempts * reconnectAttempts) * 300;
+    final delay = (reconnectAttempts * reconnectAttempts) * 300;
     Future.delayed(Duration(milliseconds: delay), () {
       reconnect().then((_) {
         reconnectAttempts = 0;
@@ -323,7 +323,7 @@ class RTCEngine with SignalClientDelegate {
     if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
       List<RTCIceServer> iceServers = [];
       for (final item in response.iceServers) {
-        var iceServer = RTCIceServer(urls: item.urls);
+        final iceServer = RTCIceServer(urls: item.urls);
         if (item.username.isNotEmpty) {
           iceServer.username = item.username;
         }
@@ -350,13 +350,13 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   void onOffer(RTCSessionDescription sd) async {
-    var sub = subscriber;
+    final sub = subscriber;
     if (sub == null) {
       return;
     }
     await sub.setRemoteDescription(sd);
 
-    var answer = await sub.pc.createAnswer();
+    final answer = await sub.pc.createAnswer();
     await sub.pc.setLocalDescription(answer);
     client.sendAnswer(answer);
   }
@@ -386,7 +386,7 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   void onLocalTrackPublished(TrackPublishedResponse response) {
-    var completer = pendingTrackResolvers.remove(response.cid);
+    final completer = pendingTrackResolvers.remove(response.cid);
     completer?.complete(Future.value(response.track));
   }
 

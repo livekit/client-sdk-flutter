@@ -42,36 +42,36 @@ class _ControlsState extends State<Controls> {
 
   _muteAudio() {
     if (participant.hasAudio) {
-      var audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.values.first;
       audioPub.muted = true;
     }
   }
 
   _unmuteAudio() async {
     if (participant.hasAudio) {
-      var audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.values.first;
       audioPub.muted = false;
     } else {
       // publish audio track
-      var audioTrack = await LocalAudioTrack.createTrack();
+      final audioTrack = await LocalAudioTrack.createTrack();
       await participant.publishAudioTrack(audioTrack);
     }
   }
 
   _muteVideo() {
     if (participant.hasVideo) {
-      var videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.values.first;
       videoPub.muted = true;
     }
   }
 
   _unmuteVideo() async {
     if (participant.hasVideo) {
-      var videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.values.first;
       videoPub.muted = false;
     } else {
       // publish audio track
-      var videoTrack = await LocalVideoTrack.createCameraTrack();
+      final videoTrack = await LocalVideoTrack.createCameraTrack();
       await participant.publishVideoTrack(videoTrack);
     }
   }
@@ -107,7 +107,7 @@ class _ControlsState extends State<Controls> {
 
   @override
   Widget build(BuildContext context) {
-    var buttons = <Widget>[];
+    final buttons = <Widget>[];
 
     // mute audio
     if (participant.hasAudio && !participant.isMuted) {
@@ -132,7 +132,7 @@ class _ControlsState extends State<Controls> {
       videoPub = participant.videoTracks.values.first;
     }
 
-    var videoEnabled = videoPub != null && !videoPub.muted;
+    final videoEnabled = videoPub != null && !videoPub.muted;
     if (videoEnabled) {
       buttons.add(IconButton(
         onPressed: _muteVideo,

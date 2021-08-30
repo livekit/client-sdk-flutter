@@ -63,7 +63,7 @@ class Participant extends ChangeNotifier {
 
   /// when the participant joined the room
   DateTime get joinedAt {
-    var pi = _participantInfo;
+    final pi = _participantInfo;
     if (pi != null) {
       return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
           isUtc: true);
@@ -89,7 +89,7 @@ class Participant extends ChangeNotifier {
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks {
     List<TrackPublication> result = [];
-    for (var track in tracks.values) {
+    for (final track in tracks.values) {
       if (track.subscribed) {
         result.add(track);
       }
@@ -116,7 +116,7 @@ class Participant extends ChangeNotifier {
   }
 
   _setMetadata(String md) {
-    var changed = _participantInfo?.metadata != md;
+    final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
       delegate?.onMetadataChanged(this);

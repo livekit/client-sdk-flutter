@@ -4,7 +4,7 @@ class RTCConfiguration {
   String? iceTransportPolicy;
 
   Map<String, dynamic> toMap() {
-    var iceServersMap = [];
+    final iceServersMap = [];
     for (final element in (iceServers ?? [])) {
       iceServersMap.add(element.toMap());
     }
