@@ -62,7 +62,7 @@ class RemoteTrackPublication extends TrackPublication {
     this.track = track;
   }
 
-  _sendUpdateTrackSettings() {
+  void _sendUpdateTrackSettings() {
     final settings = UpdateTrackSettings(
       trackSids: [sid],
       disabled: _disabled,

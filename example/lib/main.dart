@@ -52,10 +52,10 @@ class _PreConnectState extends State<PreConnect> {
 
   _PreConnectState(this.url, this.token);
 
-  _connect(BuildContext context) async {
+  void _connect(BuildContext context) async {
     try {
       final room = await LiveKitClient.connect(url, token);
-      Navigator.push(
+      Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (context) {
           return RoomWidget(room);

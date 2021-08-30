@@ -15,7 +15,7 @@ class LocalVideoTrackOptions {
   }
 
   Map<String, dynamic> get mediaConstraints {
-    return {
+    return <String, dynamic>{
       "mandatory": params.mediaConstraints,
       "facingMode": position == CameraPosition.FRONT ? "user" : "environment",
     };
@@ -41,7 +41,7 @@ class VideoParameter {
   });
 
   Map<String, dynamic> get mediaConstraints {
-    return {
+    return <String, dynamic>{
       "minWidth": width,
       "minHeight": height,
       "minFrameRate": fps,

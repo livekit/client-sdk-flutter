@@ -148,7 +148,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     return completer.future;
   }
 
-  disconnect() {
+  void disconnect() {
     _engine.client.sendLeave();
     _handleDisconnect();
   }
@@ -171,14 +171,14 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     return participant;
   }
 
-  _handleICEConnected() {
+  void _handleICEConnected() {
     _connectCompleter?.complete(this);
     _connectCompleter = null;
     _state = RoomState.Connected;
     notifyListeners();
   }
 
-  _handleDisconnect() {
+  void _handleDisconnect() {
     if (_state == RoomState.Disconnected) {
       return;
     }
@@ -201,7 +201,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDisconnected();
   }
 
-  _handleParticipantUpdate(List<ParticipantInfo> updates) {
+  void _handleParticipantUpdate(List<ParticipantInfo> updates) {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -232,7 +232,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
   }
 
-  _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
+  void _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
     final seenSids = <String>{};
     List<Participant> newSpeakers = [];
     for (final info in speakers) {
@@ -270,7 +270,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
+  void _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
     final participant = participants[packet.participantSid];
     if (participant == null) {
       return;
@@ -280,7 +280,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDataReceived(participant, packet.payload);
   }
 
-  _onTrackAdded(
+  void _onTrackAdded(
       MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
     if (stream == null) {
       // we need the stream to get the track's id
@@ -295,13 +295,13 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
-  _handleParticipantDisconnect(String sid) {
+  void _handleParticipantDisconnect(String sid) {
     final participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }
 
-    final toRemove = List.from(participant.tracks.values);
+    final toRemove = List<TrackPublication>.from(participant.tracks.values);
     for (final track in toRemove) {
       participant.unpublishTrack(track.sid, true);
     }

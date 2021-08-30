@@ -48,7 +48,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      final stream = await navigator.mediaDevices.getUserMedia({
+      final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
         "audio": false,
         "video": options.mediaConstraints,
       });

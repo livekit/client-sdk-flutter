@@ -36,7 +36,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     super.dispose();
   }
 
-  _onConnected() async {
+  void _onConnected() async {
     // video will fail when running in ios simulator
     try {
       final localVideo = await LocalVideoTrack.createCameraTrack();

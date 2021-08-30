@@ -4,11 +4,11 @@ class RTCConfiguration {
   String? iceTransportPolicy;
 
   Map<String, dynamic> toMap() {
-    final iceServersMap = [];
-    for (final element in (iceServers ?? [])) {
+    final iceServersMap = <Map<String, dynamic>>[];
+    for (final element in (iceServers ?? <RTCIceServer>[])) {
       iceServersMap.add(element.toMap());
     }
-    return {
+    return <String, dynamic>{
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
       if (iceCandidatePoolSize != null)
@@ -27,7 +27,7 @@ class RTCIceServer {
   RTCIceServer({required this.urls, this.username, this.credential});
 
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       "urls": urls,
       if (username != null) "username": username,
       if (credential != null) "credential": credential,

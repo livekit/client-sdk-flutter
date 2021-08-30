@@ -35,19 +35,19 @@ class _ControlsState extends State<Controls> {
 
   LocalParticipant get participant => widget.participant;
 
-  _onChange() {
+  void _onChange() {
     // trigger refresh
     setState(() {});
   }
 
-  _muteAudio() {
+  void _muteAudio() {
     if (participant.hasAudio) {
       final audioPub = participant.audioTracks.values.first;
       audioPub.muted = true;
     }
   }
 
-  _unmuteAudio() async {
+  Future<void> _unmuteAudio() async {
     if (participant.hasAudio) {
       final audioPub = participant.audioTracks.values.first;
       audioPub.muted = false;
@@ -58,14 +58,14 @@ class _ControlsState extends State<Controls> {
     }
   }
 
-  _muteVideo() {
+  void _muteVideo() {
     if (participant.hasVideo) {
       final videoPub = participant.videoTracks.values.first;
       videoPub.muted = true;
     }
   }
 
-  _unmuteVideo() async {
+  void _unmuteVideo() async {
     if (participant.hasVideo) {
       final videoPub = participant.videoTracks.values.first;
       videoPub.muted = false;
@@ -76,7 +76,7 @@ class _ControlsState extends State<Controls> {
     }
   }
 
-  _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
+  void _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
     if (this.position == position) {
       return;
     }
@@ -101,7 +101,7 @@ class _ControlsState extends State<Controls> {
     });
   }
 
-  _exit() {
+  void _exit() {
     widget.room.disconnect();
   }
 

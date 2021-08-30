@@ -27,7 +27,7 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  addSubscribedMediaTrack(
+  void addSubscribedMediaTrack(
       MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
       const msg = 'addSubscribedMediaTrack received null sid';
@@ -110,7 +110,7 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  unpublishTrack(String sid, [bool sendUnpublish = false]) {
+  void unpublishTrack(String sid, [bool sendUnpublish = false]) {
     final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) {
       return;

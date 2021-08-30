@@ -47,7 +47,7 @@ class Track {
     return cid;
   }
 
-  stop() {
+  void stop() {
     mediaTrack.stop();
   }
 }

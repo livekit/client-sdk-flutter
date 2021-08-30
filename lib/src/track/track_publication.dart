@@ -22,7 +22,7 @@ class TrackPublication {
   bool get isScreenShare =>
       kind == TrackType.VIDEO && name == Track.ScreenShareName;
 
-  updateFromInfo(TrackInfo info) {
+  void updateFromInfo(TrackInfo info) {
     muted = info.muted;
     simulcasted = info.simulcast;
     if (info.type == TrackType.VIDEO) {

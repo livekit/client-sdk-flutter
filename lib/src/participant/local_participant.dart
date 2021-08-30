@@ -83,7 +83,7 @@ class LocalParticipant extends Participant {
     }
   }
 
-  unpublishTrack(Track track) {
+  void unpublishTrack(Track track) {
     final existing = tracks.values.where((element) => element.track == track);
     if (existing.isEmpty) {
       return;
@@ -109,7 +109,7 @@ class LocalParticipant extends Participant {
     }
   }
 
-  publishData(List<int> data, DataPacket_Kind reliability,
+  void publishData(List<int> data, DataPacket_Kind reliability,
       {List<String>? destinationSids}) {
     RTCDataChannel? channel;
     switch (reliability) {
@@ -138,7 +138,7 @@ class LocalParticipant extends Participant {
   }
 
   @override
-  updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(ParticipantInfo info) {
     super.updateFromInfo(info);
   }
 }

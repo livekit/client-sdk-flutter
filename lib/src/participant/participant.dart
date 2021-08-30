@@ -115,7 +115,7 @@ class Participant extends ChangeNotifier {
     notifyListeners();
   }
 
-  _setMetadata(String md) {
+  void _setMetadata(String md) {
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
@@ -125,7 +125,7 @@ class Participant extends ChangeNotifier {
     }
   }
 
-  updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(ParticipantInfo info) {
     identity = info.identity;
     sid = info.sid;
     if (info.metadata.isNotEmpty) {
@@ -134,11 +134,11 @@ class Participant extends ChangeNotifier {
     _participantInfo = info;
   }
 
-  muteChanged() {
+  void muteChanged() {
     notifyListeners();
   }
 
-  addTrackPublication(TrackPublication pub) {
+  void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
     switch (pub.kind) {

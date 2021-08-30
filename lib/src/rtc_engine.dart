@@ -86,12 +86,12 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  close() async {
+  void close() async {
     isClosed = true;
 
     if (publisher != null) {
       final senders = await publisher?.pc.getSenders();
-      for (final element in (senders ?? [])) {
+      for (final element in (senders ?? <RTCRtpSender>[])) {
         await publisher?.pc.removeTrack(element);
       }
 
@@ -123,7 +123,7 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  negotiate({bool? iceRestart}) async {
+  Future<void> negotiate({bool? iceRestart}) async {
     final pub = publisher;
     if (pub == null) {
       return;
@@ -190,14 +190,14 @@ class RTCEngine with SignalClientDelegate {
         isReconnecting = false;
         return;
       }
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
     }
 
     isReconnecting = false;
     return Future.error(ConnectError('could not reconnect ICE'));
   }
 
-  _configurePeerConnections() async {
+  Future<void> _configurePeerConnections() async {
     if (publisher != null) {
       return;
     }
@@ -272,7 +272,7 @@ class RTCEngine with SignalClientDelegate {
     reliableDC?.onMessage = _handleDataMessage;
   }
 
-  _handleDataMessage(RTCDataChannelMessage message) {
+  void _handleDataMessage(RTCDataChannelMessage message) {
     // always expect binary
     if (!message.isBinary) {
       return;
@@ -291,7 +291,7 @@ class RTCEngine with SignalClientDelegate {
     }
   }
 
-  _handleDisconnect(String reason) {
+  void _handleDisconnect(String reason) {
     if (isClosed) {
       return;
     }
@@ -307,7 +307,7 @@ class RTCEngine with SignalClientDelegate {
     Future.delayed(Duration(milliseconds: delay), () {
       reconnect().then((_) {
         reconnectAttempts = 0;
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         _handleDisconnect(reason);
       });
     });

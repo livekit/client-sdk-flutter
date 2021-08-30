@@ -44,13 +44,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.didUpdateWidget(oldWidget);
   }
 
-  _trackChanged() {
+  void _trackChanged() {
     setState(() {
       _renderer.srcObject = widget.track.mediaStream;
     });
   }
 
-  _initRenderer() async {
+  void _initRenderer() async {
     await _renderer.initialize();
     _trackChanged();
   }

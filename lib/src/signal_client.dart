@@ -66,7 +66,7 @@ class SignalClient {
           .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
     } catch (e) {
-      final completer = Completer();
+      final completer = Completer<void>();
       final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
       http.get(validateUri).then((response) {
         if (response.statusCode != 200) {
@@ -74,7 +74,7 @@ class SignalClient {
         } else {
           completer.completeError(ConnectError());
         }
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         completer.completeError(ConnectError());
       });
 
@@ -97,24 +97,24 @@ class SignalClient {
     _connected = true;
   }
 
-  close() {
+  void close() {
     _connected = false;
     _ws?.sink.close();
   }
 
-  sendOffer(RTCSessionDescription offer) {
+  void sendOffer(RTCSessionDescription offer) {
     _sendRequest(SignalRequest(
       offer: fromRTCSessionDescription(offer),
     ));
   }
 
-  sendAnswer(RTCSessionDescription answer) {
+  void sendAnswer(RTCSessionDescription answer) {
     _sendRequest(SignalRequest(
       answer: fromRTCSessionDescription(answer),
     ));
   }
 
-  sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
+  void sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
     _sendRequest(SignalRequest(
         trickle: TrickleRequest(
       candidateInit: fromRTCIceCandidate(candidate),
@@ -122,7 +122,7 @@ class SignalClient {
     )));
   }
 
-  sendMuteTrack(String trackSid, bool muted) {
+  void sendMuteTrack(String trackSid, bool muted) {
     _sendRequest(SignalRequest(
       mute: MuteTrackRequest(
         sid: trackSid,
@@ -131,7 +131,7 @@ class SignalClient {
     ));
   }
 
-  sendAddTrack(
+  void sendAddTrack(
       {required String cid,
       required String name,
       required TrackType type,
@@ -150,19 +150,19 @@ class SignalClient {
     ));
   }
 
-  sendUpdateTrackSettings(UpdateTrackSettings settings) {
+  void sendUpdateTrackSettings(UpdateTrackSettings settings) {
     _sendRequest(SignalRequest(
       trackSetting: settings,
     ));
   }
 
-  sendUpdateSubscription(UpdateSubscription subscription) {
+  void sendUpdateSubscription(UpdateSubscription subscription) {
     _sendRequest(SignalRequest(
       subscription: subscription,
     ));
   }
 
-  sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
+  void sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
     _sendRequest(SignalRequest(
         simulcast: SetSimulcastLayers(
       trackSid: trackSid,
@@ -170,13 +170,13 @@ class SignalClient {
     )));
   }
 
-  sendLeave() {
+  void sendLeave() {
     _sendRequest(SignalRequest(
       leave: LeaveRequest(),
     ));
   }
 
-  _sendRequest(SignalRequest req) {
+  void _sendRequest(SignalRequest req) {
     if (_ws == null) {
       log('could not send message, not connected');
       return;
@@ -186,7 +186,7 @@ class SignalClient {
     _ws?.sink.add(buf);
   }
 
-  _handleMessage(dynamic message) {
+  void _handleMessage(dynamic message) {
     if (message is! List<int>) {
       return;
     }
@@ -221,15 +221,15 @@ class SignalClient {
         delegate?.onLeave(msg.leave);
         break;
       default:
-        log('unsupported message: ' + jsonEncode(msg));
+        log('unsupported message: ' + json.encode(msg));
     }
   }
 
-  _handleError(Object error) {
+  void _handleError(Object error) {
     logger.warning('received websocket error $error');
   }
 
-  _handleDone() {
+  void _handleDone() {
     if (!_connected) {
       return;
     }
@@ -252,11 +252,14 @@ SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
 }
 
 RTCIceCandidate toRTCIceCandidate(String candidateInit) {
-  final candInit = jsonDecode(candidateInit);
+  final candInit = json.decode(candidateInit) as Map<String, dynamic>;
   return RTCIceCandidate(
-      candInit['candidate'], candInit['sdpMid'], candInit['sdpMLineIndex']);
+    candInit['candidate'] as String?,
+    candInit['sdpMid'] as String?,
+    candInit['sdpMLineIndex'] as int?,
+  );
 }
 
 String fromRTCIceCandidate(RTCIceCandidate candidate) {
-  return jsonEncode(candidate.toMap());
+  return json.encode(candidate.toMap());
 }

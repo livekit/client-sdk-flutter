@@ -11,14 +11,14 @@ class AudioTrack extends Track {
   AudioTrack(String name, MediaStreamTrack track, this.mediaStream)
       : super(TrackType.AUDIO, name, track);
 
-  start() {
+  void start() {
     if (this is! LocalAudioTrack) {
       audio.startAudio(getCid(), mediaTrack);
     }
   }
 
   @override
-  stop() {
+  void stop() {
     mediaStream?.dispose();
     mediaStream = null;
     audio.stopAudio(getCid());
