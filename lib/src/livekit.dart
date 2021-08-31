@@ -7,10 +7,14 @@ class LiveKitClient {
   /// Connects to a LiveKit room
   static Future<Room> connect(
     String url,
-    String token, [
+    String token, {
     ConnectOptions? options,
-  ]) {
+  }) {
     final room = Room();
-    return room.connect(url, token, options);
+    return room.connect(
+      url,
+      token,
+      options: options,
+    );
   }
 }

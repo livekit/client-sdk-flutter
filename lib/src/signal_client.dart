@@ -47,12 +47,21 @@ class SignalClient {
 
   bool get connected => _connected;
 
-  Future<void> join(String url, String token, ConnectOptions? options) async {
+  Future<void> join(
+    String url,
+    String token, {
+    ConnectOptions? options,
+  }) async {
+    //
+    // Create default options if null
+    //
+    options ??= const ConnectOptions();
+
     final rtcUrl = '$url/rtc';
     var params = _joinParams(token);
-    if (options != null && options.autoSubscribe != null) {
-      params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
-    }
+    // if (options != null && options.autoSubscribe != null) {
+    params += '&auto_subscribe=${options.autoSubscribe ? '1' : '0'}';
+    // }
 
     try {
       final ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));

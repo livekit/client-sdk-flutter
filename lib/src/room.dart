@@ -151,11 +151,20 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     };
   }
 
-  Future<Room> connect(String url, String token, [ConnectOptions? opts]) async {
+  Future<Room> connect(
+    String url,
+    String token, {
+    ConnectOptions? options,
+  }) async {
     final completer = Completer<Room>();
     _connectCompleter = completer;
 
-    final joinResponse = await _engine.join(url, token, opts);
+    final joinResponse = await _engine.join(
+      url,
+      token,
+      options: options,
+    );
+
     logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
     localParticipant = LocalParticipant(

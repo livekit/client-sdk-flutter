@@ -65,7 +65,11 @@ class RTCEngine with SignalClientDelegate {
     client.delegate = this;
   }
 
-  Future<JoinResponse> join(String url, String token, ConnectOptions? opts) async {
+  Future<JoinResponse> join(
+    String url,
+    String token, {
+    ConnectOptions? options,
+  }) async {
     this.url = url;
     this.token = token;
 
@@ -73,7 +77,7 @@ class RTCEngine with SignalClientDelegate {
     joinCompleter = completer;
 
     try {
-      await client.join(url, token, opts);
+      await client.join(url, token, options: options);
     } catch (e) {
       return Future.error(e);
     }
