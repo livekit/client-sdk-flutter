@@ -47,6 +47,30 @@ class SignalClient {
 
   bool get connected => _connected;
 
+  Uri _buildUri(
+    String uriString, {
+    required String token,
+    ConnectOptions? options,
+    bool reconnect = false,
+    bool validate = false,
+  }) {
+    final uri = Uri.parse(uriString);
+
+    return uri.replace(
+      //
+      // It is possible to enforce WSS
+      //
+      scheme: validate ? 'http' : uri.scheme,
+      path: validate ? 'validate' : 'rtc',
+      queryParameters: <String, String>{
+        'access_token': token,
+        'protocol': protocolVersion.toString(),
+        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        if (reconnect) 'reconnect': '1',
+      },
+    );
+  }
+
   Future<void> join(
     String url,
     String token, {
@@ -57,30 +81,43 @@ class SignalClient {
     //
     options ??= const ConnectOptions();
 
-    final rtcUrl = '$url/rtc';
-    var params = _joinParams(token);
-    // if (options != null && options.autoSubscribe != null) {
-    params += '&auto_subscribe=${options.autoSubscribe ? '1' : '0'}';
-    // }
+    final uri = _buildUri(
+      url,
+      token: token,
+      options: options,
+    );
 
     try {
-      final ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
+      final ws = await platform.connectToWebSocket(uri);
       ws.stream.listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
-    } catch (e) {
-      final completer = Completer<void>();
-      final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
-      http.get(validateUri).then((response) {
-        if (response.statusCode != 200) {
-          completer.completeError(ConnectError(response.body));
-        } else {
-          completer.completeError(ConnectError());
-        }
-      }).catchError((dynamic e) {
-        completer.completeError(ConnectError());
-      });
+    } catch (socketError) {
+      //
+      // Validate mode
+      //
+      final validateUri = _buildUri(
+        url,
+        token: token,
+        options: options,
+        validate: true,
+      );
 
-      return completer.future;
+      //
+      // Attempt Validation
+      //
+      try {
+        final validateResponse = await http.get(validateUri);
+        if (validateResponse.statusCode != 200) {
+          throw ConnectError(validateResponse.body);
+        } else {
+          throw ConnectError();
+        }
+      } catch (httpError) {
+        //
+        // HTTP doesn't work either
+        //
+        throw ConnectError();
+      }
     }
   }
 
@@ -89,10 +126,11 @@ class SignalClient {
     _ws?.sink.close();
     _ws = null;
 
-    url += '/rtc';
-    var params = _joinParams(token);
-    params += '&reconnect=1';
-    final uri = Uri.parse(url + params);
+    final uri = _buildUri(
+      url,
+      token: token,
+      reconnect: true,
+    );
 
     final ws = await platform.connectToWebSocket(uri);
     _ws = ws;
@@ -234,10 +272,6 @@ class SignalClient {
     _connected = false;
     delegate?.onClose();
   }
-}
-
-String _joinParams(String token) {
-  return '?access_token=$token&protocol=$protocolVersion';
 }
 
 RTCSessionDescription toRTCSessionDescription(SessionDescription sd) {
