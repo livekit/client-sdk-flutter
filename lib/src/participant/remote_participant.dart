@@ -7,6 +7,7 @@ import '../track/track.dart';
 import '../track/video_track.dart';
 import 'participant.dart';
 
+/// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
   final SignalClient _client;
 
@@ -27,6 +28,8 @@ class RemoteParticipant extends Participant {
     }
   }
 
+  /// for internal use
+  /// {@nodoc}
   void addSubscribedMediaTrack(
       MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
@@ -70,6 +73,8 @@ class RemoteParticipant extends Participant {
     notifyListeners();
   }
 
+  /// for internal use
+  /// {@nodoc}
   @override
   void updateFromInfo(ParticipantInfo info) {
     final hadInfo = hasInfo;

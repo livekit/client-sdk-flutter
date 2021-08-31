@@ -11,6 +11,7 @@ import '../track/track.dart';
 import '../track/track_publication.dart';
 import 'participant.dart';
 
+/// Represents the current participant in the room.
 class LocalParticipant extends Participant {
   final RTCEngine _engine;
 
@@ -22,6 +23,8 @@ class LocalParticipant extends Participant {
     updateFromInfo(info);
   }
 
+  /// for internal use
+  /// {@nodoc}
   RTCEngine get engine => _engine;
 
   /// publish an audio track to the room
@@ -53,7 +56,7 @@ class LocalParticipant extends Participant {
     }
   }
 
-  /// publish a video track to the room
+  /// Publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
     if (videoTracks.values.any(
         (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
@@ -83,6 +86,7 @@ class LocalParticipant extends Participant {
     }
   }
 
+  /// Unpublish a track that's already published
   void unpublishTrack(Track track) {
     final existing = tracks.values.where((element) => element.track == track);
     if (existing.isEmpty) {
@@ -109,6 +113,8 @@ class LocalParticipant extends Participant {
     }
   }
 
+  /// Publish a new data payload to the room.
+  /// @param destinationSids When empty, data will be forwarded to each participant in the room.
   void publishData(List<int> data, DataPacket_Kind reliability,
       {List<String>? destinationSids}) {
     RTCDataChannel? channel;
@@ -137,6 +143,8 @@ class LocalParticipant extends Participant {
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
+  /// for internal use
+  /// {@nodoc}
   @override
   void updateFromInfo(ParticipantInfo info) {
     super.updateFromInfo(info);

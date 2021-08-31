@@ -8,6 +8,7 @@ import 'package:tuple/tuple.dart';
 import 'errors.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'options.dart';
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
@@ -25,39 +26,83 @@ enum RoomState {
   Reconnecting,
 }
 
+/// Delegate for [Room] callbacks
 mixin RoomDelegate {
   // room level callbacks
+  /// When the connection to the server has been interrupted and it's attempting
+  /// to reconnect.
   void onReconnecting() {}
+
+  /// Connection to room is re-established. All existing state is preserved.
   void onReconnected() {}
+
+  /// Disconnected from the room
   void onDisconnected() {}
+
+  /// When a new [RemoteParticipant] joins *after* the current participant has connected
+  /// It will not fire for participants that are already in the room
   void onParticipantConnected(Participant participant) {}
+
+  /// When a [RemoteParticipant] leaves the room
   void onParticipantDisconnected(Participant participant) {}
+
+  /// Active speakers changed. List of speakers are ordered by their audio level.
+  /// loudest speakers first. This will include the [LocalParticipant] too.
   void onActiveSpeakersChanged(List<Participant> participants) {}
 
   // callbacks about participant events
+
+  /// Participant metadata is a simple way for app-specific state to be pushed to
+  /// all users.
+  /// When RoomService.UpdateParticipantMetadata is called to change a
+  /// participant's state, *all*  participants in the room will fire this event.
   void onMetadataChanged(Participant participant) {}
+
+  /// A track that was muted, fires on both [RemoteParticipant]s and
+  /// [LocalParticipant]
   void onTrackMuted(Participant participant, TrackPublication publication) {}
+
+  /// A track that was unmuted, fires on both [RemoteParticipant]s and
+  /// [LocalParticipant]
   void onTrackUnmuted(Participant participant, TrackPublication publication) {}
+
+  /// When a new track is published to room *after* the current participant has
+  /// joined. It will not fire for tracks that are already published
   void onTrackPublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {}
+
+  /// A [RemoteParticipant] has unpublished a track
   void onTrackUnpublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {}
+
+  /// The [LocalParticipant] has subscribed to a new track. This event will **always**
+  /// fire as long as new tracks are ready for use.
   void onTrackSubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {}
+
+  /// A subscribed track is no longer available.
   void onTrackUnsubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {}
+
+  /// Data received from another [RemoteParticipant].
+  /// Data packets provides the ability to use LiveKit to send/receive arbitrary
+  /// payloads.
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
+
+  /// Encountered failure attempting to subscribe to track.
   void onTrackSubscriptionFailed(
       RemoteParticipant participant, String sid, String? message) {}
 }
 
-/// Room is the main entrypoint to working with LiveKit. It provides
-/// updates to its state via two ways, by assigning a delegate, or using
+/// Room is the primary construct for LiveKit conferences. It contains a
+/// group of [Participant]s, each publishing and subscribing to [Track]s.
+/// Notifies changes to its state via two ways, by assigning a delegate, or using
 /// it as a provider.
-/// Room will trigger a change update when
+/// Room will trigger a change notification update when
 /// * state changes
 /// * participant membership changes
 /// * active speakers are different
+/// {@category Room}
 class Room extends ChangeNotifier with ParticipantDelegate {
   RoomState _state = RoomState.Disconnected;
 
@@ -92,6 +137,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   Completer<Room>? _connectCompleter;
 
+  /// internal use
+  /// {@nodoc}
   Room([RTCConfiguration? rtcConfig])
       : _engine = RTCEngine(SignalClient(), rtcConfig) {
     _engine.onTrack = _onTrackAdded;
@@ -148,6 +195,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     return completer.future;
   }
 
+  /// Disconnects from the room, notifying server of disconnection.
   void disconnect() {
     _engine.client.sendLeave();
     _handleDisconnect();
@@ -288,8 +336,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    final parsed = unpackStreamId(stream.id);
-    final trackSid = parsed.item2 ?? track.id;
+    var parsed = _unpackStreamId(stream.id);
+    var trackSid = parsed.item2 ?? track.id;
 
     final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
@@ -360,8 +408,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 }
 
-Tuple2<String, String?> unpackStreamId(String streamId) {
-  final parts = streamId.split('|');
+Tuple2<String, String?> _unpackStreamId(String streamId) {
+  var parts = streamId.split('|');
   if (parts.length != 2) {
     return Tuple2(parts[0], null);
   }

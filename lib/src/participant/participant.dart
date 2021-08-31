@@ -6,20 +6,42 @@ import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../track/track_publication.dart';
 
+/// Callbacks for participant changes
 mixin ParticipantDelegate {
+  /// The participant's metadata has changed
   void onMetadataChanged(Participant participant) {}
+
+  /// The participant's isSpeaking property has changed
   void onSpeakingChanged(Participant participant, bool speaking) {}
+
+  /// This participant has muted one of their tracks
   void onTrackMuted(Participant participant, TrackPublication publication) {}
+
+  /// This participant has unmuted one of their tracks
   void onTrackUnmuted(Participant participant, TrackPublication publication) {}
+
+  /// This participant has published a new [Track] to the [Room].
   void onTrackPublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {}
+
+  /// This participant has unpublished one of their [Track].
   void onTrackUnpublished(
       RemoteParticipant participant, RemoteTrackPublication publication) {}
+
+  /// The [LocalParticipant] has subscribed to a new track published by this
+  /// [RemoteParticipant]
   void onTrackSubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {}
+
+  /// The [LocalParticipant] has unsubscribed from a track published by this
+  /// [RemoteParticipant]. This event is fired when the track was unpublished
   void onTrackUnsubscribed(RemoteParticipant participant, Track track,
       RemoteTrackPublication publication) {}
+
+  /// Data received from this [RemoteParticipant].
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
+
+  /// An error has occured during track subscription.
   void onTrackSubscriptionFailed(
       RemoteParticipant participant, String sid, String? message) {}
 }
@@ -97,11 +119,14 @@ class Participant extends ChangeNotifier {
     return result;
   }
 
-  /// internal use
+  /// for internal use
+  /// {@nodoc}
   bool get hasInfo => _participantInfo != null;
 
   Participant(this.sid, this.identity);
 
+  /// for internal use
+  /// {@nodoc}
   set isSpeaking(bool speaking) {
     if (_isSpeaking == speaking) {
       return;
@@ -125,6 +150,8 @@ class Participant extends ChangeNotifier {
     }
   }
 
+  /// for internal use
+  /// {@nodoc}
   void updateFromInfo(ParticipantInfo info) {
     identity = info.identity;
     sid = info.sid;
@@ -134,10 +161,14 @@ class Participant extends ChangeNotifier {
     _participantInfo = info;
   }
 
+  /// for internal use
+  /// {@nodoc}
   void muteChanged() {
     notifyListeners();
   }
 
+  /// for internal use
+  /// {@nodoc}
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;

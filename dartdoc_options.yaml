@@ -1,0 +1,12 @@
+dartdoc:
+  categories:
+    "Room":
+      name: Room
+    "Participant":
+      name: Participant
+    "Track":
+      name: Track
+  categoryOrder: ["Room", "Participant", "Track"]
+  linkToSource:
+    root: lib/src/
+    uriTemplate: https://github.com/livekit/client-sdk-flutter/blob/main/lib/src/%f%

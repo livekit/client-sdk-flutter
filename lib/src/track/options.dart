@@ -1,3 +1,4 @@
+/// Options when creating a LocalVideoTrack.
 class LocalVideoTrackOptions {
   CameraPosition position = CameraPosition.FRONT;
   VideoParameter params;
@@ -65,4 +66,5 @@ class VideoPresets {
   ];
 }
 
+/// Options when creating an LocalAudioTrack. Placeholder for now.
 class LocalAudioTrackOptions {}

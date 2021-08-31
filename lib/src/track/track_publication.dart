@@ -1,6 +1,8 @@
 import '../proto/livekit_models.pb.dart';
 import 'track.dart';
 
+/// Represents a track that's published to the server. This class contains
+/// metadata associated with tracks.
 class TrackPublication {
   Track? track;
   String name;
@@ -19,6 +21,7 @@ class TrackPublication {
     updateFromInfo(info);
   }
 
+  /// True when the track is published with name [Track.ScreenShareName].
   bool get isScreenShare =>
       kind == TrackType.VIDEO && name == Track.ScreenShareName;
 

@@ -11,6 +11,7 @@ class LocalTrackPublication extends TrackPublication {
     this.track = track;
   }
 
+  /// Mute or unmute the current track. When muted, track will stop sending data
   @override
   set muted(bool val) {
     if (val == muted) {
