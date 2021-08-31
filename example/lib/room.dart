@@ -82,8 +82,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       }
 
       // joinedAt
-      return a.joinedAt.millisecondsSinceEpoch -
-          b.joinedAt.millisecondsSinceEpoch;
+      return a.joinedAt.millisecondsSinceEpoch - b.joinedAt.millisecondsSinceEpoch;
     });
 
     if (participants.length > 1) {
@@ -126,8 +125,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
             width: 100,
             height: 60,
             padding: const EdgeInsets.all(2),
-            child:
-                VideoView(participants[index + 1], quality: VideoQuality.LOW),
+            child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
           );
         },
       );
@@ -199,9 +197,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
     final subscribedVideos = widget.participant.videoTracks.values.where((pub) {
-      return pub.kind == TrackType.VIDEO &&
-          !pub.isScreenShare &&
-          pub.subscribed;
+      return pub.kind == TrackType.VIDEO && !pub.isScreenShare && pub.subscribed;
     });
     setState(() {
       if (subscribedVideos.isNotEmpty) {

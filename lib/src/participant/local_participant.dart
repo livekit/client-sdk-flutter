@@ -29,14 +29,13 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    if (audioTracks.values.any(
-        (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (audioTracks.values.any((element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
 
     try {
-      final trackInfo = await _engine.addTrack(
-          cid: track.getCid(), name: track.name, kind: track.kind);
+      final trackInfo =
+          await _engine.addTrack(cid: track.getCid(), name: track.name, kind: track.kind);
       final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
@@ -58,14 +57,13 @@ class LocalParticipant extends Participant {
 
   /// Publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
-    if (videoTracks.values.any(
-        (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (videoTracks.values.any((element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
 
     try {
-      final trackInfo = await _engine.addTrack(
-          cid: track.getCid(), name: track.name, kind: track.kind);
+      final trackInfo =
+          await _engine.addTrack(cid: track.getCid(), name: track.name, kind: track.kind);
       final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
@@ -115,8 +113,7 @@ class LocalParticipant extends Participant {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
-  void publishData(List<int> data, DataPacket_Kind reliability,
-      {List<String>? destinationSids}) {
+  void publishData(List<int> data, DataPacket_Kind reliability, {List<String>? destinationSids}) {
     RTCDataChannel? channel;
     switch (reliability) {
       case DataPacket_Kind.RELIABLE:

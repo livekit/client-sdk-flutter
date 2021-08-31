@@ -21,29 +21,26 @@ mixin ParticipantDelegate {
   void onTrackUnmuted(Participant participant, TrackPublication publication) {}
 
   /// This participant has published a new [Track] to the [Room].
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// This participant has unpublished one of their [Track].
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has subscribed to a new track published by this
   /// [RemoteParticipant]
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has unsubscribed from a track published by this
   /// [RemoteParticipant]. This event is fired when the track was unpublished
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// Data received from this [RemoteParticipant].
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
   /// An error has occured during track subscription.
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {}
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
 }
 
 /// Represents a Participant in the room, notifies changes via delegates as
@@ -87,8 +84,7 @@ class Participant extends ChangeNotifier {
   DateTime get joinedAt {
     final pi = _participantInfo;
     if (pi != null) {
-      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
-          isUtc: true);
+      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000, isUtc: true);
     }
     return DateTime.now();
   }

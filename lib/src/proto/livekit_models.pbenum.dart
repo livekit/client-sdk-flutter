@@ -10,21 +10,12 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class TrackType extends $pb.ProtobufEnum {
-  static const TrackType AUDIO = TrackType._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'AUDIO');
-  static const TrackType VIDEO = TrackType._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'VIDEO');
-  static const TrackType DATA = TrackType._(
-      2,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'DATA');
+  static const TrackType AUDIO =
+      TrackType._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'AUDIO');
+  static const TrackType VIDEO =
+      TrackType._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'VIDEO');
+  static const TrackType DATA =
+      TrackType._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'DATA');
 
   static const $core.List<TrackType> values = <TrackType>[
     AUDIO,
@@ -32,8 +23,7 @@ class TrackType extends $pb.ProtobufEnum {
     DATA,
   ];
 
-  static final $core.Map<$core.int, TrackType> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, TrackType> _byValue = $pb.ProtobufEnum.initByValue(values);
   static TrackType? valueOf($core.int value) => _byValue[value];
 
   const TrackType._($core.int v, $core.String n) : super(v, n);
@@ -41,28 +31,15 @@ class TrackType extends $pb.ProtobufEnum {
 
 class ParticipantInfo_State extends $pb.ProtobufEnum {
   static const ParticipantInfo_State JOINING = ParticipantInfo_State._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'JOINING');
+      0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'JOINING');
   static const ParticipantInfo_State JOINED = ParticipantInfo_State._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'JOINED');
+      1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'JOINED');
   static const ParticipantInfo_State ACTIVE = ParticipantInfo_State._(
-      2,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'ACTIVE');
+      2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ACTIVE');
   static const ParticipantInfo_State DISCONNECTED = ParticipantInfo_State._(
-      3,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'DISCONNECTED');
+      3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'DISCONNECTED');
 
-  static const $core.List<ParticipantInfo_State> values =
-      <ParticipantInfo_State>[
+  static const $core.List<ParticipantInfo_State> values = <ParticipantInfo_State>[
     JOINING,
     JOINED,
     ACTIVE,

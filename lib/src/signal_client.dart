@@ -57,13 +57,11 @@ class SignalClient {
 
     try {
       final ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
-      ws.stream
-          .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
+      ws.stream.listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
     } catch (e) {
       final completer = Completer<void>();
-      final validateUri =
-          Uri.parse('http${rtcUrl.substring(2)}/validate$params');
+      final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
       http.get(validateUri).then((response) {
         if (response.statusCode != 200) {
           completer.completeError(ConnectError(response.body));
@@ -201,8 +199,7 @@ class SignalClient {
         delegate?.onOffer(toRTCSessionDescription(msg.offer));
         break;
       case SignalResponse_Message.trickle:
-        delegate?.onTrickle(
-            toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
+        delegate?.onTrickle(toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
         break;
       case SignalResponse_Message.update:
         delegate?.onParticipantUpdate(msg.update.participants);

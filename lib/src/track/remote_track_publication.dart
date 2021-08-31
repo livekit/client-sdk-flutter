@@ -61,8 +61,7 @@ class RemoteTrackPublication extends TrackPublication {
     _participant.muteChanged();
   }
 
-  RemoteTrackPublication(TrackInfo info, this._participant, [Track? track])
-      : super.fromInfo(info) {
+  RemoteTrackPublication(TrackInfo info, this._participant, [Track? track]) : super.fromInfo(info) {
     this.track = track;
   }
 

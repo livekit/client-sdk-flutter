@@ -20,12 +20,9 @@ const iceRestartTimeout = Duration(seconds: 10);
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
     MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver);
-typedef ParticipantUpdateCallback = void Function(
-    List<ParticipantInfo> participants);
-typedef ActiveSpeakerChangedCallback = void Function(
-    List<SpeakerInfo> speakers);
-typedef DataPacketCallback = void Function(
-    UserPacket packet, DataPacket_Kind kind);
+typedef ParticipantUpdateCallback = void Function(List<ParticipantInfo> participants);
+typedef ActiveSpeakerChangedCallback = void Function(List<SpeakerInfo> speakers);
+typedef DataPacketCallback = void Function(UserPacket packet, DataPacket_Kind kind);
 
 class RTCEngine with SignalClientDelegate {
   PCTransport? publisher;
@@ -112,8 +109,7 @@ class RTCEngine with SignalClientDelegate {
       required TrackType kind,
       TrackDimension? dimension}) async {
     if (pendingTrackResolvers[cid] != null) {
-      throw TrackPublishError(
-          'a track with the same CID has already been published');
+      throw TrackPublishError('a track with the same CID has already been published');
     }
 
     final completer = Completer<TrackInfo>();
@@ -135,8 +131,7 @@ class RTCEngine with SignalClientDelegate {
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
     if (remoteDesc != null &&
-        pub.pc.signalingState ==
-            RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+        pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       await pub.pc.setRemoteDescription(remoteDesc);
     }
 
@@ -217,8 +212,7 @@ class RTCEngine with SignalClientDelegate {
 
     pubPC.onRenegotiationNeeded = () {
       if (pubPC.iceConnectionState == null ||
-          pubPC.iceConnectionState ==
-              RTCIceConnectionState.RTCIceConnectionStateNew) {
+          pubPC.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
         return;
       }
       negotiate();
@@ -266,8 +260,7 @@ class RTCEngine with SignalClientDelegate {
       ..ordered = true
       ..maxRetransmits = 50
       ..binaryType = 'binary';
-    reliableDC =
-        await pubPC.createDataChannel(reliableDataChannel, reliableInit);
+    reliableDC = await pubPC.createDataChannel(reliableDataChannel, reliableInit);
 
     lossyDC?.onMessage = _handleDataMessage;
     reliableDC?.onMessage = _handleDataMessage;

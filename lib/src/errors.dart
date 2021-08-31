@@ -14,8 +14,7 @@ class ConnectError extends LiveKitError {
 }
 
 class UnexpectedConnectionState extends LiveKitError {
-  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
-      : super(msg);
+  UnexpectedConnectionState([String msg = 'Unexpected connection state']) : super(msg);
 }
 
 class TrackCreateError extends LiveKitError {

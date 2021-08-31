@@ -13,11 +13,9 @@ class RemoteParticipant extends Participant {
 
   SignalClient get client => _client;
 
-  RemoteParticipant(this._client, String sid, String identity)
-      : super(sid, identity);
+  RemoteParticipant(this._client, String sid, String identity) : super(sid, identity);
 
-  RemoteParticipant.fromInfo(this._client, ParticipantInfo info)
-      : super(info.sid, info.identity) {
+  RemoteParticipant.fromInfo(this._client, ParticipantInfo info) : super(info.sid, info.identity) {
     updateFromInfo(info);
   }
 
@@ -30,8 +28,7 @@ class RemoteParticipant extends Participant {
 
   /// for internal use
   /// {@nodoc}
-  void addSubscribedMediaTrack(
-      MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
+  void addSubscribedMediaTrack(MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
       const msg = 'addSubscribedMediaTrack received null sid';
       delegate?.onTrackSubscriptionFailed(this, '', msg);
@@ -137,12 +134,11 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  Future<RemoteTrackPublication?> _waitForTrackPublication(
-      String sid, Duration delay) async {
+  Future<RemoteTrackPublication?> _waitForTrackPublication(String sid, Duration delay) async {
     final endTime = DateTime.now().add(delay);
     while (DateTime.now().isBefore(endTime)) {
-      final pub = await Future<RemoteTrackPublication?>.delayed(
-          const Duration(milliseconds: 100), () {
+      final pub =
+          await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });
       if (pub != null) {

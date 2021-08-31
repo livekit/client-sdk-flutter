@@ -11,8 +11,7 @@ class RTCConfiguration {
     return <String, dynamic>{
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
-      if (iceCandidatePoolSize != null)
-        "iceCandidatePoolSize": iceCandidatePoolSize,
+      if (iceCandidatePoolSize != null) "iceCandidatePoolSize": iceCandidatePoolSize,
       "iceServers": iceServersMap,
       if (iceTransportPolicy != null) "iceTransportPolicy": iceTransportPolicy,
     };
@@ -39,9 +38,10 @@ enum RTCIceTransportPolicy {
   all,
   relay,
 }
+
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   String toStringValue() => {
-    RTCIceTransportPolicy.all: 'all',
-    RTCIceTransportPolicy.relay: 'relay',
-  }[this]!;
+        RTCIceTransportPolicy.all: 'all',
+        RTCIceTransportPolicy.relay: 'relay',
+      }[this]!;
 }

@@ -68,21 +68,19 @@ mixin RoomDelegate {
 
   /// When a new track is published to room *after* the current participant has
   /// joined. It will not fire for tracks that are already published
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// A [RemoteParticipant] has unpublished a track
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has subscribed to a new track. This event will **always**
   /// fire as long as new tracks are ready for use.
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// A subscribed track is no longer available.
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// Data received from another [RemoteParticipant].
   /// Data packets provides the ability to use LiveKit to send/receive arbitrary
@@ -90,8 +88,7 @@ mixin RoomDelegate {
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
   /// Encountered failure attempting to subscribe to track.
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {}
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
 }
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -139,8 +136,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   /// internal use
   /// {@nodoc}
-  Room([RTCConfiguration? rtcConfig])
-      : _engine = RTCEngine(SignalClient(), rtcConfig) {
+  Room([RTCConfiguration? rtcConfig]) : _engine = RTCEngine(SignalClient(), rtcConfig) {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
@@ -164,8 +160,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _connectCompleter = completer;
 
     final joinResponse = await _engine.join(url, token, opts);
-    logger.fine(
-        'connected to LiveKit server, version: ${joinResponse.serverVersion}');
+    logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
     localParticipant = LocalParticipant(
       engine: _engine,
@@ -201,8 +196,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _handleDisconnect();
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(
-      String sid, ParticipantInfo? info) {
+  RemoteParticipant _getOrCreateRemoteParticipant(String sid, ParticipantInfo? info) {
     var participant = _participants[sid];
     if (participant != null) {
       return participant;
@@ -328,8 +322,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDataReceived(participant, packet.payload);
   }
 
-  void _onTrackAdded(
-      MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');
@@ -374,26 +367,24 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   @override
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackPublished(participant, publication);
   }
 
   @override
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackUnpublished(participant, publication);
   }
 
   @override
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackSubscribed(participant, track, publication);
   }
 
   @override
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackUnsubscribed(participant, track, publication);
   }
 
@@ -402,8 +393,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
   @override
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {
     delegate?.onTrackSubscriptionFailed(participant, sid, message);
   }
 }

@@ -11,44 +11,28 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 class SignalTarget extends $pb.ProtobufEnum {
   static const SignalTarget PUBLISHER = SignalTarget._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'PUBLISHER');
+      0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'PUBLISHER');
   static const SignalTarget SUBSCRIBER = SignalTarget._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'SUBSCRIBER');
+      1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SUBSCRIBER');
 
   static const $core.List<SignalTarget> values = <SignalTarget>[
     PUBLISHER,
     SUBSCRIBER,
   ];
 
-  static final $core.Map<$core.int, SignalTarget> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, SignalTarget> _byValue = $pb.ProtobufEnum.initByValue(values);
   static SignalTarget? valueOf($core.int value) => _byValue[value];
 
   const SignalTarget._($core.int v, $core.String n) : super(v, n);
 }
 
 class VideoQuality extends $pb.ProtobufEnum {
-  static const VideoQuality LOW = VideoQuality._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'LOW');
+  static const VideoQuality LOW =
+      VideoQuality._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'LOW');
   static const VideoQuality MEDIUM = VideoQuality._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'MEDIUM');
-  static const VideoQuality HIGH = VideoQuality._(
-      2,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'HIGH');
+      1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'MEDIUM');
+  static const VideoQuality HIGH =
+      VideoQuality._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'HIGH');
 
   static const $core.List<VideoQuality> values = <VideoQuality>[
     LOW,
@@ -56,8 +40,7 @@ class VideoQuality extends $pb.ProtobufEnum {
     HIGH,
   ];
 
-  static final $core.Map<$core.int, VideoQuality> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, VideoQuality> _byValue = $pb.ProtobufEnum.initByValue(values);
   static VideoQuality? valueOf($core.int value) => _byValue[value];
 
   const VideoQuality._($core.int v, $core.String n) : super(v, n);
@@ -65,15 +48,9 @@ class VideoQuality extends $pb.ProtobufEnum {
 
 class DataPacket_Kind extends $pb.ProtobufEnum {
   static const DataPacket_Kind RELIABLE = DataPacket_Kind._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'RELIABLE');
+      0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'RELIABLE');
   static const DataPacket_Kind LOSSY = DataPacket_Kind._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'LOSSY');
+      1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'LOSSY');
 
   static const $core.List<DataPacket_Kind> values = <DataPacket_Kind>[
     RELIABLE,
