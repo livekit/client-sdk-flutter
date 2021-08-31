@@ -62,7 +62,7 @@ class _PreConnectState extends State<PreConnect> {
         }),
       );
     } catch (e) {
-      print("could not connect $e");
+      print('could not connect $e');
     }
   }
 

@@ -18,7 +18,7 @@ class LocalVideoTrack extends VideoTrack {
 
     try {
       final stream = await _createCameraStream(options);
-      return LocalVideoTrack("camera", stream.getVideoTracks().first, stream);
+      return LocalVideoTrack('camera', stream.getVideoTracks().first, stream);
     } catch (e) {
       return Future.error(e);
     }
@@ -50,8 +50,8 @@ class LocalVideoTrack extends VideoTrack {
 
     try {
       final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
-        "audio": false,
-        "video": options.mediaConstraints,
+        'audio': false,
+        'video': options.mediaConstraints,
       });
 
       if (stream.getVideoTracks().isEmpty) {

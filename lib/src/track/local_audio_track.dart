@@ -12,15 +12,15 @@ class LocalAudioTrack extends AudioTrack {
   static Future<LocalAudioTrack> createTrack([LocalAudioTrackOptions? options]) async {
     try {
       final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
-        "audio": true,
-        "video": false,
+        'audio': true,
+        'video': false,
       });
 
       if (stream.getAudioTracks().isEmpty) {
         return Future.error(TrackCreateError());
       }
 
-      return LocalAudioTrack("", stream.getAudioTracks().first, stream);
+      return LocalAudioTrack('', stream.getAudioTracks().first, stream);
     } catch (e) {
       return Future.error(e);
     }

@@ -153,7 +153,7 @@ class RTCEngine with SignalClientDelegate {
     final url = this.url;
     final token = this.token;
     if (url == null || token == null) {
-      throw ConnectError("could not reconnect without url and token");
+      throw ConnectError('could not reconnect without url and token');
     }
     if (reconnectAttempts == 0) {
       onReconnecting?.call();
@@ -339,7 +339,7 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   void onClose([String? reason]) {
-    _handleDisconnect("signal");
+    _handleDisconnect('signal');
   }
 
   @override

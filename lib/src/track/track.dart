@@ -12,7 +12,7 @@ class TrackDimension {
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 class Track {
-  static const screenShareName = "screen";
+  static const screenShareName = 'screen';
 
   String name;
   TrackType kind;

@@ -11,9 +11,9 @@ class RTCConfiguration {
     return <String, dynamic>{
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
-      if (iceCandidatePoolSize != null) "iceCandidatePoolSize": iceCandidatePoolSize,
-      "iceServers": iceServersMap,
-      if (iceTransportPolicy != null) "iceTransportPolicy": iceTransportPolicy,
+      if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
+      'iceServers': iceServersMap,
+      if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy,
     };
   }
 }
@@ -27,9 +27,9 @@ class RTCIceServer {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      "urls": urls,
-      if (username != null) "username": username,
-      if (credential != null) "credential": credential,
+      'urls': urls,
+      if (username != null) 'username': username,
+      if (credential != null) 'credential': credential,
     };
   }
 }

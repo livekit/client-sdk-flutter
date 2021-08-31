@@ -1,3 +1,3 @@
 import 'package:logging/logging.dart';
 
-final logger = Logger("livekit");
+final logger = Logger('livekit');

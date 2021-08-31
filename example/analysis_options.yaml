@@ -30,3 +30,15 @@ analyzer:
     - '**/*.pbenum.dart'
     - '**/*.pbjson.dart'
     - '**/*.pbserver.dart'
+
+linter:
+  rules:
+    #
+    # Additional recommended rules
+    #
+    prefer_single_quotes: true
+
+    #
+    # Turn off avoid_print for example projects
+    #
+    avoid_print: false
