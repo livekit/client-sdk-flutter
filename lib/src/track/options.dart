@@ -15,12 +15,10 @@ class LocalVideoTrackOptions {
     }
   }
 
-  Map<String, dynamic> get mediaConstraints {
-    return <String, dynamic>{
-      'mandatory': params.mediaConstraints,
-      'facingMode': position == CameraPosition.front ? 'user' : 'environment',
-    };
-  }
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'mandatory': params.toMediaConstraintsMap(),
+        'facingMode': position == CameraPosition.front ? 'user' : 'environment',
+      };
 }
 
 enum CameraPosition {
@@ -41,13 +39,11 @@ class VideoParameter {
     this.bitrate,
   });
 
-  Map<String, dynamic> get mediaConstraints {
-    return <String, dynamic>{
-      'minWidth': width,
-      'minHeight': height,
-      'minFrameRate': fps,
-    };
-  }
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'minWidth': width,
+        'minHeight': height,
+        'minFrameRate': fps,
+      };
 }
 
 class VideoPresets {

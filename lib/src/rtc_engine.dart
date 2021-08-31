@@ -19,7 +19,10 @@ const iceRestartTimeout = Duration(seconds: 10);
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
-    MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver);
+  MediaStreamTrack track,
+  MediaStream? stream,
+  RTCRtpReceiver? receiver,
+);
 typedef ParticipantUpdateCallback = void Function(List<ParticipantInfo> participants);
 typedef ActiveSpeakerChangedCallback = void Function(List<SpeakerInfo> speakers);
 typedef DataPacketCallback = void Function(UserPacket packet, DataPacket_Kind kind);
@@ -62,7 +65,7 @@ class RTCEngine with SignalClientDelegate {
     client.delegate = this;
   }
 
-  Future<JoinResponse> join(String url, String token, JoinOptions? opts) async {
+  Future<JoinResponse> join(String url, String token, ConnectOptions? opts) async {
     this.url = url;
     this.token = token;
 
@@ -103,11 +106,12 @@ class RTCEngine with SignalClientDelegate {
     client.close();
   }
 
-  Future<TrackInfo> addTrack(
-      {required String cid,
-      required String name,
-      required TrackType kind,
-      TrackDimension? dimension}) async {
+  Future<TrackInfo> addTrack({
+    required String cid,
+    required String name,
+    required TrackType kind,
+    TrackDimension? dimension,
+  }) async {
     if (pendingTrackResolvers[cid] != null) {
       throw TrackPublishError('a track with the same CID has already been published');
     }
@@ -130,8 +134,7 @@ class RTCEngine with SignalClientDelegate {
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
-    if (remoteDesc != null &&
-        pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    if (remoteDesc != null && pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       await pub.pc.setRemoteDescription(remoteDesc);
     }
 

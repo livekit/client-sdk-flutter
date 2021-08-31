@@ -1,7 +1,9 @@
 /// Options when joining a room.
 /// {@category Room}
-class JoinOptions {
+class ConnectOptions {
   final bool? autoSubscribe;
 
-  const JoinOptions({this.autoSubscribe});
+  const ConnectOptions({
+    this.autoSubscribe,
+  });
 }
