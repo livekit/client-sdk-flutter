@@ -1,3 +1,12 @@
+# CHANGELOG
+
+## 0.4.0
+
+* fixed audio track playback for web
+* fixed publishing tracks for web
+* updated constants to be lowerCamelCase
+* updated style & formatting guide
+
 ## 0.3.0
 
 * `replaceTrack` API to switch camera sources
