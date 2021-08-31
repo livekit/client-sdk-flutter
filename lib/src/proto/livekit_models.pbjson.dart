@@ -20,8 +20,8 @@ const TrackType$json = const {
 };
 
 /// Descriptor for `TrackType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List trackTypeDescriptor = $convert.base64Decode(
-    'CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
+final $typed_data.Uint8List trackTypeDescriptor =
+    $convert.base64Decode('CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = const {
   '1': 'Room',
@@ -29,13 +29,7 @@ const Room$json = const {
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
     const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'empty_timeout', '3': 3, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    const {
-      '1': 'max_participants',
-      '3': 4,
-      '4': 1,
-      '5': 13,
-      '10': 'maxParticipants'
-    },
+    const {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '10': 'maxParticipants'},
     const {'1': 'creation_time', '3': 5, '4': 1, '5': 3, '10': 'creationTime'},
     const {'1': 'turn_password', '3': 6, '4': 1, '5': 9, '10': 'turnPassword'},
     const {
@@ -62,8 +56,8 @@ const Codec$json = const {
 };
 
 /// Descriptor for `Codec`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List codecDescriptor = $convert.base64Decode(
-    'CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
+final $typed_data.Uint8List codecDescriptor = $convert
+    .base64Decode('CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
 @$core.Deprecated('Use participantInfoDescriptor instead')
 const ParticipantInfo$json = const {
   '1': 'ParticipantInfo',
@@ -78,14 +72,7 @@ const ParticipantInfo$json = const {
       '6': '.livekit.ParticipantInfo.State',
       '10': 'state'
     },
-    const {
-      '1': 'tracks',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.TrackInfo',
-      '10': 'tracks'
-    },
+    const {'1': 'tracks', '3': 4, '4': 3, '5': 11, '6': '.livekit.TrackInfo', '10': 'tracks'},
     const {'1': 'metadata', '3': 5, '4': 1, '5': 9, '10': 'metadata'},
     const {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
@@ -112,14 +99,7 @@ const TrackInfo$json = const {
   '1': 'TrackInfo',
   '2': const [
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
-    const {
-      '1': 'type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.TrackType',
-      '10': 'type'
-    },
+    const {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackType', '10': 'type'},
     const {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'muted', '3': 4, '4': 1, '5': 8, '10': 'muted'},
     const {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
@@ -189,24 +169,11 @@ const RecordingOutput$json = const {
   '2': const [
     const {'1': 'file', '3': 1, '4': 1, '5': 9, '10': 'file'},
     const {'1': 'rtmp', '3': 2, '4': 1, '5': 9, '10': 'rtmp'},
-    const {
-      '1': 's3',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.RecordingS3Output',
-      '10': 's3'
-    },
+    const {'1': 's3', '3': 3, '4': 1, '5': 11, '6': '.livekit.RecordingS3Output', '10': 's3'},
     const {'1': 'width', '3': 4, '4': 1, '5': 5, '10': 'width'},
     const {'1': 'height', '3': 5, '4': 1, '5': 5, '10': 'height'},
     const {'1': 'audio_bitrate', '3': 6, '4': 1, '5': 9, '10': 'audioBitrate'},
-    const {
-      '1': 'audio_frequency',
-      '3': 7,
-      '4': 1,
-      '5': 9,
-      '10': 'audioFrequency'
-    },
+    const {'1': 'audio_frequency', '3': 7, '4': 1, '5': 9, '10': 'audioFrequency'},
     const {'1': 'video_bitrate', '3': 8, '4': 1, '5': 9, '10': 'videoBitrate'},
     const {'1': 'video_buffer', '3': 9, '4': 1, '5': 9, '10': 'videoBuffer'},
   ],

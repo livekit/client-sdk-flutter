@@ -7,7 +7,7 @@ import 'track_publication.dart';
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
 class RemoteTrackPublication extends TrackPublication {
-  RemoteParticipant _participant;
+  final RemoteParticipant _participant;
   bool _unsubscribed = false;
   bool _disabled = false;
   VideoQuality _videoQuality = VideoQuality.HIGH;
@@ -26,6 +26,7 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
+  @override
   bool get subscribed {
     if (_unsubscribed) {
       return false;
@@ -41,6 +42,7 @@ class RemoteTrackPublication extends TrackPublication {
 
   /// for internal use
   /// {@nodoc}
+  @override
   set muted(bool val) {
     if (val == muted) {
       return;
@@ -59,13 +61,12 @@ class RemoteTrackPublication extends TrackPublication {
     _participant.muteChanged();
   }
 
-  RemoteTrackPublication(TrackInfo info, this._participant, [Track? track])
-      : super.fromInfo(info) {
+  RemoteTrackPublication(TrackInfo info, this._participant, [Track? track]) : super.fromInfo(info) {
     this.track = track;
   }
 
-  _sendUpdateTrackSettings() {
-    var settings = new UpdateTrackSettings(
+  void _sendUpdateTrackSettings() {
+    final settings = UpdateTrackSettings(
       trackSids: [sid],
       disabled: _disabled,
     );

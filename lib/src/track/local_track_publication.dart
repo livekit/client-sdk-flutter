@@ -4,14 +4,14 @@ import 'track.dart';
 import 'track_publication.dart';
 
 class LocalTrackPublication extends TrackPublication {
-  LocalParticipant _participant;
+  final LocalParticipant _participant;
 
-  LocalTrackPublication(TrackInfo info, Track track, this._participant)
-      : super.fromInfo(info) {
+  LocalTrackPublication(TrackInfo info, Track track, this._participant) : super.fromInfo(info) {
     this.track = track;
   }
 
   /// Mute or unmute the current track. When muted, track will stop sending data
+  @override
   set muted(bool val) {
     if (val == muted) {
       return;

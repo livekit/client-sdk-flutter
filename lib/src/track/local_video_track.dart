@@ -13,15 +13,12 @@ class LocalVideoTrack extends VideoTrack {
       : super(name, mediaTrack, stream);
 
   /// Creates a LocalVideoTrack from camera input.
-  static Future<LocalVideoTrack> createCameraTrack(
-      [LocalVideoTrackOptions? options]) async {
-    if (options == null) {
-      options = LocalVideoTrackOptions(params: VideoPresets.qhd);
-    }
+  static Future<LocalVideoTrack> createCameraTrack([LocalVideoTrackOptions? options]) async {
+    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await _createCameraStream(options);
-      return LocalVideoTrack("camera", stream.getVideoTracks().first, stream);
+      final stream = await _createCameraStream(options);
+      return LocalVideoTrack('camera', stream.getVideoTracks().first, stream);
     } catch (e) {
       return Future.error(e);
     }
@@ -34,13 +31,11 @@ class LocalVideoTrack extends VideoTrack {
       return Future.error(TrackCreateError('could not restart track'));
     }
 
-    if (options == null) {
-      options = LocalVideoTrackOptions(params: VideoPresets.qhd);
-    }
+    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await _createCameraStream(options);
-      var track = stream.getVideoTracks().first;
+      final stream = await _createCameraStream(options);
+      final track = stream.getVideoTracks().first;
       mediaStream = stream;
       await mediaTrack.stop();
       mediaTrack = track;
@@ -50,19 +45,16 @@ class LocalVideoTrack extends VideoTrack {
     }
   }
 
-  static Future<MediaStream> _createCameraStream(
-      LocalVideoTrackOptions? options) async {
-    if (options == null) {
-      options = LocalVideoTrackOptions(params: VideoPresets.qhd);
-    }
+  static Future<MediaStream> _createCameraStream(LocalVideoTrackOptions? options) async {
+    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      var stream = await navigator.mediaDevices.getUserMedia({
-        "audio": false,
-        "video": options.mediaConstraints,
+      final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
+        'audio': false,
+        'video': options.mediaConstraints,
       });
 
-      if (stream.getVideoTracks().length == 0) {
+      if (stream.getVideoTracks().isEmpty) {
         return Future.error(TrackCreateError());
       }
 

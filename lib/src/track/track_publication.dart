@@ -21,15 +21,14 @@ class TrackPublication {
     updateFromInfo(info);
   }
 
-  /// True when the track is published with name [Track.ScreenShareName].
-  bool get isScreenShare =>
-      kind == TrackType.VIDEO && name == Track.ScreenShareName;
+  /// True when the track is published with name [Track.screenShareName].
+  bool get isScreenShare => kind == TrackType.VIDEO && name == Track.screenShareName;
 
-  updateFromInfo(TrackInfo info) {
+  void updateFromInfo(TrackInfo info) {
     muted = info.muted;
     simulcasted = info.simulcast;
     if (info.type == TrackType.VIDEO) {
-      dimension = new TrackDimension(info.width, info.height);
+      dimension = TrackDimension(info.width, info.height);
     }
   }
 }

@@ -45,20 +45,20 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.didUpdateWidget(oldWidget);
   }
 
-  _trackChanged() {
+  void _trackChanged() {
     setState(() {
       _renderer.srcObject = widget.track.mediaStream;
     });
   }
 
-  _initRenderer() async {
+  void _initRenderer() async {
     await _renderer.initialize();
     _trackChanged();
   }
 
   @override
   Widget build(BuildContext context) {
-    var isLocal = widget.track is LocalVideoTrack;
+    final isLocal = widget.track is LocalVideoTrack;
     return RTCVideoView(
       _renderer,
       mirror: isLocal,

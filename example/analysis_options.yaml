@@ -1,0 +1,44 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+
+# https://pub.dev/packages/flutter_lints
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  #
+  # Enforce stricter type-checking
+  # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
+  # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
+  #
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+  #
+  # exclude protobuf files
+  #
+  exclude:
+    - '**/*.pb.dart'
+    - '**/*.pbenum.dart'
+    - '**/*.pbjson.dart'
+    - '**/*.pbserver.dart'
+
+linter:
+  rules:
+    #
+    # Additional recommended rules
+    #
+    prefer_single_quotes: true
+
+    #
+    # Turn off avoid_print for example projects
+    #
+    avoid_print: false

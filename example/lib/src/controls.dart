@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 class Controls extends StatefulWidget {
+  //
   final Room room;
   final LocalParticipant participant;
 
-  Controls(this.room) : participant = room.localParticipant;
+  Controls(
+    this.room, {
+    Key? key,
+  })  : participant = room.localParticipant,
+        super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -14,7 +19,7 @@ class Controls extends StatefulWidget {
 }
 
 class _ControlsState extends State<Controls> {
-  CameraPosition position = CameraPosition.FRONT;
+  CameraPosition position = CameraPosition.front;
 
   @override
   void initState() {
@@ -30,48 +35,48 @@ class _ControlsState extends State<Controls> {
 
   LocalParticipant get participant => widget.participant;
 
-  _onChange() {
+  void _onChange() {
     // trigger refresh
     setState(() {});
   }
 
-  _muteAudio() {
+  void _muteAudio() {
     if (participant.hasAudio) {
-      var audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.values.first;
       audioPub.muted = true;
     }
   }
 
-  _unmuteAudio() async {
+  Future<void> _unmuteAudio() async {
     if (participant.hasAudio) {
-      var audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.values.first;
       audioPub.muted = false;
     } else {
       // publish audio track
-      var audioTrack = await LocalAudioTrack.createTrack();
+      final audioTrack = await LocalAudioTrack.createTrack();
       await participant.publishAudioTrack(audioTrack);
     }
   }
 
-  _muteVideo() {
+  void _muteVideo() {
     if (participant.hasVideo) {
-      var videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.values.first;
       videoPub.muted = true;
     }
   }
 
-  _unmuteVideo() async {
+  void _unmuteVideo() async {
     if (participant.hasVideo) {
-      var videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.values.first;
       videoPub.muted = false;
     } else {
       // publish audio track
-      var videoTrack = await LocalVideoTrack.createCameraTrack();
+      final videoTrack = await LocalVideoTrack.createCameraTrack();
       await participant.publishVideoTrack(videoTrack);
     }
   }
 
-  _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
+  void _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
     if (this.position == position) {
       return;
     }
@@ -96,13 +101,13 @@ class _ControlsState extends State<Controls> {
     });
   }
 
-  _exit() {
+  void _exit() {
     widget.room.disconnect();
   }
 
   @override
   Widget build(BuildContext context) {
-    var buttons = <Widget>[];
+    final buttons = <Widget>[];
 
     // mute audio
     if (participant.hasAudio && !participant.isMuted) {
@@ -127,7 +132,7 @@ class _ControlsState extends State<Controls> {
       videoPub = participant.videoTracks.values.first;
     }
 
-    var videoEnabled = videoPub != null && !videoPub.muted;
+    final videoEnabled = videoPub != null && !videoPub.muted;
     if (videoEnabled) {
       buttons.add(IconButton(
         onPressed: _muteVideo,
@@ -140,12 +145,12 @@ class _ControlsState extends State<Controls> {
       ));
     }
 
-    if (position == CameraPosition.FRONT) {
+    if (position == CameraPosition.front) {
       buttons.add(IconButton(
         icon: const Icon(Icons.video_camera_front_rounded),
         onPressed: videoEnabled
             ? () {
-                _setCameraPosition(videoPub, CameraPosition.BACK);
+                _setCameraPosition(videoPub, CameraPosition.back);
               }
             : null,
       ));
@@ -154,7 +159,7 @@ class _ControlsState extends State<Controls> {
         icon: const Icon(Icons.video_camera_back_rounded),
         onPressed: videoEnabled
             ? () {
-                _setCameraPosition(videoPub, CameraPosition.FRONT);
+                _setCameraPosition(videoPub, CameraPosition.front);
               }
             : null,
       ));

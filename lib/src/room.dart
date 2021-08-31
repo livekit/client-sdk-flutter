@@ -21,9 +21,9 @@ import 'track/track.dart';
 import 'track/track_publication.dart';
 
 enum RoomState {
-  Disconnected,
-  Connected,
-  Reconnecting,
+  disconnected,
+  connected,
+  reconnecting,
 }
 
 /// Delegate for [Room] callbacks
@@ -68,21 +68,19 @@ mixin RoomDelegate {
 
   /// When a new track is published to room *after* the current participant has
   /// joined. It will not fire for tracks that are already published
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// A [RemoteParticipant] has unpublished a track
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has subscribed to a new track. This event will **always**
   /// fire as long as new tracks are ready for use.
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// A subscribed track is no longer available.
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// Data received from another [RemoteParticipant].
   /// Data packets provides the ability to use LiveKit to send/receive arbitrary
@@ -90,8 +88,7 @@ mixin RoomDelegate {
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
   /// Encountered failure attempting to subscribe to track.
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {}
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
 }
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -104,12 +101,12 @@ mixin RoomDelegate {
 /// * active speakers are different
 /// {@category Room}
 class Room extends ChangeNotifier with ParticipantDelegate {
-  RoomState _state = RoomState.Disconnected;
+  RoomState _state = RoomState.disconnected;
 
   /// connection state of the room
   RoomState get state => _state;
 
-  Map<String, RemoteParticipant> _participants = {};
+  final Map<String, RemoteParticipant> _participants = {};
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -133,14 +130,13 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   /// delegate for room events
   RoomDelegate? delegate;
 
-  RTCEngine _engine;
+  final RTCEngine _engine;
 
   Completer<Room>? _connectCompleter;
 
   /// internal use
   /// {@nodoc}
-  Room([RTCConfiguration? rtcConfig])
-      : _engine = new RTCEngine(SignalClient(), rtcConfig) {
+  Room([RTCConfiguration? rtcConfig]) : _engine = RTCEngine(SignalClient(), rtcConfig) {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
@@ -148,26 +144,25 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onActiveSpeakerchangedCallback = _handleSpeakerUpdate;
     _engine.onDataMessageCallback = _handleDataPacket;
     _engine.onReconnected = () {
-      _state = RoomState.Connected;
+      _state = RoomState.connected;
       delegate?.onReconnected();
       notifyListeners();
     };
     _engine.onReconnecting = () {
-      _state = RoomState.Reconnecting;
+      _state = RoomState.reconnecting;
       delegate?.onReconnecting();
       notifyListeners();
     };
   }
 
   Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
-    var completer = new Completer<Room>();
+    final completer = Completer<Room>();
     _connectCompleter = completer;
 
-    var joinResponse = await _engine.join(url, token, opts);
-    logger.fine(
-        'connected to LiveKit server, version: ${joinResponse.serverVersion}');
+    final joinResponse = await _engine.join(url, token, opts);
+    logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-    localParticipant = new LocalParticipant(
+    localParticipant = LocalParticipant(
       engine: _engine,
       info: joinResponse.participant,
     );
@@ -176,17 +171,17 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     sid = joinResponse.room.sid;
     name = joinResponse.room.name;
 
-    for (var info in joinResponse.otherParticipants) {
+    for (final info in joinResponse.otherParticipants) {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
 
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
-    Timer(Duration(seconds: 5), () {
-      if (_state != RoomState.Disconnected) {
+    Timer(const Duration(seconds: 5), () {
+      if (_state != RoomState.disconnected) {
         return;
       }
-      _state = RoomState.Disconnected;
+      _state = RoomState.disconnected;
       _connectCompleter?.completeError(ConnectError());
       _connectCompleter = null;
       notifyListeners();
@@ -196,13 +191,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   /// Disconnects from the room, notifying server of disconnection.
-  disconnect() {
+  void disconnect() {
     _engine.client.sendLeave();
     _handleDisconnect();
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(
-      String sid, ParticipantInfo? info) {
+  RemoteParticipant _getOrCreateRemoteParticipant(String sid, ParticipantInfo? info) {
     var participant = _participants[sid];
     if (participant != null) {
       return participant;
@@ -219,40 +213,40 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     return participant;
   }
 
-  _handleICEConnected() {
+  void _handleICEConnected() {
     _connectCompleter?.complete(this);
     _connectCompleter = null;
-    _state = RoomState.Connected;
+    _state = RoomState.connected;
     notifyListeners();
   }
 
-  _handleDisconnect() {
-    if (_state == RoomState.Disconnected) {
+  void _handleDisconnect() {
+    if (_state == RoomState.disconnected) {
       return;
     }
 
-    for (var p in _participants.values) {
-      var tracks = List<TrackPublication>.from(p.tracks.values);
-      for (var pub in tracks) {
+    for (final p in _participants.values) {
+      final tracks = List<TrackPublication>.from(p.tracks.values);
+      for (final pub in tracks) {
         p.unpublishTrack(pub.sid);
       }
     }
-    for (var pub in localParticipant.tracks.values) {
+    for (final pub in localParticipant.tracks.values) {
       pub.track?.stop();
     }
 
     _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
-    _state = RoomState.Disconnected;
+    _state = RoomState.disconnected;
     notifyListeners();
     delegate?.onDisconnected();
   }
 
-  _handleParticipantUpdate(List<ParticipantInfo> updates) {
+  void _handleParticipantUpdate(List<ParticipantInfo> updates) {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
-    for (var info in updates) {
+    for (final info in updates) {
       if (localParticipant.sid == info.sid) {
         localParticipant.updateFromInfo(info);
         continue;
@@ -264,8 +258,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      var isNew = !_participants.containsKey(info.sid);
-      var participant = _getOrCreateRemoteParticipant(info.sid, info);
+      final isNew = !_participants.containsKey(info.sid);
+      final participant = _getOrCreateRemoteParticipant(info.sid, info);
 
       if (isNew) {
         hasChanged = true;
@@ -280,10 +274,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
   }
 
-  _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
-    var seenSids = Set<String>();
+  void _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
+    final seenSids = <String>{};
     List<Participant> newSpeakers = [];
-    for (var info in speakers) {
+    for (final info in speakers) {
       seenSids.add(info.sid);
 
       if (info.sid == localParticipant.sid) {
@@ -293,7 +287,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      var participant = participants[info.sid];
+      final participant = participants[info.sid];
       if (participant != null) {
         participant.audioLevel = info.level;
         participant.isSpeaking = true;
@@ -306,7 +300,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       localParticipant.audioLevel = 0;
       localParticipant.isSpeaking = false;
     }
-    for (var participant in _participants.values) {
+    for (final participant in _participants.values) {
       if (!seenSids.contains(participant.sid)) {
         participant.audioLevel = 0;
         participant.isSpeaking = false;
@@ -318,8 +312,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
-    var participant = participants[packet.participantSid];
+  void _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
+    final participant = participants[packet.participantSid];
     if (participant == null) {
       return;
     }
@@ -328,8 +322,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDataReceived(participant, packet.payload);
   }
 
-  _onTrackAdded(
-      MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');
@@ -337,23 +330,20 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
 
     var parsed = _unpackStreamId(stream.id);
-    var trackSid = parsed.item2;
-    if (trackSid == null) {
-      trackSid = track.id;
-    }
+    var trackSid = parsed.item2 ?? track.id;
 
-    var participant = _getOrCreateRemoteParticipant(parsed.item1, null);
+    final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
-  _handleParticipantDisconnect(String sid) {
-    var participant = _participants.remove(sid);
+  void _handleParticipantDisconnect(String sid) {
+    final participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }
 
-    var toRemove = List.from(participant.tracks.values);
-    for (var track in toRemove) {
+    final toRemove = List<TrackPublication>.from(participant.tracks.values);
+    for (final track in toRemove) {
       participant.unpublishTrack(track.sid, true);
     }
     delegate?.onParticipantDisconnected(participant);
@@ -361,43 +351,49 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   //----------------- forward participant delegate calls ---------------------//
 
+  @override
   void onMetadataChanged(Participant participant) {
     delegate?.onMetadataChanged(participant);
   }
 
+  @override
   void onTrackMuted(Participant participant, TrackPublication publication) {
     delegate?.onTrackMuted(participant, publication);
   }
 
+  @override
   void onTrackUnmuted(Participant participant, TrackPublication publication) {
     delegate?.onTrackUnmuted(participant, publication);
   }
 
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {
+  @override
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackPublished(participant, publication);
   }
 
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {
+  @override
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {
     delegate?.onTrackUnpublished(participant, publication);
   }
 
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {
+  @override
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackSubscribed(participant, track, publication);
   }
 
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {
+  @override
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackUnsubscribed(participant, track, publication);
   }
 
   // omitted because data dispatching is handled in _handleDataPacket
+  @override
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {
+  @override
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {
     delegate?.onTrackSubscriptionFailed(participant, sid, message);
   }
 }

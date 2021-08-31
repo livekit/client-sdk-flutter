@@ -46,30 +46,29 @@ class SignalClient {
 
   SignalClient();
 
-  bool get connected => this._connected;
+  bool get connected => _connected;
 
   Future<void> join(String url, String token, JoinOptions? options) async {
-    var rtcUrl = '$url/rtc';
+    final rtcUrl = '$url/rtc';
     var params = _joinParams(token);
     if (options != null && options.autoSubscribe != null) {
       params += '&auto_subscribe=${options.autoSubscribe! ? '1' : '0'}';
     }
 
     try {
-      var ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
-      ws.stream
-          .listen(_handleMessage, onError: _handleError, onDone: _handleDone);
+      final ws = await platform.connectToWebSocket(Uri.parse(rtcUrl + params));
+      ws.stream.listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
     } catch (e) {
-      var completer = Completer();
-      var validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
+      final completer = Completer<void>();
+      final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
       http.get(validateUri).then((response) {
         if (response.statusCode != 200) {
           completer.completeError(ConnectError(response.body));
         } else {
           completer.completeError(ConnectError());
         }
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         completer.completeError(ConnectError());
       });
 
@@ -85,53 +84,53 @@ class SignalClient {
     url += '/rtc';
     var params = _joinParams(token);
     params += '&reconnect=1';
-    var uri = Uri.parse(url + params);
+    final uri = Uri.parse(url + params);
 
-    var ws = await platform.connectToWebSocket(uri);
+    final ws = await platform.connectToWebSocket(uri);
     _ws = ws;
     _connected = true;
   }
 
-  close() {
-    this._connected = false;
-    this._ws?.sink.close();
+  void close() {
+    _connected = false;
+    _ws?.sink.close();
   }
 
-  sendOffer(RTCSessionDescription offer) {
-    this._sendRequest(new SignalRequest(
+  void sendOffer(RTCSessionDescription offer) {
+    _sendRequest(SignalRequest(
       offer: fromRTCSessionDescription(offer),
     ));
   }
 
-  sendAnswer(RTCSessionDescription answer) {
-    this._sendRequest(new SignalRequest(
+  void sendAnswer(RTCSessionDescription answer) {
+    _sendRequest(SignalRequest(
       answer: fromRTCSessionDescription(answer),
     ));
   }
 
-  sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
-    this._sendRequest(new SignalRequest(
-        trickle: new TrickleRequest(
+  void sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
+    _sendRequest(SignalRequest(
+        trickle: TrickleRequest(
       candidateInit: fromRTCIceCandidate(candidate),
       target: target,
     )));
   }
 
-  sendMuteTrack(String trackSid, bool muted) {
-    this._sendRequest(new SignalRequest(
-      mute: new MuteTrackRequest(
+  void sendMuteTrack(String trackSid, bool muted) {
+    _sendRequest(SignalRequest(
+      mute: MuteTrackRequest(
         sid: trackSid,
         muted: muted,
       ),
     ));
   }
 
-  sendAddTrack(
+  void sendAddTrack(
       {required String cid,
       required String name,
       required TrackType type,
       TrackDimension? dimension}) {
-    var req = new AddTrackRequest(
+    final req = AddTrackRequest(
       cid: cid,
       name: name,
       type: type,
@@ -140,52 +139,52 @@ class SignalClient {
       req.width = dimension.width;
       req.height = dimension.height;
     }
-    this._sendRequest(new SignalRequest(
+    _sendRequest(SignalRequest(
       addTrack: req,
     ));
   }
 
-  sendUpdateTrackSettings(UpdateTrackSettings settings) {
-    this._sendRequest(new SignalRequest(
+  void sendUpdateTrackSettings(UpdateTrackSettings settings) {
+    _sendRequest(SignalRequest(
       trackSetting: settings,
     ));
   }
 
-  sendUpdateSubscription(UpdateSubscription subscription) {
-    this._sendRequest(new SignalRequest(
+  void sendUpdateSubscription(UpdateSubscription subscription) {
+    _sendRequest(SignalRequest(
       subscription: subscription,
     ));
   }
 
-  sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
-    this._sendRequest(new SignalRequest(
-        simulcast: new SetSimulcastLayers(
+  void sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
+    _sendRequest(SignalRequest(
+        simulcast: SetSimulcastLayers(
       trackSid: trackSid,
       layers: layers,
     )));
   }
 
-  sendLeave() {
-    this._sendRequest(new SignalRequest(
-      leave: new LeaveRequest(),
+  void sendLeave() {
+    _sendRequest(SignalRequest(
+      leave: LeaveRequest(),
     ));
   }
 
-  _sendRequest(SignalRequest req) {
-    if (this._ws == null) {
+  void _sendRequest(SignalRequest req) {
+    if (_ws == null) {
       log('could not send message, not connected');
       return;
     }
 
-    var buf = req.writeToBuffer();
-    this._ws?.sink.add(buf);
+    final buf = req.writeToBuffer();
+    _ws?.sink.add(buf);
   }
 
-  _handleMessage(dynamic message) {
-    if (!(message is List<int>)) {
+  void _handleMessage(dynamic message) {
+    if (message is! List<int>) {
       return;
     }
-    var msg = SignalResponse.fromBuffer(message);
+    final msg = SignalResponse.fromBuffer(message);
     switch (msg.whichMessage()) {
       case SignalResponse_Message.join:
         if (!_connected) {
@@ -200,8 +199,7 @@ class SignalClient {
         delegate?.onOffer(toRTCSessionDescription(msg.offer));
         break;
       case SignalResponse_Message.trickle:
-        delegate?.onTrickle(
-            toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
+        delegate?.onTrickle(toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
         break;
       case SignalResponse_Message.update:
         delegate?.onParticipantUpdate(msg.update.participants);
@@ -216,15 +214,15 @@ class SignalClient {
         delegate?.onLeave(msg.leave);
         break;
       default:
-        log('unsupported message: ' + jsonEncode(msg));
+        log('unsupported message: ' + json.encode(msg));
     }
   }
 
-  _handleError(Object error) {
+  void _handleError(Object error) {
     logger.warning('received websocket error $error');
   }
 
-  _handleDone() {
+  void _handleDone() {
     if (!_connected) {
       return;
     }
@@ -239,19 +237,22 @@ String _joinParams(String token) {
 }
 
 RTCSessionDescription toRTCSessionDescription(SessionDescription sd) {
-  return new RTCSessionDescription(sd.sdp, sd.type);
+  return RTCSessionDescription(sd.sdp, sd.type);
 }
 
 SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
-  return new SessionDescription(type: rsd.type, sdp: rsd.sdp);
+  return SessionDescription(type: rsd.type, sdp: rsd.sdp);
 }
 
 RTCIceCandidate toRTCIceCandidate(String candidateInit) {
-  var candInit = jsonDecode(candidateInit);
-  return new RTCIceCandidate(
-      candInit['candidate'], candInit['sdpMid'], candInit['sdpMLineIndex']);
+  final candInit = json.decode(candidateInit) as Map<String, dynamic>;
+  return RTCIceCandidate(
+    candInit['candidate'] as String?,
+    candInit['sdpMid'] as String?,
+    candInit['sdpMLineIndex'] as int?,
+  );
 }
 
 String fromRTCIceCandidate(RTCIceCandidate candidate) {
-  return jsonEncode(candidate.toMap());
+  return json.encode(candidate.toMap());
 }

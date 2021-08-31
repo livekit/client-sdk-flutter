@@ -9,10 +9,10 @@ const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
 void startAudio(String id, MediaStreamTrack track) {
-  if (!(track is MediaStreamTrackWeb)) {
+  if (track is! MediaStreamTrackWeb) {
     return;
   }
-  var elementId = audioPrefix + id;
+  final elementId = audioPrefix + id;
   var audioElement = html.document.getElementById(elementId);
   if (audioElement == null) {
     audioElement = html.AudioElement()
@@ -21,16 +21,16 @@ void startAudio(String id, MediaStreamTrack track) {
     findOrCreateAudioContainer().append(audioElement);
   }
 
-  if (!(audioElement is html.AudioElement)) {
+  if (audioElement is! html.AudioElement) {
     return;
   }
-  var audioStream = html.MediaStream();
+  final audioStream = html.MediaStream();
   audioStream.addTrack(track.jsTrack);
   audioElement.srcObject = audioStream;
 }
 
 void stopAudio(String id) {
-  var audioElement = html.document.getElementById(audioPrefix + id);
+  final audioElement = html.document.getElementById(audioPrefix + id);
   if (audioElement != null) {
     if (audioElement is html.AudioElement) {
       audioElement.srcObject = null;

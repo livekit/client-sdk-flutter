@@ -12,7 +12,7 @@ class TrackDimension {
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 class Track {
-  static const ScreenShareName = "screen";
+  static const screenShareName = 'screen';
 
   String name;
   TrackType kind;
@@ -38,19 +38,17 @@ class Track {
   }
 
   String getCid() {
-    var cid = _cid;
+    var cid = _cid ?? mediaTrack.id;
+
     if (cid == null) {
-      cid = mediaTrack.id;
-    }
-    if (cid == null) {
-      var uuid = Uuid();
+      const uuid = Uuid();
       cid = uuid.v4();
       _cid = cid;
     }
     return cid;
   }
 
-  stop() {
+  void stop() {
     mediaTrack.stop();
   }
 }

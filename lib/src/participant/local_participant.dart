@@ -13,7 +13,7 @@ import 'participant.dart';
 
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {
-  RTCEngine _engine;
+  final RTCEngine _engine;
 
   LocalParticipant({
     required RTCEngine engine,
@@ -29,15 +29,14 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    if (audioTracks.values.any(
-        (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (audioTracks.values.any((element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
 
     try {
-      var trackInfo = await _engine.addTrack(
-          cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = new RTCRtpTransceiverInit(
+      final trackInfo =
+          await _engine.addTrack(cid: track.getCid(), name: track.name, kind: track.kind);
+      final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
@@ -46,7 +45,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = new LocalTrackPublication(trackInfo, track, this);
+      final pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -58,15 +57,14 @@ class LocalParticipant extends Participant {
 
   /// Publish a video track to the room
   Future<TrackPublication> publishVideoTrack(LocalVideoTrack track) async {
-    if (videoTracks.values.any(
-        (element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (videoTracks.values.any((element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
 
     try {
-      var trackInfo = await _engine.addTrack(
-          cid: track.getCid(), name: track.name, kind: track.kind);
-      var transceiverInit = new RTCRtpTransceiverInit(
+      final trackInfo =
+          await _engine.addTrack(cid: track.getCid(), name: track.name, kind: track.kind);
+      final transceiverInit = RTCRtpTransceiverInit(
         direction: TransceiverDirection.SendOnly,
       );
       // TODO: video encodings and simulcasts
@@ -76,7 +74,7 @@ class LocalParticipant extends Participant {
         init: transceiverInit,
       );
 
-      var pub = new LocalTrackPublication(trackInfo, track, this);
+      final pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
       notifyListeners();
 
@@ -87,15 +85,15 @@ class LocalParticipant extends Participant {
   }
 
   /// Unpublish a track that's already published
-  unpublishTrack(Track track) {
-    var existing = tracks.values.where((element) => element.track == track);
+  void unpublishTrack(Track track) {
+    final existing = tracks.values.where((element) => element.track == track);
     if (existing.isEmpty) {
       return;
     }
-    var pub = existing.first;
+    final pub = existing.first;
 
     track.stop();
-    var sender = track.transceiver?.sender;
+    final sender = track.transceiver?.sender;
     if (sender != null) {
       engine.publisher?.pc.removeTrack(sender);
     }
@@ -108,13 +106,14 @@ class LocalParticipant extends Participant {
       case TrackType.VIDEO:
         videoTracks.remove(pub.sid);
         break;
+      default:
+        break;
     }
   }
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
-  publishData(List<int> data, DataPacket_Kind reliability,
-      {List<String>? destinationSids}) {
+  void publishData(List<int> data, DataPacket_Kind reliability, {List<String>? destinationSids}) {
     RTCDataChannel? channel;
     switch (reliability) {
       case DataPacket_Kind.RELIABLE:
@@ -128,23 +127,23 @@ class LocalParticipant extends Participant {
       return;
     }
 
-    var packet = new DataPacket(
+    final packet = DataPacket(
       kind: reliability,
-      user: new UserPacket(
+      user: UserPacket(
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,
       ),
     );
 
-    var buffer = packet.writeToBuffer();
+    final buffer = packet.writeToBuffer();
     channel.send(RTCDataChannelMessage.fromBinary(buffer));
   }
 
   /// for internal use
   /// {@nodoc}
   @override
-  updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(ParticipantInfo info) {
     super.updateFromInfo(info);
   }
 }

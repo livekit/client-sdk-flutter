@@ -5,9 +5,8 @@ import 'options.dart';
 /// {@category Room}
 class LiveKitClient {
   /// Connects to a LiveKit room
-  static Future<Room> connect(String url, String token,
-      [JoinOptions? options]) {
-    var room = Room();
+  static Future<Room> connect(String url, String token, [JoinOptions? options]) {
+    final room = Room();
     return room.connect(url, token, options);
   }
 }

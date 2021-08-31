@@ -4,9 +4,13 @@ import 'package:livekit_example/src/controls.dart';
 import 'package:provider/provider.dart';
 
 class RoomWidget extends StatefulWidget {
+  //
   final Room room;
 
-  RoomWidget(this.room);
+  const RoomWidget(
+    this.room, {
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -32,16 +36,16 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     super.dispose();
   }
 
-  _onConnected() async {
+  void _onConnected() async {
     // video will fail when running in ios simulator
     try {
-      var localVideo = await LocalVideoTrack.createCameraTrack();
+      final localVideo = await LocalVideoTrack.createCameraTrack();
       await widget.room.localParticipant.publishVideoTrack(localVideo);
     } catch (e) {
       print('could not publish video: $e');
     }
 
-    var localAudio = await LocalAudioTrack.createTrack();
+    final localAudio = await LocalAudioTrack.createTrack();
     await widget.room.localParticipant.publishAudioTrack(localAudio);
     sortParticipants();
   }
@@ -65,14 +69,9 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       }
 
       // last spoken at
-      var aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch;
-      var bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch;
-      if (aSpokeAt == null) {
-        aSpokeAt = 0;
-      }
-      if (bSpokeAt == null) {
-        bSpokeAt = 0;
-      }
+      final aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+
       if (aSpokeAt != bSpokeAt) {
         return aSpokeAt > bSpokeAt ? -1 : 1;
       }
@@ -83,8 +82,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       }
 
       // joinedAt
-      return a.joinedAt.millisecondsSinceEpoch -
-          b.joinedAt.millisecondsSinceEpoch;
+      return a.joinedAt.millisecondsSinceEpoch - b.joinedAt.millisecondsSinceEpoch;
     });
 
     if (participants.length > 1) {
@@ -99,8 +97,8 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
 
   @override
   void onDisconnected() {
-    var context = _lastContext;
-    print("disconnected: $context");
+    final context = _lastContext;
+    print('disconnected: $context');
     if (context != null) {
       Navigator.pop(context);
     }
@@ -110,8 +108,8 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
   Widget build(BuildContext context) {
     _lastContext = context;
 
-    var mainWidgets = <Widget>[];
-    var participants = this.participants;
+    final mainWidgets = <Widget>[];
+    final participants = this.participants;
     if (participants.isNotEmpty) {
       mainWidgets.add(Expanded(child: VideoView(participants.first)));
     } else {
@@ -119,7 +117,7 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     }
 
     if (participants.length > 1) {
-      var videoList = ListView.builder(
+      final videoList = ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: participants.length - 1,
         itemBuilder: (BuildContext context, int index) {
@@ -127,12 +125,11 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
             width: 100,
             height: 60,
             padding: const EdgeInsets.all(2),
-            child:
-                VideoView(participants[index + 1], quality: VideoQuality.LOW),
+            child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
           );
         },
       );
-      mainWidgets.add(Container(
+      mainWidgets.add(SizedBox(
         height: 60,
         child: videoList,
       ));
@@ -157,11 +154,15 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
 
 // displays a participant in view
 class VideoView extends StatefulWidget {
+  //
   final Participant participant;
   final VideoQuality quality;
 
-  VideoView(this.participant, {VideoQuality quality = VideoQuality.MEDIUM})
-      : this.quality = quality;
+  const VideoView(
+    this.participant, {
+    this.quality = VideoQuality.MEDIUM,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -175,13 +176,13 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
   @override
   void initState() {
     super.initState();
-    widget.participant.addListener(this._onParticipantChanged);
+    widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
   }
 
   @override
   void dispose() {
-    widget.participant.removeListener(this._onParticipantChanged);
+    widget.participant.removeListener(_onParticipantChanged);
     super.dispose();
   }
 
@@ -195,14 +196,12 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
 
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
-    var subscribedVideos = widget.participant.videoTracks.values.where((pub) {
-      return pub.kind == TrackType.VIDEO &&
-          !pub.isScreenShare &&
-          pub.subscribed;
+    final subscribedVideos = widget.participant.videoTracks.values.where((pub) {
+      return pub.kind == TrackType.VIDEO && !pub.isScreenShare && pub.subscribed;
     });
     setState(() {
       if (subscribedVideos.isNotEmpty) {
-        var videoPub = subscribedVideos.first;
+        final videoPub = subscribedVideos.first;
         if (videoPub is RemoteTrackPublication) {
           videoPub.videoQuality = widget.quality;
         }
@@ -212,13 +211,13 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
           return;
         }
       }
-      this.videoPub = null;
+      videoPub = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    var videoPub = this.videoPub;
+    final videoPub = this.videoPub;
     if (videoPub != null) {
       return VideoTrackRenderer(videoPub.track as VideoTrack);
     } else {

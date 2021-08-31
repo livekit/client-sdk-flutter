@@ -9,20 +9,18 @@ import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
-  SignalClient _client;
+  final SignalClient _client;
 
   SignalClient get client => _client;
 
-  RemoteParticipant(this._client, String sid, String identity)
-      : super(sid, identity);
+  RemoteParticipant(this._client, String sid, String identity) : super(sid, identity);
 
-  RemoteParticipant.fromInfo(this._client, ParticipantInfo info)
-      : super(info.sid, info.identity) {
+  RemoteParticipant.fromInfo(this._client, ParticipantInfo info) : super(info.sid, info.identity) {
     updateFromInfo(info);
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
-    var pub = tracks[sid];
+    final pub = tracks[sid];
     if (pub is RemoteTrackPublication) {
       return pub;
     }
@@ -30,10 +28,9 @@ class RemoteParticipant extends Participant {
 
   /// for internal use
   /// {@nodoc}
-  addSubscribedMediaTrack(
-      MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
+  void addSubscribedMediaTrack(MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
     if (sid == null) {
-      var msg = 'addSubscribedMediaTrack received null sid';
+      const msg = 'addSubscribedMediaTrack received null sid';
       delegate?.onTrackSubscriptionFailed(this, '', msg);
       roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
       return;
@@ -42,9 +39,9 @@ class RemoteParticipant extends Participant {
     var pub = getTrackPublication(sid);
     if (pub == null) {
       // we may have received the track prior to metadata. wait up to 3s
-      pub = await _waitForTrackPublication(sid, Duration(seconds: 3));
+      pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
       if (pub == null) {
-        var msg = 'no track metadata found';
+        const msg = 'no track metadata found';
         delegate?.onTrackSubscriptionFailed(this, sid, msg);
         roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
         return;
@@ -53,13 +50,13 @@ class RemoteParticipant extends Participant {
 
     Track? track;
     if (pub.kind == TrackType.AUDIO) {
-      var audioTrack = new AudioTrack(pub.name, mediaTrack, stream);
+      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
     } else if (pub.kind == TrackType.VIDEO) {
-      track = new VideoTrack(pub.name, mediaTrack, stream);
+      track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
-      var msg = 'unsupported track type ${pub.kind}';
+      final msg = 'unsupported track type ${pub.kind}';
       delegate?.onTrackSubscriptionFailed(this, sid, msg);
       roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
       return;
@@ -77,15 +74,15 @@ class RemoteParticipant extends Participant {
   /// {@nodoc}
   @override
   void updateFromInfo(ParticipantInfo info) {
-    var hadInfo = hasInfo;
+    final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
     // figuring out deltas between tracks
-    var validPubs = Map<String, RemoteTrackPublication>();
-    var newPubs = Map<String, RemoteTrackPublication>();
+    final validPubs = <String, RemoteTrackPublication>{};
+    final newPubs = <String, RemoteTrackPublication>{};
 
-    for (var info in info.tracks) {
-      var sid = info.sid;
+    for (final info in info.tracks) {
+      final sid = info.sid;
       var pub = getTrackPublication(sid);
 
       if (pub == null) {
@@ -101,30 +98,30 @@ class RemoteParticipant extends Participant {
 
     // notify listeners when it's not a new participant
     if (hadInfo) {
-      for (var pub in newPubs.values) {
+      for (final pub in newPubs.values) {
         delegate?.onTrackPublished(this, pub);
         roomDelegate?.onTrackPublished(this, pub);
       }
     }
 
     // remove tracks
-    for (var pub in tracks.values) {
+    for (final pub in tracks.values) {
       if (!validPubs.containsKey(pub.sid)) {
         unpublishTrack(sid, true);
       }
     }
   }
 
-  unpublishTrack(String sid, [bool sendUnpublish = false]) {
-    var pub = tracks.remove(sid);
-    if (pub == null || !(pub is RemoteTrackPublication)) {
+  void unpublishTrack(String sid, [bool sendUnpublish = false]) {
+    final pub = tracks.remove(sid);
+    if (pub == null || pub is! RemoteTrackPublication) {
       return;
     }
 
     audioTracks.remove(sid);
     videoTracks.remove(sid);
 
-    var track = pub.track;
+    final track = pub.track;
     if (track != null) {
       track.stop();
       delegate?.onTrackUnsubscribed(this, track, pub);
@@ -137,12 +134,11 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  Future<RemoteTrackPublication?> _waitForTrackPublication(
-      String sid, Duration delay) async {
-    var endTime = DateTime.now().add(delay);
+  Future<RemoteTrackPublication?> _waitForTrackPublication(String sid, Duration delay) async {
+    final endTime = DateTime.now().add(delay);
     while (DateTime.now().isBefore(endTime)) {
-      var pub = await Future<RemoteTrackPublication?>.delayed(
-          Duration(milliseconds: 100), () {
+      final pub =
+          await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });
       if (pub != null) {

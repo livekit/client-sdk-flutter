@@ -13,14 +13,14 @@ class AudioTrack extends Track {
 
   /// Start playing audio track. On web platform, create an audio element and
   /// start playback
-  start() {
-    if (!(this is LocalAudioTrack)) {
+  void start() {
+    if (this is! LocalAudioTrack) {
       audio.startAudio(getCid(), mediaTrack);
     }
   }
 
   @override
-  stop() {
+  void stop() {
     mediaStream?.dispose();
     mediaStream = null;
     audio.stopAudio(getCid());

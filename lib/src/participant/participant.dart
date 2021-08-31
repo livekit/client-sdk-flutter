@@ -21,29 +21,26 @@ mixin ParticipantDelegate {
   void onTrackUnmuted(Participant participant, TrackPublication publication) {}
 
   /// This participant has published a new [Track] to the [Room].
-  void onTrackPublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// This participant has unpublished one of their [Track].
-  void onTrackUnpublished(
-      RemoteParticipant participant, RemoteTrackPublication publication) {}
+  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has subscribed to a new track published by this
   /// [RemoteParticipant]
-  void onTrackSubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// The [LocalParticipant] has unsubscribed from a track published by this
   /// [RemoteParticipant]. This event is fired when the track was unpublished
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track,
-      RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// Data received from this [RemoteParticipant].
   void onDataReceived(RemoteParticipant participant, List<int> data) {}
 
   /// An error has occured during track subscription.
-  void onTrackSubscriptionFailed(
-      RemoteParticipant participant, String sid, String? message) {}
+  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
 }
 
 /// Represents a Participant in the room, notifies changes via delegates as
@@ -85,10 +82,9 @@ class Participant extends ChangeNotifier {
 
   /// when the participant joined the room
   DateTime get joinedAt {
-    var pi = _participantInfo;
+    final pi = _participantInfo;
     if (pi != null) {
-      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
-          isUtc: true);
+      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000, isUtc: true);
     }
     return DateTime.now();
   }
@@ -111,7 +107,7 @@ class Participant extends ChangeNotifier {
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks {
     List<TrackPublication> result = [];
-    for (var track in tracks.values) {
+    for (final track in tracks.values) {
       if (track.subscribed) {
         result.add(track);
       }
@@ -140,9 +136,9 @@ class Participant extends ChangeNotifier {
     notifyListeners();
   }
 
-  _setMetadata(String md) {
-    var changed = this._participantInfo?.metadata != md;
-    this.metadata = md;
+  void _setMetadata(String md) {
+    final changed = _participantInfo?.metadata != md;
+    metadata = md;
     if (changed) {
       delegate?.onMetadataChanged(this);
       roomDelegate?.onMetadataChanged(this);
@@ -152,24 +148,24 @@ class Participant extends ChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
-  updateFromInfo(ParticipantInfo info) {
-    this.identity = info.identity;
-    this.sid = info.sid;
+  void updateFromInfo(ParticipantInfo info) {
+    identity = info.identity;
+    sid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
-    this._participantInfo = info;
+    _participantInfo = info;
   }
 
   /// for internal use
   /// {@nodoc}
-  muteChanged() {
+  void muteChanged() {
     notifyListeners();
   }
 
   /// for internal use
   /// {@nodoc}
-  addTrackPublication(TrackPublication pub) {
+  void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
     switch (pub.kind) {
