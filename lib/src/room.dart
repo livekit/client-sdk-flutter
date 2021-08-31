@@ -21,9 +21,9 @@ import 'track/track.dart';
 import 'track/track_publication.dart';
 
 enum RoomState {
-  Disconnected,
-  Connected,
-  Reconnecting,
+  disconnected,
+  connected,
+  reconnecting,
 }
 
 /// Delegate for [Room] callbacks
@@ -104,7 +104,7 @@ mixin RoomDelegate {
 /// * active speakers are different
 /// {@category Room}
 class Room extends ChangeNotifier with ParticipantDelegate {
-  RoomState _state = RoomState.Disconnected;
+  RoomState _state = RoomState.disconnected;
 
   /// connection state of the room
   RoomState get state => _state;
@@ -148,12 +148,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onActiveSpeakerchangedCallback = _handleSpeakerUpdate;
     _engine.onDataMessageCallback = _handleDataPacket;
     _engine.onReconnected = () {
-      _state = RoomState.Connected;
+      _state = RoomState.connected;
       delegate?.onReconnected();
       notifyListeners();
     };
     _engine.onReconnecting = () {
-      _state = RoomState.Reconnecting;
+      _state = RoomState.reconnecting;
       delegate?.onReconnecting();
       notifyListeners();
     };
@@ -183,10 +183,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
     Timer(const Duration(seconds: 5), () {
-      if (_state != RoomState.Disconnected) {
+      if (_state != RoomState.disconnected) {
         return;
       }
-      _state = RoomState.Disconnected;
+      _state = RoomState.disconnected;
       _connectCompleter?.completeError(ConnectError());
       _connectCompleter = null;
       notifyListeners();
@@ -222,12 +222,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   void _handleICEConnected() {
     _connectCompleter?.complete(this);
     _connectCompleter = null;
-    _state = RoomState.Connected;
+    _state = RoomState.connected;
     notifyListeners();
   }
 
   void _handleDisconnect() {
-    if (_state == RoomState.Disconnected) {
+    if (_state == RoomState.disconnected) {
       return;
     }
 
@@ -244,7 +244,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
-    _state = RoomState.Disconnected;
+    _state = RoomState.disconnected;
     notifyListeners();
     delegate?.onDisconnected();
   }

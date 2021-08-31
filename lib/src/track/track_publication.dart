@@ -21,9 +21,9 @@ class TrackPublication {
     updateFromInfo(info);
   }
 
-  /// True when the track is published with name [Track.ScreenShareName].
+  /// True when the track is published with name [Track.screenShareName].
   bool get isScreenShare =>
-      kind == TrackType.VIDEO && name == Track.ScreenShareName;
+      kind == TrackType.VIDEO && name == Track.screenShareName;
 
   void updateFromInfo(TrackInfo info) {
     muted = info.muted;

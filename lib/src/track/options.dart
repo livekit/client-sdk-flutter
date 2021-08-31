@@ -1,6 +1,6 @@
 /// Options when creating a LocalVideoTrack.
 class LocalVideoTrackOptions {
-  CameraPosition position = CameraPosition.FRONT;
+  CameraPosition position = CameraPosition.front;
   VideoParameter params;
 
   LocalVideoTrackOptions({
@@ -18,14 +18,14 @@ class LocalVideoTrackOptions {
   Map<String, dynamic> get mediaConstraints {
     return <String, dynamic>{
       "mandatory": params.mediaConstraints,
-      "facingMode": position == CameraPosition.FRONT ? "user" : "environment",
+      "facingMode": position == CameraPosition.front ? "user" : "environment",
     };
   }
 }
 
 enum CameraPosition {
-  FRONT,
-  BACK,
+  front,
+  back,
 }
 
 class VideoParameter {

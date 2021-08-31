@@ -19,7 +19,7 @@ class Controls extends StatefulWidget {
 }
 
 class _ControlsState extends State<Controls> {
-  CameraPosition position = CameraPosition.FRONT;
+  CameraPosition position = CameraPosition.front;
 
   @override
   void initState() {
@@ -146,12 +146,12 @@ class _ControlsState extends State<Controls> {
       ));
     }
 
-    if (position == CameraPosition.FRONT) {
+    if (position == CameraPosition.front) {
       buttons.add(IconButton(
         icon: const Icon(Icons.video_camera_front_rounded),
         onPressed: videoEnabled
             ? () {
-                _setCameraPosition(videoPub, CameraPosition.BACK);
+                _setCameraPosition(videoPub, CameraPosition.back);
               }
             : null,
       ));
@@ -160,7 +160,7 @@ class _ControlsState extends State<Controls> {
         icon: const Icon(Icons.video_camera_back_rounded),
         onPressed: videoEnabled
             ? () {
-                _setCameraPosition(videoPub, CameraPosition.FRONT);
+                _setCameraPosition(videoPub, CameraPosition.front);
               }
             : null,
       ));

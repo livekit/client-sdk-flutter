@@ -35,5 +35,13 @@ class RTCIceServer {
   }
 }
 
-const RTCIceTransportPolicyAll = 'all';
-const RTCIceTransportPolicyRelay = 'relay';
+enum RTCIceTransportPolicy {
+  all,
+  relay,
+}
+extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
+  String toStringValue() => {
+    RTCIceTransportPolicy.all: 'all',
+    RTCIceTransportPolicy.relay: 'relay',
+  }[this]!;
+}
