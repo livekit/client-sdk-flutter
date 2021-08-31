@@ -75,10 +75,12 @@ mixin RoomDelegate {
 
   /// The [LocalParticipant] has subscribed to a new track. This event will **always**
   /// fire as long as new tracks are ready for use.
-  void onTrackSubscribed(RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// A subscribed track is no longer available.
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
 
   /// Data received from another [RemoteParticipant].
   /// Data packets provides the ability to use LiveKit to send/receive arbitrary
@@ -107,7 +109,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   final Map<String, RemoteParticipant> _participants = {};
 
   /// map of SID to RemoteParticipant
-  UnmodifiableMapView<String, RemoteParticipant> get participants => UnmodifiableMapView(_participants);
+  UnmodifiableMapView<String, RemoteParticipant> get participants =>
+      UnmodifiableMapView(_participants);
 
   /// the current participant
   late LocalParticipant localParticipant;
@@ -121,7 +124,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   List<Participant> _activeSpeakers = [];
 
   /// a list of participants that are actively speaking, including local participant.
-  UnmodifiableListView<Participant> get activeSpeakers => UnmodifiableListView<Participant>(_activeSpeakers);
+  UnmodifiableListView<Participant> get activeSpeakers =>
+      UnmodifiableListView<Participant>(_activeSpeakers);
 
   /// delegate for room events
   RoomDelegate? delegate;
@@ -382,12 +386,14 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   @override
-  void onTrackSubscribed(RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
+  void onTrackSubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackSubscribed(participant, track, publication);
   }
 
   @override
-  void onTrackUnsubscribed(RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
+  void onTrackUnsubscribed(
+      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
     delegate?.onTrackUnsubscribed(participant, track, publication);
   }
 

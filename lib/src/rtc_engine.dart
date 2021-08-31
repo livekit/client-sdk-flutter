@@ -138,7 +138,8 @@ class RTCEngine with SignalClientDelegate {
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
-    if (remoteDesc != null && pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    if (remoteDesc != null &&
+        pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       await pub.pc.setRemoteDescription(remoteDesc);
     }
 

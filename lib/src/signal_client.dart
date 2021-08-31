@@ -13,8 +13,9 @@ import 'track/track.dart';
 import 'version.dart';
 import 'proto/livekit_models.pb.dart';
 import 'proto/livekit_rtc.pb.dart';
-import '_websocket_api.dart' if (dart.library.io) '_websocket_io.dart' if (dart.library.html) '_websocket_html.dart'
-    as platform;
+import '_websocket_api.dart'
+    if (dart.library.io) '_websocket_io.dart'
+    if (dart.library.html) '_websocket_html.dart' as platform;
 
 mixin SignalClientDelegate {
   // initial connection established
@@ -171,7 +172,11 @@ class SignalClient {
     ));
   }
 
-  void sendAddTrack({required String cid, required String name, required TrackType type, TrackDimension? dimension}) {
+  void sendAddTrack(
+      {required String cid,
+      required String name,
+      required TrackType type,
+      TrackDimension? dimension}) {
     final req = AddTrackRequest(
       cid: cid,
       name: name,

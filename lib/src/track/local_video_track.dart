@@ -9,7 +9,8 @@ import 'video_track.dart';
 class LocalVideoTrack extends VideoTrack {
   RTCRtpSender? get sender => transceiver?.sender;
 
-  LocalVideoTrack(String name, MediaStreamTrack mediaTrack, MediaStream stream) : super(name, mediaTrack, stream);
+  LocalVideoTrack(String name, MediaStreamTrack mediaTrack, MediaStream stream)
+      : super(name, mediaTrack, stream);
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([LocalVideoTrackOptions? options]) async {
