@@ -1,12 +1,12 @@
 /// Options when creating a LocalVideoTrack.
 class LocalVideoTrackOptions {
   CameraPosition position = CameraPosition.front;
-  VideoParameter params;
+  VideoPreset params;
 
   LocalVideoTrackOptions({
-    VideoParameter? params,
+    VideoPreset? params,
     CameraPosition? position,
-  }) : params = VideoPresets.qhd {
+  }) : params = VideoPreset.qhd {
     if (params != null) {
       this.params = params;
     }
@@ -26,40 +26,39 @@ enum CameraPosition {
   back,
 }
 
-class VideoParameter {
+class VideoPreset {
+  //
   int width;
   int height;
   int fps;
   int? bitrate;
 
-  VideoParameter(
-    this.width,
-    this.height,
-    this.fps, {
+  VideoPreset({
+    required this.width,
+    required this.height,
+    required this.fps,
     this.bitrate,
   });
 
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'minWidth': width,
-        'minHeight': height,
-        'minFrameRate': fps,
-      };
-}
+  static final qvga = VideoPreset(width: 320, height: 180, fps: 15);
+  static final vga = VideoPreset(width: 640, height: 360, fps: 30);
+  static final qhd = VideoPreset(width: 960, height: 540, fps: 30);
+  static final hd = VideoPreset(width: 1280, height: 720, fps: 30);
+  static final fhd = VideoPreset(width: 1920, height: 1080, fps: 30);
 
-class VideoPresets {
-  static final qvga = VideoParameter(320, 180, 15);
-  static final vga = VideoParameter(640, 360, 30);
-  static final qhd = VideoParameter(960, 540, 30);
-  static final hd = VideoParameter(1280, 720, 30);
-  static final fhd = VideoParameter(1920, 1080, 30);
-
-  static final List<VideoParameter> all = [
+  static final List<VideoPreset> all = [
     qvga,
     vga,
     qhd,
     hd,
     fhd,
   ];
+
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'minWidth': width,
+        'minHeight': height,
+        'minFrameRate': fps,
+      };
 }
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.

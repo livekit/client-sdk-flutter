@@ -13,7 +13,7 @@ class LocalVideoTrack extends VideoTrack {
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([LocalVideoTrackOptions? options]) async {
-    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
+    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
 
     try {
       final stream = await _createCameraStream(options);
@@ -30,7 +30,7 @@ class LocalVideoTrack extends VideoTrack {
       return Future.error(TrackCreateError('could not restart track'));
     }
 
-    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
+    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
 
     try {
       final stream = await _createCameraStream(options);
@@ -45,7 +45,7 @@ class LocalVideoTrack extends VideoTrack {
   }
 
   static Future<MediaStream> _createCameraStream(LocalVideoTrackOptions? options) async {
-    options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
+    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
 
     try {
       final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
