@@ -20,41 +20,61 @@ class MyApp extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'LiveKit Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-      ),
-      home: const PreConnect(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'LiveKit Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.deepPurple,
+        ),
+        home: const PreConnectWidget(
+          url: '<livekit_host>',
+          token: '<access_token>',
+        ),
+      );
 }
 
-class PreConnect extends StatefulWidget {
+class PreConnectWidget extends StatefulWidget {
   //
-  const PreConnect({
+  final String url;
+  final String token;
+
+  const PreConnectWidget({
+    required this.url,
+    required this.token,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _PreConnectState(
-      '<livekit_host>',
-      '<access_token>',
-    );
-  }
+  State<StatefulWidget> createState() => _PreConnectWidgetState();
 }
 
-class _PreConnectState extends State<PreConnect> {
-  String url;
-  String token;
+class _PreConnectWidgetState extends State<PreConnectWidget> {
+  //
+  final _urlCtrl = TextEditingController();
+  final _tokenCtrl = TextEditingController();
 
-  _PreConnectState(this.url, this.token);
+  @override
+  void initState() {
+    super.initState();
+    _urlCtrl.text = widget.url;
+    _tokenCtrl.text = widget.token;
+  }
+
+  @override
+  void dispose() {
+    _urlCtrl.dispose();
+    _tokenCtrl.dispose();
+    super.dispose();
+  }
 
   void _connect(BuildContext context) async {
     try {
-      final room = await LiveKitClient.connect(url, token);
+      print('Connecting with url: ${_urlCtrl.text}, token: ${_tokenCtrl.text}...');
+
+      final room = await LiveKitClient.connect(
+        _urlCtrl.text,
+        _tokenCtrl.text,
+      );
+
       Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (context) {
@@ -67,40 +87,36 @@ class _PreConnectState extends State<PreConnect> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Connect to LiveKit'),
-      ),
-      body: Center(
-        child: Container(
-          // width: 250,
-          alignment: Alignment.center,
-          margin: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'URL',
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Connect to LiveKit'),
+        ),
+        body: Center(
+          child: Container(
+            // width: 250,
+            alignment: Alignment.center,
+            margin: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _urlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'URL',
+                  ),
                 ),
-                onChanged: (value) => url,
-                initialValue: url,
-              ),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Token',
+                TextField(
+                  controller: _tokenCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Token',
+                  ),
                 ),
-                onChanged: (value) => token,
-                initialValue: token,
-              ),
-              TextButton(
-                onPressed: () => _connect(context),
-                child: const Text('Connect'),
-              ),
-            ],
+                TextButton(
+                  onPressed: () => _connect(context),
+                  child: const Text('Connect'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
 }
