@@ -62,7 +62,8 @@ class SignalClient {
       _ws = ws;
     } catch (e) {
       final completer = Completer<void>();
-      final validateUri = Uri.parse('http${rtcUrl.substring(2)}/validate$params');
+      final validateUri =
+          Uri.parse('http${rtcUrl.substring(2)}/validate$params');
       http.get(validateUri).then((response) {
         if (response.statusCode != 200) {
           completer.completeError(ConnectError(response.body));

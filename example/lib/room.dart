@@ -164,7 +164,7 @@ class VideoView extends StatefulWidget {
     this.participant, {
     this.quality = VideoQuality.MEDIUM,
     Key? key,
-  }) : super(key: key); 
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {

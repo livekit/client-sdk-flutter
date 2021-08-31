@@ -76,7 +76,8 @@ class _ControlsState extends State<Controls> {
     }
   }
 
-  void _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
+  void _setCameraPosition(
+      TrackPublication? pub, CameraPosition position) async {
     if (this.position == position) {
       return;
     }

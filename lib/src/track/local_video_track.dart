@@ -15,7 +15,6 @@ class LocalVideoTrack extends VideoTrack {
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack(
       [LocalVideoTrackOptions? options]) async {
-
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
@@ -49,11 +48,11 @@ class LocalVideoTrack extends VideoTrack {
 
   static Future<MediaStream> _createCameraStream(
       LocalVideoTrackOptions? options) async {
-
     options ??= LocalVideoTrackOptions(params: VideoPresets.qhd);
 
     try {
-      final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
+      final stream =
+          await navigator.mediaDevices.getUserMedia(<String, dynamic>{
         "audio": false,
         "video": options.mediaConstraints,
       });
