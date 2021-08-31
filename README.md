@@ -58,7 +58,7 @@ We built a multi-user conferencing app as an example in the [example/](example/)
 ### Connecting to a room, publish video & audio
 
 ```dart
-var room = await LiveKitClient.connect(this.url, this.token);
+var room = await LiveKitClient.connect(url, token);
 try {
   // video will fail when running in ios simulator
   var localVideo = await LocalVideoTrack.createCameraTrack();

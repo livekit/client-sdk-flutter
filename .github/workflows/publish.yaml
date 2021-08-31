@@ -2,8 +2,6 @@ name: Publish build
 
 on:
   push:
-    # test docs
-    branches: [ main ]
     # only publish on version tags
     tags:
       - v*
@@ -13,12 +11,6 @@ jobs:
     # This job will run on ubuntu virtual machine
     runs-on: ubuntu-latest
     steps:
-      # # Setup Java environment in order to build the Android app.
-      # - uses: actions/checkout@v1
-      # - uses: actions/setup-java@v1
-      #   with:
-      #     java-version: '12.x'
-
       # Setup the flutter environment.
       - uses: subosito/flutter-action@v1
 

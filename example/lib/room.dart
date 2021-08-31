@@ -203,7 +203,6 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
           !pub.isScreenShare &&
           pub.subscribed;
     });
-
     setState(() {
       if (subscribedVideos.isNotEmpty) {
         final videoPub = subscribedVideos.first;
