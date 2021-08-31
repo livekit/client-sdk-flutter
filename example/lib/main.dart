@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'room.dart';
@@ -10,24 +11,24 @@ void main() {
     print('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(const LiveKitExampleApp());
 }
 
-class MyApp extends StatelessWidget {
+class LiveKitExampleApp extends StatelessWidget {
   //
-  const MyApp({
+  const LiveKitExampleApp({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'LiveKit Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
-        ),
+        title: 'LiveKit Flutter Example',
+        theme: LiveKitTheme().buildThemeData(context),
         home: const PreConnectWidget(
-          url: '<livekit_host>',
-          token: '<access_token>',
+          url: '',
+          token: '',
         ),
       );
 }
@@ -93,10 +94,20 @@ class _PreConnectWidgetState extends State<PreConnectWidget> {
         ),
         body: Center(
           child: Container(
-            // width: 250,
-            alignment: Alignment.center,
-            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(
+              vertical: 20,
+              horizontal: 20,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Theme.of(context).accentColor),
+            ),
+            constraints: const BoxConstraints(
+              maxWidth: 320,
+            ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _urlCtrl,
@@ -110,9 +121,12 @@ class _PreConnectWidgetState extends State<PreConnectWidget> {
                     labelText: 'Token',
                   ),
                 ),
-                TextButton(
-                  onPressed: () => _connect(context),
-                  child: const Text('Connect'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: ElevatedButton(
+                    onPressed: () => _connect(context),
+                    child: const Text('Connect'),
+                  ),
                 ),
               ],
             ),
