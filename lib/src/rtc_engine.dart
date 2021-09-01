@@ -67,11 +67,11 @@ class RTCEngine with SignalClientDelegate {
     final completer = Completer<lk_rtc.JoinResponse>();
     joinCompleter = completer;
 
-    try {
-      await client.join(url, token, options: options);
-    } catch (e) {
-      return Future.error(e);
-    }
+    // try {
+    await client.join(url, token, options: options);
+    // } catch (e) {
+    //   return Future.error(e);
+    // }
 
     // if it's not complete after 5 seconds, fail
     Timer(connectionTimeout, () {

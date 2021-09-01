@@ -1,8 +1,6 @@
 import '../imports.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
-// import 'dart:math' as math;
-// import 'dart:core' show List, abs;
 
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {
@@ -27,26 +25,30 @@ class LocalParticipant extends Participant {
       return Future.error(TrackPublishError('track already exists'));
     }
 
-    try {
-      final trackInfo =
-          await _engine.addTrack(cid: track.getCid(), name: track.name, kind: track.kind);
-      final transceiverInit = RTCRtpTransceiverInit(
-        direction: TransceiverDirection.SendOnly,
-      );
-      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      track.transceiver = await _engine.publisher?.pc.addTransceiver(
-        track: track.mediaTrack,
-        init: transceiverInit,
-      );
+    // try {
+    final trackInfo = await _engine.addTrack(
+      cid: track.getCid(),
+      name: track.name,
+      kind: track.kind,
+    );
 
-      final pub = LocalTrackPublication(trackInfo, track, this);
-      addTrackPublication(pub);
-      notifyListeners();
+    final transceiverInit = RTCRtpTransceiverInit(
+      direction: TransceiverDirection.SendOnly,
+    );
+    // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+    track.transceiver = await _engine.publisher?.pc.addTransceiver(
+      track: track.mediaTrack,
+      init: transceiverInit,
+    );
 
-      return pub;
-    } catch (e) {
-      return Future.error(e);
-    }
+    final pub = LocalTrackPublication(trackInfo, track, this);
+    addTrackPublication(pub);
+    notifyListeners();
+
+    return pub;
+    // } catch (e) {
+    //   return Future.error(e);
+    // }
   }
 
   List<VideoPreset> _presetsForResolution(
@@ -139,56 +141,56 @@ class LocalParticipant extends Participant {
       throw TrackPublishError('track already exists');
     }
 
-    try {
-      final trackInfo = await _engine.addTrack(
-        cid: track.getCid(),
-        name: track.name,
-        kind: track.kind,
-      );
+    // try {
+    final trackInfo = await _engine.addTrack(
+      cid: track.getCid(),
+      name: track.name,
+      kind: track.kind,
+    );
 
-      //
-      // TODO: video encodings and simulcasts
-      // TODO: Get actual video dimensions to compute more accurately
-      // We need actual video dimensions but flutter_webrtc seems limited at the moment
-      // For WEB, mediaStreamTrack.getSettings() seems reliable
-      // For MOBILE, most likely dimensions passed to constraints are the actual dimensions
-      //
-      // final constraints = track.mediaTrack.getConstraints();
-      // print('getConstraints: ${constraints}');
-      // print('latestOptions: ${track.latestOptions?.toMediaConstraintsMap()}');
+    //
+    // TODO: video encodings and simulcasts
+    // TODO: Get actual video dimensions to compute more accurately
+    // We need actual video dimensions but flutter_webrtc seems limited at the moment
+    // For WEB, mediaStreamTrack.getSettings() seems reliable
+    // For MOBILE, most likely dimensions passed to constraints are the actual dimensions
+    //
+    // final constraints = track.mediaTrack.getConstraints();
+    // print('getConstraints: ${constraints}');
+    // print('latestOptions: ${track.latestOptions?.toMediaConstraintsMap()}');
 
-      final width = track.latestOptions?.params.width;
-      final height = track.latestOptions?.params.height;
+    final width = track.latestOptions?.params.width;
+    final height = track.latestOptions?.params.height;
 
-      final encodings = _computeVideoEncodings(
-        width: width,
-        height: height,
-        options: options,
-      );
+    final encodings = _computeVideoEncodings(
+      width: width,
+      height: height,
+      options: options,
+    );
 
-      print('Using encodings: ${encodings?.map((e) => e.toMap())}');
+    print('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
-      final transceiverInit = RTCRtpTransceiverInit(
-        direction: TransceiverDirection.SendOnly,
-        sendEncodings: encodings,
-      );
+    final transceiverInit = RTCRtpTransceiverInit(
+      direction: TransceiverDirection.SendOnly,
+      sendEncodings: encodings,
+    );
 
-      //
-      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      //
-      track.transceiver = await _engine.publisher?.pc.addTransceiver(
-        track: track.mediaTrack,
-        init: transceiverInit,
-      );
+    //
+    // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+    //
+    track.transceiver = await _engine.publisher?.pc.addTransceiver(
+      track: track.mediaTrack,
+      init: transceiverInit,
+    );
 
-      final pub = LocalTrackPublication(trackInfo, track, this);
-      addTrackPublication(pub);
-      notifyListeners();
+    final pub = LocalTrackPublication(trackInfo, track, this);
+    addTrackPublication(pub);
+    notifyListeners();
 
-      return pub;
-    } catch (e) {
-      return Future.error(e);
-    }
+    return pub;
+    // } catch (e) {
+    //   return Future.error(e);
+    // }
   }
 
   /// Unpublish a track that's already published

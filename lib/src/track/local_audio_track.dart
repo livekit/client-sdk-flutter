@@ -9,19 +9,18 @@ class LocalAudioTrack extends AudioTrack {
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> createTrack([LocalAudioTrackOptions? options]) async {
-    try {
-      final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
-        'audio': true,
-        'video': false,
-      });
+    // try {
+    final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
+      'audio': true,
+      'video': false,
+    });
 
-      if (stream.getAudioTracks().isEmpty) {
-        return Future.error(TrackCreateError());
-      }
+    if (stream.getAudioTracks().isEmpty) throw TrackCreateError();
+    // }
 
-      return LocalAudioTrack('', stream.getAudioTracks().first, stream);
-    } catch (e) {
-      return Future.error(e);
-    }
+    return LocalAudioTrack('', stream.getAudioTracks().first, stream);
+    // } catch (e) {
+    //   return Future.error(e);
+    // }
   }
 }
