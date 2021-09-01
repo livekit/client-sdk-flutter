@@ -26,25 +26,58 @@ enum CameraPosition {
   back,
 }
 
+class VideoEncoding {
+  //
+  final int maxFramerate;
+  final int? maxBitrate;
+
+  const VideoEncoding({
+    required this.maxFramerate,
+    this.maxBitrate,
+  });
+}
+
 class VideoPreset {
   //
-  int width;
-  int height;
-  int fps;
-  int? bitrate;
+  final int width;
+  final int height;
+  final VideoEncoding encoding;
 
-  VideoPreset({
+  const VideoPreset({
     required this.width,
     required this.height,
-    required this.fps,
-    this.bitrate,
+    required this.encoding,
   });
 
-  static final qvga = VideoPreset(width: 320, height: 180, fps: 15);
-  static final vga = VideoPreset(width: 640, height: 360, fps: 30);
-  static final qhd = VideoPreset(width: 960, height: 540, fps: 30);
-  static final hd = VideoPreset(width: 1280, height: 720, fps: 30);
-  static final fhd = VideoPreset(width: 1920, height: 1080, fps: 30);
+  static const qvga = VideoPreset(
+    width: 320,
+    height: 180,
+    encoding: VideoEncoding(maxFramerate: 15),
+  );
+
+  static const vga = VideoPreset(
+    width: 640,
+    height: 360,
+    encoding: VideoEncoding(maxFramerate: 30),
+  );
+
+  static const qhd = VideoPreset(
+    width: 960,
+    height: 540,
+    encoding: VideoEncoding(maxFramerate: 30),
+  );
+
+  static const hd = VideoPreset(
+    width: 1280,
+    height: 720,
+    encoding: VideoEncoding(maxFramerate: 30),
+  );
+
+  static const fhd = VideoPreset(
+    width: 1920,
+    height: 1080,
+    encoding: VideoEncoding(maxFramerate: 30),
+  );
 
   static final List<VideoPreset> all = [
     qvga,
@@ -55,9 +88,9 @@ class VideoPreset {
   ];
 
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'minWidth': width,
-        'minHeight': height,
-        'minFrameRate': fps,
+        'maxWidth': width,
+        'maxHeight': height,
+        'maxFrameRate': encoding.maxFramerate,
       };
 }
 
