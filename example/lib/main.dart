@@ -27,21 +27,21 @@ class LiveKitExampleApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         title: 'LiveKit Flutter Example',
         theme: LiveKitTheme().buildThemeData(context),
-        home: const PreConnectWidget(),
+        home: const ConnectPage(),
       );
 }
 
-class PreConnectWidget extends StatefulWidget {
+class ConnectPage extends StatefulWidget {
   //
-  const PreConnectWidget({
+  const ConnectPage({
     Key? key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _PreConnectWidgetState();
+  State<StatefulWidget> createState() => _ConnectPageState();
 }
 
-class _PreConnectWidgetState extends State<PreConnectWidget> {
+class _ConnectPageState extends State<ConnectPage> {
   //
   static const _storeKeyUri = 'uri';
   static const _storeKeyToken = 'token';
@@ -90,7 +90,7 @@ class _PreConnectWidgetState extends State<PreConnectWidget> {
       Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (context) {
-          return RoomWidget(room);
+          return RoomPage(room);
         }),
       );
     } catch (e) {

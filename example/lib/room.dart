@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/src/controls.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-class RoomWidget extends StatefulWidget {
+class RoomPage extends StatefulWidget {
   //
   final Room room;
 
-  const RoomWidget(
+  const RoomPage(
     this.room, {
     Key? key,
   }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _RoomState();
+    return _RoomPageState();
   }
 }
 
-class _RoomState extends State<RoomWidget> with RoomDelegate {
+class _RoomPageState extends State<RoomPage> with RoomDelegate {
   BuildContext? _lastContext;
   List<Participant> participants = [];
 
@@ -42,9 +43,9 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       final localVideo = await LocalVideoTrack.createCameraTrack();
       await widget.room.localParticipant.publishVideoTrack(
         localVideo,
-        options: const TrackPublishOptions(
-          simulcast: true,
-        ),
+        // options: const TrackPublishOptions(
+        //   simulcast: true,
+        // ),
       );
     } catch (e) {
       print('could not publish video: $e');
@@ -125,35 +126,31 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
       final videoList = ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: participants.length - 1,
-        itemBuilder: (BuildContext context, int index) {
-          return Container(
-            width: 100,
-            height: 60,
-            padding: const EdgeInsets.all(2),
-            child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
-          );
-        },
+        itemBuilder: (BuildContext context, int index) => Container(
+          width: 100,
+          height: 100,
+          padding: const EdgeInsets.all(2),
+          child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
+        ),
       );
       mainWidgets.add(SizedBox(
-        height: 60,
+        height: 100,
         child: videoList,
       ));
     }
 
     mainWidgets.add(Controls(widget.room));
-    return MaterialApp(
-        title: 'LiveKit Video Room',
-        theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
+    //
+    return Scaffold(
+      // with a provider, any child/descendent widget can be updated if they
+      // are a Consumer of Room.
+      body: ChangeNotifierProvider.value(
+        value: widget.room,
+        child: Column(
+          children: mainWidgets,
         ),
-        home: Scaffold(
-            // with a provider, any child/descendent widget can be updated if they
-            // are a Consumer of Room.
-            body: ChangeNotifierProvider.value(
-                value: widget.room,
-                child: Column(
-                  children: mainWidgets,
-                ))));
+      ),
+    );
   }
 }
 
@@ -170,12 +167,11 @@ class VideoView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _VideoViewState();
-  }
+  State<StatefulWidget> createState() => _VideoViewState();
 }
 
 class _VideoViewState extends State<VideoView> with ParticipantDelegate {
+  //
   TrackPublication? videoPub;
 
   @override
@@ -223,12 +219,15 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
   @override
   Widget build(BuildContext context) {
     final videoPub = this.videoPub;
-    if (videoPub != null) {
-      return VideoTrackRenderer(videoPub.track as VideoTrack);
-    } else {
+    if (videoPub == null) {
       return Container(
         color: Colors.grey,
       );
     }
+
+    return VideoTrackRenderer(
+      videoPub.track as VideoTrack,
+      fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+    );
   }
 }

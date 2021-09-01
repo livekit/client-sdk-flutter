@@ -149,6 +149,10 @@ class LocalParticipant extends Participant {
     );
 
     //
+    // TODO: use default options from `ConnectOptions` if options is null
+    //
+
+    //
     // TODO: video encodings and simulcasts
     // TODO: Get actual video dimensions to compute more accurately
     // We need actual video dimensions but flutter_webrtc seems limited at the moment
@@ -168,7 +172,7 @@ class LocalParticipant extends Participant {
       options: options,
     );
 
-    print('Using encodings: ${encodings?.map((e) => e.toMap())}');
+    log('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
     final transceiverInit = RTCRtpTransceiverInit(
       direction: TransceiverDirection.SendOnly,

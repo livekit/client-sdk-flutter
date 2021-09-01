@@ -27,6 +27,9 @@ class LiveKitTheme {
         cardColor: cardColor,
         scaffoldBackgroundColor: bgColor,
         canvasColor: bgColor,
+        iconTheme: IconThemeData(
+          color: textColor,
+        ),
         textTheme: GoogleFonts.latoTextTheme(
           Theme.of(ctx).textTheme,
         ).apply(
