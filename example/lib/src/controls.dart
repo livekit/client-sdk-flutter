@@ -90,7 +90,7 @@ class _ControlsState extends State<Controls> {
     }
 
     try {
-      await track.restartTrack(LocalVideoTrackOptions(position: position));
+      await track.restartTrack(options: LocalVideoTrackOptions(position: position));
     } catch (e) {
       print('could not restart track: $e');
       return;

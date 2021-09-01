@@ -40,7 +40,12 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     // video will fail when running in ios simulator
     try {
       final localVideo = await LocalVideoTrack.createCameraTrack();
-      await widget.room.localParticipant.publishVideoTrack(localVideo);
+      await widget.room.localParticipant.publishVideoTrack(
+        localVideo,
+        options: const TrackPublishOptions(
+          simulcast: true,
+        ),
+      );
     } catch (e) {
       print('could not publish video: $e');
     }

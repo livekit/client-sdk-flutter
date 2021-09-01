@@ -3,61 +3,64 @@ import '../imports.dart';
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
 class LocalVideoTrack extends VideoTrack {
+  //
+  // The latest options used for this track
+  //
+  LocalVideoTrackOptions? latestOptions;
+
+  LocalVideoTrack(
+    String name,
+    MediaStreamTrack mediaTrack,
+    MediaStream stream,
+    this.latestOptions,
+  ) : super(name, mediaTrack, stream);
+
   RTCRtpSender? get sender => transceiver?.sender;
-
-  LocalVideoTrack(String name, MediaStreamTrack mediaTrack, MediaStream stream)
-      : super(name, mediaTrack, stream);
-
-  /// Creates a LocalVideoTrack from camera input.
-  static Future<LocalVideoTrack> createCameraTrack([LocalVideoTrackOptions? options]) async {
-    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
-
-    try {
-      final stream = await _createCameraStream(options);
-      return LocalVideoTrack('camera', stream.getVideoTracks().first, stream);
-    } catch (e) {
-      return Future.error(e);
-    }
-  }
 
   /// Restarts the track with new options. This is useful when switching between
   /// front and back cameras.
-  Future<void> restartTrack([LocalVideoTrackOptions? options]) async {
-    if (sender == null) {
-      return Future.error(TrackCreateError('could not restart track'));
-    }
+  Future<void> restartTrack({
+    LocalVideoTrackOptions? options,
+  }) async {
+    //
+    if (sender == null) throw TrackCreateError('could not restart track');
 
-    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
+    latestOptions = options ?? const LocalVideoTrackOptions();
 
-    try {
-      final stream = await _createCameraStream(options);
-      final track = stream.getVideoTracks().first;
-      mediaStream = stream;
-      await mediaTrack.stop();
-      mediaTrack = track;
-      await sender?.replaceTrack(track);
-    } catch (e) {
-      return Future.error(e);
-    }
+    final stream = await _createCameraStream(options: latestOptions!);
+    final track = stream.getVideoTracks().first;
+    mediaStream = stream;
+    await mediaTrack.stop();
+    mediaTrack = track;
+    await sender?.replaceTrack(track);
   }
 
-  static Future<MediaStream> _createCameraStream(LocalVideoTrackOptions? options) async {
+  /// Creates a LocalVideoTrack from camera input.
+  static Future<LocalVideoTrack> createCameraTrack({
+    LocalVideoTrackOptions? options,
+  }) async {
     //
-    options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
+    final latestOptions = options ?? const LocalVideoTrackOptions();
+    final stream = await _createCameraStream(options: latestOptions);
+    return LocalVideoTrack(
+      'camera',
+      stream.getVideoTracks().first,
+      stream,
+      latestOptions,
+    );
+  }
 
-    try {
-      final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
-        'audio': false,
-        'video': options.toMediaConstraintsMap(),
-      });
+  static Future<MediaStream> _createCameraStream({
+    required LocalVideoTrackOptions options,
+  }) async {
+    //
+    final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
+      'audio': false,
+      'video': options.toMediaConstraintsMap(),
+    });
 
-      if (stream.getVideoTracks().isEmpty) {
-        return Future.error(TrackCreateError());
-      }
+    if (stream.getVideoTracks().isEmpty) throw TrackCreateError();
 
-      return stream;
-    } catch (e) {
-      return Future.error(e);
-    }
+    return stream;
   }
 }
