@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'room.dart';
 
 void main() {
@@ -26,21 +27,13 @@ class LiveKitExampleApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         title: 'LiveKit Flutter Example',
         theme: LiveKitTheme().buildThemeData(context),
-        home: const PreConnectWidget(
-          url: '',
-          token: '',
-        ),
+        home: const PreConnectWidget(),
       );
 }
 
 class PreConnectWidget extends StatefulWidget {
   //
-  final String url;
-  final String token;
-
   const PreConnectWidget({
-    required this.url,
-    required this.token,
     Key? key,
   }) : super(key: key);
 
@@ -50,31 +43,49 @@ class PreConnectWidget extends StatefulWidget {
 
 class _PreConnectWidgetState extends State<PreConnectWidget> {
   //
-  final _urlCtrl = TextEditingController();
+  static const _storeKeyUri = 'uri';
+  static const _storeKeyToken = 'token';
+
+  final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _urlCtrl.text = widget.url;
-    _tokenCtrl.text = widget.token;
+    _readPrefs();
   }
 
   @override
   void dispose() {
-    _urlCtrl.dispose();
+    _uriCtrl.dispose();
     _tokenCtrl.dispose();
     super.dispose();
   }
 
+  Future<void> _readPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    _uriCtrl.text = prefs.getString(_storeKeyUri) ?? '';
+    _tokenCtrl.text = prefs.getString(_storeKeyToken) ?? '';
+  }
+
+  Future<void> _writePrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_storeKeyUri, _uriCtrl.text);
+    await prefs.setString(_storeKeyToken, _tokenCtrl.text);
+  }
+
   void _connect(BuildContext context) async {
+    //
     try {
-      print('Connecting with url: ${_urlCtrl.text}, token: ${_tokenCtrl.text}...');
+      print('Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
 
       final room = await LiveKitClient.connect(
-        _urlCtrl.text,
+        _uriCtrl.text,
         _tokenCtrl.text,
       );
+
+      // Save for next time
+      await _writePrefs();
 
       Navigator.push<void>(
         context,
@@ -110,7 +121,7 @@ class _PreConnectWidgetState extends State<PreConnectWidget> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  controller: _urlCtrl,
+                  controller: _uriCtrl,
                   decoration: const InputDecoration(
                     labelText: 'URL',
                   ),
