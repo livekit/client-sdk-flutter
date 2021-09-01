@@ -1,12 +1,12 @@
-import 'dart:async';
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
+import 'dart:html' as html;
 
 import 'package:web_socket_channel/html.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'imports.dart';
 
 Future<WebSocketChannel> connectToWebSocket(Uri uri) {
-  final ws = WebSocket(uri.toString());
+  final ws = html.WebSocket(uri.toString());
   ws.binaryType = 'arraybuffer';
   final completer = Completer<WebSocketChannel>();
   ws.onOpen.first.then((_) {

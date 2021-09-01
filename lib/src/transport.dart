@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'imports.dart';
 
 /// a wrapper around PeerConnection
 class PCTransport {

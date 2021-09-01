@@ -1,11 +1,5 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/track/audio_track.dart';
-import '../proto/livekit_models.pb.dart';
-import '../signal_client.dart';
-import '../track/remote_track_publication.dart';
-import '../track/track.dart';
-import '../track/video_track.dart';
-import 'participant.dart';
+import '../imports.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
@@ -13,9 +7,16 @@ class RemoteParticipant extends Participant {
 
   SignalClient get client => _client;
 
-  RemoteParticipant(this._client, String sid, String identity) : super(sid, identity);
+  RemoteParticipant(
+    this._client,
+    String sid,
+    String identity,
+  ) : super(sid, identity);
 
-  RemoteParticipant.fromInfo(this._client, ParticipantInfo info) : super(info.sid, info.identity) {
+  RemoteParticipant.fromInfo(
+    this._client,
+    lk_models.ParticipantInfo info,
+  ) : super(info.sid, info.identity) {
     updateFromInfo(info);
   }
 
@@ -49,11 +50,11 @@ class RemoteParticipant extends Participant {
     }
 
     Track? track;
-    if (pub.kind == TrackType.AUDIO) {
+    if (pub.kind == lk_models.TrackType.AUDIO) {
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
-    } else if (pub.kind == TrackType.VIDEO) {
+    } else if (pub.kind == lk_models.TrackType.VIDEO) {
       track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
       final msg = 'unsupported track type ${pub.kind}';
@@ -73,7 +74,7 @@ class RemoteParticipant extends Participant {
   /// for internal use
   /// {@nodoc}
   @override
-  void updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(lk_models.ParticipantInfo info) {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
 

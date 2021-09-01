@@ -1,24 +1,6 @@
-import 'dart:async';
-import 'dart:collection';
-import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:tuple/tuple.dart';
-
-import 'errors.dart';
-import 'extensions.dart';
-import 'logger.dart';
-import 'options.dart';
-import 'participant/local_participant.dart';
-import 'participant/participant.dart';
-import 'participant/remote_participant.dart';
-import 'proto/livekit_models.pb.dart';
-import 'proto/livekit_rtc.pb.dart';
-import 'rtc_engine.dart';
-import 'signal_client.dart';
-import 'track/remote_track_publication.dart';
-import 'track/track.dart';
-import 'track/track_publication.dart';
+import 'imports.dart';
+import 'proto/livekit_models.pb.dart' as lk_models;
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
 enum RoomState {
   disconnected,
@@ -205,7 +187,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _handleDisconnect();
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(String sid, ParticipantInfo? info) {
+  RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
     var participant = _participants[sid];
     if (participant != null) {
       return participant;
@@ -252,7 +234,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDisconnected();
   }
 
-  void _handleParticipantUpdate(List<ParticipantInfo> updates) {
+  void _handleParticipantUpdate(List<lk_models.ParticipantInfo> updates) {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -261,7 +243,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      if (info.state == ParticipantInfo_State.DISCONNECTED) {
+      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
         hasChanged = true;
         _handleParticipantDisconnect(info.sid);
         continue;
@@ -283,7 +265,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
   }
 
-  void _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
+  void _handleSpeakerUpdate(List<lk_rtc.SpeakerInfo> speakers) {
     final seenSids = <String>{};
     List<Participant> newSpeakers = [];
     for (final info in speakers) {
@@ -321,7 +303,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  void _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
+  void _handleDataPacket(lk_rtc.UserPacket packet, lk_rtc.DataPacket_Kind kind) {
     final participant = participants[packet.participantSid];
     if (participant == null) {
       return;

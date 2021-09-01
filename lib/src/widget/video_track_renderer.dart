@@ -1,8 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-
-import '../track/video_track.dart';
-import '../track/local_video_track.dart';
+import '../imports.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {

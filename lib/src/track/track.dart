@@ -1,7 +1,5 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:uuid/uuid.dart';
-
-import '../proto/livekit_models.pb.dart';
+import '../imports.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 class TrackDimension {
   int width;
@@ -15,7 +13,7 @@ class Track {
   static const screenShareName = 'screen';
 
   String name;
-  TrackType kind;
+  lk_models.TrackType kind;
   MediaStreamTrack mediaTrack;
   String? sid;
   RTCRtpTransceiver? transceiver;
@@ -27,9 +25,9 @@ class Track {
 
   RTCRtpMediaType get mediaType {
     switch (kind) {
-      case TrackType.AUDIO:
+      case lk_models.TrackType.AUDIO:
         return RTCRtpMediaType.RTCRtpMediaTypeAudio;
-      case TrackType.VIDEO:
+      case lk_models.TrackType.VIDEO:
         return RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:

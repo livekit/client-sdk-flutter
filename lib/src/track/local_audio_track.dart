@@ -1,12 +1,11 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/track/audio_track.dart';
-
-import '../errors.dart';
-import 'options.dart';
+import '../imports.dart';
 
 class LocalAudioTrack extends AudioTrack {
-  LocalAudioTrack(String name, MediaStreamTrack track, MediaStream stream)
-      : super(name, track, stream);
+  LocalAudioTrack(
+    String name,
+    MediaStreamTrack track,
+    MediaStream stream,
+  ) : super(name, track, stream);
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> createTrack([LocalAudioTrackOptions? options]) async {

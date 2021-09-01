@@ -1,10 +1,5 @@
-import 'package:flutter/foundation.dart';
-
-import 'remote_participant.dart';
-import '../proto/livekit_models.pb.dart';
-import '../track/remote_track_publication.dart';
-import '../track/track.dart';
-import '../track/track_publication.dart';
+import '../imports.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 /// Callbacks for participant changes
 mixin ParticipantDelegate {
@@ -77,7 +72,7 @@ class Participant extends ChangeNotifier {
   /// delegate to receive participant callbacks
   ParticipantDelegate? delegate;
 
-  ParticipantInfo? _participantInfo;
+  lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
   /// when the participant joined the room
@@ -148,7 +143,7 @@ class Participant extends ChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
-  void updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
     sid = info.sid;
     if (info.metadata.isNotEmpty) {
@@ -169,10 +164,10 @@ class Participant extends ChangeNotifier {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
     switch (pub.kind) {
-      case TrackType.AUDIO:
+      case lk_models.TrackType.AUDIO:
         audioTracks[pub.sid] = pub;
         break;
-      case TrackType.VIDEO:
+      case lk_models.TrackType.VIDEO:
         videoTracks[pub.sid] = pub;
         break;
       default:

@@ -1,8 +1,6 @@
-import '../proto/livekit_models.pb.dart';
-import '../proto/livekit_rtc.pbserver.dart';
-import '../participant/remote_participant.dart';
-import 'track.dart';
-import 'track_publication.dart';
+import '../imports.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
+import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
@@ -10,10 +8,11 @@ class RemoteTrackPublication extends TrackPublication {
   final RemoteParticipant _participant;
   bool _unsubscribed = false;
   bool _disabled = false;
-  VideoQuality _videoQuality = VideoQuality.HIGH;
+  lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
 
-  VideoQuality get videoQuality => _videoQuality;
-  set videoQuality(VideoQuality val) {
+  lk_rtc.VideoQuality get videoQuality => _videoQuality;
+
+  set videoQuality(lk_rtc.VideoQuality val) {
     if (val == _videoQuality) return;
     _videoQuality = val;
     _sendUpdateTrackSettings();
@@ -61,16 +60,20 @@ class RemoteTrackPublication extends TrackPublication {
     _participant.muteChanged();
   }
 
-  RemoteTrackPublication(TrackInfo info, this._participant, [Track? track]) : super.fromInfo(info) {
+  RemoteTrackPublication(
+    lk_models.TrackInfo info,
+    this._participant, [
+    Track? track,
+  ]) : super.fromInfo(info) {
     this.track = track;
   }
 
   void _sendUpdateTrackSettings() {
-    final settings = UpdateTrackSettings(
+    final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
       disabled: _disabled,
     );
-    if (kind == TrackType.VIDEO) {
+    if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
     }
     _participant.client.sendUpdateTrackSettings(settings);

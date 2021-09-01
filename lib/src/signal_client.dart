@@ -1,25 +1,15 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:developer';
-
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
-import 'errors.dart';
-import 'logger.dart';
-import 'options.dart';
-import 'track/track.dart';
-import 'version.dart';
-import 'proto/livekit_models.pb.dart';
-import 'proto/livekit_rtc.pb.dart';
 import '_websocket_api.dart'
     if (dart.library.io) '_websocket_io.dart'
     if (dart.library.html) '_websocket_html.dart' as platform;
+import 'imports.dart';
+import 'proto/livekit_models.pb.dart' as lk_models;
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
 mixin SignalClientDelegate {
   // initial connection established
-  void onConnected(JoinResponse response);
+  void onConnected(lk_rtc.JoinResponse response);
   // websocket has closed
   void onClose([String? reason]);
   // when a server offer is received
@@ -27,15 +17,15 @@ mixin SignalClientDelegate {
   // when an answer from server is received
   void onAnswer(RTCSessionDescription sd);
   // when server has a new ICE candidate
-  void onTrickle(RTCIceCandidate candidate, SignalTarget target);
+  void onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target);
   // participant has changed
-  void onParticipantUpdate(List<ParticipantInfo> updates);
+  void onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
   // when a track has been added successfully
-  void onLocalTrackPublished(TrackPublishedResponse response);
+  void onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
   // active speaker has changed
-  void onActiveSpeakersChanged(List<SpeakerInfo> speakers);
+  void onActiveSpeakersChanged(List<lk_rtc.SpeakerInfo> speakers);
   // when server sends this client a leave message
-  void onLeave(LeaveRequest req);
+  void onLeave(lk_rtc.LeaveRequest req);
 }
 
 class SignalClient {
@@ -144,28 +134,28 @@ class SignalClient {
   }
 
   void sendOffer(RTCSessionDescription offer) {
-    _sendRequest(SignalRequest(
+    _sendRequest(lk_rtc.SignalRequest(
       offer: fromRTCSessionDescription(offer),
     ));
   }
 
   void sendAnswer(RTCSessionDescription answer) {
-    _sendRequest(SignalRequest(
+    _sendRequest(lk_rtc.SignalRequest(
       answer: fromRTCSessionDescription(answer),
     ));
   }
 
-  void sendIceCandidate(RTCIceCandidate candidate, SignalTarget target) {
-    _sendRequest(SignalRequest(
-        trickle: TrickleRequest(
+  void sendIceCandidate(RTCIceCandidate candidate, lk_rtc.SignalTarget target) {
+    _sendRequest(lk_rtc.SignalRequest(
+        trickle: lk_rtc.TrickleRequest(
       candidateInit: fromRTCIceCandidate(candidate),
       target: target,
     )));
   }
 
   void sendMuteTrack(String trackSid, bool muted) {
-    _sendRequest(SignalRequest(
-      mute: MuteTrackRequest(
+    _sendRequest(lk_rtc.SignalRequest(
+      mute: lk_rtc.MuteTrackRequest(
         sid: trackSid,
         muted: muted,
       ),
@@ -175,9 +165,9 @@ class SignalClient {
   void sendAddTrack(
       {required String cid,
       required String name,
-      required TrackType type,
+      required lk_models.TrackType type,
       TrackDimension? dimension}) {
-    final req = AddTrackRequest(
+    final req = lk_rtc.AddTrackRequest(
       cid: cid,
       name: name,
       type: type,
@@ -186,38 +176,38 @@ class SignalClient {
       req.width = dimension.width;
       req.height = dimension.height;
     }
-    _sendRequest(SignalRequest(
+    _sendRequest(lk_rtc.SignalRequest(
       addTrack: req,
     ));
   }
 
-  void sendUpdateTrackSettings(UpdateTrackSettings settings) {
-    _sendRequest(SignalRequest(
+  void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) {
+    _sendRequest(lk_rtc.SignalRequest(
       trackSetting: settings,
     ));
   }
 
-  void sendUpdateSubscription(UpdateSubscription subscription) {
-    _sendRequest(SignalRequest(
+  void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) {
+    _sendRequest(lk_rtc.SignalRequest(
       subscription: subscription,
     ));
   }
 
-  void sendSetSimulcastLayers(String trackSid, List<VideoQuality> layers) {
-    _sendRequest(SignalRequest(
-        simulcast: SetSimulcastLayers(
+  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) {
+    _sendRequest(lk_rtc.SignalRequest(
+        simulcast: lk_rtc.SetSimulcastLayers(
       trackSid: trackSid,
       layers: layers,
     )));
   }
 
   void sendLeave() {
-    _sendRequest(SignalRequest(
-      leave: LeaveRequest(),
+    _sendRequest(lk_rtc.SignalRequest(
+      leave: lk_rtc.LeaveRequest(),
     ));
   }
 
-  void _sendRequest(SignalRequest req) {
+  void _sendRequest(lk_rtc.SignalRequest req) {
     if (_ws == null) {
       log('could not send message, not connected');
       return;
@@ -231,33 +221,33 @@ class SignalClient {
     if (message is! List<int>) {
       return;
     }
-    final msg = SignalResponse.fromBuffer(message);
+    final msg = lk_rtc.SignalResponse.fromBuffer(message);
     switch (msg.whichMessage()) {
-      case SignalResponse_Message.join:
+      case lk_rtc.SignalResponse_Message.join:
         if (!_connected) {
           _connected = true;
           delegate?.onConnected(msg.join);
         }
         break;
-      case SignalResponse_Message.answer:
+      case lk_rtc.SignalResponse_Message.answer:
         delegate?.onAnswer(toRTCSessionDescription(msg.answer));
         break;
-      case SignalResponse_Message.offer:
+      case lk_rtc.SignalResponse_Message.offer:
         delegate?.onOffer(toRTCSessionDescription(msg.offer));
         break;
-      case SignalResponse_Message.trickle:
+      case lk_rtc.SignalResponse_Message.trickle:
         delegate?.onTrickle(toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
         break;
-      case SignalResponse_Message.update:
+      case lk_rtc.SignalResponse_Message.update:
         delegate?.onParticipantUpdate(msg.update.participants);
         break;
-      case SignalResponse_Message.trackPublished:
+      case lk_rtc.SignalResponse_Message.trackPublished:
         delegate?.onLocalTrackPublished(msg.trackPublished);
         break;
-      case SignalResponse_Message.speaker:
+      case lk_rtc.SignalResponse_Message.speaker:
         delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
         break;
-      case SignalResponse_Message.leave:
+      case lk_rtc.SignalResponse_Message.leave:
         delegate?.onLeave(msg.leave);
         break;
       default:
@@ -279,12 +269,12 @@ class SignalClient {
   }
 }
 
-RTCSessionDescription toRTCSessionDescription(SessionDescription sd) {
+RTCSessionDescription toRTCSessionDescription(lk_rtc.SessionDescription sd) {
   return RTCSessionDescription(sd.sdp, sd.type);
 }
 
-SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
-  return SessionDescription(type: rsd.type, sdp: rsd.sdp);
+lk_rtc.SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
+  return lk_rtc.SessionDescription(type: rsd.type, sdp: rsd.sdp);
 }
 
 RTCIceCandidate toRTCIceCandidate(String candidateInit) {

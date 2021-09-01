@@ -1,4 +1,4 @@
-import 'package:livekit_client/livekit_client.dart';
+import 'imports.dart';
 
 /// Options when joining a room.
 /// {@category Room}

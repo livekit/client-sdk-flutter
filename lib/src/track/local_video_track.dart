@@ -1,8 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-
-import '../errors.dart';
-import 'options.dart';
-import 'video_track.dart';
+import '../imports.dart';
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
@@ -46,6 +42,7 @@ class LocalVideoTrack extends VideoTrack {
   }
 
   static Future<MediaStream> _createCameraStream(LocalVideoTrackOptions? options) async {
+    //
     options ??= LocalVideoTrackOptions(params: VideoPreset.qhd);
 
     try {

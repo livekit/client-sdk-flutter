@@ -1,12 +1,14 @@
-import '../participant/local_participant.dart';
-import '../proto/livekit_models.pb.dart';
-import 'track.dart';
-import 'track_publication.dart';
+import '../imports.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 class LocalTrackPublication extends TrackPublication {
   final LocalParticipant _participant;
 
-  LocalTrackPublication(TrackInfo info, Track track, this._participant) : super.fromInfo(info) {
+  LocalTrackPublication(
+    lk_models.TrackInfo info,
+    Track track,
+    this._participant,
+  ) : super.fromInfo(info) {
     this.track = track;
   }
 
