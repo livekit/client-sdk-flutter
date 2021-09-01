@@ -108,7 +108,7 @@ packages:
       name: flutter_webrtc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.5"
+    version: "0.6.6"
   http:
     dependency: transitive
     description:
@@ -136,7 +136,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.4.0"
+    version: "0.4.1"
   logging:
     dependency: "direct main"
     description:
