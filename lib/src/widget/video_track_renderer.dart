@@ -2,20 +2,23 @@ import '../imports.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
+  //
   final VideoTrack track;
   final RTCVideoRenderer renderer;
+  final RTCVideoViewObjectFit fit;
 
-  VideoTrackRenderer(this.track)
-      : renderer = RTCVideoRenderer(),
+  VideoTrackRenderer(
+    this.track, {
+    this.fit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+  })  : renderer = RTCVideoRenderer(),
         super(key: ValueKey(track.sid));
 
   @override
-  State<StatefulWidget> createState() {
-    return _VideoTrackRendererState();
-  }
+  State<StatefulWidget> createState() => _VideoTrackRendererState();
 }
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
+  //
   final _renderer = RTCVideoRenderer();
 
   @override
@@ -59,6 +62,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       _renderer,
       mirror: isLocal,
       filterQuality: FilterQuality.medium,
+      objectFit: widget.fit,
     );
   }
 }
