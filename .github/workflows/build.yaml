@@ -39,13 +39,3 @@ jobs:
 
       # Run widget tests for our flutter project.
       - run: flutter test
-
-      - run: echo `pwd`
-
-      - name: publish to pub.dev
-        uses: k-paxian/dart-package-publisher@master
-        with:
-          flutter: true
-          dryRunOnly: true
-          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
-          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
