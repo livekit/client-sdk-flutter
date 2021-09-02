@@ -19,9 +19,9 @@ class LocalVideoTrack extends VideoTrack {
 
   /// Restarts the track with new options. This is useful when switching between
   /// front and back cameras.
-  Future<void> restartTrack({
+  Future<void> restartTrack([
     LocalVideoTrackOptions? options,
-  }) async {
+  ]) async {
     //
     if (sender == null) throw TrackCreateError('could not restart track');
 
