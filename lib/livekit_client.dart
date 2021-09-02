@@ -18,5 +18,5 @@ export 'src/track/track_publication.dart';
 export 'src/track/local_track_publication.dart';
 export 'src/track/remote_track_publication.dart';
 export 'src/widget/video_track_renderer.dart';
-export 'src/proto/livekit_rtc.pb.dart';
+export 'src/proto/livekit_rtc.pb.dart' show VideoQuality;
 export 'src/proto/livekit_models.pb.dart' show TrackType;

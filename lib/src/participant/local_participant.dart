@@ -187,7 +187,7 @@ class LocalParticipant extends Participant {
       options: options,
     );
 
-    print('Using encodings: ${encodings?.map((e) => e.toMap())}');
+    // print('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
     final transceiverInit = RTCRtpTransceiverInit(
       direction: TransceiverDirection.SendOnly,
