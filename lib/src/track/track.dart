@@ -1,4 +1,6 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:uuid/uuid.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 class TrackDimension {

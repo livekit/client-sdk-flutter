@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:web_socket_channel/io.dart';
-
-import 'imports.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 Future<WebSocketChannel> connectToWebSocket(Uri uri) async {
   try {

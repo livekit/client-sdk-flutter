@@ -1,4 +1,4 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 void startAudio(String id, MediaStreamTrack stream) {
   // do nothing

@@ -1,5 +1,9 @@
-import '../imports.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
+import 'track.dart';
 
 /// A video track will notify when its mediaTrack has changed.
 class VideoTrack extends Track with ChangeNotifier {

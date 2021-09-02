@@ -1,4 +1,8 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+import '../errors.dart';
+import 'options.dart';
+import 'video_track.dart';
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.

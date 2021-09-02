@@ -1,6 +1,9 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '_audio_api.dart' if (dart.library.html) '_audio_html.dart' as audio;
+import 'local_audio_track.dart';
+import 'track.dart';
 
 class AudioTrack extends Track {
   MediaStream? mediaStream;

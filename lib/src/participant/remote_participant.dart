@@ -1,8 +1,16 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../signal_client.dart';
+import '../track/audio_track.dart';
+import '../track/remote_track_publication.dart';
+import '../track/track.dart';
+import '../track/video_track.dart';
+import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
+  //
   final SignalClient _client;
 
   SignalClient get client => _client;

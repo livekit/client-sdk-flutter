@@ -1,6 +1,17 @@
-import '../imports.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+import '../errors.dart';
+import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../rtc_engine.dart';
+import '../track/local_audio_track.dart';
+import '../track/local_track_publication.dart';
+import '../track/local_video_track.dart';
+import '../track/options.dart';
+import '../track/track.dart';
+import '../track/track_publication.dart';
+import 'participant.dart';
 
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {

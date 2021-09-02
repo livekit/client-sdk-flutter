@@ -1,4 +1,10 @@
-import '../imports.dart';
+import 'dart:async';
+
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
+import '../errors.dart';
+import 'audio_track.dart';
+import 'options.dart';
 
 class LocalAudioTrack extends AudioTrack {
   LocalAudioTrack(

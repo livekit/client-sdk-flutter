@@ -1,5 +1,10 @@
-import '../imports.dart';
+import 'package:flutter/foundation.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../track/remote_track_publication.dart';
+import '../track/track.dart';
+import '../track/track_publication.dart';
+import 'remote_participant.dart';
 
 /// Callbacks for participant changes
 mixin ParticipantDelegate {

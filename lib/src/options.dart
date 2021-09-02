@@ -1,4 +1,4 @@
-import 'imports.dart';
+import 'track/options.dart';
 
 /// Options when joining a room.
 /// {@category Room}

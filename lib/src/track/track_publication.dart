@@ -1,5 +1,5 @@
-import '../imports.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import 'track.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.

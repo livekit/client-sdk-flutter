@@ -1,5 +1,7 @@
-import '../imports.dart';
+import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import 'track.dart';
+import 'track_publication.dart';
 
 class LocalTrackPublication extends TrackPublication {
   final LocalParticipant _participant;
