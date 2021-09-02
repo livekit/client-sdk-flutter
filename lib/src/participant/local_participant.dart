@@ -6,10 +6,12 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 class LocalParticipant extends Participant {
   //
   final RTCEngine _engine;
+  final TrackPublishOptions? defaultPublishOptions;
 
   LocalParticipant({
     required RTCEngine engine,
     required lk_models.ParticipantInfo info,
+    this.defaultPublishOptions,
   })  : _engine = engine,
         super(info.sid, info.identity) {
     updateFromInfo(info);
@@ -141,7 +143,11 @@ class LocalParticipant extends Participant {
       throw TrackPublishError('track already exists');
     }
 
-    // try {
+    //
+    // Use default options from `ConnectOptions` if options is null
+    //
+    options = options ?? defaultPublishOptions;
+
     final trackInfo = await _engine.addTrack(
       cid: track.getCid(),
       name: track.name,
@@ -149,22 +155,31 @@ class LocalParticipant extends Participant {
     );
 
     //
-    // TODO: use default options from `ConnectOptions` if options is null
+    // Video encodings and simulcasts
     //
 
-    //
-    // TODO: video encodings and simulcasts
-    // TODO: Get actual video dimensions to compute more accurately
-    // We need actual video dimensions but flutter_webrtc seems limited at the moment
-    // For WEB, mediaStreamTrack.getSettings() seems reliable
-    // For MOBILE, most likely dimensions passed to constraints are the actual dimensions
-    //
-    // final constraints = track.mediaTrack.getConstraints();
-    // print('getConstraints: ${constraints}');
-    // print('latestOptions: ${track.latestOptions?.toMediaConstraintsMap()}');
+    int? width = track.latestOptions?.params.width;
+    int? height = track.latestOptions?.params.height;
 
-    final width = track.latestOptions?.params.width;
-    final height = track.latestOptions?.params.height;
+    try {
+      // TODO: Get actual video dimensions to compute more accurately
+      // We need actual video dimensions but flutter_webrtc seems limited at the moment
+      // For WEB, mediaStreamTrack.getSettings() seems reliable
+      // For MOBILE, most likely dimensions passed to constraints are the actual dimensions
+
+      //
+      // mediaTrack.getConstraints() is not implemented for mobile
+      //
+      //
+      // final settings = mediaStreamTrack.getSettings();
+      // width = settings['width'] as int?;
+      // height = settings['height'] as int?;
+      //
+    } catch (_) {
+      //
+      // Failed to getSettings()
+      //
+    }
 
     final encodings = _computeVideoEncodings(
       width: width,

@@ -156,6 +156,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     localParticipant = LocalParticipant(
       engine: _engine,
       info: joinResponse.participant,
+      defaultPublishOptions: options?.defaultPublishOptions,
     );
     localParticipant.roomDelegate = this;
 
