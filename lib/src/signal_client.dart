@@ -28,7 +28,13 @@ mixin SignalClientDelegate {
   void onLeave(lk_rtc.LeaveRequest req);
 }
 
+extension LKUriExt on Uri {
+  //
+  bool get isSecureScheme => ['https', 'wss'].contains(scheme);
+}
+
 class SignalClient {
+  //
   SignalClientDelegate? delegate;
 
   bool _connected = false;
@@ -39,31 +45,33 @@ class SignalClient {
   bool get connected => _connected;
 
   Uri _buildUri(
-    String uriString, {
+    String uriOrString, {
     required String token,
     ConnectOptions? options,
     bool reconnect = false,
     bool validate = false,
+    bool forceSecure = false,
   }) {
-    final uri = Uri.parse(uriString);
+    final Uri uri = Uri.parse(uriOrString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final httpScheme = useSecure ? 'https' : 'http';
+    final wsScheme = useSecure ? 'wss' : 'ws';
 
     return uri.replace(
-      //
-      // It is possible to enforce WSS
-      //
-      scheme: validate ? 'http' : uri.scheme,
+      scheme: validate ? httpScheme : wsScheme,
       path: validate ? 'validate' : 'rtc',
       queryParameters: <String, String>{
         'access_token': token,
-        'protocol': protocolVersion.toString(),
         if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
         if (reconnect) 'reconnect': '1',
+        'protocol': protocolVersion.toString(),
       },
     );
   }
 
   Future<void> join(
-    String url,
+    String uriString,
     String token, {
     ConnectOptions? options,
   }) async {
@@ -72,25 +80,26 @@ class SignalClient {
     //
     options ??= const ConnectOptions();
 
-    final uri = _buildUri(
-      url,
+    final rtcUri = _buildUri(
+      uriString,
       token: token,
       options: options,
     );
 
     try {
-      final ws = await platform.connectToWebSocket(uri);
+      final ws = await platform.connectToWebSocket(rtcUri);
       ws.stream.listen(_handleMessage, onError: _handleError, onDone: _handleDone);
       _ws = ws;
     } catch (socketError) {
       //
-      // Validate mode
+      // Re-build same uri for validate mode
       //
       final validateUri = _buildUri(
-        url,
+        uriString,
         token: token,
         options: options,
         validate: true,
+        forceSecure: rtcUri.isSecureScheme,
       );
 
       //
@@ -98,12 +107,13 @@ class SignalClient {
       //
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) {
-          throw ConnectError(validateResponse.body);
-        } else {
-          throw ConnectError();
-        }
-      } catch (httpError) {
+        if (validateResponse.statusCode != 200) throw ConnectError(validateResponse.body);
+        throw ConnectError();
+      } catch (error) {
+        //
+        // Pass it up if it's already a `ConnectError`
+        //
+        if (error is ConnectError) rethrow;
         //
         // HTTP doesn't work either
         //
@@ -112,18 +122,21 @@ class SignalClient {
     }
   }
 
-  Future<void> reconnect(String url, String token) async {
+  Future<void> reconnect(
+    String uriString,
+    String token,
+  ) async {
     _connected = false;
     _ws?.sink.close();
     _ws = null;
 
-    final uri = _buildUri(
-      url,
+    final rtcUri = _buildUri(
+      uriString,
       token: token,
       reconnect: true,
     );
 
-    final ws = await platform.connectToWebSocket(uri);
+    final ws = await platform.connectToWebSocket(rtcUri);
     _ws = ws;
     _connected = true;
   }
