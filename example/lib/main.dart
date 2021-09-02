@@ -152,7 +152,7 @@ class _ConnectPageState extends State<ConnectPage> {
                   child: CheckboxListTile(
                     controlAffinity: ListTileControlAffinity.leading,
                     onChanged: (value) => _setSimulcast(value),
-                    title: Text('Use Simulcast'),
+                    title: const Text('Use Simulcast'),
                     value: _simulcast,
                   ),
                 ),
