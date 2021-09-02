@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.4.1
+
+* fixed video rendering blank after widget changes
+
 ## 0.4.0
 
 * fixed audio track playback for web
