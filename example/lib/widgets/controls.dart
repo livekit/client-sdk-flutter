@@ -13,9 +13,7 @@ class Controls extends StatefulWidget {
         super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _ControlsState();
-  }
+  State<StatefulWidget> createState() => _ControlsState();
 }
 
 class _ControlsState extends State<Controls> {

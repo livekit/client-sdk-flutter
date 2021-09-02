@@ -45,9 +45,11 @@ class _ConnectPageState extends State<ConnectPage> {
   //
   static const _storeKeyUri = 'uri';
   static const _storeKeyToken = 'token';
+  static const _storeKeySimulcast = 'simulcast';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
+  bool _simulcast = false;
 
   @override
   void initState() {
@@ -66,12 +68,16 @@ class _ConnectPageState extends State<ConnectPage> {
     final prefs = await SharedPreferences.getInstance();
     _uriCtrl.text = prefs.getString(_storeKeyUri) ?? '';
     _tokenCtrl.text = prefs.getString(_storeKeyToken) ?? '';
+    setState(() {
+      _simulcast = prefs.getBool(_storeKeySimulcast) ?? false;
+    });
   }
 
   Future<void> _writePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
     await prefs.setString(_storeKeyToken, _tokenCtrl.text);
+    await prefs.setBool(_storeKeySimulcast, _simulcast);
   }
 
   void _connect(BuildContext context) async {
@@ -82,6 +88,11 @@ class _ConnectPageState extends State<ConnectPage> {
       final room = await LiveKitClient.connect(
         _uriCtrl.text,
         _tokenCtrl.text,
+        options: ConnectOptions(
+          defaultPublishOptions: TrackPublishOptions(
+            simulcast: _simulcast,
+          ),
+        ),
       );
 
       // Save for next time
@@ -96,6 +107,14 @@ class _ConnectPageState extends State<ConnectPage> {
     } catch (e) {
       print('could not connect $e');
     }
+  }
+
+  void _setSimulcast(bool? value) async {
+    if (value == null || _simulcast == value) return;
+    setState(() {
+      _simulcast = value;
+    });
+    // await _writePrefs();
   }
 
   @override
@@ -122,18 +141,23 @@ class _ConnectPageState extends State<ConnectPage> {
               children: [
                 TextField(
                   controller: _uriCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'URL',
-                  ),
+                  decoration: const InputDecoration(labelText: 'URL'),
                 ),
                 TextField(
                   controller: _tokenCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Token',
+                  decoration: const InputDecoration(labelText: 'Token'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: CheckboxListTile(
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (value) => _setSimulcast(value),
+                    title: Text('Use Simulcast'),
+                    value: _simulcast,
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 30),
+                  padding: const EdgeInsets.only(top: 20),
                   child: ElevatedButton(
                     onPressed: () => _connect(context),
                     child: const Text('Connect'),
