@@ -12,7 +12,11 @@ dependencies:
   fixnum: ^1.0.0
   flutter:
     sdk: flutter
-  flutter_webrtc: ^0.6.6
+  flutter_webrtc:
+    git:
+      url: https://github.com/flutter-webrtc/flutter-webrtc
+      ref: master
+
   http: ^0.13.3
   logging: ^1.0.1
   protobuf: ^2.0.0

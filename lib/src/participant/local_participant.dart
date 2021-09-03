@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../errors.dart';
@@ -169,27 +170,24 @@ class LocalParticipant extends Participant {
     // Video encodings and simulcasts
     //
 
+    // use constraints passed to getUserMedia by default
     int? width = track.latestOptions?.params.width;
     int? height = track.latestOptions?.params.height;
 
-    try {
-      // TODO: Get actual video dimensions to compute more accurately
-      // We need actual video dimensions but flutter_webrtc seems limited at the moment
-      // For WEB, mediaStreamTrack.getSettings() seems reliable
-      // For MOBILE, most likely dimensions passed to constraints are the actual dimensions
-
-      //
-      // mediaTrack.getConstraints() is not implemented for mobile
-      //
-      //
-      // final settings = mediaStreamTrack.getSettings();
-      // width = settings['width'] as int?;
-      // height = settings['height'] as int?;
-      //
-    } catch (_) {
-      //
-      // Failed to getSettings()
-      //
+    if (kIsWeb) {
+      // getSettings() is only implemented for Web
+      try {
+        // try to use getSettings for more accurate resolution
+        final settings = track.mediaTrack.getSettings();
+        width = settings['width'] as int?;
+        height = settings['height'] as int?;
+        //
+        // TODO: Get actual video dimensions to compute more accurately
+        // mediaTrack.getConstraints() is not implemented for mobile
+        //
+      } catch (_) {
+        // Failed to getSettings(), not implemented for mobile
+      }
     }
 
     final encodings = _computeVideoEncodings(
