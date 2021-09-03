@@ -64,22 +64,22 @@ class LocalParticipant extends Participant {
     // }
   }
 
-  List<VideoPreset> _presetsForResolution(
+  List<VideoParameter> _presetsForResolution(
     int width,
     int height,
   ) {
     final double aspect = width / height;
-    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoPreset.all_169;
-    return VideoPreset.all_43;
+    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoParameter.presets169;
+    return VideoParameter.presets43;
   }
 
-  VideoPreset _findPresetForResolution(
+  VideoParameter _findPresetForResolution(
     int width,
     int height, {
-    required List<VideoPreset> presets,
+    required List<VideoParameter> presets,
   }) {
     //
-    VideoPreset result = presets.first;
+    VideoParameter result = presets.first;
     for (final preset in presets) {
       if (width >= preset.width && height >= preset.height) result = preset;
     }

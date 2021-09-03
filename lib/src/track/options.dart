@@ -4,10 +4,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 class LocalVideoTrackOptions {
   //
   final CameraPosition position;
-  final VideoPreset params;
+  final VideoParameter params;
 
   const LocalVideoTrackOptions({
-    this.params = VideoPreset.qhd_169,
+    this.params = VideoParameter.presetQHD169,
     this.position = CameraPosition.front,
   });
 
@@ -47,14 +47,14 @@ extension VideoEncodingExt on VideoEncoding {
       );
 }
 
-class VideoPreset {
+class VideoParameter {
   //
   final String description;
   final int width;
   final int height;
   final VideoEncoding encoding;
 
-  const VideoPreset({
+  const VideoParameter({
     required this.description,
     required this.width,
     required this.height,
@@ -65,7 +65,7 @@ class VideoPreset {
   // TODO: Make sure the resolutions are correct
   //
 
-  static const qvga_169 = VideoPreset(
+  static const presetQVGA169 = VideoParameter(
     description: 'QVGA(320x180) 16:9',
     width: 320,
     height: 180,
@@ -75,7 +75,7 @@ class VideoPreset {
     ),
   );
 
-  static const vga_169 = VideoPreset(
+  static const presetVGA169 = VideoParameter(
     description: 'VGA(640x360) 16:9',
     width: 640,
     height: 360,
@@ -85,7 +85,7 @@ class VideoPreset {
     ),
   );
 
-  static const qhd_169 = VideoPreset(
+  static const presetQHD169 = VideoParameter(
     description: 'QHD(960x540) 16:9',
     width: 960,
     height: 540,
@@ -95,7 +95,7 @@ class VideoPreset {
     ),
   );
 
-  static const hd_169 = VideoPreset(
+  static const presetHD169 = VideoParameter(
     description: 'HD(1280x720) 16:9',
     width: 1280,
     height: 720,
@@ -105,7 +105,7 @@ class VideoPreset {
     ),
   );
 
-  static const fhd_169 = VideoPreset(
+  static const presetFHD169 = VideoParameter(
     description: 'FHD(1920x1080) 16:9',
     width: 1920,
     height: 1080,
@@ -115,7 +115,7 @@ class VideoPreset {
     ),
   );
 
-  static const qvga_43 = VideoPreset(
+  static const presetQVGA43 = VideoParameter(
     description: 'QVGA(240x180) 4:3',
     width: 240,
     height: 180,
@@ -125,7 +125,7 @@ class VideoPreset {
     ),
   );
 
-  static const vga_43 = VideoPreset(
+  static const presetVGA43 = VideoParameter(
     description: 'VGA(480x360) 4:3',
     width: 480,
     height: 360,
@@ -135,7 +135,7 @@ class VideoPreset {
     ),
   );
 
-  static const qhd_43 = VideoPreset(
+  static const presetQHD43 = VideoParameter(
     description: 'QHD(720x540) 4:3',
     width: 720,
     height: 540,
@@ -145,7 +145,7 @@ class VideoPreset {
     ),
   );
 
-  static const hd_43 = VideoPreset(
+  static const presetHD43 = VideoParameter(
     description: 'HD(960x720) 4:3',
     width: 960,
     height: 720,
@@ -155,7 +155,7 @@ class VideoPreset {
     ),
   );
 
-  static const fhd_43 = VideoPreset(
+  static const presetFHD43 = VideoParameter(
     description: 'FHD(1440x1080) 4:3',
     width: 1440,
     height: 1080,
@@ -165,20 +165,20 @@ class VideoPreset {
     ),
   );
 
-  static final List<VideoPreset> all_169 = [
-    qvga_169,
-    vga_169,
-    qhd_169,
-    hd_169,
-    fhd_169,
+  static final List<VideoParameter> presets169 = [
+    presetQVGA169,
+    presetVGA169,
+    presetQHD169,
+    presetHD169,
+    presetFHD169,
   ];
 
-  static final List<VideoPreset> all_43 = [
-    qvga_43,
-    vga_43,
-    qhd_43,
-    hd_43,
-    fhd_43,
+  static final List<VideoParameter> presets43 = [
+    presetQVGA43,
+    presetVGA43,
+    presetQHD43,
+    presetHD43,
+    presetFHD43,
   ];
 
   //
