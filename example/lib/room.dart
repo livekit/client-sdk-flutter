@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/widgets/controls.dart';
@@ -34,6 +36,7 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
   @override
   void dispose() {
     widget.room.delegate = null;
+    widget.room.removeListener(_onChange);
     super.dispose();
   }
 

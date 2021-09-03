@@ -201,9 +201,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   /// Disconnects from the room, notifying server of disconnection.
-  void disconnect() {
+  Future<void> disconnect() async {
     _engine.client.sendLeave();
-    _handleDisconnect();
+    await _handleDisconnect();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
@@ -230,7 +230,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  void _handleDisconnect() {
+  Future<void> _handleDisconnect() async {
     if (_state == RoomState.disconnected) {
       return;
     }
@@ -245,7 +245,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       pub.track?.stop();
     }
 
-    _engine.close();
+    await _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
     _state = RoomState.disconnected;

@@ -92,22 +92,17 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  void close() async {
+  Future<void> close() async {
+    //
     isClosed = true;
 
-    if (publisher != null) {
-      final senders = await publisher?.pc.getSenders();
-      for (final element in (senders ?? <RTCRtpSender>[])) {
-        await publisher?.pc.removeTrack(element);
-      }
+    // PCTransport is responsible for disposing RTCPeerConnection
+    await publisher?.dispose();
+    publisher = null;
 
-      publisher?.pc.close();
-      publisher = null;
-    }
-    if (subscriber != null) {
-      subscriber?.pc.close();
-      subscriber = null;
-    }
+    await subscriber?.dispose();
+    subscriber = null;
+
     client.close();
   }
 
@@ -131,9 +126,7 @@ class RTCEngine with SignalClientDelegate {
 
   Future<void> negotiate({bool? iceRestart}) async {
     final pub = publisher;
-    if (pub == null) {
-      return;
-    }
+    if (pub == null) return;
 
     final remoteDesc = await pub.getRemoteDescription();
 
@@ -156,9 +149,9 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> reconnect() async {
-    if (isClosed) {
-      return;
-    }
+    //
+    if (isClosed) return;
+
     final url = this.url;
     final token = this.token;
     if (url == null || token == null) {
@@ -294,14 +287,14 @@ class RTCEngine with SignalClientDelegate {
     }
   }
 
-  void _handleDisconnect(String reason) {
+  Future<void> _handleDisconnect(String reason) async {
     if (isClosed) {
       return;
     }
     logger.fine('disconnected $reason');
     if (reconnectAttempts >= maxReconnectAttempts) {
       logger.info('could not connect after $reconnectAttempts, giving up');
-      close();
+      await close();
       onDisconnected?.call();
       return;
     }
@@ -399,8 +392,8 @@ class RTCEngine with SignalClientDelegate {
   }
 
   @override
-  void onLeave(lk_rtc.LeaveRequest req) {
-    close();
+  Future<void> onLeave(lk_rtc.LeaveRequest req) async {
+    await close();
     onDisconnected?.call();
   }
 }
