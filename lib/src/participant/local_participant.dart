@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:logging/logging.dart';
 
 import '../errors.dart';
+import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -35,7 +37,8 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    if (audioTracks.values.any((element) => element.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (audioTracks.values
+        .any((element) => element.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       return Future.error(TrackPublishError('track already exists'));
     }
 
@@ -51,7 +54,7 @@ class LocalParticipant extends Participant {
     );
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
     track.transceiver = await _engine.publisher?.pc.addTransceiver(
-      track: track.mediaTrack,
+      track: track.mediaStreamTrack,
       init: transceiverInit,
     );
 
@@ -151,7 +154,7 @@ class LocalParticipant extends Participant {
     TrackPublishOptions? options,
   }) async {
     //
-    if (videoTracks.values.any((e) => e.track?.mediaTrack.id == track.mediaTrack.id)) {
+    if (videoTracks.values.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishError('track already exists');
     }
 
@@ -178,7 +181,7 @@ class LocalParticipant extends Participant {
       // getSettings() is only implemented for Web
       try {
         // try to use getSettings for more accurate resolution
-        final settings = track.mediaTrack.getSettings();
+        final settings = track.mediaStreamTrack.getSettings();
         width = settings['width'] as int?;
         height = settings['height'] as int?;
         //
@@ -186,7 +189,7 @@ class LocalParticipant extends Participant {
         // mediaTrack.getConstraints() is not implemented for mobile
         //
       } catch (_) {
-        // Failed to getSettings(), not implemented for mobile
+        logger.log(Level.WARNING, 'Failed to call `mediaStreamTrack.getSettings()`');
       }
     }
 
@@ -207,7 +210,7 @@ class LocalParticipant extends Participant {
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
     //
     track.transceiver = await _engine.publisher?.pc.addTransceiver(
-      track: track.mediaTrack,
+      track: track.mediaStreamTrack,
       init: transceiverInit,
     );
 

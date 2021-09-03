@@ -15,7 +15,7 @@ class AudioTrack extends Track {
   /// start playback
   void start() {
     if (this is! LocalAudioTrack) {
-      audio.startAudio(getCid(), mediaTrack);
+      audio.startAudio(getCid(), mediaStreamTrack);
     }
   }
 

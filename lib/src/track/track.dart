@@ -16,14 +16,14 @@ class Track {
 
   String name;
   lk_models.TrackType kind;
-  MediaStreamTrack mediaTrack;
+  MediaStreamTrack mediaStreamTrack;
   String? sid;
   RTCRtpTransceiver? transceiver;
   String? _cid;
 
-  Track(this.kind, this.name, this.mediaTrack);
+  Track(this.kind, this.name, this.mediaStreamTrack);
 
-  bool get muted => mediaTrack.muted == null ? false : mediaTrack.muted!;
+  bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 
   RTCRtpMediaType get mediaType {
     switch (kind) {
@@ -38,7 +38,7 @@ class Track {
   }
 
   String getCid() {
-    var cid = _cid ?? mediaTrack.id;
+    var cid = _cid ?? mediaStreamTrack.id;
 
     if (cid == null) {
       const uuid = Uuid();
@@ -49,6 +49,6 @@ class Track {
   }
 
   void stop() {
-    mediaTrack.stop();
+    mediaStreamTrack.stop();
   }
 }

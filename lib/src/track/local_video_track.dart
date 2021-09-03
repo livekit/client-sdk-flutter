@@ -34,8 +34,8 @@ class LocalVideoTrack extends VideoTrack {
     final stream = await _createCameraStream(options: latestOptions!);
     final track = stream.getVideoTracks().first;
     mediaStream = stream;
-    await mediaTrack.stop();
-    mediaTrack = track;
+    await mediaStreamTrack.stop();
+    mediaStreamTrack = track;
     await sender?.replaceTrack(track);
   }
 

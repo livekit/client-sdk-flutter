@@ -252,7 +252,6 @@ class SignalClient {
     if (message is! List<int>) return;
 
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
-    print('onMessage: ${msg.toProto3Json()}');
 
     await lock.synchronized(() async {
       //

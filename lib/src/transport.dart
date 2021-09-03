@@ -1,4 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:logging/logging.dart';
+import 'logger.dart';
 
 /// a wrapper around PeerConnection
 class PCTransport {
@@ -62,10 +64,10 @@ class PCTransport {
     //
     try {
       final result = await pc.getRemoteDescription();
-      print('pc.getRemoteDescription $result');
+      logger.log(Level.FINE, 'pc.getRemoteDescription $result');
       return result;
     } catch (_) {
-      print('pc.getRemoteDescription did throw: $_');
+      logger.log(Level.WARNING, 'pc.getRemoteDescription did throw: $_');
     }
   }
 }

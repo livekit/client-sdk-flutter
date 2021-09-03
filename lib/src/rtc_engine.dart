@@ -359,7 +359,7 @@ class RTCEngine with SignalClientDelegate {
   @override
   Future<void> onAnswer(RTCSessionDescription sd) async {
     if (publisher == null) return;
-    publisher!.setRemoteDescription(sd);
+    await publisher!.setRemoteDescription(sd);
   }
 
   @override
