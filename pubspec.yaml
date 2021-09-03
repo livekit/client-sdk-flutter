@@ -23,6 +23,7 @@ dependencies:
   tuple: ^2.0.0
   web_socket_channel: ^2.1.0
   uuid: ^3.0.4
+  synchronized: ^3.0.0
 
 dev_dependencies:
   flutter_test:

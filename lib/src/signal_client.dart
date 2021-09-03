@@ -16,26 +16,27 @@ import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/track.dart';
+import 'package:synchronized/synchronized.dart' as sync;
 
 mixin SignalClientDelegate {
   // initial connection established
-  void onConnected(lk_rtc.JoinResponse response);
+  Future<void> onConnected(lk_rtc.JoinResponse response);
   // websocket has closed
-  void onClose([String? reason]);
+  Future<void> onClose([String? reason]);
   // when a server offer is received
-  void onOffer(RTCSessionDescription sd);
+  Future<void> onOffer(RTCSessionDescription sd);
   // when an answer from server is received
-  void onAnswer(RTCSessionDescription sd);
+  Future<void> onAnswer(RTCSessionDescription sd);
   // when server has a new ICE candidate
-  void onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target);
+  Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target);
   // participant has changed
-  void onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
+  Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
   // when a track has been added successfully
-  void onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
+  Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
   // active speaker has changed
-  void onActiveSpeakersChanged(List<lk_rtc.SpeakerInfo> speakers);
+  Future<void> onActiveSpeakersChanged(List<lk_rtc.SpeakerInfo> speakers);
   // when server sends this client a leave message
-  void onLeave(lk_rtc.LeaveRequest req);
+  Future<void> onLeave(lk_rtc.LeaveRequest req);
 }
 
 extension LKUriExt on Uri {
@@ -49,6 +50,7 @@ class SignalClient {
 
   bool _connected = false;
   WebSocketChannel? _ws;
+  final lock = sync.Lock();
 
   SignalClient();
 
@@ -98,7 +100,12 @@ class SignalClient {
 
     try {
       final ws = await platform.connectToWebSocket(rtcUri);
-      ws.stream.listen(_handleMessage, onError: _handleError, onDone: _handleDone);
+      ws.stream.listen(
+        _handleMessage,
+        onError: _handleError,
+        onDone: _handleDone,
+      );
+
       _ws = ws;
     } catch (socketError) {
       //
@@ -240,42 +247,54 @@ class SignalClient {
     _ws?.sink.add(buf);
   }
 
-  void _handleMessage(dynamic message) {
-    if (message is! List<int>) {
-      return;
-    }
+  Future<void> _handleMessage(dynamic message) async {
+    //
+    if (message is! List<int>) return;
+
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
-    switch (msg.whichMessage()) {
-      case lk_rtc.SignalResponse_Message.join:
-        if (!_connected) {
-          _connected = true;
-          delegate?.onConnected(msg.join);
-        }
-        break;
-      case lk_rtc.SignalResponse_Message.answer:
-        delegate?.onAnswer(toRTCSessionDescription(msg.answer));
-        break;
-      case lk_rtc.SignalResponse_Message.offer:
-        delegate?.onOffer(toRTCSessionDescription(msg.offer));
-        break;
-      case lk_rtc.SignalResponse_Message.trickle:
-        delegate?.onTrickle(toRTCIceCandidate(msg.trickle.candidateInit), msg.trickle.target);
-        break;
-      case lk_rtc.SignalResponse_Message.update:
-        delegate?.onParticipantUpdate(msg.update.participants);
-        break;
-      case lk_rtc.SignalResponse_Message.trackPublished:
-        delegate?.onLocalTrackPublished(msg.trackPublished);
-        break;
-      case lk_rtc.SignalResponse_Message.speaker:
-        delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
-        break;
-      case lk_rtc.SignalResponse_Message.leave:
-        delegate?.onLeave(msg.leave);
-        break;
-      default:
-        log('unsupported message: ' + json.encode(msg));
-    }
+    print('onMessage: ${msg.toProto3Json()}');
+
+    await lock.synchronized(() async {
+      //
+      // Only fire events 1 by 1 (wait for previous async to finish)
+      // This will prevent unintended bugs since websocket
+      // may receive data while previous delegate handler is not finished
+      //
+      switch (msg.whichMessage()) {
+        case lk_rtc.SignalResponse_Message.join:
+          if (!_connected) {
+            _connected = true;
+            await delegate?.onConnected(msg.join);
+          }
+          break;
+        case lk_rtc.SignalResponse_Message.answer:
+          await delegate?.onAnswer(toRTCSessionDescription(msg.answer));
+          break;
+        case lk_rtc.SignalResponse_Message.offer:
+          await delegate?.onOffer(toRTCSessionDescription(msg.offer));
+          break;
+        case lk_rtc.SignalResponse_Message.trickle:
+          await delegate?.onTrickle(
+            toRTCIceCandidate(msg.trickle.candidateInit),
+            msg.trickle.target,
+          );
+          break;
+        case lk_rtc.SignalResponse_Message.update:
+          await delegate?.onParticipantUpdate(msg.update.participants);
+          break;
+        case lk_rtc.SignalResponse_Message.trackPublished:
+          await delegate?.onLocalTrackPublished(msg.trackPublished);
+          break;
+        case lk_rtc.SignalResponse_Message.speaker:
+          await delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
+          break;
+        case lk_rtc.SignalResponse_Message.leave:
+          await delegate?.onLeave(msg.leave);
+          break;
+        default:
+          log('unsupported message: ' + json.encode(msg));
+      }
+    });
   }
 
   void _handleError(Object error) {
