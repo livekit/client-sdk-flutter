@@ -13,9 +13,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc
-      ref: master
+    path: ../flutter-webrtc/
+    # git:
+    #   url: https://github.com/flutter-webrtc/flutter-webrtc
+    #   ref: master
 
   http: ^0.13.3
   logging: ^1.0.1

@@ -98,11 +98,9 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: d9899a373f2b836015c1693a486c7a2a71a1d7cc
-      url: "https://github.com/flutter-webrtc/flutter-webrtc"
-    source: git
+      path: "../flutter-webrtc"
+      relative: true
+    source: path
     version: "0.6.6"
   http:
     dependency: "direct main"

@@ -199,11 +199,12 @@ class LocalParticipant extends Participant {
       options: options,
     );
 
-    // print('Using encodings: ${encodings?.map((e) => e.toMap())}');
+    logger.info('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
     final transceiverInit = RTCRtpTransceiverInit(
       direction: TransceiverDirection.SendOnly,
       sendEncodings: encodings,
+      streams: [track.mediaStream!],
     );
 
     //
