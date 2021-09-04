@@ -4,6 +4,7 @@ enum RTCIceTransportPolicy {
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
+  //
   String toStringValue() => {
         RTCIceTransportPolicy.all: 'all',
         RTCIceTransportPolicy.relay: 'relay',

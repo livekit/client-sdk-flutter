@@ -8,15 +8,18 @@ import 'video_track.dart';
 /// video tracks.
 class LocalVideoTrack extends VideoTrack {
   //
-  // The latest options used for this track
+  // Options used for this track
   //
-  LocalVideoTrackOptions? latestOptions;
+  LocalVideoTrackOptions currentOptions;
 
-  LocalVideoTrack(
+  //
+  // Private constructor
+  //
+  LocalVideoTrack._(
     String name,
     MediaStreamTrack mediaTrack,
     MediaStream stream,
-    this.latestOptions,
+    this.currentOptions,
   ) : super(name, mediaTrack, stream);
 
   RTCRtpSender? get sender => transceiver?.sender;
@@ -29,11 +32,11 @@ class LocalVideoTrack extends VideoTrack {
     //
     if (sender == null) throw TrackCreateError('could not restart track');
 
-    latestOptions = options ?? const LocalVideoTrackOptions();
+    currentOptions = options ?? currentOptions;
 
-    final stream = await _createCameraStream(options: latestOptions!);
+    final stream = await _createStream(options: currentOptions);
     final track = stream.getVideoTracks().first;
-    mediaStream = stream;
+    setMediaStream(stream);
     await mediaStreamTrack.stop();
     mediaStreamTrack = track;
     await sender?.replaceTrack(track);
@@ -45,8 +48,9 @@ class LocalVideoTrack extends VideoTrack {
   }) async {
     //
     final latestOptions = options ?? const LocalVideoTrackOptions();
-    final stream = await _createCameraStream(options: latestOptions);
-    return LocalVideoTrack(
+
+    final stream = await _createStream(options: latestOptions);
+    return LocalVideoTrack._(
       'camera',
       stream.getVideoTracks().first,
       stream,
@@ -54,14 +58,22 @@ class LocalVideoTrack extends VideoTrack {
     );
   }
 
-  static Future<MediaStream> _createCameraStream({
+  static Future<MediaStream> _createStream({
     required LocalVideoTrackOptions options,
   }) async {
     //
-    final stream = await navigator.mediaDevices.getUserMedia(<String, dynamic>{
+    final constraints = <String, dynamic>{
       'audio': false,
       'video': options.toMediaConstraintsMap(),
-    });
+    };
+
+    final MediaStream stream;
+
+    if (options.type == LocalVideoTrackType.display) {
+      stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+    } else {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    }
 
     if (stream.getVideoTracks().isEmpty) throw TrackCreateError();
 

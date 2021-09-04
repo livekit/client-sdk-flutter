@@ -68,22 +68,22 @@ class LocalParticipant extends Participant {
     // }
   }
 
-  List<VideoParameter> _presetsForResolution(
+  List<VideoParameters> _presetsForResolution(
     int width,
     int height,
   ) {
     final double aspect = width / height;
-    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoParameter.presets169;
-    return VideoParameter.presets43;
+    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoParameters.presets169;
+    return VideoParameters.presets43;
   }
 
-  VideoParameter _findPresetForResolution(
+  VideoParameters _findPresetForResolution(
     int width,
     int height, {
-    required List<VideoParameter> presets,
+    required List<VideoParameters> presets,
   }) {
     //
-    VideoParameter result = presets.first;
+    VideoParameters result = presets.first;
     for (final preset in presets) {
       if (width >= preset.width && height >= preset.height) result = preset;
     }
@@ -174,8 +174,8 @@ class LocalParticipant extends Participant {
     //
 
     // use constraints passed to getUserMedia by default
-    int? width = track.latestOptions?.params.width;
-    int? height = track.latestOptions?.params.height;
+    int? width = track.currentOptions.params.width;
+    int? height = track.currentOptions.params.height;
 
     if (kIsWeb) {
       // getSettings() is only implemented for Web
@@ -204,7 +204,7 @@ class LocalParticipant extends Participant {
     final transceiverInit = RTCRtpTransceiverInit(
       direction: TransceiverDirection.SendOnly,
       sendEncodings: encodings,
-      streams: [track.mediaStream!],
+      streams: [track.mediaStream],
     );
 
     //

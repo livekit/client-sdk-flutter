@@ -8,7 +8,7 @@ import 'track.dart';
 /// A video track will notify when its mediaTrack has changed.
 class VideoTrack extends Track with ChangeNotifier {
   //
-  MediaStream? _mediaStream;
+  MediaStream _mediaStream;
 
   VideoTrack(
     String name,
@@ -20,11 +20,11 @@ class VideoTrack extends Track with ChangeNotifier {
           mediaTrack,
         );
 
-  MediaStream? get mediaStream => _mediaStream;
+  MediaStream get mediaStream => _mediaStream;
 
   /// internal use
   /// {@nodoc}
-  set mediaStream(MediaStream? stream) {
+  void setMediaStream(MediaStream stream) {
     _mediaStream = stream;
     notifyListeners();
   }
@@ -32,7 +32,7 @@ class VideoTrack extends Track with ChangeNotifier {
   @override
   stop() {
     super.stop();
-    _mediaStream?.dispose();
-    _mediaStream = null;
+    _mediaStream.dispose();
+    // _mediaStream = null;
   }
 }

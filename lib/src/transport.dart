@@ -6,8 +6,8 @@ import 'logger.dart';
 class PCTransport {
   //
   final RTCPeerConnection pc;
-  bool restartingIce = false;
   final List<RTCIceCandidate> _pendingCandidates = [];
+  bool restartingIce = false;
 
   PCTransport(this.pc);
 

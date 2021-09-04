@@ -75,20 +75,23 @@ class _ControlsState extends State<Controls> {
   }
 
   void _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
-    if (this.position == position) {
-      return;
-    }
+    //
+    if (this.position == position) return;
+
     LocalVideoTrack? track;
     if (pub?.track is LocalVideoTrack) {
       track = pub!.track as LocalVideoTrack;
     }
 
-    if (track == null) {
-      return;
-    }
+    if (track == null) return;
 
     try {
-      await track.restartTrack(LocalVideoTrackOptions(position: position));
+      final options = track.currentOptions.copyWith(
+        type: LocalVideoTrackType.camera, // Make sure it's camera
+        cameraPosition: track.currentOptions.cameraPosition.swap,
+      );
+
+      await track.restartTrack(options);
     } catch (e) {
       print('could not restart track: $e');
       return;

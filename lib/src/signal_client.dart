@@ -100,6 +100,7 @@ class SignalClient {
 
     try {
       final ws = await platform.connectToWebSocket(rtcUri);
+
       ws.stream.listen(
         _handleMessage,
         onError: _handleError,
@@ -163,40 +164,36 @@ class SignalClient {
     _ws?.sink.close();
   }
 
-  void sendOffer(RTCSessionDescription offer) {
-    _sendRequest(lk_rtc.SignalRequest(
-      offer: fromRTCSessionDescription(offer),
-    ));
-  }
+  void sendOffer(RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
+        offer: fromRTCSessionDescription(offer),
+      ));
 
-  void sendAnswer(RTCSessionDescription answer) {
-    _sendRequest(lk_rtc.SignalRequest(
-      answer: fromRTCSessionDescription(answer),
-    ));
-  }
+  void sendAnswer(RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
+        answer: fromRTCSessionDescription(answer),
+      ));
 
-  void sendIceCandidate(RTCIceCandidate candidate, lk_rtc.SignalTarget target) {
-    _sendRequest(lk_rtc.SignalRequest(
-        trickle: lk_rtc.TrickleRequest(
-      candidateInit: fromRTCIceCandidate(candidate),
-      target: target,
-    )));
-  }
+  void sendIceCandidate(RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
+        lk_rtc.SignalRequest(
+          trickle: lk_rtc.TrickleRequest(
+            candidateInit: fromRTCIceCandidate(candidate),
+            target: target,
+          ),
+        ),
+      );
 
-  void sendMuteTrack(String trackSid, bool muted) {
-    _sendRequest(lk_rtc.SignalRequest(
-      mute: lk_rtc.MuteTrackRequest(
-        sid: trackSid,
-        muted: muted,
-      ),
-    ));
-  }
+  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(lk_rtc.SignalRequest(
+        mute: lk_rtc.MuteTrackRequest(
+          sid: trackSid,
+          muted: muted,
+        ),
+      ));
 
-  void sendAddTrack(
-      {required String cid,
-      required String name,
-      required lk_models.TrackType type,
-      TrackDimension? dimension}) {
+  void sendAddTrack({
+    required String cid,
+    required String name,
+    required lk_models.TrackType type,
+    TrackDimension? dimension,
+  }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
       name: name,
@@ -211,31 +208,27 @@ class SignalClient {
     ));
   }
 
-  void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) {
-    _sendRequest(lk_rtc.SignalRequest(
-      trackSetting: settings,
-    ));
-  }
+  void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        trackSetting: settings,
+      ));
 
-  void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) {
-    _sendRequest(lk_rtc.SignalRequest(
-      subscription: subscription,
-    ));
-  }
+  void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        subscription: subscription,
+      ));
 
-  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) {
-    _sendRequest(lk_rtc.SignalRequest(
+  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) =>
+      _sendRequest(lk_rtc.SignalRequest(
         simulcast: lk_rtc.SetSimulcastLayers(
-      trackSid: trackSid,
-      layers: layers,
-    )));
-  }
+          trackSid: trackSid,
+          layers: layers,
+        ),
+      ));
 
-  void sendLeave() {
-    _sendRequest(lk_rtc.SignalRequest(
-      leave: lk_rtc.LeaveRequest(),
-    ));
-  }
+  void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
+        leave: lk_rtc.LeaveRequest(),
+      ));
 
   void _sendRequest(lk_rtc.SignalRequest req) {
     if (_ws == null) {

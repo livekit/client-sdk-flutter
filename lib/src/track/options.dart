@@ -1,25 +1,67 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-/// Options when creating a LocalVideoTrack.
-class LocalVideoTrackOptions {
-  //
-  final CameraPosition position;
-  final VideoParameter params;
-
-  const LocalVideoTrackOptions({
-    this.params = VideoParameter.presetQHD169,
-    this.position = CameraPosition.front,
-  });
-
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'mandatory': params.toMediaConstraintsMap(),
-        'facingMode': position == CameraPosition.front ? 'user' : 'environment',
-      };
+enum LocalVideoTrackType {
+  camera,
+  display,
 }
 
 enum CameraPosition {
   front,
   back,
+}
+
+extension LKCameraPositionExt on CameraPosition {
+  //
+  CameraPosition get swap => {
+        CameraPosition.front: CameraPosition.back,
+        CameraPosition.back: CameraPosition.front,
+      }[this]!;
+}
+
+/// Options when creating a LocalVideoTrack.
+class LocalVideoTrackOptions {
+  //
+  final LocalVideoTrackType type;
+  //
+  final VideoParameters params;
+  //
+  // Only used for camera
+  //
+  final CameraPosition cameraPosition;
+
+  const LocalVideoTrackOptions({
+    this.type = LocalVideoTrackType.camera,
+    this.params = VideoParameters.presetQHD169,
+    this.cameraPosition = CameraPosition.front,
+  });
+
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'mandatory': params.toMediaConstraintsMap(),
+        if (type == LocalVideoTrackType.camera)
+          'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
+      };
+
+  //
+  // Returns new options with updated properties
+  //
+  LocalVideoTrackOptions copyWith({
+    LocalVideoTrackType? type,
+    VideoParameters? params,
+    CameraPosition? cameraPosition,
+  }) =>
+      LocalVideoTrackOptions(
+        type: type ?? this.type,
+        params: params ?? this.params,
+        cameraPosition: cameraPosition ?? this.cameraPosition,
+      );
+
+  // LocalVideoTrackOptions copyFrom(LocalVideoTrackOptions options) =>
+  // LocalVideoTrackOptions(
+  //   type: options.type ?? type,
+  //   params: options.params ?? params,
+  //   cameraPosition: options.position ?? this.cameraPosition,
+  // );
+
 }
 
 class VideoEncoding {
@@ -47,14 +89,14 @@ extension VideoEncodingExt on VideoEncoding {
       );
 }
 
-class VideoParameter {
+class VideoParameters {
   //
   final String description;
   final int width;
   final int height;
   final VideoEncoding encoding;
 
-  const VideoParameter({
+  const VideoParameters({
     required this.description,
     required this.width,
     required this.height,
@@ -65,7 +107,7 @@ class VideoParameter {
   // TODO: Make sure the resolutions are correct
   //
 
-  static const presetQVGA169 = VideoParameter(
+  static const presetQVGA169 = VideoParameters(
     description: 'QVGA(320x180) 16:9',
     width: 320,
     height: 180,
@@ -75,7 +117,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetVGA169 = VideoParameter(
+  static const presetVGA169 = VideoParameters(
     description: 'VGA(640x360) 16:9',
     width: 640,
     height: 360,
@@ -85,7 +127,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetQHD169 = VideoParameter(
+  static const presetQHD169 = VideoParameters(
     description: 'QHD(960x540) 16:9',
     width: 960,
     height: 540,
@@ -95,7 +137,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetHD169 = VideoParameter(
+  static const presetHD169 = VideoParameters(
     description: 'HD(1280x720) 16:9',
     width: 1280,
     height: 720,
@@ -105,7 +147,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetFHD169 = VideoParameter(
+  static const presetFHD169 = VideoParameters(
     description: 'FHD(1920x1080) 16:9',
     width: 1920,
     height: 1080,
@@ -115,7 +157,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetQVGA43 = VideoParameter(
+  static const presetQVGA43 = VideoParameters(
     description: 'QVGA(240x180) 4:3',
     width: 240,
     height: 180,
@@ -125,7 +167,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetVGA43 = VideoParameter(
+  static const presetVGA43 = VideoParameters(
     description: 'VGA(480x360) 4:3',
     width: 480,
     height: 360,
@@ -135,7 +177,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetQHD43 = VideoParameter(
+  static const presetQHD43 = VideoParameters(
     description: 'QHD(720x540) 4:3',
     width: 720,
     height: 540,
@@ -145,7 +187,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetHD43 = VideoParameter(
+  static const presetHD43 = VideoParameters(
     description: 'HD(960x720) 4:3',
     width: 960,
     height: 720,
@@ -155,7 +197,7 @@ class VideoParameter {
     ),
   );
 
-  static const presetFHD43 = VideoParameter(
+  static const presetFHD43 = VideoParameters(
     description: 'FHD(1440x1080) 4:3',
     width: 1440,
     height: 1080,
@@ -165,7 +207,7 @@ class VideoParameter {
     ),
   );
 
-  static final List<VideoParameter> presets169 = [
+  static final List<VideoParameters> presets169 = [
     presetQVGA169,
     presetVGA169,
     presetQHD169,
@@ -173,7 +215,7 @@ class VideoParameter {
     presetFHD169,
   ];
 
-  static final List<VideoParameter> presets43 = [
+  static final List<VideoParameters> presets43 = [
     presetQVGA43,
     presetVGA43,
     presetQHD43,
