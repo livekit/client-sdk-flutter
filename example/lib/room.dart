@@ -41,7 +41,7 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
   void _onConnected() async {
     // video will fail when running in ios simulator
     try {
-      final localVideo = await LocalVideoTrack.createCameraTrack();
+      final localVideo = await LocalVideoTrack.create(); // Defaults to camera
       await widget.room.localParticipant.publishVideoTrack(
         localVideo,
         // options: const TrackPublishOptions(
@@ -52,7 +52,7 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
       print('could not publish video: $e');
     }
 
-    final localAudio = await LocalAudioTrack.createTrack();
+    final localAudio = await LocalAudioTrack.create();
     await widget.room.localParticipant.publishAudioTrack(localAudio);
     sortParticipants();
   }

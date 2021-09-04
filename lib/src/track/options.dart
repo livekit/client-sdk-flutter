@@ -235,4 +235,7 @@ class VideoParameters {
 }
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.
-class LocalAudioTrackOptions {}
+class LocalAudioTrackOptions {
+  //
+  const LocalAudioTrackOptions();
+}

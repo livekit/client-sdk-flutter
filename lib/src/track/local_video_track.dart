@@ -34,7 +34,7 @@ class LocalVideoTrack extends VideoTrack {
 
     currentOptions = options ?? currentOptions;
 
-    final stream = await _createStream(options: currentOptions);
+    final stream = await _createStream(currentOptions);
     final track = stream.getVideoTracks().first;
     setMediaStream(stream);
     await mediaStreamTrack.stop();
@@ -43,24 +43,40 @@ class LocalVideoTrack extends VideoTrack {
   }
 
   /// Creates a LocalVideoTrack from camera input.
-  static Future<LocalVideoTrack> createCameraTrack({
+  static Future<LocalVideoTrack> create([
     LocalVideoTrackOptions? options,
-  }) async {
+  ]) async {
     //
-    final latestOptions = options ?? const LocalVideoTrackOptions();
-
-    final stream = await _createStream(options: latestOptions);
+    options ??= const LocalVideoTrackOptions();
+    final stream = await _createStream(options);
     return LocalVideoTrack._(
       'camera',
       stream.getVideoTracks().first,
       stream,
-      latestOptions,
+      options,
     );
   }
 
-  static Future<MediaStream> _createStream({
-    required LocalVideoTrackOptions options,
-  }) async {
+  //
+  // Convenience constructors
+  //
+  // static Future<LocalVideoTrack> createCamera(
+  //   LocalVideoTrackOptions? options,
+  // ) async {
+  //   final _ = options ?? const LocalVideoTrackOptions();
+  //   return create(_.copyWith(type: LocalVideoTrackType.camera));
+  // }
+
+  // static Future<LocalVideoTrack> createScreen(
+  //   LocalVideoTrackOptions? options,
+  // ) async {
+  //   final _ = options ?? const LocalVideoTrackOptions();
+  //   return create(_.copyWith(type: LocalVideoTrackType.display));
+  // }
+
+  static Future<MediaStream> _createStream(
+    LocalVideoTrackOptions options,
+  ) async {
     //
     final constraints = <String, dynamic>{
       'audio': false,

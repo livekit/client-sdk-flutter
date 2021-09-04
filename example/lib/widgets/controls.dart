@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:collection/collection.dart';
 
 class Controls extends StatefulWidget {
   //
@@ -17,7 +18,8 @@ class Controls extends StatefulWidget {
 }
 
 class _ControlsState extends State<Controls> {
-  CameraPosition position = CameraPosition.front;
+  //
+  // CameraPosition position = CameraPosition.front;
 
   @override
   void initState() {
@@ -51,7 +53,7 @@ class _ControlsState extends State<Controls> {
       audioPub.muted = false;
     } else {
       // publish audio track
-      final audioTrack = await LocalAudioTrack.createTrack();
+      final audioTrack = await LocalAudioTrack.create();
       await participant.publishAudioTrack(audioTrack);
     }
   }
@@ -69,20 +71,21 @@ class _ControlsState extends State<Controls> {
       videoPub.muted = false;
     } else {
       // publish audio track
-      final videoTrack = await LocalVideoTrack.createCameraTrack();
+      final videoTrack = await LocalVideoTrack.create();
       await participant.publishVideoTrack(videoTrack);
     }
   }
 
-  void _setCameraPosition(TrackPublication? pub, CameraPosition position) async {
+  void _toggleCamera() async {
     //
-    if (this.position == position) return;
+    // if (this.position == position) return;
 
-    LocalVideoTrack? track;
-    if (pub?.track is LocalVideoTrack) {
-      track = pub!.track as LocalVideoTrack;
-    }
-
+    //  track;
+    // if (pub?.track is LocalVideoTrack) {
+    //   track = pub!.track as LocalVideoTrack;
+    // }
+    final track = participant.videoTracks.values.firstOrNull?.track as LocalVideoTrack?;
+//
     if (track == null) return;
 
     try {
@@ -92,13 +95,36 @@ class _ControlsState extends State<Controls> {
       );
 
       await track.restartTrack(options);
-    } catch (e) {
-      print('could not restart track: $e');
+    } catch (error) {
+      print('could not restart track: $error');
       return;
     }
 
     setState(() {
-      this.position = position;
+      // this.position = position;
+    });
+  }
+
+  void _shareScreen() async {
+    //
+
+    final track = participant.videoTracks.values.firstOrNull?.track as LocalVideoTrack?;
+    if (track == null) return;
+
+    try {
+      final options = track.currentOptions.copyWith(
+        type: LocalVideoTrackType.display, // Make sure it's display
+      );
+
+      await track.restartTrack(options);
+      //
+    } catch (error) {
+      print('could not restart track: $error');
+      return;
+    }
+
+    setState(() {
+      // this.position = position;
     });
   }
 
@@ -108,72 +134,71 @@ class _ControlsState extends State<Controls> {
 
   @override
   Widget build(BuildContext context) {
-    final buttons = <Widget>[];
-
     // mute audio
-    if (participant.hasAudio && !participant.isMuted) {
-      buttons.add(
-        IconButton(
-          onPressed: _muteAudio,
-          icon: const Icon(Icons.mic_rounded),
-        ),
-      );
-    } else {
-      buttons.add(
-        IconButton(
-          onPressed: _unmuteAudio,
-          icon: const Icon(Icons.mic_off_rounded),
-        ),
-      );
-    }
+    final canMute = participant.hasAudio && !participant.isMuted;
 
     // mute video
-    TrackPublication? videoPub;
-    if (participant.hasVideo) {
-      videoPub = participant.videoTracks.values.first;
-    }
+    // TrackPublication? videoPub;
+    // if (participant.hasVideo) {
+    final videoPub = participant.videoTracks.values.firstOrNull;
+    // }
 
     final videoEnabled = videoPub != null && !videoPub.muted;
-    if (videoEnabled) {
-      buttons.add(IconButton(
-        onPressed: _muteVideo,
-        icon: const Icon(Icons.videocam_rounded),
-      ));
-    } else {
-      buttons.add(IconButton(
-        onPressed: _unmuteVideo,
-        icon: const Icon(Icons.videocam_off_rounded),
-      ));
-    }
 
-    if (position == CameraPosition.front) {
-      buttons.add(IconButton(
-        icon: const Icon(Icons.video_camera_front_rounded),
-        onPressed: videoEnabled
-            ? () {
-                _setCameraPosition(videoPub, CameraPosition.back);
-              }
-            : null,
-      ));
-    } else {
-      buttons.add(IconButton(
-        icon: const Icon(Icons.video_camera_back_rounded),
-        onPressed: videoEnabled
-            ? () {
-                _setCameraPosition(videoPub, CameraPosition.front);
-              }
-            : null,
-      ));
-    }
+    // if (position == CameraPosition.front) {
 
-    buttons.add(IconButton(
-      onPressed: _exit,
-      icon: const Icon(Icons.close_rounded),
-    ));
-
+    // } else {
+    //   buttons.add(IconButton(
+    //     icon: const Icon(Icons.video_camera_back_rounded),
+    //     onPressed: videoEnabled
+    //         ? () {
+    //             _setCameraPosition(videoPub, CameraPosition.front);
+    //           }
+    //         : null,
+    //   ));
+    // }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: buttons,
+      children: [
+        //
+
+        if (canMute)
+          IconButton(
+            onPressed: _muteAudio,
+            icon: const Icon(Icons.mic_rounded),
+          )
+        else
+          IconButton(
+            onPressed: _unmuteAudio,
+            icon: const Icon(Icons.mic_off_rounded),
+          ),
+
+        if (videoEnabled)
+          IconButton(
+            onPressed: _muteVideo,
+            icon: const Icon(Icons.videocam_rounded),
+          )
+        else
+          IconButton(
+            onPressed: _unmuteVideo,
+            icon: const Icon(Icons.videocam_off_rounded),
+          ),
+
+        IconButton(
+          icon: const Icon(Icons.video_camera_front_rounded),
+          onPressed: () => _toggleCamera(),
+        ),
+
+        IconButton(
+          icon: const Icon(Icons.star),
+          onPressed: () => _shareScreen(),
+        ),
+
+        IconButton(
+          onPressed: _exit,
+          icon: const Icon(Icons.close_rounded),
+        )
+      ],
     );
   }
 }
