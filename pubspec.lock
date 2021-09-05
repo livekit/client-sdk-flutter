@@ -98,7 +98,7 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      path: "../flutter-webrtc"
+      path: "../../repos_livekit/flutter-webrtc"
       relative: true
     source: path
     version: "0.6.6"

@@ -110,7 +110,7 @@ packages:
   flutter_webrtc:
     dependency: transitive
     description:
-      path: "../../flutter-webrtc"
+      path: "../../../repos_livekit/flutter-webrtc"
       relative: true
     source: path
     version: "0.6.6"
@@ -197,7 +197,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   path_provider_linux:
     dependency: transitive
     description:

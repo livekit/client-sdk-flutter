@@ -114,6 +114,7 @@ class _ControlsState extends State<Controls> {
     try {
       final options = track.currentOptions.copyWith(
         type: LocalVideoTrackType.display, // Make sure it's display
+        params: VideoParameters.presetFHD169,
       );
 
       await track.restartTrack(options);

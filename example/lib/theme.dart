@@ -30,6 +30,7 @@ class LiveKitTheme {
         iconTheme: IconThemeData(
           color: textColor,
         ),
+        dialogBackgroundColor: cardColor,
         textTheme: GoogleFonts.latoTextTheme(
           Theme.of(ctx).textTheme,
         ).apply(
