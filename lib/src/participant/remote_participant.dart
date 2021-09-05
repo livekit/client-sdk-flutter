@@ -123,12 +123,7 @@ class RemoteParticipant extends Participant {
 
   void unpublishTrack(String sid, [bool sendUnpublish = false]) {
     final pub = tracks.remove(sid);
-    if (pub == null || pub is! RemoteTrackPublication) {
-      return;
-    }
-
-    audioTracks.remove(sid);
-    videoTracks.remove(sid);
+    if (pub == null || pub is! RemoteTrackPublication) return;
 
     final track = pub.track;
     if (track != null) {

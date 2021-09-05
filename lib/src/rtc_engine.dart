@@ -77,11 +77,7 @@ class RTCEngine with SignalClientDelegate {
     final completer = Completer<lk_rtc.JoinResponse>();
     joinCompleter = completer;
 
-    // try {
     await client.join(url, token, options: options);
-    // } catch (e) {
-    //   return Future.error(e);
-    // }
 
     // if it's not complete after 5 seconds, fail
     Timer(connectionTimeout, () {
@@ -177,9 +173,9 @@ class RTCEngine with SignalClientDelegate {
       sub.restartingIce = true;
 
       await negotiate(iceRestart: true);
-    } catch (e) {
+    } catch (error) {
       isReconnecting = false;
-      return Future.error(e);
+      return Future.error(error);
     }
 
     // wait for connectivity to change
@@ -193,7 +189,7 @@ class RTCEngine with SignalClientDelegate {
     }
 
     isReconnecting = false;
-    return Future.error(ConnectError('could not reconnect ICE'));
+    throw ConnectError('could not reconnect ICE');
   }
 
   Future<void> _configurePeerConnections() async {

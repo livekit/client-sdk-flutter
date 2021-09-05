@@ -42,14 +42,14 @@ class _ControlsState extends State<Controls> {
 
   void _muteAudio() {
     if (participant.hasAudio) {
-      final audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.first;
       audioPub.muted = true;
     }
   }
 
   Future<void> _unmuteAudio() async {
     if (participant.hasAudio) {
-      final audioPub = participant.audioTracks.values.first;
+      final audioPub = participant.audioTracks.first;
       audioPub.muted = false;
     } else {
       // publish audio track
@@ -60,14 +60,14 @@ class _ControlsState extends State<Controls> {
 
   void _muteVideo() {
     if (participant.hasVideo) {
-      final videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.first;
       videoPub.muted = true;
     }
   }
 
   void _unmuteVideo() async {
     if (participant.hasVideo) {
-      final videoPub = participant.videoTracks.values.first;
+      final videoPub = participant.videoTracks.first;
       videoPub.muted = false;
     } else {
       // publish audio track
@@ -84,7 +84,7 @@ class _ControlsState extends State<Controls> {
     // if (pub?.track is LocalVideoTrack) {
     //   track = pub!.track as LocalVideoTrack;
     // }
-    final track = participant.videoTracks.values.firstOrNull?.track as LocalVideoTrack?;
+    final track = participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
 //
     if (track == null) return;
 
@@ -108,7 +108,7 @@ class _ControlsState extends State<Controls> {
   void _shareScreen() async {
     //
 
-    final track = participant.videoTracks.values.firstOrNull?.track as LocalVideoTrack?;
+    final track = participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
     if (track == null) return;
 
     try {
@@ -141,7 +141,7 @@ class _ControlsState extends State<Controls> {
     // mute video
     // TrackPublication? videoPub;
     // if (participant.hasVideo) {
-    final videoPub = participant.videoTracks.values.firstOrNull;
+    final videoPub = participant.videoTracks.firstOrNull;
     // }
 
     final videoEnabled = videoPub != null && !videoPub.muted;

@@ -49,7 +49,7 @@ class _VideoViewState extends State<VideoView> with ParticipantDelegate {
 
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
-    final subscribedVideos = widget.participant.videoTracks.values.where((pub) {
+    final subscribedVideos = widget.participant.videoTracks.where((pub) {
       return pub.kind == TrackType.VIDEO && !pub.isScreenShare && pub.subscribed;
     });
     setState(() {

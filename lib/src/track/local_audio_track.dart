@@ -22,11 +22,7 @@ class LocalAudioTrack extends AudioTrack {
     });
 
     if (stream.getAudioTracks().isEmpty) throw TrackCreateError();
-    // }
 
     return LocalAudioTrack('', stream.getAudioTracks().first, stream);
-    // } catch (e) {
-    //   return Future.error(e);
-    // }
   }
 }

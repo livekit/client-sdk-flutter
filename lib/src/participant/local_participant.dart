@@ -37,9 +37,9 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    if (audioTracks.values
-        .any((element) => element.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
-      return Future.error(TrackPublishError('track already exists'));
+    //
+    if (audioTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+      throw TrackPublishError('track already exists');
     }
 
     // try {
@@ -63,9 +63,6 @@ class LocalParticipant extends Participant {
     notifyListeners();
 
     return pub;
-    // } catch (e) {
-    //   return Future.error(e);
-    // }
   }
 
   List<VideoParameters> _presetsForResolution(
@@ -154,7 +151,7 @@ class LocalParticipant extends Participant {
     TrackPublishOptions? options,
   }) async {
     //
-    if (videoTracks.values.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (videoTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishError('track already exists');
     }
 
@@ -220,17 +217,13 @@ class LocalParticipant extends Participant {
     notifyListeners();
 
     return pub;
-    // } catch (e) {
-    //   return Future.error(e);
-    // }
   }
 
   /// Unpublish a track that's already published
   void unpublishTrack(Track track) {
     final existing = tracks.values.where((element) => element.track == track);
-    if (existing.isEmpty) {
-      return;
-    }
+    if (existing.isEmpty) return;
+
     final pub = existing.first;
 
     track.stop();
@@ -240,16 +233,6 @@ class LocalParticipant extends Participant {
     }
 
     tracks.remove(pub.sid);
-    switch (pub.kind) {
-      case lk_models.TrackType.AUDIO:
-        audioTracks.remove(pub.sid);
-        break;
-      case lk_models.TrackType.VIDEO:
-        videoTracks.remove(pub.sid);
-        break;
-      default:
-        break;
-    }
   }
 
   /// Publish a new data payload to the room.

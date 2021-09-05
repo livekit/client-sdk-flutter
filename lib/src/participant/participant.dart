@@ -51,9 +51,6 @@ mixin ParticipantDelegate {
 /// - added/removed subscribed tracks
 /// - metadata changed
 class Participant extends ChangeNotifier {
-  Map<String, TrackPublication> audioTracks = {};
-  Map<String, TrackPublication> videoTracks = {};
-
   /// map of track sid => published track
   Map<String, TrackPublication> tracks = {};
 
@@ -94,10 +91,8 @@ class Participant extends ChangeNotifier {
 
   /// true if participant is publishing an audio track and is muted
   bool get isMuted {
-    if (audioTracks.values.isEmpty) {
-      return false;
-    }
-    return audioTracks.values.first.muted;
+    if (audioTracks.isEmpty) return false;
+    return audioTracks.first.muted;
   }
 
   bool get hasAudio => audioTracks.isNotEmpty;
@@ -105,15 +100,7 @@ class Participant extends ChangeNotifier {
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks {
-    List<TrackPublication> result = [];
-    for (final track in tracks.values) {
-      if (track.subscribed) {
-        result.add(track);
-      }
-    }
-    return result;
-  }
+  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -168,15 +155,25 @@ class Participant extends ChangeNotifier {
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
-    switch (pub.kind) {
-      case lk_models.TrackType.AUDIO:
-        audioTracks[pub.sid] = pub;
-        break;
-      case lk_models.TrackType.VIDEO:
-        videoTracks[pub.sid] = pub;
-        break;
-      default:
-      // nothing
-    }
+    // switch (pub.kind) {
+    //   case lk_models.TrackType.AUDIO:
+    //     audioTracks[pub.sid] = pub;
+    //     break;
+    //   case lk_models.TrackType.VIDEO:
+    //     videoTracks[pub.sid] = pub;
+    //     break;
+    //   default:
+    //   // nothing
+    // }
   }
+
+  //
+  // Convenience method/properties
+  //
+
+  List<TrackPublication> get videoTracks =>
+      tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+
+  List<TrackPublication> get audioTracks =>
+      tracks.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }
