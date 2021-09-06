@@ -68,6 +68,7 @@ class _ControlsState extends State<Controls> {
 
   void _unmuteVideo() async {
     if (participant.hasVideo) {
+      print('Un-muting video');
       final videoPub = participant.videoTracks.first;
       videoPub.muted = false;
     } else {
@@ -162,8 +163,6 @@ class _ControlsState extends State<Controls> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        //
-
         if (canMute)
           IconButton(
             onPressed: _muteAudio,
@@ -174,7 +173,6 @@ class _ControlsState extends State<Controls> {
             onPressed: _unmuteAudio,
             icon: const Icon(EvaIcons.micOff),
           ),
-
         if (videoEnabled)
           IconButton(
             onPressed: _muteVideo,
@@ -185,17 +183,14 @@ class _ControlsState extends State<Controls> {
             onPressed: _unmuteVideo,
             icon: const Icon(EvaIcons.videoOff),
           ),
-
         IconButton(
           icon: const Icon(EvaIcons.camera),
           onPressed: () => _toggleCamera(),
         ),
-
         IconButton(
           icon: const Icon(EvaIcons.monitor),
           onPressed: () => _shareScreen(),
         ),
-
         IconButton(
           onPressed: _exit,
           icon: const Icon(EvaIcons.closeCircle),

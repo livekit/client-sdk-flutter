@@ -123,7 +123,8 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
           child: Column(
             children: [
               Expanded(
-                  child: participants.isNotEmpty ? VideoView(participants.first) : Container()),
+                  child:
+                      participants.isNotEmpty ? ParticipantView(participants.first) : Container()),
               SizedBox(
                 height: 100,
                 child: ListView.builder(
@@ -133,7 +134,7 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
                     width: 100,
                     height: 100,
                     padding: const EdgeInsets.all(2),
-                    child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
+                    child: ParticipantView(participants[index + 1], quality: VideoQuality.LOW),
                   ),
                 ),
               ),

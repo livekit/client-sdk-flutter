@@ -1,3 +1,5 @@
+import 'package:livekit_client/src/logger.dart';
+
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
@@ -17,9 +19,9 @@ class LocalTrackPublication extends TrackPublication {
   /// Mute or unmute the current track. When muted, track will stop sending data
   @override
   set muted(bool val) {
-    if (val == muted) {
-      return;
-    }
+    if (val == muted) return;
+    logger.info('setMute: ${val}');
+
     super.muted = val;
     track?.mediaStreamTrack.enabled = !val;
     _participant.engine.client.sendMuteTrack(sid, val);
