@@ -11,9 +11,9 @@ import '../rtc_engine.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
-import '../track/options.dart';
 import '../track/track.dart';
 import '../track/track_publication.dart';
+import '../utils.dart';
 import 'participant.dart';
 
 /// Represents the current participant in the room.
@@ -65,86 +65,6 @@ class LocalParticipant extends Participant {
     return pub;
   }
 
-  List<VideoParameters> _presetsForResolution(
-    int width,
-    int height,
-  ) {
-    final double aspect = width / height;
-    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoParameters.presets169;
-    return VideoParameters.presets43;
-  }
-
-  VideoParameters _findPresetForResolution(
-    int width,
-    int height, {
-    required List<VideoParameters> presets,
-  }) {
-    //
-    VideoParameters result = presets.first;
-    for (final preset in presets) {
-      if (width >= preset.width && height >= preset.height) result = preset;
-    }
-
-    return result;
-  }
-
-  List<RTCRtpEncoding>? _computeVideoEncodings({
-    int? width,
-    int? height,
-    TrackPublishOptions? options,
-  }) {
-    //
-    options ??= const TrackPublishOptions();
-
-    VideoEncoding? videoEncoding = options.videoEncoding;
-
-    if ((videoEncoding == null && !options.simulcast) || width == null || height == null) {
-      // don't set encoding when we are not simulcasting and user isn't restricting
-      // encoding parameters
-      return null;
-    }
-
-    final presets = _presetsForResolution(width, height);
-
-    if (videoEncoding == null) {
-      // find the right encoding based on width/height
-      final preset = _findPresetForResolution(width, height, presets: presets);
-      // print('Using preset: ${preset.id}');
-      videoEncoding = preset.encoding;
-      //   log.debug('using video encoding', videoEncoding);
-    }
-
-    if (options.simulcast) {
-      final midPreset = presets[1];
-      final lowPreset = presets[0];
-      return [
-        videoEncoding.toRTCRtpEncoding(
-          rid: 'f',
-        ),
-        // if resolution is high enough, we would send both h and q res..
-        // otherwise only send h
-        if (height * 0.7 >= midPreset.height) ...[
-          midPreset.encoding.toRTCRtpEncoding(
-            rid: 'h',
-            scaleResolutionDownBy: height / midPreset.height,
-          ),
-          lowPreset.encoding.toRTCRtpEncoding(
-            rid: 'q',
-            scaleResolutionDownBy: height / lowPreset.height,
-          ),
-        ] else
-          lowPreset.encoding.toRTCRtpEncoding(
-            rid: 'h',
-            scaleResolutionDownBy: height / lowPreset.height,
-          ),
-      ];
-    }
-
-    return [
-      videoEncoding.toRTCRtpEncoding(),
-    ];
-  }
-
   /// Publish a video track to the room
   Future<TrackPublication> publishVideoTrack(
     LocalVideoTrack track, {
@@ -190,7 +110,9 @@ class LocalParticipant extends Participant {
       }
     }
 
-    final encodings = _computeVideoEncodings(
+    logger.info('Compute encodings with resolution: ${width}x${height}, options: ${options}');
+
+    final encodings = Utils.computeVideoEncodings(
       width: width,
       height: height,
       options: options,
@@ -237,8 +159,11 @@ class LocalParticipant extends Participant {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
-  void publishData(List<int> data, lk_rtc.DataPacket_Kind reliability,
-      {List<String>? destinationSids}) {
+  void publishData(
+    List<int> data,
+    lk_rtc.DataPacket_Kind reliability, {
+    List<String>? destinationSids,
+  }) {
     RTCDataChannel? channel;
     switch (reliability) {
       case lk_rtc.DataPacket_Kind.RELIABLE:

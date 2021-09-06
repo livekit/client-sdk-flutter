@@ -54,14 +54,6 @@ class LocalVideoTrackOptions {
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
       );
-
-  // LocalVideoTrackOptions copyFrom(LocalVideoTrackOptions options) =>
-  // LocalVideoTrackOptions(
-  //   type: options.type ?? type,
-  //   params: options.params ?? params,
-  //   cameraPosition: options.position ?? this.cameraPosition,
-  // );
-
 }
 
 class VideoEncoding {
@@ -73,6 +65,9 @@ class VideoEncoding {
     required this.maxFramerate,
     this.maxBitrate,
   });
+
+  @override
+  String toString() => '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
 }
 
 extension VideoEncodingExt on VideoEncoding {
@@ -80,12 +75,14 @@ extension VideoEncodingExt on VideoEncoding {
   RTCRtpEncoding toRTCRtpEncoding({
     String? rid,
     double? scaleResolutionDownBy = 1.0,
+    int? numTemporalLayers,
   }) =>
       RTCRtpEncoding(
         rid: rid,
         scaleResolutionDownBy: scaleResolutionDownBy,
         maxFramerate: maxFramerate,
         maxBitrate: maxBitrate,
+        numTemporalLayers: numTemporalLayers,
       );
 }
 

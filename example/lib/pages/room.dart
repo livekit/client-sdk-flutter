@@ -3,6 +3,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/widgets/controls.dart';
 import 'package:livekit_example/widgets/video.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
 class RoomPage extends StatefulWidget {
   //
@@ -45,8 +46,9 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
       final localVideo = await LocalVideoTrack.create(); // Defaults to camera
       await widget.room.localParticipant.publishVideoTrack(
         localVideo,
-        // options: const TrackPublishOptions(
-        //   simulcast: true,
+        // options: TrackPublishOptions(
+        //   //   simulcast: true,
+        //   videoEncoding: VideoParameters.presetQVGA169.encoding,
         // ),
       );
     } catch (e) {
@@ -113,33 +115,34 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
   }
 
   @override
-  Widget build(BuildContext context) {
-    //
-    return Scaffold(
-      // with a provider, any child/descendent widget can be updated if they
-      // are a Consumer of Room.
-      body: ChangeNotifierProvider.value(
-        value: widget.room,
-        child: Column(
-          children: [
-            Expanded(child: participants.isNotEmpty ? VideoView(participants.first) : Container()),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: participants.length - 1,
-                itemBuilder: (BuildContext context, int index) => Container(
-                  width: 100,
-                  height: 100,
-                  padding: const EdgeInsets.all(2),
-                  child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
+  Widget build(BuildContext context) => Scaffold(
+        // with a provider, any child/descendent widget can be updated if they
+        // are a Consumer of Room.
+        body: ChangeNotifierProvider.value(
+          value: widget.room,
+          child: Column(
+            children: [
+              Expanded(
+                  child: participants.isNotEmpty ? VideoView(participants.first) : Container()),
+              SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: math.max(0, participants.length - 1),
+                  itemBuilder: (BuildContext context, int index) => Container(
+                    width: 100,
+                    height: 100,
+                    padding: const EdgeInsets.all(2),
+                    child: VideoView(participants[index + 1], quality: VideoQuality.LOW),
+                  ),
                 ),
               ),
-            ),
-            Controls(widget.room),
-          ],
+              SafeArea(
+                top: false,
+                child: Controls(widget.room),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

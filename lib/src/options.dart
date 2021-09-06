@@ -26,4 +26,7 @@ class TrackPublishOptions {
     this.videoEncoding,
     this.simulcast = false,
   });
+
+  @override
+  String toString() => '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }

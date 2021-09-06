@@ -4,13 +4,9 @@ import 'dart:developer';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
-import 'package:livekit_client/src/version.dart';
+import 'package:livekit_client/src/ws/interface.dart';
 import 'package:synchronized/synchronized.dart' as sync;
-import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '_websocket_api.dart'
-    if (dart.library.io) '_websocket_io.dart'
-    if (dart.library.html) '_websocket_html.dart' as platform;
 import 'errors.dart';
 import 'logger.dart';
 import 'options.dart';
@@ -46,10 +42,12 @@ extension LKUriExt on Uri {
 
 class SignalClient {
   //
+  static const protocolVersion = 2;
+
   SignalClientDelegate? delegate;
 
   bool _connected = false;
-  WebSocketChannel? _ws;
+  LKWebSocket? _ws;
   final lock = sync.Lock();
 
   SignalClient();
@@ -99,15 +97,23 @@ class SignalClient {
     );
 
     try {
-      final ws = await platform.connectToWebSocket(rtcUri);
-
-      ws.stream.listen(
-        _handleMessage,
-        onError: _handleError,
-        onDone: _handleDone,
+      _ws = await LKWebSocket.connect(
+        rtcUri,
+        LKWebSocketOptions(
+          onData: _handleMessage,
+          onDispose: _onSocketDone,
+        ),
       );
+      // _ws = WebSocketChannel.connect(rtcUri);
+      // logger.fine('SignalClient did join');
+// _ws?.stream.
+      // _ws?.stream.listen(
+      //   _handleMessage,
+      //   onError: _handleError,
+      //   onDone: _onSocketDone,
+      // );
 
-      _ws = ws;
+      // _ws = ws;
     } catch (socketError) {
       //
       // Re-build same uri for validate mode
@@ -145,7 +151,7 @@ class SignalClient {
     String token,
   ) async {
     _connected = false;
-    _ws?.sink.close();
+    _ws?.dispose();
     _ws = null;
 
     final rtcUri = _buildUri(
@@ -154,14 +160,20 @@ class SignalClient {
       reconnect: true,
     );
 
-    final ws = await platform.connectToWebSocket(rtcUri);
-    _ws = ws;
+    _ws = await LKWebSocket.connect(
+      rtcUri,
+      LKWebSocketOptions(
+        onData: _handleMessage,
+        onDispose: _onSocketDone,
+      ),
+    );
+
     _connected = true;
   }
 
   void close() {
     _connected = false;
-    _ws?.sink.close();
+    _ws?.dispose();
   }
 
   void sendOffer(RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
@@ -237,7 +249,7 @@ class SignalClient {
     }
 
     final buf = req.writeToBuffer();
-    _ws?.sink.add(buf);
+    _ws?.send(buf);
   }
 
   Future<void> _handleMessage(dynamic message) async {
@@ -293,10 +305,8 @@ class SignalClient {
     logger.warning('received websocket error $error');
   }
 
-  void _handleDone() {
-    if (!_connected) {
-      return;
-    }
+  void _onSocketDone() {
+    if (!_connected) return;
     _ws = null;
     _connected = false;
     delegate?.onClose();
