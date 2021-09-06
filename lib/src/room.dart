@@ -333,14 +333,17 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+    //
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');
       return;
     }
 
-    var parsed = _unpackStreamId(stream.id);
-    var trackSid = parsed.item2 ?? track.id;
+    logger.info('onTrack ${stream.id}');
+
+    final parsed = _unpackStreamId(stream.id);
+    final trackSid = parsed.item2 ?? track.id;
 
     final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);

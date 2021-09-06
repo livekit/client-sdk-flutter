@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
@@ -165,6 +166,7 @@ class Participant extends ChangeNotifier {
     //   default:
     //   // nothing
     // }
+    // logger.info('Tracks: ${tracks.length} ${tracks.values.map((e) => e.subscribed).join(', ')}');
   }
 
   //

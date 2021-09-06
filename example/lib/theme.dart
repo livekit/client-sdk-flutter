@@ -30,6 +30,20 @@ class LiveKitTheme {
         iconTheme: IconThemeData(
           color: textColor,
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            // backgroundColor: MaterialStateProperty.all<Color>(accentColor),
+            backgroundColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.disabled)) return accentColor.withOpacity(0.5);
+              return accentColor;
+            }),
+          ),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          checkColor: MaterialStateProperty.all(Colors.white),
+          fillColor: MaterialStateProperty.all(accentColor),
+        ),
         dialogBackgroundColor: cardColor,
         textTheme: GoogleFonts.latoTextTheme(
           Theme.of(ctx).textTheme,

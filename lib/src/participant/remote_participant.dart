@@ -1,5 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';
 import '../track/audio_track.dart';
@@ -114,14 +115,18 @@ class RemoteParticipant extends Participant {
     }
 
     // remove tracks
-    for (final pub in tracks.values) {
-      if (!validPubs.containsKey(pub.sid)) {
-        unpublishTrack(sid, true);
-      }
+    final removeTrackSids =
+        tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
+
+    for (final trackSid in removeTrackSids) {
+      logger.info('Unpublish track a, ${trackSid}');
+      unpublishTrack(trackSid, true);
     }
   }
 
-  void unpublishTrack(String sid, [bool sendUnpublish = false]) {
+  void unpublishTrack(String sid, [bool notify = false]) {
+    //
+    logger.info('Unpublish track b, $sid');
     final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) return;
 
@@ -132,7 +137,7 @@ class RemoteParticipant extends Participant {
       roomDelegate?.onTrackUnsubscribed(this, track, pub);
       notifyListeners();
     }
-    if (sendUnpublish) {
+    if (notify) {
       delegate?.onTrackUnpublished(this, pub);
       roomDelegate?.onTrackUnpublished(this, pub);
     }

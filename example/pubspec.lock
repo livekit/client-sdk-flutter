@@ -50,13 +50,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
-  cupertino_icons:
+  eva_icons_flutter:
     dependency: "direct main"
     description:
-      name: cupertino_icons
+      name: eva_icons_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "3.0.0"
   fake_async:
     dependency: transitive
     description:

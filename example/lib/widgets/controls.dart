@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:collection/collection.dart';
@@ -166,38 +167,38 @@ class _ControlsState extends State<Controls> {
         if (canMute)
           IconButton(
             onPressed: _muteAudio,
-            icon: const Icon(Icons.mic_rounded),
+            icon: const Icon(EvaIcons.mic),
           )
         else
           IconButton(
             onPressed: _unmuteAudio,
-            icon: const Icon(Icons.mic_off_rounded),
+            icon: const Icon(EvaIcons.micOff),
           ),
 
         if (videoEnabled)
           IconButton(
             onPressed: _muteVideo,
-            icon: const Icon(Icons.videocam_rounded),
+            icon: const Icon(EvaIcons.video),
           )
         else
           IconButton(
             onPressed: _unmuteVideo,
-            icon: const Icon(Icons.videocam_off_rounded),
+            icon: const Icon(EvaIcons.videoOff),
           ),
 
         IconButton(
-          icon: const Icon(Icons.video_camera_front_rounded),
+          icon: const Icon(EvaIcons.camera),
           onPressed: () => _toggleCamera(),
         ),
 
         IconButton(
-          icon: const Icon(Icons.star),
+          icon: const Icon(EvaIcons.monitor),
           onPressed: () => _shareScreen(),
         ),
 
         IconButton(
           onPressed: _exit,
-          icon: const Icon(Icons.close_rounded),
+          icon: const Icon(EvaIcons.closeCircle),
         )
       ],
     );

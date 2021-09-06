@@ -28,6 +28,7 @@ class _ConnectPageState extends State<ConnectPage> {
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
   bool _simulcast = false;
+  bool _busy = false;
 
   @override
   void initState() {
@@ -61,6 +62,10 @@ class _ConnectPageState extends State<ConnectPage> {
   Future<void> _connect(BuildContext ctx) async {
     //
     try {
+      setState(() {
+        _busy = true;
+      });
+
       print('Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
 
       final room = await LiveKitClient.connect(
@@ -83,6 +88,10 @@ class _ConnectPageState extends State<ConnectPage> {
     } catch (error) {
       print('could not connect $error');
       await ctx.showErrorDialog(error);
+    } finally {
+      setState(() {
+        _busy = false;
+      });
     }
   }
 
@@ -136,8 +145,25 @@ class _ConnectPageState extends State<ConnectPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: ElevatedButton(
-                    onPressed: () => _connect(context),
-                    child: const Text('Connect'),
+                    onPressed: _busy ? null : () => _connect(context),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_busy)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 10),
+                            child: SizedBox(
+                              height: 15,
+                              width: 15,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                        const Text('Connect'),
+                      ],
+                    ),
                   ),
                 ),
               ],
