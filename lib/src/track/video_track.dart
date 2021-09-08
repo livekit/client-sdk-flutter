@@ -29,9 +29,9 @@ class VideoTrack extends Track with ChangeNotifier {
   }
 
   @override
-  stop() {
-    super.stop();
-    _mediaStream.dispose();
+  Future<void> stop() async {
+    await super.stop();
+    await _mediaStream.dispose();
     // _mediaStream = null;
   }
 }

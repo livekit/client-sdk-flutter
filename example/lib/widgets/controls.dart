@@ -20,7 +20,7 @@ class Controls extends StatefulWidget {
 
 class _ControlsState extends State<Controls> {
   //
-  // CameraPosition position = CameraPosition.front;
+  CameraPosition position = CameraPosition.front;
 
   @override
   void initState() {
@@ -73,62 +73,44 @@ class _ControlsState extends State<Controls> {
       videoPub.muted = false;
     } else {
       // publish audio track
-      final videoTrack = await LocalVideoTrack.create();
+      final videoTrack = await LocalVideoTrack.createCameraTrack();
       await participant.publishVideoTrack(videoTrack);
     }
   }
 
   void _toggleCamera() async {
     //
-    // if (this.position == position) return;
-
-    //  track;
-    // if (pub?.track is LocalVideoTrack) {
-    //   track = pub!.track as LocalVideoTrack;
-    // }
     final track = participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
-//
     if (track == null) return;
 
     try {
-      final options = track.currentOptions.copyWith(
-        type: LocalVideoTrackType.camera, // Make sure it's camera
-        cameraPosition: track.currentOptions.cameraPosition.swap,
-      );
-
-      await track.restartTrack(options);
+      final newPosition = position.swap();
+      await track.setCameraPosition(newPosition);
+      setState(() {
+        position = newPosition;
+      });
     } catch (error) {
       print('could not restart track: $error');
       return;
     }
-
-    setState(() {
-      // this.position = position;
-    });
   }
 
   void _shareScreen() async {
     //
+    final lp = widget.room.localParticipant;
 
-    final track = participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
-    if (track == null) return;
-
-    try {
-      final options = track.currentOptions.copyWith(
-        type: LocalVideoTrackType.display, // Make sure it's display
-        params: VideoParameters.presetFHD169,
-      );
-
-      await track.restartTrack(options);
-      //
-    } catch (error) {
-      print('could not restart track: $error');
-      return;
+    for (final tracks in lp.videoTracks) {
+      await lp.unpublishTrack(tracks.track!);
     }
 
-    setState(() {
-      // this.position = position;
-    });
+    try {
+      final screenTrack = await LocalVideoTrack.createScreenTrack(); // Defaults to camera
+      await widget.room.localParticipant.publishVideoTrack(
+        screenTrack,
+      );
+    } catch (e) {
+      print('could not publish video: $e');
+    }
   }
 
   void _exit() {
@@ -184,7 +166,7 @@ class _ControlsState extends State<Controls> {
             icon: const Icon(EvaIcons.videoOff),
           ),
         IconButton(
-          icon: const Icon(EvaIcons.camera),
+          icon: Icon(position == CameraPosition.back ? EvaIcons.camera : EvaIcons.person),
           onPressed: () => _toggleCamera(),
         ),
         IconButton(

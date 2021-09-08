@@ -1,7 +1,9 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../errors.dart';
+import '../logger.dart';
 import 'options.dart';
+import 'track.dart';
 import 'video_track.dart';
 
 /// A video track from the local device. Use static methods in this class to create
@@ -30,6 +32,10 @@ class LocalVideoTrack extends VideoTrack {
     LocalVideoTrackOptions? options,
   ]) async {
     if (sender == null) throw TrackCreateError('could not restart track');
+    if (options != null && currentOptions.runtimeType != options.runtimeType) {
+      throw Exception('options must be a ${currentOptions.runtimeType}');
+    }
+
     currentOptions = options ?? currentOptions;
 
     final stream = await _createStream(currentOptions);
@@ -41,35 +47,31 @@ class LocalVideoTrack extends VideoTrack {
   }
 
   /// Creates a LocalVideoTrack from camera input.
-  static Future<LocalVideoTrack> create([
-    LocalVideoTrackOptions? options,
+  static Future<LocalVideoTrack> createCameraTrack([
+    CameraTrackOptions? options,
   ]) async {
-    options ??= const LocalVideoTrackOptions();
+    options ??= const CameraTrackOptions();
     final stream = await _createStream(options);
     return LocalVideoTrack._(
-      'camera',
+      Track.cameraName,
       stream.getVideoTracks().first,
       stream,
       options,
     );
   }
 
-  //
-  // Convenience constructors
-  //
-  // static Future<LocalVideoTrack> createCamera(
-  //   LocalVideoTrackOptions? options,
-  // ) async {
-  //   final _ = options ?? const LocalVideoTrackOptions();
-  //   return create(_.copyWith(type: LocalVideoTrackType.camera));
-  // }
-
-  // static Future<LocalVideoTrack> createScreen(
-  //   LocalVideoTrackOptions? options,
-  // ) async {
-  //   final _ = options ?? const LocalVideoTrackOptions();
-  //   return create(_.copyWith(type: LocalVideoTrackType.display));
-  // }
+  static Future<LocalVideoTrack> createScreenTrack([
+    ScreenTrackOptions? options,
+  ]) async {
+    options ??= const ScreenTrackOptions();
+    final stream = await _createStream(options);
+    return LocalVideoTrack._(
+      Track.screenShareName,
+      stream.getVideoTracks().first,
+      stream,
+      options,
+    );
+  }
 
   static Future<MediaStream> _createStream(
     LocalVideoTrackOptions options,
@@ -80,15 +82,31 @@ class LocalVideoTrack extends VideoTrack {
     };
 
     final MediaStream stream;
-
-    if (options.type == LocalVideoTrackType.display) {
+    if (options is ScreenTrackOptions) {
       stream = await navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
+      // options is CameraVideoTrackOptions
       stream = await navigator.mediaDevices.getUserMedia(constraints);
     }
 
     if (stream.getVideoTracks().isEmpty) throw TrackCreateError();
-
     return stream;
+  }
+}
+
+//
+// Convenience extensions
+//
+extension CameraHelper on LocalVideoTrack {
+  // Calls restartTrack under the hood
+  Future<void> setCameraPosition(CameraPosition position) async {
+    final options = currentOptions;
+    if (options is! CameraTrackOptions) {
+      logger.warning('Not a camera track');
+      return;
+    }
+    await restartTrack(
+      options.copyWith(cameraPosition: position),
+    );
   }
 }

@@ -11,46 +11,55 @@ enum CameraPosition {
 }
 
 extension LKCameraPositionExt on CameraPosition {
-  CameraPosition get swap => {
+  CameraPosition swap() => {
         CameraPosition.front: CameraPosition.back,
         CameraPosition.back: CameraPosition.front,
       }[this]!;
 }
 
-/// Options when creating a LocalVideoTrack.
-class LocalVideoTrackOptions {
-  final LocalVideoTrackType type;
-  final VideoParameters params;
-  //
-  // Only used for camera
-  //
+class CameraTrackOptions extends LocalVideoTrackOptions {
   final CameraPosition cameraPosition;
 
-  const LocalVideoTrackOptions({
-    this.type = LocalVideoTrackType.camera,
-    this.params = VideoParameters.presetQHD169,
+  const CameraTrackOptions({
     this.cameraPosition = CameraPosition.front,
-  });
+    VideoParameters params = VideoParameters.presetQHD169,
+  }) : super(params: params);
 
+  @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'mandatory': params.toMediaConstraintsMap(),
-        if (type == LocalVideoTrackType.camera)
-          'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
+        ...super.toMediaConstraintsMap(),
+        'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
       };
 
   //
   // Returns new options with updated properties
   //
-  LocalVideoTrackOptions copyWith({
-    LocalVideoTrackType? type,
+  CameraTrackOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
   }) =>
-      LocalVideoTrackOptions(
-        type: type ?? this.type,
+      CameraTrackOptions(
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
       );
+}
+
+class ScreenTrackOptions extends LocalVideoTrackOptions {
+  const ScreenTrackOptions();
+}
+
+/// Options when creating a LocalVideoTrack.
+abstract class LocalVideoTrackOptions {
+  // final LocalVideoTrackType type;
+  final VideoParameters params;
+
+  const LocalVideoTrackOptions({
+    this.params = VideoParameters.presetQHD169,
+  });
+
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'mandatory': params.toMediaConstraintsMap(),
+      };
 }
 
 class VideoEncoding {

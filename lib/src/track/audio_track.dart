@@ -20,10 +20,10 @@ class AudioTrack extends Track {
   }
 
   @override
-  void stop() {
-    mediaStream?.dispose();
+  Future<void> stop() async {
+    await mediaStream?.dispose();
     mediaStream = null;
     audio.stopAudio(getCid());
-    super.stop();
+    await super.stop();
   }
 }

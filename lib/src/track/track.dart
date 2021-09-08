@@ -12,6 +12,7 @@ class TrackDimension {
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 class Track {
+  static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
   String name;
@@ -48,7 +49,7 @@ class Track {
     return cid;
   }
 
-  void stop() {
-    mediaStreamTrack.stop();
+  Future<void> stop() async {
+    await mediaStreamTrack.stop();
   }
 }

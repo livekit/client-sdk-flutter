@@ -138,16 +138,17 @@ class LocalParticipant extends Participant {
   }
 
   /// Unpublish a track that's already published
-  void unpublishTrack(Track track) {
+  Future<void> unpublishTrack(Track track) async {
     final existing = tracks.values.where((element) => element.track == track);
     if (existing.isEmpty) return;
 
     final pub = existing.first;
 
-    track.stop();
+    await track.stop();
+
     final sender = track.transceiver?.sender;
     if (sender != null) {
-      engine.publisher?.pc.removeTrack(sender);
+      await engine.publisher?.pc.removeTrack(sender);
     }
 
     tracks.remove(pub.sid);
