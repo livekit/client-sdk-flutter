@@ -13,7 +13,6 @@ Future<LKWebSocketWeb> lkWebSocketConnect(
     LKWebSocketWeb.connect(uri, options);
 
 class LKWebSocketWeb implements LKWebSocket {
-  //
   final html.WebSocket _ws;
   final LKWebSocketOptions? options;
   late final StreamSubscription _messageSubscription;
@@ -46,7 +45,6 @@ class LKWebSocketWeb implements LKWebSocket {
     Uri uri, [
     LKWebSocketOptions? options,
   ]) async {
-    //
     final completer = Completer<LKWebSocketWeb>();
     final ws = html.WebSocket(uri.toString());
     ws.onOpen.listen((_) => completer.complete(LKWebSocketWeb._(ws, options)));

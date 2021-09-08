@@ -140,9 +140,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
-    _engine.onParticipantUpdateCallback = _handleParticipantUpdate;
-    _engine.onActiveSpeakerchangedCallback = _handleSpeakerUpdate;
-    _engine.onDataMessageCallback = _handleDataPacket;
+    _engine.onParticipantUpdated = _handleParticipantUpdate;
+    _engine.onActiveSpeakerUpdated = _handleSpeakerUpdate;
+    _engine.onDataMessage = _handleDataPacket;
+    _engine.onRemoteMute = _onRemoteMuteChanged;
     _engine.onReconnected = () {
       _state = RoomState.connected;
       delegate?.onReconnected();
@@ -284,7 +285,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
   }
 
-  void _handleSpeakerUpdate(List<lk_rtc.SpeakerInfo> speakers) {
+  void _handleSpeakerUpdate(List<lk_models.SpeakerInfo> speakers) {
     final seenSids = <String>{};
     List<Participant> newSpeakers = [];
     for (final info in speakers) {
@@ -322,7 +323,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  void _handleDataPacket(lk_rtc.UserPacket packet, lk_rtc.DataPacket_Kind kind) {
+  void _handleDataPacket(lk_models.UserPacket packet, lk_models.DataPacket_Kind kind) {
     final participant = participants[packet.participantSid];
     if (participant == null) {
       return;
@@ -332,8 +333,15 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDataReceived(participant, packet.payload);
   }
 
-  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+  void _onRemoteMuteChanged(String sid, bool mute) {
+    final track = localParticipant.tracks[sid];
     //
+    // This will trigger signalClient.sendMuteTrack(sid, mute);
+    //
+    track?.muted = mute;
+  }
+
+  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');

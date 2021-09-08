@@ -29,9 +29,7 @@ class LocalVideoTrack extends VideoTrack {
   Future<void> restartTrack([
     LocalVideoTrackOptions? options,
   ]) async {
-    //
     if (sender == null) throw TrackCreateError('could not restart track');
-
     currentOptions = options ?? currentOptions;
 
     final stream = await _createStream(currentOptions);
@@ -46,7 +44,6 @@ class LocalVideoTrack extends VideoTrack {
   static Future<LocalVideoTrack> create([
     LocalVideoTrackOptions? options,
   ]) async {
-    //
     options ??= const LocalVideoTrackOptions();
     final stream = await _createStream(options);
     return LocalVideoTrack._(
@@ -77,7 +74,6 @@ class LocalVideoTrack extends VideoTrack {
   static Future<MediaStream> _createStream(
     LocalVideoTrackOptions options,
   ) async {
-    //
     final constraints = <String, dynamic>{
       'audio': false,
       'video': options.toMediaConstraintsMap(),

@@ -4,7 +4,6 @@ enum RTCIceTransportPolicy {
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
-  //
   String toStringValue() => {
         RTCIceTransportPolicy.all: 'all',
         RTCIceTransportPolicy.relay: 'relay',
@@ -17,7 +16,6 @@ class RTCConfiguration {
   RTCIceTransportPolicy? iceTransportPolicy;
 
   Map<String, dynamic> toMap() {
-    //
     final iceServersMap = <Map<String, dynamic>>[
       if (iceServers != null)
         for (final element in iceServers!) element.toMap()

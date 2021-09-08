@@ -7,7 +7,6 @@ import 'track.dart';
 
 /// A video track will notify when its mediaTrack has changed.
 class VideoTrack extends Track with ChangeNotifier {
-  //
   MediaStream _mediaStream;
 
   VideoTrack(

@@ -11,7 +11,6 @@ import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
-  //
   final SignalClient _client;
 
   SignalClient get client => _client;
@@ -125,7 +124,6 @@ class RemoteParticipant extends Participant {
   }
 
   void unpublishTrack(String sid, [bool notify = false]) {
-    //
     logger.info('Unpublish track b, $sid');
     final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) return;

@@ -4,7 +4,6 @@ import 'logger.dart';
 
 /// a wrapper around PeerConnection
 class PCTransport {
-  //
   final RTCPeerConnection pc;
   final List<RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
@@ -12,7 +11,6 @@ class PCTransport {
   PCTransport(this.pc);
 
   Future<void> dispose() async {
-    //
     pc.onRenegotiationNeeded = null;
     pc.onIceCandidate = null;
     pc.onIceConnectionState = null;
@@ -34,7 +32,6 @@ class PCTransport {
   }
 
   Future<void> setRemoteDescription(RTCSessionDescription sd) async {
-    //
     await pc.setRemoteDescription(sd);
 
     await Future.forEach<RTCIceCandidate>(_pendingCandidates, (candidate) async {
@@ -46,7 +43,6 @@ class PCTransport {
   }
 
   Future<void> addIceCandidate(RTCIceCandidate candidate) async {
-    //
     final desc = await getRemoteDescription();
 
     if (desc != null && !restartingIce) {

@@ -5,8 +5,6 @@ import 'track/options.dart';
 class ConnectOptions {
   /// Auto-subscribe to room tracks upon connect, defaults to true.
   final bool autoSubscribe;
-
-  //
   final TrackPublishOptions defaultPublishOptions;
 
   const ConnectOptions({

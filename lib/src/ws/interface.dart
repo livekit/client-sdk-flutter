@@ -1,7 +1,6 @@
 import 'platform/io.dart' if (dart.library.html) 'platform/web.dart';
 
 class LKWebSocketError implements Exception {
-  //
   final int code;
   const LKWebSocketError._(this.code);
 
@@ -31,7 +30,6 @@ class LKWebSocketOptions {
 }
 
 abstract class LKWebSocket {
-  //
   void send(List<int> data);
   void dispose();
 

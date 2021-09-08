@@ -30,18 +30,18 @@ mixin SignalClientDelegate {
   // when a track has been added successfully
   Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
   // active speaker has changed
-  Future<void> onActiveSpeakersChanged(List<lk_rtc.SpeakerInfo> speakers);
+  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers);
   // when server sends this client a leave message
   Future<void> onLeave(lk_rtc.LeaveRequest req);
+  // explicit mute track
+  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req);
 }
 
 extension LKUriExt on Uri {
-  //
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
 class SignalClient {
-  //
   static const protocolVersion = 2;
 
   SignalClientDelegate? delegate;
@@ -253,9 +253,7 @@ class SignalClient {
   }
 
   Future<void> _handleMessage(dynamic message) async {
-    //
     if (message is! List<int>) return;
-
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
 
     await lock.synchronized(() async {
@@ -294,6 +292,9 @@ class SignalClient {
           break;
         case lk_rtc.SignalResponse_Message.leave:
           await delegate?.onLeave(msg.leave);
+          break;
+        case lk_rtc.SignalResponse_Message.mute:
+          await delegate?.onMuteTrack(msg.mute);
           break;
         default:
           log('unsupported message: ' + json.encode(msg));

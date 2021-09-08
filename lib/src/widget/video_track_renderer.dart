@@ -7,7 +7,6 @@ import '../track/video_track.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
-  //
   final VideoTrack track;
   final RTCVideoRenderer renderer;
   final RTCVideoViewObjectFit fit;
@@ -23,7 +22,6 @@ class VideoTrackRenderer extends StatefulWidget {
 }
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
-  //
   final _renderer = RTCVideoRenderer();
 
   @override

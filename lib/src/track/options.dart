@@ -11,7 +11,6 @@ enum CameraPosition {
 }
 
 extension LKCameraPositionExt on CameraPosition {
-  //
   CameraPosition get swap => {
         CameraPosition.front: CameraPosition.back,
         CameraPosition.back: CameraPosition.front,
@@ -20,9 +19,7 @@ extension LKCameraPositionExt on CameraPosition {
 
 /// Options when creating a LocalVideoTrack.
 class LocalVideoTrackOptions {
-  //
   final LocalVideoTrackType type;
-  //
   final VideoParameters params;
   //
   // Only used for camera
@@ -57,7 +54,6 @@ class LocalVideoTrackOptions {
 }
 
 class VideoEncoding {
-  //
   final int maxFramerate;
   final int? maxBitrate;
 
@@ -71,7 +67,6 @@ class VideoEncoding {
 }
 
 extension VideoEncodingExt on VideoEncoding {
-  //
   RTCRtpEncoding toRTCRtpEncoding({
     String? rid,
     double? scaleResolutionDownBy = 1.0,
@@ -87,7 +82,6 @@ extension VideoEncodingExt on VideoEncoding {
 }
 
 class VideoParameters {
-  //
   final String description;
   final int width;
   final int height;
@@ -233,6 +227,5 @@ class VideoParameters {
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.
 class LocalAudioTrackOptions {
-  //
   const LocalAudioTrackOptions();
 }

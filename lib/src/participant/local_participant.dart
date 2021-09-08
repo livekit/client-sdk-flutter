@@ -6,7 +6,6 @@ import '../errors.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../rtc_engine.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
@@ -18,7 +17,6 @@ import 'participant.dart';
 
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {
-  //
   final RTCEngine _engine;
   final TrackPublishOptions? defaultPublishOptions;
 
@@ -37,7 +35,6 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    //
     if (audioTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishError('track already exists');
     }
@@ -70,7 +67,6 @@ class LocalParticipant extends Participant {
     LocalVideoTrack track, {
     TrackPublishOptions? options,
   }) async {
-    //
     if (videoTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishError('track already exists');
     }
@@ -161,15 +157,15 @@ class LocalParticipant extends Participant {
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
   void publishData(
     List<int> data,
-    lk_rtc.DataPacket_Kind reliability, {
+    lk_models.DataPacket_Kind reliability, {
     List<String>? destinationSids,
   }) {
     RTCDataChannel? channel;
     switch (reliability) {
-      case lk_rtc.DataPacket_Kind.RELIABLE:
+      case lk_models.DataPacket_Kind.RELIABLE:
         channel = engine.reliableDC;
         break;
-      case lk_rtc.DataPacket_Kind.LOSSY:
+      case lk_models.DataPacket_Kind.LOSSY:
         channel = engine.lossyDC;
         break;
     }
@@ -177,9 +173,9 @@ class LocalParticipant extends Participant {
       return;
     }
 
-    final packet = lk_rtc.DataPacket(
+    final packet = lk_models.DataPacket(
       kind: reliability,
-      user: lk_rtc.UserPacket(
+      user: lk_models.UserPacket(
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,

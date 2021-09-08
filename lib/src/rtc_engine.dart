@@ -25,8 +25,10 @@ typedef TrackCallback = void Function(
   RTCRtpReceiver? receiver,
 );
 typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
-typedef ActiveSpeakerChangedCallback = void Function(List<lk_rtc.SpeakerInfo> speakers);
-typedef DataPacketCallback = void Function(lk_rtc.UserPacket packet, lk_rtc.DataPacket_Kind kind);
+typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
+typedef DataPacketCallback = void Function(
+    lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
+typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 class RTCEngine with SignalClientDelegate {
   PCTransport? publisher;
@@ -51,9 +53,10 @@ class RTCEngine with SignalClientDelegate {
   // delegate methods
   GenericCallback? onICEConnected;
   TrackCallback? onTrack;
-  ParticipantUpdateCallback? onParticipantUpdateCallback;
-  ActiveSpeakerChangedCallback? onActiveSpeakerchangedCallback;
-  DataPacketCallback? onDataMessageCallback;
+  ParticipantUpdateCallback? onParticipantUpdated;
+  ActiveSpeakerChangedCallback? onActiveSpeakerUpdated;
+  DataPacketCallback? onDataMessage;
+  RemoteMuteCallback? onRemoteMute;
   GenericCallback? onReconnecting;
   GenericCallback? onReconnected;
   GenericCallback? onDisconnected;
@@ -89,7 +92,6 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> close() async {
-    //
     isClosed = true;
 
     // PCTransport is responsible for disposing RTCPeerConnection
@@ -146,7 +148,6 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> reconnect() async {
-    //
     if (isClosed) return;
 
     final url = this.url;
@@ -271,13 +272,13 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    final dp = lk_rtc.DataPacket.fromBuffer(message.binary);
+    final dp = lk_models.DataPacket.fromBuffer(message.binary);
     switch (dp.whichValue()) {
-      case lk_rtc.DataPacket_Value.speaker:
-        onActiveSpeakerchangedCallback?.call(dp.speaker.speakers);
+      case lk_models.DataPacket_Value.speaker:
+        onActiveSpeakerUpdated?.call(dp.speaker.speakers);
         break;
-      case lk_rtc.DataPacket_Value.user:
-        onDataMessageCallback?.call(dp.user, dp.kind);
+      case lk_models.DataPacket_Value.user:
+        onDataMessage?.call(dp.user, dp.kind);
         break;
       default:
       // do nothing
@@ -285,7 +286,6 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> _handleDisconnect(String reason) async {
-    //
     if (isClosed) return;
 
     logger.fine('disconnected $reason');
@@ -372,7 +372,7 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates) async {
-    onParticipantUpdateCallback?.call(updates);
+    onParticipantUpdated?.call(updates);
   }
 
   @override
@@ -382,13 +382,19 @@ class RTCEngine with SignalClientDelegate {
   }
 
   @override
-  Future<void> onActiveSpeakersChanged(List<lk_rtc.SpeakerInfo> speakers) async {
-    onActiveSpeakerchangedCallback?.call(speakers);
+  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers) async {
+    onActiveSpeakerUpdated?.call(speakers);
   }
 
   @override
   Future<void> onLeave(lk_rtc.LeaveRequest req) async {
     await close();
     onDisconnected?.call();
+  }
+
+  @override
+  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
+    // TODO: implement onMuteTrack
+    onRemoteMute?.call(req.sid, req.muted);
   }
 }

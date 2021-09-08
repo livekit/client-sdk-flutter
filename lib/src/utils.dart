@@ -8,7 +8,6 @@ import 'options.dart';
 import 'track/options.dart';
 
 class Utils {
-  //
   static List<VideoParameters> _presetsForResolution(
     int width,
     int height,
@@ -23,9 +22,7 @@ class Utils {
     int height, {
     required List<VideoParameters> presets,
   }) {
-    //
     assert(presets.isNotEmpty, 'presets should not be empty');
-
     VideoParameters result = presets.first;
     for (final preset in presets) {
       if (width >= preset.width && height >= preset.height) result = preset;
@@ -39,7 +36,6 @@ class Utils {
     int? height,
     TrackPublishOptions? options,
   }) {
-    //
     options ??= const TrackPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
