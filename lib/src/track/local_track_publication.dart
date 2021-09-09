@@ -20,7 +20,7 @@ class LocalTrackPublication extends TrackPublication {
   @override
   set muted(bool val) {
     if (val == muted) return;
-    logger.info('setMute: ${val}');
+    logger.finer('setMute: ${val}');
 
     super.muted = val;
     track?.mediaStreamTrack.enabled = !val;

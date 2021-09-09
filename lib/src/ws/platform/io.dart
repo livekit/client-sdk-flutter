@@ -40,7 +40,7 @@ class LKWebSocketIO implements LKWebSocket {
     Uri uri, [
     LKWebSocketOptions? options,
   ]) async {
-    logger.info('LKWebSocketIO connect (uri: ${uri.toString()})');
+    logger.fine('LKWebSocketIO connect (uri: ${uri.toString()})');
     try {
       final ws = await io.WebSocket.connect(uri.toString());
       logger.fine('LKWebSocketIO connected');

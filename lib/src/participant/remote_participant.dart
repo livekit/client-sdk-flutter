@@ -118,19 +118,18 @@ class RemoteParticipant extends Participant {
         tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
 
     for (final trackSid in removeTrackSids) {
-      logger.info('Unpublish track a, ${trackSid}');
       unpublishTrack(trackSid, true);
     }
   }
 
-  void unpublishTrack(String sid, [bool notify = false]) {
-    logger.info('Unpublish track b, $sid');
+  Future<void> unpublishTrack(String sid, [bool notify = false]) async {
+    logger.finer('Unpublish track sid: $sid, notify: $notify');
     final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) return;
 
     final track = pub.track;
     if (track != null) {
-      track.stop();
+      await track.stop();
       delegate?.onTrackUnsubscribed(this, track, pub);
       roomDelegate?.onTrackUnsubscribed(this, track, pub);
       notifyListeners();

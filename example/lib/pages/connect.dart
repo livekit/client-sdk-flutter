@@ -81,7 +81,7 @@ class _ConnectPageState extends State<ConnectPage> {
       // Save for next time
       await _writePrefs();
 
-      Navigator.push<void>(
+      await Navigator.push<void>(
         ctx,
         MaterialPageRoute(builder: (_) => RoomPage(room)),
       );

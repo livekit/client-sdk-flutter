@@ -44,11 +44,10 @@ extension LKUriExt on Uri {
 class SignalClient {
   static const protocolVersion = 2;
 
+  final _lock = sync.Lock();
   SignalClientDelegate? delegate;
-
   bool _connected = false;
   LKWebSocket? _ws;
-  final lock = sync.Lock();
 
   SignalClient();
 
@@ -85,9 +84,7 @@ class SignalClient {
     String token, {
     ConnectOptions? options,
   }) async {
-    //
     // Create default options if null
-    //
     options ??= const ConnectOptions();
 
     final rtcUri = _buildUri(
@@ -100,24 +97,13 @@ class SignalClient {
       _ws = await LKWebSocket.connect(
         rtcUri,
         LKWebSocketOptions(
-          onData: _handleMessage,
+          onData: _onSocketData,
           onDispose: _onSocketDone,
+          onError: _handleError,
         ),
       );
-      // _ws = WebSocketChannel.connect(rtcUri);
-      // logger.fine('SignalClient did join');
-// _ws?.stream.
-      // _ws?.stream.listen(
-      //   _handleMessage,
-      //   onError: _handleError,
-      //   onDone: _onSocketDone,
-      // );
-
-      // _ws = ws;
     } catch (socketError) {
-      //
       // Re-build same uri for validate mode
-      //
       final validateUri = _buildUri(
         uriString,
         token: token,
@@ -126,21 +112,15 @@ class SignalClient {
         forceSecure: rtcUri.isSecureScheme,
       );
 
-      //
       // Attempt Validation
-      //
       try {
         final validateResponse = await http.get(validateUri);
         if (validateResponse.statusCode != 200) throw ConnectError(validateResponse.body);
         throw ConnectError();
       } catch (error) {
-        //
         // Pass it up if it's already a `ConnectError`
-        //
         if (error is ConnectError) rethrow;
-        //
         // HTTP doesn't work either
-        //
         throw ConnectError();
       }
     }
@@ -163,8 +143,9 @@ class SignalClient {
     _ws = await LKWebSocket.connect(
       rtcUri,
       LKWebSocketOptions(
-        onData: _handleMessage,
+        onData: _onSocketData,
         onDispose: _onSocketDone,
+        onError: _handleError,
       ),
     );
 
@@ -252,15 +233,13 @@ class SignalClient {
     _ws?.send(buf);
   }
 
-  Future<void> _handleMessage(dynamic message) async {
+  Future<void> _onSocketData(dynamic message) async {
     if (message is! List<int>) return;
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
 
-    await lock.synchronized(() async {
-      //
-      // Only fire events 1 by 1 (wait for previous async to finish)
-      // This will prevent unintended bugs since websocket
-      // may receive data while previous delegate handler is not finished
+    // Ensure previous delegate method's future is completed
+    // before calling another method
+    await _lock.synchronized(() async {
       //
       switch (msg.whichMessage()) {
         case lk_rtc.SignalResponse_Message.join:
@@ -302,7 +281,7 @@ class SignalClient {
     });
   }
 
-  void _handleError(Object error) {
+  void _handleError(dynamic error) {
     logger.warning('received websocket error $error');
   }
 

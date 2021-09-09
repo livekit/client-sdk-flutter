@@ -1,5 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:logging/logging.dart';
+
 import 'logger.dart';
 
 /// a wrapper around PeerConnection
@@ -11,6 +11,7 @@ class PCTransport {
   PCTransport(this.pc);
 
   Future<void> dispose() async {
+    // Ensure callbacks won't fire any more
     pc.onRenegotiationNeeded = null;
     pc.onIceCandidate = null;
     pc.onIceConnectionState = null;
@@ -54,16 +55,14 @@ class PCTransport {
   }
 
   Future<RTCSessionDescription?> getRemoteDescription() async {
-    //
     // Checking agains null doesn't work as intended
     // if (pc.iceConnectionState == null) return null;
-    //
     try {
       final result = await pc.getRemoteDescription();
-      logger.log(Level.FINE, 'pc.getRemoteDescription $result');
+      logger.fine('pc.getRemoteDescription $result');
       return result;
     } catch (_) {
-      logger.log(Level.WARNING, 'pc.getRemoteDescription did throw: $_');
+      logger.warning('pc.getRemoteDescription did throw: $_');
     }
   }
 }

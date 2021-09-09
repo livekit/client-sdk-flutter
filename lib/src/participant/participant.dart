@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
@@ -156,17 +155,6 @@ class Participant extends ChangeNotifier {
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
-    // switch (pub.kind) {
-    //   case lk_models.TrackType.AUDIO:
-    //     audioTracks[pub.sid] = pub;
-    //     break;
-    //   case lk_models.TrackType.VIDEO:
-    //     videoTracks[pub.sid] = pub;
-    //     break;
-    //   default:
-    //   // nothing
-    // }
-    // logger.info('Tracks: ${tracks.length} ${tracks.values.map((e) => e.subscribed).join(', ')}');
   }
 
   //

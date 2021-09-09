@@ -71,9 +71,7 @@ class LocalParticipant extends Participant {
       throw TrackPublishError('track already exists');
     }
 
-    //
     // Use default options from `ConnectOptions` if options is null
-    //
     options = options ?? defaultPublishOptions;
 
     final trackInfo = await _engine.addTrack(
@@ -97,16 +95,14 @@ class LocalParticipant extends Participant {
         final settings = track.mediaStreamTrack.getSettings();
         width = settings['width'] as int?;
         height = settings['height'] as int?;
-        //
         // TODO: Get actual video dimensions to compute more accurately
         // mediaTrack.getConstraints() is not implemented for mobile
-        //
       } catch (_) {
-        logger.log(Level.WARNING, 'Failed to call `mediaStreamTrack.getSettings()`');
+        logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
       }
     }
 
-    logger.info('Compute encodings with resolution: ${width}x${height}, options: ${options}');
+    logger.fine('Compute encodings with resolution: ${width}x${height}, options: ${options}');
 
     final encodings = Utils.computeVideoEncodings(
       width: width,
@@ -114,7 +110,7 @@ class LocalParticipant extends Participant {
       options: options,
     );
 
-    logger.info('Using encodings: ${encodings?.map((e) => e.toMap())}');
+    logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
     final transceiverInit = RTCRtpTransceiverInit(
       direction: TransceiverDirection.SendOnly,

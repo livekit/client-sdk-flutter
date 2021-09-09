@@ -13,7 +13,6 @@ import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
-import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
 import 'signal_client.dart';
 import 'track/remote_track_publication.dart';
@@ -239,11 +238,11 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     for (final p in _participants.values) {
       final tracks = List<TrackPublication>.from(p.tracks.values);
       for (final pub in tracks) {
-        p.unpublishTrack(pub.sid);
+        await p.unpublishTrack(pub.sid);
       }
     }
     for (final pub in localParticipant.tracks.values) {
-      pub.track?.stop();
+      await pub.track?.stop();
     }
 
     await _engine.close();
@@ -347,8 +346,6 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       logger.severe('received track without mediastream');
       return;
     }
-
-    logger.info('onTrack ${stream.id}');
 
     final parsed = _unpackStreamId(stream.id);
     final trackSid = parsed.item2 ?? track.id;

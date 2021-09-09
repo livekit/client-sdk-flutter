@@ -142,7 +142,8 @@ class RTCEngine with SignalClientDelegate {
       };
     }
     final offer = await pub.pc.createOffer(constraints);
-    logger.info('Created offer: ${offer.sdp}');
+    logger.fine('Created offer');
+    logger.finer('sdp: ${offer.sdp}');
     await pub.pc.setLocalDescription(offer);
     client.sendOffer(offer);
   }
@@ -349,7 +350,8 @@ class RTCEngine with SignalClientDelegate {
     await sub.setRemoteDescription(sd);
 
     final answer = await sub.pc.createAnswer();
-    logger.info('Created answer: ${answer.sdp}');
+    logger.fine('Created answer');
+    logger.finer('sdp: ${answer.sdp}');
     await sub.pc.setLocalDescription(answer);
     client.sendAnswer(answer);
   }
@@ -357,7 +359,8 @@ class RTCEngine with SignalClientDelegate {
   @override
   Future<void> onAnswer(RTCSessionDescription sd) async {
     if (publisher == null) return;
-    logger.info('Received answer: ${sd.sdp}');
+    logger.fine('Received answer');
+    logger.finer('sdp: ${sd.sdp}');
     await publisher!.setRemoteDescription(sd);
   }
 

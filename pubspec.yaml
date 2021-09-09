@@ -8,28 +8,36 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  collection: ^1.15.0
-  fixnum: ^1.0.0
   flutter:
     sdk: flutter
-  flutter_webrtc:
-    path: ../../repos_livekit/flutter-webrtc/
-    # git:
-    #   url: https://github.com/flutter-webrtc/flutter-webrtc
-    #   ref: master
+
+  collection: ^1.15.0
+  fixnum: ^1.0.0
+
+  flutter_webrtc: ^0.6.7
 
   http: ^0.13.3
   logging: ^1.0.1
   protobuf: ^2.0.0
+
   tuple: ^2.0.0
+  
+  uuid: ^3.0.4
+  synchronized: ^3.0.0
+  
+  # 
+  # protobuf:
+  #   git:
+  #     url: https://github.com/google/protobuf.dart.git
+  #     ref: master
+  #     path: protobuf/
+
   #
   # WebSocketChannel has design flaws
   # https://github.com/dart-lang/web_socket_channel/issues/25
   #
   # web_socket_channel: ^2.1.0
-  uuid: ^3.0.4
-  synchronized: ^3.0.0
-
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
