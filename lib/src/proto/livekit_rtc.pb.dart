@@ -48,22 +48,33 @@ class SignalRequest extends $pb.GeneratedMessage {
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
     ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
-    ..aOM<SessionDescription>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
+    ..aOM<SessionDescription>(
+        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
         subBuilder: SessionDescription.create)
     ..aOM<SessionDescription>(
         2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'answer',
         subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
+    ..aOM<TrickleRequest>(
+        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
         subBuilder: TrickleRequest.create)
     ..aOM<AddTrackRequest>(
         4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'addTrack',
         subBuilder: AddTrackRequest.create)
-    ..aOM<MuteTrackRequest>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
+    ..aOM<MuteTrackRequest>(
+        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
         subBuilder: MuteTrackRequest.create)
-    ..aOM<UpdateSubscription>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subscription', subBuilder: UpdateSubscription.create)
-    ..aOM<UpdateTrackSettings>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSetting', subBuilder: UpdateTrackSettings.create)
-    ..aOM<LeaveRequest>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave', subBuilder: LeaveRequest.create)
-    ..aOM<SetSimulcastLayers>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'simulcast', subBuilder: SetSimulcastLayers.create)
+    ..aOM<UpdateSubscription>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subscription',
+        subBuilder: UpdateSubscription.create)
+    ..aOM<UpdateTrackSettings>(
+        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSetting',
+        subBuilder: UpdateTrackSettings.create)
+    ..aOM<LeaveRequest>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<SetSimulcastLayers>(
+        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'simulcast',
+        subBuilder: SetSimulcastLayers.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -296,22 +307,33 @@ class SignalResponse extends $pb.GeneratedMessage {
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
     ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
-    ..aOM<JoinResponse>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'join',
+    ..aOM<JoinResponse>(
+        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'join',
         subBuilder: JoinResponse.create)
     ..aOM<SessionDescription>(
         2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'answer',
         subBuilder: SessionDescription.create)
-    ..aOM<SessionDescription>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
+    ..aOM<SessionDescription>(
+        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
         subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
+    ..aOM<TrickleRequest>(
+        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
         subBuilder: TrickleRequest.create)
     ..aOM<ParticipantUpdate>(
         5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'update',
         subBuilder: ParticipantUpdate.create)
-    ..aOM<TrackPublishedResponse>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackPublished', subBuilder: TrackPublishedResponse.create)
-    ..aOM<$0.ActiveSpeakerUpdate>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker', subBuilder: $0.ActiveSpeakerUpdate.create)
-    ..aOM<LeaveRequest>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave', subBuilder: LeaveRequest.create)
-    ..aOM<MuteTrackRequest>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute', subBuilder: MuteTrackRequest.create)
+    ..aOM<TrackPublishedResponse>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackPublished',
+        subBuilder: TrackPublishedResponse.create)
+    ..aOM<$0.ActiveSpeakerUpdate>(
+        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
+        subBuilder: $0.ActiveSpeakerUpdate.create)
+    ..aOM<LeaveRequest>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<MuteTrackRequest>(
+        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
+        subBuilder: MuteTrackRequest.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -909,7 +931,9 @@ class JoinResponse extends $pb.GeneratedMessage {
         subBuilder: $0.ParticipantInfo.create)
     ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'serverVersion')
     ..pc<ICEServer>(
-        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iceServers', $pb.PbFieldType.PM,
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iceServers',
+        $pb.PbFieldType.PM,
         subBuilder: ICEServer.create)
     ..hasRequiredFields = false;
 
