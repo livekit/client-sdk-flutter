@@ -832,8 +832,7 @@ class SetSimulcastLayers extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layers',
         $pb.PbFieldType.PE,
         valueOf: VideoQuality.valueOf,
-        enumValues: VideoQuality.values,
-        defaultEnumValue: VideoQuality.LOW)
+        enumValues: VideoQuality.values)
     ..hasRequiredFields = false;
 
   SetSimulcastLayers._() : super();
