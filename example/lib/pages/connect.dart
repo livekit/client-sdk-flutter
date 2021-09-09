@@ -4,10 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'room.dart';
-import '../exts.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../exts.dart';
+import 'room.dart';
 
 class ConnectPage extends StatefulWidget {
   //
@@ -117,7 +117,7 @@ class _ConnectPageState extends State<ConnectPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Theme.of(context).accentColor),
+              border: Border.all(color: Theme.of(context).colorScheme.secondary),
             ),
             constraints: const BoxConstraints(
               maxWidth: 320,

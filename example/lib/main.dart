@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
-import 'package:livekit_client/livekit_client.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'pages/connect.dart';
-import 'pages/room.dart';
 
 void main() {
   // configure logs for debugging

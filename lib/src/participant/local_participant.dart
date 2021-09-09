@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:logging/logging.dart';
 
 import '../errors.dart';
 import '../logger.dart';
@@ -96,7 +95,7 @@ class LocalParticipant extends Participant {
         width = settings['width'] as int?;
         height = settings['height'] as int?;
         // TODO: Get actual video dimensions to compute more accurately
-        // mediaTrack.getConstraints() is not implemented for mobile
+        // mediaTrack.getConsstraints() is not implemented for mobile
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
       }

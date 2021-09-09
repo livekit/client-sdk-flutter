@@ -20,7 +20,8 @@ class LiveKitTheme {
 
   ThemeData buildThemeData(BuildContext ctx) => ThemeData(
         backgroundColor: bgColor,
-        accentColor: accentColor,
+        // accentColor: accentColor,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         appBarTheme: AppBarTheme(
           backgroundColor: cardColor,
         ),

@@ -397,7 +397,6 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
-    // TODO: implement onMuteTrack
     onRemoteMute?.call(req.sid, req.muted);
   }
 }

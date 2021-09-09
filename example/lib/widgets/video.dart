@@ -148,7 +148,7 @@ class EmptyWidget extends StatelessWidget {
         child: LayoutBuilder(
           builder: (ctx, constraints) => Icon(
             EvaIcons.videoOffOutline,
-            color: Theme.of(ctx).accentColor,
+            color: Theme.of(ctx).colorScheme.secondary,
             size: math.min(constraints.maxHeight, constraints.maxWidth) * 0.3,
           ),
         ),
