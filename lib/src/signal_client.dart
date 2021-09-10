@@ -13,6 +13,7 @@ import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/track.dart';
+import 'utils.dart';
 
 mixin SignalClientDelegate {
   // initial connection established
@@ -37,47 +38,19 @@ mixin SignalClientDelegate {
   Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req);
 }
 
-extension LKUriExt on Uri {
-  bool get isSecureScheme => ['https', 'wss'].contains(scheme);
-}
-
 class SignalClient {
-  static const protocolVersion = 2;
-
   final _lock = sync.Lock();
+
+  ProtocolVersion protocol;
   SignalClientDelegate? delegate;
   bool _connected = false;
   LKWebSocket? _ws;
 
-  SignalClient();
+  SignalClient({
+    this.protocol = ProtocolVersion.protocol3,
+  });
 
   bool get connected => _connected;
-
-  Uri _buildUri(
-    String uriOrString, {
-    required String token,
-    ConnectOptions? options,
-    bool reconnect = false,
-    bool validate = false,
-    bool forceSecure = false,
-  }) {
-    final Uri uri = Uri.parse(uriOrString);
-
-    final useSecure = uri.isSecureScheme || forceSecure;
-    final httpScheme = useSecure ? 'https' : 'http';
-    final wsScheme = useSecure ? 'wss' : 'ws';
-
-    return uri.replace(
-      scheme: validate ? httpScheme : wsScheme,
-      path: validate ? 'validate' : 'rtc',
-      queryParameters: <String, String>{
-        'access_token': token,
-        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
-        if (reconnect) 'reconnect': '1',
-        'protocol': protocolVersion.toString(),
-      },
-    );
-  }
 
   Future<void> join(
     String uriString,
@@ -87,10 +60,11 @@ class SignalClient {
     // Create default options if null
     options ??= const ConnectOptions();
 
-    final rtcUri = _buildUri(
+    final rtcUri = Utils.buildUri(
       uriString,
       token: token,
       options: options,
+      protocol: protocol,
     );
 
     try {
@@ -104,12 +78,13 @@ class SignalClient {
       );
     } catch (socketError) {
       // Re-build same uri for validate mode
-      final validateUri = _buildUri(
+      final validateUri = Utils.buildUri(
         uriString,
         token: token,
         options: options,
         validate: true,
         forceSecure: rtcUri.isSecureScheme,
+        protocol: protocol,
       );
 
       // Attempt Validation
@@ -134,10 +109,11 @@ class SignalClient {
     _ws?.dispose();
     _ws = null;
 
-    final rtcUri = _buildUri(
+    final rtcUri = Utils.buildUri(
       uriString,
       token: token,
       reconnect: true,
+      protocol: protocol,
     );
 
     _ws = await LKWebSocket.connect(

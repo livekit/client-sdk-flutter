@@ -7,7 +7,51 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'options.dart';
 import 'track/options.dart';
 
+enum ProtocolVersion {
+  protocol2,
+  protocol3,
+}
+
+extension LKProtocolVersionExt on ProtocolVersion {
+  String toStringValue() => {
+        ProtocolVersion.protocol2: '2',
+        ProtocolVersion.protocol3: '3',
+      }[this]!;
+}
+
+extension LKUriExt on Uri {
+  bool get isSecureScheme => ['https', 'wss'].contains(scheme);
+}
+
+// Collection of state-less static methods
 class Utils {
+  static Uri buildUri(
+    String uriOrString, {
+    required String token,
+    ConnectOptions? options,
+    bool reconnect = false,
+    bool validate = false,
+    bool forceSecure = false,
+    required ProtocolVersion protocol,
+  }) {
+    final Uri uri = Uri.parse(uriOrString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final httpScheme = useSecure ? 'https' : 'http';
+    final wsScheme = useSecure ? 'wss' : 'ws';
+
+    return uri.replace(
+      scheme: validate ? httpScheme : wsScheme,
+      path: validate ? 'validate' : 'rtc',
+      queryParameters: <String, String>{
+        'access_token': token,
+        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        if (reconnect) 'reconnect': '1',
+        'protocol': protocol.toStringValue(),
+      },
+    );
+  }
+
   static List<VideoParameters> _presetsForResolution(
     int width,
     int height,
