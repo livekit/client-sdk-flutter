@@ -935,6 +935,8 @@ class JoinResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iceServers',
         $pb.PbFieldType.PM,
         subBuilder: ICEServer.create)
+    ..aOB(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subscriberPrimary')
     ..hasRequiredFields = false;
 
   JoinResponse._() : super();
@@ -944,6 +946,7 @@ class JoinResponse extends $pb.GeneratedMessage {
     $core.Iterable<$0.ParticipantInfo>? otherParticipants,
     $core.String? serverVersion,
     $core.Iterable<ICEServer>? iceServers,
+    $core.bool? subscriberPrimary,
   }) {
     final _result = create();
     if (room != null) {
@@ -960,6 +963,9 @@ class JoinResponse extends $pb.GeneratedMessage {
     }
     if (iceServers != null) {
       _result.iceServers.addAll(iceServers);
+    }
+    if (subscriberPrimary != null) {
+      _result.subscriberPrimary = subscriberPrimary;
     }
     return _result;
   }
@@ -1034,6 +1040,18 @@ class JoinResponse extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(5)
   $core.List<ICEServer> get iceServers => $_getList(4);
+
+  @$pb.TagNumber(6)
+  $core.bool get subscriberPrimary => $_getBF(5);
+  @$pb.TagNumber(6)
+  set subscriberPrimary($core.bool v) {
+    $_setBool(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasSubscriberPrimary() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSubscriberPrimary() => clearField(6);
 }
 
 class TrackPublishedResponse extends $pb.GeneratedMessage {
