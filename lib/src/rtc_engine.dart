@@ -1,12 +1,13 @@
 import 'dart:async';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'errors.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'options.dart';
-import 'proto/livekit_rtc.pb.dart';
-import 'proto/livekit_models.pb.dart';
+import 'proto/livekit_models.pb.dart' as lk_models;
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'signal_client.dart';
 import 'track/track.dart';
 import 'transport.dart';
@@ -19,10 +20,15 @@ const iceRestartTimeout = Duration(seconds: 10);
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
-    MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver);
-typedef ParticipantUpdateCallback = void Function(List<ParticipantInfo> participants);
-typedef ActiveSpeakerChangedCallback = void Function(List<SpeakerInfo> speakers);
-typedef DataPacketCallback = void Function(UserPacket packet, DataPacket_Kind kind);
+  MediaStreamTrack track,
+  MediaStream? stream,
+  RTCRtpReceiver? receiver,
+);
+typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
+typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
+typedef DataPacketCallback = void Function(
+    lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
+typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 class RTCEngine with SignalClientDelegate {
   PCTransport? publisher;
@@ -36,10 +42,10 @@ class RTCEngine with SignalClientDelegate {
   bool iceConnected = false;
   bool isReconnecting = false;
   bool isClosed = true;
-  Map<String, Completer<TrackInfo>> pendingTrackResolvers = {};
+  Map<String, Completer<lk_models.TrackInfo>> pendingTrackResolvers = {};
   int reconnectAttempts = 0;
   // to complete join request
-  Completer<JoinResponse>? joinCompleter;
+  Completer<lk_rtc.JoinResponse>? joinCompleter;
   // remember url and token for reconnect
   String? url;
   String? token;
@@ -47,9 +53,10 @@ class RTCEngine with SignalClientDelegate {
   // delegate methods
   GenericCallback? onICEConnected;
   TrackCallback? onTrack;
-  ParticipantUpdateCallback? onParticipantUpdateCallback;
-  ActiveSpeakerChangedCallback? onActiveSpeakerchangedCallback;
-  DataPacketCallback? onDataMessageCallback;
+  ParticipantUpdateCallback? onParticipantUpdated;
+  ActiveSpeakerChangedCallback? onActiveSpeakerUpdated;
+  DataPacketCallback? onDataMessage;
+  RemoteMuteCallback? onRemoteMute;
   GenericCallback? onReconnecting;
   GenericCallback? onReconnected;
   GenericCallback? onDisconnected;
@@ -62,18 +69,18 @@ class RTCEngine with SignalClientDelegate {
     client.delegate = this;
   }
 
-  Future<JoinResponse> join(String url, String token, JoinOptions? opts) async {
+  Future<lk_rtc.JoinResponse> join(
+    String url,
+    String token, {
+    ConnectOptions? options,
+  }) async {
     this.url = url;
     this.token = token;
 
-    final completer = Completer<JoinResponse>();
+    final completer = Completer<lk_rtc.JoinResponse>();
     joinCompleter = completer;
 
-    try {
-      await client.join(url, token, opts);
-    } catch (e) {
-      return Future.error(e);
-    }
+    await client.join(url, token, options: options);
 
     // if it's not complete after 5 seconds, fail
     Timer(connectionTimeout, () {
@@ -84,35 +91,30 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  void close() async {
+  Future<void> close() async {
     isClosed = true;
 
-    if (publisher != null) {
-      final senders = await publisher?.pc.getSenders();
-      for (final element in (senders ?? <RTCRtpSender>[])) {
-        await publisher?.pc.removeTrack(element);
-      }
+    // PCTransport is responsible for disposing RTCPeerConnection
+    await publisher?.dispose();
+    publisher = null;
 
-      publisher?.pc.close();
-      publisher = null;
-    }
-    if (subscriber != null) {
-      subscriber?.pc.close();
-      subscriber = null;
-    }
+    await subscriber?.dispose();
+    subscriber = null;
+
     client.close();
   }
 
-  Future<TrackInfo> addTrack(
-      {required String cid,
-      required String name,
-      required TrackType kind,
-      TrackDimension? dimension}) async {
+  Future<lk_models.TrackInfo> addTrack({
+    required String cid,
+    required String name,
+    required lk_models.TrackType kind,
+    TrackDimension? dimension,
+  }) async {
     if (pendingTrackResolvers[cid] != null) {
       throw TrackPublishError('a track with the same CID has already been published');
     }
 
-    final completer = Completer<TrackInfo>();
+    final completer = Completer<lk_models.TrackInfo>();
     pendingTrackResolvers[cid] = completer;
 
     client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
@@ -122,9 +124,7 @@ class RTCEngine with SignalClientDelegate {
 
   Future<void> negotiate({bool? iceRestart}) async {
     final pub = publisher;
-    if (pub == null) {
-      return;
-    }
+    if (pub == null) return;
 
     final remoteDesc = await pub.getRemoteDescription();
 
@@ -142,14 +142,15 @@ class RTCEngine with SignalClientDelegate {
       };
     }
     final offer = await pub.pc.createOffer(constraints);
+    logger.fine('Created offer');
+    logger.finer('sdp: ${offer.sdp}');
     await pub.pc.setLocalDescription(offer);
     client.sendOffer(offer);
   }
 
   Future<void> reconnect() async {
-    if (isClosed) {
-      return;
-    }
+    if (isClosed) return;
+
     final url = this.url;
     final token = this.token;
     if (url == null || token == null) {
@@ -174,9 +175,9 @@ class RTCEngine with SignalClientDelegate {
       sub.restartingIce = true;
 
       await negotiate(iceRestart: true);
-    } catch (e) {
+    } catch (error) {
       isReconnecting = false;
-      return Future.error(e);
+      return Future.error(error);
     }
 
     // wait for connectivity to change
@@ -190,7 +191,7 @@ class RTCEngine with SignalClientDelegate {
     }
 
     isReconnecting = false;
-    return Future.error(ConnectError('could not reconnect ICE'));
+    throw ConnectError('could not reconnect ICE');
   }
 
   Future<void> _configurePeerConnections() async {
@@ -204,18 +205,18 @@ class RTCEngine with SignalClientDelegate {
     subscriber = PCTransport(subPC);
 
     pubPC.onIceCandidate = (RTCIceCandidate candidate) {
-      client.sendIceCandidate(candidate, SignalTarget.PUBLISHER);
+      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
     subPC.onIceCandidate = (RTCIceCandidate candidate) {
-      client.sendIceCandidate(candidate, SignalTarget.SUBSCRIBER);
+      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
-    pubPC.onRenegotiationNeeded = () {
+    pubPC.onRenegotiationNeeded = () async {
       if (pubPC.iceConnectionState == null ||
           pubPC.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
         return;
       }
-      negotiate();
+      await negotiate();
     };
 
     pubPC.onIceConnectionState = (RTCIceConnectionState state) {
@@ -272,27 +273,26 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    final dp = DataPacket.fromBuffer(message.binary);
+    final dp = lk_models.DataPacket.fromBuffer(message.binary);
     switch (dp.whichValue()) {
-      case DataPacket_Value.speaker:
-        onActiveSpeakerchangedCallback?.call(dp.speaker.speakers);
+      case lk_models.DataPacket_Value.speaker:
+        onActiveSpeakerUpdated?.call(dp.speaker.speakers);
         break;
-      case DataPacket_Value.user:
-        onDataMessageCallback?.call(dp.user, dp.kind);
+      case lk_models.DataPacket_Value.user:
+        onDataMessage?.call(dp.user, dp.kind);
         break;
       default:
       // do nothing
     }
   }
 
-  void _handleDisconnect(String reason) {
-    if (isClosed) {
-      return;
-    }
+  Future<void> _handleDisconnect(String reason) async {
+    if (isClosed) return;
+
     logger.fine('disconnected $reason');
     if (reconnectAttempts >= maxReconnectAttempts) {
       logger.info('could not connect after $reconnectAttempts, giving up');
-      close();
+      await close();
       onDisconnected?.call();
       return;
     }
@@ -310,7 +310,7 @@ class RTCEngine with SignalClientDelegate {
   //------------------ SignalClient Delegate methods -------------------------//
 
   @override
-  void onConnected(JoinResponse response) async {
+  Future<void> onConnected(lk_rtc.JoinResponse response) async {
     // create peer connections
     isClosed = false;
 
@@ -331,67 +331,72 @@ class RTCEngine with SignalClientDelegate {
 
     await _configurePeerConnections();
 
-    negotiate();
+    await negotiate();
 
     joinCompleter?.complete(Future.value(response));
     joinCompleter = null;
   }
 
   @override
-  void onClose([String? reason]) {
-    _handleDisconnect('signal');
+  Future<void> onClose([String? reason]) async {
+    await _handleDisconnect('signal');
   }
 
   @override
-  void onOffer(RTCSessionDescription sd) async {
+  Future<void> onOffer(RTCSessionDescription sd) async {
     final sub = subscriber;
-    if (sub == null) {
-      return;
-    }
+    if (sub == null) return;
+
     await sub.setRemoteDescription(sd);
 
     final answer = await sub.pc.createAnswer();
+    logger.fine('Created answer');
+    logger.finer('sdp: ${answer.sdp}');
     await sub.pc.setLocalDescription(answer);
     client.sendAnswer(answer);
   }
 
   @override
-  void onAnswer(RTCSessionDescription sd) {
-    if (publisher == null) {
-      return;
+  Future<void> onAnswer(RTCSessionDescription sd) async {
+    if (publisher == null) return;
+    logger.fine('Received answer');
+    logger.finer('sdp: ${sd.sdp}');
+    await publisher!.setRemoteDescription(sd);
+  }
+
+  @override
+  Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
+    if (target == lk_rtc.SignalTarget.SUBSCRIBER) {
+      await subscriber?.addIceCandidate(candidate);
+    } else if (target == lk_rtc.SignalTarget.PUBLISHER) {
+      await publisher?.addIceCandidate(candidate);
     }
-
-    publisher?.setRemoteDescription(sd);
   }
 
   @override
-  void onTrickle(RTCIceCandidate candidate, SignalTarget target) {
-    if (target == SignalTarget.SUBSCRIBER) {
-      subscriber?.addIceCandidate(candidate);
-    } else if (target == SignalTarget.PUBLISHER) {
-      publisher?.addIceCandidate(candidate);
-    }
+  Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates) async {
+    onParticipantUpdated?.call(updates);
   }
 
   @override
-  void onParticipantUpdate(List<ParticipantInfo> updates) {
-    onParticipantUpdateCallback?.call(updates);
-  }
-
-  @override
-  void onLocalTrackPublished(TrackPublishedResponse response) {
+  Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response) async {
     final completer = pendingTrackResolvers.remove(response.cid);
     completer?.complete(Future.value(response.track));
   }
 
   @override
-  void onActiveSpeakersChanged(List<SpeakerInfo> speakers) {
-    onActiveSpeakerchangedCallback?.call(speakers);
+  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers) async {
+    onActiveSpeakerUpdated?.call(speakers);
   }
 
   @override
-  void onLeave(LeaveRequest req) {
-    close();
+  Future<void> onLeave(lk_rtc.LeaveRequest req) async {
+    await close();
     onDisconnected?.call();
+  }
+
+  @override
+  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
+    onRemoteMute?.call(req.sid, req.muted);
   }
 }

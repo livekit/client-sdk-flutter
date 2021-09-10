@@ -1,4 +1,4 @@
-package com.example.livekit_example
+package io.livekit.example
 
 import io.flutter.embedding.android.FlutterActivity
 

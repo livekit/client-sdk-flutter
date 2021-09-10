@@ -3,7 +3,7 @@
 //  source: livekit_models.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields,deprecated_member_use_from_same_package
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
@@ -111,88 +111,74 @@ const TrackInfo$json = const {
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
     'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdA==');
-@$core.Deprecated('Use dataMessageDescriptor instead')
-const DataMessage$json = const {
-  '1': 'DataMessage',
+@$core.Deprecated('Use dataPacketDescriptor instead')
+const DataPacket$json = const {
+  '1': 'DataPacket',
   '2': const [
-    const {'1': 'text', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'text'},
-    const {'1': 'binary', '3': 2, '4': 1, '5': 12, '9': 0, '10': 'binary'},
+    const {'1': 'kind', '3': 1, '4': 1, '5': 14, '6': '.livekit.DataPacket.Kind', '10': 'kind'},
+    const {'1': 'user', '3': 2, '4': 1, '5': 11, '6': '.livekit.UserPacket', '9': 0, '10': 'user'},
+    const {
+      '1': 'speaker',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ActiveSpeakerUpdate',
+      '9': 0,
+      '10': 'speaker'
+    },
   ],
+  '4': const [DataPacket_Kind$json],
   '8': const [
     const {'1': 'value'},
   ],
 };
 
-/// Descriptor for `DataMessage`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List dataMessageDescriptor = $convert.base64Decode(
-    'CgtEYXRhTWVzc2FnZRIUCgR0ZXh0GAEgASgJSABSBHRleHQSGAoGYmluYXJ5GAIgASgMSABSBmJpbmFyeUIHCgV2YWx1ZQ==');
-@$core.Deprecated('Use recordingInputDescriptor instead')
-const RecordingInput$json = const {
-  '1': 'RecordingInput',
+@$core.Deprecated('Use dataPacketDescriptor instead')
+const DataPacket_Kind$json = const {
+  '1': 'Kind',
   '2': const [
-    const {'1': 'url', '3': 1, '4': 1, '5': 9, '10': 'url'},
-    const {
-      '1': 'template',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.RecordingTemplate',
-      '10': 'template'
-    },
-    const {'1': 'width', '3': 3, '4': 1, '5': 5, '10': 'width'},
-    const {'1': 'height', '3': 4, '4': 1, '5': 5, '10': 'height'},
-    const {'1': 'depth', '3': 5, '4': 1, '5': 5, '10': 'depth'},
-    const {'1': 'framerate', '3': 6, '4': 1, '5': 5, '10': 'framerate'},
+    const {'1': 'RELIABLE', '2': 0},
+    const {'1': 'LOSSY', '2': 1},
   ],
 };
 
-/// Descriptor for `RecordingInput`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List recordingInputDescriptor = $convert.base64Decode(
-    'Cg5SZWNvcmRpbmdJbnB1dBIQCgN1cmwYASABKAlSA3VybBI2Cgh0ZW1wbGF0ZRgCIAEoCzIaLmxpdmVraXQuUmVjb3JkaW5nVGVtcGxhdGVSCHRlbXBsYXRlEhQKBXdpZHRoGAMgASgFUgV3aWR0aBIWCgZoZWlnaHQYBCABKAVSBmhlaWdodBIUCgVkZXB0aBgFIAEoBVIFZGVwdGgSHAoJZnJhbWVyYXRlGAYgASgFUglmcmFtZXJhdGU=');
-@$core.Deprecated('Use recordingTemplateDescriptor instead')
-const RecordingTemplate$json = const {
-  '1': 'RecordingTemplate',
+/// Descriptor for `DataPacket`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataPacketDescriptor = $convert.base64Decode(
+    'CgpEYXRhUGFja2V0EiwKBGtpbmQYASABKA4yGC5saXZla2l0LkRhdGFQYWNrZXQuS2luZFIEa2luZBIpCgR1c2VyGAIgASgLMhMubGl2ZWtpdC5Vc2VyUGFja2V0SABSBHVzZXISOAoHc3BlYWtlchgDIAEoCzIcLmxpdmVraXQuQWN0aXZlU3BlYWtlclVwZGF0ZUgAUgdzcGVha2VyIh8KBEtpbmQSDAoIUkVMSUFCTEUQABIJCgVMT1NTWRABQgcKBXZhbHVl');
+@$core.Deprecated('Use activeSpeakerUpdateDescriptor instead')
+const ActiveSpeakerUpdate$json = const {
+  '1': 'ActiveSpeakerUpdate',
   '2': const [
-    const {'1': 'type', '3': 1, '4': 1, '5': 9, '10': 'type'},
-    const {'1': 'ws_url', '3': 2, '4': 1, '5': 9, '10': 'wsUrl'},
-    const {'1': 'token', '3': 3, '4': 1, '5': 9, '10': 'token'},
-    const {'1': 'room_name', '3': 4, '4': 1, '5': 9, '10': 'roomName'},
+    const {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
   ],
 };
 
-/// Descriptor for `RecordingTemplate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List recordingTemplateDescriptor = $convert.base64Decode(
-    'ChFSZWNvcmRpbmdUZW1wbGF0ZRISCgR0eXBlGAEgASgJUgR0eXBlEhUKBndzX3VybBgCIAEoCVIFd3NVcmwSFAoFdG9rZW4YAyABKAlSBXRva2VuEhsKCXJvb21fbmFtZRgEIAEoCVIIcm9vbU5hbWU=');
-@$core.Deprecated('Use recordingOutputDescriptor instead')
-const RecordingOutput$json = const {
-  '1': 'RecordingOutput',
+/// Descriptor for `ActiveSpeakerUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List activeSpeakerUpdateDescriptor = $convert.base64Decode(
+    'ChNBY3RpdmVTcGVha2VyVXBkYXRlEjAKCHNwZWFrZXJzGAEgAygLMhQubGl2ZWtpdC5TcGVha2VySW5mb1IIc3BlYWtlcnM=');
+@$core.Deprecated('Use speakerInfoDescriptor instead')
+const SpeakerInfo$json = const {
+  '1': 'SpeakerInfo',
   '2': const [
-    const {'1': 'file', '3': 1, '4': 1, '5': 9, '10': 'file'},
-    const {'1': 'rtmp', '3': 2, '4': 1, '5': 9, '10': 'rtmp'},
-    const {'1': 's3', '3': 3, '4': 1, '5': 11, '6': '.livekit.RecordingS3Output', '10': 's3'},
-    const {'1': 'width', '3': 4, '4': 1, '5': 5, '10': 'width'},
-    const {'1': 'height', '3': 5, '4': 1, '5': 5, '10': 'height'},
-    const {'1': 'audio_bitrate', '3': 6, '4': 1, '5': 9, '10': 'audioBitrate'},
-    const {'1': 'audio_frequency', '3': 7, '4': 1, '5': 9, '10': 'audioFrequency'},
-    const {'1': 'video_bitrate', '3': 8, '4': 1, '5': 9, '10': 'videoBitrate'},
-    const {'1': 'video_buffer', '3': 9, '4': 1, '5': 9, '10': 'videoBuffer'},
+    const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
+    const {'1': 'level', '3': 2, '4': 1, '5': 2, '10': 'level'},
+    const {'1': 'active', '3': 3, '4': 1, '5': 8, '10': 'active'},
   ],
 };
 
-/// Descriptor for `RecordingOutput`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List recordingOutputDescriptor = $convert.base64Decode(
-    'Cg9SZWNvcmRpbmdPdXRwdXQSEgoEZmlsZRgBIAEoCVIEZmlsZRISCgRydG1wGAIgASgJUgRydG1wEioKAnMzGAMgASgLMhoubGl2ZWtpdC5SZWNvcmRpbmdTM091dHB1dFICczMSFAoFd2lkdGgYBCABKAVSBXdpZHRoEhYKBmhlaWdodBgFIAEoBVIGaGVpZ2h0EiMKDWF1ZGlvX2JpdHJhdGUYBiABKAlSDGF1ZGlvQml0cmF0ZRInCg9hdWRpb19mcmVxdWVuY3kYByABKAlSDmF1ZGlvRnJlcXVlbmN5EiMKDXZpZGVvX2JpdHJhdGUYCCABKAlSDHZpZGVvQml0cmF0ZRIhCgx2aWRlb19idWZmZXIYCSABKAlSC3ZpZGVvQnVmZmVy');
-@$core.Deprecated('Use recordingS3OutputDescriptor instead')
-const RecordingS3Output$json = const {
-  '1': 'RecordingS3Output',
+/// Descriptor for `SpeakerInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List speakerInfoDescriptor = $convert.base64Decode(
+    'CgtTcGVha2VySW5mbxIQCgNzaWQYASABKAlSA3NpZBIUCgVsZXZlbBgCIAEoAlIFbGV2ZWwSFgoGYWN0aXZlGAMgASgIUgZhY3RpdmU=');
+@$core.Deprecated('Use userPacketDescriptor instead')
+const UserPacket$json = const {
+  '1': 'UserPacket',
   '2': const [
-    const {'1': 'bucket', '3': 1, '4': 1, '5': 9, '10': 'bucket'},
-    const {'1': 'key', '3': 2, '4': 1, '5': 9, '10': 'key'},
-    const {'1': 'access_key', '3': 3, '4': 1, '5': 9, '10': 'accessKey'},
-    const {'1': 'secret', '3': 4, '4': 1, '5': 9, '10': 'secret'},
+    const {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
+    const {'1': 'payload', '3': 2, '4': 1, '5': 12, '10': 'payload'},
+    const {'1': 'destination_sids', '3': 3, '4': 3, '5': 9, '10': 'destinationSids'},
   ],
 };
 
-/// Descriptor for `RecordingS3Output`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List recordingS3OutputDescriptor = $convert.base64Decode(
-    'ChFSZWNvcmRpbmdTM091dHB1dBIWCgZidWNrZXQYASABKAlSBmJ1Y2tldBIQCgNrZXkYAiABKAlSA2tleRIdCgphY2Nlc3Nfa2V5GAMgASgJUglhY2Nlc3NLZXkSFgoGc2VjcmV0GAQgASgJUgZzZWNyZXQ=');
+/// Descriptor for `UserPacket`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
+    'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHM=');

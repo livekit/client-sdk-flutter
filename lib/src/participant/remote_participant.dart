@@ -1,7 +1,9 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/track/audio_track.dart';
-import '../proto/livekit_models.pb.dart';
+
+import '../logger.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';
+import '../track/audio_track.dart';
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../track/video_track.dart';
@@ -13,17 +15,22 @@ class RemoteParticipant extends Participant {
 
   SignalClient get client => _client;
 
-  RemoteParticipant(this._client, String sid, String identity) : super(sid, identity);
+  RemoteParticipant(
+    this._client,
+    String sid,
+    String identity,
+  ) : super(sid, identity);
 
-  RemoteParticipant.fromInfo(this._client, ParticipantInfo info) : super(info.sid, info.identity) {
+  RemoteParticipant.fromInfo(
+    this._client,
+    lk_models.ParticipantInfo info,
+  ) : super(info.sid, info.identity) {
     updateFromInfo(info);
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = tracks[sid];
-    if (pub is RemoteTrackPublication) {
-      return pub;
-    }
+    if (pub is RemoteTrackPublication) return pub;
   }
 
   /// for internal use
@@ -49,11 +56,11 @@ class RemoteParticipant extends Participant {
     }
 
     Track? track;
-    if (pub.kind == TrackType.AUDIO) {
+    if (pub.kind == lk_models.TrackType.AUDIO) {
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
-    } else if (pub.kind == TrackType.VIDEO) {
+    } else if (pub.kind == lk_models.TrackType.VIDEO) {
       track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
       final msg = 'unsupported track type ${pub.kind}';
@@ -73,7 +80,7 @@ class RemoteParticipant extends Participant {
   /// for internal use
   /// {@nodoc}
   @override
-  void updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(lk_models.ParticipantInfo info) async {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
@@ -105,30 +112,28 @@ class RemoteParticipant extends Participant {
     }
 
     // remove tracks
-    for (final pub in tracks.values) {
-      if (!validPubs.containsKey(pub.sid)) {
-        unpublishTrack(sid, true);
-      }
+    final removeTrackSids =
+        tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
+
+    for (final sid in removeTrackSids) {
+      await unpublishTrack(sid, true);
     }
   }
 
-  void unpublishTrack(String sid, [bool sendUnpublish = false]) {
+  Future<void> unpublishTrack(String sid, [bool notify = false]) async {
+    logger.finer('Unpublish track sid: $sid, notify: $notify');
     final pub = tracks.remove(sid);
-    if (pub == null || pub is! RemoteTrackPublication) {
-      return;
-    }
-
-    audioTracks.remove(sid);
-    videoTracks.remove(sid);
+    if (pub == null || pub is! RemoteTrackPublication) return;
 
     final track = pub.track;
     if (track != null) {
-      track.stop();
+      await track.stop();
       delegate?.onTrackUnsubscribed(this, track, pub);
       roomDelegate?.onTrackUnsubscribed(this, track, pub);
       notifyListeners();
     }
-    if (sendUnpublish) {
+
+    if (notify) {
       delegate?.onTrackUnpublished(this, pub);
       roomDelegate?.onTrackUnpublished(this, pub);
     }
@@ -141,9 +146,8 @@ class RemoteParticipant extends Participant {
           await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });
-      if (pub != null) {
-        return pub;
-      }
+
+      if (pub != null) return pub;
     }
   }
 }

@@ -37,3 +37,5 @@ linter:
     # Additional recommended rules
     #
     prefer_single_quotes: true
+    unnecessary_brace_in_string_interps: false
+    unawaited_futures: true

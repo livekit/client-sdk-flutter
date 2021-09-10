@@ -10,11 +10,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  livekit_client:
-    path: ../
+
   provider: ^5.0.0
   logging: ^1.0.1
+  google_fonts: ^2.1.0
+  eva_icons_flutter: ^3.0.0
+  shared_preferences: ^2.0.7
+
+  livekit_client:
+    path: ../
 
 dev_dependencies:
   flutter_test:

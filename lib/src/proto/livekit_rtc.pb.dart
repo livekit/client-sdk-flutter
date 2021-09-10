@@ -3,7 +3,7 @@
 //  source: livekit_rtc.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 
@@ -48,22 +48,33 @@ class SignalRequest extends $pb.GeneratedMessage {
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
     ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
-    ..aOM<SessionDescription>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
+    ..aOM<SessionDescription>(
+        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
         subBuilder: SessionDescription.create)
     ..aOM<SessionDescription>(
         2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'answer',
         subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
+    ..aOM<TrickleRequest>(
+        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
         subBuilder: TrickleRequest.create)
     ..aOM<AddTrackRequest>(
         4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'addTrack',
         subBuilder: AddTrackRequest.create)
-    ..aOM<MuteTrackRequest>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
+    ..aOM<MuteTrackRequest>(
+        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
         subBuilder: MuteTrackRequest.create)
-    ..aOM<UpdateSubscription>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subscription', subBuilder: UpdateSubscription.create)
-    ..aOM<UpdateTrackSettings>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSetting', subBuilder: UpdateTrackSettings.create)
-    ..aOM<LeaveRequest>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave', subBuilder: LeaveRequest.create)
-    ..aOM<SetSimulcastLayers>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'simulcast', subBuilder: SetSimulcastLayers.create)
+    ..aOM<UpdateSubscription>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'subscription',
+        subBuilder: UpdateSubscription.create)
+    ..aOM<UpdateTrackSettings>(
+        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSetting',
+        subBuilder: UpdateTrackSettings.create)
+    ..aOM<LeaveRequest>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<SetSimulcastLayers>(
+        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'simulcast',
+        subBuilder: SetSimulcastLayers.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -273,6 +284,7 @@ enum SignalResponse_Message {
   trackPublished,
   speaker,
   leave,
+  mute,
   notSet
 }
 
@@ -286,6 +298,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     6: SignalResponse_Message.trackPublished,
     7: SignalResponse_Message.speaker,
     8: SignalResponse_Message.leave,
+    9: SignalResponse_Message.mute,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -293,22 +306,34 @@ class SignalResponse extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
-    ..aOM<JoinResponse>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'join',
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ..aOM<JoinResponse>(
+        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'join',
         subBuilder: JoinResponse.create)
     ..aOM<SessionDescription>(
         2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'answer',
         subBuilder: SessionDescription.create)
-    ..aOM<SessionDescription>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
+    ..aOM<SessionDescription>(
+        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offer',
         subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
+    ..aOM<TrickleRequest>(
+        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trickle',
         subBuilder: TrickleRequest.create)
     ..aOM<ParticipantUpdate>(
         5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'update',
         subBuilder: ParticipantUpdate.create)
-    ..aOM<TrackPublishedResponse>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackPublished', subBuilder: TrackPublishedResponse.create)
-    ..aOM<ActiveSpeakerUpdate>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker', subBuilder: ActiveSpeakerUpdate.create)
-    ..aOM<LeaveRequest>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave', subBuilder: LeaveRequest.create)
+    ..aOM<TrackPublishedResponse>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackPublished',
+        subBuilder: TrackPublishedResponse.create)
+    ..aOM<$0.ActiveSpeakerUpdate>(
+        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
+        subBuilder: $0.ActiveSpeakerUpdate.create)
+    ..aOM<LeaveRequest>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<MuteTrackRequest>(
+        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
+        subBuilder: MuteTrackRequest.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -319,8 +344,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     TrickleRequest? trickle,
     ParticipantUpdate? update,
     TrackPublishedResponse? trackPublished,
-    ActiveSpeakerUpdate? speaker,
+    $0.ActiveSpeakerUpdate? speaker,
     LeaveRequest? leave,
+    MuteTrackRequest? mute,
   }) {
     final _result = create();
     if (join != null) {
@@ -346,6 +372,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (leave != null) {
       _result.leave = leave;
+    }
+    if (mute != null) {
+      _result.mute = mute;
     }
     return _result;
   }
@@ -463,9 +492,9 @@ class SignalResponse extends $pb.GeneratedMessage {
   TrackPublishedResponse ensureTrackPublished() => $_ensure(5);
 
   @$pb.TagNumber(7)
-  ActiveSpeakerUpdate get speaker => $_getN(6);
+  $0.ActiveSpeakerUpdate get speaker => $_getN(6);
   @$pb.TagNumber(7)
-  set speaker(ActiveSpeakerUpdate v) {
+  set speaker($0.ActiveSpeakerUpdate v) {
     setField(7, v);
   }
 
@@ -474,7 +503,7 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearSpeaker() => clearField(7);
   @$pb.TagNumber(7)
-  ActiveSpeakerUpdate ensureSpeaker() => $_ensure(6);
+  $0.ActiveSpeakerUpdate ensureSpeaker() => $_ensure(6);
 
   @$pb.TagNumber(8)
   LeaveRequest get leave => $_getN(7);
@@ -489,6 +518,20 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearLeave() => clearField(8);
   @$pb.TagNumber(8)
   LeaveRequest ensureLeave() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  MuteTrackRequest get mute => $_getN(8);
+  @$pb.TagNumber(9)
+  set mute(MuteTrackRequest v) {
+    setField(9, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasMute() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearMute() => clearField(9);
+  @$pb.TagNumber(9)
+  MuteTrackRequest ensureMute() => $_ensure(8);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -510,6 +553,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         $pb.PbFieldType.OU3)
     ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height',
         $pb.PbFieldType.OU3)
+    ..aOB(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'muted')
     ..hasRequiredFields = false;
 
   AddTrackRequest._() : super();
@@ -519,6 +563,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $0.TrackType? type,
     $core.int? width,
     $core.int? height,
+    $core.bool? muted,
   }) {
     final _result = create();
     if (cid != null) {
@@ -535,6 +580,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     }
     if (height != null) {
       _result.height = height;
+    }
+    if (muted != null) {
+      _result.muted = muted;
     }
     return _result;
   }
@@ -623,6 +671,18 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   $core.bool hasHeight() => $_has(4);
   @$pb.TagNumber(5)
   void clearHeight() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get muted => $_getBF(5);
+  @$pb.TagNumber(6)
+  set muted($core.bool v) {
+    $_setBool(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasMuted() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMuted() => clearField(6);
 }
 
 class TrickleRequest extends $pb.GeneratedMessage {
@@ -871,7 +931,9 @@ class JoinResponse extends $pb.GeneratedMessage {
         subBuilder: $0.ParticipantInfo.create)
     ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'serverVersion')
     ..pc<ICEServer>(
-        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iceServers', $pb.PbFieldType.PM,
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'iceServers',
+        $pb.PbFieldType.PM,
         subBuilder: ICEServer.create)
     ..hasRequiredFields = false;
 
@@ -1184,154 +1246,6 @@ class ParticipantUpdate extends $pb.GeneratedMessage {
   $core.List<$0.ParticipantInfo> get participants => $_getList(0);
 }
 
-class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ActiveSpeakerUpdate',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..pc<SpeakerInfo>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speakers',
-        $pb.PbFieldType.PM,
-        subBuilder: SpeakerInfo.create)
-    ..hasRequiredFields = false;
-
-  ActiveSpeakerUpdate._() : super();
-  factory ActiveSpeakerUpdate({
-    $core.Iterable<SpeakerInfo>? speakers,
-  }) {
-    final _result = create();
-    if (speakers != null) {
-      _result.speakers.addAll(speakers);
-    }
-    return _result;
-  }
-  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ActiveSpeakerUpdate.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  ActiveSpeakerUpdate clone() => ActiveSpeakerUpdate()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) =>
-      super.copyWith((message) => updates(message as ActiveSpeakerUpdate))
-          as ActiveSpeakerUpdate; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
-  ActiveSpeakerUpdate createEmptyInstance() => create();
-  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() => $pb.PbList<ActiveSpeakerUpdate>();
-  @$core.pragma('dart2js:noInline')
-  static ActiveSpeakerUpdate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
-  static ActiveSpeakerUpdate? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<SpeakerInfo> get speakers => $_getList(0);
-}
-
-class SpeakerInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SpeakerInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
-    ..a<$core.double>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'level',
-        $pb.PbFieldType.OF)
-    ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'active')
-    ..hasRequiredFields = false;
-
-  SpeakerInfo._() : super();
-  factory SpeakerInfo({
-    $core.String? sid,
-    $core.double? level,
-    $core.bool? active,
-  }) {
-    final _result = create();
-    if (sid != null) {
-      _result.sid = sid;
-    }
-    if (level != null) {
-      _result.level = level;
-    }
-    if (active != null) {
-      _result.active = active;
-    }
-    return _result;
-  }
-  factory SpeakerInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory SpeakerInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  SpeakerInfo clone() => SpeakerInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  SpeakerInfo copyWith(void Function(SpeakerInfo) updates) =>
-      super.copyWith((message) => updates(message as SpeakerInfo))
-          as SpeakerInfo; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static SpeakerInfo create() => SpeakerInfo._();
-  SpeakerInfo createEmptyInstance() => create();
-  static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
-  @$core.pragma('dart2js:noInline')
-  static SpeakerInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
-  static SpeakerInfo? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get sid => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set sid($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasSid() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSid() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.double get level => $_getN(1);
-  @$pb.TagNumber(2)
-  set level($core.double v) {
-    $_setFloat(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasLevel() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearLevel() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.bool get active => $_getBF(2);
-  @$pb.TagNumber(3)
-  set active($core.bool v) {
-    $_setBool(2, v);
-  }
-
-  @$pb.TagNumber(3)
-  $core.bool hasActive() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearActive() => clearField(3);
-}
-
 class UpdateSubscription extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'UpdateSubscription',
@@ -1626,207 +1540,4 @@ class ICEServer extends $pb.GeneratedMessage {
   $core.bool hasCredential() => $_has(2);
   @$pb.TagNumber(3)
   void clearCredential() => clearField(3);
-}
-
-enum DataPacket_Value { user, speaker, notSet }
-
-class DataPacket extends $pb.GeneratedMessage {
-  static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
-    2: DataPacket_Value.user,
-    3: DataPacket_Value.speaker,
-    0: DataPacket_Value.notSet
-  };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'DataPacket',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..oo(0, [2, 3])
-    ..e<DataPacket_Kind>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'kind',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: DataPacket_Kind.RELIABLE,
-        valueOf: DataPacket_Kind.valueOf,
-        enumValues: DataPacket_Kind.values)
-    ..aOM<UserPacket>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'user',
-        subBuilder: UserPacket.create)
-    ..aOM<ActiveSpeakerUpdate>(
-        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
-        subBuilder: ActiveSpeakerUpdate.create)
-    ..hasRequiredFields = false;
-
-  DataPacket._() : super();
-  factory DataPacket({
-    DataPacket_Kind? kind,
-    UserPacket? user,
-    ActiveSpeakerUpdate? speaker,
-  }) {
-    final _result = create();
-    if (kind != null) {
-      _result.kind = kind;
-    }
-    if (user != null) {
-      _result.user = user;
-    }
-    if (speaker != null) {
-      _result.speaker = speaker;
-    }
-    return _result;
-  }
-  factory DataPacket.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory DataPacket.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  DataPacket clone() => DataPacket()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  DataPacket copyWith(void Function(DataPacket) updates) =>
-      super.copyWith((message) => updates(message as DataPacket))
-          as DataPacket; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static DataPacket create() => DataPacket._();
-  DataPacket createEmptyInstance() => create();
-  static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
-  @$core.pragma('dart2js:noInline')
-  static DataPacket getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
-  static DataPacket? _defaultInstance;
-
-  DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
-  void clearValue() => clearField($_whichOneof(0));
-
-  @$pb.TagNumber(1)
-  DataPacket_Kind get kind => $_getN(0);
-  @$pb.TagNumber(1)
-  set kind(DataPacket_Kind v) {
-    setField(1, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasKind() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearKind() => clearField(1);
-
-  @$pb.TagNumber(2)
-  UserPacket get user => $_getN(1);
-  @$pb.TagNumber(2)
-  set user(UserPacket v) {
-    setField(2, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasUser() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearUser() => clearField(2);
-  @$pb.TagNumber(2)
-  UserPacket ensureUser() => $_ensure(1);
-
-  @$pb.TagNumber(3)
-  ActiveSpeakerUpdate get speaker => $_getN(2);
-  @$pb.TagNumber(3)
-  set speaker(ActiveSpeakerUpdate v) {
-    setField(3, v);
-  }
-
-  @$pb.TagNumber(3)
-  $core.bool hasSpeaker() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearSpeaker() => clearField(3);
-  @$pb.TagNumber(3)
-  ActiveSpeakerUpdate ensureSpeaker() => $_ensure(2);
-}
-
-class UserPacket extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'UserPacket',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'participantSid')
-    ..a<$core.List<$core.int>>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'payload',
-        $pb.PbFieldType.OY)
-    ..pPS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'destinationSids')
-    ..hasRequiredFields = false;
-
-  UserPacket._() : super();
-  factory UserPacket({
-    $core.String? participantSid,
-    $core.List<$core.int>? payload,
-    $core.Iterable<$core.String>? destinationSids,
-  }) {
-    final _result = create();
-    if (participantSid != null) {
-      _result.participantSid = participantSid;
-    }
-    if (payload != null) {
-      _result.payload = payload;
-    }
-    if (destinationSids != null) {
-      _result.destinationSids.addAll(destinationSids);
-    }
-    return _result;
-  }
-  factory UserPacket.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory UserPacket.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  UserPacket clone() => UserPacket()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  UserPacket copyWith(void Function(UserPacket) updates) =>
-      super.copyWith((message) => updates(message as UserPacket))
-          as UserPacket; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static UserPacket create() => UserPacket._();
-  UserPacket createEmptyInstance() => create();
-  static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
-  @$core.pragma('dart2js:noInline')
-  static UserPacket getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
-  static UserPacket? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get participantSid => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set participantSid($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasParticipantSid() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearParticipantSid() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.List<$core.int> get payload => $_getN(1);
-  @$pb.TagNumber(2)
-  set payload($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasPayload() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearPayload() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.List<$core.String> get destinationSids => $_getList(2);
 }

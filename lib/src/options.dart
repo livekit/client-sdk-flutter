@@ -1,7 +1,30 @@
+import 'track/options.dart';
+
 /// Options when joining a room.
 /// {@category Room}
-class JoinOptions {
-  final bool? autoSubscribe;
+class ConnectOptions {
+  /// Auto-subscribe to room tracks upon connect, defaults to true.
+  final bool autoSubscribe;
+  final TrackPublishOptions defaultPublishOptions;
 
-  const JoinOptions({this.autoSubscribe});
+  const ConnectOptions({
+    this.autoSubscribe = true,
+    this.defaultPublishOptions = const TrackPublishOptions(),
+  });
+}
+
+class TrackPublishOptions {
+  ///
+  final VideoEncoding? videoEncoding;
+
+  ///
+  final bool simulcast;
+
+  const TrackPublishOptions({
+    this.videoEncoding,
+    this.simulcast = false,
+  });
+
+  @override
+  String toString() => '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }

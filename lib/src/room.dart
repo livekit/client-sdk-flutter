@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:collection/collection.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:tuple/tuple.dart';
@@ -12,8 +12,7 @@ import 'options.dart';
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
-import 'proto/livekit_models.pb.dart';
-import 'proto/livekit_rtc.pb.dart';
+import 'proto/livekit_models.pb.dart' as lk_models;
 import 'rtc_engine.dart';
 import 'signal_client.dart';
 import 'track/remote_track_publication.dart';
@@ -140,9 +139,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onTrack = _onTrackAdded;
     _engine.onICEConnected = _handleICEConnected;
     _engine.onDisconnected = _handleDisconnect;
-    _engine.onParticipantUpdateCallback = _handleParticipantUpdate;
-    _engine.onActiveSpeakerchangedCallback = _handleSpeakerUpdate;
-    _engine.onDataMessageCallback = _handleDataPacket;
+    _engine.onParticipantUpdated = _handleParticipantUpdate;
+    _engine.onActiveSpeakerUpdated = _handleSpeakerUpdate;
+    _engine.onDataMessage = _handleDataPacket;
+    _engine.onRemoteMute = _onRemoteMuteChanged;
     _engine.onReconnected = () {
       _state = RoomState.connected;
       delegate?.onReconnected();
@@ -155,16 +155,26 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     };
   }
 
-  Future<Room> connect(String url, String token, [JoinOptions? opts]) async {
+  Future<Room> connect(
+    String url,
+    String token, {
+    ConnectOptions? options,
+  }) async {
     final completer = Completer<Room>();
     _connectCompleter = completer;
 
-    final joinResponse = await _engine.join(url, token, opts);
+    final joinResponse = await _engine.join(
+      url,
+      token,
+      options: options,
+    );
+
     logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
     localParticipant = LocalParticipant(
       engine: _engine,
       info: joinResponse.participant,
+      defaultPublishOptions: options?.defaultPublishOptions,
     );
     localParticipant.roomDelegate = this;
 
@@ -191,12 +201,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   /// Disconnects from the room, notifying server of disconnection.
-  void disconnect() {
+  Future<void> disconnect() async {
     _engine.client.sendLeave();
-    _handleDisconnect();
+    await _handleDisconnect();
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(String sid, ParticipantInfo? info) {
+  RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
     var participant = _participants[sid];
     if (participant != null) {
       return participant;
@@ -220,7 +230,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  void _handleDisconnect() {
+  Future<void> _handleDisconnect() async {
     if (_state == RoomState.disconnected) {
       return;
     }
@@ -228,14 +238,14 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     for (final p in _participants.values) {
       final tracks = List<TrackPublication>.from(p.tracks.values);
       for (final pub in tracks) {
-        p.unpublishTrack(pub.sid);
+        await p.unpublishTrack(pub.sid);
       }
     }
     for (final pub in localParticipant.tracks.values) {
-      pub.track?.stop();
+      await pub.track?.stop();
     }
 
-    _engine.close();
+    await _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
     _state = RoomState.disconnected;
@@ -243,7 +253,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDisconnected();
   }
 
-  void _handleParticipantUpdate(List<ParticipantInfo> updates) {
+  void _handleParticipantUpdate(List<lk_models.ParticipantInfo> updates) {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -252,7 +262,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         continue;
       }
 
-      if (info.state == ParticipantInfo_State.DISCONNECTED) {
+      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
         hasChanged = true;
         _handleParticipantDisconnect(info.sid);
         continue;
@@ -274,7 +284,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     }
   }
 
-  void _handleSpeakerUpdate(List<SpeakerInfo> speakers) {
+  void _handleSpeakerUpdate(List<lk_models.SpeakerInfo> speakers) {
     final seenSids = <String>{};
     List<Participant> newSpeakers = [];
     for (final info in speakers) {
@@ -312,7 +322,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     notifyListeners();
   }
 
-  void _handleDataPacket(UserPacket packet, DataPacket_Kind kind) {
+  void _handleDataPacket(lk_models.UserPacket packet, lk_models.DataPacket_Kind kind) {
     final participant = participants[packet.participantSid];
     if (participant == null) {
       return;
@@ -322,6 +332,14 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     delegate?.onDataReceived(participant, packet.payload);
   }
 
+  void _onRemoteMuteChanged(String sid, bool mute) {
+    final track = localParticipant.tracks[sid];
+    //
+    // This will trigger signalClient.sendMuteTrack(sid, mute);
+    //
+    track?.muted = mute;
+  }
+
   void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
     if (stream == null) {
       // we need the stream to get the track's id
@@ -329,8 +347,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    var parsed = _unpackStreamId(stream.id);
-    var trackSid = parsed.item2 ?? track.id;
+    final parsed = _unpackStreamId(stream.id);
+    final trackSid = parsed.item2 ?? track.id;
 
     final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);

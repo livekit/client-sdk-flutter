@@ -1,7 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:uuid/uuid.dart';
 
-import '../proto/livekit_models.pb.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 class TrackDimension {
   int width;
@@ -12,24 +12,25 @@ class TrackDimension {
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 class Track {
+  static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
   String name;
-  TrackType kind;
-  MediaStreamTrack mediaTrack;
+  lk_models.TrackType kind;
+  MediaStreamTrack mediaStreamTrack;
   String? sid;
   RTCRtpTransceiver? transceiver;
   String? _cid;
 
-  Track(this.kind, this.name, this.mediaTrack);
+  Track(this.kind, this.name, this.mediaStreamTrack);
 
-  bool get muted => mediaTrack.muted == null ? false : mediaTrack.muted!;
+  bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 
   RTCRtpMediaType get mediaType {
     switch (kind) {
-      case TrackType.AUDIO:
+      case lk_models.TrackType.AUDIO:
         return RTCRtpMediaType.RTCRtpMediaTypeAudio;
-      case TrackType.VIDEO:
+      case lk_models.TrackType.VIDEO:
         return RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:
@@ -38,7 +39,7 @@ class Track {
   }
 
   String getCid() {
-    var cid = _cid ?? mediaTrack.id;
+    var cid = _cid ?? mediaStreamTrack.id;
 
     if (cid == null) {
       const uuid = Uuid();
@@ -48,7 +49,7 @@ class Track {
     return cid;
   }
 
-  void stop() {
-    mediaTrack.stop();
+  Future<void> stop() async {
+    await mediaStreamTrack.stop();
   }
 }

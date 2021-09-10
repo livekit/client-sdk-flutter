@@ -3,7 +3,7 @@
 //  source: livekit_models.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 
@@ -572,659 +572,353 @@ class TrackInfo extends $pb.GeneratedMessage {
   void clearSimulcast() => clearField(7);
 }
 
-enum DataMessage_Value { text, binary, notSet }
+enum DataPacket_Value { user, speaker, notSet }
 
-class DataMessage extends $pb.GeneratedMessage {
-  static const $core.Map<$core.int, DataMessage_Value> _DataMessage_ValueByTag = {
-    1: DataMessage_Value.text,
-    2: DataMessage_Value.binary,
-    0: DataMessage_Value.notSet
+class DataPacket extends $pb.GeneratedMessage {
+  static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
+    2: DataPacket_Value.user,
+    3: DataPacket_Value.speaker,
+    0: DataPacket_Value.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'DataMessage',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'DataPacket',
       package: const $pb.PackageName(
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2])
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'text')
-    ..a<$core.List<$core.int>>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'binary',
-        $pb.PbFieldType.OY)
+    ..oo(0, [2, 3])
+    ..e<DataPacket_Kind>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'kind',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: DataPacket_Kind.RELIABLE,
+        valueOf: DataPacket_Kind.valueOf,
+        enumValues: DataPacket_Kind.values)
+    ..aOM<UserPacket>(
+        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'user',
+        subBuilder: UserPacket.create)
+    ..aOM<ActiveSpeakerUpdate>(
+        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
+        subBuilder: ActiveSpeakerUpdate.create)
     ..hasRequiredFields = false;
 
-  DataMessage._() : super();
-  factory DataMessage({
-    $core.String? text,
-    $core.List<$core.int>? binary,
+  DataPacket._() : super();
+  factory DataPacket({
+    DataPacket_Kind? kind,
+    UserPacket? user,
+    ActiveSpeakerUpdate? speaker,
   }) {
     final _result = create();
-    if (text != null) {
-      _result.text = text;
+    if (kind != null) {
+      _result.kind = kind;
     }
-    if (binary != null) {
-      _result.binary = binary;
+    if (user != null) {
+      _result.user = user;
+    }
+    if (speaker != null) {
+      _result.speaker = speaker;
     }
     return _result;
   }
-  factory DataMessage.fromBuffer($core.List<$core.int> i,
+  factory DataPacket.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory DataMessage.fromJson($core.String i,
+  factory DataPacket.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  DataMessage clone() => DataMessage()..mergeFromMessage(this);
+  DataPacket clone() => DataPacket()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  DataMessage copyWith(void Function(DataMessage) updates) =>
-      super.copyWith((message) => updates(message as DataMessage))
-          as DataMessage; // ignore: deprecated_member_use
+  DataPacket copyWith(void Function(DataPacket) updates) =>
+      super.copyWith((message) => updates(message as DataPacket))
+          as DataPacket; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static DataMessage create() => DataMessage._();
-  DataMessage createEmptyInstance() => create();
-  static $pb.PbList<DataMessage> createRepeated() => $pb.PbList<DataMessage>();
+  static DataPacket create() => DataPacket._();
+  DataPacket createEmptyInstance() => create();
+  static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
   @$core.pragma('dart2js:noInline')
-  static DataMessage getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataMessage>(create);
-  static DataMessage? _defaultInstance;
+  static DataPacket getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
+  static DataPacket? _defaultInstance;
 
-  DataMessage_Value whichValue() => _DataMessage_ValueByTag[$_whichOneof(0)]!;
+  DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
   void clearValue() => clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
-  $core.String get text => $_getSZ(0);
+  DataPacket_Kind get kind => $_getN(0);
   @$pb.TagNumber(1)
-  set text($core.String v) {
-    $_setString(0, v);
+  set kind(DataPacket_Kind v) {
+    setField(1, v);
   }
 
   @$pb.TagNumber(1)
-  $core.bool hasText() => $_has(0);
+  $core.bool hasKind() => $_has(0);
   @$pb.TagNumber(1)
-  void clearText() => clearField(1);
+  void clearKind() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get binary => $_getN(1);
+  UserPacket get user => $_getN(1);
   @$pb.TagNumber(2)
-  set binary($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasBinary() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearBinary() => clearField(2);
-}
-
-class RecordingInput extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingInput',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'url')
-    ..aOM<RecordingTemplate>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'template',
-        subBuilder: RecordingTemplate.create)
-    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width',
-        $pb.PbFieldType.O3)
-    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height',
-        $pb.PbFieldType.O3)
-    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'depth',
-        $pb.PbFieldType.O3)
-    ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'framerate', $pb.PbFieldType.O3)
-    ..hasRequiredFields = false;
-
-  RecordingInput._() : super();
-  factory RecordingInput({
-    $core.String? url,
-    RecordingTemplate? template,
-    $core.int? width,
-    $core.int? height,
-    $core.int? depth,
-    $core.int? framerate,
-  }) {
-    final _result = create();
-    if (url != null) {
-      _result.url = url;
-    }
-    if (template != null) {
-      _result.template = template;
-    }
-    if (width != null) {
-      _result.width = width;
-    }
-    if (height != null) {
-      _result.height = height;
-    }
-    if (depth != null) {
-      _result.depth = depth;
-    }
-    if (framerate != null) {
-      _result.framerate = framerate;
-    }
-    return _result;
-  }
-  factory RecordingInput.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory RecordingInput.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  RecordingInput clone() => RecordingInput()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  RecordingInput copyWith(void Function(RecordingInput) updates) =>
-      super.copyWith((message) => updates(message as RecordingInput))
-          as RecordingInput; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static RecordingInput create() => RecordingInput._();
-  RecordingInput createEmptyInstance() => create();
-  static $pb.PbList<RecordingInput> createRepeated() => $pb.PbList<RecordingInput>();
-  @$core.pragma('dart2js:noInline')
-  static RecordingInput getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingInput>(create);
-  static RecordingInput? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get url => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set url($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasUrl() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearUrl() => clearField(1);
-
-  @$pb.TagNumber(2)
-  RecordingTemplate get template => $_getN(1);
-  @$pb.TagNumber(2)
-  set template(RecordingTemplate v) {
+  set user(UserPacket v) {
     setField(2, v);
   }
 
   @$pb.TagNumber(2)
-  $core.bool hasTemplate() => $_has(1);
+  $core.bool hasUser() => $_has(1);
   @$pb.TagNumber(2)
-  void clearTemplate() => clearField(2);
+  void clearUser() => clearField(2);
   @$pb.TagNumber(2)
-  RecordingTemplate ensureTemplate() => $_ensure(1);
+  UserPacket ensureUser() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.int get width => $_getIZ(2);
+  ActiveSpeakerUpdate get speaker => $_getN(2);
   @$pb.TagNumber(3)
-  set width($core.int v) {
-    $_setSignedInt32(2, v);
-  }
-
-  @$pb.TagNumber(3)
-  $core.bool hasWidth() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearWidth() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.int get height => $_getIZ(3);
-  @$pb.TagNumber(4)
-  set height($core.int v) {
-    $_setSignedInt32(3, v);
-  }
-
-  @$pb.TagNumber(4)
-  $core.bool hasHeight() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearHeight() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.int get depth => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set depth($core.int v) {
-    $_setSignedInt32(4, v);
-  }
-
-  @$pb.TagNumber(5)
-  $core.bool hasDepth() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearDepth() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.int get framerate => $_getIZ(5);
-  @$pb.TagNumber(6)
-  set framerate($core.int v) {
-    $_setSignedInt32(5, v);
-  }
-
-  @$pb.TagNumber(6)
-  $core.bool hasFramerate() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearFramerate() => clearField(6);
-}
-
-class RecordingTemplate extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingTemplate',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'wsUrl')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'token')
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'roomName')
-    ..hasRequiredFields = false;
-
-  RecordingTemplate._() : super();
-  factory RecordingTemplate({
-    $core.String? type,
-    $core.String? wsUrl,
-    $core.String? token,
-    $core.String? roomName,
-  }) {
-    final _result = create();
-    if (type != null) {
-      _result.type = type;
-    }
-    if (wsUrl != null) {
-      _result.wsUrl = wsUrl;
-    }
-    if (token != null) {
-      _result.token = token;
-    }
-    if (roomName != null) {
-      _result.roomName = roomName;
-    }
-    return _result;
-  }
-  factory RecordingTemplate.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory RecordingTemplate.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  RecordingTemplate clone() => RecordingTemplate()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  RecordingTemplate copyWith(void Function(RecordingTemplate) updates) =>
-      super.copyWith((message) => updates(message as RecordingTemplate))
-          as RecordingTemplate; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static RecordingTemplate create() => RecordingTemplate._();
-  RecordingTemplate createEmptyInstance() => create();
-  static $pb.PbList<RecordingTemplate> createRepeated() => $pb.PbList<RecordingTemplate>();
-  @$core.pragma('dart2js:noInline')
-  static RecordingTemplate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingTemplate>(create);
-  static RecordingTemplate? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get type => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set type($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasType() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearType() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get wsUrl => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set wsUrl($core.String v) {
-    $_setString(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasWsUrl() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearWsUrl() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get token => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set token($core.String v) {
-    $_setString(2, v);
-  }
-
-  @$pb.TagNumber(3)
-  $core.bool hasToken() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearToken() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.String get roomName => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set roomName($core.String v) {
-    $_setString(3, v);
-  }
-
-  @$pb.TagNumber(4)
-  $core.bool hasRoomName() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearRoomName() => clearField(4);
-}
-
-class RecordingOutput extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingOutput',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'file')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rtmp')
-    ..aOM<RecordingS3Output>(
-        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 's3',
-        subBuilder: RecordingS3Output.create)
-    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width',
-        $pb.PbFieldType.O3)
-    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height',
-        $pb.PbFieldType.O3)
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'audioBitrate')
-    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'audioFrequency')
-    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'videoBitrate')
-    ..aOS(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'videoBuffer')
-    ..hasRequiredFields = false;
-
-  RecordingOutput._() : super();
-  factory RecordingOutput({
-    $core.String? file,
-    $core.String? rtmp,
-    RecordingS3Output? s3,
-    $core.int? width,
-    $core.int? height,
-    $core.String? audioBitrate,
-    $core.String? audioFrequency,
-    $core.String? videoBitrate,
-    $core.String? videoBuffer,
-  }) {
-    final _result = create();
-    if (file != null) {
-      _result.file = file;
-    }
-    if (rtmp != null) {
-      _result.rtmp = rtmp;
-    }
-    if (s3 != null) {
-      _result.s3 = s3;
-    }
-    if (width != null) {
-      _result.width = width;
-    }
-    if (height != null) {
-      _result.height = height;
-    }
-    if (audioBitrate != null) {
-      _result.audioBitrate = audioBitrate;
-    }
-    if (audioFrequency != null) {
-      _result.audioFrequency = audioFrequency;
-    }
-    if (videoBitrate != null) {
-      _result.videoBitrate = videoBitrate;
-    }
-    if (videoBuffer != null) {
-      _result.videoBuffer = videoBuffer;
-    }
-    return _result;
-  }
-  factory RecordingOutput.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory RecordingOutput.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  RecordingOutput clone() => RecordingOutput()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  RecordingOutput copyWith(void Function(RecordingOutput) updates) =>
-      super.copyWith((message) => updates(message as RecordingOutput))
-          as RecordingOutput; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static RecordingOutput create() => RecordingOutput._();
-  RecordingOutput createEmptyInstance() => create();
-  static $pb.PbList<RecordingOutput> createRepeated() => $pb.PbList<RecordingOutput>();
-  @$core.pragma('dart2js:noInline')
-  static RecordingOutput getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingOutput>(create);
-  static RecordingOutput? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.String get file => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set file($core.String v) {
-    $_setString(0, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasFile() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearFile() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get rtmp => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set rtmp($core.String v) {
-    $_setString(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasRtmp() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearRtmp() => clearField(2);
-
-  @$pb.TagNumber(3)
-  RecordingS3Output get s3 => $_getN(2);
-  @$pb.TagNumber(3)
-  set s3(RecordingS3Output v) {
+  set speaker(ActiveSpeakerUpdate v) {
     setField(3, v);
   }
 
   @$pb.TagNumber(3)
-  $core.bool hasS3() => $_has(2);
+  $core.bool hasSpeaker() => $_has(2);
   @$pb.TagNumber(3)
-  void clearS3() => clearField(3);
+  void clearSpeaker() => clearField(3);
   @$pb.TagNumber(3)
-  RecordingS3Output ensureS3() => $_ensure(2);
-
-  @$pb.TagNumber(4)
-  $core.int get width => $_getIZ(3);
-  @$pb.TagNumber(4)
-  set width($core.int v) {
-    $_setSignedInt32(3, v);
-  }
-
-  @$pb.TagNumber(4)
-  $core.bool hasWidth() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearWidth() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.int get height => $_getIZ(4);
-  @$pb.TagNumber(5)
-  set height($core.int v) {
-    $_setSignedInt32(4, v);
-  }
-
-  @$pb.TagNumber(5)
-  $core.bool hasHeight() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearHeight() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.String get audioBitrate => $_getSZ(5);
-  @$pb.TagNumber(6)
-  set audioBitrate($core.String v) {
-    $_setString(5, v);
-  }
-
-  @$pb.TagNumber(6)
-  $core.bool hasAudioBitrate() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearAudioBitrate() => clearField(6);
-
-  @$pb.TagNumber(7)
-  $core.String get audioFrequency => $_getSZ(6);
-  @$pb.TagNumber(7)
-  set audioFrequency($core.String v) {
-    $_setString(6, v);
-  }
-
-  @$pb.TagNumber(7)
-  $core.bool hasAudioFrequency() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearAudioFrequency() => clearField(7);
-
-  @$pb.TagNumber(8)
-  $core.String get videoBitrate => $_getSZ(7);
-  @$pb.TagNumber(8)
-  set videoBitrate($core.String v) {
-    $_setString(7, v);
-  }
-
-  @$pb.TagNumber(8)
-  $core.bool hasVideoBitrate() => $_has(7);
-  @$pb.TagNumber(8)
-  void clearVideoBitrate() => clearField(8);
-
-  @$pb.TagNumber(9)
-  $core.String get videoBuffer => $_getSZ(8);
-  @$pb.TagNumber(9)
-  set videoBuffer($core.String v) {
-    $_setString(8, v);
-  }
-
-  @$pb.TagNumber(9)
-  $core.bool hasVideoBuffer() => $_has(8);
-  @$pb.TagNumber(9)
-  void clearVideoBuffer() => clearField(9);
+  ActiveSpeakerUpdate ensureSpeaker() => $_ensure(2);
 }
 
-class RecordingS3Output extends $pb.GeneratedMessage {
+class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingS3Output',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ActiveSpeakerUpdate',
       package: const $pb.PackageName(
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bucket')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'accessKey')
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'secret')
+    ..pc<SpeakerInfo>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speakers',
+        $pb.PbFieldType.PM,
+        subBuilder: SpeakerInfo.create)
     ..hasRequiredFields = false;
 
-  RecordingS3Output._() : super();
-  factory RecordingS3Output({
-    $core.String? bucket,
-    $core.String? key,
-    $core.String? accessKey,
-    $core.String? secret,
+  ActiveSpeakerUpdate._() : super();
+  factory ActiveSpeakerUpdate({
+    $core.Iterable<SpeakerInfo>? speakers,
   }) {
     final _result = create();
-    if (bucket != null) {
-      _result.bucket = bucket;
-    }
-    if (key != null) {
-      _result.key = key;
-    }
-    if (accessKey != null) {
-      _result.accessKey = accessKey;
-    }
-    if (secret != null) {
-      _result.secret = secret;
+    if (speakers != null) {
+      _result.speakers.addAll(speakers);
     }
     return _result;
   }
-  factory RecordingS3Output.fromBuffer($core.List<$core.int> i,
+  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory RecordingS3Output.fromJson($core.String i,
+  factory ActiveSpeakerUpdate.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  RecordingS3Output clone() => RecordingS3Output()..mergeFromMessage(this);
+  ActiveSpeakerUpdate clone() => ActiveSpeakerUpdate()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  RecordingS3Output copyWith(void Function(RecordingS3Output) updates) =>
-      super.copyWith((message) => updates(message as RecordingS3Output))
-          as RecordingS3Output; // ignore: deprecated_member_use
+  ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) =>
+      super.copyWith((message) => updates(message as ActiveSpeakerUpdate))
+          as ActiveSpeakerUpdate; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static RecordingS3Output create() => RecordingS3Output._();
-  RecordingS3Output createEmptyInstance() => create();
-  static $pb.PbList<RecordingS3Output> createRepeated() => $pb.PbList<RecordingS3Output>();
+  static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
+  ActiveSpeakerUpdate createEmptyInstance() => create();
+  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() => $pb.PbList<ActiveSpeakerUpdate>();
   @$core.pragma('dart2js:noInline')
-  static RecordingS3Output getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingS3Output>(create);
-  static RecordingS3Output? _defaultInstance;
+  static ActiveSpeakerUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
+  static ActiveSpeakerUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get bucket => $_getSZ(0);
+  $core.List<SpeakerInfo> get speakers => $_getList(0);
+}
+
+class SpeakerInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SpeakerInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
+    ..a<$core.double>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'level',
+        $pb.PbFieldType.OF)
+    ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'active')
+    ..hasRequiredFields = false;
+
+  SpeakerInfo._() : super();
+  factory SpeakerInfo({
+    $core.String? sid,
+    $core.double? level,
+    $core.bool? active,
+  }) {
+    final _result = create();
+    if (sid != null) {
+      _result.sid = sid;
+    }
+    if (level != null) {
+      _result.level = level;
+    }
+    if (active != null) {
+      _result.active = active;
+    }
+    return _result;
+  }
+  factory SpeakerInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SpeakerInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SpeakerInfo clone() => SpeakerInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SpeakerInfo copyWith(void Function(SpeakerInfo) updates) =>
+      super.copyWith((message) => updates(message as SpeakerInfo))
+          as SpeakerInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SpeakerInfo create() => SpeakerInfo._();
+  SpeakerInfo createEmptyInstance() => create();
+  static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
+  @$core.pragma('dart2js:noInline')
+  static SpeakerInfo getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
+  static SpeakerInfo? _defaultInstance;
+
   @$pb.TagNumber(1)
-  set bucket($core.String v) {
+  $core.String get sid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set sid($core.String v) {
     $_setString(0, v);
   }
 
   @$pb.TagNumber(1)
-  $core.bool hasBucket() => $_has(0);
+  $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearBucket() => clearField(1);
+  void clearSid() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get key => $_getSZ(1);
+  $core.double get level => $_getN(1);
   @$pb.TagNumber(2)
-  set key($core.String v) {
-    $_setString(1, v);
+  set level($core.double v) {
+    $_setFloat(1, v);
   }
 
   @$pb.TagNumber(2)
-  $core.bool hasKey() => $_has(1);
+  $core.bool hasLevel() => $_has(1);
   @$pb.TagNumber(2)
-  void clearKey() => clearField(2);
+  void clearLevel() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get accessKey => $_getSZ(2);
+  $core.bool get active => $_getBF(2);
   @$pb.TagNumber(3)
-  set accessKey($core.String v) {
-    $_setString(2, v);
+  set active($core.bool v) {
+    $_setBool(2, v);
   }
 
   @$pb.TagNumber(3)
-  $core.bool hasAccessKey() => $_has(2);
+  $core.bool hasActive() => $_has(2);
   @$pb.TagNumber(3)
-  void clearAccessKey() => clearField(3);
+  void clearActive() => clearField(3);
+}
 
-  @$pb.TagNumber(4)
-  $core.String get secret => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set secret($core.String v) {
-    $_setString(3, v);
+class UserPacket extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'UserPacket',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'participantSid')
+    ..a<$core.List<$core.int>>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'payload',
+        $pb.PbFieldType.OY)
+    ..pPS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'destinationSids')
+    ..hasRequiredFields = false;
+
+  UserPacket._() : super();
+  factory UserPacket({
+    $core.String? participantSid,
+    $core.List<$core.int>? payload,
+    $core.Iterable<$core.String>? destinationSids,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (payload != null) {
+      _result.payload = payload;
+    }
+    if (destinationSids != null) {
+      _result.destinationSids.addAll(destinationSids);
+    }
+    return _result;
+  }
+  factory UserPacket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UserPacket.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UserPacket clone() => UserPacket()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UserPacket copyWith(void Function(UserPacket) updates) =>
+      super.copyWith((message) => updates(message as UserPacket))
+          as UserPacket; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static UserPacket create() => UserPacket._();
+  UserPacket createEmptyInstance() => create();
+  static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
+  @$core.pragma('dart2js:noInline')
+  static UserPacket getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
+  static UserPacket? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
   }
 
-  @$pb.TagNumber(4)
-  $core.bool hasSecret() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearSecret() => clearField(4);
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get payload => $_getN(1);
+  @$pb.TagNumber(2)
+  set payload($core.List<$core.int> v) {
+    $_setBytes(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasPayload() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPayload() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.String> get destinationSids => $_getList(2);
 }

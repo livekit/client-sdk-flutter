@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 
-import 'remote_participant.dart';
-import '../proto/livekit_models.pb.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../track/track_publication.dart';
+import 'remote_participant.dart';
 
 /// Callbacks for participant changes
 mixin ParticipantDelegate {
@@ -51,9 +51,6 @@ mixin ParticipantDelegate {
 /// - added/removed subscribed tracks
 /// - metadata changed
 class Participant extends ChangeNotifier {
-  Map<String, TrackPublication> audioTracks = {};
-  Map<String, TrackPublication> videoTracks = {};
-
   /// map of track sid => published track
   Map<String, TrackPublication> tracks = {};
 
@@ -77,7 +74,7 @@ class Participant extends ChangeNotifier {
   /// delegate to receive participant callbacks
   ParticipantDelegate? delegate;
 
-  ParticipantInfo? _participantInfo;
+  lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
   /// when the participant joined the room
@@ -94,10 +91,8 @@ class Participant extends ChangeNotifier {
 
   /// true if participant is publishing an audio track and is muted
   bool get isMuted {
-    if (audioTracks.values.isEmpty) {
-      return false;
-    }
-    return audioTracks.values.first.muted;
+    if (audioTracks.isEmpty) return false;
+    return audioTracks.first.muted;
   }
 
   bool get hasAudio => audioTracks.isNotEmpty;
@@ -105,15 +100,7 @@ class Participant extends ChangeNotifier {
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks {
-    List<TrackPublication> result = [];
-    for (final track in tracks.values) {
-      if (track.subscribed) {
-        result.add(track);
-      }
-    }
-    return result;
-  }
+  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -148,7 +135,7 @@ class Participant extends ChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
-  void updateFromInfo(ParticipantInfo info) {
+  void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
     sid = info.sid;
     if (info.metadata.isNotEmpty) {
@@ -168,15 +155,14 @@ class Participant extends ChangeNotifier {
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
-    switch (pub.kind) {
-      case TrackType.AUDIO:
-        audioTracks[pub.sid] = pub;
-        break;
-      case TrackType.VIDEO:
-        videoTracks[pub.sid] = pub;
-        break;
-      default:
-      // nothing
-    }
   }
+}
+
+// Convenience extension
+extension LKParticipantExt on Participant {
+  List<TrackPublication> get videoTracks =>
+      tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+
+  List<TrackPublication> get audioTracks =>
+      tracks.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }
