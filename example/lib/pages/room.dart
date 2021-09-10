@@ -1,9 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_example/widgets/controls.dart';
-import 'package:livekit_example/widgets/video.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
+
+import '../widgets/controls.dart';
+import '../widgets/participant.dart';
 
 class RoomPage extends StatefulWidget {
   //
@@ -123,8 +125,9 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
           child: Column(
             children: [
               Expanded(
-                  child:
-                      participants.isNotEmpty ? ParticipantView(participants.first) : Container()),
+                  child: participants.isNotEmpty
+                      ? ParticipantWidget(participants.first)
+                      : Container()),
               SizedBox(
                 height: 100,
                 child: ListView.builder(
@@ -134,13 +137,13 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
                     width: 100,
                     height: 100,
                     padding: const EdgeInsets.all(2),
-                    child: ParticipantView(participants[index + 1], quality: VideoQuality.LOW),
+                    child: ParticipantWidget(participants[index + 1], quality: VideoQuality.LOW),
                   ),
                 ),
               ),
               SafeArea(
                 top: false,
-                child: Controls(widget.room),
+                child: ControlsWidget(widget.room),
               ),
             ],
           ),

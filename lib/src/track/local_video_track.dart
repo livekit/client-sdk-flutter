@@ -97,7 +97,7 @@ class LocalVideoTrack extends VideoTrack {
 //
 // Convenience extensions
 //
-extension CameraHelper on LocalVideoTrack {
+extension LKLocalVideoTrackExt on LocalVideoTrack {
   // Calls restartTrack under the hood
   Future<void> setCameraPosition(CameraPosition position) async {
     final options = currentOptions;
@@ -105,6 +105,7 @@ extension CameraHelper on LocalVideoTrack {
       logger.warning('Not a camera track');
       return;
     }
+
     await restartTrack(
       options.copyWith(cameraPosition: position),
     );

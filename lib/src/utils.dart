@@ -56,14 +56,10 @@ class Utils {
       //   log.debug('using video encoding', videoEncoding);
     }
 
-    //
     // Not simulcast
-    //
     if (!options.simulcast) return [videoEncoding.toRTCRtpEncoding()];
 
-    //
     // Compute for simulcast
-    //
     final midPreset = presets[1];
     final lowPreset = presets[0];
     return [

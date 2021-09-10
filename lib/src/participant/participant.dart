@@ -156,11 +156,10 @@ class Participant extends ChangeNotifier {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
   }
+}
 
-  //
-  // Convenience method/properties
-  //
-
+// Convenience extension
+extension LKParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
       tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 

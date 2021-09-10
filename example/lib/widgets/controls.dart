@@ -3,22 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:collection/collection.dart';
 
-class Controls extends StatefulWidget {
+class ControlsWidget extends StatefulWidget {
   //
   final Room room;
   final LocalParticipant participant;
 
-  Controls(
+  ControlsWidget(
     this.room, {
     Key? key,
   })  : participant = room.localParticipant,
         super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _ControlsState();
+  State<StatefulWidget> createState() => _ControlsWidgetState();
 }
 
-class _ControlsState extends State<Controls> {
+class _ControlsWidgetState extends State<ControlsWidget> {
   //
   CameraPosition position = CameraPosition.front;
 
@@ -122,26 +122,9 @@ class _ControlsState extends State<Controls> {
     // mute audio
     final canMute = participant.hasAudio && !participant.isMuted;
 
-    // mute video
-    // TrackPublication? videoPub;
-    // if (participant.hasVideo) {
     final videoPub = participant.videoTracks.firstOrNull;
-    // }
-
     final videoEnabled = videoPub != null && !videoPub.muted;
 
-    // if (position == CameraPosition.front) {
-
-    // } else {
-    //   buttons.add(IconButton(
-    //     icon: const Icon(Icons.video_camera_back_rounded),
-    //     onPressed: videoEnabled
-    //         ? () {
-    //             _setCameraPosition(videoPub, CameraPosition.front);
-    //           }
-    //         : null,
-    //   ));
-    // }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

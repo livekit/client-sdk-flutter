@@ -30,9 +30,7 @@ class RemoteParticipant extends Participant {
 
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = tracks[sid];
-    if (pub is RemoteTrackPublication) {
-      return pub;
-    }
+    if (pub is RemoteTrackPublication) return pub;
   }
 
   /// for internal use
@@ -82,7 +80,7 @@ class RemoteParticipant extends Participant {
   /// for internal use
   /// {@nodoc}
   @override
-  void updateFromInfo(lk_models.ParticipantInfo info) {
+  void updateFromInfo(lk_models.ParticipantInfo info) async {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
@@ -117,8 +115,8 @@ class RemoteParticipant extends Participant {
     final removeTrackSids =
         tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
 
-    for (final trackSid in removeTrackSids) {
-      unpublishTrack(trackSid, true);
+    for (final sid in removeTrackSids) {
+      await unpublishTrack(sid, true);
     }
   }
 
@@ -134,6 +132,7 @@ class RemoteParticipant extends Participant {
       roomDelegate?.onTrackUnsubscribed(this, track, pub);
       notifyListeners();
     }
+
     if (notify) {
       delegate?.onTrackUnpublished(this, pub);
       roomDelegate?.onTrackUnpublished(this, pub);
@@ -147,9 +146,8 @@ class RemoteParticipant extends Participant {
           await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
         return getTrackPublication(sid);
       });
-      if (pub != null) {
-        return pub;
-      }
+
+      if (pub != null) return pub;
     }
   }
 }

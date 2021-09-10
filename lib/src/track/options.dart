@@ -31,9 +31,7 @@ class CameraTrackOptions extends LocalVideoTrackOptions {
         'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
       };
 
-  //
   // Returns new options with updated properties
-  //
   CameraTrackOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
