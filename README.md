@@ -6,7 +6,19 @@ This package is published to pub.dev as [livekit_client](https://pub.dev/package
 
 ## Docs
 
-Docs and guides at [https://docs.livekit.io](https://docs.livekit.io)
+More Docs and guides are available at [https://docs.livekit.io](https://docs.livekit.io)
+
+## Current supported features
+
+| Feature | Subscribe/Publish | Simulcast | Background mode | Screen sharing |
+| :-----: | :---------------: | :-------: | :-------------: | :------------: |
+|   Web   |         🟢         |     🟢     |        🟢        |       🟢        |
+|   iOS   |         🟢         |     🟡     |        🟡        |       🔴        |
+| Android |         🟢         |     🟡     |        🟡        |       🔴        |
+
+🟢 = Available
+🟡 = Coming soon (Work in progress)
+🔴 = Not currently available (Possibly in the future)
 
 ## Installation
 
@@ -23,13 +35,25 @@ dependencies:
 Camera and microphone usage need to be declared in your `Info.plist` file.
 
 ```xml
-...
 <dict>
+  ...
   <key>NSCameraUsageDescription</key>
   <string>$(PRODUCT_NAME) uses your camera</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>$(PRODUCT_NAME) uses your microphone</string>
-</dict>
+```
+
+Your application can still run the voice call when it is switched to the background if the background mode is enabled. Select the app target in Xcode, click the Capabilities tab, enable Background Modes, and check **Audio, AirPlay, and Picture in Picture**.
+
+Your `Info.plist` should have the following entries.
+
+```xml
+<dict>
+  ...
+  <key>UIBackgroundModes</key>
+  <array>
+    <string>audio</string>
+  </array>
 ```
 
 ### Android
