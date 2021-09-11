@@ -79,9 +79,7 @@ class LocalParticipant extends Participant {
       kind: track.kind,
     );
 
-    //
     // Video encodings and simulcasts
-    //
 
     // use constraints passed to getUserMedia by default
     int? width = track.currentOptions.params.width;
@@ -151,24 +149,11 @@ class LocalParticipant extends Participant {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
-  void publishData(
+  Future<void> publishData(
     List<int> data,
     lk_models.DataPacket_Kind reliability, {
     List<String>? destinationSids,
-  }) {
-    RTCDataChannel? channel;
-    switch (reliability) {
-      case lk_models.DataPacket_Kind.RELIABLE:
-        channel = engine.reliableDC;
-        break;
-      case lk_models.DataPacket_Kind.LOSSY:
-        channel = engine.lossyDC;
-        break;
-    }
-    if (channel == null) {
-      return;
-    }
-
+  }) async {
     final packet = lk_models.DataPacket(
       kind: reliability,
       user: lk_models.UserPacket(
@@ -177,9 +162,7 @@ class LocalParticipant extends Participant {
         destinationSids: destinationSids,
       ),
     );
-
-    final buffer = packet.writeToBuffer();
-    channel.send(RTCDataChannelMessage.fromBinary(buffer));
+    await engine.sendDataPacket(packet);
   }
 
   /// for internal use

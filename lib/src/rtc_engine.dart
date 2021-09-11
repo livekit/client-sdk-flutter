@@ -12,12 +12,6 @@ import 'signal_client.dart';
 import 'track/track.dart';
 import 'transport.dart';
 
-const lossyDataChannel = '_lossy';
-const reliableDataChannel = '_reliable';
-const connectionTimeout = Duration(seconds: 5);
-const maxReconnectAttempts = 5;
-const iceRestartTimeout = Duration(seconds: 10);
-
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
   MediaStreamTrack track,
@@ -31,9 +25,26 @@ typedef DataPacketCallback = void Function(
 typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 class RTCEngine with SignalClientDelegate {
+  static const _lossyDCLabel = '_lossy';
+  static const _reliableDCLabel = '_reliable';
+  static const _maxReconnectAttempts = 5;
+  static const _maxICEConnectTimeout = Duration(seconds: 5);
+  static const _connectionTimeout = Duration(seconds: 5);
+  static const _iceRestartTimeout = Duration(seconds: 10);
+
+  SignalClient client;
+
   PCTransport? publisher;
   PCTransport? subscriber;
-  SignalClient client;
+  PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
+
+  StreamController<RTCIceConnectionState>? _publisherIceStateStream;
+  StreamController<RTCIceConnectionState>? _subscriberIceStateStream;
+  StreamController<RTCIceConnectionState>? get primaryIceStateStream =>
+      _subscriberPrimary ? _subscriberIceStateStream : _publisherIceStateStream;
+  StreamSubscription<RTCIceConnectionState>? _primarySubscription;
+  // final _subscriptions = <StreamSubscription<RTCIceConnectionState>>[];
+
   // config for RTCPeerConnection
   RTCConfiguration rtcConfig = RTCConfiguration();
   // data channels for packets
@@ -42,13 +53,15 @@ class RTCEngine with SignalClientDelegate {
   bool iceConnected = false;
   bool isReconnecting = false;
   bool isClosed = true;
-  Map<String, Completer<lk_models.TrackInfo>> pendingTrackResolvers = {};
-  int reconnectAttempts = 0;
-  // to complete join request
-  Completer<lk_rtc.JoinResponse>? joinCompleter;
+  // true if publisher connection has already been established.
+  // this is helpful to know if we need to restart ICE on the publisher connection
+  bool _hasPublished = false;
+
   // remember url and token for reconnect
   String? url;
   String? token;
+
+  bool _subscriberPrimary = false;
 
   // delegate methods
   GenericCallback? onICEConnected;
@@ -60,6 +73,14 @@ class RTCEngine with SignalClientDelegate {
   GenericCallback? onReconnecting;
   GenericCallback? onReconnected;
   GenericCallback? onDisconnected;
+
+  //
+  // internal
+  //
+  final Map<String, Completer<lk_models.TrackInfo>> _pendingTrackResolvers = {};
+  int _reconnectAttempts = 0;
+  // to complete join request
+  Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   RTCEngine(this.client, RTCConfiguration? rtcConfig) {
     if (rtcConfig != null) {
@@ -78,14 +99,14 @@ class RTCEngine with SignalClientDelegate {
     this.token = token;
 
     final completer = Completer<lk_rtc.JoinResponse>();
-    joinCompleter = completer;
+    _joinCompleter = completer;
 
     await client.join(url, token, options: options);
 
     // if it's not complete after 5 seconds, fail
-    Timer(connectionTimeout, () {
-      joinCompleter?.completeError(ConnectError());
-      joinCompleter = null;
+    Timer(_connectionTimeout, () {
+      _joinCompleter?.completeError(ConnectError());
+      _joinCompleter = null;
     });
 
     return completer.future;
@@ -93,6 +114,18 @@ class RTCEngine with SignalClientDelegate {
 
   Future<void> close() async {
     isClosed = true;
+
+    // for (final sub in _subscriptions) {
+    //   await sub.cancel();
+    // }
+    await _primarySubscription?.cancel();
+    _primarySubscription = null;
+
+    await _publisherIceStateStream?.close();
+    _publisherIceStateStream = null;
+
+    await _subscriberIceStateStream?.close();
+    _subscriberIceStateStream = null;
 
     // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
@@ -110,29 +143,33 @@ class RTCEngine with SignalClientDelegate {
     required lk_models.TrackType kind,
     TrackDimension? dimension,
   }) async {
-    if (pendingTrackResolvers[cid] != null) {
+    if (_pendingTrackResolvers[cid] != null) {
       throw TrackPublishError('a track with the same CID has already been published');
     }
 
     final completer = Completer<lk_models.TrackInfo>();
-    pendingTrackResolvers[cid] = completer;
+    _pendingTrackResolvers[cid] = completer;
 
     client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
 
     return completer.future;
   }
 
-  Future<void> negotiate({bool? iceRestart}) async {
+  Future<void> _negotiate({bool? iceRestart}) async {
     final pub = publisher;
     if (pub == null) return;
 
-    final remoteDesc = await pub.getRemoteDescription();
+    _hasPublished = true;
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
-    if (remoteDesc != null &&
-        pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-      await pub.pc.setRemoteDescription(remoteDesc);
+    if (pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+      logger.fine('has local offer');
+      // it's still waiting for the last offer, and it won't be able to create
+      // a new offer in this state. We'll reuse the last remote description to
+      // get it out of this state
+      final remoteDesc = await pub.getRemoteDescription();
+      if (remoteDesc != null) await pub.pc.setRemoteDescription(remoteDesc);
     }
 
     final constraints = <String, dynamic>{};
@@ -148,6 +185,53 @@ class RTCEngine with SignalClientDelegate {
     client.sendOffer(offer);
   }
 
+  bool get _publisherIsConnected =>
+      publisher?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateConnected;
+
+  /* @internal */
+  Future<void> sendDataPacket(
+    lk_models.DataPacket packet,
+  ) async {
+    // make sure we do have a data connection
+    await _ensurePublisherConnected();
+
+    final dcMessage = RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+
+    if (packet.kind == lk_models.DataPacket_Kind.LOSSY && lossyDC != null) {
+      await lossyDC?.send(dcMessage);
+    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE && reliableDC != null) {
+      await reliableDC?.send(dcMessage);
+    }
+  }
+
+  Future<void> _ensurePublisherConnected() async {
+    if (!_subscriberPrimary) return;
+    logger.fine('ensurePublisherConnected()');
+
+    if (_publisherIsConnected) {
+      logger.warning('publisher is already connected');
+      return;
+    }
+
+    // start negotiation
+    await _negotiate();
+
+    // wait for publisher ICE connected
+    final completer = Completer<void>();
+    final subscription = _publisherIceStateStream?.stream.listen((RTCIceConnectionState state) {
+      if (state == RTCIceConnectionState.RTCIceConnectionStateConnected) completer.complete();
+    });
+
+    try {
+      await completer.future.timeout(
+        _maxICEConnectTimeout,
+        onTimeout: () => throw ConnectError(),
+      );
+    } finally {
+      await subscription?.cancel();
+    }
+  }
+
   Future<void> reconnect() async {
     if (isClosed) return;
 
@@ -156,10 +240,10 @@ class RTCEngine with SignalClientDelegate {
     if (url == null || token == null) {
       throw ConnectError('could not reconnect without url and token');
     }
-    if (reconnectAttempts == 0) {
+    if (_reconnectAttempts == 0) {
       onReconnecting?.call();
     }
-    reconnectAttempts++;
+    _reconnectAttempts++;
 
     try {
       isReconnecting = true;
@@ -174,7 +258,7 @@ class RTCEngine with SignalClientDelegate {
       pub.restartingIce = true;
       sub.restartingIce = true;
 
-      await negotiate(iceRestart: true);
+      await _negotiate(iceRestart: true);
     } catch (error) {
       isReconnecting = false;
       return Future.error(error);
@@ -182,7 +266,7 @@ class RTCEngine with SignalClientDelegate {
 
     // wait for connectivity to change
     final startTime = DateTime.now();
-    while (DateTime.now().difference(startTime) < iceRestartTimeout) {
+    while (DateTime.now().difference(startTime) < _iceRestartTimeout) {
       if (iceConnected) {
         isReconnecting = false;
         return;
@@ -195,34 +279,38 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> _configurePeerConnections() async {
-    if (publisher != null) {
+    if (publisher != null || subscriber != null) {
+      logger.warning('Already configured');
       return;
     }
 
-    final pubPC = await createPeerConnection(rtcConfig.toMap());
-    publisher = PCTransport(pubPC);
-    final subPC = await createPeerConnection(rtcConfig.toMap());
-    subscriber = PCTransport(subPC);
+    publisher = await PCTransport.create(rtcConfig.toMap());
+    subscriber = await PCTransport.create(rtcConfig.toMap());
 
-    pubPC.onIceCandidate = (RTCIceCandidate candidate) {
+    publisher?.pc.onIceCandidate = (RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
-    subPC.onIceCandidate = (RTCIceCandidate candidate) {
+
+    subscriber?.pc.onIceCandidate = (RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
-    pubPC.onRenegotiationNeeded = () async {
-      if (pubPC.iceConnectionState == null ||
-          pubPC.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
+    primary?.pc.onRenegotiationNeeded = () async {
+      if (primary?.pc.iceConnectionState == null ||
+          primary?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
         return;
       }
-      await negotiate();
+      await _negotiate();
     };
 
-    pubPC.onIceConnectionState = (RTCIceConnectionState state) {
-      if (publisher == null) {
-        return;
-      }
+    _publisherIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);
+    publisher?.pc.onIceConnectionState = (state) => _publisherIceStateStream?.add(state);
+
+    _subscriberIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);
+    subscriber?.pc.onIceConnectionState = (state) => _subscriberIceStateStream?.add(state);
+
+    _primarySubscription ??= primaryIceStateStream?.stream.listen((RTCIceConnectionState state) {
+      //
       switch (state) {
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
           if (!iceConnected) {
@@ -238,38 +326,60 @@ class RTCEngine with SignalClientDelegate {
         case RTCIceConnectionState.RTCIceConnectionStateFailed:
           iceConnected = false;
           // trigger reconnect sequence
-          _handleDisconnect('peerconnection');
+          _onPCDisconnected('peerconnection');
           break;
 
         default:
-        // do nothing
+          break;
       }
-    };
+    });
 
-    subPC.onTrack = (RTCTrackEvent event) {
+    subscriber?.pc.onTrack = (RTCTrackEvent event) {
       onTrack?.call(event.track, event.streams.first, event.receiver);
     };
 
-    // create data channels
+    // in subscriber primary mode, server side opens sub data channels.
+    if (_subscriberPrimary) {
+      //
+      subscriber?.pc.onDataChannel = (RTCDataChannel dc) {
+        switch (dc.label) {
+          case _reliableDCLabel:
+            logger.fine('Server opened DC label: ${dc.label}');
+            reliableDC = dc;
+            reliableDC?.onMessage = _onDCMessage;
+            break;
+          case _lossyDCLabel:
+            logger.fine('Server opened DC label: ${dc.label}');
+            lossyDC = dc;
+            lossyDC?.onMessage = _onDCMessage;
+            break;
+          default:
+            logger.warning('Unknown DC label: ${dc.label}');
+            break;
+        }
+      };
+    }
+
+    // create data channels on publisher (for backward-compatibility)
     final lossyInit = RTCDataChannelInit()
-      ..maxRetransmits = 1
+      ..maxRetransmits = 0
       ..ordered = true
       ..binaryType = 'binary';
-    lossyDC = await pubPC.createDataChannel(lossyDataChannel, lossyInit);
+    lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
+    lossyDC?.onMessage = _onDCMessage;
 
     final reliableInit = RTCDataChannelInit()
       ..ordered = true
       ..maxRetransmits = 50
       ..binaryType = 'binary';
-    reliableDC = await pubPC.createDataChannel(reliableDataChannel, reliableInit);
-
-    lossyDC?.onMessage = _handleDataMessage;
-    reliableDC?.onMessage = _handleDataMessage;
+    reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+    reliableDC?.onMessage = _onDCMessage;
   }
 
-  void _handleDataMessage(RTCDataChannelMessage message) {
+  void _onDCMessage(RTCDataChannelMessage message) {
     // always expect binary
     if (!message.isBinary) {
+      logger.warning('Data message is not binary');
       return;
     }
 
@@ -282,27 +392,28 @@ class RTCEngine with SignalClientDelegate {
         onDataMessage?.call(dp.user, dp.kind);
         break;
       default:
-      // do nothing
+        // do nothing
+        break;
     }
   }
 
-  Future<void> _handleDisconnect(String reason) async {
+  Future<void> _onPCDisconnected(String reason) async {
     if (isClosed) return;
 
     logger.fine('disconnected $reason');
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      logger.info('could not connect after $reconnectAttempts, giving up');
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      logger.info('could not connect after $_reconnectAttempts, giving up');
       await close();
       onDisconnected?.call();
       return;
     }
 
-    final delay = (reconnectAttempts * reconnectAttempts) * 300;
+    final delay = (_reconnectAttempts * _reconnectAttempts) * 300;
     Future.delayed(Duration(milliseconds: delay), () {
       reconnect().then((_) {
-        reconnectAttempts = 0;
+        _reconnectAttempts = 0;
       }).catchError((dynamic e) {
-        _handleDisconnect(reason);
+        _onPCDisconnected(reason);
       });
     });
   }
@@ -313,7 +424,11 @@ class RTCEngine with SignalClientDelegate {
   Future<void> onConnected(lk_rtc.JoinResponse response) async {
     // create peer connections
     isClosed = false;
+    _subscriberPrimary = response.subscriberPrimary;
 
+    logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}');
+
+    // TODO: Organize
     if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
       List<RTCIceServer> iceServers = [];
       for (final item in response.iceServers) {
@@ -331,15 +446,17 @@ class RTCEngine with SignalClientDelegate {
 
     await _configurePeerConnections();
 
-    await negotiate();
+    if (!_subscriberPrimary) {
+      await _negotiate();
+    }
 
-    joinCompleter?.complete(Future.value(response));
-    joinCompleter = null;
+    _joinCompleter?.complete(Future.value(response));
+    _joinCompleter = null;
   }
 
   @override
   Future<void> onClose([String? reason]) async {
-    await _handleDisconnect('signal');
+    await _onPCDisconnected('signal');
   }
 
   @override
@@ -380,7 +497,7 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response) async {
-    final completer = pendingTrackResolvers.remove(response.cid);
+    final completer = _pendingTrackResolvers.remove(response.cid);
     completer?.complete(Future.value(response.track));
   }
 
