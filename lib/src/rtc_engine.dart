@@ -38,12 +38,12 @@ class RTCEngine with SignalClientDelegate {
   PCTransport? subscriber;
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
+  // used for ice state notifications
   StreamController<RTCIceConnectionState>? _publisherIceStateStream;
   StreamController<RTCIceConnectionState>? _subscriberIceStateStream;
   StreamController<RTCIceConnectionState>? get primaryIceStateStream =>
       _subscriberPrimary ? _subscriberIceStateStream : _publisherIceStateStream;
   StreamSubscription<RTCIceConnectionState>? _primarySubscription;
-  // final _subscriptions = <StreamSubscription<RTCIceConnectionState>>[];
 
   // config for RTCPeerConnection
   RTCConfiguration rtcConfig = RTCConfiguration();
@@ -55,7 +55,7 @@ class RTCEngine with SignalClientDelegate {
   bool isClosed = true;
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
-  bool _hasPublished = false;
+  // bool _hasPublished = false;
 
   // remember url and token for reconnect
   String? url;
@@ -115,9 +115,6 @@ class RTCEngine with SignalClientDelegate {
   Future<void> close() async {
     isClosed = true;
 
-    // for (final sub in _subscriptions) {
-    //   await sub.cancel();
-    // }
     await _primarySubscription?.cancel();
     _primarySubscription = null;
 
@@ -155,11 +152,11 @@ class RTCEngine with SignalClientDelegate {
     return completer.future;
   }
 
-  Future<void> _negotiate({bool? iceRestart}) async {
+  Future<void> negotiate({bool? iceRestart}) async {
     final pub = publisher;
     if (pub == null) return;
 
-    _hasPublished = true;
+    // _hasPublished = true;
 
     // handle cases that we couldn't create a new offer due to a pending answer
     // that's lost in transit
@@ -214,7 +211,7 @@ class RTCEngine with SignalClientDelegate {
     }
 
     // start negotiation
-    await _negotiate();
+    await negotiate();
 
     // wait for publisher ICE connected
     final completer = Completer<void>();
@@ -258,7 +255,7 @@ class RTCEngine with SignalClientDelegate {
       pub.restartingIce = true;
       sub.restartingIce = true;
 
-      await _negotiate(iceRestart: true);
+      await negotiate(iceRestart: true);
     } catch (error) {
       isReconnecting = false;
       return Future.error(error);
@@ -295,12 +292,13 @@ class RTCEngine with SignalClientDelegate {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
-    primary?.pc.onRenegotiationNeeded = () async {
-      if (primary?.pc.iceConnectionState == null ||
-          primary?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
+    publisher?.pc.onRenegotiationNeeded = () async {
+      logger.fine('Renegotiation Needed');
+      if (publisher?.pc.iceConnectionState == null ||
+          publisher?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
         return;
       }
-      await _negotiate();
+      await negotiate();
     };
 
     _publisherIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);
@@ -311,6 +309,8 @@ class RTCEngine with SignalClientDelegate {
 
     _primarySubscription ??= primaryIceStateStream?.stream.listen((RTCIceConnectionState state) {
       //
+      logger.fine('Primary ${state}');
+
       switch (state) {
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
           if (!iceConnected) {
@@ -426,7 +426,9 @@ class RTCEngine with SignalClientDelegate {
     isClosed = false;
     _subscriberPrimary = response.subscriberPrimary;
 
-    logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}');
+    logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
+        'serverVersion: ${response.serverVersion}, '
+        'iceServers: ${response.iceServers}');
 
     // TODO: Organize
     if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
@@ -447,7 +449,8 @@ class RTCEngine with SignalClientDelegate {
     await _configurePeerConnections();
 
     if (!_subscriberPrimary) {
-      await _negotiate();
+      // for subscriberPrimary, we negotiate when necessary (lazy)
+      await negotiate();
     }
 
     _joinCompleter?.complete(Future.value(response));
