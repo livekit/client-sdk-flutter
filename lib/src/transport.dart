@@ -8,7 +8,12 @@ class PCTransport {
   final List<RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
 
-  PCTransport(this.pc);
+  PCTransport._(this.pc);
+
+  static Future<PCTransport> create(Map<String, dynamic> configuration) async {
+    final _ = await createPeerConnection(configuration);
+    return PCTransport._(_);
+  }
 
   Future<void> dispose() async {
     // Ensure callbacks won't fire any more
@@ -17,15 +22,20 @@ class PCTransport {
     pc.onIceConnectionState = null;
     pc.onTrack = null;
 
+    // Remove all senders
     List<RTCRtpSender> senders = [];
     try {
       senders = await pc.getSenders();
-    } catch (_) {}
+    } catch (_) {
+      logger.warning('getSenders() failed with error: $_');
+    }
 
     for (final e in senders) {
       try {
         await pc.removeTrack(e);
-      } catch (_) {}
+      } catch (_) {
+        logger.warning('removeTrack() failed with error: $_');
+      }
     }
 
     await pc.close();
@@ -62,7 +72,7 @@ class PCTransport {
       logger.fine('pc.getRemoteDescription $result');
       return result;
     } catch (_) {
-      logger.warning('pc.getRemoteDescription did throw: $_');
+      logger.warning('pc.getRemoteDescription failed with error: $_');
     }
   }
 }
