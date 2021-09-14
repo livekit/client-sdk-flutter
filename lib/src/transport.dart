@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'utils.dart';
-import 'types.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'logger.dart';
+import 'types.dart';
+import 'utils.dart';
 
-typedef PCTransportOnOffer = void Function(RTCSessionDescription offer);
+typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
 /// a wrapper around PeerConnection
 class PCTransport {
-  final RTCPeerConnection pc;
-  final List<RTCIceCandidate> _pendingCandidates = [];
+  final rtc.RTCPeerConnection pc;
+  final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
   bool renegotiate = false;
   PCTransportOnOffer? onOffer;
@@ -21,7 +21,7 @@ class PCTransport {
   PCTransport._(this.pc);
 
   static Future<PCTransport> create(Map<String, dynamic> configuration) async {
-    final _ = await createPeerConnection(configuration);
+    final _ = await rtc.createPeerConnection(configuration);
     return PCTransport._(_);
   }
 
@@ -43,7 +43,7 @@ class PCTransport {
     pc.onTrack = null;
 
     // Remove all senders
-    List<RTCRtpSender> senders = [];
+    List<rtc.RTCRtpSender> senders = [];
     try {
       senders = await pc.getSenders();
     } catch (_) {
@@ -62,7 +62,7 @@ class PCTransport {
     await pc.dispose();
   }
 
-  Future<void> setRemoteDescription(RTCSessionDescription sd) async {
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     await pc.setRemoteDescription(sd);
 
     for (final candidate in _pendingCandidates) {
@@ -88,7 +88,7 @@ class PCTransport {
       restartingIce = true;
     }
 
-    if (pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    if (pc.signalingState == rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
       final currentSD = await getRemoteDescription();
@@ -109,7 +109,7 @@ class PCTransport {
     onOffer?.call(offer);
   }
 
-  Future<void> addIceCandidate(RTCIceCandidate candidate) async {
+  Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
     final desc = await getRemoteDescription();
 
     if (desc != null && !restartingIce) {
@@ -120,7 +120,7 @@ class PCTransport {
     _pendingCandidates.add(candidate);
   }
 
-  Future<RTCSessionDescription?> getRemoteDescription() async {
+  Future<rtc.RTCSessionDescription?> getRemoteDescription() async {
     // Checking agains null doesn't work as intended
     // if (pc.iceConnectionState == null) return null;
 

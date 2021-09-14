@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
 
 /// A video track will notify when its mediaTrack has changed.
 class VideoTrack extends Track with ChangeNotifier {
-  MediaStream _mediaStream;
+  rtc.MediaStream _mediaStream;
 
   VideoTrack(
     String name,
-    MediaStreamTrack mediaTrack,
+    rtc.MediaStreamTrack mediaTrack,
     this._mediaStream,
   ) : super(
           lk_models.TrackType.VIDEO,
@@ -19,11 +19,11 @@ class VideoTrack extends Track with ChangeNotifier {
           mediaTrack,
         );
 
-  MediaStream get mediaStream => _mediaStream;
+  rtc.MediaStream get mediaStream => _mediaStream;
 
   /// internal use
   /// {@nodoc}
-  void setMediaStream(MediaStream stream) {
+  void setMediaStream(rtc.MediaStream stream) {
     _mediaStream = stream;
     notifyListeners();
   }

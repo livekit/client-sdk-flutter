@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'options.dart';
 import 'track/options.dart';
@@ -28,7 +28,7 @@ extension LKUriExt on Uri {
 // Collection of state-less static methods
 class Utils {
   static Uri buildUri(
-    String uriOrString, {
+    String uriString, {
     required String token,
     ConnectOptions? options,
     bool reconnect = false,
@@ -36,7 +36,7 @@ class Utils {
     bool forceSecure = false,
     required ProtocolVersion protocol,
   }) {
-    final Uri uri = Uri.parse(uriOrString);
+    final Uri uri = Uri.parse(uriString);
 
     final useSecure = uri.isSecureScheme || forceSecure;
     final httpScheme = useSecure ? 'https' : 'http';
@@ -77,7 +77,7 @@ class Utils {
     return result;
   }
 
-  static List<RTCRtpEncoding>? computeVideoEncodings({
+  static List<rtc.RTCRtpEncoding>? computeVideoEncodings({
     int? width,
     int? height,
     TrackPublishOptions? options,

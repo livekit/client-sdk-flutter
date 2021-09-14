@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../track/local_video_track.dart';
 import '../track/video_track.dart';
@@ -8,13 +8,13 @@ import '../track/video_track.dart';
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
-  final RTCVideoRenderer renderer;
-  final RTCVideoViewObjectFit fit;
+  final rtc.RTCVideoRenderer renderer;
+  final rtc.RTCVideoViewObjectFit fit;
 
   VideoTrackRenderer(
     this.track, {
-    this.fit = RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-  })  : renderer = RTCVideoRenderer(),
+    this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+  })  : renderer = rtc.RTCVideoRenderer(),
         super(key: ValueKey(track.sid));
 
   @override
@@ -22,7 +22,7 @@ class VideoTrackRenderer extends StatefulWidget {
 }
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
-  final _renderer = RTCVideoRenderer();
+  final _renderer = rtc.RTCVideoRenderer();
 
   @override
   void initState() {
@@ -61,7 +61,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   Widget build(BuildContext context) {
     final isLocal = widget.track is LocalVideoTrack;
-    return RTCVideoView(
+    return rtc.RTCVideoView(
       _renderer,
       mirror: isLocal,
       filterQuality: FilterQuality.medium,

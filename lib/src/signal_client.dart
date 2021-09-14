@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 import 'package:livekit_client/src/ws/interface.dart';
 import 'package:synchronized/synchronized.dart' as sync;
@@ -21,11 +21,11 @@ mixin SignalClientDelegate {
   // websocket has closed
   Future<void> onClose([String? reason]);
   // when a server offer is received
-  Future<void> onOffer(RTCSessionDescription sd);
+  Future<void> onOffer(rtc.RTCSessionDescription sd);
   // when an answer from server is received
-  Future<void> onAnswer(RTCSessionDescription sd);
+  Future<void> onAnswer(rtc.RTCSessionDescription sd);
   // when server has a new ICE candidate
-  Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target);
+  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target);
   // participant has changed
   Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
   // when a track has been added successfully
@@ -133,15 +133,15 @@ class SignalClient {
     _ws?.dispose();
   }
 
-  void sendOffer(RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
         offer: fromRTCSessionDescription(offer),
       ));
 
-  void sendAnswer(RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
         answer: fromRTCSessionDescription(answer),
       ));
 
-  void sendIceCandidate(RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
+  void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
             candidateInit: fromRTCIceCandidate(candidate),
@@ -269,23 +269,23 @@ class SignalClient {
   }
 }
 
-RTCSessionDescription toRTCSessionDescription(lk_rtc.SessionDescription sd) {
-  return RTCSessionDescription(sd.sdp, sd.type);
+rtc.RTCSessionDescription toRTCSessionDescription(lk_rtc.SessionDescription sd) {
+  return rtc.RTCSessionDescription(sd.sdp, sd.type);
 }
 
-lk_rtc.SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
+lk_rtc.SessionDescription fromRTCSessionDescription(rtc.RTCSessionDescription rsd) {
   return lk_rtc.SessionDescription(type: rsd.type, sdp: rsd.sdp);
 }
 
-RTCIceCandidate toRTCIceCandidate(String candidateInit) {
+rtc.RTCIceCandidate toRTCIceCandidate(String candidateInit) {
   final candInit = json.decode(candidateInit) as Map<String, dynamic>;
-  return RTCIceCandidate(
+  return rtc.RTCIceCandidate(
     candInit['candidate'] as String?,
     candInit['sdpMid'] as String?,
     candInit['sdpMLineIndex'] as int?,
   );
 }
 
-String fromRTCIceCandidate(RTCIceCandidate candidate) {
+String fromRTCIceCandidate(rtc.RTCIceCandidate candidate) {
   return json.encode(candidate.toMap());
 }

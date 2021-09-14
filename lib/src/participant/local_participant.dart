@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../errors.dart';
 import '../logger.dart';
@@ -45,13 +45,13 @@ class LocalParticipant extends Participant {
       kind: track.kind,
     );
 
-    final transceiverInit = RTCRtpTransceiverInit(
-      direction: TransceiverDirection.SendOnly,
+    final transceiverInit = rtc.RTCRtpTransceiverInit(
+      direction: rtc.TransceiverDirection.SendOnly,
     );
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
     track.transceiver = await _engine.publisher?.pc.addTransceiver(
       track: track.mediaStreamTrack,
-      kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
       init: transceiverInit,
     );
     await _engine.negotiate();
@@ -112,8 +112,8 @@ class LocalParticipant extends Participant {
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
-    final transceiverInit = RTCRtpTransceiverInit(
-      direction: TransceiverDirection.SendOnly,
+    final transceiverInit = rtc.RTCRtpTransceiverInit(
+      direction: rtc.TransceiverDirection.SendOnly,
       sendEncodings: encodings,
       streams: [track.mediaStream],
     );
@@ -122,7 +122,7 @@ class LocalParticipant extends Participant {
 
     track.transceiver = await _engine.publisher?.pc.addTransceiver(
       track: track.mediaStreamTrack,
-      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
     await _engine.negotiate();

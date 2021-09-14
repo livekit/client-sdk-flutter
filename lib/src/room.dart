@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:tuple/tuple.dart';
 
 import 'errors.dart';
@@ -340,7 +340,11 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     track?.muted = mute;
   }
 
-  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+  void _onTrackAdded(
+    rtc.MediaStreamTrack track,
+    rtc.MediaStream? stream,
+    rtc.RTCRtpReceiver? receiver,
+  ) {
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');

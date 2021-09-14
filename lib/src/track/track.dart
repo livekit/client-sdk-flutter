@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:uuid/uuid.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -17,24 +17,24 @@ class Track {
 
   String name;
   lk_models.TrackType kind;
-  MediaStreamTrack mediaStreamTrack;
+  rtc.MediaStreamTrack mediaStreamTrack;
   String? sid;
-  RTCRtpTransceiver? transceiver;
+  rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
 
   Track(this.kind, this.name, this.mediaStreamTrack);
 
   bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 
-  RTCRtpMediaType get mediaType {
+  rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
       case lk_models.TrackType.AUDIO:
-        return RTCRtpMediaType.RTCRtpMediaTypeAudio;
+        return rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio;
       case lk_models.TrackType.VIDEO:
-        return RTCRtpMediaType.RTCRtpMediaTypeVideo;
+        return rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:
-        return RTCRtpMediaType.RTCRtpMediaTypeAudio;
+        return rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio;
     }
   }
 

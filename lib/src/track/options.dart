@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 enum LocalVideoTrackType {
   camera,
@@ -74,12 +74,12 @@ class VideoEncoding {
 }
 
 extension VideoEncodingExt on VideoEncoding {
-  RTCRtpEncoding toRTCRtpEncoding({
+  rtc.RTCRtpEncoding toRTCRtpEncoding({
     String? rid,
     double? scaleResolutionDownBy = 1.0,
     int? numTemporalLayers,
   }) =>
-      RTCRtpEncoding(
+      rtc.RTCRtpEncoding(
         rid: rid,
         scaleResolutionDownBy: scaleResolutionDownBy,
         maxFramerate: maxFramerate,

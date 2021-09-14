@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:async/async.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/types.dart';
-import 'package:collection/collection.dart';
-import 'package:async/async.dart';
 
 import 'errors.dart';
 import 'extensions.dart';
@@ -18,9 +18,9 @@ import 'transport.dart';
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
-  MediaStreamTrack track,
-  MediaStream? stream,
-  RTCRtpReceiver? receiver,
+  rtc.MediaStreamTrack track,
+  rtc.MediaStream? stream,
+  rtc.RTCRtpReceiver? receiver,
 );
 typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
 typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
@@ -92,8 +92,8 @@ class RTCEngine with SignalClientDelegate {
   // config for RTCPeerConnection
   RTCConfiguration rtcConfig = RTCConfiguration();
   // data channels for packets
-  RTCDataChannel? reliableDC;
-  RTCDataChannel? lossyDC;
+  rtc.RTCDataChannel? reliableDC;
+  rtc.RTCDataChannel? lossyDC;
   bool iceConnected = false;
   bool isReconnecting = false;
   bool isClosed = true;
@@ -214,7 +214,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   bool get _publisherIsConnected =>
-      publisher?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateConnected;
+      publisher?.pc.iceConnectionState == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected;
 
   /* @internal */
   Future<void> sendDataPacket(
@@ -223,7 +223,7 @@ class RTCEngine with SignalClientDelegate {
     // make sure we do have a data connection
     await _ensurePublisherConnected();
 
-    final dcMessage = RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+    final dcMessage = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
     if (packet.kind == lk_models.DataPacket_Kind.LOSSY && lossyDC != null) {
       await lossyDC?.send(dcMessage);
@@ -251,7 +251,7 @@ class RTCEngine with SignalClientDelegate {
       if (event is! LKEngineIceStateUpdatedEvent || event.type != LKTransportType.publisher) {
         return;
       }
-      if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
+      if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
     }, timeout: _maxICEConnectTimeout);
   }
 
@@ -291,7 +291,7 @@ class RTCEngine with SignalClientDelegate {
       await _waitForEngineEvent((event, complete) {
         // only listen for primary ice state events
         if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
-        if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
+        if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
       }, timeout: _iceRestartTimeout);
 
       _emit(LKEngineReconnectedEvent());
@@ -312,11 +312,11 @@ class RTCEngine with SignalClientDelegate {
     publisher = await PCTransport.create(rtcConfig.toMap());
     subscriber = await PCTransport.create(rtcConfig.toMap());
 
-    publisher?.pc.onIceCandidate = (RTCIceCandidate candidate) {
+    publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
-    subscriber?.pc.onIceCandidate = (RTCIceCandidate candidate) {
+    subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
@@ -349,7 +349,7 @@ class RTCEngine with SignalClientDelegate {
       // only listen to primary ice events
       if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
 
-      if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) {
+      if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         if (!iceConnected) {
           iceConnected = true;
           if (isReconnecting) {
@@ -359,7 +359,7 @@ class RTCEngine with SignalClientDelegate {
             _emit(LKEngineConnectedEvent());
           }
         }
-      } else if (event.state == RTCIceConnectionState.RTCIceConnectionStateFailed) {
+      } else if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
         // trigger reconnect sequence
         if (iceConnected) {
           iceConnected = false;
@@ -368,7 +368,7 @@ class RTCEngine with SignalClientDelegate {
       }
     });
 
-    subscriber?.pc.onTrack = (RTCTrackEvent event) {
+    subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
       onTrack?.call(event.track, event.streams.firstOrNull, event.receiver);
       _emit(LKEngineMediaTrackAddedEvent(
         track: event.track,
@@ -378,13 +378,13 @@ class RTCEngine with SignalClientDelegate {
     };
 
     // data channels
-    final lossyInit = RTCDataChannelInit()
+    final lossyInit = rtc.RTCDataChannelInit()
       ..binaryType = 'binary'
       ..ordered = true
       ..maxRetransmits = 0;
     lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
 
-    final reliableInit = RTCDataChannelInit()
+    final reliableInit = rtc.RTCDataChannelInit()
       ..binaryType = 'binary'
       ..ordered = true;
     reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
@@ -394,7 +394,7 @@ class RTCEngine with SignalClientDelegate {
     reliableDC?.onMessage = _onDCMessage;
   }
 
-  void _onDataChannel(RTCDataChannel dc) {
+  void _onDataChannel(rtc.RTCDataChannel dc) {
     switch (dc.label) {
       case _reliableDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
@@ -412,7 +412,7 @@ class RTCEngine with SignalClientDelegate {
     }
   }
 
-  void _onDCMessage(RTCDataChannelMessage message) {
+  void _onDCMessage(rtc.RTCDataChannelMessage message) {
     // always expect binary
     if (!message.isBinary) {
       logger.warning('Data message is not binary');
@@ -507,7 +507,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   @override
-  Future<void> onOffer(RTCSessionDescription sd) async {
+  Future<void> onOffer(rtc.RTCSessionDescription sd) async {
     if (subscriber == null) {
       return;
     }
@@ -524,7 +524,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   @override
-  Future<void> onAnswer(RTCSessionDescription sd) async {
+  Future<void> onAnswer(rtc.RTCSessionDescription sd) async {
     if (publisher == null) {
       return;
     }
@@ -534,7 +534,7 @@ class RTCEngine with SignalClientDelegate {
   }
 
   @override
-  Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
+  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
     if (publisher == null || subscriber == null) {
       return;
     }
