@@ -2,6 +2,7 @@
 //
 //
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'proto/livekit_models.pb.dart' as lk_models;
 
 abstract class LKEvent {}
 
@@ -90,15 +91,48 @@ class LKEngineReconnectingEvent extends LKEngineEvent {}
 
 class LKEngineReconnectedEvent extends LKEngineEvent {}
 
-class LKEngineParticipantUpdateEvent extends LKEngineEvent {}
+class LKEngineParticipantUpdateEvent extends LKEngineEvent {
+  final List<lk_models.ParticipantInfo> participants;
+  const LKEngineParticipantUpdateEvent({
+    required this.participants,
+  });
+}
 
-class LKEngineMediaTrackAddedEvent extends LKEngineEvent {}
+class LKEngineMediaTrackAddedEvent extends LKEngineEvent {
+  final rtc.MediaStreamTrack track;
+  final rtc.MediaStream? stream;
+  final rtc.RTCRtpReceiver? receiver;
+  const LKEngineMediaTrackAddedEvent({
+    required this.track,
+    required this.stream,
+    required this.receiver,
+  });
+}
 
-class LKEngineSpeakersUpdateEvent extends LKEngineEvent {}
+class LKEngineSpeakersUpdateEvent extends LKEngineEvent {
+  final List<lk_models.SpeakerInfo> speakers;
+  const LKEngineSpeakersUpdateEvent({
+    required this.speakers,
+  });
+}
 
-class LKEngineDataPacketReceivedEvent extends LKEngineEvent {}
+class LKEngineDataPacketReceivedEvent extends LKEngineEvent {
+  final lk_models.UserPacket packet;
+  final lk_models.DataPacket_Kind kind;
+  const LKEngineDataPacketReceivedEvent({
+    required this.packet,
+    required this.kind,
+  });
+}
 
-class LKEngineRemoteMuteChangedEvent extends LKEngineEvent {}
+class LKEngineRemoteMuteChangedEvent extends LKEngineEvent {
+  final String sid;
+  final bool muted;
+  const LKEngineRemoteMuteChangedEvent({
+    required this.sid,
+    required this.muted,
+  });
+}
 
 enum LKTransportType {
   subscriber,
