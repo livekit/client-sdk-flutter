@@ -30,7 +30,9 @@ typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
   // simply emit an event
-  void _emit(LKEngineEvent event) => events.add(event);
+  void _emit(LKEngineEvent event) {
+    if (!events.isClosed) events.add(event);
+  }
 
   // convenience method to wait for engine events with timeout
   Future<void> _waitForEngineEvent(
@@ -84,6 +86,7 @@ class RTCEngine with SignalClientDelegate {
   // used for ice state notifications
   StreamSubscription<LKEngineEvent>? _primaryIceStateListener;
 
+  // suppport for multiple event listeners
   final events = StreamController<LKEngineEvent>.broadcast();
 
   // config for RTCPeerConnection
