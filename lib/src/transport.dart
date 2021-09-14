@@ -15,8 +15,9 @@ class PCTransport {
   bool restartingIce = false;
   bool renegotiate = false;
   PCTransportOnOffer? onOffer;
-  Timer? _debounceTimer;
+  Function? _cancelDebounce;
 
+  // private constructor
   PCTransport._(this.pc);
 
   static Future<PCTransport> create(Map<String, dynamic> configuration) async {
@@ -24,12 +25,16 @@ class PCTransport {
     return PCTransport._(_);
   }
 
-  late final negotiate = Utils.debounce(() => createAndSendOffer(), 100, (t) => _debounceTimer = t);
+  late final negotiate = Utils.createDebounceFunc(
+    () => createAndSendOffer(),
+    cancelFunc: (f) => _cancelDebounce = f,
+    wait: const Duration(milliseconds: 100),
+  );
 
   Future<void> dispose() async {
     // Ensure debounce won't fire
-    _debounceTimer?.cancel();
-    _debounceTimer = null;
+    _cancelDebounce?.call();
+    _cancelDebounce = null;
 
     // Ensure callbacks won't fire any more
     pc.onRenegotiationNeeded = null;

@@ -148,12 +148,6 @@ class RTCEngine with SignalClientDelegate {
     await _primaryIceStateListener?.cancel();
     _primaryIceStateListener = null;
 
-    // await _publisherIceStateStream?.close();
-    // _publisherIceStateStream = null;
-
-    // await _subscriberIceStateStream?.close();
-    // _subscriberIceStateStream = null;
-
     // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
     publisher = null;

@@ -132,16 +132,20 @@ class Utils {
   }
 
   // makes a debounce func
-  static Function debounce(Function f, int ms, Function(Timer) onCreate) {
+  static Function createDebounceFunc(
+    Function f, {
+    Function(Function)? cancelFunc,
+    required Duration wait,
+  }) {
     Timer? t;
     return () {
       t?.cancel();
-      t = Timer(Duration(milliseconds: ms), () {
+      t = Timer(wait, () {
         t = null;
         f();
       });
-      // keep timer instance so we can cancel it when no longer needed
-      onCreate(t!);
+      // pass back the cancel method so we can cancel it when no longer needed
+      cancelFunc?.call(t!.cancel);
     };
   }
 }
