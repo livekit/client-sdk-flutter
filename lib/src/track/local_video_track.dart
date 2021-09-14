@@ -31,7 +31,7 @@ class LocalVideoTrack extends VideoTrack {
   Future<void> restartTrack([
     LocalVideoTrackOptions? options,
   ]) async {
-    if (sender == null) throw TrackCreateError('could not restart track');
+    if (sender == null) throw LKTrackCreateException('could not restart track');
     if (options != null && currentOptions.runtimeType != options.runtimeType) {
       throw Exception('options must be a ${currentOptions.runtimeType}');
     }
@@ -89,7 +89,7 @@ class LocalVideoTrack extends VideoTrack {
       stream = await navigator.mediaDevices.getUserMedia(constraints);
     }
 
-    if (stream.getVideoTracks().isEmpty) throw TrackCreateError();
+    if (stream.getVideoTracks().isEmpty) throw LKTrackCreateException();
     return stream;
   }
 }

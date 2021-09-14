@@ -114,7 +114,7 @@ class Utils {
       ),
       // if resolution is high enough, we would send both h and q res..
       // otherwise only send h
-      if (height * 0.7 >= midPreset.height) ...[
+      if (width >= 960) ...[
         midPreset.encoding.toRTCRtpEncoding(
           rid: 'h',
           scaleResolutionDownBy: height / midPreset.height,

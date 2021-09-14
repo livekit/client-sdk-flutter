@@ -192,7 +192,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
         return;
       }
       _state = RoomState.disconnected;
-      _connectCompleter?.completeError(ConnectError());
+      _connectCompleter?.completeError(LKConnectException());
       _connectCompleter = null;
       notifyListeners();
     });

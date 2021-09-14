@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/src/events.dart';
+import 'package:livekit_client/src/types.dart';
 
 import 'errors.dart';
 import 'extensions.dart';
@@ -24,6 +26,33 @@ typedef DataPacketCallback = void Function(
     lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
 typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
+extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
+  // simply emit an event
+  void _emitEvent(LKEngineEvent event) => events.add(event);
+
+  // convenience method to wait for engine events with timeout
+  Future<void> _waitForEngineEvent(
+    Function(LKEngineEvent event, Function complete) onEvent, {
+    required Duration timeout,
+  }) async {
+    // create a temporary event listener
+    final completer = Completer<void>();
+    final listener = events.stream.listen((event) => onEvent(event, completer.complete));
+
+    try {
+      // wait to complete with timeout
+      await completer.future.timeout(
+        timeout,
+        onTimeout: () => throw LKTimeoutException(),
+      );
+      // do not catch exceptions and pass it up
+    } finally {
+      // always clean-up listener
+      await listener.cancel();
+    }
+  }
+}
+
 class RTCEngine with SignalClientDelegate {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
@@ -39,11 +68,9 @@ class RTCEngine with SignalClientDelegate {
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // used for ice state notifications
-  StreamController<RTCIceConnectionState>? _publisherIceStateStream;
-  StreamController<RTCIceConnectionState>? _subscriberIceStateStream;
-  StreamController<RTCIceConnectionState>? get primaryIceStateStream =>
-      _subscriberPrimary ? _subscriberIceStateStream : _publisherIceStateStream;
-  StreamSubscription<RTCIceConnectionState>? _primarySubscription;
+  StreamSubscription<LKEngineEvent>? _primaryIceStateListener;
+
+  final events = StreamController<LKEngineEvent>.broadcast();
 
   // config for RTCPeerConnection
   RTCConfiguration rtcConfig = RTCConfiguration();
@@ -105,7 +132,7 @@ class RTCEngine with SignalClientDelegate {
 
     // if it's not complete after 5 seconds, fail
     Timer(_connectionTimeout, () {
-      _joinCompleter?.completeError(ConnectError());
+      _joinCompleter?.completeError(LKConnectException());
       _joinCompleter = null;
     });
 
@@ -115,14 +142,17 @@ class RTCEngine with SignalClientDelegate {
   Future<void> close() async {
     isClosed = true;
 
-    await _primarySubscription?.cancel();
-    _primarySubscription = null;
+    // Clean-up events
+    await events.close();
 
-    await _publisherIceStateStream?.close();
-    _publisherIceStateStream = null;
+    await _primaryIceStateListener?.cancel();
+    _primaryIceStateListener = null;
 
-    await _subscriberIceStateStream?.close();
-    _subscriberIceStateStream = null;
+    // await _publisherIceStateStream?.close();
+    // _publisherIceStateStream = null;
+
+    // await _subscriberIceStateStream?.close();
+    // _subscriberIceStateStream = null;
 
     // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
@@ -141,7 +171,7 @@ class RTCEngine with SignalClientDelegate {
     TrackDimension? dimension,
   }) async {
     if (_pendingTrackResolvers[cid] != null) {
-      throw TrackPublishError('a track with the same CID has already been published');
+      throw LKTrackPublishException('a track with the same CID has already been published');
     }
 
     final completer = Completer<lk_models.TrackInfo>();
@@ -153,33 +183,12 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> negotiate({bool? iceRestart}) async {
-    final pub = publisher;
-    if (pub == null) return;
-
-    // _hasPublished = true;
-
-    // handle cases that we couldn't create a new offer due to a pending answer
-    // that's lost in transit
-    if (pub.pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-      logger.fine('has local offer');
-      // it's still waiting for the last offer, and it won't be able to create
-      // a new offer in this state. We'll reuse the last remote description to
-      // get it out of this state
-      final remoteDesc = await pub.getRemoteDescription();
-      if (remoteDesc != null) await pub.pc.setRemoteDescription(remoteDesc);
+    if (publisher == null) {
+      return;
     }
 
-    final constraints = <String, dynamic>{};
-    if (iceRestart != null && iceRestart) {
-      constraints['mandatory'] = {
-        'IceRestart': true,
-      };
-    }
-    final offer = await pub.pc.createOffer(constraints);
-    logger.fine('Created offer');
-    logger.finer('sdp: ${offer.sdp}');
-    await pub.pc.setLocalDescription(offer);
-    client.sendOffer(offer);
+    _hasPublished = true;
+    publisher!.negotiate();
   }
 
   bool get _publisherIsConnected =>
@@ -202,8 +211,10 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> _ensurePublisherConnected() async {
-    if (!_subscriberPrimary) return;
     logger.fine('ensurePublisherConnected()');
+    if (!_subscriberPrimary) {
+      return;
+    }
 
     if (_publisherIsConnected) {
       logger.warning('publisher is already connected');
@@ -213,30 +224,26 @@ class RTCEngine with SignalClientDelegate {
     // start negotiation
     await negotiate();
 
-    // wait for publisher ICE connected
-    final completer = Completer<void>();
-    final subscription = _publisherIceStateStream?.stream.listen((RTCIceConnectionState state) {
-      if (state == RTCIceConnectionState.RTCIceConnectionStateConnected) completer.complete();
-    });
-
-    try {
-      await completer.future.timeout(
-        _maxICEConnectTimeout,
-        onTimeout: () => throw ConnectError(),
-      );
-    } finally {
-      await subscription?.cancel();
-    }
+    await _waitForEngineEvent((event, complete) {
+      // only listen for publisher ice state events
+      if (event is! LKEngineIceStateUpdatedEvent || event.type != LKTransportType.publisher) {
+        return;
+      }
+      if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
+    }, timeout: _maxICEConnectTimeout);
   }
 
   Future<void> reconnect() async {
-    if (isClosed) return;
+    if (isClosed) {
+      return;
+    }
 
     final url = this.url;
     final token = this.token;
     if (url == null || token == null) {
-      throw ConnectError('could not reconnect without url and token');
+      throw LKConnectException('could not reconnect without url and token');
     }
+
     if (_reconnectAttempts == 0) {
       onReconnecting?.call();
     }
@@ -246,33 +253,32 @@ class RTCEngine with SignalClientDelegate {
       isReconnecting = true;
       await client.reconnect(url, token);
 
-      final pub = publisher;
-      final sub = subscriber;
-      if (pub == null || sub == null) {
-        throw UnexpectedConnectionState('publisher or subscribers is null');
+      if (publisher == null || subscriber == null) {
+        throw LKUnexpectedStateException('publisher or subscribers is null');
       }
 
-      pub.restartingIce = true;
-      sub.restartingIce = true;
+      subscriber!.restartingIce = true;
 
-      await negotiate(iceRestart: true);
-    } catch (error) {
+      // await negotiate(iceRestart: true);
+      if (_hasPublished) {
+        await publisher!.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+      }
+
+      // wait for primary to ice connect
+      await _waitForEngineEvent((event, complete) {
+        // only listen for primary ice state events
+        if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
+        if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
+      }, timeout: _iceRestartTimeout);
+
+      // emit event
+      _emitEvent(LKEngineReconnectedEvent());
+
+      // don't catch and pass up any exception
+    } finally {
+      // always set reconnecting to false
       isReconnecting = false;
-      return Future.error(error);
     }
-
-    // wait for connectivity to change
-    final startTime = DateTime.now();
-    while (DateTime.now().difference(startTime) < _iceRestartTimeout) {
-      if (iceConnected) {
-        isReconnecting = false;
-        return;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    }
-
-    isReconnecting = false;
-    throw ConnectError('could not reconnect ICE');
   }
 
   Future<void> _configurePeerConnections() async {
@@ -296,36 +302,46 @@ class RTCEngine with SignalClientDelegate {
       client.sendOffer(offer);
     };
 
-    _publisherIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);
-    publisher?.pc.onIceConnectionState = (state) => _publisherIceStateStream?.add(state);
+    // in subscriber primary mode, server side opens sub data channels.
+    if (_subscriberPrimary) {
+      subscriber?.pc.onDataChannel = _onDataChannel;
+    }
 
-    _subscriberIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);
-    subscriber?.pc.onIceConnectionState = (state) => _subscriberIceStateStream?.add(state);
+    subscriber?.pc.onIceConnectionState = (state) {
+      _emitEvent(LKEngineIceStateUpdatedEvent(
+        type: LKTransportType.subscriber,
+        state: state,
+        isPrimary: _subscriberPrimary,
+      ));
+    };
 
-    _primarySubscription ??= primaryIceStateStream?.stream.listen((RTCIceConnectionState state) {
-      //
-      logger.fine('Primary ${state}');
+    publisher?.pc.onIceConnectionState = (state) {
+      _emitEvent(LKEngineIceStateUpdatedEvent(
+        type: LKTransportType.publisher,
+        state: state,
+        isPrimary: !_subscriberPrimary,
+      ));
+    };
 
-      switch (state) {
-        case RTCIceConnectionState.RTCIceConnectionStateConnected:
-          if (!iceConnected) {
-            iceConnected = true;
-            if (isReconnecting) {
-              onReconnected?.call();
-            } else {
-              onICEConnected?.call();
-            }
+    _primaryIceStateListener ??= events.stream.listen((LKEngineEvent event) {
+      // only listen to primary ice events
+      if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
+
+      if (event.state == RTCIceConnectionState.RTCIceConnectionStateConnected) {
+        if (!iceConnected) {
+          iceConnected = true;
+          if (isReconnecting) {
+            onReconnected?.call();
+          } else {
+            onICEConnected?.call();
           }
-          break;
-
-        case RTCIceConnectionState.RTCIceConnectionStateFailed:
+        }
+      } else if (event.state == RTCIceConnectionState.RTCIceConnectionStateFailed) {
+        // trigger reconnect sequence
+        if (iceConnected) {
           iceConnected = false;
-          // trigger reconnect sequence
           _onPCDisconnected('peerconnection');
-          break;
-
-        default:
-          break;
+        }
       }
     });
 
@@ -333,42 +349,39 @@ class RTCEngine with SignalClientDelegate {
       onTrack?.call(event.track, event.streams.first, event.receiver);
     };
 
-    // in subscriber primary mode, server side opens sub data channels.
-    if (_subscriberPrimary) {
-      //
-      subscriber?.pc.onDataChannel = (RTCDataChannel dc) {
-        switch (dc.label) {
-          case _reliableDCLabel:
-            logger.fine('Server opened DC label: ${dc.label}');
-            reliableDC = dc;
-            reliableDC?.onMessage = _onDCMessage;
-            break;
-          case _lossyDCLabel:
-            logger.fine('Server opened DC label: ${dc.label}');
-            lossyDC = dc;
-            lossyDC?.onMessage = _onDCMessage;
-            break;
-          default:
-            logger.warning('Unknown DC label: ${dc.label}');
-            break;
-        }
-      };
-    }
-
-    // create data channels on publisher (for backward-compatibility)
+    // data channels
     final lossyInit = RTCDataChannelInit()
-      ..maxRetransmits = 0
+      ..binaryType = 'binary'
       ..ordered = true
-      ..binaryType = 'binary';
+      ..maxRetransmits = 0;
     lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
-    lossyDC?.onMessage = _onDCMessage;
 
     final reliableInit = RTCDataChannelInit()
-      ..ordered = true
-      ..maxRetransmits = 50
-      ..binaryType = 'binary';
+      ..binaryType = 'binary'
+      ..ordered = true;
     reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+
+    // also handle messages over the pub channel, for backwards compatibility
+    lossyDC?.onMessage = _onDCMessage;
     reliableDC?.onMessage = _onDCMessage;
+  }
+
+  void _onDataChannel(RTCDataChannel dc) {
+    switch (dc.label) {
+      case _reliableDCLabel:
+        logger.fine('Server opened DC label: ${dc.label}');
+        reliableDC = dc;
+        reliableDC?.onMessage = _onDCMessage;
+        break;
+      case _lossyDCLabel:
+        logger.fine('Server opened DC label: ${dc.label}');
+        lossyDC = dc;
+        lossyDC?.onMessage = _onDCMessage;
+        break;
+      default:
+        logger.warning('Unknown DC label: ${dc.label}');
+        break;
+    }
   }
 
   void _onDCMessage(RTCDataChannelMessage message) {
@@ -387,7 +400,6 @@ class RTCEngine with SignalClientDelegate {
         onDataMessage?.call(dp.user, dp.kind);
         break;
       default:
-        // do nothing
         break;
     }
   }
@@ -459,32 +471,41 @@ class RTCEngine with SignalClientDelegate {
 
   @override
   Future<void> onOffer(RTCSessionDescription sd) async {
-    final sub = subscriber;
-    if (sub == null) return;
+    if (subscriber == null) {
+      return;
+    }
 
-    await sub.setRemoteDescription(sd);
+    logger.fine('received server offer(type: ${sd.type}, ${subscriber!.pc.signalingState})');
 
-    final answer = await sub.pc.createAnswer();
+    await subscriber!.setRemoteDescription(sd);
+
+    final answer = await subscriber!.pc.createAnswer();
     logger.fine('Created answer');
     logger.finer('sdp: ${answer.sdp}');
-    await sub.pc.setLocalDescription(answer);
+    await subscriber!.pc.setLocalDescription(answer);
     client.sendAnswer(answer);
   }
 
   @override
   Future<void> onAnswer(RTCSessionDescription sd) async {
-    if (publisher == null) return;
-    logger.fine('Received answer');
+    if (publisher == null) {
+      return;
+    }
+    logger.fine('received answer (type: ${sd.type})');
     logger.finer('sdp: ${sd.sdp}');
     await publisher!.setRemoteDescription(sd);
   }
 
   @override
   Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
+    if (publisher == null || subscriber == null) {
+      return;
+    }
+    logger.fine('got ICE candidate from peer');
     if (target == lk_rtc.SignalTarget.SUBSCRIBER) {
-      await subscriber?.addIceCandidate(candidate);
+      await subscriber!.addIceCandidate(candidate);
     } else if (target == lk_rtc.SignalTarget.PUBLISHER) {
-      await publisher?.addIceCandidate(candidate);
+      await publisher!.addIceCandidate(candidate);
     }
   }
 

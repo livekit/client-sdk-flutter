@@ -35,7 +35,7 @@ class LocalParticipant extends Participant {
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
     if (audioTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
-      throw TrackPublishError('track already exists');
+      throw LKTrackPublishException('track already exists');
     }
 
     // try {
@@ -69,7 +69,7 @@ class LocalParticipant extends Participant {
     TrackPublishOptions? options,
   }) async {
     if (videoTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
-      throw TrackPublishError('track already exists');
+      throw LKTrackPublishException('track already exists');
     }
 
     // Use default options from `ConnectOptions` if options is null
@@ -146,6 +146,7 @@ class LocalParticipant extends Participant {
     final sender = track.transceiver?.sender;
     if (sender != null) {
       await engine.publisher?.pc.removeTrack(sender);
+      await engine.negotiate();
     }
 
     tracks.remove(pub.sid);
@@ -166,6 +167,7 @@ class LocalParticipant extends Participant {
         destinationSids: destinationSids,
       ),
     );
+
     await engine.sendDataPacket(packet);
   }
 

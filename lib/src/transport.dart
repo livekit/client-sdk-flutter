@@ -24,6 +24,8 @@ class PCTransport {
     return PCTransport._(_);
   }
 
+  late final negotiate = Utils.debounce(() => createAndSendOffer(), 100, (t) => _debounceTimer = t);
+
   Future<void> dispose() async {
     // Ensure debounce won't fire
     _debounceTimer?.cancel();
@@ -55,8 +57,6 @@ class PCTransport {
     await pc.dispose();
   }
 
-  late final negotiate = Utils.debounce(() => createAndSendOffer(), 100, (t) => _debounceTimer = t);
-
   Future<void> setRemoteDescription(RTCSessionDescription sd) async {
     await pc.setRemoteDescription(sd);
 
@@ -74,7 +74,6 @@ class PCTransport {
   }
 
   Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
-    //
     if (onOffer == null) {
       return;
     }

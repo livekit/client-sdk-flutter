@@ -90,13 +90,13 @@ class SignalClient {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) throw ConnectError(validateResponse.body);
-        throw ConnectError();
+        if (validateResponse.statusCode != 200) throw LKConnectException(validateResponse.body);
+        throw LKConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
-        if (error is ConnectError) rethrow;
+        if (error is LKConnectException) rethrow;
         // HTTP doesn't work either
-        throw ConnectError();
+        throw LKConnectException();
       }
     }
   }
