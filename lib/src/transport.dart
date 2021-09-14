@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'utils.dart';
 import 'types.dart';
 
 import 'logger.dart';
@@ -14,7 +15,7 @@ class PCTransport {
   bool restartingIce = false;
   bool renegotiate = false;
   PCTransportOnOffer? onOffer;
-  Timer? _negotiateTimer;
+  Timer? _debounceTimer;
 
   PCTransport._(this.pc);
 
@@ -24,9 +25,10 @@ class PCTransport {
   }
 
   Future<void> dispose() async {
-    //
-    _negotiateTimer?.cancel();
-    _negotiateTimer = null;
+    // Ensure debounce won't fire
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+
     // Ensure callbacks won't fire any more
     pc.onRenegotiationNeeded = null;
     pc.onIceCandidate = null;
@@ -53,15 +55,7 @@ class PCTransport {
     await pc.dispose();
   }
 
-  // debounced negotiate interface
-  void negotiate() {
-    //
-    _negotiateTimer?.cancel();
-    _negotiateTimer = Timer(const Duration(milliseconds: 100), () {
-      createAndSendOffer();
-      _negotiateTimer = null;
-    });
-  }
+  late final negotiate = Utils.debounce(() => createAndSendOffer(), 100, (t) => _debounceTimer = t);
 
   Future<void> setRemoteDescription(RTCSessionDescription sd) async {
     await pc.setRemoteDescription(sd);
@@ -75,8 +69,7 @@ class PCTransport {
 
     if (renegotiate) {
       renegotiate = false;
-      // await or un-awaited ?
-      await createAndSendOffer();
+      await createAndSendOffer(); // await or un-awaited ?
     }
   }
 
@@ -126,6 +119,7 @@ class PCTransport {
   Future<RTCSessionDescription?> getRemoteDescription() async {
     // Checking agains null doesn't work as intended
     // if (pc.iceConnectionState == null) return null;
+
     try {
       final result = await pc.getRemoteDescription();
       logger.fine('pc.getRemoteDescription $result');

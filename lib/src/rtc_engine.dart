@@ -55,7 +55,7 @@ class RTCEngine with SignalClientDelegate {
   bool isClosed = true;
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
-  // bool _hasPublished = false;
+  bool _hasPublished = false;
 
   // remember url and token for reconnect
   String? url;
@@ -292,13 +292,8 @@ class RTCEngine with SignalClientDelegate {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
-    publisher?.pc.onRenegotiationNeeded = () async {
-      logger.fine('Renegotiation Needed');
-      if (publisher?.pc.iceConnectionState == null ||
-          publisher?.pc.iceConnectionState == RTCIceConnectionState.RTCIceConnectionStateNew) {
-        return;
-      }
-      await negotiate();
+    publisher?.onOffer = (offer) {
+      client.sendOffer(offer);
     };
 
     _publisherIceStateStream ??= StreamController<RTCIceConnectionState>.broadcast(sync: true);

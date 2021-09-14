@@ -2,6 +2,8 @@
 //
 //
 
+import 'dart:async';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'options.dart';
@@ -127,5 +129,19 @@ class Utils {
           scaleResolutionDownBy: height / lowPreset.height,
         ),
     ];
+  }
+
+  // makes a debounce func
+  static Function debounce(Function f, int ms, Function(Timer) onCreate) {
+    Timer? t;
+    return () {
+      t?.cancel();
+      t = Timer(Duration(milliseconds: ms), () {
+        t = null;
+        f();
+      });
+      // keep timer instance so we can cancel it when no longer needed
+      onCreate(t!);
+    };
   }
 }
