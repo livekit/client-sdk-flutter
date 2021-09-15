@@ -5,8 +5,6 @@
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
-import 'logger.dart';
-import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
 enum RTCIceTransportPolicy {
   all,
