@@ -9,6 +9,7 @@ import 'package:synchronized/synchronized.dart' as sync;
 
 import 'errors.dart';
 import 'logger.dart';
+import 'extensions.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -134,17 +135,17 @@ class SignalClient {
   }
 
   void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
-        offer: fromRTCSessionDescription(offer),
+        offer: offer.toLKObject(),
       ));
 
   void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
-        answer: fromRTCSessionDescription(answer),
+        answer: answer.toLKObject(),
       ));
 
   void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
-            candidateInit: fromRTCIceCandidate(candidate),
+            candidateInit: candidate.toJson(),
             target: target,
           ),
         ),
@@ -225,14 +226,14 @@ class SignalClient {
           }
           break;
         case lk_rtc.SignalResponse_Message.answer:
-          await delegate?.onAnswer(toRTCSessionDescription(msg.answer));
+          await delegate?.onAnswer(msg.answer.toRTCObject());
           break;
         case lk_rtc.SignalResponse_Message.offer:
-          await delegate?.onOffer(toRTCSessionDescription(msg.offer));
+          await delegate?.onOffer(msg.offer.toRTCObject());
           break;
         case lk_rtc.SignalResponse_Message.trickle:
           await delegate?.onTrickle(
-            toRTCIceCandidate(msg.trickle.candidateInit),
+            LKRTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
             msg.trickle.target,
           );
           break;
@@ -267,25 +268,4 @@ class SignalClient {
     _connected = false;
     delegate?.onClose();
   }
-}
-
-rtc.RTCSessionDescription toRTCSessionDescription(lk_rtc.SessionDescription sd) {
-  return rtc.RTCSessionDescription(sd.sdp, sd.type);
-}
-
-lk_rtc.SessionDescription fromRTCSessionDescription(rtc.RTCSessionDescription rsd) {
-  return lk_rtc.SessionDescription(type: rsd.type, sdp: rsd.sdp);
-}
-
-rtc.RTCIceCandidate toRTCIceCandidate(String candidateInit) {
-  final candInit = json.decode(candidateInit) as Map<String, dynamic>;
-  return rtc.RTCIceCandidate(
-    candInit['candidate'] as String?,
-    candInit['sdpMid'] as String?,
-    candInit['sdpMLineIndex'] as int?,
-  );
-}
-
-String fromRTCIceCandidate(rtc.RTCIceCandidate candidate) {
-  return json.encode(candidate.toMap());
 }

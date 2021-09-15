@@ -1,7 +1,9 @@
-enum RTCIceTransportPolicy {
-  all,
-  relay,
-}
+import 'dart:convert';
+
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'types.dart';
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   String toStringValue() => {
@@ -10,41 +12,35 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
       }[this]!;
 }
 
-class RTCConfiguration {
-  int? iceCandidatePoolSize;
-  List<RTCIceServer>? iceServers;
-  RTCIceTransportPolicy? iceTransportPolicy;
-
-  Map<String, dynamic> toMap() {
-    final iceServersMap = <Map<String, dynamic>>[
-      if (iceServers != null)
-        for (final element in iceServers!) element.toMap()
-    ];
-
-    return <String, dynamic>{
-      // only supports unified plan
-      'sdpSemantics': 'unified-plan',
-      if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
-      if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
-      if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
-    };
+extension LKSessionDescriptionExt on lk_rtc.SessionDescription {
+  rtc.RTCSessionDescription toRTCObject() {
+    return rtc.RTCSessionDescription(sdp, type);
   }
 }
 
-class RTCIceServer {
-  List<String> urls;
-  String? username;
-  String? credential;
+extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
+  lk_rtc.SessionDescription toLKObject() {
+    return lk_rtc.SessionDescription(type: type, sdp: sdp);
+  }
+}
 
-  RTCIceServer({
-    required this.urls,
-    this.username,
-    this.credential,
-  });
+extension LKRTCIceCandidateExt on rtc.RTCIceCandidate {
+  static rtc.RTCIceCandidate fromJson(String jsonString) {
+    final map = json.decode(jsonString) as Map<String, dynamic>;
+    return rtc.RTCIceCandidate(
+      map['candidate'] as String?,
+      map['sdpMid'] as String?,
+      map['sdpMLineIndex'] as int?,
+    );
+  }
 
-  Map<String, dynamic> toMap() => <String, dynamic>{
-        'urls': urls,
-        if (username != null) 'username': username,
-        if (credential != null) 'credential': credential,
-      };
+  String toJson() => json.encode(toMap());
+}
+
+extension LKIceServerEtc on lk_rtc.ICEServer {
+  RTCIceServer toRTCObject() => RTCIceServer(
+        urls: urls,
+        username: username.isNotEmpty ? username : null,
+        credential: credential.isNotEmpty ? username : null,
+      );
 }

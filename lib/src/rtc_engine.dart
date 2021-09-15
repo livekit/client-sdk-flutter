@@ -7,7 +7,6 @@ import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/types.dart';
 
 import 'errors.dart';
-import 'extensions.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
@@ -90,7 +89,7 @@ class RTCEngine with SignalClientDelegate {
   final events = StreamController<LKEngineEvent>.broadcast();
 
   // config for RTCPeerConnection
-  RTCConfiguration rtcConfig = RTCConfiguration();
+  RTCConfiguration? rtcConfig;
   // data channels for packets
   rtc.RTCDataChannel? reliableDC;
   rtc.RTCDataChannel? lossyDC;
@@ -128,11 +127,10 @@ class RTCEngine with SignalClientDelegate {
 
   final _cancelableDelays = <CancelableOperation<void>>[];
 
-  RTCEngine(this.client, RTCConfiguration? rtcConfig) {
-    if (rtcConfig != null) {
-      this.rtcConfig = rtcConfig;
-    }
-
+  RTCEngine(
+    this.client,
+    this.rtcConfig,
+  ) {
     client.delegate = this;
   }
 
@@ -309,8 +307,8 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    publisher = await PCTransport.create(rtcConfig.toMap());
-    subscriber = await PCTransport.create(rtcConfig.toMap());
+    publisher = await PCTransport.create(rtcConfig);
+    subscriber = await PCTransport.create(rtcConfig);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
@@ -474,21 +472,8 @@ class RTCEngine with SignalClientDelegate {
         'serverVersion: ${response.serverVersion}, '
         'iceServers: ${response.iceServers}');
 
-    // TODO: Organize
-    if (rtcConfig.iceServers == null && response.iceServers.isNotEmpty) {
-      List<RTCIceServer> iceServers = [];
-      for (final item in response.iceServers) {
-        final iceServer = RTCIceServer(urls: item.urls);
-        if (item.username.isNotEmpty) {
-          iceServer.username = item.username;
-        }
-        if (item.credential.isNotEmpty) {
-          iceServer.credential = item.credential;
-        }
-        iceServers.add(iceServer);
-      }
-      rtcConfig.iceServers = iceServers;
-    }
+    rtcConfig ??= const RTCConfiguration();
+    rtcConfig = rtcConfig!.updateIceServers(response.iceServers);
 
     await _configurePeerConnections();
 

@@ -20,8 +20,10 @@ class PCTransport {
   // private constructor
   PCTransport._(this.pc);
 
-  static Future<PCTransport> create(Map<String, dynamic> configuration) async {
-    final _ = await rtc.createPeerConnection(configuration);
+  static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
+    rtcConfig ??= const RTCConfiguration();
+    logger.fine('creating pc ${rtcConfig.toMap()}');
+    final _ = await rtc.createPeerConnection(rtcConfig.toMap());
     return PCTransport._(_);
   }
 
