@@ -5,6 +5,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'types.dart';
 
+extension LKObjectExt on Object {
+  String get objectId => '${runtimeType}${hashCode}';
+}
+
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   String toStringValue() => {
         RTCIceTransportPolicy.all: 'all',

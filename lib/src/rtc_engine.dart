@@ -158,6 +158,10 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> close() async {
+    if (isClosed) {
+      logger.fine('${objectId} close() already closed');
+      return;
+    }
     isClosed = true;
 
     await events.dispose();
@@ -353,6 +357,10 @@ class RTCEngine with SignalClientDelegate {
     _primaryIceStateListener ??= events.listen((LKEngineEvent event) {
       // only listen to primary ice events
       if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
+
+      logger.fine('primaryIceStateListener ${event.state}, '
+          'type: ${event.type}, '
+          'isPrimary: ${event.isPrimary}');
 
       if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         if (!iceConnected) {

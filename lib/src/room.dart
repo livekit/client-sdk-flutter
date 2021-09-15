@@ -8,7 +8,7 @@ import 'package:livekit_client/src/events.dart';
 import 'package:tuple/tuple.dart';
 
 import 'errors.dart';
-import 'types.dart';
+import 'extensions.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'participant/local_participant.dart';
@@ -20,6 +20,7 @@ import 'signal_client.dart';
 import 'track/remote_track_publication.dart';
 import 'track/track.dart';
 import 'track/track_publication.dart';
+import 'types.dart';
 
 enum RoomState {
   disconnected,
@@ -102,10 +103,10 @@ mixin RoomDelegate {
 /// * active speakers are different
 /// {@category Room}
 class Room extends ChangeNotifier with ParticipantDelegate {
-  RoomState _state = RoomState.disconnected;
+  RoomState _connectionState = RoomState.disconnected;
 
   /// connection state of the room
-  RoomState get state => _state;
+  RoomState get state => _connectionState;
 
   final Map<String, RemoteParticipant> _participants = {};
 
@@ -149,12 +150,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onDataMessage = _handleDataPacket;
     _engine.onRemoteMute = _onRemoteMuteChanged;
     _engine.onReconnected = () {
-      _state = RoomState.connected;
+      _connectionState = RoomState.connected;
       delegate?.onReconnected();
       notifyListeners();
     };
     _engine.onReconnecting = () {
-      _state = RoomState.reconnecting;
+      _connectionState = RoomState.reconnecting;
       delegate?.onReconnecting();
       notifyListeners();
     };
@@ -193,10 +194,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     // room is not ready until ICE is connected. so we would return a completer for now
     // if it times out, we'll fail the completer
     Timer(const Duration(seconds: 5), () {
-      if (_state != RoomState.disconnected) {
+      if (_connectionState != RoomState.disconnected) {
         return;
       }
-      _state = RoomState.disconnected;
+      _connectionState = RoomState.disconnected;
       _connectCompleter?.completeError(LKConnectException());
       _connectCompleter = null;
       notifyListeners();
@@ -231,14 +232,19 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   void _handleICEConnected() {
     _connectCompleter?.complete(this);
     _connectCompleter = null;
-    _state = RoomState.connected;
+    _connectionState = RoomState.connected;
     notifyListeners();
   }
 
   Future<void> _handleDisconnect() async {
-    if (_state == RoomState.disconnected) {
+    if (_connectionState == RoomState.disconnected) {
+      logger.fine('$objectId: _handleDisconnect() already disconnected');
       return;
     }
+    // we need to flag room as disconnected immediately to avoid
+    // this method firing multiple times since the following code
+    // is being awaited
+    _connectionState = RoomState.disconnected;
 
     for (final p in _participants.values) {
       final tracks = List<TrackPublication>.from(p.tracks.values);
@@ -253,7 +259,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     await _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
-    _state = RoomState.disconnected;
+
     notifyListeners();
     delegate?.onDisconnected();
   }

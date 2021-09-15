@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'events.dart';
+import 'logger.dart';
+import 'extensions.dart';
 import 'types.dart';
 
 class LKEventManager<T extends LKEvent> {
@@ -19,6 +21,7 @@ class LKEventManager<T extends LKEvent> {
     cancelFunc() async {
       await listener.cancel();
       _eventListeners.remove(listener);
+      logger.fine('${objectId}: event was cancelled by func');
     }
 
     return cancelFunc;
@@ -26,6 +29,7 @@ class LKEventManager<T extends LKEvent> {
 
   Future<void> dispose() async {
     // Clean-up events
+    logger.fine('${objectId}: cancelling ${_eventListeners.length} event(s)');
     for (final _ in _eventListeners) {
       await _.cancel();
     }

@@ -17,13 +17,10 @@ class RoomPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _RoomPageState();
-  }
+  State<StatefulWidget> createState() => _RoomPageState();
 }
 
 class _RoomPageState extends State<RoomPage> with RoomDelegate {
-  // BuildContext? _lastContext;
   //
   List<Participant> participants = [];
 
