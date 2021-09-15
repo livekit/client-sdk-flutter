@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
+import 'logger.dart';
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
 enum RTCIceTransportPolicy {
@@ -63,16 +64,6 @@ class RTCConfiguration {
         iceServers: iceServers ?? this.iceServers,
         iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
       );
-
-  RTCConfiguration updateIceServers(
-    List<lk_rtc.ICEServer> lkIceServers, {
-    bool force = false,
-  }) {
-    // don't overwrite if already has an element
-    if (!(iceServers?.isEmpty ?? true) || !force) return this;
-    final _ = lkIceServers.map((e) => e.toRTCObject()).toList();
-    return copyWith(iceServers: _);
-  }
 }
 
 @immutable
@@ -88,8 +79,8 @@ class RTCIceServer {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (urls != null) 'urls': urls,
-        if (username != null) 'username': username,
-        if (credential != null) 'credential': credential,
+        if (urls?.isNotEmpty ?? false) 'urls': urls,
+        if (username?.isNotEmpty ?? false) 'username': username,
+        if (credential?.isNotEmpty ?? false) 'credential': credential,
       };
 }

@@ -8,6 +8,7 @@ import 'package:livekit_client/src/types.dart';
 
 import 'errors.dart';
 import 'logger.dart';
+import 'extensions.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -76,7 +77,9 @@ class RTCEngine with SignalClientDelegate {
   static const _connectionTimeout = Duration(seconds: 5);
   static const _iceRestartTimeout = Duration(seconds: 10);
 
-  SignalClient client;
+  final SignalClient client;
+  // config for RTCPeerConnection
+  final RTCConfiguration? rtcConfig;
 
   PCTransport? publisher;
   PCTransport? subscriber;
@@ -88,8 +91,6 @@ class RTCEngine with SignalClientDelegate {
   // suppport for multiple event listeners
   final events = StreamController<LKEngineEvent>.broadcast();
 
-  // config for RTCPeerConnection
-  RTCConfiguration? rtcConfig;
   // data channels for packets
   rtc.RTCDataChannel? reliableDC;
   rtc.RTCDataChannel? lossyDC;
@@ -105,6 +106,8 @@ class RTCEngine with SignalClientDelegate {
   String? token;
 
   bool _subscriberPrimary = false;
+  // server-provided ice servers
+  List<lk_rtc.ICEServer> _providedIceServers = [];
 
   // delegate methods
   GenericCallback? onICEConnected;
@@ -307,8 +310,15 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    publisher = await PCTransport.create(rtcConfig);
-    subscriber = await PCTransport.create(rtcConfig);
+    RTCConfiguration? config;
+    // use server-provided iceServers if not provided by user
+    if ((rtcConfig?.iceServers?.isEmpty ?? true) && _providedIceServers.isNotEmpty) {
+      final iceServers = _providedIceServers.map((e) => e.toRTCObject()).toList();
+      config = (rtcConfig ?? const RTCConfiguration()).copyWith(iceServers: iceServers);
+    }
+
+    publisher = await PCTransport.create(config);
+    subscriber = await PCTransport.create(config);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
@@ -467,13 +477,11 @@ class RTCEngine with SignalClientDelegate {
     // create peer connections
     isClosed = false;
     _subscriberPrimary = response.subscriberPrimary;
+    _providedIceServers = response.iceServers;
 
     logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
         'serverVersion: ${response.serverVersion}, '
         'iceServers: ${response.iceServers}');
-
-    rtcConfig ??= const RTCConfiguration();
-    rtcConfig = rtcConfig!.updateIceServers(response.iceServers);
 
     await _configurePeerConnections();
 
