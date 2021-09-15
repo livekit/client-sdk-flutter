@@ -7,14 +7,16 @@ import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/types.dart';
 
 import 'errors.dart';
-import 'logger.dart';
+import 'event_manager.dart';
 import 'extensions.dart';
+import 'logger.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'signal_client.dart';
 import 'track/track.dart';
 import 'transport.dart';
+import 'types.dart';
 
 typedef GenericCallback = void Function();
 typedef TrackCallback = void Function(
@@ -30,9 +32,6 @@ typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
   // simply emit an event
-  void _emit(LKEngineEvent event) {
-    if (!events.isClosed) events.add(event);
-  }
 
   // convenience method to wait for engine events with timeout
   Future<void> _waitForEngineEvent(
@@ -41,7 +40,7 @@ extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
   }) async {
     // create a temporary event listener
     final completer = Completer<void>();
-    final listener = events.stream.listen((event) => onEvent(event, completer.complete));
+    final cancelListen = events.listen((event) => onEvent(event, completer.complete));
 
     try {
       // wait to complete with timeout
@@ -52,7 +51,7 @@ extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
       // do not catch exceptions and pass it up
     } finally {
       // always clean-up listener
-      await listener.cancel();
+      await cancelListen.call();
     }
   }
 
@@ -86,10 +85,7 @@ class RTCEngine with SignalClientDelegate {
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // used for ice state notifications
-  StreamSubscription<LKEngineEvent>? _primaryIceStateListener;
-
-  // suppport for multiple event listeners
-  final events = StreamController<LKEngineEvent>.broadcast();
+  LKCancelListen? _primaryIceStateListener;
 
   // data channels for packets
   rtc.RTCDataChannel? reliableDC;
@@ -130,6 +126,8 @@ class RTCEngine with SignalClientDelegate {
 
   final _cancelableDelays = <CancelableOperation<void>>[];
 
+  final events = LKEventManager<LKEngineEvent>();
+
   RTCEngine(
     this.client,
     this.rtcConfig,
@@ -162,8 +160,7 @@ class RTCEngine with SignalClientDelegate {
   Future<void> close() async {
     isClosed = true;
 
-    // Clean-up events
-    await events.close();
+    await events.dispose();
 
     // cancel all delays
     if (_cancelableDelays.isNotEmpty) {
@@ -174,7 +171,7 @@ class RTCEngine with SignalClientDelegate {
       }
     }
 
-    await _primaryIceStateListener?.cancel();
+    await _primaryIceStateListener?.call();
     _primaryIceStateListener = null;
 
     // PCTransport is responsible for disposing RTCPeerConnection
@@ -269,7 +266,7 @@ class RTCEngine with SignalClientDelegate {
 
     if (_reconnectAttempts == 0) {
       onReconnecting?.call();
-      _emit(LKEngineReconnectingEvent());
+      events.emit(LKEngineReconnectingEvent());
     }
     _reconnectAttempts++;
 
@@ -295,7 +292,7 @@ class RTCEngine with SignalClientDelegate {
         if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
       }, timeout: _iceRestartTimeout);
 
-      _emit(LKEngineReconnectedEvent());
+      events.emit(LKEngineReconnectedEvent());
 
       // don't catch and pass up any exception
     } finally {
@@ -338,7 +335,7 @@ class RTCEngine with SignalClientDelegate {
     }
 
     subscriber?.pc.onIceConnectionState = (state) {
-      _emit(LKEngineIceStateUpdatedEvent(
+      events.emit(LKEngineIceStateUpdatedEvent(
         type: LKTransportType.subscriber,
         state: state,
         isPrimary: _subscriberPrimary,
@@ -346,14 +343,14 @@ class RTCEngine with SignalClientDelegate {
     };
 
     publisher?.pc.onIceConnectionState = (state) {
-      _emit(LKEngineIceStateUpdatedEvent(
+      events.emit(LKEngineIceStateUpdatedEvent(
         type: LKTransportType.publisher,
         state: state,
         isPrimary: !_subscriberPrimary,
       ));
     };
 
-    _primaryIceStateListener ??= events.stream.listen((LKEngineEvent event) {
+    _primaryIceStateListener ??= events.listen((LKEngineEvent event) {
       // only listen to primary ice events
       if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
 
@@ -364,7 +361,7 @@ class RTCEngine with SignalClientDelegate {
             onReconnected?.call();
           } else {
             onICEConnected?.call();
-            _emit(LKEngineConnectedEvent());
+            events.emit(LKEngineConnectedEvent());
           }
         }
       } else if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
@@ -378,7 +375,7 @@ class RTCEngine with SignalClientDelegate {
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
       onTrack?.call(event.track, event.streams.firstOrNull, event.receiver);
-      _emit(LKEngineMediaTrackAddedEvent(
+      events.emit(LKEngineMediaTrackAddedEvent(
         track: event.track,
         stream: event.streams.firstOrNull,
         receiver: event.receiver,
@@ -431,11 +428,11 @@ class RTCEngine with SignalClientDelegate {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       onActiveSpeakerUpdated?.call(dp.speaker.speakers);
-      _emit(LKEngineSpeakersUpdateEvent(speakers: dp.speaker.speakers));
+      events.emit(LKEngineSpeakersUpdateEvent(speakers: dp.speaker.speakers));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
       onDataMessage?.call(dp.user, dp.kind);
-      _emit(LKEngineDataPacketReceivedEvent(
+      events.emit(LKEngineDataPacketReceivedEvent(
         packet: dp.user,
         kind: dp.kind,
       ));
@@ -450,7 +447,7 @@ class RTCEngine with SignalClientDelegate {
       logger.info('could not connect after $_reconnectAttempts, giving up');
       await close();
       onDisconnected?.call();
-      _emit(LKEngineDisconnectedEvent());
+      events.emit(LKEngineDisconnectedEvent());
       return;
     }
 
@@ -542,7 +539,7 @@ class RTCEngine with SignalClientDelegate {
   @override
   Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates) async {
     onParticipantUpdated?.call(updates);
-    _emit(LKEngineParticipantUpdateEvent(participants: updates));
+    events.emit(LKEngineParticipantUpdateEvent(participants: updates));
   }
 
   @override
@@ -554,20 +551,20 @@ class RTCEngine with SignalClientDelegate {
   @override
   Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers) async {
     onActiveSpeakerUpdated?.call(speakers);
-    _emit(LKEngineSpeakersUpdateEvent(speakers: speakers));
+    events.emit(LKEngineSpeakersUpdateEvent(speakers: speakers));
   }
 
   @override
   Future<void> onLeave(lk_rtc.LeaveRequest req) async {
     await close();
     onDisconnected?.call();
-    _emit(LKEngineDisconnectedEvent());
+    events.emit(LKEngineDisconnectedEvent());
   }
 
   @override
   Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
     onRemoteMute?.call(req.sid, req.muted);
-    _emit(LKEngineRemoteMuteChangedEvent(
+    events.emit(LKEngineRemoteMuteChangedEvent(
       sid: req.sid,
       muted: req.muted,
     ));

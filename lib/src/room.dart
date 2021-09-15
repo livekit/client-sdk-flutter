@@ -3,6 +3,8 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/event_manager.dart';
+import 'package:livekit_client/src/events.dart';
 import 'package:tuple/tuple.dart';
 
 import 'errors.dart';
@@ -132,6 +134,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   final RTCEngine _engine;
 
   Completer<Room>? _connectCompleter;
+
+  // suppport for multiple event listeners
+  final events = LKEventManager<LKRoomEvent>();
 
   /// internal use
   /// {@nodoc}

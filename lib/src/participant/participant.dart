@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:livekit_client/src/events.dart';
 
+import '../event_manager.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
@@ -76,6 +78,9 @@ class Participant extends ChangeNotifier {
 
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
+
+  // suppport for multiple event listeners
+  final events = LKEventManager<LKParticipantEvent>();
 
   /// when the participant joined the room
   DateTime get joinedAt {
