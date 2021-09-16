@@ -7,8 +7,15 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 
 import 'types.dart';
 
+extension RTCIceConnectionStateExt on rtc.RTCIceConnectionState {
+  bool isConnected() => [
+        rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
+        rtc.RTCIceConnectionState.RTCIceConnectionStateCompleted,
+      ].contains(this);
+}
+
 extension LKObjectExt on Object {
-  String get objectId => '${runtimeType}${hashCode}';
+  String get objectId => '${runtimeType}#${hashCode}';
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {

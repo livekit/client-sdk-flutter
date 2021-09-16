@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/types.dart';
@@ -86,7 +87,8 @@ class RTCEngine with SignalClientDelegate {
   // to complete join request
   Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
-  final events = LKEventManager<LKEngineEvent>();
+  final events = LKEventsEmitter<LKEngineEvent>();
+  late final _listener = LKEventsListener(emitter: events);
   final delays = LKCancelableDelayManager();
 
   RTCEngine(
@@ -94,6 +96,12 @@ class RTCEngine with SignalClientDelegate {
     this.rtcConfig,
   ) {
     client.delegate = this;
+
+    if (kDebugMode) {
+      _listener.listen((event) => logger.fine('[LISTENER] $objectId ${event.runtimeType}'));
+      _listener.on<LKEngineIceStateUpdatedEvent>(
+          (event) => logger.fine('[LISTENER] event is a LKEngineIceStateUpdatedEvent'));
+    }
   }
 
   Future<lk_rtc.JoinResponse> join(
@@ -131,6 +139,7 @@ class RTCEngine with SignalClientDelegate {
     _primaryIceStateListener = null;
 
     await events.dispose();
+    await _listener.dispose();
 
     // cancel all ongoing delays
     await delays.dispose();
@@ -194,7 +203,7 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    if (publisher?.isIceConnected() == true) {
+    if (publisher?.pc.iceConnectionState?.isConnected() == true) {
       logger.warning('publisher is already connected');
       return;
     }
@@ -202,15 +211,15 @@ class RTCEngine with SignalClientDelegate {
     // start negotiation
     await negotiate();
 
-    logger.fine('start waiting for publisher ice connected '
+    logger.fine('[PUBLISHER] waiting for to ice-connect '
         '(current: ${publisher?.pc.iceConnectionState})');
 
-    await events.waitFor(
-      (event) => publisher?.isIceConnected() == true,
+    await _listener.waitFor<LKEnginePublisherIceStateUpdatedEvent>(
+      filter: (event) => event.iceState.isConnected(),
       duration: _maxICEConnectTimeout,
     );
 
-    logger.fine('did publisher ice connected');
+    logger.fine('[PUBLISHER] connected');
   }
 
   Future<void> reconnect() async {
@@ -248,13 +257,14 @@ class RTCEngine with SignalClientDelegate {
         await publisher!.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
       }
 
-      logger.fine('reconnect: starting to wait...');
+      if (!(primary?.pc.iceConnectionState?.isConnected() ?? false)) {
+        logger.fine('reconnect: waiting for primary to ice-connect...');
 
-      //
-      await events.waitFor(
-        (event) => primary?.isIceConnected() == true,
-        duration: _iceRestartTimeout,
-      );
+        await _listener.waitFor<LKEngineIceStateUpdatedEvent>(
+          filter: (event) => event.isPrimary && event.iceState.isConnected(),
+          duration: _iceRestartTimeout,
+        );
+      }
 
       logger.fine('reconnect: success');
 
@@ -306,10 +316,7 @@ class RTCEngine with SignalClientDelegate {
     // logger.fine('subscriber.pc: ${subscriber?.pc}');
     subscriber?.pc.onIceConnectionState = (state) {
       //
-      logger.fine('subscriber ${state}, isPrimary: ${_subscriberPrimary}');
-
-      events.emit(LKEngineIceStateUpdatedEvent(
-        type: LKTransportType.subscriber,
+      events.emit(LKEngineSubscriberIceStateUpdatedEvent(
         state: state,
         isPrimary: _subscriberPrimary,
       ));
@@ -317,20 +324,17 @@ class RTCEngine with SignalClientDelegate {
 
     publisher?.pc.onIceConnectionState = (state) {
       //
-      logger.fine('publisher ${state}, isPrimary: ${!_subscriberPrimary}');
-
-      events.emit(LKEngineIceStateUpdatedEvent(
-        type: LKTransportType.publisher,
+      events.emit(LKEnginePublisherIceStateUpdatedEvent(
         state: state,
         isPrimary: !_subscriberPrimary,
       ));
     };
 
-    _primaryIceStateListener ??= events.listen((LKEngineEvent event) {
+    _primaryIceStateListener ??= _listener.on<LKEngineIceStateUpdatedEvent>((event) {
       // only listen to primary ice events
-      if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
+      if (!event.isPrimary) return;
 
-      if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+      if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         if (!iceConnected) {
           iceConnected = true;
           if (isReconnecting) {
@@ -340,7 +344,7 @@ class RTCEngine with SignalClientDelegate {
             events.emit(LKEngineConnectedEvent());
           }
         }
-      } else if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
+      } else if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
         // trigger reconnect sequence
         if (iceConnected) {
           iceConnected = false;

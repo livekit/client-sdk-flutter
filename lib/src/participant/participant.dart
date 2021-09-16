@@ -80,7 +80,7 @@ class Participant extends ChangeNotifier {
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = LKEventManager<LKParticipantEvent>();
+  final events = LKEventsEmitter<LKParticipantEvent>();
 
   /// when the participant joined the room
   DateTime get joinedAt {

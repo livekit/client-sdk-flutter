@@ -141,15 +141,33 @@ enum LKTransportType {
 }
 
 // added
-class LKEngineIceStateUpdatedEvent extends LKEngineEvent {
-  final LKTransportType type;
-  final rtc.RTCIceConnectionState state;
+abstract class LKEngineIceStateUpdatedEvent implements LKEngineEvent {
+  final rtc.RTCIceConnectionState iceState;
   final bool isPrimary;
   const LKEngineIceStateUpdatedEvent({
-    required this.type,
-    required this.state,
+    required this.iceState,
     required this.isPrimary,
   });
+}
+
+class LKEngineSubscriberIceStateUpdatedEvent extends LKEngineIceStateUpdatedEvent {
+  const LKEngineSubscriberIceStateUpdatedEvent({
+    required rtc.RTCIceConnectionState state,
+    required bool isPrimary,
+  }) : super(
+          iceState: state,
+          isPrimary: isPrimary,
+        );
+}
+
+class LKEnginePublisherIceStateUpdatedEvent extends LKEngineIceStateUpdatedEvent {
+  const LKEnginePublisherIceStateUpdatedEvent({
+    required rtc.RTCIceConnectionState state,
+    required bool isPrimary,
+  }) : super(
+          iceState: state,
+          isPrimary: isPrimary,
+        );
 }
 
 //

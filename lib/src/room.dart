@@ -134,10 +134,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   final RTCEngine _engine;
 
-  Completer<Room>? _connectCompleter;
-
   // suppport for multiple event listeners
-  final events = LKEventManager<LKRoomEvent>();
+  final events = LKEventsEmitter<LKRoomEvent>();
+  late final _engineListener = LKEventsListener<LKEngineEvent>(emitter: _engine.events);
 
   /// internal use
   /// {@nodoc}
@@ -161,14 +160,18 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     };
   }
 
+  @override
+  Future<void> dispose() async {
+    await events.dispose();
+    await _engineListener.dispose();
+    super.dispose();
+  }
+
   Future<Room> connect(
     String url,
     String token, {
     ConnectOptions? options,
   }) async {
-    final completer = Completer<Room>();
-    _connectCompleter = completer;
-
     final joinResponse = await _engine.join(
       url,
       token,
@@ -191,19 +194,24 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
 
-    // room is not ready until ICE is connected. so we would return a completer for now
-    // if it times out, we'll fail the completer
-    Timer(const Duration(seconds: 5), () {
-      if (_connectionState != RoomState.disconnected) {
-        return;
-      }
-      _connectionState = RoomState.disconnected;
-      _connectCompleter?.completeError(LKConnectException());
-      _connectCompleter = null;
-      notifyListeners();
-    });
+    // room is not ready until ICE is connected.
+    try {
+      await _engineListener.waitFor<LKEngineIceStateUpdatedEvent>(
+        filter: (event) => event.iceState.isConnected(),
+        duration: const Duration(seconds: 5),
+        onTimeout: () => throw LKConnectException(),
+      );
 
-    return completer.future;
+      // catch any exception
+    } catch (_) {
+      _connectionState = RoomState.disconnected;
+      notifyListeners();
+
+      // pass on the exception
+      rethrow;
+    }
+
+    return this;
   }
 
   /// Disconnects from the room, notifying server of disconnection.
@@ -234,8 +242,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   void _handleICEConnected() {
-    _connectCompleter?.complete(this);
-    _connectCompleter = null;
+    // _connectCompleter?.complete(this);
+    // _connectCompleter = null;
     _connectionState = RoomState.connected;
     notifyListeners();
   }
