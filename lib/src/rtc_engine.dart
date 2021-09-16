@@ -172,11 +172,6 @@ class RTCEngine with SignalClientDelegate {
     publisher!.negotiate();
   }
 
-  bool get _publisherIsConnected => [
-        rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
-        rtc.RTCIceConnectionState.RTCIceConnectionStateCompleted
-      ].contains(publisher?.pc.iceConnectionState);
-
   /* @internal */
   Future<void> sendDataPacket(
     lk_models.DataPacket packet,
@@ -199,7 +194,7 @@ class RTCEngine with SignalClientDelegate {
       return;
     }
 
-    if (_publisherIsConnected) {
+    if (publisher?.isIceConnected() == true) {
       logger.warning('publisher is already connected');
       return;
     }
@@ -211,7 +206,7 @@ class RTCEngine with SignalClientDelegate {
         '(current: ${publisher?.pc.iceConnectionState})');
 
     await events.waitFor(
-      (event) => _publisherIsConnected,
+      (event) => publisher?.isIceConnected() == true,
       duration: _maxICEConnectTimeout,
     );
 
@@ -255,24 +250,13 @@ class RTCEngine with SignalClientDelegate {
 
       logger.fine('reconnect: starting to wait...');
 
-      if (!iceConnected) {
-        //
-        await events.waitFor(
-          (event) =>
-              event is LKEngineIceStateUpdatedEvent &&
-              event.isPrimary &&
-              event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
-          duration: _iceRestartTimeout,
-        );
-      }
-      logger.fine('reconnect: success');
+      //
+      await events.waitFor(
+        (event) => primary?.isIceConnected() == true,
+        duration: _iceRestartTimeout,
+      );
 
-      // // wait for primary to ice connect
-      // await _waitForEngineEvent((event, complete) {
-      //   // only listen for primary ice state events
-      //   if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
-      //   if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
-      // }, timeout: _iceRestartTimeout);
+      logger.fine('reconnect: success');
 
       events.emit(LKEngineReconnectedEvent());
 

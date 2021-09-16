@@ -21,6 +21,11 @@ class PCTransport {
   // private constructor
   PCTransport._(this.pc);
 
+  bool isIceConnected() => [
+        rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
+        rtc.RTCIceConnectionState.RTCIceConnectionStateCompleted
+      ].contains(pc.iceConnectionState);
+
   static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('PCTransport creating ${rtcConfig.toMap()}');
