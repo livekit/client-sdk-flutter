@@ -1,7 +1,5 @@
 //
-// `Exception` implies runtime errors while, an `Error` object
-// represents a program failure that the programmer
-// should have avoided.
+//
 //
 class LKException implements Exception {
   final String message;

@@ -11,6 +11,7 @@ export 'src/participant/remote_participant.dart';
 export 'src/proto/livekit_models.pb.dart' show TrackType;
 export 'src/proto/livekit_rtc.pb.dart' show VideoQuality;
 export 'src/room.dart';
+export 'src/types.dart' show RTCConfiguration, RTCIceServer, RTCIceTransportPolicy, LKReliability;
 export 'src/track/local_audio_track.dart';
 export 'src/track/local_track_publication.dart';
 export 'src/track/local_video_track.dart';

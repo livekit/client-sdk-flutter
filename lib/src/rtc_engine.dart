@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/types.dart';
 
 import 'errors.dart';
-import 'event_manager.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'managers/delay.dart';
+import 'managers/event.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -29,44 +29,6 @@ typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo>
 typedef DataPacketCallback = void Function(
     lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
 typedef RemoteMuteCallback = void Function(String sid, bool mute);
-
-extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
-  // simply emit an event
-
-  // convenience method to wait for engine events with timeout
-  Future<void> _waitForEngineEvent(
-    Function(LKEngineEvent event, Function complete) onEvent, {
-    required Duration timeout,
-  }) async {
-    // create a temporary event listener
-    final completer = Completer<void>();
-    final cancelListen = events.listen((event) => onEvent(event, completer.complete));
-
-    try {
-      // wait to complete with timeout
-      await completer.future.timeout(
-        timeout,
-        onTimeout: () => throw LKTimeoutException(),
-      );
-      // do not catch exceptions and pass it up
-    } finally {
-      // always clean-up listener
-      await cancelListen.call();
-    }
-  }
-
-  // delay but cancelable
-  Future<void> _cancelableDelay(Duration wait, Function? ifNotCancelled) async {
-    final op = CancelableOperation<void>.fromFuture(
-      Future<void>.delayed(wait),
-    );
-    _cancelableDelays.add(op);
-    await op.valueOrCancellation();
-    _cancelableDelays.remove(op);
-    // if it was cancelled we probably don't want to execute it
-    if (!op.isCanceled) ifNotCancelled?.call();
-  }
-}
 
 class RTCEngine with SignalClientDelegate {
   static const _lossyDCLabel = '_lossy';
@@ -124,9 +86,8 @@ class RTCEngine with SignalClientDelegate {
   // to complete join request
   Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
-  final _cancelableDelays = <CancelableOperation<void>>[];
-
   final events = LKEventManager<LKEngineEvent>();
+  final delays = LKCancelableDelayManager();
 
   RTCEngine(
     this.client,
@@ -158,25 +119,21 @@ class RTCEngine with SignalClientDelegate {
   }
 
   Future<void> close() async {
+    logger.fine('${objectId} close()');
     if (isClosed) {
       logger.fine('${objectId} close() already closed');
       return;
     }
     isClosed = true;
 
-    await events.dispose();
-
-    // cancel all delays
-    if (_cancelableDelays.isNotEmpty) {
-      // make a copy so we don't mutate while iterating
-      final snapshot = List<CancelableOperation<void>>.from(_cancelableDelays);
-      for (final op in snapshot) {
-        await op.cancel();
-      }
-    }
-
+    // cancel events
     await _primaryIceStateListener?.call();
     _primaryIceStateListener = null;
+
+    await events.dispose();
+
+    // cancel all ongoing delays
+    await delays.dispose();
 
     // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
@@ -215,8 +172,10 @@ class RTCEngine with SignalClientDelegate {
     publisher!.negotiate();
   }
 
-  bool get _publisherIsConnected =>
-      publisher?.pc.iceConnectionState == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected;
+  bool get _publisherIsConnected => [
+        rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
+        rtc.RTCIceConnectionState.RTCIceConnectionStateCompleted
+      ].contains(publisher?.pc.iceConnectionState);
 
   /* @internal */
   Future<void> sendDataPacket(
@@ -248,22 +207,26 @@ class RTCEngine with SignalClientDelegate {
     // start negotiation
     await negotiate();
 
-    await _waitForEngineEvent((event, complete) {
-      // only listen for publisher ice state events
-      if (event is! LKEngineIceStateUpdatedEvent || event.type != LKTransportType.publisher) {
-        return;
-      }
-      if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
-    }, timeout: _maxICEConnectTimeout);
+    logger.fine('start waiting for publisher ice connected '
+        '(current: ${publisher?.pc.iceConnectionState})');
+
+    await events.waitFor(
+      (event) => _publisherIsConnected,
+      duration: _maxICEConnectTimeout,
+    );
+
+    logger.fine('did publisher ice connected');
   }
 
   Future<void> reconnect() async {
     if (isClosed) {
+      logger.fine('$objectId reconnect() already closed');
       return;
     }
 
     final url = this.url;
     final token = this.token;
+
     if (url == null || token == null) {
       throw LKConnectException('could not reconnect without url and token');
     }
@@ -286,15 +249,30 @@ class RTCEngine with SignalClientDelegate {
 
       // await negotiate(iceRestart: true);
       if (_hasPublished) {
+        logger.fine('reconnect: publisher.createAndSendOffer');
         await publisher!.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
       }
 
-      // wait for primary to ice connect
-      await _waitForEngineEvent((event, complete) {
-        // only listen for primary ice state events
-        if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
-        if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
-      }, timeout: _iceRestartTimeout);
+      logger.fine('reconnect: starting to wait...');
+
+      if (!iceConnected) {
+        //
+        await events.waitFor(
+          (event) =>
+              event is LKEngineIceStateUpdatedEvent &&
+              event.isPrimary &&
+              event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
+          duration: _iceRestartTimeout,
+        );
+      }
+      logger.fine('reconnect: success');
+
+      // // wait for primary to ice connect
+      // await _waitForEngineEvent((event, complete) {
+      //   // only listen for primary ice state events
+      //   if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
+      //   if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) complete();
+      // }, timeout: _iceRestartTimeout);
 
       events.emit(LKEngineReconnectedEvent());
 
@@ -314,7 +292,7 @@ class RTCEngine with SignalClientDelegate {
     RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
     if ((rtcConfig?.iceServers?.isEmpty ?? true) && _providedIceServers.isNotEmpty) {
-      final iceServers = _providedIceServers.map((e) => e.toRTCObject()).toList();
+      final iceServers = _providedIceServers.map((e) => e.toSDKType()).toList();
       config = (rtcConfig ?? const RTCConfiguration()).copyWith(iceServers: iceServers);
     }
 
@@ -322,14 +300,17 @@ class RTCEngine with SignalClientDelegate {
     subscriber = await PCTransport.create(config);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
+      logger.fine('publisher onIceCandidate');
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
     subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
+      logger.fine('subscriber onIceCandidate');
       client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
     publisher?.onOffer = (offer) {
+      logger.fine('publisher onOffer');
       client.sendOffer(offer);
     };
 
@@ -338,7 +319,11 @@ class RTCEngine with SignalClientDelegate {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
+    // logger.fine('subscriber.pc: ${subscriber?.pc}');
     subscriber?.pc.onIceConnectionState = (state) {
+      //
+      logger.fine('subscriber ${state}, isPrimary: ${_subscriberPrimary}');
+
       events.emit(LKEngineIceStateUpdatedEvent(
         type: LKTransportType.subscriber,
         state: state,
@@ -347,6 +332,9 @@ class RTCEngine with SignalClientDelegate {
     };
 
     publisher?.pc.onIceConnectionState = (state) {
+      //
+      logger.fine('publisher ${state}, isPrimary: ${!_subscriberPrimary}');
+
       events.emit(LKEngineIceStateUpdatedEvent(
         type: LKTransportType.publisher,
         state: state,
@@ -357,10 +345,6 @@ class RTCEngine with SignalClientDelegate {
     _primaryIceStateListener ??= events.listen((LKEngineEvent event) {
       // only listen to primary ice events
       if (event is! LKEngineIceStateUpdatedEvent || !event.isPrimary) return;
-
-      logger.fine('primaryIceStateListener ${event.state}, '
-          'type: ${event.type}, '
-          'isPrimary: ${event.isPrimary}');
 
       if (event.state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         if (!iceConnected) {
@@ -463,12 +447,12 @@ class RTCEngine with SignalClientDelegate {
 
     // if this instance is disposed, we probably don't want to continue any more
     // so the whole block will be canceled from being executed
-    await _cancelableDelay(delay, () async {
+    await delays.waitFor(delay, ifNotCancelled: () async {
       try {
         await reconnect();
         _reconnectAttempts = 0;
       } catch (_) {
-        // un-awaited ?
+        // doesn't need to be awaited
         // ignore: unawaited_futures
         _onDisconnected(reason);
       }
@@ -578,3 +562,27 @@ class RTCEngine with SignalClientDelegate {
     ));
   }
 }
+
+// extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
+//   // convenience method to wait for engine events with timeout
+//   Future<void> _waitForEngineEvent(
+//     Function(LKEngineEvent event, Function complete) onEvent, {
+//     required Duration timeout,
+//   }) async {
+//     // create a temporary event listener
+//     final completer = Completer<void>();
+//     final cancelListen = events.listen((event) => onEvent(event, completer.complete));
+
+//     try {
+//       // wait to complete with timeout
+//       await completer.future.timeout(
+//         timeout,
+//         onTimeout: () => throw LKTimeoutException(),
+//       );
+//       // do not catch exceptions and pass it up
+//     } finally {
+//       // always clean-up listener
+//       await cancelListen.call();
+//     }
+//   }
+// }

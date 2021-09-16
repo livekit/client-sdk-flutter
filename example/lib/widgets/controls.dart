@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:collection/collection.dart';
+import '../exts.dart';
 
 class ControlsWidget extends StatefulWidget {
   //
@@ -113,8 +116,23 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
   }
 
-  void _exit() {
-    widget.room.disconnect();
+  void _onTapDisconnect() async {
+    final result = await context.showDisconnectDialog();
+    if (result == true) await widget.room.disconnect();
+  }
+
+  void _onTapReconnect() async {
+    final result = await context.showReconnectDialog();
+    if (result == true) await widget.room.reconnect();
+  }
+
+  void _onTapSendData() async {
+    final result = await context.showSendDataDialog();
+    if (result == true) {
+      await widget.room.localParticipant.publishData(
+        utf8.encode('This is a sample data message'),
+      );
+    }
   }
 
   @override
@@ -157,9 +175,17 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           onPressed: () => _shareScreen(),
         ),
         IconButton(
-          onPressed: _exit,
+          onPressed: _onTapDisconnect,
           icon: const Icon(EvaIcons.closeCircle),
-        )
+        ),
+        IconButton(
+          onPressed: _onTapSendData,
+          icon: const Icon(EvaIcons.paperPlane),
+        ),
+        IconButton(
+          onPressed: _onTapReconnect,
+          icon: const Icon(EvaIcons.refresh),
+        ),
       ],
     );
   }

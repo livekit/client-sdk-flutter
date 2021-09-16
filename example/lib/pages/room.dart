@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
+import '../exts.dart';
 
 class RoomPage extends StatefulWidget {
   //
@@ -105,12 +107,14 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
   }
 
   @override
+  void onDataReceived(RemoteParticipant participant, List<int> data) async {
+    await context.showDataReceivedDialog(utf8.decode(data));
+  }
+
+  @override
   void onDisconnected() {
-    // final context = _lastContext;
     print('disconnected: $context');
-    // if (context != null) {
     Navigator.pop(context);
-    // }
   }
 
   @override

@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 
 import '../errors.dart';
+import '../extensions.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -155,12 +157,12 @@ class LocalParticipant extends Participant {
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
   Future<void> publishData(
-    List<int> data,
-    lk_models.DataPacket_Kind reliability, {
+    List<int> data, {
+    LKReliability reliability = LKReliability.reliable,
     List<String>? destinationSids,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: reliability,
+      kind: reliability.toPBType(),
       user: lk_models.UserPacket(
         payload: data,
         participantSid: sid,

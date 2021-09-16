@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/src/events.dart';
 
-import '../event_manager.dart';
+import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
@@ -164,7 +164,7 @@ class Participant extends ChangeNotifier {
 }
 
 // Convenience extension
-extension LKParticipantExt on Participant {
+extension LKParticipantPublicExt on Participant {
   List<TrackPublication> get videoTracks =>
       tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 

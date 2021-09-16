@@ -8,10 +8,10 @@ import 'extensions.dart';
 
 typedef LKCancelListen = Function();
 
-// abstract class LKEventListenable<T extends LKEvent> {
-//   LKCancelListen listen(Function(T) e);
-//   Future<void> cancelAllEventListeners();
-// }
+enum LKReliability {
+  reliable,
+  lossy,
+}
 
 enum RTCIceTransportPolicy {
   all,

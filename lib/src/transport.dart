@@ -5,6 +5,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'logger.dart';
 import 'types.dart';
 import 'utils.dart';
+import 'extensions.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
@@ -22,7 +23,7 @@ class PCTransport {
 
   static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
-    logger.fine('creating pc ${rtcConfig.toMap()}');
+    logger.fine('PCTransport creating ${rtcConfig.toMap()}');
     final _ = await rtc.createPeerConnection(rtcConfig.toMap());
     return PCTransport._(_);
   }
@@ -34,6 +35,7 @@ class PCTransport {
   );
 
   Future<void> dispose() async {
+    logger.fine('${objectId} dispose()');
     // Ensure debounce won't fire
     _cancelDebounce?.call();
     _cancelDebounce = null;
@@ -82,6 +84,7 @@ class PCTransport {
 
   Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
     if (onOffer == null) {
+      logger.warning('onOffer is null');
       return;
     }
 

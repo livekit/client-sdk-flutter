@@ -135,11 +135,11 @@ class SignalClient {
   }
 
   void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
-        offer: offer.toLKObject(),
+        offer: offer.toSDKType(),
       ));
 
   void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
-        answer: answer.toLKObject(),
+        answer: answer.toSDKType(),
       ));
 
   void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
@@ -226,10 +226,10 @@ class SignalClient {
           }
           break;
         case lk_rtc.SignalResponse_Message.answer:
-          await delegate?.onAnswer(msg.answer.toRTCObject());
+          await delegate?.onAnswer(msg.answer.toSDKType());
           break;
         case lk_rtc.SignalResponse_Message.offer:
-          await delegate?.onOffer(msg.offer.toRTCObject());
+          await delegate?.onOffer(msg.offer.toSDKType());
           break;
         case lk_rtc.SignalResponse_Message.trickle:
           await delegate?.onTrickle(

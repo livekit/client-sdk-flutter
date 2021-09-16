@@ -3,7 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/event_manager.dart';
+import 'package:livekit_client/src/managers/event.dart';
 import 'package:livekit_client/src/events.dart';
 import 'package:tuple/tuple.dart';
 
@@ -210,6 +210,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   Future<void> disconnect() async {
     _engine.client.sendLeave();
     await _handleDisconnect();
+  }
+
+  Future<void> reconnect() async {
+    await _engine.reconnect();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
