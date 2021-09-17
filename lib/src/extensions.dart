@@ -14,7 +14,7 @@ extension RTCIceConnectionStateExt on rtc.RTCIceConnectionState {
       ].contains(this);
 }
 
-extension LKObjectExt on Object {
+extension ObjectExt on Object {
   String get objectId => '${runtimeType}#${hashCode}';
 }
 
@@ -25,7 +25,7 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
       }[this]!;
 }
 
-extension LKSessionDescriptionExt on lk_rtc.SessionDescription {
+extension SessionDescriptionExt on lk_rtc.SessionDescription {
   rtc.RTCSessionDescription toSDKType() {
     return rtc.RTCSessionDescription(sdp, type);
   }
@@ -37,7 +37,7 @@ extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
   }
 }
 
-extension LKRTCIceCandidateExt on rtc.RTCIceCandidate {
+extension RTCIceCandidateExt on rtc.RTCIceCandidate {
   static rtc.RTCIceCandidate fromJson(String jsonString) {
     final map = json.decode(jsonString) as Map<String, dynamic>;
     return rtc.RTCIceCandidate(
@@ -50,7 +50,7 @@ extension LKRTCIceCandidateExt on rtc.RTCIceCandidate {
   String toJson() => json.encode(toMap());
 }
 
-extension LKIceServerEtc on lk_rtc.ICEServer {
+extension ICEServerExt on lk_rtc.ICEServer {
   RTCIceServer toSDKType() => RTCIceServer(
         urls: urls,
         username: username.isNotEmpty ? username : null,
@@ -60,16 +60,16 @@ extension LKIceServerEtc on lk_rtc.ICEServer {
 
 // not so neat to directly expose protobuf types so we
 // define our own types (and convert methods)
-extension LKDataPacketKindExt on lk_models.DataPacket_Kind {
-  LKReliability toSDKType() => {
-        lk_models.DataPacket_Kind.RELIABLE: LKReliability.reliable,
-        lk_models.DataPacket_Kind.LOSSY: LKReliability.lossy,
+extension DataPacketKindExt on lk_models.DataPacket_Kind {
+  Reliability toSDKType() => {
+        lk_models.DataPacket_Kind.RELIABLE: Reliability.reliable,
+        lk_models.DataPacket_Kind.LOSSY: Reliability.lossy,
       }[this]!;
 }
 
-extension LKReliabilityExt on LKReliability {
+extension ReliabilityExt on Reliability {
   lk_models.DataPacket_Kind toPBType() => {
-        LKReliability.reliable: lk_models.DataPacket_Kind.RELIABLE,
-        LKReliability.lossy: lk_models.DataPacket_Kind.LOSSY,
+        Reliability.reliable: lk_models.DataPacket_Kind.RELIABLE,
+        Reliability.lossy: lk_models.DataPacket_Kind.LOSSY,
       }[this]!;
 }

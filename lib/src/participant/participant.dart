@@ -80,7 +80,7 @@ class Participant extends ChangeNotifier {
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = LKEventsEmitter<LKParticipantEvent>();
+  final events = EventsEmitter<ParticipantEvent>();
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -164,7 +164,7 @@ class Participant extends ChangeNotifier {
 }
 
 // Convenience extension
-extension LKParticipantPublicExt on Participant {
+extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
       tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 

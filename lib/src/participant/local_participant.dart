@@ -37,7 +37,7 @@ class LocalParticipant extends Participant {
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
     if (audioTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
-      throw LKTrackPublishException('track already exists');
+      throw TrackPublishException('track already exists');
     }
 
     // try {
@@ -71,7 +71,7 @@ class LocalParticipant extends Participant {
     TrackPublishOptions? options,
   }) async {
     if (videoTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
-      throw LKTrackPublishException('track already exists');
+      throw TrackPublishException('track already exists');
     }
 
     // Use default options from `ConnectOptions` if options is null
@@ -158,7 +158,7 @@ class LocalParticipant extends Participant {
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
   Future<void> publishData(
     List<int> data, {
-    LKReliability reliability = LKReliability.reliable,
+    Reliability reliability = Reliability.reliable,
     List<String>? destinationSids,
   }) async {
     final packet = lk_models.DataPacket(

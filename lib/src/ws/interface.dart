@@ -1,41 +1,41 @@
 import 'platform/io.dart' if (dart.library.html) 'platform/web.dart';
 
-class LKWebSocketError implements Exception {
+class WebSocketException implements Exception {
   final int code;
-  const LKWebSocketError._(this.code);
+  const WebSocketException._(this.code);
 
-  static LKWebSocketError unknown() => const LKWebSocketError._(0);
-  static LKWebSocketError connect() => const LKWebSocketError._(1);
+  static WebSocketException unknown() => const WebSocketException._(0);
+  static WebSocketException connect() => const WebSocketException._(1);
 
   @override
   String toString() => {
-        LKWebSocketError.unknown(): 'Unknown error',
-        LKWebSocketError.connect(): 'Failed to connect',
+        WebSocketException.unknown(): 'Unknown error',
+        WebSocketException.connect(): 'Failed to connect',
       }[this]!;
 }
 
-typedef LKWebSocketOnData = Function(dynamic data);
-typedef LKWebSocketOnError = Function(dynamic error);
-typedef LKWebSocketOnDispose = Function();
+typedef WebSocketOnData = Function(dynamic data);
+typedef WebSocketOnError = Function(dynamic error);
+typedef WebSocketOnDispose = Function();
 
-class LKWebSocketOptions {
-  final LKWebSocketOnData? onData;
-  final LKWebSocketOnError? onError;
-  final LKWebSocketOnDispose? onDispose;
-  const LKWebSocketOptions({
+class WebSocketOptions {
+  final WebSocketOnData? onData;
+  final WebSocketOnError? onError;
+  final WebSocketOnDispose? onDispose;
+  const WebSocketOptions({
     this.onData,
     this.onError,
     this.onDispose,
   });
 }
 
-abstract class LKWebSocket {
+abstract class LiveKitWebSocket {
   void send(List<int> data);
   void dispose();
 
-  static Future<LKWebSocket> connect(
+  static Future<LiveKitWebSocket> connect(
     Uri uri, [
-    LKWebSocketOptions? options,
+    WebSocketOptions? options,
   ]) =>
       lkWebSocketConnect(uri, options);
 }

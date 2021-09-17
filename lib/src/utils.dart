@@ -14,14 +14,14 @@ enum ProtocolVersion {
   protocol3,
 }
 
-extension LKProtocolVersionExt on ProtocolVersion {
+extension ProtocolVersionExt on ProtocolVersion {
   String toStringValue() => {
         ProtocolVersion.protocol2: '2',
         ProtocolVersion.protocol3: '3',
       }[this]!;
 }
 
-extension LKUriExt on Uri {
+extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 

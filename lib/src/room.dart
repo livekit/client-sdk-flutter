@@ -135,8 +135,8 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   final RTCEngine _engine;
 
   // suppport for multiple event listeners
-  final events = LKEventsEmitter<LKRoomEvent>();
-  late final _engineListener = LKEventsListener<LKEngineEvent>(emitter: _engine.events);
+  final events = EventsEmitter<RoomEvent>();
+  late final _engineListener = EventsListener<EngineEvent>(emitter: _engine.events);
 
   /// internal use
   /// {@nodoc}
@@ -196,10 +196,10 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
     // room is not ready until ICE is connected.
     try {
-      await _engineListener.waitFor<LKEngineIceStateUpdatedEvent>(
+      await _engineListener.waitFor<EngineIceStateUpdatedEvent>(
         filter: (event) => event.iceState.isConnected(),
         duration: const Duration(seconds: 5),
-        onTimeout: () => throw LKConnectException(),
+        onTimeout: () => throw ConnectException(),
       );
 
       // catch any exception

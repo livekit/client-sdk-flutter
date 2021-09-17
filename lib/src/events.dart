@@ -1,157 +1,149 @@
-//
-//
-//
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'proto/livekit_models.pb.dart' as lk_models;
 
-abstract class LKEvent {}
+abstract class LiveKitEvent {}
 
-abstract class LKRoomEvent implements LKEvent {
-  const LKRoomEvent();
+abstract class RoomEvent implements LiveKitEvent {
+  const RoomEvent();
 }
 
-abstract class LKParticipantEvent implements LKEvent {
-  const LKParticipantEvent();
+abstract class ParticipantEvent implements LiveKitEvent {
+  const ParticipantEvent();
 }
 
-abstract class LKEngineEvent implements LKEvent {
-  const LKEngineEvent();
+abstract class EngineEvent implements LiveKitEvent {
+  const EngineEvent();
 }
 
-abstract class LKTrackEvent implements LKEvent {
-  const LKTrackEvent();
+abstract class TrackEvent implements LiveKitEvent {
+  const TrackEvent();
 }
 
 //
 // Room events
 //
-class LKRoomReconnectingEvent extends LKRoomEvent {}
+class RoomReconnectingEvent extends RoomEvent {}
 
-class LKRoomReconnectedEvent extends LKRoomEvent {}
+class RoomReconnectedEvent extends RoomEvent {}
 
-class LKRoomDisconnectedEvent extends LKRoomEvent {}
+class RoomDisconnectedEvent extends RoomEvent {}
 
-class LKRoomParticipantConnectedEvent extends LKRoomEvent {}
+class RoomParticipantConnectedEvent extends RoomEvent {}
 
-class LKRoomParticipantDisconnectedEvent extends LKRoomEvent {}
+class RoomParticipantDisconnectedEvent extends RoomEvent {}
 
-class LKRoomTrackPublishedEvent extends LKRoomEvent {}
+class RoomTrackPublishedEvent extends RoomEvent {}
 
-class LKRoomTrackSubscribedEvent extends LKRoomEvent {}
+class RoomTrackSubscribedEvent extends RoomEvent {}
 
-class LKRoomTrackSubscriptionFailedEvent extends LKRoomEvent {}
+class RoomTrackSubscriptionFailedEvent extends RoomEvent {}
 
-class LKRoomTrackUnpublishedEvent extends LKRoomEvent {}
+class RoomTrackUnpublishedEvent extends RoomEvent {}
 
-class LKRoomTrackUnsubscribedEvent extends LKRoomEvent {}
+class RoomTrackUnsubscribedEvent extends RoomEvent {}
 
-class LKRoomTrackMutedEvent extends LKRoomEvent {}
+class RoomTrackMutedEvent extends RoomEvent {}
 
-class LKRoomTrackUnmutedEvent extends LKRoomEvent {}
+class RoomTrackUnmutedEvent extends RoomEvent {}
 
-class LKRoomActiveSpeakerChangedEvent extends LKRoomEvent {}
+class RoomActiveSpeakerChangedEvent extends RoomEvent {}
 
-class LKRoomMetadataChangedEvent extends LKRoomEvent {}
+class RoomMetadataChangedEvent extends RoomEvent {}
 
-class LKRoomDataReceivedEvent extends LKRoomEvent {}
+class RoomDataReceivedEvent extends RoomEvent {}
 
-class LKRoomAudioPlaybackChangedEvent extends LKRoomEvent {}
+class RoomAudioPlaybackChangedEvent extends RoomEvent {}
 
 //
 // Participant events
 //
-class LKParticipantTrackPublishedEvent extends LKParticipantEvent {}
+class ParticipantTrackPublishedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackSubscribedEvent extends LKParticipantEvent {}
+class ParticipantTrackSubscribedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackSubscriptionFailedEvent extends LKParticipantEvent {}
+class ParticipantTrackSubscriptionFailedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackUnpublishedEvent extends LKParticipantEvent {}
+class ParticipantTrackUnpublishedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackUnsubscribedEvent extends LKParticipantEvent {}
+class ParticipantTrackUnsubscribedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackMutedEvent extends LKParticipantEvent {}
+class ParticipantTrackMutedEvent extends ParticipantEvent {}
 
-class LKParticipantTrackUnmutedEvent extends LKParticipantEvent {}
+class ParticipantTrackUnmutedEvent extends ParticipantEvent {}
 
-class LKParticipantMetadataChangedEvent extends LKParticipantEvent {}
+class ParticipantMetadataChangedEvent extends ParticipantEvent {}
 
-class LKParticipantDataReceivedEvent extends LKParticipantEvent {}
+class ParticipantDataReceivedEvent extends ParticipantEvent {}
 
-class LKParticipantSpeakingChangedEvent extends LKParticipantEvent {}
+class ParticipantSpeakingChangedEvent extends ParticipantEvent {}
 
 //
 // Engine events
 //
-class LKEngineConnectedEvent extends LKEngineEvent {}
+class EngineConnectedEvent extends EngineEvent {}
 
-class LKEngineDisconnectedEvent extends LKEngineEvent {}
+class EngineDisconnectedEvent extends EngineEvent {}
 
-class LKEngineReconnectingEvent extends LKEngineEvent {}
+class EngineReconnectingEvent extends EngineEvent {}
 
-class LKEngineReconnectedEvent extends LKEngineEvent {}
+class EngineReconnectedEvent extends EngineEvent {}
 
-class LKEngineParticipantUpdateEvent extends LKEngineEvent {
+class EngineParticipantUpdateEvent extends EngineEvent {
   final List<lk_models.ParticipantInfo> participants;
-  const LKEngineParticipantUpdateEvent({
+  const EngineParticipantUpdateEvent({
     required this.participants,
   });
 }
 
-class LKEngineMediaTrackAddedEvent extends LKEngineEvent {
+class EngineMediaTrackAddedEvent extends EngineEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream? stream;
   final rtc.RTCRtpReceiver? receiver;
-  const LKEngineMediaTrackAddedEvent({
+  const EngineMediaTrackAddedEvent({
     required this.track,
     required this.stream,
     required this.receiver,
   });
 }
 
-class LKEngineSpeakersUpdateEvent extends LKEngineEvent {
+class EngineSpeakersUpdateEvent extends EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
-  const LKEngineSpeakersUpdateEvent({
+  const EngineSpeakersUpdateEvent({
     required this.speakers,
   });
 }
 
-class LKEngineDataPacketReceivedEvent extends LKEngineEvent {
+class EngineDataPacketReceivedEvent extends EngineEvent {
   final lk_models.UserPacket packet;
   final lk_models.DataPacket_Kind kind;
-  const LKEngineDataPacketReceivedEvent({
+  const EngineDataPacketReceivedEvent({
     required this.packet,
     required this.kind,
   });
 }
 
-class LKEngineRemoteMuteChangedEvent extends LKEngineEvent {
+class EngineRemoteMuteChangedEvent extends EngineEvent {
   final String sid;
   final bool muted;
-  const LKEngineRemoteMuteChangedEvent({
+  const EngineRemoteMuteChangedEvent({
     required this.sid,
     required this.muted,
   });
 }
 
-enum LKTransportType {
-  subscriber,
-  publisher,
-}
-
 // added
-abstract class LKEngineIceStateUpdatedEvent implements LKEngineEvent {
+abstract class EngineIceStateUpdatedEvent implements EngineEvent {
   final rtc.RTCIceConnectionState iceState;
   final bool isPrimary;
-  const LKEngineIceStateUpdatedEvent({
+  const EngineIceStateUpdatedEvent({
     required this.iceState,
     required this.isPrimary,
   });
 }
 
-class LKEngineSubscriberIceStateUpdatedEvent extends LKEngineIceStateUpdatedEvent {
-  const LKEngineSubscriberIceStateUpdatedEvent({
+class EngineSubscriberIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
+  const EngineSubscriberIceStateUpdatedEvent({
     required rtc.RTCIceConnectionState state,
     required bool isPrimary,
   }) : super(
@@ -160,8 +152,8 @@ class LKEngineSubscriberIceStateUpdatedEvent extends LKEngineIceStateUpdatedEven
         );
 }
 
-class LKEnginePublisherIceStateUpdatedEvent extends LKEngineIceStateUpdatedEvent {
-  const LKEnginePublisherIceStateUpdatedEvent({
+class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
+  const EnginePublisherIceStateUpdatedEvent({
     required rtc.RTCIceConnectionState state,
     required bool isPrimary,
   }) : super(
@@ -174,16 +166,16 @@ class LKEnginePublisherIceStateUpdatedEvent extends LKEngineIceStateUpdatedEvent
 // Track events
 //
 
-class LKTrackMessageEvent extends LKTrackEvent {}
+class TrackMessageEvent extends TrackEvent {}
 
-class LKTrackMutedEvent extends LKTrackEvent {}
+class TrackMutedEvent extends TrackEvent {}
 
-class LKTrackUnmutedEvent extends LKTrackEvent {}
+class TrackUnmutedEvent extends TrackEvent {}
 
-class LKTrackUpdateSettingsEvent extends LKTrackEvent {}
+class TrackUpdateSettingsEvent extends TrackEvent {}
 
-class LKTrackUpdateSubscriptionEvent extends LKTrackEvent {}
+class TrackUpdateSubscriptionEvent extends TrackEvent {}
 
-class LKTrackAudioPlaybackStartedEvent extends LKTrackEvent {}
+class TrackAudioPlaybackStartedEvent extends TrackEvent {}
 
-class LKTrackAudioPlaybackFailedEvent extends LKTrackEvent {}
+class TrackAudioPlaybackFailedEvent extends TrackEvent {}

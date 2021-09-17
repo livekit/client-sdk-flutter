@@ -1,7 +1,3 @@
-//
-//
-//
-
 import 'dart:async';
 
 import '../errors.dart';
@@ -12,7 +8,7 @@ import '../types.dart';
 
 // Type-safe, multi-listenable, dispose safe event handling
 
-class LKEventsEmitter<T extends LKEvent> {
+class EventsEmitter<T extends LiveKitEvent> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
 
@@ -29,13 +25,13 @@ class LKEventsEmitter<T extends LKEvent> {
 }
 
 // ensures all listeners will close on dispose
-class LKEventsListener<T extends LKEvent> {
+class EventsListener<T extends LiveKitEvent> {
   // the emitter to listen to
-  final LKEventsEmitter<T> emitter;
+  final EventsEmitter<T> emitter;
   // keep track of listeners to cancel later
   final _listeners = <StreamSubscription<T>>[];
 
-  LKEventsListener({
+  EventsListener({
     required this.emitter,
   });
 
@@ -48,7 +44,7 @@ class LKEventsListener<T extends LKEvent> {
   }
 
   // listens to all events, guaranteed to be cancelled on dispose
-  LKCancelListen listen(Function(T) onEvent) {
+  CancelListenFunc listen(Function(T) onEvent) {
     final listener = emitter.streamCtrl.stream.listen(onEvent);
     _listeners.add(listener);
 
@@ -63,7 +59,7 @@ class LKEventsListener<T extends LKEvent> {
   }
 
   // convenience method to listen & filter a specific event type
-  LKCancelListen on<E>(
+  CancelListenFunc on<E>(
     Function(E) then, {
     bool Function(E)? filter,
   }) =>
@@ -93,7 +89,7 @@ class LKEventsListener<T extends LKEvent> {
       // wait to complete with timeout
       await completer.future.timeout(
         duration,
-        onTimeout: onTimeout ?? () => throw LKTimeoutException(),
+        onTimeout: onTimeout ?? () => throw TimeoutException(),
       );
       // do not catch exceptions and pass it up
     } finally {

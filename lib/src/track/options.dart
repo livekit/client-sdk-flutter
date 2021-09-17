@@ -10,7 +10,7 @@ enum CameraPosition {
   back,
 }
 
-extension LKCameraPositionExt on CameraPosition {
+extension CameraPositionExt on CameraPosition {
   CameraPosition swap() => {
         CameraPosition.front: CameraPosition.back,
         CameraPosition.back: CameraPosition.front,

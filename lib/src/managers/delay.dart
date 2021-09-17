@@ -3,7 +3,7 @@
 //
 import 'package:async/async.dart';
 
-class LKCancelableDelayManager {
+class CancelableDelayManager {
   //
   final _delays = <CancelableOperation<void>>[];
 

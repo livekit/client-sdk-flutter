@@ -31,7 +31,7 @@ class LocalVideoTrack extends VideoTrack {
   Future<void> restartTrack([
     LocalVideoTrackOptions? options,
   ]) async {
-    if (sender == null) throw LKTrackCreateException('could not restart track');
+    if (sender == null) throw TrackCreateException('could not restart track');
     if (options != null && currentOptions.runtimeType != options.runtimeType) {
       throw Exception('options must be a ${currentOptions.runtimeType}');
     }
@@ -89,7 +89,7 @@ class LocalVideoTrack extends VideoTrack {
       stream = await rtc.navigator.mediaDevices.getUserMedia(constraints);
     }
 
-    if (stream.getVideoTracks().isEmpty) throw LKTrackCreateException();
+    if (stream.getVideoTracks().isEmpty) throw TrackCreateException();
     return stream;
   }
 }
@@ -97,7 +97,7 @@ class LocalVideoTrack extends VideoTrack {
 //
 // Convenience extensions
 //
-extension LKLocalVideoTrackExt on LocalVideoTrack {
+extension LocalVideoTrackExt on LocalVideoTrack {
   // Calls restartTrack under the hood
   Future<void> setCameraPosition(CameraPosition position) async {
     final options = currentOptions;

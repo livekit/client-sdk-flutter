@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 
 import 'extensions.dart';
 
-typedef LKCancelListen = Function();
+typedef CancelListenFunc = Function();
 
-enum LKReliability {
+enum Reliability {
   reliable,
   lossy,
 }

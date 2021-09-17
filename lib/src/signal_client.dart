@@ -45,7 +45,7 @@ class SignalClient {
   ProtocolVersion protocol;
   SignalClientDelegate? delegate;
   bool _connected = false;
-  LKWebSocket? _ws;
+  LiveKitWebSocket? _ws;
 
   SignalClient({
     this.protocol = ProtocolVersion.protocol3,
@@ -69,9 +69,9 @@ class SignalClient {
     );
 
     try {
-      _ws = await LKWebSocket.connect(
+      _ws = await LiveKitWebSocket.connect(
         rtcUri,
-        LKWebSocketOptions(
+        WebSocketOptions(
           onData: _onSocketData,
           onDispose: _onSocketDone,
           onError: _handleError,
@@ -91,13 +91,13 @@ class SignalClient {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) throw LKConnectException(validateResponse.body);
-        throw LKConnectException();
+        if (validateResponse.statusCode != 200) throw ConnectException(validateResponse.body);
+        throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
-        if (error is LKConnectException) rethrow;
+        if (error is ConnectException) rethrow;
         // HTTP doesn't work either
-        throw LKConnectException();
+        throw ConnectException();
       }
     }
   }
@@ -117,9 +117,9 @@ class SignalClient {
       protocol: protocol,
     );
 
-    _ws = await LKWebSocket.connect(
+    _ws = await LiveKitWebSocket.connect(
       rtcUri,
-      LKWebSocketOptions(
+      WebSocketOptions(
         onData: _onSocketData,
         onDispose: _onSocketDone,
         onError: _handleError,
@@ -233,7 +233,7 @@ class SignalClient {
           break;
         case lk_rtc.SignalResponse_Message.trickle:
           await delegate?.onTrickle(
-            LKRTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
+            RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
             msg.trickle.target,
           );
           break;

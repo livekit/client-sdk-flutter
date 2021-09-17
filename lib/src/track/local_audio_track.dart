@@ -21,7 +21,7 @@ class LocalAudioTrack extends AudioTrack {
       'video': false,
     });
 
-    if (stream.getAudioTracks().isEmpty) throw LKTrackCreateException();
+    if (stream.getAudioTracks().isEmpty) throw TrackCreateException();
 
     return LocalAudioTrack('', stream.getAudioTracks().first, stream);
   }
