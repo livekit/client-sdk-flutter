@@ -3,13 +3,13 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/managers/event.dart';
-import 'package:livekit_client/src/events.dart';
 import 'package:tuple/tuple.dart';
 
 import 'errors.dart';
+import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'managers/event.dart';
 import 'options.dart';
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';

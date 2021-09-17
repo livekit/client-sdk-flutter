@@ -4,17 +4,17 @@ import 'dart:developer';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
-import 'package:livekit_client/src/ws/interface.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import 'errors.dart';
-import 'logger.dart';
 import 'extensions.dart';
+import 'logger.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/track.dart';
 import 'utils.dart';
+import 'ws/interface.dart';
 
 mixin SignalClientDelegate {
   // initial connection established

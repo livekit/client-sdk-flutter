@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:livekit_client/src/events.dart';
 
+import '../events.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';

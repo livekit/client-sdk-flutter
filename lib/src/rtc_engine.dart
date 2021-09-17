@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/events.dart';
-import 'package:livekit_client/src/types.dart';
+import 'events.dart';
+import 'types.dart';
 
 import 'errors.dart';
 import 'extensions.dart';
@@ -550,27 +550,3 @@ class RTCEngine with SignalClientDelegate {
     ));
   }
 }
-
-// extension _RTCEnginePrivateConvenienceMethods on RTCEngine {
-//   // convenience method to wait for engine events with timeout
-//   Future<void> _waitForEngineEvent(
-//     Function(EngineEvent event, Function complete) onEvent, {
-//     required Duration timeout,
-//   }) async {
-//     // create a temporary event listener
-//     final completer = Completer<void>();
-//     final cancelListen = events.listen((event) => onEvent(event, completer.complete));
-
-//     try {
-//       // wait to complete with timeout
-//       await completer.future.timeout(
-//         timeout,
-//         onTimeout: () => throw TimeoutException(),
-//       );
-//       // do not catch exceptions and pass it up
-//     } finally {
-//       // always clean-up listener
-//       await cancelListen.call();
-//     }
-//   }
-// }

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:livekit_client/src/logger.dart';
-
+import '../../logger.dart';
 import '../interface.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(

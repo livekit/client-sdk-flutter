@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 
 import '../errors.dart';
 import '../extensions.dart';
@@ -13,6 +12,7 @@ import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
 import '../track/track.dart';
 import '../track/track_publication.dart';
+import '../types.dart';
 import '../utils.dart';
 import 'participant.dart';
 
