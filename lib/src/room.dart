@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:tuple/tuple.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'errors.dart';
+import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'managers/event.dart';
 import 'options.dart';
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
@@ -18,6 +19,7 @@ import 'signal_client.dart';
 import 'track/remote_track_publication.dart';
 import 'track/track.dart';
 import 'track/track_publication.dart';
+import 'types.dart';
 
 enum RoomState {
   disconnected,
@@ -100,10 +102,10 @@ mixin RoomDelegate {
 /// * active speakers are different
 /// {@category Room}
 class Room extends ChangeNotifier with ParticipantDelegate {
-  RoomState _state = RoomState.disconnected;
+  RoomState _connectionState = RoomState.disconnected;
 
   /// connection state of the room
-  RoomState get state => _state;
+  RoomState get state => _connectionState;
 
   final Map<String, RemoteParticipant> _participants = {};
 
@@ -131,7 +133,9 @@ class Room extends ChangeNotifier with ParticipantDelegate {
 
   final RTCEngine _engine;
 
-  Completer<Room>? _connectCompleter;
+  // suppport for multiple event listeners
+  final events = EventsEmitter<RoomEvent>();
+  late final _engineListener = EventsListener<EngineEvent>(emitter: _engine.events);
 
   /// internal use
   /// {@nodoc}
@@ -144,15 +148,22 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     _engine.onDataMessage = _handleDataPacket;
     _engine.onRemoteMute = _onRemoteMuteChanged;
     _engine.onReconnected = () {
-      _state = RoomState.connected;
+      _connectionState = RoomState.connected;
       delegate?.onReconnected();
       notifyListeners();
     };
     _engine.onReconnecting = () {
-      _state = RoomState.reconnecting;
+      _connectionState = RoomState.reconnecting;
       delegate?.onReconnecting();
       notifyListeners();
     };
+  }
+
+  @override
+  Future<void> dispose() async {
+    await events.dispose();
+    await _engineListener.dispose();
+    super.dispose();
   }
 
   Future<Room> connect(
@@ -160,9 +171,6 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     String token, {
     ConnectOptions? options,
   }) async {
-    final completer = Completer<Room>();
-    _connectCompleter = completer;
-
     final joinResponse = await _engine.join(
       url,
       token,
@@ -185,25 +193,34 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
 
-    // room is not ready until ICE is connected. so we would return a completer for now
-    // if it times out, we'll fail the completer
-    Timer(const Duration(seconds: 5), () {
-      if (_state != RoomState.disconnected) {
-        return;
-      }
-      _state = RoomState.disconnected;
-      _connectCompleter?.completeError(ConnectError());
-      _connectCompleter = null;
-      notifyListeners();
-    });
+    // room is not ready until ICE is connected.
+    try {
+      await _engineListener.waitFor<EngineIceStateUpdatedEvent>(
+        filter: (event) => event.iceState.isConnected(),
+        duration: const Duration(seconds: 5),
+        onTimeout: () => throw ConnectException(),
+      );
 
-    return completer.future;
+      // catch any exception
+    } catch (_) {
+      _connectionState = RoomState.disconnected;
+      notifyListeners();
+
+      // pass on the exception
+      rethrow;
+    }
+
+    return this;
   }
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
     _engine.client.sendLeave();
     await _handleDisconnect();
+  }
+
+  Future<void> reconnect() async {
+    await _engine.reconnect();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
@@ -224,16 +241,21 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   }
 
   void _handleICEConnected() {
-    _connectCompleter?.complete(this);
-    _connectCompleter = null;
-    _state = RoomState.connected;
+    // _connectCompleter?.complete(this);
+    // _connectCompleter = null;
+    _connectionState = RoomState.connected;
     notifyListeners();
   }
 
   Future<void> _handleDisconnect() async {
-    if (_state == RoomState.disconnected) {
+    if (_connectionState == RoomState.disconnected) {
+      logger.fine('$objectId: _handleDisconnect() already disconnected');
       return;
     }
+    // we need to flag room as disconnected immediately to avoid
+    // this method firing multiple times since the following code
+    // is being awaited
+    _connectionState = RoomState.disconnected;
 
     for (final p in _participants.values) {
       final tracks = List<TrackPublication>.from(p.tracks.values);
@@ -248,7 +270,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     await _engine.close();
     _participants.clear();
     _activeSpeakers.clear();
-    _state = RoomState.disconnected;
+
     notifyListeners();
     delegate?.onDisconnected();
   }
@@ -340,17 +362,23 @@ class Room extends ChangeNotifier with ParticipantDelegate {
     track?.muted = mute;
   }
 
-  void _onTrackAdded(MediaStreamTrack track, MediaStream? stream, RTCRtpReceiver? receiver) {
+  void _onTrackAdded(
+    rtc.MediaStreamTrack track,
+    rtc.MediaStream? stream,
+    rtc.RTCRtpReceiver? receiver,
+  ) {
     if (stream == null) {
       // we need the stream to get the track's id
       logger.severe('received track without mediastream');
       return;
     }
 
-    final parsed = _unpackStreamId(stream.id);
-    final trackSid = parsed.item2 ?? track.id;
+    final idParts = stream.id.split('|');
 
-    final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
+    final participantSid = idParts[0];
+    final trackSid = idParts.elementAtOrNull(1) ?? track.id;
+
+    final participant = _getOrCreateRemoteParticipant(participantSid, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
@@ -414,12 +442,4 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {
     delegate?.onTrackSubscriptionFailed(participant, sid, message);
   }
-}
-
-Tuple2<String, String?> _unpackStreamId(String streamId) {
-  var parts = streamId.split('|');
-  if (parts.length != 2) {
-    return Tuple2(parts[0], null);
-  }
-  return Tuple2(parts[0], parts[1]);
 }

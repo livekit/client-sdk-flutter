@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -35,7 +35,11 @@ class RemoteParticipant extends Participant {
 
   /// for internal use
   /// {@nodoc}
-  void addSubscribedMediaTrack(MediaStreamTrack mediaTrack, MediaStream stream, String? sid) async {
+  void addSubscribedMediaTrack(
+    rtc.MediaStreamTrack mediaTrack,
+    rtc.MediaStream stream,
+    String? sid,
+  ) async {
     if (sid == null) {
       const msg = 'addSubscribedMediaTrack received null sid';
       delegate?.onTrackSubscriptionFailed(this, '', msg);

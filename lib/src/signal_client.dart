@@ -2,17 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
-import 'package:livekit_client/src/ws/interface.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import 'errors.dart';
+import 'extensions.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/track.dart';
+import 'utils.dart';
+import 'ws/interface.dart';
 
 mixin SignalClientDelegate {
   // initial connection established
@@ -20,11 +22,11 @@ mixin SignalClientDelegate {
   // websocket has closed
   Future<void> onClose([String? reason]);
   // when a server offer is received
-  Future<void> onOffer(RTCSessionDescription sd);
+  Future<void> onOffer(rtc.RTCSessionDescription sd);
   // when an answer from server is received
-  Future<void> onAnswer(RTCSessionDescription sd);
+  Future<void> onAnswer(rtc.RTCSessionDescription sd);
   // when server has a new ICE candidate
-  Future<void> onTrickle(RTCIceCandidate candidate, lk_rtc.SignalTarget target);
+  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target);
   // participant has changed
   Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
   // when a track has been added successfully
@@ -37,47 +39,19 @@ mixin SignalClientDelegate {
   Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req);
 }
 
-extension LKUriExt on Uri {
-  bool get isSecureScheme => ['https', 'wss'].contains(scheme);
-}
-
 class SignalClient {
-  static const protocolVersion = 2;
-
   final _lock = sync.Lock();
+
+  ProtocolVersion protocol;
   SignalClientDelegate? delegate;
   bool _connected = false;
-  LKWebSocket? _ws;
+  LiveKitWebSocket? _ws;
 
-  SignalClient();
+  SignalClient({
+    this.protocol = ProtocolVersion.protocol3,
+  });
 
   bool get connected => _connected;
-
-  Uri _buildUri(
-    String uriOrString, {
-    required String token,
-    ConnectOptions? options,
-    bool reconnect = false,
-    bool validate = false,
-    bool forceSecure = false,
-  }) {
-    final Uri uri = Uri.parse(uriOrString);
-
-    final useSecure = uri.isSecureScheme || forceSecure;
-    final httpScheme = useSecure ? 'https' : 'http';
-    final wsScheme = useSecure ? 'wss' : 'ws';
-
-    return uri.replace(
-      scheme: validate ? httpScheme : wsScheme,
-      path: validate ? 'validate' : 'rtc',
-      queryParameters: <String, String>{
-        'access_token': token,
-        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
-        if (reconnect) 'reconnect': '1',
-        'protocol': protocolVersion.toString(),
-      },
-    );
-  }
 
   Future<void> join(
     String uriString,
@@ -87,16 +61,17 @@ class SignalClient {
     // Create default options if null
     options ??= const ConnectOptions();
 
-    final rtcUri = _buildUri(
+    final rtcUri = Utils.buildUri(
       uriString,
       token: token,
       options: options,
+      protocol: protocol,
     );
 
     try {
-      _ws = await LKWebSocket.connect(
+      _ws = await LiveKitWebSocket.connect(
         rtcUri,
-        LKWebSocketOptions(
+        WebSocketOptions(
           onData: _onSocketData,
           onDispose: _onSocketDone,
           onError: _handleError,
@@ -104,24 +79,25 @@ class SignalClient {
       );
     } catch (socketError) {
       // Re-build same uri for validate mode
-      final validateUri = _buildUri(
+      final validateUri = Utils.buildUri(
         uriString,
         token: token,
         options: options,
         validate: true,
         forceSecure: rtcUri.isSecureScheme,
+        protocol: protocol,
       );
 
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) throw ConnectError(validateResponse.body);
-        throw ConnectError();
+        if (validateResponse.statusCode != 200) throw ConnectException(validateResponse.body);
+        throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
-        if (error is ConnectError) rethrow;
+        if (error is ConnectException) rethrow;
         // HTTP doesn't work either
-        throw ConnectError();
+        throw ConnectException();
       }
     }
   }
@@ -134,15 +110,16 @@ class SignalClient {
     _ws?.dispose();
     _ws = null;
 
-    final rtcUri = _buildUri(
+    final rtcUri = Utils.buildUri(
       uriString,
       token: token,
       reconnect: true,
+      protocol: protocol,
     );
 
-    _ws = await LKWebSocket.connect(
+    _ws = await LiveKitWebSocket.connect(
       rtcUri,
-      LKWebSocketOptions(
+      WebSocketOptions(
         onData: _onSocketData,
         onDispose: _onSocketDone,
         onError: _handleError,
@@ -157,18 +134,18 @@ class SignalClient {
     _ws?.dispose();
   }
 
-  void sendOffer(RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
-        offer: fromRTCSessionDescription(offer),
+  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
+        offer: offer.toSDKType(),
       ));
 
-  void sendAnswer(RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
-        answer: fromRTCSessionDescription(answer),
+  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
+        answer: answer.toSDKType(),
       ));
 
-  void sendIceCandidate(RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
+  void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
-            candidateInit: fromRTCIceCandidate(candidate),
+            candidateInit: candidate.toJson(),
             target: target,
           ),
         ),
@@ -249,14 +226,14 @@ class SignalClient {
           }
           break;
         case lk_rtc.SignalResponse_Message.answer:
-          await delegate?.onAnswer(toRTCSessionDescription(msg.answer));
+          await delegate?.onAnswer(msg.answer.toSDKType());
           break;
         case lk_rtc.SignalResponse_Message.offer:
-          await delegate?.onOffer(toRTCSessionDescription(msg.offer));
+          await delegate?.onOffer(msg.offer.toSDKType());
           break;
         case lk_rtc.SignalResponse_Message.trickle:
           await delegate?.onTrickle(
-            toRTCIceCandidate(msg.trickle.candidateInit),
+            RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
             msg.trickle.target,
           );
           break;
@@ -291,25 +268,4 @@ class SignalClient {
     _connected = false;
     delegate?.onClose();
   }
-}
-
-RTCSessionDescription toRTCSessionDescription(lk_rtc.SessionDescription sd) {
-  return RTCSessionDescription(sd.sdp, sd.type);
-}
-
-lk_rtc.SessionDescription fromRTCSessionDescription(RTCSessionDescription rsd) {
-  return lk_rtc.SessionDescription(type: rsd.type, sdp: rsd.sdp);
-}
-
-RTCIceCandidate toRTCIceCandidate(String candidateInit) {
-  final candInit = json.decode(candidateInit) as Map<String, dynamic>;
-  return RTCIceCandidate(
-    candInit['candidate'] as String?,
-    candInit['sdpMid'] as String?,
-    candInit['sdpMLineIndex'] as int?,
-  );
-}
-
-String fromRTCIceCandidate(RTCIceCandidate candidate) {
-  return json.encode(candidate.toMap());
 }

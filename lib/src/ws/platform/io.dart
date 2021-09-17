@@ -1,22 +1,21 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:livekit_client/src/logger.dart';
-
+import '../../logger.dart';
 import '../interface.dart';
 
-Future<LKWebSocketIO> lkWebSocketConnect(
+Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, [
-  LKWebSocketOptions? options,
+  WebSocketOptions? options,
 ]) =>
-    LKWebSocketIO.connect(uri, options);
+    LiveKitWebSocketIO.connect(uri, options);
 
-class LKWebSocketIO implements LKWebSocket {
+class LiveKitWebSocketIO implements LiveKitWebSocket {
   final io.WebSocket _ws;
-  final LKWebSocketOptions? options;
+  final WebSocketOptions? options;
   late final StreamSubscription _subscription;
 
-  LKWebSocketIO._(
+  LiveKitWebSocketIO._(
     this._ws, [
     this.options,
   ]) {
@@ -36,18 +35,18 @@ class LKWebSocketIO implements LKWebSocket {
   @override
   void send(List<int> data) => _ws.add(data);
 
-  static Future<LKWebSocketIO> connect(
+  static Future<LiveKitWebSocketIO> connect(
     Uri uri, [
-    LKWebSocketOptions? options,
+    WebSocketOptions? options,
   ]) async {
-    logger.fine('LKWebSocketIO connect (uri: ${uri.toString()})');
+    logger.fine('WebSocketIO connect (uri: ${uri.toString()})');
     try {
       final ws = await io.WebSocket.connect(uri.toString());
-      logger.fine('LKWebSocketIO connected');
-      return LKWebSocketIO._(ws, options);
+      logger.fine('WebSocketIO connected');
+      return LiveKitWebSocketIO._(ws, options);
     } catch (_) {
-      logger.severe('LKWebSocketIO error ${_}');
-      throw LKWebSocketError.connect();
+      logger.severe('WebSocketIO error ${_}');
+      throw WebSocketException.connect();
     }
   }
 }

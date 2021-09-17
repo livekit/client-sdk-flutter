@@ -1,5 +1,4 @@
-import 'package:livekit_client/src/logger.dart';
-
+import '../logger.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';

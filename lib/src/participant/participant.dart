@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../events.dart';
+import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
@@ -76,6 +78,9 @@ class Participant extends ChangeNotifier {
 
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
+
+  // suppport for multiple event listeners
+  final events = EventsEmitter<ParticipantEvent>();
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -159,7 +164,7 @@ class Participant extends ChangeNotifier {
 }
 
 // Convenience extension
-extension LKParticipantExt on Participant {
+extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
       tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 

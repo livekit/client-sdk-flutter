@@ -6,19 +6,19 @@ import 'dart:typed_data';
 
 import '../interface.dart';
 
-Future<LKWebSocketWeb> lkWebSocketConnect(
+Future<LiveKitWebSocketWeb> lkWebSocketConnect(
   Uri uri, [
-  LKWebSocketOptions? options,
+  WebSocketOptions? options,
 ]) =>
-    LKWebSocketWeb.connect(uri, options);
+    LiveKitWebSocketWeb.connect(uri, options);
 
-class LKWebSocketWeb implements LKWebSocket {
+class LiveKitWebSocketWeb implements LiveKitWebSocket {
   final html.WebSocket _ws;
-  final LKWebSocketOptions? options;
+  final WebSocketOptions? options;
   late final StreamSubscription _messageSubscription;
   late final StreamSubscription _closeSubscription;
 
-  LKWebSocketWeb._(
+  LiveKitWebSocketWeb._(
     this._ws, [
     this.options,
   ]) {
@@ -41,14 +41,14 @@ class LKWebSocketWeb implements LKWebSocket {
     _ws.close();
   }
 
-  static Future<LKWebSocketWeb> connect(
+  static Future<LiveKitWebSocketWeb> connect(
     Uri uri, [
-    LKWebSocketOptions? options,
+    WebSocketOptions? options,
   ]) async {
-    final completer = Completer<LKWebSocketWeb>();
+    final completer = Completer<LiveKitWebSocketWeb>();
     final ws = html.WebSocket(uri.toString());
-    ws.onOpen.listen((_) => completer.complete(LKWebSocketWeb._(ws, options)));
-    ws.onError.listen((_) => completer.completeError(LKWebSocketError.connect()));
+    ws.onOpen.listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
+    ws.onError.listen((_) => completer.completeError(WebSocketException.connect()));
     return completer.future;
   }
 }

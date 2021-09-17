@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../errors.dart';
 import '../logger.dart';
@@ -19,19 +19,19 @@ class LocalVideoTrack extends VideoTrack {
   //
   LocalVideoTrack._(
     String name,
-    MediaStreamTrack mediaTrack,
-    MediaStream stream,
+    rtc.MediaStreamTrack mediaTrack,
+    rtc.MediaStream stream,
     this.currentOptions,
   ) : super(name, mediaTrack, stream);
 
-  RTCRtpSender? get sender => transceiver?.sender;
+  rtc.RTCRtpSender? get sender => transceiver?.sender;
 
   /// Restarts the track with new options. This is useful when switching between
   /// front and back cameras.
   Future<void> restartTrack([
     LocalVideoTrackOptions? options,
   ]) async {
-    if (sender == null) throw TrackCreateError('could not restart track');
+    if (sender == null) throw TrackCreateException('could not restart track');
     if (options != null && currentOptions.runtimeType != options.runtimeType) {
       throw Exception('options must be a ${currentOptions.runtimeType}');
     }
@@ -73,7 +73,7 @@ class LocalVideoTrack extends VideoTrack {
     );
   }
 
-  static Future<MediaStream> _createStream(
+  static Future<rtc.MediaStream> _createStream(
     LocalVideoTrackOptions options,
   ) async {
     final constraints = <String, dynamic>{
@@ -81,15 +81,15 @@ class LocalVideoTrack extends VideoTrack {
       'video': options.toMediaConstraintsMap(),
     };
 
-    final MediaStream stream;
+    final rtc.MediaStream stream;
     if (options is ScreenTrackOptions) {
-      stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+      stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
       // options is CameraVideoTrackOptions
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stream = await rtc.navigator.mediaDevices.getUserMedia(constraints);
     }
 
-    if (stream.getVideoTracks().isEmpty) throw TrackCreateError();
+    if (stream.getVideoTracks().isEmpty) throw TrackCreateException();
     return stream;
   }
 }
@@ -97,7 +97,7 @@ class LocalVideoTrack extends VideoTrack {
 //
 // Convenience extensions
 //
-extension LKLocalVideoTrackExt on LocalVideoTrack {
+extension LocalVideoTrackExt on LocalVideoTrack {
   // Calls restartTrack under the hood
   Future<void> setCameraPosition(CameraPosition position) async {
     final options = currentOptions;

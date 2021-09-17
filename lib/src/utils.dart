@@ -2,12 +2,58 @@
 //
 //
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'dart:async';
+
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'options.dart';
 import 'track/options.dart';
 
+enum ProtocolVersion {
+  protocol2,
+  protocol3,
+}
+
+extension ProtocolVersionExt on ProtocolVersion {
+  String toStringValue() => {
+        ProtocolVersion.protocol2: '2',
+        ProtocolVersion.protocol3: '3',
+      }[this]!;
+}
+
+extension UriExt on Uri {
+  bool get isSecureScheme => ['https', 'wss'].contains(scheme);
+}
+
+// Collection of state-less static methods
 class Utils {
+  static Uri buildUri(
+    String uriString, {
+    required String token,
+    ConnectOptions? options,
+    bool reconnect = false,
+    bool validate = false,
+    bool forceSecure = false,
+    required ProtocolVersion protocol,
+  }) {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final httpScheme = useSecure ? 'https' : 'http';
+    final wsScheme = useSecure ? 'wss' : 'ws';
+
+    return uri.replace(
+      scheme: validate ? httpScheme : wsScheme,
+      path: validate ? 'validate' : 'rtc',
+      queryParameters: <String, String>{
+        'access_token': token,
+        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        if (reconnect) 'reconnect': '1',
+        'protocol': protocol.toStringValue(),
+      },
+    );
+  }
+
   static List<VideoParameters> _presetsForResolution(
     int width,
     int height,
@@ -31,7 +77,7 @@ class Utils {
     return result;
   }
 
-  static List<RTCRtpEncoding>? computeVideoEncodings({
+  static List<rtc.RTCRtpEncoding>? computeVideoEncodings({
     int? width,
     int? height,
     TrackPublishOptions? options,
@@ -68,7 +114,7 @@ class Utils {
       ),
       // if resolution is high enough, we would send both h and q res..
       // otherwise only send h
-      if (height * 0.7 >= midPreset.height) ...[
+      if (width >= 960) ...[
         midPreset.encoding.toRTCRtpEncoding(
           rid: 'h',
           scaleResolutionDownBy: height / midPreset.height,
@@ -83,5 +129,23 @@ class Utils {
           scaleResolutionDownBy: height / lowPreset.height,
         ),
     ];
+  }
+
+  // makes a debounce func
+  static Function createDebounceFunc(
+    Function f, {
+    Function(Function)? cancelFunc,
+    required Duration wait,
+  }) {
+    Timer? t;
+    return () {
+      t?.cancel();
+      t = Timer(wait, () {
+        t = null;
+        f();
+      });
+      // pass back the cancel method so we can cancel it when no longer needed
+      cancelFunc?.call(t!.cancel);
+    };
   }
 }
