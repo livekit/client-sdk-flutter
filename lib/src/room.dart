@@ -3,7 +3,6 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:tuple/tuple.dart';
 
 import 'errors.dart';
 import 'events.dart';
@@ -374,10 +373,12 @@ class Room extends ChangeNotifier with ParticipantDelegate {
       return;
     }
 
-    final parsed = _unpackStreamId(stream.id);
-    final trackSid = parsed.item2 ?? track.id;
+    final idParts = stream.id.split('|');
 
-    final participant = _getOrCreateRemoteParticipant(parsed.item1, null);
+    final participantSid = idParts[0];
+    final trackSid = idParts.elementAtOrNull(1) ?? track.id;
+
+    final participant = _getOrCreateRemoteParticipant(participantSid, null);
     participant.addSubscribedMediaTrack(track, stream, trackSid);
   }
 
@@ -441,12 +442,4 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {
     delegate?.onTrackSubscriptionFailed(participant, sid, message);
   }
-}
-
-Tuple2<String, String?> _unpackStreamId(String streamId) {
-  var parts = streamId.split('|');
-  if (parts.length != 2) {
-    return Tuple2(parts[0], null);
-  }
-  return Tuple2(parts[0], parts[1]);
 }

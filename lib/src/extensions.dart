@@ -7,6 +7,10 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 
 import 'types.dart';
 
+extension IterableExt<E> on Iterable<E> {
+  E? elementAtOrNull(int index) => (index >= 0 && index < length) ? elementAt(index) : null;
+}
+
 extension RTCIceConnectionStateExt on rtc.RTCIceConnectionState {
   bool isConnected() => [
         rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,

@@ -15,7 +15,6 @@ dependencies:
   logging: ^1.0.2
   uuid: ^3.0.4
   synchronized: ^3.0.0
-  tuple: ^2.0.0
   protobuf: ^2.0.0
 
   # protobuf:
