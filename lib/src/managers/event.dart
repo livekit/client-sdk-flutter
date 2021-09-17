@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+
 import '../errors.dart';
 import '../events.dart';
 import '../extensions.dart';
@@ -8,9 +10,12 @@ import '../types.dart';
 
 // Type-safe, multi-listenable, dispose safe event handling
 
-class EventsEmitter<T extends LiveKitEvent> {
+class EventsEmitter<T extends LiveKitEvent> extends EventsListenable<T> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
+
+  @override
+  EventsEmitter<T> get emitter => this;
 
   void emit(T event) {
     // do nothing if already closed
@@ -19,22 +24,31 @@ class EventsEmitter<T extends LiveKitEvent> {
     streamCtrl.add(event);
   }
 
+  @override
   Future<void> dispose() async {
     await streamCtrl.close();
+    await super.dispose();
   }
 }
 
-// ensures all listeners will close on dispose
-class EventsListener<T extends LiveKitEvent> {
-  // the emitter to listen to
+// for listening only
+class EventsListener<T extends LiveKitEvent> extends EventsListenable<T> {
+  @override
   final EventsEmitter<T> emitter;
-  // keep track of listeners to cancel later
-  final _listeners = <StreamSubscription<T>>[];
 
   EventsListener({
     required this.emitter,
   });
+}
 
+// ensures all listeners will close on dispose
+abstract class EventsListenable<T extends LiveKitEvent> {
+  // the emitter to listen to
+  EventsEmitter<T> get emitter;
+  // keep track of listeners to cancel later
+  final _listeners = <StreamSubscription<T>>[];
+
+  @mustCallSuper
   Future<void> dispose() async {
     // Stop listening to all events
     logger.fine('${objectId} dispose() cancelling ${_listeners.length} event(s)');

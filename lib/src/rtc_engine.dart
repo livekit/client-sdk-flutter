@@ -87,7 +87,7 @@ class RTCEngine with SignalClientDelegate {
   Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
-  late final _listener = EventsListener(emitter: events);
+
   final delays = CancelableDelayManager();
 
   RTCEngine(
@@ -97,8 +97,8 @@ class RTCEngine with SignalClientDelegate {
     client.delegate = this;
 
     if (kDebugMode) {
-      _listener.listen((event) => logger.fine('[LISTENER] $objectId ${event.runtimeType}'));
-      _listener.on<EngineIceStateUpdatedEvent>(
+      events.listen((event) => logger.fine('[LISTENER] $objectId ${event.runtimeType}'));
+      events.on<EngineIceStateUpdatedEvent>(
           (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
     }
   }
@@ -138,7 +138,6 @@ class RTCEngine with SignalClientDelegate {
     _primaryIceStateListener = null;
 
     await events.dispose();
-    await _listener.dispose();
 
     // cancel all ongoing delays
     await delays.dispose();
@@ -213,7 +212,7 @@ class RTCEngine with SignalClientDelegate {
     logger.fine('[PUBLISHER] waiting for to ice-connect '
         '(current: ${publisher?.pc.iceConnectionState})');
 
-    await _listener.waitFor<EnginePublisherIceStateUpdatedEvent>(
+    await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
       filter: (event) => event.iceState.isConnected(),
       duration: _maxICEConnectTimeout,
     );
@@ -259,15 +258,15 @@ class RTCEngine with SignalClientDelegate {
       if (!(primary?.pc.iceConnectionState?.isConnected() ?? false)) {
         logger.fine('reconnect: waiting for primary to ice-connect...');
 
-        await _listener.waitFor<EngineIceStateUpdatedEvent>(
+        await events.waitFor<EngineIceStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.iceState.isConnected(),
           duration: _iceRestartTimeout,
         );
       }
 
       logger.fine('reconnect: success');
-
       events.emit(EngineReconnectedEvent());
+      _reconnectAttempts = 0;
 
       // don't catch and pass up any exception
     } finally {
@@ -329,7 +328,7 @@ class RTCEngine with SignalClientDelegate {
       ));
     };
 
-    _primaryIceStateListener ??= _listener.on<EngineIceStateUpdatedEvent>((event) {
+    _primaryIceStateListener ??= events.on<EngineIceStateUpdatedEvent>((event) {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
