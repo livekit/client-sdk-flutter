@@ -30,7 +30,7 @@ typedef DataPacketCallback = void Function(
     lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
 typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
-class RTCEngine with SignalClientDelegate {
+class RTCEngine {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -87,6 +87,10 @@ class RTCEngine with SignalClientDelegate {
   Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
+  late final _signalListener = EventsListener(
+    emitter: client.events,
+    synchronized: true,
+  );
 
   final delays = CancelableDelayManager();
 
@@ -94,13 +98,15 @@ class RTCEngine with SignalClientDelegate {
     this.client,
     this.rtcConfig,
   ) {
-    client.delegate = this;
+    // client.delegate = this;
 
     if (kDebugMode) {
-      events.listen((event) => logger.fine('[LISTENER] $objectId ${event.runtimeType}'));
-      events.on<EngineIceStateUpdatedEvent>(
-          (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
+      events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
+      // events.on<EngineIceStateUpdatedEvent>(
+      //     (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
     }
+
+    _setUpListeners();
   }
 
   Future<lk_rtc.JoinResponse> join(
@@ -138,6 +144,7 @@ class RTCEngine with SignalClientDelegate {
     _primaryIceStateListener = null;
 
     await events.dispose();
+    await _signalListener.dispose();
 
     // cancel all ongoing delays
     await delays.dispose();
@@ -447,104 +454,99 @@ class RTCEngine with SignalClientDelegate {
 
   //------------------ SignalClient Delegate methods -------------------------//
 
-  @override
-  Future<void> onConnected(lk_rtc.JoinResponse response) async {
-    // create peer connections
-    isClosed = false;
-    _subscriberPrimary = response.subscriberPrimary;
-    _providedIceServers = response.iceServers;
+  void _setUpListeners() {
+    // TODO: Wait for prev
 
-    logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
-        'serverVersion: ${response.serverVersion}, '
-        'iceServers: ${response.iceServers}');
+    _signalListener.on<SignalConnectedEvent>((event) async {
+      // create peer connections
+      isClosed = false;
+      _subscriberPrimary = event.response.subscriberPrimary;
+      _providedIceServers = event.response.iceServers;
 
-    await _configurePeerConnections();
+      logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
+          'serverVersion: ${event.response.serverVersion}, '
+          'iceServers: ${event.response.iceServers}');
 
-    if (!_subscriberPrimary) {
-      // for subscriberPrimary, we negotiate when necessary (lazy)
-      await negotiate();
-    }
+      await _configurePeerConnections();
 
-    _joinCompleter?.complete(Future.value(response));
-    _joinCompleter = null;
-  }
+      if (!_subscriberPrimary) {
+        // for subscriberPrimary, we negotiate when necessary (lazy)
+        await negotiate();
+      }
 
-  @override
-  Future<void> onClose([String? reason]) async {
-    await _onDisconnected('signal');
-  }
+      _joinCompleter?.complete(Future.value(event.response));
+      _joinCompleter = null;
+    });
 
-  @override
-  Future<void> onOffer(rtc.RTCSessionDescription sd) async {
-    if (subscriber == null) {
-      return;
-    }
+    _signalListener.on<SignalCloseEvent>((_) async {
+      await _onDisconnected('signal');
+    });
 
-    logger.fine('received server offer(type: ${sd.type}, ${subscriber!.pc.signalingState})');
+    _signalListener.on<SignalOfferEvent>((e) async {
+      if (subscriber == null) {
+        return;
+      }
 
-    await subscriber!.setRemoteDescription(sd);
+      logger.fine('received server offer(type: ${e.sessionDescription.type}, '
+          '${subscriber!.pc.signalingState})');
 
-    final answer = await subscriber!.pc.createAnswer();
-    logger.fine('Created answer');
-    logger.finer('sdp: ${answer.sdp}');
-    await subscriber!.pc.setLocalDescription(answer);
-    client.sendAnswer(answer);
-  }
+      await subscriber!.setRemoteDescription(e.sessionDescription);
 
-  @override
-  Future<void> onAnswer(rtc.RTCSessionDescription sd) async {
-    if (publisher == null) {
-      return;
-    }
-    logger.fine('received answer (type: ${sd.type})');
-    logger.finer('sdp: ${sd.sdp}');
-    await publisher!.setRemoteDescription(sd);
-  }
+      final answer = await subscriber!.pc.createAnswer();
+      logger.fine('Created answer');
+      logger.finer('sdp: ${answer.sdp}');
+      await subscriber!.pc.setLocalDescription(answer);
+      client.sendAnswer(answer);
+    });
 
-  @override
-  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
-    if (publisher == null || subscriber == null) {
-      return;
-    }
-    logger.fine('got ICE candidate from peer');
-    if (target == lk_rtc.SignalTarget.SUBSCRIBER) {
-      await subscriber!.addIceCandidate(candidate);
-    } else if (target == lk_rtc.SignalTarget.PUBLISHER) {
-      await publisher!.addIceCandidate(candidate);
-    }
-  }
+    _signalListener.on<SignalAnswerEvent>((event) async {
+      if (publisher == null) {
+        return;
+      }
+      logger.fine('received answer (type: ${event.sessionDescription.type})');
+      logger.finer('sdp: ${event.sessionDescription.sdp}');
+      await publisher!.setRemoteDescription(event.sessionDescription);
+    });
 
-  @override
-  Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates) async {
-    onParticipantUpdated?.call(updates);
-    events.emit(EngineParticipantUpdateEvent(participants: updates));
-  }
+    _signalListener.on<SignalTrickleEvent>((event) async {
+      if (publisher == null || subscriber == null) {
+        return;
+      }
+      logger.fine('got ICE candidate from peer');
+      if (event.target == lk_rtc.SignalTarget.SUBSCRIBER) {
+        await subscriber!.addIceCandidate(event.candidate);
+      } else if (event.target == lk_rtc.SignalTarget.PUBLISHER) {
+        await publisher!.addIceCandidate(event.candidate);
+      }
+    });
 
-  @override
-  Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response) async {
-    final completer = _pendingTrackResolvers.remove(response.cid);
-    completer?.complete(Future.value(response.track));
-  }
+    _signalListener.on<SignalParticipantUpdateEvent>((event) async {
+      onParticipantUpdated?.call(event.updates);
+      events.emit(EngineParticipantUpdateEvent(participants: event.updates));
+    });
 
-  @override
-  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers) async {
-    onActiveSpeakerUpdated?.call(speakers);
-    events.emit(EngineSpeakersUpdateEvent(speakers: speakers));
-  }
+    _signalListener.on<SignalLocalTrackPublishedEvent>((event) async {
+      final completer = _pendingTrackResolvers.remove(event.response.cid);
+      completer?.complete(event.response.track);
+    });
 
-  @override
-  Future<void> onLeave(lk_rtc.LeaveRequest req) async {
-    await close();
-    onDisconnected?.call();
-    events.emit(EngineDisconnectedEvent());
-  }
+    _signalListener.on<SignalActiveSpeakersChangedEvent>((event) async {
+      onActiveSpeakerUpdated?.call(event.speakers);
+      events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
+    });
 
-  @override
-  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
-    onRemoteMute?.call(req.sid, req.muted);
-    events.emit(EngineRemoteMuteChangedEvent(
-      sid: req.sid,
-      muted: req.muted,
-    ));
+    _signalListener.on<SignalLeaveEvent>((event) async {
+      await close();
+      onDisconnected?.call();
+      events.emit(EngineDisconnectedEvent());
+    });
+
+    _signalListener.on<SignalMuteTrackEvent>((event) async {
+      onRemoteMute?.call(event.req.sid, event.req.muted);
+      events.emit(EngineRemoteMuteChangedEvent(
+        sid: event.req.sid,
+        muted: event.req.muted,
+      ));
+    });
   }
 }

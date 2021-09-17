@@ -1,6 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'proto/livekit_models.pb.dart' as lk_models;
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
 abstract class LiveKitEvent {}
 
@@ -14,6 +15,10 @@ abstract class ParticipantEvent implements LiveKitEvent {
 
 abstract class EngineEvent implements LiveKitEvent {
   const EngineEvent();
+}
+
+abstract class SignalEvent implements LiveKitEvent {
+  const SignalEvent();
 }
 
 abstract class TrackEvent implements LiveKitEvent {
@@ -179,3 +184,83 @@ class TrackUpdateSubscriptionEvent extends TrackEvent {}
 class TrackAudioPlaybackStartedEvent extends TrackEvent {}
 
 class TrackAudioPlaybackFailedEvent extends TrackEvent {}
+
+//
+// Signal events
+//
+class SignalConnectedEvent extends SignalEvent {
+  final lk_rtc.JoinResponse response;
+  const SignalConnectedEvent({
+    required this.response,
+  });
+}
+
+enum CloseReason {
+  network,
+  // ...
+}
+
+class SignalCloseEvent extends SignalEvent {
+  final CloseReason? reason;
+  const SignalCloseEvent({
+    this.reason,
+  });
+}
+
+class SignalOfferEvent extends SignalEvent {
+  final rtc.RTCSessionDescription sessionDescription;
+  const SignalOfferEvent({
+    required this.sessionDescription,
+  });
+}
+
+class SignalAnswerEvent extends SignalEvent {
+  final rtc.RTCSessionDescription sessionDescription;
+  const SignalAnswerEvent({
+    required this.sessionDescription,
+  });
+}
+
+class SignalTrickleEvent extends SignalEvent {
+  final rtc.RTCIceCandidate candidate;
+  final lk_rtc.SignalTarget target;
+  const SignalTrickleEvent({
+    required this.candidate,
+    required this.target,
+  });
+}
+
+class SignalParticipantUpdateEvent extends SignalEvent {
+  final List<lk_models.ParticipantInfo> updates;
+  const SignalParticipantUpdateEvent({
+    required this.updates,
+  });
+}
+
+class SignalLocalTrackPublishedEvent extends SignalEvent {
+  final lk_rtc.TrackPublishedResponse response;
+  const SignalLocalTrackPublishedEvent({
+    required this.response,
+  });
+}
+
+class SignalActiveSpeakersChangedEvent extends SignalEvent {
+  final List<lk_models.SpeakerInfo> speakers;
+  const SignalActiveSpeakersChangedEvent({
+    required this.speakers,
+  });
+}
+
+class SignalLeaveEvent extends SignalEvent {
+  final lk_rtc.LeaveRequest req;
+  const SignalLeaveEvent({
+    required this.req,
+  });
+}
+
+class SignalMuteTrackEvent extends SignalEvent {
+  final lk_rtc.MuteTrackRequest req;
+  const SignalMuteTrackEvent({
+    required this.req,
+  });
+}

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../errors.dart';
 import '../events.dart';
@@ -13,6 +14,10 @@ import '../types.dart';
 class EventsEmitter<T extends LiveKitEvent> extends EventsListenable<T> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
+
+  EventsEmitter({
+    bool listenSynchronized = false,
+  }) : super(synchronized: listenSynchronized);
 
   @override
   EventsEmitter<T> get emitter => this;
@@ -38,15 +43,25 @@ class EventsListener<T extends LiveKitEvent> extends EventsListenable<T> {
 
   EventsListener({
     required this.emitter,
-  });
+    bool synchronized = false,
+  }) : super(
+          synchronized: synchronized,
+        );
 }
 
 // ensures all listeners will close on dispose
 abstract class EventsListenable<T extends LiveKitEvent> {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
+
+  bool synchronized;
   // keep track of listeners to cancel later
   final _listeners = <StreamSubscription<T>>[];
+  final _syncLock = sync.Lock();
+
+  EventsListenable({
+    required this.synchronized,
+  });
 
   @mustCallSuper
   Future<void> dispose() async {
@@ -58,8 +73,19 @@ abstract class EventsListenable<T extends LiveKitEvent> {
   }
 
   // listens to all events, guaranteed to be cancelled on dispose
-  CancelListenFunc listen(Function(T) onEvent) {
-    final listener = emitter.streamCtrl.stream.listen(onEvent);
+  CancelListenFunc listen(FutureOr<void> Function(T) onEvent) {
+    //
+    FutureOr<void> Function(T) _func = onEvent;
+    if (synchronized) {
+      // ensure `onEvent` will trigger one by one (waits for previous `onEvent` to complete)
+      _func = (event) async {
+        await _syncLock.synchronized(() async {
+          await onEvent(event);
+        });
+      };
+    }
+
+    final listener = emitter.streamCtrl.stream.listen(_func);
     _listeners.add(listener);
 
     // make a cancel func to cancel listening and remove from list in 1 call
@@ -74,16 +100,16 @@ abstract class EventsListenable<T extends LiveKitEvent> {
 
   // convenience method to listen & filter a specific event type
   CancelListenFunc on<E>(
-    Function(E) then, {
+    FutureOr<void> Function(E) then, {
     bool Function(E)? filter,
   }) =>
-      listen((event) {
+      listen((event) async {
         // event must be E
         if (event is! E) return;
         // filter must be true (if filter is used)
         if (filter != null && !filter(event as E)) return;
         // cast to E
-        then(event as E);
+        await then(event as E);
       });
 
   // waits for a specific event type
