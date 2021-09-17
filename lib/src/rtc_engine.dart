@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'events.dart';
-import 'types.dart';
 
 import 'errors.dart';
+import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'managers/delay.dart';

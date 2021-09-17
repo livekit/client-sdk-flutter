@@ -97,8 +97,6 @@ class LocalParticipant extends Participant {
         final settings = track.mediaStreamTrack.getSettings();
         width = settings['width'] as int?;
         height = settings['height'] as int?;
-        // TODO: Get actual video dimensions to compute more accurately
-        // mediaTrack.getConsstraints() is not implemented for mobile
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
       }
