@@ -34,7 +34,7 @@ enum RoomState {
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends ChangeNotifier with ParticipantDelegate {
+class Room extends ChangeNotifier {
   RoomState _connectionState = RoomState.disconnected;
 
   /// connection state of the room
@@ -66,6 +66,7 @@ class Room extends ChangeNotifier with ParticipantDelegate {
   // suppport for multiple event listeners
   final events = EventsEmitter<RoomEvent>();
   late final _engineListener = EventsListener<EngineEvent>(_engine.events);
+// late final _participantListener = EventsListener<ParticipantEvent>(_engine.events);
 
   /// internal use
   /// {@nodoc}

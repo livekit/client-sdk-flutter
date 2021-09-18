@@ -30,6 +30,7 @@ class EventsEmitter<T extends LiveKitEvent> extends EventsListenable<T> {
   }
 
   @override
+  @mustCallSuper
   Future<void> dispose() async {
     await streamCtrl.close();
     await super.dispose();

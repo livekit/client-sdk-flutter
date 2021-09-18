@@ -4,6 +4,8 @@ import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'track/remote_track_publication.dart';
+import 'track/track.dart';
 
 abstract class LiveKitEvent {}
 
@@ -115,25 +117,98 @@ class RoomAudioPlaybackChangedEvent extends RoomEvent {}
 //
 // Participant events
 //
-class ParticipantTrackPublishedEvent extends ParticipantEvent {}
 
-class ParticipantTrackSubscribedEvent extends ParticipantEvent {}
+/// This participant has published a new [Track] to the [Room].
+class ParticipantTrackPublishedEvent extends ParticipantEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
+  const ParticipantTrackPublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+}
 
-class ParticipantTrackSubscriptionFailedEvent extends ParticipantEvent {}
+/// The [LocalParticipant] has subscribed to a new track published by this
+/// [RemoteParticipant]
+class ParticipantTrackSubscribedEvent extends ParticipantEvent {
+  final RemoteParticipant participant;
+  final Track track;
+  final RemoteTrackPublication publication;
+  const ParticipantTrackSubscribedEvent({
+    required this.participant,
+    required this.track,
+    required this.publication,
+  });
+}
 
-class ParticipantTrackUnpublishedEvent extends ParticipantEvent {}
+enum TrackSubscribeFailReason {
+  serverResponseIncorrect,
+  notTrackMetadataFound,
+  unsupportedTrackType,
+}
 
-class ParticipantTrackUnsubscribedEvent extends ParticipantEvent {}
+/// An error has occured during track subscription.
+class ParticipantTrackSubscriptionFailedEvent extends ParticipantEvent {
+  final RemoteParticipant participant;
+  final String? sid;
+  final TrackSubscribeFailReason reason;
+  const ParticipantTrackSubscriptionFailedEvent({
+    required this.participant,
+    this.sid,
+    required this.reason,
+  });
+}
 
+/// This participant has unpublished one of their [Track].
+class ParticipantTrackUnpublishedEvent extends ParticipantEvent {
+  final RemoteParticipant participant;
+
+  final RemoteTrackPublication publication;
+  const ParticipantTrackUnpublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+}
+
+/// The [LocalParticipant] has unsubscribed from a track published by this
+/// [RemoteParticipant]. This event is fired when the track was unpublished
+class ParticipantTrackUnsubscribedEvent extends ParticipantEvent {
+  final RemoteParticipant participant;
+  final Track track;
+  final RemoteTrackPublication publication;
+  const ParticipantTrackUnsubscribedEvent({
+    required this.participant,
+    required this.track,
+    required this.publication,
+  });
+}
+
+/// This participant has muted one of their tracks
 class ParticipantTrackMutedEvent extends ParticipantEvent {}
 
+/// This participant has unmuted one of their tracks
 class ParticipantTrackUnmutedEvent extends ParticipantEvent {}
 
-class ParticipantMetadataChangedEvent extends ParticipantEvent {}
+/// The participant's metadata has changed
+class ParticipantMetadataChangedEvent extends ParticipantEvent {
+  final Participant participant;
+  const ParticipantMetadataChangedEvent({
+    required this.participant,
+  });
+}
 
+/// Data received from this [RemoteParticipant].
 class ParticipantDataReceivedEvent extends ParticipantEvent {}
 
-class ParticipantSpeakingChangedEvent extends ParticipantEvent {}
+/// The participant's isSpeaking property has changed
+class ParticipantSpeakingChangedEvent extends ParticipantEvent {
+  final Participant participant;
+  final bool speaking;
+  const ParticipantSpeakingChangedEvent({
+    required this.participant,
+    required this.speaking,
+  });
+}
 
 //
 // Engine events

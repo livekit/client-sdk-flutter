@@ -1,4 +1,6 @@
+import 'package:meta/meta.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -35,15 +37,20 @@ class RemoteParticipant extends Participant {
 
   /// for internal use
   /// {@nodoc}
+  @internal
   void addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
     String? sid,
   ) async {
     if (sid == null) {
-      const msg = 'addSubscribedMediaTrack received null sid';
-      delegate?.onTrackSubscriptionFailed(this, '', msg);
-      roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
+      // const msg = 'addSubscribedMediaTrack received null sid';
+      // delegate?.onTrackSubscriptionFailed(this, '', msg);
+      // roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
+      events.emit(ParticipantTrackSubscriptionFailedEvent(
+        participant: this,
+        reason: TrackSubscribeFailReason.serverResponseIncorrect,
+      ));
       return;
     }
 
@@ -52,9 +59,14 @@ class RemoteParticipant extends Participant {
       // we may have received the track prior to metadata. wait up to 3s
       pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
       if (pub == null) {
-        const msg = 'no track metadata found';
-        delegate?.onTrackSubscriptionFailed(this, sid, msg);
-        roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
+        // const msg = 'no track metadata found';
+        // delegate?.onTrackSubscriptionFailed(this, sid, msg);
+        // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
+        events.emit(ParticipantTrackSubscriptionFailedEvent(
+          participant: this,
+          sid: sid,
+          reason: TrackSubscribeFailReason.notTrackMetadataFound,
+        ));
         return;
       }
     }
@@ -67,17 +79,29 @@ class RemoteParticipant extends Participant {
     } else if (pub.kind == lk_models.TrackType.VIDEO) {
       track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
-      final msg = 'unsupported track type ${pub.kind}';
-      delegate?.onTrackSubscriptionFailed(this, sid, msg);
-      roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
+      // final msg = 'unsupported track type ${pub.kind}';
+      // delegate?.onTrackSubscriptionFailed(this, sid, msg);
+      // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
+      events.emit(ParticipantTrackSubscriptionFailedEvent(
+        participant: this,
+        sid: sid,
+        reason: TrackSubscribeFailReason.unsupportedTrackType,
+      ));
       return;
     }
 
     pub.track = track;
     addTrackPublication(pub);
 
-    delegate?.onTrackSubscribed(this, track, pub);
-    roomDelegate?.onTrackSubscribed(this, track, pub);
+    // delegate?.onTrackSubscribed(this, track, pub);
+    // roomDelegate?.onTrackSubscribed(this, track, pub);
+
+    events.emit(ParticipantTrackSubscribedEvent(
+      participant: this,
+      track: track,
+      publication: pub,
+    ));
+
     notifyListeners();
   }
 
@@ -110,8 +134,12 @@ class RemoteParticipant extends Participant {
     // notify listeners when it's not a new participant
     if (hadInfo) {
       for (final pub in newPubs.values) {
-        delegate?.onTrackPublished(this, pub);
-        roomDelegate?.onTrackPublished(this, pub);
+        // delegate?.onTrackPublished(this, pub);
+        // roomDelegate?.onTrackPublished(this, pub);
+        events.emit(ParticipantTrackPublishedEvent(
+          participant: this,
+          publication: pub,
+        ));
       }
     }
 
@@ -132,14 +160,24 @@ class RemoteParticipant extends Participant {
     final track = pub.track;
     if (track != null) {
       await track.stop();
-      delegate?.onTrackUnsubscribed(this, track, pub);
-      roomDelegate?.onTrackUnsubscribed(this, track, pub);
+      // delegate?.onTrackUnsubscribed(this, track, pub);
+      // roomDelegate?.onTrackUnsubscribed(this, track, pub);
+      events.emit(ParticipantTrackUnsubscribedEvent(
+        participant: this,
+        track: track,
+        publication: pub,
+      ));
+
       notifyListeners();
     }
 
     if (notify) {
-      delegate?.onTrackUnpublished(this, pub);
-      roomDelegate?.onTrackUnpublished(this, pub);
+      // delegate?.onTrackUnpublished(this, pub);
+      // roomDelegate?.onTrackUnpublished(this, pub);
+      events.emit(ParticipantTrackUnpublishedEvent(
+        participant: this,
+        publication: pub,
+      ));
     }
   }
 
