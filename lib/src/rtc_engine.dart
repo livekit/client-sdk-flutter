@@ -483,10 +483,10 @@ class RTCEngine {
         return;
       }
 
-      logger.fine('received server offer(type: ${e.sessionDescription.type}, '
+      logger.fine('received server offer(type: ${e.sd.type}, '
           '${subscriber!.pc.signalingState})');
 
-      await subscriber!.setRemoteDescription(e.sessionDescription);
+      await subscriber!.setRemoteDescription(e.sd);
 
       final answer = await subscriber!.pc.createAnswer();
       logger.fine('Created answer');
@@ -498,9 +498,9 @@ class RTCEngine {
       if (publisher == null) {
         return;
       }
-      logger.fine('received answer (type: ${event.sessionDescription.type})');
-      logger.finer('sdp: ${event.sessionDescription.sdp}');
-      await publisher!.setRemoteDescription(event.sessionDescription);
+      logger.fine('received answer (type: ${event.sd.type})');
+      logger.finer('sdp: ${event.sd.sdp}');
+      await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
@@ -518,8 +518,8 @@ class RTCEngine {
       events.emit(EngineParticipantUpdateEvent(participants: event.updates));
     })
     ..on<SignalLocalTrackPublishedEvent>((event) async {
-      final completer = _pendingTrackResolvers.remove(event.response.cid);
-      completer?.complete(event.response.track);
+      final completer = _pendingTrackResolvers.remove(event.cid);
+      completer?.complete(event.track);
     })
     ..on<SignalActiveSpeakersChangedEvent>((event) async {
       onActiveSpeakerUpdated?.call(event.speakers);

@@ -208,16 +208,16 @@ class SignalCloseEvent extends SignalEvent {
 }
 
 class SignalOfferEvent extends SignalEvent {
-  final rtc.RTCSessionDescription sessionDescription;
+  final rtc.RTCSessionDescription sd;
   const SignalOfferEvent({
-    required this.sessionDescription,
+    required this.sd,
   });
 }
 
 class SignalAnswerEvent extends SignalEvent {
-  final rtc.RTCSessionDescription sessionDescription;
+  final rtc.RTCSessionDescription sd;
   const SignalAnswerEvent({
-    required this.sessionDescription,
+    required this.sd,
   });
 }
 
@@ -238,9 +238,11 @@ class SignalParticipantUpdateEvent extends SignalEvent {
 }
 
 class SignalLocalTrackPublishedEvent extends SignalEvent {
-  final lk_rtc.TrackPublishedResponse response;
+  final String cid;
+  final lk_models.TrackInfo track;
   const SignalLocalTrackPublishedEvent({
-    required this.response,
+    required this.cid,
+    required this.track,
   });
 }
 
@@ -252,9 +254,9 @@ class SignalActiveSpeakersChangedEvent extends SignalEvent {
 }
 
 class SignalLeaveEvent extends SignalEvent {
-  final lk_rtc.LeaveRequest req;
+  final bool canReconnect;
   const SignalLeaveEvent({
-    required this.req,
+    required this.canReconnect,
   });
 }
 

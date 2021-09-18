@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -18,34 +17,10 @@ import 'track/track.dart';
 import 'utils.dart';
 import 'ws/interface.dart';
 
-// mixin SignalClientDelegate {
-//   // initial connection established
-//   Future<void> onConnected(lk_rtc.JoinResponse response);
-//   // websocket has closed
-//   Future<void> onClose([String? reason]);
-//   // when a server offer is received
-//   Future<void> onOffer(rtc.RTCSessionDescription sd);
-//   // when an answer from server is received
-//   Future<void> onAnswer(rtc.RTCSessionDescription sd);
-//   // when server has a new ICE candidate
-//   Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target);
-//   // participant has changed
-//   Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
-//   // when a track has been added successfully
-//   Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
-//   // active speaker has changed
-//   Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers);
-//   // when server sends this client a leave message
-//   Future<void> onLeave(lk_rtc.LeaveRequest req);
-//   // explicit mute track
-//   Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req);
-// }
-
 class SignalClient {
   final events = EventsEmitter<SignalEvent>();
+  final ProtocolVersion protocol;
 
-  ProtocolVersion protocol;
-  // SignalClientDelegate? delegate;
   bool _connected = false;
   LiveKitWebSocket? _ws;
 
@@ -208,7 +183,7 @@ class SignalClient {
 
   void _sendRequest(lk_rtc.SignalRequest req) {
     if (_ws == null) {
-      log('could not send message, not connected');
+      logger.warning('could not send message, not connected');
       return;
     }
 
@@ -220,60 +195,46 @@ class SignalClient {
     if (message is! List<int>) return;
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
 
-    // Ensure previous delegate method's future is completed
-    // before calling another method
-    // await _lock.synchronized(() async {
-    //
     switch (msg.whichMessage()) {
       case lk_rtc.SignalResponse_Message.join:
         if (!_connected) {
           _connected = true;
           events.emit(SignalConnectedEvent(response: msg.join));
-          // await delegate?.onConnected(msg.join);
         }
         break;
       case lk_rtc.SignalResponse_Message.answer:
-        events.emit(SignalAnswerEvent(sessionDescription: msg.answer.toSDKType()));
-        // await delegate?.onAnswer(msg.answer.toSDKType());
+        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
         break;
       case lk_rtc.SignalResponse_Message.offer:
-        events.emit(SignalOfferEvent(sessionDescription: msg.offer.toSDKType()));
-        // await delegate?.onOffer(msg.offer.toSDKType());
+        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
         break;
       case lk_rtc.SignalResponse_Message.trickle:
         events.emit(SignalTrickleEvent(
           candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
           target: msg.trickle.target,
         ));
-        // await delegate?.onTrickle(
-        //   RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
-        //   msg.trickle.target,
-        // );
         break;
       case lk_rtc.SignalResponse_Message.update:
         events.emit(SignalParticipantUpdateEvent(updates: msg.update.participants));
-        // await delegate?.onParticipantUpdate(msg.update.participants);
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
-        events.emit(SignalLocalTrackPublishedEvent(response: msg.trackPublished));
-        // await delegate?.onLocalTrackPublished(msg.trackPublished);
+        events.emit(SignalLocalTrackPublishedEvent(
+          cid: msg.trackPublished.cid,
+          track: msg.trackPublished.track,
+        ));
         break;
       case lk_rtc.SignalResponse_Message.speaker:
         events.emit(SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
-        // await delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
         break;
       case lk_rtc.SignalResponse_Message.leave:
-        events.emit(SignalLeaveEvent(req: msg.leave));
-        // await delegate?.onLeave(msg.leave);
+        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
         break;
       case lk_rtc.SignalResponse_Message.mute:
         events.emit(SignalMuteTrackEvent(req: msg.mute));
-        // await delegate?.onMuteTrack(msg.mute);
         break;
       default:
-        log('unsupported message: ' + json.encode(msg));
+        logger.warning('unsupported message: ' + json.encode(msg));
     }
-    // });
   }
 
   void _handleError(dynamic error) {
@@ -285,6 +246,5 @@ class SignalClient {
     _ws = null;
     _connected = false;
     events.emit(const SignalCloseEvent());
-    // delegate?.onClose();
   }
 }
