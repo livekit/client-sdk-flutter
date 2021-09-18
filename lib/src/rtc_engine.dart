@@ -67,30 +67,14 @@ class RTCEngine {
   // server-provided ice servers
   List<lk_rtc.ICEServer> _providedIceServers = [];
 
-  // delegate methods
-  GenericCallback? onICEConnected;
-  TrackCallback? onTrack;
-  ParticipantUpdateCallback? onParticipantUpdated;
-  ActiveSpeakerChangedCallback? onActiveSpeakerUpdated;
-  DataPacketCallback? onDataMessage;
-  RemoteMuteCallback? onRemoteMute;
-  GenericCallback? onReconnecting;
-  GenericCallback? onReconnected;
-  GenericCallback? onDisconnected;
-
-  //
   // internal
-  //
   final Map<String, Completer<lk_models.TrackInfo>> _pendingTrackResolvers = {};
   int _reconnectAttempts = 0;
   // to complete join request
   Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
-  late final _signalListener = EventsListener(
-    emitter: client.events,
-    synchronized: true,
-  );
+  late final _signalListener = EventsListener(client.events, synchronized: true);
 
   final delays = CancelableDelayManager();
 
@@ -98,9 +82,8 @@ class RTCEngine {
     this.client,
     this.rtcConfig,
   ) {
-    // client.delegate = this;
-
     if (kDebugMode) {
+      // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
       // events.on<EngineIceStateUpdatedEvent>(
       //     (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
@@ -241,7 +224,6 @@ class RTCEngine {
     }
 
     if (_reconnectAttempts == 0) {
-      onReconnecting?.call();
       events.emit(EngineReconnectingEvent());
     }
     _reconnectAttempts++;
@@ -343,9 +325,8 @@ class RTCEngine {
         if (!iceConnected) {
           iceConnected = true;
           if (isReconnecting) {
-            onReconnected?.call();
+            events.emit(EngineReconnectedEvent());
           } else {
-            onICEConnected?.call();
             events.emit(EngineConnectedEvent());
           }
         }
@@ -359,10 +340,16 @@ class RTCEngine {
     });
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
-      onTrack?.call(event.track, event.streams.firstOrNull, event.receiver);
-      events.emit(EngineMediaTrackAddedEvent(
+      final stream = event.streams.firstOrNull;
+      if (stream == null) {
+        // we need the stream to get the track's id
+        logger.severe('received track without mediastream');
+        return;
+      }
+
+      events.emit(EngineTrackAddedEvent(
         track: event.track,
-        stream: event.streams.firstOrNull,
+        stream: stream,
         receiver: event.receiver,
       ));
     };
@@ -412,11 +399,9 @@ class RTCEngine {
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
-      onActiveSpeakerUpdated?.call(dp.speaker.speakers);
       events.emit(EngineSpeakersUpdateEvent(speakers: dp.speaker.speakers));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
-      onDataMessage?.call(dp.user, dp.kind);
       events.emit(EngineDataPacketReceivedEvent(
         packet: dp.user,
         kind: dp.kind,
@@ -431,7 +416,6 @@ class RTCEngine {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       logger.info('could not connect after $_reconnectAttempts, giving up');
       await close();
-      onDisconnected?.call();
       events.emit(EngineDisconnectedEvent());
       return;
     }
@@ -514,7 +498,6 @@ class RTCEngine {
       }
     })
     ..on<SignalParticipantUpdateEvent>((event) async {
-      onParticipantUpdated?.call(event.updates);
       events.emit(EngineParticipantUpdateEvent(participants: event.updates));
     })
     ..on<SignalLocalTrackPublishedEvent>((event) async {
@@ -522,16 +505,13 @@ class RTCEngine {
       completer?.complete(event.track);
     })
     ..on<SignalActiveSpeakersChangedEvent>((event) async {
-      onActiveSpeakerUpdated?.call(event.speakers);
       events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
     })
     ..on<SignalLeaveEvent>((event) async {
       await close();
-      onDisconnected?.call();
       events.emit(EngineDisconnectedEvent());
     })
     ..on<SignalMuteTrackEvent>((event) async {
-      onRemoteMute?.call(event.req.sid, event.req.muted);
       events.emit(EngineRemoteMuteChangedEvent(
         sid: event.req.sid,
         muted: event.req.muted,

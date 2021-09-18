@@ -1,5 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'participant/participant.dart';
+import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
@@ -28,35 +30,85 @@ abstract class TrackEvent implements LiveKitEvent {
 //
 // Room events
 //
+
+/// When the connection to the server has been interrupted and it's attempting
+/// to reconnect.
 class RoomReconnectingEvent extends RoomEvent {}
 
+/// Connection to room is re-established. All existing state is preserved.
 class RoomReconnectedEvent extends RoomEvent {}
 
+/// Disconnected from the room
 class RoomDisconnectedEvent extends RoomEvent {}
 
-class RoomParticipantConnectedEvent extends RoomEvent {}
+/// When a new [RemoteParticipant] joins *after* the current participant has connected
+/// It will not fire for participants that are already in the room
+class RoomParticipantConnectedEvent extends RoomEvent {
+  final RemoteParticipant participant;
+  const RoomParticipantConnectedEvent({
+    required this.participant,
+  });
+}
 
-class RoomParticipantDisconnectedEvent extends RoomEvent {}
+/// When a [RemoteParticipant] leaves the room
+class RoomParticipantDisconnectedEvent extends RoomEvent {
+  final RemoteParticipant participant;
+  const RoomParticipantDisconnectedEvent({
+    required this.participant,
+  });
+}
 
+/// When a new track is published to room *after* the current participant has
+/// joined. It will not fire for tracks that are already published
 class RoomTrackPublishedEvent extends RoomEvent {}
 
-class RoomTrackSubscribedEvent extends RoomEvent {}
-
-class RoomTrackSubscriptionFailedEvent extends RoomEvent {}
-
+/// A [RemoteParticipant] has unpublished a track
 class RoomTrackUnpublishedEvent extends RoomEvent {}
 
+/// The [LocalParticipant] has subscribed to a new track. This event will **always**
+/// fire as long as new tracks are ready for use.
+class RoomTrackSubscribedEvent extends RoomEvent {}
+
+/// A subscribed track is no longer available.
 class RoomTrackUnsubscribedEvent extends RoomEvent {}
 
+/// Encountered failure attempting to subscribe to track.
+class RoomTrackSubscriptionFailedEvent extends RoomEvent {}
+
+/// A track that was muted, fires on both [RemoteParticipant]s and
+/// [LocalParticipant]
 class RoomTrackMutedEvent extends RoomEvent {}
 
+/// A track that was unmuted, fires on both [RemoteParticipant]s and
+/// [LocalParticipant]
 class RoomTrackUnmutedEvent extends RoomEvent {}
 
-class RoomActiveSpeakerChangedEvent extends RoomEvent {}
+/// Active speakers changed. List of speakers are ordered by their audio level.
+/// loudest speakers first. This will include the [LocalParticipant] too.
+class RoomActiveSpeakerChangedEvent extends RoomEvent {
+  final List<Participant> speakers;
+  const RoomActiveSpeakerChangedEvent({
+    required this.speakers,
+  });
+}
 
+/// Participant metadata is a simple way for app-specific state to be pushed to
+/// all users.
+/// When RoomService.UpdateParticipantMetadata is called to change a
+/// participant's state, *all*  participants in the room will fire this event.
 class RoomMetadataChangedEvent extends RoomEvent {}
 
-class RoomDataReceivedEvent extends RoomEvent {}
+/// Data received from another [RemoteParticipant].
+/// Data packets provides the ability to use LiveKit to send/receive arbitrary
+/// payloads.
+class RoomDataReceivedEvent extends RoomEvent {
+  final RemoteParticipant participant;
+  final List<int> data;
+  const RoomDataReceivedEvent({
+    required this.participant,
+    required this.data,
+  });
+}
 
 class RoomAudioPlaybackChangedEvent extends RoomEvent {}
 
@@ -101,11 +153,11 @@ class EngineParticipantUpdateEvent extends EngineEvent {
   });
 }
 
-class EngineMediaTrackAddedEvent extends EngineEvent {
+class EngineTrackAddedEvent extends EngineEvent {
   final rtc.MediaStreamTrack track;
-  final rtc.MediaStream? stream;
+  final rtc.MediaStream stream;
   final rtc.RTCRtpReceiver? receiver;
-  const EngineMediaTrackAddedEvent({
+  const EngineTrackAddedEvent({
     required this.track,
     required this.stream,
     required this.receiver,

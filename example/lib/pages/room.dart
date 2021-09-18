@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:provider/provider.dart';
 
+import '../exts.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
-import '../exts.dart';
 
 class RoomPage extends StatefulWidget {
   //
@@ -22,24 +22,29 @@ class RoomPage extends StatefulWidget {
   State<StatefulWidget> createState() => _RoomPageState();
 }
 
-class _RoomPageState extends State<RoomPage> with RoomDelegate {
+class _RoomPageState extends State<RoomPage> {
   //
   List<Participant> participants = [];
+  late final _listener = EventsListener(widget.room.events);
 
   @override
   void initState() {
     super.initState();
-    widget.room.delegate = this;
     widget.room.addListener(_onChange);
     _onConnected();
+    _setUpListeners();
   }
 
   @override
-  void dispose() {
-    widget.room.delegate = null;
+  void dispose() async {
+    await _listener.dispose();
     widget.room.removeListener(_onChange);
     super.dispose();
   }
+
+  void _setUpListeners() => _listener
+    ..on<RoomDisconnectedEvent>((_) => Navigator.pop(context))
+    ..on<RoomDataReceivedEvent>((event) => context.showDataReceivedDialog(utf8.decode(event.data)));
 
   void _onConnected() async {
     // video will fail when running in ios simulator
@@ -104,17 +109,6 @@ class _RoomPageState extends State<RoomPage> with RoomDelegate {
     setState(() {
       this.participants = participants;
     });
-  }
-
-  @override
-  void onDataReceived(RemoteParticipant participant, List<int> data) async {
-    await context.showDataReceivedDialog(utf8.decode(data));
-  }
-
-  @override
-  void onDisconnected() {
-    print('disconnected: $context');
-    Navigator.pop(context);
   }
 
   @override

@@ -41,8 +41,8 @@ class EventsListener<T extends LiveKitEvent> extends EventsListenable<T> {
   @override
   final EventsEmitter<T> emitter;
 
-  EventsListener({
-    required this.emitter,
+  EventsListener(
+    this.emitter, {
     bool synchronized = false,
   }) : super(
           synchronized: synchronized,
