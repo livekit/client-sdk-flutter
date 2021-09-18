@@ -454,10 +454,8 @@ class RTCEngine {
 
   //------------------ SignalClient Delegate methods -------------------------//
 
-  void _setUpListeners() {
-    // TODO: Wait for prev
-
-    _signalListener.on<SignalConnectedEvent>((event) async {
+  void _setUpListeners() => _signalListener
+    ..on<SignalConnectedEvent>((event) async {
       // create peer connections
       isClosed = false;
       _subscriberPrimary = event.response.subscriberPrimary;
@@ -476,13 +474,11 @@ class RTCEngine {
 
       _joinCompleter?.complete(Future.value(event.response));
       _joinCompleter = null;
-    });
-
-    _signalListener.on<SignalCloseEvent>((_) async {
+    })
+    ..on<SignalCloseEvent>((_) async {
       await _onDisconnected('signal');
-    });
-
-    _signalListener.on<SignalOfferEvent>((e) async {
+    })
+    ..on<SignalOfferEvent>((e) async {
       if (subscriber == null) {
         return;
       }
@@ -497,18 +493,16 @@ class RTCEngine {
       logger.finer('sdp: ${answer.sdp}');
       await subscriber!.pc.setLocalDescription(answer);
       client.sendAnswer(answer);
-    });
-
-    _signalListener.on<SignalAnswerEvent>((event) async {
+    })
+    ..on<SignalAnswerEvent>((event) async {
       if (publisher == null) {
         return;
       }
       logger.fine('received answer (type: ${event.sessionDescription.type})');
       logger.finer('sdp: ${event.sessionDescription.sdp}');
       await publisher!.setRemoteDescription(event.sessionDescription);
-    });
-
-    _signalListener.on<SignalTrickleEvent>((event) async {
+    })
+    ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
         return;
       }
@@ -518,35 +512,29 @@ class RTCEngine {
       } else if (event.target == lk_rtc.SignalTarget.PUBLISHER) {
         await publisher!.addIceCandidate(event.candidate);
       }
-    });
-
-    _signalListener.on<SignalParticipantUpdateEvent>((event) async {
+    })
+    ..on<SignalParticipantUpdateEvent>((event) async {
       onParticipantUpdated?.call(event.updates);
       events.emit(EngineParticipantUpdateEvent(participants: event.updates));
-    });
-
-    _signalListener.on<SignalLocalTrackPublishedEvent>((event) async {
+    })
+    ..on<SignalLocalTrackPublishedEvent>((event) async {
       final completer = _pendingTrackResolvers.remove(event.response.cid);
       completer?.complete(event.response.track);
-    });
-
-    _signalListener.on<SignalActiveSpeakersChangedEvent>((event) async {
+    })
+    ..on<SignalActiveSpeakersChangedEvent>((event) async {
       onActiveSpeakerUpdated?.call(event.speakers);
       events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
-    });
-
-    _signalListener.on<SignalLeaveEvent>((event) async {
+    })
+    ..on<SignalLeaveEvent>((event) async {
       await close();
       onDisconnected?.call();
       events.emit(EngineDisconnectedEvent());
-    });
-
-    _signalListener.on<SignalMuteTrackEvent>((event) async {
+    })
+    ..on<SignalMuteTrackEvent>((event) async {
       onRemoteMute?.call(event.req.sid, event.req.muted);
       events.emit(EngineRemoteMuteChangedEvent(
         sid: event.req.sid,
         muted: event.req.muted,
       ));
     });
-  }
 }
