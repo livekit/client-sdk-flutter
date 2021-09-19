@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../errors.dart';
+import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../rtc_engine.dart';
@@ -25,8 +27,13 @@ class LocalParticipant extends Participant {
     required RTCEngine engine,
     required lk_models.ParticipantInfo info,
     this.defaultPublishOptions,
+    required EventsEmitter<LiveKitEvent> roomEvents,
   })  : _engine = engine,
-        super(info.sid, info.identity) {
+        super(
+          info.sid,
+          info.identity,
+          roomEvents: roomEvents,
+        ) {
     updateFromInfo(info);
   }
 

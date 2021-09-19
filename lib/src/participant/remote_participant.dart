@@ -1,14 +1,16 @@
-import 'package:meta/meta.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
+import 'package:meta/meta.dart';
 
+import '../events.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';
 import '../track/audio_track.dart';
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../track/video_track.dart';
+import '../types.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].
@@ -20,14 +22,33 @@ class RemoteParticipant extends Participant {
   RemoteParticipant(
     this._client,
     String sid,
-    String identity,
-  ) : super(sid, identity);
+    String identity, {
+    required EventsEmitter<LiveKitEvent> roomEvents,
+  }) : super(
+          sid,
+          identity,
+          roomEvents: roomEvents,
+        );
 
   RemoteParticipant.fromInfo(
     this._client,
-    lk_models.ParticipantInfo info,
-  ) : super(info.sid, info.identity) {
+    lk_models.ParticipantInfo info, {
+    required EventsEmitter<LiveKitEvent> roomEvents,
+  }) : super(
+          info.sid,
+          info.identity,
+          roomEvents: roomEvents,
+        ) {
     updateFromInfo(info);
+  }
+
+  @override
+  Future<void> dispose() async {
+    // final tracks = List<TrackPublication>.from(p.tracks.values);
+    for (final pub in tracks.values) {
+      await unpublishTrack(pub.sid);
+    }
+    await super.dispose();
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
@@ -47,10 +68,15 @@ class RemoteParticipant extends Participant {
       // const msg = 'addSubscribedMediaTrack received null sid';
       // delegate?.onTrackSubscriptionFailed(this, '', msg);
       // roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
-      events.emit(ParticipantTrackSubscriptionFailedEvent(
+
+      final event = TrackSubscriptionFailedEvent(
         participant: this,
         reason: TrackSubscribeFailReason.serverResponseIncorrect,
-      ));
+      );
+
+      events.emit(event);
+      roomEvents.emit(event);
+
       return;
     }
 
@@ -62,11 +88,16 @@ class RemoteParticipant extends Participant {
         // const msg = 'no track metadata found';
         // delegate?.onTrackSubscriptionFailed(this, sid, msg);
         // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-        events.emit(ParticipantTrackSubscriptionFailedEvent(
+
+        final event = TrackSubscriptionFailedEvent(
           participant: this,
           sid: sid,
           reason: TrackSubscribeFailReason.notTrackMetadataFound,
-        ));
+        );
+
+        events.emit(event);
+        roomEvents.emit(event);
+
         return;
       }
     }
@@ -82,11 +113,16 @@ class RemoteParticipant extends Participant {
       // final msg = 'unsupported track type ${pub.kind}';
       // delegate?.onTrackSubscriptionFailed(this, sid, msg);
       // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-      events.emit(ParticipantTrackSubscriptionFailedEvent(
+
+      final event = TrackSubscriptionFailedEvent(
         participant: this,
         sid: sid,
         reason: TrackSubscribeFailReason.unsupportedTrackType,
-      ));
+      );
+
+      events.emit(event);
+      roomEvents.emit(event);
+
       return;
     }
 
@@ -95,12 +131,14 @@ class RemoteParticipant extends Participant {
 
     // delegate?.onTrackSubscribed(this, track, pub);
     // roomDelegate?.onTrackSubscribed(this, track, pub);
-
-    events.emit(ParticipantTrackSubscribedEvent(
+    final event = TrackSubscribedEvent(
       participant: this,
       track: track,
       publication: pub,
-    ));
+    );
+
+    events.emit(event);
+    roomEvents.emit(event);
 
     notifyListeners();
   }
@@ -136,10 +174,13 @@ class RemoteParticipant extends Participant {
       for (final pub in newPubs.values) {
         // delegate?.onTrackPublished(this, pub);
         // roomDelegate?.onTrackPublished(this, pub);
-        events.emit(ParticipantTrackPublishedEvent(
+        final event = TrackPublishedEvent(
           participant: this,
           publication: pub,
-        ));
+        );
+
+        events.emit(event);
+        roomEvents.emit(event);
       }
     }
 
@@ -162,11 +203,15 @@ class RemoteParticipant extends Participant {
       await track.stop();
       // delegate?.onTrackUnsubscribed(this, track, pub);
       // roomDelegate?.onTrackUnsubscribed(this, track, pub);
-      events.emit(ParticipantTrackUnsubscribedEvent(
+
+      final event = TrackUnsubscribedEvent(
         participant: this,
         track: track,
         publication: pub,
-      ));
+      );
+
+      events.emit(event);
+      roomEvents.emit(event);
 
       notifyListeners();
     }
@@ -174,10 +219,14 @@ class RemoteParticipant extends Participant {
     if (notify) {
       // delegate?.onTrackUnpublished(this, pub);
       // roomDelegate?.onTrackUnpublished(this, pub);
-      events.emit(ParticipantTrackUnpublishedEvent(
+
+      final event = TrackUnpublishedEvent(
         participant: this,
         publication: pub,
-      ));
+      );
+
+      events.emit(event);
+      roomEvents.emit(event);
     }
   }
 

@@ -1,3 +1,5 @@
+import 'package:livekit_client/livekit_client.dart';
+
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -50,11 +52,23 @@ class RemoteTrackPublication extends TrackPublication {
     }
     super.muted = val;
     if (val) {
-      _participant.delegate?.onTrackMuted(_participant, this);
-      _participant.roomDelegate?.onTrackMuted(_participant, this);
+      final event = TrackMutedEvent(
+        participant: _participant,
+        track: this,
+      );
+      _participant.events.emit(event);
+      _participant.roomEvents.emit(event);
+      // _participant.delegate?.onTrackMuted(_participant, this);
+      // _participant.roomDelegate?.onTrackMuted(_participant, this);
     } else {
-      _participant.delegate?.onTrackUnmuted(_participant, this);
-      _participant.roomDelegate?.onTrackUnmuted(_participant, this);
+      final event = TrackUnmutedEvent(
+        participant: _participant,
+        track: this,
+      );
+      _participant.events.emit(event);
+      _participant.roomEvents.emit(event);
+      // _participant.delegate?.onTrackUnmuted(_participant, this);
+      // _participant.roomDelegate?.onTrackUnmuted(_participant, this);
     }
     if (subscribed) {
       track?.mediaStreamTrack.enabled = !val;

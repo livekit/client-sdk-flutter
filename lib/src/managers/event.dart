@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../errors.dart';
-import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../types.dart';
 
 // Type-safe, multi-listenable, dispose safe event handling
+// TODO: Move to a separate package
 
-class EventsEmitter<T extends LiveKitEvent> extends EventsListenable<T> {
+class EventsEmitter<T> extends EventsListenable<T> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
 
@@ -38,7 +38,7 @@ class EventsEmitter<T extends LiveKitEvent> extends EventsListenable<T> {
 }
 
 // for listening only
-class EventsListener<T extends LiveKitEvent> extends EventsListenable<T> {
+class EventsListener<T> extends EventsListenable<T> {
   @override
   final EventsEmitter<T> emitter;
 
@@ -51,7 +51,7 @@ class EventsListener<T extends LiveKitEvent> extends EventsListenable<T> {
 }
 
 // ensures all listeners will close on dispose
-abstract class EventsListenable<T extends LiveKitEvent> {
+abstract class EventsListenable<T> {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
 
@@ -108,9 +108,9 @@ abstract class EventsListenable<T extends LiveKitEvent> {
         // event must be E
         if (event is! E) return;
         // filter must be true (if filter is used)
-        if (filter != null && !filter(event as E)) return;
+        if (filter != null && !filter(event)) return;
         // cast to E
-        await then(event as E);
+        await then(event);
       });
 
   // waits for a specific event type

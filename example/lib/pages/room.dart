@@ -25,7 +25,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   //
   List<Participant> participants = [];
-  late final _listener = EventsListener(widget.room.events);
+  late final _listener = EventsListener<LiveKitEvent>(widget.room.events);
 
   @override
   void initState() {
@@ -37,6 +37,7 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   void dispose() async {
+    // always dispose listener
     await _listener.dispose();
     widget.room.removeListener(_onChange);
     super.dispose();
@@ -44,7 +45,7 @@ class _RoomPageState extends State<RoomPage> {
 
   void _setUpListeners() => _listener
     ..on<RoomDisconnectedEvent>((_) => Navigator.pop(context))
-    ..on<RoomDataReceivedEvent>((event) => context.showDataReceivedDialog(utf8.decode(event.data)));
+    ..on<DataReceivedEvent>((event) => context.showDataReceivedDialog(utf8.decode(event.data)));
 
   void _onConnected() async {
     // video will fail when running in ios simulator

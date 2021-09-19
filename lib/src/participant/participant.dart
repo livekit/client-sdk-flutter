@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 import '../events.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../track/remote_track_publication.dart';
-import '../track/track.dart';
 import '../track/track_publication.dart';
 import 'remote_participant.dart';
 
@@ -48,7 +47,10 @@ import 'remote_participant.dart';
 /// - mute status changed
 /// - added/removed subscribed tracks
 /// - metadata changed
-class Participant extends ChangeNotifier {
+
+/// Base for [RemoteParticipant] and [LocalParticipant],
+/// can not be instantiated directly.
+abstract class Participant extends ChangeNotifier {
   /// map of track sid => published track
   Map<String, TrackPublication> tracks = {};
 
@@ -77,13 +79,7 @@ class Participant extends ChangeNotifier {
 
   // suppport for multiple event listeners
   final events = EventsEmitter<ParticipantEvent>();
-
-  @override
-  @mustCallSuper
-  void dispose() async {
-    await events.dispose();
-    super.dispose();
-  }
+  final EventsEmitter<LiveKitEvent> roomEvents;
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -112,9 +108,21 @@ class Participant extends ChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
+  @internal
   bool get hasInfo => _participantInfo != null;
 
-  Participant(this.sid, this.identity);
+  Participant(
+    this.sid,
+    this.identity, {
+    required this.roomEvents,
+  });
+
+  @override
+  @mustCallSuper
+  Future<void> dispose() async {
+    await events.dispose();
+    super.dispose();
+  }
 
   /// for internal use
   /// {@nodoc}
@@ -130,10 +138,13 @@ class Participant extends ChangeNotifier {
     // delegate?.onSpeakingChanged(this, speaking);
     // roomDelegate?.onSpeakingChanged(this, speaking);
 
-    events.emit(ParticipantSpeakingChangedEvent(
+    final event = SpeakingChangedEvent(
       participant: this,
       speaking: speaking,
-    ));
+    );
+
+    events.emit(event);
+    roomEvents.emit(event);
 
     notifyListeners();
   }
@@ -145,9 +156,12 @@ class Participant extends ChangeNotifier {
       // delegate?.onMetadataChanged(this);
       // roomDelegate?.onMetadataChanged(this);
 
-      events.emit(ParticipantMetadataChangedEvent(
+      final event = MetadataChangedEvent(
         participant: this,
-      ));
+      );
+
+      events.emit(event);
+      roomEvents.emit(event);
 
       notifyListeners();
     }

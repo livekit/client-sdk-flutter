@@ -3,7 +3,11 @@ import 'track.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.
-class TrackPublication {
+///
+/// Base for [RemoteTrackPublication] and [LocalTrackPublication],
+/// can not be instantiated directly.
+
+abstract class TrackPublication {
   Track? track;
   String name;
   String sid;

@@ -64,7 +64,7 @@ class Room extends ChangeNotifier {
   final RTCEngine _engine;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<RoomEvent>();
+  final events = EventsEmitter<LiveKitEvent>();
   late final _engineListener = EventsListener<EngineEvent>(_engine.events);
 // late final _participantListener = EventsListener<ParticipantEvent>(_engine.events);
 
@@ -135,8 +135,9 @@ class Room extends ChangeNotifier {
       engine: _engine,
       info: joinResponse.participant,
       defaultPublishOptions: options?.defaultPublishOptions,
+      roomEvents: events,
     );
-    localParticipant.roomDelegate = this;
+    // localParticipant.roomDelegate = this;
 
     sid = joinResponse.room.sid;
     name = joinResponse.room.name;
@@ -182,11 +183,20 @@ class Room extends ChangeNotifier {
     }
 
     if (info == null) {
-      participant = RemoteParticipant(_engine.client, sid, '');
+      participant = RemoteParticipant(
+        _engine.client,
+        sid,
+        '',
+        roomEvents: events,
+      );
     } else {
-      participant = RemoteParticipant.fromInfo(_engine.client, info);
+      participant = RemoteParticipant.fromInfo(
+        _engine.client,
+        info,
+        roomEvents: events,
+      );
     }
-    participant.roomDelegate = this;
+    // participant.roomDelegate = this;
     _participants[sid] = participant;
 
     return participant;
@@ -202,18 +212,22 @@ class Room extends ChangeNotifier {
     // is being awaited
     _connectionState = RoomState.disconnected;
 
-    for (final p in _participants.values) {
-      final tracks = List<TrackPublication>.from(p.tracks.values);
-      for (final pub in tracks) {
-        await p.unpublishTrack(pub.sid);
-      }
+    // clean up RemoteParticipants
+    for (final _ in _participants.values) {
+      // RemoteParticipant is responsible for disposing resources
+      await _.dispose();
     }
+    _participants.clear();
+
+    // clean up LocalParticipant
     for (final pub in localParticipant.tracks.values) {
       await pub.track?.stop();
     }
+    await localParticipant.dispose();
+    // localParticipant = null;
 
     await _engine.close();
-    _participants.clear();
+
     _activeSpeakers.clear();
 
     notifyListeners();
@@ -284,23 +298,29 @@ class Room extends ChangeNotifier {
       }
     }
 
-    events.emit(RoomActiveSpeakerChangedEvent(speakers: newSpeakers));
+    events.emit(ActiveSpeakersChangedEvent(speakers: newSpeakers));
 
     _activeSpeakers = newSpeakers;
     notifyListeners();
   }
 
-  void _onDataMessageEvent(EngineDataPacketReceivedEvent event) {
-    final participant = participants[event.packet.participantSid];
-    if (participant == null) {
-      return;
+  void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {
+    // participant may be null if data is sent from Server-API
+    final senderSid = dataPacketEvent.packet.participantSid;
+    RemoteParticipant? sender;
+    if (senderSid.isNotEmpty) {
+      sender = participants[dataPacketEvent.packet.participantSid];
     }
 
-    participant.delegate?.onDataReceived(participant, event.packet.payload);
-    events.emit(RoomDataReceivedEvent(
-      participant: participant,
-      data: event.packet.payload,
-    ));
+    // participant.delegate?.onDataReceived(participant, event.packet.payload);
+
+    final event = DataReceivedEvent(
+      participant: sender,
+      data: dataPacketEvent.packet.payload,
+    );
+
+    sender?.events.emit(event);
+    events.emit(event);
   }
 
   void _handleParticipantDisconnect(String sid) {

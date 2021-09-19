@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
@@ -6,6 +7,7 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/remote_track_publication.dart';
 import 'track/track.dart';
+import 'types.dart';
 
 abstract class LiveKitEvent {}
 
@@ -62,34 +64,41 @@ class RoomParticipantDisconnectedEvent extends RoomEvent {
 
 /// When a new track is published to room *after* the current participant has
 /// joined. It will not fire for tracks that are already published
+// (Relayed from ParticipantEvent)
 class RoomTrackPublishedEvent extends RoomEvent {}
 
 /// A [RemoteParticipant] has unpublished a track
+// (Relayed from ParticipantEvent)
 class RoomTrackUnpublishedEvent extends RoomEvent {}
 
 /// The [LocalParticipant] has subscribed to a new track. This event will **always**
 /// fire as long as new tracks are ready for use.
-class RoomTrackSubscribedEvent extends RoomEvent {}
+// (Relayed from ParticipantEvent)
+// class RoomTrackSubscribedEvent extends RoomEvent {}
 
 /// A subscribed track is no longer available.
-class RoomTrackUnsubscribedEvent extends RoomEvent {}
+// (Relayed from ParticipantEvent)
+// class RoomTrackUnsubscribedEvent extends RoomEvent {}
 
 /// Encountered failure attempting to subscribe to track.
-class RoomTrackSubscriptionFailedEvent extends RoomEvent {}
+// (Relayed from ParticipantEvent)
+// class RoomTrackSubscriptionFailedEvent extends RoomEvent {}
 
 /// A track that was muted, fires on both [RemoteParticipant]s and
 /// [LocalParticipant]
-class RoomTrackMutedEvent extends RoomEvent {}
+// (Relayed from ParticipantEvent)
+// class RoomTrackMutedEvent extends RoomEvent {}
 
 /// A track that was unmuted, fires on both [RemoteParticipant]s and
 /// [LocalParticipant]
-class RoomTrackUnmutedEvent extends RoomEvent {}
+// (Relayed from ParticipantEvent)
+// class RoomTrackUnmutedEvent extends RoomEvent {}
 
 /// Active speakers changed. List of speakers are ordered by their audio level.
 /// loudest speakers first. This will include the [LocalParticipant] too.
-class RoomActiveSpeakerChangedEvent extends RoomEvent {
+class ActiveSpeakersChangedEvent extends RoomEvent {
   final List<Participant> speakers;
-  const RoomActiveSpeakerChangedEvent({
+  const ActiveSpeakersChangedEvent({
     required this.speakers,
   });
 }
@@ -98,19 +107,19 @@ class RoomActiveSpeakerChangedEvent extends RoomEvent {
 /// all users.
 /// When RoomService.UpdateParticipantMetadata is called to change a
 /// participant's state, *all*  participants in the room will fire this event.
-class RoomMetadataChangedEvent extends RoomEvent {}
+// class RoomMetadataChangedEvent extends RoomEvent {}
 
 /// Data received from another [RemoteParticipant].
 /// Data packets provides the ability to use LiveKit to send/receive arbitrary
 /// payloads.
-class RoomDataReceivedEvent extends RoomEvent {
-  final RemoteParticipant participant;
-  final List<int> data;
-  const RoomDataReceivedEvent({
-    required this.participant,
-    required this.data,
-  });
-}
+// class RoomDataReceivedEvent extends RoomEvent {
+//   final RemoteParticipant participant;
+//   final List<int> data;
+//   const RoomDataReceivedEvent({
+//     required this.participant,
+//     required this.data,
+//   });
+// }
 
 class RoomAudioPlaybackChangedEvent extends RoomEvent {}
 
@@ -119,10 +128,10 @@ class RoomAudioPlaybackChangedEvent extends RoomEvent {}
 //
 
 /// This participant has published a new [Track] to the [Room].
-class ParticipantTrackPublishedEvent extends ParticipantEvent {
+class TrackPublishedEvent extends ParticipantEvent {
   final RemoteParticipant participant;
   final RemoteTrackPublication publication;
-  const ParticipantTrackPublishedEvent({
+  const TrackPublishedEvent({
     required this.participant,
     required this.publication,
   });
@@ -130,29 +139,23 @@ class ParticipantTrackPublishedEvent extends ParticipantEvent {
 
 /// The [LocalParticipant] has subscribed to a new track published by this
 /// [RemoteParticipant]
-class ParticipantTrackSubscribedEvent extends ParticipantEvent {
+class TrackSubscribedEvent extends ParticipantEvent {
   final RemoteParticipant participant;
   final Track track;
   final RemoteTrackPublication publication;
-  const ParticipantTrackSubscribedEvent({
+  const TrackSubscribedEvent({
     required this.participant,
     required this.track,
     required this.publication,
   });
 }
 
-enum TrackSubscribeFailReason {
-  serverResponseIncorrect,
-  notTrackMetadataFound,
-  unsupportedTrackType,
-}
-
 /// An error has occured during track subscription.
-class ParticipantTrackSubscriptionFailedEvent extends ParticipantEvent {
+class TrackSubscriptionFailedEvent extends ParticipantEvent {
   final RemoteParticipant participant;
   final String? sid;
   final TrackSubscribeFailReason reason;
-  const ParticipantTrackSubscriptionFailedEvent({
+  const TrackSubscriptionFailedEvent({
     required this.participant,
     this.sid,
     required this.reason,
@@ -160,11 +163,11 @@ class ParticipantTrackSubscriptionFailedEvent extends ParticipantEvent {
 }
 
 /// This participant has unpublished one of their [Track].
-class ParticipantTrackUnpublishedEvent extends ParticipantEvent {
+class TrackUnpublishedEvent extends ParticipantEvent {
   final RemoteParticipant participant;
 
   final RemoteTrackPublication publication;
-  const ParticipantTrackUnpublishedEvent({
+  const TrackUnpublishedEvent({
     required this.participant,
     required this.publication,
   });
@@ -172,11 +175,11 @@ class ParticipantTrackUnpublishedEvent extends ParticipantEvent {
 
 /// The [LocalParticipant] has unsubscribed from a track published by this
 /// [RemoteParticipant]. This event is fired when the track was unpublished
-class ParticipantTrackUnsubscribedEvent extends ParticipantEvent {
+class TrackUnsubscribedEvent extends ParticipantEvent {
   final RemoteParticipant participant;
   final Track track;
   final RemoteTrackPublication publication;
-  const ParticipantTrackUnsubscribedEvent({
+  const TrackUnsubscribedEvent({
     required this.participant,
     required this.track,
     required this.publication,
@@ -184,27 +187,53 @@ class ParticipantTrackUnsubscribedEvent extends ParticipantEvent {
 }
 
 /// This participant has muted one of their tracks
-class ParticipantTrackMutedEvent extends ParticipantEvent {}
+class TrackMutedEvent extends ParticipantEvent {
+  final Participant participant;
+  final TrackPublication track;
+  const TrackMutedEvent({
+    required this.participant,
+    required this.track,
+  });
+}
 
 /// This participant has unmuted one of their tracks
-class ParticipantTrackUnmutedEvent extends ParticipantEvent {}
+class TrackUnmutedEvent extends ParticipantEvent {
+  final Participant participant;
+  final TrackPublication track;
+  const TrackUnmutedEvent({
+    required this.participant,
+    required this.track,
+  });
+}
+
+//
+// common events for both Room/Participant.
+//
 
 /// The participant's metadata has changed
-class ParticipantMetadataChangedEvent extends ParticipantEvent {
+class MetadataChangedEvent extends ParticipantEvent {
   final Participant participant;
-  const ParticipantMetadataChangedEvent({
+  const MetadataChangedEvent({
     required this.participant,
   });
 }
 
 /// Data received from this [RemoteParticipant].
-class ParticipantDataReceivedEvent extends ParticipantEvent {}
+class DataReceivedEvent extends ParticipantEvent {
+  /// participant may be null if data is sent from Server API
+  final RemoteParticipant? participant;
+  final List<int> data;
+  const DataReceivedEvent({
+    required this.participant,
+    required this.data,
+  });
+}
 
 /// The participant's isSpeaking property has changed
-class ParticipantSpeakingChangedEvent extends ParticipantEvent {
+class SpeakingChangedEvent extends ParticipantEvent {
   final Participant participant;
   final bool speaking;
-  const ParticipantSpeakingChangedEvent({
+  const SpeakingChangedEvent({
     required this.participant,
     required this.speaking,
   });
@@ -300,9 +329,9 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
 
 class TrackMessageEvent extends TrackEvent {}
 
-class TrackMutedEvent extends TrackEvent {}
+// class TrackMutedEvent extends TrackEvent {}
 
-class TrackUnmutedEvent extends TrackEvent {}
+// class TrackUnmutedEvent extends TrackEvent {}
 
 class TrackUpdateSettingsEvent extends TrackEvent {}
 
@@ -320,11 +349,6 @@ class SignalConnectedEvent extends SignalEvent {
   const SignalConnectedEvent({
     required this.response,
   });
-}
-
-enum CloseReason {
-  network,
-  // ...
 }
 
 class SignalCloseEvent extends SignalEvent {

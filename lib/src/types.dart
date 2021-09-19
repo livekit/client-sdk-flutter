@@ -13,6 +13,18 @@ enum Reliability {
   lossy,
 }
 
+enum CloseReason {
+  network,
+  // ...
+}
+
+enum TrackSubscribeFailReason {
+  serverResponseIncorrect,
+  notTrackMetadataFound,
+  unsupportedTrackType,
+  // ...
+}
+
 enum RTCIceTransportPolicy {
   all,
   relay,
