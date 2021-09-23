@@ -21,6 +21,9 @@ dependencies:
 
   flutter_webrtc: 
     # path: ../../repos_livekit/flutter-webrtc/
+
+    # This will use custom webrtc build from
+    # https://github.com/webrtc-sdk/Specs/releases
     git:
       url: https://github.com/livekit/flutter-webrtc
       ref: use-custom-webrtc-build

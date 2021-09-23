@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:provider/provider.dart';
 
 import '../exts.dart';
 import '../widgets/controls.dart';
@@ -30,16 +30,21 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
-    widget.room.addListener(_onChange);
-    _onConnected();
+    widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
+    _sortParticipants();
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) => _askPublish());
   }
 
   @override
-  void dispose() async {
+  void dispose() {
     // always dispose listener
-    await _listener.dispose();
-    widget.room.removeListener(_onChange);
+    (() async {
+      widget.room.removeListener(_onRoomDidUpdate);
+      await _listener.dispose();
+      await widget.room.dispose();
+    })();
     super.dispose();
   }
 
@@ -47,10 +52,14 @@ class _RoomPageState extends State<RoomPage> {
     ..on<RoomDisconnectedEvent>((_) => Navigator.pop(context))
     ..on<DataReceivedEvent>((event) => context.showDataReceivedDialog(utf8.decode(event.data)));
 
-  void _onConnected() async {
+  void _askPublish() async {
+    final result = await context.showPublishDialog();
+    if (result != true) return;
     // video will fail when running in ios simulator
     try {
-      final localVideo = await LocalVideoTrack.createCameraTrack(); // Defaults to camera
+      // Create video track
+      final localVideo = await LocalVideoTrack.createCameraTrack();
+      // Try to publish the video
       await widget.room.localParticipant.publishVideoTrack(
         localVideo,
         // options: TrackPublishOptions(
@@ -58,20 +67,22 @@ class _RoomPageState extends State<RoomPage> {
         //   videoEncoding: VideoParameters.presetQVGA169.encoding,
         // ),
       );
-    } catch (e) {
-      print('could not publish video: $e');
+
+      // Create mic track
+      final localAudio = await LocalAudioTrack.create();
+      // Try to publish audio
+      await widget.room.localParticipant.publishAudioTrack(localAudio);
+    } catch (error) {
+      print('could not publish video: $error');
+      await context.showErrorDialog(error);
     }
-
-    final localAudio = await LocalAudioTrack.create();
-    await widget.room.localParticipant.publishAudioTrack(localAudio);
-    sortParticipants();
   }
 
-  void _onChange() {
-    sortParticipants();
+  void _onRoomDidUpdate() {
+    _sortParticipants();
   }
 
-  void sortParticipants() {
+  void _sortParticipants() {
     List<Participant> participants = [];
     participants.addAll(widget.room.participants.values);
     // sort speakers for the grid
@@ -114,35 +125,29 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        // with a provider, any child/descendent widget can be updated if they
-        // are a Consumer of Room.
-        body: ChangeNotifierProvider.value(
-          value: widget.room,
-          child: Column(
-            children: [
-              Expanded(
-                  child: participants.isNotEmpty
-                      ? ParticipantWidget(participants.first)
-                      : Container()),
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: math.max(0, participants.length - 1),
-                  itemBuilder: (BuildContext context, int index) => Container(
-                    width: 100,
-                    height: 100,
-                    padding: const EdgeInsets.all(2),
-                    child: ParticipantWidget(participants[index + 1], quality: VideoQuality.LOW),
-                  ),
+        body: Column(
+          children: [
+            Expanded(
+                child:
+                    participants.isNotEmpty ? ParticipantWidget(participants.first) : Container()),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: math.max(0, participants.length - 1),
+                itemBuilder: (BuildContext context, int index) => Container(
+                  width: 100,
+                  height: 100,
+                  padding: const EdgeInsets.all(2),
+                  child: ParticipantWidget(participants[index + 1], quality: VideoQuality.LOW),
                 ),
               ),
-              SafeArea(
-                top: false,
-                child: ControlsWidget(widget.room),
-              ),
-            ],
-          ),
+            ),
+            SafeArea(
+              top: false,
+              child: ControlsWidget(widget.room),
+            ),
+          ],
         ),
       );
 }

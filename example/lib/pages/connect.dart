@@ -62,6 +62,9 @@ class _ConnectPageState extends State<ConnectPage> {
         _busy = true;
       });
 
+      // Save for next time
+      await _writePrefs();
+
       print('Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
 
       final room = await LiveKitClient.connect(
@@ -73,9 +76,6 @@ class _ConnectPageState extends State<ConnectPage> {
           ),
         ),
       );
-
-      // Save for next time
-      await _writePrefs();
 
       await Navigator.push<void>(
         ctx,
@@ -122,10 +122,14 @@ class _ConnectPageState extends State<ConnectPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
                   controller: _uriCtrl,
                   decoration: const InputDecoration(labelText: 'URL'),
                 ),
                 TextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
                   controller: _tokenCtrl,
                   decoration: const InputDecoration(labelText: 'Token'),
                 ),

@@ -87,7 +87,10 @@ abstract class Participant extends LKChangeNotifier {
     required this.roomEvents,
   }) {
     // any event emitted will trigger ChangeNotifier
-    events.listen((_) => notifyListeners());
+    events.listen((_) {
+      logger.fine('will notifyListeners()');
+      notifyListeners();
+    });
   }
 
   @override
