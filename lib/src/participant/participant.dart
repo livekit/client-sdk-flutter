@@ -1,44 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
+import '../classes/change_notifier.dart';
 import '../events.dart';
+import '../extensions.dart';
+import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/track_publication.dart';
 import 'remote_participant.dart';
-
-/// Callbacks for participant changes
-// mixin ParticipantDelegate {
-//
-//   void onMetadataChanged(Participant participant) {}
-
-//
-//   void onSpeakingChanged(Participant participant, bool speaking) {}
-
-//
-//   void onTrackMuted(Participant participant, TrackPublication publication) {}
-
-//
-//   void onTrackUnmuted(Participant participant, TrackPublication publication) {}
-
-//
-//   void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
-
-//
-//   void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
-
-//   void onTrackSubscribed(
-//       RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
-
-//   void onTrackUnsubscribed(
-//       RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
-
-//
-//   void onDataReceived(RemoteParticipant participant, List<int> data) {}
-
-//
-//   void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
-// }
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -50,7 +20,7 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends ChangeNotifier {
+abstract class Participant extends LKChangeNotifier {
   /// map of track sid => published track
   Map<String, TrackPublication> tracks = {};
 
@@ -115,11 +85,15 @@ abstract class Participant extends ChangeNotifier {
     this.sid,
     this.identity, {
     required this.roomEvents,
-  });
+  }) {
+    // any event emitted will trigger ChangeNotifier
+    events.listen((_) => notifyListeners());
+  }
 
   @override
   @mustCallSuper
   Future<void> dispose() async {
+    logger.fine('$objectId dispose()');
     await events.dispose();
     super.dispose();
   }
@@ -135,9 +109,6 @@ abstract class Participant extends ChangeNotifier {
       lastSpokeAt = DateTime.now();
     }
 
-    // delegate?.onSpeakingChanged(this, speaking);
-    // roomDelegate?.onSpeakingChanged(this, speaking);
-
     final event = SpeakingChangedEvent(
       participant: this,
       speaking: speaking,
@@ -145,25 +116,18 @@ abstract class Participant extends ChangeNotifier {
 
     events.emit(event);
     roomEvents.emit(event);
-
-    notifyListeners();
   }
 
   void _setMetadata(String md) {
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
-      // delegate?.onMetadataChanged(this);
-      // roomDelegate?.onMetadataChanged(this);
-
       final event = MetadataChangedEvent(
         participant: this,
       );
 
       events.emit(event);
       roomEvents.emit(event);
-
-      notifyListeners();
     }
   }
 
@@ -189,6 +153,16 @@ abstract class Participant extends ChangeNotifier {
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
     tracks[pub.sid] = pub;
+  }
+
+  // Must implement
+  Future<void> unpublishTrack(String trackSid, [bool notify = false]);
+
+  Future<void> unpublishAllTracks() async {
+    final _ = List<TrackPublication>.from(tracks.values);
+    for (final track in _) {
+      await unpublishTrack(track.sid);
+    }
   }
 }
 

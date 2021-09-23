@@ -33,7 +33,19 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
   }
 
   @override
-  void send(List<int> data) => _ws.add(data);
+  void send(List<int> data) {
+    // 0 CONNECTING
+    // 1 OPEN
+    // 2 CLOSING
+    // 3 CLOSED
+    if (_ws.readyState == 1) {
+      try {
+        _ws.add(data);
+      } catch (e) {
+        //
+      }
+    }
+  }
 
   static Future<LiveKitWebSocketIO> connect(
     Uri uri, [

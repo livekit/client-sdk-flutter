@@ -8,6 +8,12 @@ import 'extensions.dart';
 
 typedef CancelListenFunc = Function();
 
+enum ConnectionState {
+  disconnected,
+  connected,
+  reconnecting,
+}
+
 enum Reliability {
   reliable,
   lossy,
@@ -100,4 +106,15 @@ class RTCIceServer {
         if (username?.isNotEmpty ?? false) 'username': username,
         if (credential?.isNotEmpty ?? false) 'credential': credential,
       };
+}
+
+@immutable
+class TrackDimension {
+  final int width;
+  final int height;
+
+  const TrackDimension(
+    this.width,
+    this.height,
+  );
 }

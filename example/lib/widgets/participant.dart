@@ -41,7 +41,7 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
 
   @override
   void didUpdateWidget(covariant ParticipantWidget oldWidget) {
-    // oldWidget.participant.removeListener(_onParticipantChanged);
+    oldWidget.participant.removeListener(_onParticipantChanged);
     widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
     super.didUpdateWidget(oldWidget);

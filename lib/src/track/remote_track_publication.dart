@@ -58,8 +58,6 @@ class RemoteTrackPublication extends TrackPublication {
       );
       _participant.events.emit(event);
       _participant.roomEvents.emit(event);
-      // _participant.delegate?.onTrackMuted(_participant, this);
-      // _participant.roomDelegate?.onTrackMuted(_participant, this);
     } else {
       final event = TrackUnmutedEvent(
         participant: _participant,
@@ -67,8 +65,6 @@ class RemoteTrackPublication extends TrackPublication {
       );
       _participant.events.emit(event);
       _participant.roomEvents.emit(event);
-      // _participant.delegate?.onTrackUnmuted(_participant, this);
-      // _participant.roomDelegate?.onTrackUnmuted(_participant, this);
     }
     if (subscribed) {
       track?.mediaStreamTrack.enabled = !val;

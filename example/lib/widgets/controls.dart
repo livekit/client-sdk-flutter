@@ -102,8 +102,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     //
     final lp = widget.room.localParticipant;
 
-    for (final tracks in lp.videoTracks) {
-      await lp.unpublishTrack(tracks.track!);
+    for (final track in lp.videoTracks) {
+      await lp.unpublishTrack(track.sid);
     }
 
     try {
@@ -117,8 +117,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _onTapDisconnect() async {
-    final result = await context.showDisconnectDialog();
-    if (result == true) await widget.room.disconnect();
+    // final result = await context.showDisconnectDialog();
+    // if (result == true)
+    await widget.room.disconnect();
   }
 
   void _onTapReconnect() async {

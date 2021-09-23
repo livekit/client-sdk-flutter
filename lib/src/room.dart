@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
+import 'classes/change_notifier.dart';
 import 'errors.dart';
 import 'events.dart';
 import 'extensions.dart';
@@ -19,12 +20,6 @@ import 'track/track.dart';
 import 'track/track_publication.dart';
 import 'types.dart';
 
-enum RoomState {
-  disconnected,
-  connected,
-  reconnecting,
-}
-
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
 /// Notifies changes to its state via two ways, by assigning a delegate, or using
@@ -34,11 +29,11 @@ enum RoomState {
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends ChangeNotifier {
-  RoomState _connectionState = RoomState.disconnected;
+class Room extends LKChangeNotifier {
+  ConnectionState _connectionState = ConnectionState.disconnected;
 
   /// connection state of the room
-  RoomState get state => _connectionState;
+  ConnectionState get connectionState => _connectionState;
 
   final Map<String, RemoteParticipant> _participants = {};
 
@@ -66,7 +61,6 @@ class Room extends ChangeNotifier {
   // suppport for multiple event listeners
   final events = EventsEmitter<LiveKitEvent>();
   late final _engineListener = EventsListener<EngineEvent>(_engine.events);
-// late final _participantListener = EventsListener<ParticipantEvent>(_engine.events);
 
   /// internal use
   /// {@nodoc}
@@ -81,16 +75,16 @@ class Room extends ChangeNotifier {
 
   void _setUpListeners() => _engineListener
     ..on<EngineConnectedEvent>((event) async {
-      _connectionState = RoomState.connected;
+      _connectionState = ConnectionState.connected;
       notifyListeners();
     })
     ..on<EngineReconnectedEvent>((event) async {
-      _connectionState = RoomState.connected;
+      _connectionState = ConnectionState.connected;
       events.emit(RoomReconnectedEvent());
       notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
-      _connectionState = RoomState.reconnecting;
+      _connectionState = ConnectionState.reconnecting;
       events.emit(RoomReconnectingEvent());
       notifyListeners();
     })
@@ -108,7 +102,7 @@ class Room extends ChangeNotifier {
       final trackSid = idParts.elementAtOrNull(1) ?? event.track.id;
 
       final participant = _getOrCreateRemoteParticipant(participantSid, null);
-      participant.addSubscribedMediaTrack(event.track, event.stream, trackSid);
+      await participant.addSubscribedMediaTrack(event.track, event.stream, trackSid);
     });
 
   @override
@@ -156,7 +150,7 @@ class Room extends ChangeNotifier {
 
       // catch any exception
     } catch (_) {
-      _connectionState = RoomState.disconnected;
+      _connectionState = ConnectionState.disconnected;
       notifyListeners();
 
       // pass on the exception
@@ -203,27 +197,30 @@ class Room extends ChangeNotifier {
   }
 
   Future<void> _onDisconnectedEvent() async {
-    if (_connectionState == RoomState.disconnected) {
+    if (_connectionState == ConnectionState.disconnected) {
       logger.fine('$objectId: _handleDisconnect() already disconnected');
       return;
     }
     // we need to flag room as disconnected immediately to avoid
     // this method firing multiple times since the following code
     // is being awaited
-    _connectionState = RoomState.disconnected;
+    _connectionState = ConnectionState.disconnected;
 
     // clean up RemoteParticipants
     for (final _ in _participants.values) {
       // RemoteParticipant is responsible for disposing resources
+      await _.unpublishAllTracks();
       await _.dispose();
     }
     _participants.clear();
 
     // clean up LocalParticipant
-    for (final pub in localParticipant.tracks.values) {
-      await pub.track?.stop();
-    }
-    await localParticipant.dispose();
+    // for (final pub in localParticipant.tracks.values) {
+    //   await pub.track?.stop();
+    // }
+    await localParticipant.unpublishAllTracks();
+
+    // await localParticipant.dispose();
     // localParticipant = null;
 
     await _engine.close();
@@ -336,52 +333,4 @@ class Room extends ChangeNotifier {
 
     events.emit(RoomParticipantDisconnectedEvent(participant: participant));
   }
-
-  // //----------------- forward participant delegate calls ---------------------//
-
-  // @override
-  // void onMetadataChanged(Participant participant) {
-  //   delegate?.onMetadataChanged(participant);
-  // }
-
-  // @override
-  // void onTrackMuted(Participant participant, TrackPublication publication) {
-  //   delegate?.onTrackMuted(participant, publication);
-  // }
-
-  // @override
-  // void onTrackUnmuted(Participant participant, TrackPublication publication) {
-  //   delegate?.onTrackUnmuted(participant, publication);
-  // }
-
-  // @override
-  // void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {
-  //   delegate?.onTrackPublished(participant, publication);
-  // }
-
-  // @override
-  // void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {
-  //   delegate?.onTrackUnpublished(participant, publication);
-  // }
-
-  // @override
-  // void onTrackSubscribed(
-  //     RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
-  //   delegate?.onTrackSubscribed(participant, track, publication);
-  // }
-
-  // @override
-  // void onTrackUnsubscribed(
-  //     RemoteParticipant participant, Track track, RemoteTrackPublication publication) {
-  //   delegate?.onTrackUnsubscribed(participant, track, publication);
-  // }
-
-  // // omitted because data dispatching is handled in _handleDataPacket
-  // @override
-  // void onDataReceived(RemoteParticipant participant, List<int> data) {}
-
-  // @override
-  // void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {
-  //   delegate?.onTrackSubscriptionFailed(participant, sid, message);
-  // }
 }

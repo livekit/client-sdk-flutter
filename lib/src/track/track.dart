@@ -1,17 +1,11 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/classes/change_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;
 
-class TrackDimension {
-  int width;
-  int height;
-
-  TrackDimension(this.width, this.height);
-}
-
 /// Wrapper around a MediaStreamTrack with additional metadata.
-class Track {
+class Track extends LKChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 

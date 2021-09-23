@@ -12,7 +12,6 @@ import '../rtc_engine.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
-import '../track/track.dart';
 import '../track/track_publication.dart';
 import '../types.dart';
 import '../utils.dart';
@@ -142,21 +141,25 @@ class LocalParticipant extends Participant {
   }
 
   /// Unpublish a track that's already published
-  Future<void> unpublishTrack(Track track) async {
-    final existing = tracks.values.where((element) => element.track == track);
-    if (existing.isEmpty) return;
+  @override
+  Future<void> unpublishTrack(String trackSid, [bool notify = false]) async {
+    logger.finer('Unpublish track sid: $sid, notify: $notify');
+    final pub = tracks.remove(sid);
+    if (pub == null || pub is! LocalTrackPublication) return;
 
-    final pub = existing.first;
+    // final existing = tracks.values.where((element) => element.track == track);
+    // if (existing.isEmpty) return;
+    // final pub = existing.first;
+    final track = pub.track;
+    if (track != null) {
+      await track.stop();
 
-    await track.stop();
-
-    final sender = track.transceiver?.sender;
-    if (sender != null) {
-      await engine.publisher?.pc.removeTrack(sender);
-      await engine.negotiate();
+      final sender = track.transceiver?.sender;
+      if (sender != null) {
+        await engine.publisher?.pc.removeTrack(sender);
+        await engine.negotiate();
+      }
     }
-
-    tracks.remove(pub.sid);
   }
 
   /// Publish a new data payload to the room.

@@ -14,21 +14,20 @@ import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'signal_client.dart';
-import 'track/track.dart';
 import 'transport.dart';
 import 'types.dart';
 
-typedef GenericCallback = void Function();
-typedef TrackCallback = void Function(
-  rtc.MediaStreamTrack track,
-  rtc.MediaStream? stream,
-  rtc.RTCRtpReceiver? receiver,
-);
-typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
-typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
-typedef DataPacketCallback = void Function(
-    lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
-typedef RemoteMuteCallback = void Function(String sid, bool mute);
+// typedef GenericCallback = void Function();
+// typedef TrackCallback = void Function(
+//   rtc.MediaStreamTrack track,
+//   rtc.MediaStream? stream,
+//   rtc.RTCRtpReceiver? receiver,
+// );
+// typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
+// typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
+// typedef DataPacketCallback = void Function(
+//     lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
+// typedef RemoteMuteCallback = void Function(String sid, bool mute);
 
 class RTCEngine {
   static const _lossyDCLabel = '_lossy';
@@ -78,6 +77,8 @@ class RTCEngine {
 
   final delays = CancelableDelayManager();
 
+  late final Timer _statsTimer;
+
   RTCEngine(
     this.client,
     this.rtcConfig,
@@ -90,6 +91,18 @@ class RTCEngine {
     }
 
     _setUpListeners();
+
+    _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
+  }
+
+  void _onStatTimer(Timer _) async {
+    //
+    final stats = await publisher?.pc.getStats();
+    if (stats == null || stats.isEmpty) return;
+
+    for (final s in stats) {
+      logger.fine('STATS ${s.values}');
+    }
   }
 
   Future<lk_rtc.JoinResponse> join(
@@ -121,6 +134,8 @@ class RTCEngine {
       return;
     }
     isClosed = true;
+
+    _statsTimer.cancel();
 
     // cancel events
     await _primaryIceStateListener?.call();

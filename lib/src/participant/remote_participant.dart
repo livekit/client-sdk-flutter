@@ -42,14 +42,10 @@ class RemoteParticipant extends Participant {
     updateFromInfo(info);
   }
 
-  @override
-  Future<void> dispose() async {
-    // final tracks = List<TrackPublication>.from(p.tracks.values);
-    for (final pub in tracks.values) {
-      await unpublishTrack(pub.sid);
-    }
-    await super.dispose();
-  }
+  // @override
+  // Future<void> dispose() async {
+  //   await super.dispose();
+  // }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = tracks[sid];
@@ -59,16 +55,12 @@ class RemoteParticipant extends Participant {
   /// for internal use
   /// {@nodoc}
   @internal
-  void addSubscribedMediaTrack(
+  Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
     String? sid,
   ) async {
     if (sid == null) {
-      // const msg = 'addSubscribedMediaTrack received null sid';
-      // delegate?.onTrackSubscriptionFailed(this, '', msg);
-      // roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
-
       final event = TrackSubscriptionFailedEvent(
         participant: this,
         reason: TrackSubscribeFailReason.serverResponseIncorrect,
@@ -129,8 +121,6 @@ class RemoteParticipant extends Participant {
     pub.track = track;
     addTrackPublication(pub);
 
-    // delegate?.onTrackSubscribed(this, track, pub);
-    // roomDelegate?.onTrackSubscribed(this, track, pub);
     final event = TrackSubscribedEvent(
       participant: this,
       track: track,
@@ -172,8 +162,6 @@ class RemoteParticipant extends Participant {
     // notify listeners when it's not a new participant
     if (hadInfo) {
       for (final pub in newPubs.values) {
-        // delegate?.onTrackPublished(this, pub);
-        // roomDelegate?.onTrackPublished(this, pub);
         final event = TrackPublishedEvent(
           participant: this,
           publication: pub,
@@ -193,7 +181,8 @@ class RemoteParticipant extends Participant {
     }
   }
 
-  Future<void> unpublishTrack(String sid, [bool notify = false]) async {
+  @override
+  Future<void> unpublishTrack(String trackSid, [bool notify = false]) async {
     logger.finer('Unpublish track sid: $sid, notify: $notify');
     final pub = tracks.remove(sid);
     if (pub == null || pub is! RemoteTrackPublication) return;
@@ -201,8 +190,6 @@ class RemoteParticipant extends Participant {
     final track = pub.track;
     if (track != null) {
       await track.stop();
-      // delegate?.onTrackUnsubscribed(this, track, pub);
-      // roomDelegate?.onTrackUnsubscribed(this, track, pub);
 
       final event = TrackUnsubscribedEvent(
         participant: this,
@@ -217,9 +204,6 @@ class RemoteParticipant extends Participant {
     }
 
     if (notify) {
-      // delegate?.onTrackUnpublished(this, pub);
-      // roomDelegate?.onTrackUnpublished(this, pub);
-
       final event = TrackUnpublishedEvent(
         participant: this,
         publication: pub,
