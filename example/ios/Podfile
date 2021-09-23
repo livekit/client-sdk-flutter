@@ -44,6 +44,10 @@ post_install do |installer|
     #
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1'
+      #
+      # Make it compile with M1 macs
+      #
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = 'arm64'
     end
 
   end
