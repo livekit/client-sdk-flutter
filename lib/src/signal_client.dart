@@ -35,7 +35,7 @@ class SignalClient {
 
   bool get connected => _connected;
 
-  Future<void> join(
+  Future<void> connect(
     String uriString,
     String token, {
     ConnectOptions? options,

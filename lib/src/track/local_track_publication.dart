@@ -24,7 +24,7 @@ class LocalTrackPublication extends TrackPublication {
 
     super.muted = val;
     track?.mediaStreamTrack.enabled = !val;
-    _participant.engine.client.sendMuteTrack(sid, val);
+    _participant.engine.signalClient.sendMuteTrack(sid, val);
 
     if (val) {
       final event = TrackMutedEvent(

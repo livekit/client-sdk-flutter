@@ -114,21 +114,21 @@ abstract class EventsListenable<T> {
       });
 
   // waits for a specific event type
-  Future<void> waitFor<E>({
+  Future<E> waitFor<E>({
     required Duration duration,
     bool Function(E)? filter,
-    FutureOr<void> Function()? onTimeout,
+    FutureOr<E> Function()? onTimeout,
   }) async {
-    final completer = Completer<void>();
+    final completer = Completer<E>();
 
     final _cancelFunc = on<E>(
-      (event) => completer.complete(),
+      (event) => completer.complete(event),
       filter: filter,
     );
 
     try {
       // wait to complete with timeout
-      await completer.future.timeout(
+      return await completer.future.timeout(
         duration,
         onTimeout: onTimeout ?? () => throw TimeoutException(),
       );

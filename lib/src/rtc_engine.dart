@@ -37,7 +37,7 @@ class RTCEngine {
   static const _connectionTimeout = Duration(seconds: 5);
   static const _iceRestartTimeout = Duration(seconds: 10);
 
-  final SignalClient client;
+  final SignalClient signalClient;
   // config for RTCPeerConnection
   final RTCConfiguration? rtcConfig;
 
@@ -70,40 +70,42 @@ class RTCEngine {
   final Map<String, Completer<lk_models.TrackInfo>> _pendingTrackResolvers = {};
   int _reconnectAttempts = 0;
   // to complete join request
-  Completer<lk_rtc.JoinResponse>? _joinCompleter;
+  // Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
-  late final _signalListener = EventsListener(client.events, synchronized: true);
+  late final _signalListener = EventsListener(signalClient.events, synchronized: true);
 
   final delays = CancelableDelayManager();
 
-  late final Timer _statsTimer;
+  // late final Timer _statsTimer;
 
   RTCEngine(
-    this.client,
+    this.signalClient,
     this.rtcConfig,
   ) {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
-      // events.on<EngineIceStateUpdatedEvent>(
-      //     (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
     }
 
     _setUpListeners();
-
-    _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
+    // _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
   }
 
-  void _onStatTimer(Timer _) async {
-    //
-    final stats = await publisher?.pc.getStats();
-    if (stats == null || stats.isEmpty) return;
-
-    for (final s in stats) {
-      logger.fine('STATS ${s.values}');
-    }
+  Future<void> dispose() async {
+    await events.dispose();
+    await _signalListener.dispose();
   }
+
+  // void _onStatTimer(Timer _) async {
+  //   //
+  //   final stats = await publisher?.pc.getStats();
+  //   if (stats == null || stats.isEmpty) return;
+
+  //   for (final s in stats) {
+  //     logger.fine('STATS ${s.values}');
+  //   }
+  // }
 
   Future<lk_rtc.JoinResponse> join(
     String url,
@@ -113,18 +115,16 @@ class RTCEngine {
     this.url = url;
     this.token = token;
 
-    final completer = Completer<lk_rtc.JoinResponse>();
-    _joinCompleter = completer;
+    // connect to rtc server
+    await signalClient.connect(url, token, options: options);
 
-    await client.join(url, token, options: options);
+    // wait for join response
+    final event = await _signalListener.waitFor<SignalConnectedEvent>(
+      duration: _connectionTimeout,
+      onTimeout: () => throw ConnectException(),
+    );
 
-    // if it's not complete after 5 seconds, fail
-    Timer(_connectionTimeout, () {
-      _joinCompleter?.completeError(ConnectException());
-      _joinCompleter = null;
-    });
-
-    return completer.future;
+    return event.response;
   }
 
   Future<void> close() async {
@@ -135,14 +135,11 @@ class RTCEngine {
     }
     isClosed = true;
 
-    _statsTimer.cancel();
+    // _statsTimer.cancel();
 
     // cancel events
     await _primaryIceStateListener?.call();
     _primaryIceStateListener = null;
-
-    await events.dispose();
-    await _signalListener.dispose();
 
     // cancel all ongoing delays
     await delays.dispose();
@@ -154,7 +151,7 @@ class RTCEngine {
     await subscriber?.dispose();
     subscriber = null;
 
-    client.close();
+    signalClient.close();
   }
 
   Future<lk_models.TrackInfo> addTrack({
@@ -170,7 +167,7 @@ class RTCEngine {
     final completer = Completer<lk_models.TrackInfo>();
     _pendingTrackResolvers[cid] = completer;
 
-    client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
+    signalClient.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
 
     return completer.future;
   }
@@ -245,7 +242,7 @@ class RTCEngine {
 
     try {
       isReconnecting = true;
-      await client.reconnect(url, token);
+      await signalClient.reconnect(url, token);
 
       if (publisher == null || subscriber == null) {
         throw UnexpectedStateException('publisher or subscribers is null');
@@ -297,17 +294,17 @@ class RTCEngine {
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
-      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
+      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
     subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('subscriber onIceCandidate');
-      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
+      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
     publisher?.onOffer = (offer) {
       logger.fine('publisher onOffer');
-      client.sendOffer(offer);
+      signalClient.sendOffer(offer);
     };
 
     // in subscriber primary mode, server side opens sub data channels.
@@ -471,8 +468,8 @@ class RTCEngine {
         await negotiate();
       }
 
-      _joinCompleter?.complete(Future.value(event.response));
-      _joinCompleter = null;
+      // _joinCompleter?.complete(Future.value(event.response));
+      // _joinCompleter = null;
     })
     ..on<SignalCloseEvent>((_) async {
       await _onDisconnected('signal');
@@ -491,7 +488,7 @@ class RTCEngine {
       logger.fine('Created answer');
       logger.finer('sdp: ${answer.sdp}');
       await subscriber!.pc.setLocalDescription(answer);
-      client.sendAnswer(answer);
+      signalClient.sendAnswer(answer);
     })
     ..on<SignalAnswerEvent>((event) async {
       if (publisher == null) {

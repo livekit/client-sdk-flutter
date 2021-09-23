@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
-class Track extends LKChangeNotifier {
+/// Base for [AudioTrack] and [VideoTrack],
+/// can not be instantiated directly.
+abstract class Track extends LKChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 

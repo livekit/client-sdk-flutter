@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 import 'classes/change_notifier.dart';
 import 'errors.dart';
@@ -14,6 +15,8 @@ import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
+import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+
 import 'rtc_engine.dart';
 import 'signal_client.dart';
 import 'track/track.dart';
@@ -30,7 +33,8 @@ import 'types.dart';
 /// * active speakers are different
 /// {@category Room}
 class Room extends LKChangeNotifier {
-  ConnectionState _connectionState = ConnectionState.disconnected;
+  // Room is only instantiated if connected, so defaults to connected.
+  ConnectionState _connectionState = ConnectionState.connected;
 
   /// connection state of the room
   ConnectionState get connectionState => _connectionState;
@@ -42,13 +46,13 @@ class Room extends LKChangeNotifier {
       UnmodifiableMapView(_participants);
 
   /// the current participant
-  late LocalParticipant localParticipant;
+  late final LocalParticipant localParticipant;
 
   /// name of the room
-  late String name;
+  late final String name;
 
   /// sid of the room
-  late String sid;
+  late final String sid;
 
   List<Participant> _activeSpeakers = [];
 
@@ -56,21 +60,91 @@ class Room extends LKChangeNotifier {
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
 
-  final RTCEngine _engine;
+  final RTCEngine engine;
 
   // suppport for multiple event listeners
   final events = EventsEmitter<LiveKitEvent>();
-  late final _engineListener = EventsListener<EngineEvent>(_engine.events);
+  late final _engineListener = EventsListener<EngineEvent>(engine.events);
 
   /// internal use
   /// {@nodoc}
-  Room([RTCConfiguration? rtcConfig]) : _engine = RTCEngine(SignalClient(), rtcConfig) {
+  Room._({
+    required this.engine,
+    required lk_rtc.JoinResponse joinResponse,
+    ConnectOptions? connectOptions,
+  }) {
+    //
+    localParticipant = LocalParticipant(
+      engine: engine,
+      info: joinResponse.participant,
+      defaultPublishOptions: connectOptions?.defaultPublishOptions,
+      roomEvents: events,
+    );
+
+    sid = joinResponse.room.sid;
+    name = joinResponse.room.name;
+
+    for (final info in joinResponse.otherParticipants) {
+      _getOrCreateRemoteParticipant(info.sid, info);
+    }
+
     if (kDebugMode) {
       // log all RoomEvents
       events.listen((event) => logger.fine('[RoomEvent] $objectId ${event.runtimeType}'));
     }
 
     _setUpListeners();
+  }
+
+  @override
+  Future<void> dispose() async {
+    // dispose Room's events emitter
+    await events.dispose();
+    // dispose all listeners for RTCEngine
+    await _engineListener.dispose();
+    // dispose the engine
+    await engine.dispose();
+
+    super.dispose();
+  }
+
+  static Future<Room> connect(
+    String url,
+    String token, {
+    ConnectOptions? options,
+    RTCConfiguration? rtcConfig,
+  }) async {
+    //
+    final engine = RTCEngine(
+      SignalClient(),
+      rtcConfig,
+    );
+
+    try {
+      final joinResponse = await engine.join(
+        url,
+        token,
+        options: options,
+      );
+
+      logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
+
+      // room is not ready until ICE is connected.
+      await engine.events.waitFor<EngineIceStateUpdatedEvent>(
+        filter: (event) => event.iceState.isConnected(),
+        duration: const Duration(seconds: 5),
+        onTimeout: () => throw ConnectException(),
+      );
+
+      return Room._(
+        engine: engine,
+        joinResponse: joinResponse,
+      );
+    } catch (_) {
+      // dispose engine if there was any exception while connecting
+      await engine.dispose();
+      rethrow;
+    }
   }
 
   void _setUpListeners() => _engineListener
@@ -105,69 +179,14 @@ class Room extends LKChangeNotifier {
       await participant.addSubscribedMediaTrack(event.track, event.stream, trackSid);
     });
 
-  @override
-  Future<void> dispose() async {
-    await events.dispose();
-    await _engineListener.dispose();
-    super.dispose();
-  }
-
-  Future<Room> connect(
-    String url,
-    String token, {
-    ConnectOptions? options,
-  }) async {
-    final joinResponse = await _engine.join(
-      url,
-      token,
-      options: options,
-    );
-
-    logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
-
-    localParticipant = LocalParticipant(
-      engine: _engine,
-      info: joinResponse.participant,
-      defaultPublishOptions: options?.defaultPublishOptions,
-      roomEvents: events,
-    );
-    // localParticipant.roomDelegate = this;
-
-    sid = joinResponse.room.sid;
-    name = joinResponse.room.name;
-
-    for (final info in joinResponse.otherParticipants) {
-      _getOrCreateRemoteParticipant(info.sid, info);
-    }
-
-    // room is not ready until ICE is connected.
-    try {
-      await _engineListener.waitFor<EngineIceStateUpdatedEvent>(
-        filter: (event) => event.iceState.isConnected(),
-        duration: const Duration(seconds: 5),
-        onTimeout: () => throw ConnectException(),
-      );
-
-      // catch any exception
-    } catch (_) {
-      _connectionState = ConnectionState.disconnected;
-      notifyListeners();
-
-      // pass on the exception
-      rethrow;
-    }
-
-    return this;
-  }
-
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    _engine.client.sendLeave();
+    engine.signalClient.sendLeave();
     await _onDisconnectedEvent();
   }
 
   Future<void> reconnect() async {
-    await _engine.reconnect();
+    await engine.reconnect();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
@@ -178,14 +197,14 @@ class Room extends LKChangeNotifier {
 
     if (info == null) {
       participant = RemoteParticipant(
-        _engine.client,
+        engine.signalClient,
         sid,
         '',
         roomEvents: events,
       );
     } else {
       participant = RemoteParticipant.fromInfo(
-        _engine.client,
+        engine.signalClient,
         info,
         roomEvents: events,
       );
@@ -223,7 +242,7 @@ class Room extends LKChangeNotifier {
     // await localParticipant.dispose();
     // localParticipant = null;
 
-    await _engine.close();
+    await engine.close();
 
     _activeSpeakers.clear();
 
