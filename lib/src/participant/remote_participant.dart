@@ -42,11 +42,6 @@ class RemoteParticipant extends Participant {
     updateFromInfo(info);
   }
 
-  // @override
-  // Future<void> dispose() async {
-  //   await super.dispose();
-  // }
-
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = tracks[sid];
     if (pub is RemoteTrackPublication) return pub;
@@ -136,6 +131,7 @@ class RemoteParticipant extends Participant {
   /// for internal use
   /// {@nodoc}
   @override
+  @internal
   void updateFromInfo(lk_models.ParticipantInfo info) async {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);

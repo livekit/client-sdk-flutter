@@ -92,7 +92,7 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Received data'),
-          content: Text('"${data}"'),
+          content: Text(data),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),

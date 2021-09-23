@@ -136,6 +136,7 @@ abstract class Participant extends LKChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
+  @internal
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
     sid = info.sid;

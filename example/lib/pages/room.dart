@@ -33,7 +33,6 @@ class _RoomPageState extends State<RoomPage> {
     widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
     _sortParticipants();
-
     WidgetsBinding.instance?.addPostFrameCallback((_) => _askPublish());
   }
 
@@ -50,7 +49,15 @@ class _RoomPageState extends State<RoomPage> {
 
   void _setUpListeners() => _listener
     ..on<RoomDisconnectedEvent>((_) => Navigator.pop(context))
-    ..on<DataReceivedEvent>((event) => context.showDataReceivedDialog(utf8.decode(event.data)));
+    ..on<DataReceivedEvent>((event) {
+      String decoded = 'Failed to decode';
+      try {
+        decoded = utf8.decode(event.data);
+      } catch (_) {
+        print('Failed to decode: $_');
+      }
+      context.showDataReceivedDialog(decoded);
+    });
 
   void _askPublish() async {
     final result = await context.showPublishDialog();
@@ -70,7 +77,7 @@ class _RoomPageState extends State<RoomPage> {
 
       // Create mic track
       final localAudio = await LocalAudioTrack.create();
-      // Try to publish audio
+      // // Try to publish audio
       await widget.room.localParticipant.publishAudioTrack(localAudio);
     } catch (error) {
       print('could not publish video: $error');

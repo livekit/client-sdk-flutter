@@ -74,6 +74,8 @@ class Room extends LKChangeNotifier {
     ConnectOptions? connectOptions,
   }) {
     //
+    _setUpListeners();
+
     localParticipant = LocalParticipant(
       engine: engine,
       info: joinResponse.participant,
@@ -92,12 +94,12 @@ class Room extends LKChangeNotifier {
       // log all RoomEvents
       events.listen((event) => logger.fine('[RoomEvent] $objectId ${event.runtimeType}'));
     }
-
-    _setUpListeners();
   }
 
   @override
   Future<void> dispose() async {
+    // dispose local participant
+    await localParticipant.dispose();
     // dispose Room's events emitter
     await events.dispose();
     // dispose all listeners for RTCEngine
@@ -120,6 +122,8 @@ class Room extends LKChangeNotifier {
       rtcConfig,
     );
 
+    Room? room;
+
     try {
       final joinResponse = await engine.join(
         url,
@@ -127,22 +131,32 @@ class Room extends LKChangeNotifier {
         options: options,
       );
 
-      logger.fine('connected to LiveKit server, version: ${joinResponse.serverVersion}');
+      logger.fine('Connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-      // room is not ready until ICE is connected.
-      await engine.events.waitFor<EngineIceStateUpdatedEvent>(
-        filter: (event) => event.iceState.isConnected(),
+      // create Room first to listen to events
+      room = Room._(
+        engine: engine,
+        joinResponse: joinResponse,
+      );
+
+      logger.fine('Waiting to engine connect...');
+
+      // wait until engine is connected
+      await room._engineListener.waitFor<EngineConnectedEvent>(
         duration: const Duration(seconds: 5),
         onTimeout: () => throw ConnectException(),
       );
 
-      return Room._(
-        engine: engine,
-        joinResponse: joinResponse,
-      );
+      return room;
+      // catch any exception
     } catch (_) {
       // dispose engine if there was any exception while connecting
-      await engine.dispose();
+      if (room != null) {
+        // room.dispose will also dispose engine
+        await room.dispose();
+      } else {
+        await engine.dispose();
+      }
       rethrow;
     }
   }
@@ -209,7 +223,7 @@ class Room extends LKChangeNotifier {
         roomEvents: events,
       );
     }
-    // participant.roomDelegate = this;
+
     _participants[sid] = participant;
 
     return participant;
