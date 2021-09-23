@@ -10,14 +10,14 @@ import 'track.dart';
 
 abstract class TrackPublication {
   Track? track;
-  String name;
-  String sid;
-  lk_models.TrackType kind;
+  final String name;
+  final String sid;
+  final lk_models.TrackType kind;
   bool muted = false;
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get subscribed => track != null;
+  bool get isSubscribed => track != null;
 
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,

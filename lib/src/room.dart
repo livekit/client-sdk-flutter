@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 
 import 'classes/change_notifier.dart';
 import 'errors.dart';
@@ -16,7 +15,6 @@ import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
-
 import 'rtc_engine.dart';
 import 'signal_client.dart';
 import 'track/track.dart';
@@ -264,7 +262,7 @@ class Room extends LKChangeNotifier {
     events.emit(RoomDisconnectedEvent());
   }
 
-  void _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) {
+  void _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -286,7 +284,7 @@ class Room extends LKChangeNotifier {
         hasChanged = true;
         events.emit(RoomParticipantConnectedEvent(participant: participant));
       } else {
-        participant.updateFromInfo(info);
+        await participant.updateFromInfo(info);
       }
     }
 
@@ -361,7 +359,7 @@ class Room extends LKChangeNotifier {
 
     final toRemove = List<TrackPublication>.from(participant.tracks.values);
     for (final track in toRemove) {
-      participant.unpublishTrack(track.sid, true);
+      participant.unpublishTrack(track.sid, notify: true);
     }
 
     events.emit(RoomParticipantDisconnectedEvent(participant: participant));

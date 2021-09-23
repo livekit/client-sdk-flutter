@@ -11,14 +11,19 @@ abstract class Track extends LKChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
-  String name;
-  lk_models.TrackType kind;
+  final String name;
+  final lk_models.TrackType kind;
   rtc.MediaStreamTrack mediaStreamTrack;
+
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
 
-  Track(this.kind, this.name, this.mediaStreamTrack);
+  Track(
+    this.kind,
+    this.name,
+    this.mediaStreamTrack,
+  );
 
   bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 

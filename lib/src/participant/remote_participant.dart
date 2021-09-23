@@ -132,10 +132,9 @@ class RemoteParticipant extends Participant {
   /// {@nodoc}
   @override
   @internal
-  void updateFromInfo(lk_models.ParticipantInfo info) async {
+  Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
-
     // figuring out deltas between tracks
     final validPubs = <String, RemoteTrackPublication>{};
     final newPubs = <String, RemoteTrackPublication>{};
@@ -173,30 +172,27 @@ class RemoteParticipant extends Participant {
         tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
 
     for (final sid in removeTrackSids) {
-      await unpublishTrack(sid, true);
+      await unpublishTrack(sid, notify: true);
     }
   }
 
   @override
-  Future<void> unpublishTrack(String trackSid, [bool notify = false]) async {
-    logger.finer('Unpublish track sid: $sid, notify: $notify');
-    final pub = tracks.remove(sid);
-    if (pub == null || pub is! RemoteTrackPublication) return;
+  Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
+    logger.finer('Unpublish track sid: $trackSid, notify: $notify');
+    final pub = tracks.remove(trackSid);
+    if (pub is! RemoteTrackPublication) return;
 
     final track = pub.track;
+    // if has track
     if (track != null) {
       await track.stop();
-
       final event = TrackUnsubscribedEvent(
         participant: this,
         track: track,
         publication: pub,
       );
-
       events.emit(event);
       roomEvents.emit(event);
-
-      notifyListeners();
     }
 
     if (notify) {
@@ -204,7 +200,6 @@ class RemoteParticipant extends Participant {
         participant: this,
         publication: pub,
       );
-
       events.emit(event);
       roomEvents.emit(event);
     }

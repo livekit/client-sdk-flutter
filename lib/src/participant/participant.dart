@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../classes/change_notifier.dart';
@@ -22,7 +23,7 @@ import 'remote_participant.dart';
 /// can not be instantiated directly.
 abstract class Participant extends LKChangeNotifier {
   /// map of track sid => published track
-  Map<String, TrackPublication> tracks = {};
+  final tracks = <String, TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
@@ -38,11 +39,6 @@ abstract class Participant extends LKChangeNotifier {
 
   /// when the participant had last spoken
   DateTime? lastSpokeAt;
-
-  // ParticipantDelegate? roomDelegate;
-
-  /// delegate to receive participant callbacks
-  // ParticipantDelegate? delegate;
 
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
@@ -64,17 +60,15 @@ abstract class Participant extends LKChangeNotifier {
   bool get isSpeaking => _isSpeaking;
 
   /// true if participant is publishing an audio track and is muted
-  bool get isMuted {
-    if (audioTracks.isEmpty) return false;
-    return audioTracks.first.muted;
-  }
+  bool get isMuted => audioTracks.firstOrNull?.muted ?? true;
 
   bool get hasAudio => audioTracks.isNotEmpty;
 
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
+  List<TrackPublication> get subscribedTracks =>
+      tracks.values.where((e) => e.isSubscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -160,7 +154,7 @@ abstract class Participant extends LKChangeNotifier {
   }
 
   // Must implement
-  Future<void> unpublishTrack(String trackSid, [bool notify = false]);
+  Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
   Future<void> unpublishAllTracks() async {
     final _ = List<TrackPublication>.from(tracks.values);
