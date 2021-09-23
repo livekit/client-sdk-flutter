@@ -41,6 +41,5 @@ class LocalTrackPublication extends TrackPublication {
       _participant.events.emit(event);
       _participant.roomEvents.emit(event);
     }
-    _participant.muteChanged();
   }
 }

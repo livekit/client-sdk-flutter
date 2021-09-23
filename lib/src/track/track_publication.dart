@@ -9,10 +9,11 @@ import 'track.dart';
 /// can not be instantiated directly.
 
 abstract class TrackPublication {
-  Track? track;
   final String name;
   final String sid;
   final lk_models.TrackType kind;
+
+  Track? track;
   bool muted = false;
   bool simulcasted = false;
   TrackDimension? dimension;

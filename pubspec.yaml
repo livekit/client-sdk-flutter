@@ -17,13 +17,14 @@ dependencies:
   synchronized: ^3.0.0
   protobuf: ^2.0.0
 
-  flutter_webrtc: ^0.6.7
+  flutter_webrtc: 
+    # ^0.6.7
     # path: ../../repos_livekit/flutter-webrtc/
     # This will use custom webrtc build from
     # https://github.com/webrtc-sdk/Specs/releases
-    # git:
-    #   url: https://github.com/livekit/flutter-webrtc
-    #   ref: use-custom-webrtc-build
+    git:
+      url: https://github.com/livekit/flutter-webrtc
+      ref: use-custom-webrtc-build
 
   # protobuf:
   #   git:

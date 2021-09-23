@@ -18,7 +18,7 @@ import 'utils.dart';
 import 'ws/interface.dart';
 
 class SignalClient {
-  final events = EventsEmitter<SignalEvent>();
+  final events = EventsEmitter<LiveKitEvent>();
   final ProtocolVersion protocol;
 
   bool _connected = false;

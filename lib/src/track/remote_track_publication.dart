@@ -69,7 +69,6 @@ class RemoteTrackPublication extends TrackPublication {
     if (isSubscribed) {
       track?.mediaStreamTrack.enabled = !val;
     }
-    _participant.muteChanged();
   }
 
   RemoteTrackPublication(

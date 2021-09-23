@@ -72,7 +72,7 @@ class RTCEngine {
   // to complete join request
   // Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
-  final events = EventsEmitter<EngineEvent>();
+  final events = EventsEmitter<LiveKitEvent>();
   late final _signalListener = EventsListener(signalClient.events, synchronized: true);
 
   final delays = CancelableDelayManager();

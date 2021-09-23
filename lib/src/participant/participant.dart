@@ -44,7 +44,7 @@ abstract class Participant extends LKChangeNotifier {
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<ParticipantEvent>();
+  final events = EventsEmitter<LiveKitEvent>();
   final EventsEmitter<LiveKitEvent> roomEvents;
 
   /// when the participant joined the room
@@ -138,12 +138,6 @@ abstract class Participant extends LKChangeNotifier {
       _setMetadata(info.metadata);
     }
     _participantInfo = info;
-  }
-
-  /// for internal use
-  /// {@nodoc}
-  void muteChanged() {
-    notifyListeners();
   }
 
   /// for internal use
