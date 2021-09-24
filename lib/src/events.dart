@@ -9,33 +9,41 @@ import 'track/remote_track_publication.dart';
 import 'track/track.dart';
 import 'types.dart';
 
-abstract class LiveKitEvent {
-  const LiveKitEvent();
-}
+abstract class LiveKitEvent {}
+
+abstract class RoomEvent implements LiveKitEvent {}
+
+abstract class ParticipantEvent implements LiveKitEvent {}
+
+abstract class TrackEvent implements LiveKitEvent {}
+
+abstract class EngineEvent implements LiveKitEvent {}
+
+abstract class SignalEvent implements LiveKitEvent {}
 
 /// When the connection to the server has been interrupted and it's attempting
 /// to reconnect.
 /// Emitted by [Room].
-class RoomReconnectingEvent extends LiveKitEvent {
+class RoomReconnectingEvent with RoomEvent {
   const RoomReconnectingEvent();
 }
 
 /// Connection to room is re-established. All existing state is preserved.
 /// Emitted by [Room].
-class RoomReconnectedEvent extends LiveKitEvent {
+class RoomReconnectedEvent with RoomEvent {
   const RoomReconnectedEvent();
 }
 
 /// Disconnected from the room
 /// Emitted by [Room].
-class RoomDisconnectedEvent extends LiveKitEvent {
+class RoomDisconnectedEvent with RoomEvent {
   const RoomDisconnectedEvent();
 }
 
 /// When a new [RemoteParticipant] joins *after* the current participant has connected
 /// It will not fire for participants that are already in the room
 /// Emitted by [Room].
-class ParticipantConnectedEvent extends LiveKitEvent {
+class ParticipantConnectedEvent with RoomEvent {
   final RemoteParticipant participant;
   const ParticipantConnectedEvent({
     required this.participant,
@@ -44,35 +52,30 @@ class ParticipantConnectedEvent extends LiveKitEvent {
 
 /// When a [RemoteParticipant] leaves the room
 /// Emitted by [Room].
-class ParticipantDisconnectedEvent extends LiveKitEvent {
+class ParticipantDisconnectedEvent with RoomEvent {
   final RemoteParticipant participant;
   const ParticipantDisconnectedEvent({
     required this.participant,
   });
 }
 
-/// A track that was unmuted, fires on both [RemoteParticipant]s and
-/// [LocalParticipant]
-// (Relayed from LiveKitEvent)
-// class RoomTrackUnmutedEvent extends LiveKitEvent {}
-
 /// Active speakers changed. List of speakers are ordered by their audio level.
 /// loudest speakers first. This will include the [LocalParticipant] too.
-class ActiveSpeakersChangedEvent extends LiveKitEvent {
+class ActiveSpeakersChangedEvent with RoomEvent {
   final List<Participant> speakers;
   const ActiveSpeakersChangedEvent({
     required this.speakers,
   });
 }
 
-class RoomAudioPlaybackChangedEvent extends LiveKitEvent {
-  const RoomAudioPlaybackChangedEvent();
+class AudioPlaybackChangedEvent with RoomEvent {
+  const AudioPlaybackChangedEvent();
 }
 
 /// When a new [Track] is published to [Room] *after* the current participant has
 /// joined. It will not fire for tracks that are already published.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackPublishedEvent extends LiveKitEvent {
+class TrackPublishedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final RemoteTrackPublication publication;
   const TrackPublishedEvent({
@@ -84,7 +87,7 @@ class TrackPublishedEvent extends LiveKitEvent {
 /// [LocalParticipant] has subscribed to a new track published by a
 /// [RemoteParticipant].
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackSubscribedEvent extends LiveKitEvent {
+class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final Track track;
   final RemoteTrackPublication publication;
@@ -97,7 +100,7 @@ class TrackSubscribedEvent extends LiveKitEvent {
 
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackSubscriptionFailedEvent extends LiveKitEvent {
+class TrackSubscriptionFailedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final String? sid;
   final TrackSubscribeFailReason reason;
@@ -110,7 +113,7 @@ class TrackSubscriptionFailedEvent extends LiveKitEvent {
 
 /// The participant has unpublished one of their [Track].
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackUnpublishedEvent extends LiveKitEvent {
+class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final RemoteTrackPublication publication;
   const TrackUnpublishedEvent({
@@ -122,7 +125,7 @@ class TrackUnpublishedEvent extends LiveKitEvent {
 /// The [LocalParticipant] has unsubscribed from a track published by a
 /// [RemoteParticipant]. This event is fired when the track was unpublished.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackUnsubscribedEvent extends LiveKitEvent {
+class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final Track track;
   final RemoteTrackPublication publication;
@@ -135,7 +138,7 @@ class TrackUnsubscribedEvent extends LiveKitEvent {
 
 /// A Participant has muted one of the track.
 /// Emitted on [RemoteParticipant] and [LocalParticipant].
-class TrackMutedEvent extends LiveKitEvent {
+class TrackMutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
   const TrackMutedEvent({
@@ -146,7 +149,7 @@ class TrackMutedEvent extends LiveKitEvent {
 
 /// This participant has unmuted one of their tracks
 /// Emitted on [RemoteParticipant] and [LocalParticipant].
-class TrackUnmutedEvent extends LiveKitEvent {
+class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
   const TrackUnmutedEvent({
@@ -163,7 +166,7 @@ class TrackUnmutedEvent extends LiveKitEvent {
 /// all users. When RoomService.UpdateParticipantMetadata is called to change a
 /// [Participant]'s state, *all* [Participant]s in the room will fire this event.
 /// Emitted on [Participant].
-class ParticipantMetadataUpdatedEvent extends LiveKitEvent {
+class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   const ParticipantMetadataUpdatedEvent({
     required this.participant,
@@ -174,7 +177,7 @@ class ParticipantMetadataUpdatedEvent extends LiveKitEvent {
 /// Data packets provides the ability to use LiveKit to send/receive arbitrary
 /// payloads.
 /// Emitted on [Room] and [RemoteParticipant].
-class DataReceivedEvent extends LiveKitEvent {
+class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
   final List<int> data;
@@ -186,7 +189,7 @@ class DataReceivedEvent extends LiveKitEvent {
 
 /// The participant's isSpeaking property has changed
 /// Emitted on [Participant].
-class SpeakingChangedEvent extends LiveKitEvent {
+class SpeakingChangedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final bool speaking;
   const SpeakingChangedEvent({
@@ -198,30 +201,30 @@ class SpeakingChangedEvent extends LiveKitEvent {
 //
 // Engine events
 //
-class EngineConnectedEvent extends LiveKitEvent {
+class EngineConnectedEvent with EngineEvent {
   const EngineConnectedEvent();
 }
 
-class EngineDisconnectedEvent extends LiveKitEvent {
+class EngineDisconnectedEvent with EngineEvent {
   const EngineDisconnectedEvent();
 }
 
-class EngineReconnectingEvent extends LiveKitEvent {
+class EngineReconnectingEvent with EngineEvent {
   const EngineReconnectingEvent();
 }
 
-class EngineReconnectedEvent extends LiveKitEvent {
+class EngineReconnectedEvent with EngineEvent {
   const EngineReconnectedEvent();
 }
 
-class EngineParticipantUpdateEvent extends LiveKitEvent {
+class EngineParticipantUpdateEvent with EngineEvent {
   final List<lk_models.ParticipantInfo> participants;
   const EngineParticipantUpdateEvent({
     required this.participants,
   });
 }
 
-class EngineTrackAddedEvent extends LiveKitEvent {
+class EngineTrackAddedEvent with EngineEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream stream;
   final rtc.RTCRtpReceiver? receiver;
@@ -232,14 +235,14 @@ class EngineTrackAddedEvent extends LiveKitEvent {
   });
 }
 
-class EngineSpeakersUpdateEvent extends LiveKitEvent {
+class EngineSpeakersUpdateEvent with EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
   const EngineSpeakersUpdateEvent({
     required this.speakers,
   });
 }
 
-class EngineDataPacketReceivedEvent extends LiveKitEvent {
+class EngineDataPacketReceivedEvent with EngineEvent {
   final lk_models.UserPacket packet;
   final lk_models.DataPacket_Kind kind;
   const EngineDataPacketReceivedEvent({
@@ -248,7 +251,7 @@ class EngineDataPacketReceivedEvent extends LiveKitEvent {
   });
 }
 
-class EngineRemoteMuteChangedEvent extends LiveKitEvent {
+class EngineRemoteMuteChangedEvent with EngineEvent {
   final String sid;
   final bool muted;
   const EngineRemoteMuteChangedEvent({
@@ -258,7 +261,7 @@ class EngineRemoteMuteChangedEvent extends LiveKitEvent {
 }
 
 // added
-abstract class EngineIceStateUpdatedEvent implements LiveKitEvent {
+abstract class EngineIceStateUpdatedEvent with EngineEvent {
   final rtc.RTCIceConnectionState iceState;
   final bool isPrimary;
   const EngineIceStateUpdatedEvent({
@@ -291,58 +294,58 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
 // Track events
 //
 
-class TrackMessageEvent extends LiveKitEvent {
+class TrackMessageEvent with TrackEvent {
   const TrackMessageEvent();
 }
 
-class TrackUpdateSettingsEvent extends LiveKitEvent {
+class TrackUpdateSettingsEvent with TrackEvent {
   const TrackUpdateSettingsEvent();
 }
 
-class TrackUpdateSubscriptionEvent extends LiveKitEvent {
+class TrackUpdateSubscriptionEvent with TrackEvent {
   const TrackUpdateSubscriptionEvent();
 }
 
-class TrackAudioPlaybackStartedEvent extends LiveKitEvent {
+class TrackAudioPlaybackStartedEvent with TrackEvent {
   const TrackAudioPlaybackStartedEvent();
 }
 
-class TrackAudioPlaybackFailedEvent extends LiveKitEvent {
+class TrackAudioPlaybackFailedEvent with TrackEvent {
   const TrackAudioPlaybackFailedEvent();
 }
 
 //
 // Signal events
 //
-class SignalConnectedEvent extends LiveKitEvent {
+class SignalConnectedEvent with SignalEvent {
   final lk_rtc.JoinResponse response;
   const SignalConnectedEvent({
     required this.response,
   });
 }
 
-class SignalCloseEvent extends LiveKitEvent {
+class SignalCloseEvent with SignalEvent {
   final CloseReason? reason;
   const SignalCloseEvent({
     this.reason,
   });
 }
 
-class SignalOfferEvent extends LiveKitEvent {
+class SignalOfferEvent with SignalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalOfferEvent({
     required this.sd,
   });
 }
 
-class SignalAnswerEvent extends LiveKitEvent {
+class SignalAnswerEvent with SignalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalAnswerEvent({
     required this.sd,
   });
 }
 
-class SignalTrickleEvent extends LiveKitEvent {
+class SignalTrickleEvent with SignalEvent {
   final rtc.RTCIceCandidate candidate;
   final lk_rtc.SignalTarget target;
   const SignalTrickleEvent({
@@ -351,14 +354,14 @@ class SignalTrickleEvent extends LiveKitEvent {
   });
 }
 
-class SignalParticipantUpdateEvent extends LiveKitEvent {
+class SignalParticipantUpdateEvent with SignalEvent {
   final List<lk_models.ParticipantInfo> updates;
   const SignalParticipantUpdateEvent({
     required this.updates,
   });
 }
 
-class SignalLocalTrackPublishedEvent extends LiveKitEvent {
+class SignalLocalTrackPublishedEvent with SignalEvent {
   final String cid;
   final lk_models.TrackInfo track;
   const SignalLocalTrackPublishedEvent({
@@ -367,21 +370,21 @@ class SignalLocalTrackPublishedEvent extends LiveKitEvent {
   });
 }
 
-class SignalActiveSpeakersChangedEvent extends LiveKitEvent {
+class SignalActiveSpeakersChangedEvent with SignalEvent {
   final List<lk_models.SpeakerInfo> speakers;
   const SignalActiveSpeakersChangedEvent({
     required this.speakers,
   });
 }
 
-class SignalLeaveEvent extends LiveKitEvent {
+class SignalLeaveEvent with SignalEvent {
   final bool canReconnect;
   const SignalLeaveEvent({
     required this.canReconnect,
   });
 }
 
-class SignalMuteTrackEvent extends LiveKitEvent {
+class SignalMuteTrackEvent with SignalEvent {
   final String sid;
   final bool muted;
   const SignalMuteTrackEvent({

@@ -72,7 +72,7 @@ class RTCEngine {
   // to complete join request
   // Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
-  final events = EventsEmitter<LiveKitEvent>();
+  final events = EventsEmitter<EngineEvent>();
   late final _signalListener = EventsListener(signalClient.events, synchronized: true);
 
   final delays = CancelableDelayManager();
@@ -474,15 +474,15 @@ class RTCEngine {
     ..on<SignalCloseEvent>((_) async {
       await _onDisconnected('signal');
     })
-    ..on<SignalOfferEvent>((e) async {
+    ..on<SignalOfferEvent>((event) async {
       if (subscriber == null) {
         return;
       }
 
-      logger.fine('received server offer(type: ${e.sd.type}, '
+      logger.fine('received server offer(type: ${event.sd.type}, '
           '${subscriber!.pc.signalingState})');
 
-      await subscriber!.setRemoteDescription(e.sd);
+      await subscriber!.setRemoteDescription(event.sd);
 
       final answer = await subscriber!.pc.createAnswer();
       logger.fine('Created answer');
@@ -500,6 +500,7 @@ class RTCEngine {
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
+        logger.warning('Received ${SignalTrickleEvent} but publisher or subscriber was null.');
         return;
       }
       logger.fine('got ICE candidate from peer');
@@ -523,10 +524,8 @@ class RTCEngine {
       await close();
       events.emit(const EngineDisconnectedEvent());
     })
-    ..on<SignalMuteTrackEvent>((event) async {
-      events.emit(SignalMuteTrackEvent(
-        sid: event.sid,
-        muted: event.muted,
-      ));
-    });
+    ..on<SignalMuteTrackEvent>((event) => events.emit(EngineRemoteMuteChangedEvent(
+          sid: event.sid,
+          muted: event.muted,
+        )));
 }

@@ -44,8 +44,8 @@ abstract class Participant extends LKChangeNotifier {
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<LiveKitEvent>();
-  final EventsEmitter<LiveKitEvent> roomEvents;
+  final events = EventsEmitter<ParticipantEvent>();
+  final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
   DateTime get joinedAt {

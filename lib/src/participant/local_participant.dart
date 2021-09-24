@@ -26,7 +26,7 @@ class LocalParticipant extends Participant {
     required RTCEngine engine,
     required lk_models.ParticipantInfo info,
     this.defaultPublishOptions,
-    required EventsEmitter<LiveKitEvent> roomEvents,
+    required EventsEmitter<RoomEvent> roomEvents,
   })  : _engine = engine,
         super(
           info.sid,

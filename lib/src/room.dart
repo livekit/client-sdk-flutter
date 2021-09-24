@@ -61,7 +61,7 @@ class Room extends LKChangeNotifier {
   final RTCEngine engine;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<LiveKitEvent>();
+  final events = EventsEmitter<RoomEvent>();
   late final _engineListener = EventsListener<LiveKitEvent>(engine.events);
 
   /// internal use

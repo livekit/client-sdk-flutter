@@ -23,7 +23,7 @@ class RemoteParticipant extends Participant {
     this._client,
     String sid,
     String identity, {
-    required EventsEmitter<LiveKitEvent> roomEvents,
+    required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
           sid,
           identity,
@@ -33,7 +33,7 @@ class RemoteParticipant extends Participant {
   RemoteParticipant.fromInfo(
     this._client,
     lk_models.ParticipantInfo info, {
-    required EventsEmitter<LiveKitEvent> roomEvents,
+    required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
           info.sid,
           info.identity,
