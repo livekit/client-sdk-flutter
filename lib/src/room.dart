@@ -166,12 +166,12 @@ class Room extends LKChangeNotifier {
     })
     ..on<EngineReconnectedEvent>((event) async {
       _connectionState = ConnectionState.connected;
-      events.emit(RoomReconnectedEvent());
+      events.emit(const RoomReconnectedEvent());
       notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
       _connectionState = ConnectionState.reconnecting;
-      events.emit(RoomReconnectingEvent());
+      events.emit(const RoomReconnectingEvent());
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) => _onDisconnectedEvent())
@@ -259,7 +259,7 @@ class Room extends LKChangeNotifier {
     _activeSpeakers.clear();
 
     notifyListeners();
-    events.emit(RoomDisconnectedEvent());
+    events.emit(const RoomDisconnectedEvent());
   }
 
   void _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
@@ -282,7 +282,7 @@ class Room extends LKChangeNotifier {
 
       if (isNew) {
         hasChanged = true;
-        events.emit(RoomParticipantConnectedEvent(participant: participant));
+        events.emit(ParticipantConnectedEvent(participant: participant));
       } else {
         await participant.updateFromInfo(info);
       }
@@ -335,19 +335,19 @@ class Room extends LKChangeNotifier {
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {
     // participant may be null if data is sent from Server-API
     final senderSid = dataPacketEvent.packet.participantSid;
-    RemoteParticipant? sender;
+    RemoteParticipant? senderParticipant;
     if (senderSid.isNotEmpty) {
-      sender = participants[dataPacketEvent.packet.participantSid];
+      senderParticipant = participants[dataPacketEvent.packet.participantSid];
     }
 
     // participant.delegate?.onDataReceived(participant, event.packet.payload);
 
     final event = DataReceivedEvent(
-      participant: sender,
+      participant: senderParticipant,
       data: dataPacketEvent.packet.payload,
     );
 
-    sender?.events.emit(event);
+    senderParticipant?.events.emit(event);
     events.emit(event);
   }
 
@@ -362,6 +362,6 @@ class Room extends LKChangeNotifier {
       participant.unpublishTrack(track.sid, notify: true);
     }
 
-    events.emit(RoomParticipantDisconnectedEvent(participant: participant));
+    events.emit(ParticipantDisconnectedEvent(participant: participant));
   }
 }

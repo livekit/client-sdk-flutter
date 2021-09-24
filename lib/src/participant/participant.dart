@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 import '../classes/change_notifier.dart';
@@ -119,7 +119,7 @@ abstract class Participant extends LKChangeNotifier {
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
-      final event = MetadataChangedEvent(
+      final event = ParticipantMetadataUpdatedEvent(
         participant: this,
       );
 

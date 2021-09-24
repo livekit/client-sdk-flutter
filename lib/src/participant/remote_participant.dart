@@ -72,10 +72,6 @@ class RemoteParticipant extends Participant {
       // we may have received the track prior to metadata. wait up to 3s
       pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
       if (pub == null) {
-        // const msg = 'no track metadata found';
-        // delegate?.onTrackSubscriptionFailed(this, sid, msg);
-        // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-
         final event = TrackSubscriptionFailedEvent(
           participant: this,
           sid: sid,
@@ -97,10 +93,6 @@ class RemoteParticipant extends Participant {
     } else if (pub.kind == lk_models.TrackType.VIDEO) {
       track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
-      // final msg = 'unsupported track type ${pub.kind}';
-      // delegate?.onTrackSubscriptionFailed(this, sid, msg);
-      // roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-
       final event = TrackSubscriptionFailedEvent(
         participant: this,
         sid: sid,

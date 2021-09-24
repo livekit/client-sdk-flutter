@@ -236,7 +236,7 @@ class RTCEngine {
     }
 
     if (_reconnectAttempts == 0) {
-      events.emit(EngineReconnectingEvent());
+      events.emit(const EngineReconnectingEvent());
     }
     _reconnectAttempts++;
 
@@ -266,7 +266,7 @@ class RTCEngine {
       }
 
       logger.fine('reconnect: success');
-      events.emit(EngineReconnectedEvent());
+      events.emit(const EngineReconnectedEvent());
       _reconnectAttempts = 0;
 
       // don't catch and pass up any exception
@@ -337,9 +337,9 @@ class RTCEngine {
         if (!iceConnected) {
           iceConnected = true;
           if (isReconnecting) {
-            events.emit(EngineReconnectedEvent());
+            events.emit(const EngineReconnectedEvent());
           } else {
-            events.emit(EngineConnectedEvent());
+            events.emit(const EngineConnectedEvent());
           }
         }
       } else if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
@@ -428,7 +428,7 @@ class RTCEngine {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       logger.info('could not connect after $_reconnectAttempts, giving up');
       await close();
-      events.emit(EngineDisconnectedEvent());
+      events.emit(const EngineDisconnectedEvent());
       return;
     }
 
@@ -521,12 +521,12 @@ class RTCEngine {
     })
     ..on<SignalLeaveEvent>((event) async {
       await close();
-      events.emit(EngineDisconnectedEvent());
+      events.emit(const EngineDisconnectedEvent());
     })
     ..on<SignalMuteTrackEvent>((event) async {
-      events.emit(EngineRemoteMuteChangedEvent(
-        sid: event.req.sid,
-        muted: event.req.muted,
+      events.emit(SignalMuteTrackEvent(
+        sid: event.sid,
+        muted: event.muted,
       ));
     });
 }
