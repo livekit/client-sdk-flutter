@@ -1,59 +1,40 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
-import 'package:synchronized/synchronized.dart' as sync;
 
 import 'errors.dart';
+import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'managers/event.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
-import 'track/track.dart';
+import 'types.dart';
 import 'utils.dart';
 import 'ws/interface.dart';
 
-mixin SignalClientDelegate {
-  // initial connection established
-  Future<void> onConnected(lk_rtc.JoinResponse response);
-  // websocket has closed
-  Future<void> onClose([String? reason]);
-  // when a server offer is received
-  Future<void> onOffer(rtc.RTCSessionDescription sd);
-  // when an answer from server is received
-  Future<void> onAnswer(rtc.RTCSessionDescription sd);
-  // when server has a new ICE candidate
-  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target);
-  // participant has changed
-  Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates);
-  // when a track has been added successfully
-  Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response);
-  // active speaker has changed
-  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers);
-  // when server sends this client a leave message
-  Future<void> onLeave(lk_rtc.LeaveRequest req);
-  // explicit mute track
-  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req);
-}
-
 class SignalClient {
-  final _lock = sync.Lock();
+  final events = EventsEmitter<SignalEvent>();
+  final ProtocolVersion protocol;
 
-  ProtocolVersion protocol;
-  SignalClientDelegate? delegate;
   bool _connected = false;
   LiveKitWebSocket? _ws;
 
   SignalClient({
     this.protocol = ProtocolVersion.protocol3,
-  });
+  }) {
+    events.listen((event) {
+      logger.fine('[SignalEvent] $event');
+    });
+  }
 
   bool get connected => _connected;
 
-  Future<void> join(
+  Future<void> connect(
     String uriString,
     String token, {
     ConnectOptions? options,
@@ -202,7 +183,7 @@ class SignalClient {
 
   void _sendRequest(lk_rtc.SignalRequest req) {
     if (_ws == null) {
-      log('could not send message, not connected');
+      logger.warning('could not send message, not connected');
       return;
     }
 
@@ -214,48 +195,49 @@ class SignalClient {
     if (message is! List<int>) return;
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
 
-    // Ensure previous delegate method's future is completed
-    // before calling another method
-    await _lock.synchronized(() async {
-      //
-      switch (msg.whichMessage()) {
-        case lk_rtc.SignalResponse_Message.join:
-          if (!_connected) {
-            _connected = true;
-            await delegate?.onConnected(msg.join);
-          }
-          break;
-        case lk_rtc.SignalResponse_Message.answer:
-          await delegate?.onAnswer(msg.answer.toSDKType());
-          break;
-        case lk_rtc.SignalResponse_Message.offer:
-          await delegate?.onOffer(msg.offer.toSDKType());
-          break;
-        case lk_rtc.SignalResponse_Message.trickle:
-          await delegate?.onTrickle(
-            RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
-            msg.trickle.target,
-          );
-          break;
-        case lk_rtc.SignalResponse_Message.update:
-          await delegate?.onParticipantUpdate(msg.update.participants);
-          break;
-        case lk_rtc.SignalResponse_Message.trackPublished:
-          await delegate?.onLocalTrackPublished(msg.trackPublished);
-          break;
-        case lk_rtc.SignalResponse_Message.speaker:
-          await delegate?.onActiveSpeakersChanged(msg.speaker.speakers);
-          break;
-        case lk_rtc.SignalResponse_Message.leave:
-          await delegate?.onLeave(msg.leave);
-          break;
-        case lk_rtc.SignalResponse_Message.mute:
-          await delegate?.onMuteTrack(msg.mute);
-          break;
-        default:
-          log('unsupported message: ' + json.encode(msg));
-      }
-    });
+    switch (msg.whichMessage()) {
+      case lk_rtc.SignalResponse_Message.join:
+        if (!_connected) {
+          _connected = true;
+          events.emit(SignalConnectedEvent(response: msg.join));
+        }
+        break;
+      case lk_rtc.SignalResponse_Message.answer:
+        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
+        break;
+      case lk_rtc.SignalResponse_Message.offer:
+        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
+        break;
+      case lk_rtc.SignalResponse_Message.trickle:
+        events.emit(SignalTrickleEvent(
+          candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
+          target: msg.trickle.target,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.update:
+        events.emit(SignalParticipantUpdateEvent(updates: msg.update.participants));
+        break;
+      case lk_rtc.SignalResponse_Message.trackPublished:
+        events.emit(SignalLocalTrackPublishedEvent(
+          cid: msg.trackPublished.cid,
+          track: msg.trackPublished.track,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.speaker:
+        events.emit(SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
+        break;
+      case lk_rtc.SignalResponse_Message.leave:
+        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
+        break;
+      case lk_rtc.SignalResponse_Message.mute:
+        events.emit(SignalMuteTrackEvent(
+          sid: msg.mute.sid,
+          muted: msg.mute.muted,
+        ));
+        break;
+      default:
+        logger.warning('unsupported message: ' + json.encode(msg));
+    }
   }
 
   void _handleError(dynamic error) {
@@ -266,6 +248,6 @@ class SignalClient {
     if (!_connected) return;
     _ws = null;
     _connected = false;
-    delegate?.onClose();
+    events.emit(const SignalCloseEvent());
   }
 }

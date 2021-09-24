@@ -1,13 +1,19 @@
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../types.dart';
 import 'track.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.
-class TrackPublication {
+///
+/// Base for [RemoteTrackPublication] and [LocalTrackPublication],
+/// can not be instantiated directly.
+
+abstract class TrackPublication {
+  final String name;
+  final String sid;
+  final lk_models.TrackType kind;
+
   Track? track;
-  String name;
-  String sid;
-  lk_models.TrackType kind;
   bool muted = false;
   bool simulcasted = false;
   TrackDimension? dimension;
@@ -31,4 +37,12 @@ class TrackPublication {
       dimension = TrackDimension(info.width, info.height);
     }
   }
+
+  // Equality operators
+  // Object is considered equal when sid is equal
+  @override
+  int get hashCode => sid.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is TrackPublication && sid == other.sid;
 }

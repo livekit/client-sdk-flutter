@@ -1,16 +1,35 @@
-//
-// LiveKit
-//
-
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
 
 typedef CancelListenFunc = Function();
 
+enum ProtocolVersion {
+  protocol2,
+  protocol3,
+}
+
+enum ConnectionState {
+  disconnected,
+  connected,
+  reconnecting,
+}
+
 enum Reliability {
   reliable,
   lossy,
+}
+
+enum CloseReason {
+  network,
+  // ...
+}
+
+enum TrackSubscribeFailReason {
+  invalidServerResponse,
+  notTrackMetadataFound,
+  unsupportedTrackType,
+  // ...
 }
 
 enum RTCIceTransportPolicy {
@@ -88,4 +107,15 @@ class RTCIceServer {
         if (username?.isNotEmpty ?? false) 'username': username,
         if (credential?.isNotEmpty ?? false) 'credential': credential,
       };
+}
+
+@immutable
+class TrackDimension {
+  final int width;
+  final int height;
+
+  const TrackDimension(
+    this.width,
+    this.height,
+  );
 }

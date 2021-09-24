@@ -21,7 +21,7 @@ class ParticipantWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _ParticipantWidgetState();
 }
 
-class _ParticipantWidgetState extends State<ParticipantWidget> with ParticipantDelegate {
+class _ParticipantWidgetState extends State<ParticipantWidget> {
   //
   TrackPublication? videoPub;
   TrackPublication? audioPub;

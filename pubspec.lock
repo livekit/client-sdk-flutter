@@ -98,9 +98,11 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      name: flutter_webrtc
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: use-custom-webrtc-build
+      resolved-ref: "4942e7faec2e5775d35c42e22c2929ca6ca53769"
+      url: "https://github.com/livekit/flutter-webrtc"
+    source: git
     version: "0.6.7"
   http:
     dependency: "direct main"
@@ -157,7 +159,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   path_provider_linux:
     dependency: transitive
     description:
@@ -311,5 +313,5 @@ packages:
     source: hosted
     version: "0.2.0"
 sdks:
-  dart: ">=2.13.0 <3.0.0"
-  flutter: ">=2.0.0"
+  dart: ">=2.14.0 <3.0.0"
+  flutter: ">=2.5.0"

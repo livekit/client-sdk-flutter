@@ -1,6 +1,3 @@
-//
-//
-//
 import 'package:async/async.dart';
 
 class CancelableDelayManager {

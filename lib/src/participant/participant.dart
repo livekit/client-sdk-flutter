@@ -1,49 +1,15 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
+import '../classes/change_notifier.dart';
 import '../events.dart';
+import '../extensions.dart';
+import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../track/remote_track_publication.dart';
-import '../track/track.dart';
 import '../track/track_publication.dart';
 import 'remote_participant.dart';
-
-/// Callbacks for participant changes
-mixin ParticipantDelegate {
-  /// The participant's metadata has changed
-  void onMetadataChanged(Participant participant) {}
-
-  /// The participant's isSpeaking property has changed
-  void onSpeakingChanged(Participant participant, bool speaking) {}
-
-  /// This participant has muted one of their tracks
-  void onTrackMuted(Participant participant, TrackPublication publication) {}
-
-  /// This participant has unmuted one of their tracks
-  void onTrackUnmuted(Participant participant, TrackPublication publication) {}
-
-  /// This participant has published a new [Track] to the [Room].
-  void onTrackPublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
-
-  /// This participant has unpublished one of their [Track].
-  void onTrackUnpublished(RemoteParticipant participant, RemoteTrackPublication publication) {}
-
-  /// The [LocalParticipant] has subscribed to a new track published by this
-  /// [RemoteParticipant]
-  void onTrackSubscribed(
-      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
-
-  /// The [LocalParticipant] has unsubscribed from a track published by this
-  /// [RemoteParticipant]. This event is fired when the track was unpublished
-  void onTrackUnsubscribed(
-      RemoteParticipant participant, Track track, RemoteTrackPublication publication) {}
-
-  /// Data received from this [RemoteParticipant].
-  void onDataReceived(RemoteParticipant participant, List<int> data) {}
-
-  /// An error has occured during track subscription.
-  void onTrackSubscriptionFailed(RemoteParticipant participant, String sid, String? message) {}
-}
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -52,15 +18,18 @@ mixin ParticipantDelegate {
 /// - mute status changed
 /// - added/removed subscribed tracks
 /// - metadata changed
-class Participant extends ChangeNotifier {
+
+/// Base for [RemoteParticipant] and [LocalParticipant],
+/// can not be instantiated directly.
+abstract class Participant extends LKChangeNotifier {
   /// map of track sid => published track
-  Map<String, TrackPublication> tracks = {};
+  final trackPublications = <String, TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
 
   /// server assigned unique id
-  String sid;
+  final String sid;
 
   /// user-assigned identity
   String identity;
@@ -71,16 +40,12 @@ class Participant extends ChangeNotifier {
   /// when the participant had last spoken
   DateTime? lastSpokeAt;
 
-  ParticipantDelegate? roomDelegate;
-
-  /// delegate to receive participant callbacks
-  ParticipantDelegate? delegate;
-
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
   final events = EventsEmitter<ParticipantEvent>();
+  final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -95,23 +60,40 @@ class Participant extends ChangeNotifier {
   bool get isSpeaking => _isSpeaking;
 
   /// true if participant is publishing an audio track and is muted
-  bool get isMuted {
-    if (audioTracks.isEmpty) return false;
-    return audioTracks.first.muted;
-  }
+  bool get isMuted => audioTracks.firstOrNull?.muted ?? true;
 
   bool get hasAudio => audioTracks.isNotEmpty;
 
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
+  List<TrackPublication> get subscribedTracks =>
+      trackPublications.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
+  @internal
   bool get hasInfo => _participantInfo != null;
 
-  Participant(this.sid, this.identity);
+  Participant(
+    this.sid,
+    this.identity, {
+    required this.roomEvents,
+  }) {
+    // Any event emitted will trigger ChangeNotifier
+    events.listen((event) {
+      logger.fine('[ParticipantEvent] $event, will notifyListeners()');
+      notifyListeners();
+    });
+  }
+
+  @override
+  @mustCallSuper
+  Future<void> dispose() async {
+    logger.fine('$objectId dispose()');
+    await events.dispose();
+    super.dispose();
+  }
 
   /// for internal use
   /// {@nodoc}
@@ -123,26 +105,29 @@ class Participant extends ChangeNotifier {
     if (speaking) {
       lastSpokeAt = DateTime.now();
     }
-    delegate?.onSpeakingChanged(this, speaking);
-    roomDelegate?.onSpeakingChanged(this, speaking);
-    notifyListeners();
+
+    [events, roomEvents].emit(SpeakingChangedEvent(
+      participant: this,
+      speaking: speaking,
+    ));
   }
 
   void _setMetadata(String md) {
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
-      delegate?.onMetadataChanged(this);
-      roomDelegate?.onMetadataChanged(this);
-      notifyListeners();
+      [events, roomEvents].emit(ParticipantMetadataUpdatedEvent(
+        participant: this,
+      ));
     }
   }
 
   /// for internal use
   /// {@nodoc}
+  @internal
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
-    sid = info.sid;
+    // participantSid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
@@ -151,23 +136,36 @@ class Participant extends ChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
-  void muteChanged() {
-    notifyListeners();
-  }
-
-  /// for internal use
-  /// {@nodoc}
+  @internal
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
-    tracks[pub.sid] = pub;
+    trackPublications[pub.sid] = pub;
   }
+
+  // Must implement
+  Future<void> unpublishTrack(String trackSid, {bool notify = false});
+
+  Future<void> unpublishAllTracks() async {
+    final _ = List<TrackPublication>.from(trackPublications.values);
+    for (final track in _) {
+      await unpublishTrack(track.sid);
+    }
+  }
+
+  // Equality operators
+  // Object is considered equal when sid is equal
+  @override
+  int get hashCode => sid.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is Participant && sid == other.sid;
 }
 
 // Convenience extension
 extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
-      tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 
   List<TrackPublication> get audioTracks =>
-      tracks.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }

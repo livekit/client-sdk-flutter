@@ -2,7 +2,9 @@
 library livekit_client;
 
 export 'src/errors.dart';
+export 'src/events.dart';
 export 'src/livekit.dart';
+export 'src/managers/event.dart';
 export 'src/options.dart';
 export 'src/participant/local_participant.dart';
 export 'src/participant/local_participant.dart';

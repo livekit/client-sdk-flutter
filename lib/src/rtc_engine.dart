@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'constants.dart';
 import 'errors.dart';
 import 'events.dart';
 import 'extensions.dart';
@@ -14,31 +15,15 @@ import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'signal_client.dart';
-import 'track/track.dart';
 import 'transport.dart';
 import 'types.dart';
 
-typedef GenericCallback = void Function();
-typedef TrackCallback = void Function(
-  rtc.MediaStreamTrack track,
-  rtc.MediaStream? stream,
-  rtc.RTCRtpReceiver? receiver,
-);
-typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
-typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
-typedef DataPacketCallback = void Function(
-    lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
-typedef RemoteMuteCallback = void Function(String sid, bool mute);
-
-class RTCEngine with SignalClientDelegate {
+class RTCEngine {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
-  static const _maxICEConnectTimeout = Duration(seconds: 5);
-  static const _connectionTimeout = Duration(seconds: 5);
-  static const _iceRestartTimeout = Duration(seconds: 10);
 
-  final SignalClient client;
+  final SignalClient signalClient;
   // config for RTCPeerConnection
   final RTCConfiguration? rtcConfig;
 
@@ -67,41 +52,43 @@ class RTCEngine with SignalClientDelegate {
   // server-provided ice servers
   List<lk_rtc.ICEServer> _providedIceServers = [];
 
-  // delegate methods
-  GenericCallback? onICEConnected;
-  TrackCallback? onTrack;
-  ParticipantUpdateCallback? onParticipantUpdated;
-  ActiveSpeakerChangedCallback? onActiveSpeakerUpdated;
-  DataPacketCallback? onDataMessage;
-  RemoteMuteCallback? onRemoteMute;
-  GenericCallback? onReconnecting;
-  GenericCallback? onReconnected;
-  GenericCallback? onDisconnected;
-
-  //
   // internal
-  //
-  final Map<String, Completer<lk_models.TrackInfo>> _pendingTrackResolvers = {};
   int _reconnectAttempts = 0;
-  // to complete join request
-  Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
+  late final _signalListener = EventsListener(signalClient.events, synchronized: true);
 
   final delays = CancelableDelayManager();
 
+  // late final Timer _statsTimer;
+
   RTCEngine(
-    this.client,
+    this.signalClient,
     this.rtcConfig,
   ) {
-    client.delegate = this;
-
     if (kDebugMode) {
-      events.listen((event) => logger.fine('[LISTENER] $objectId ${event.runtimeType}'));
-      events.on<EngineIceStateUpdatedEvent>(
-          (event) => logger.fine('[LISTENER] event is a EngineIceStateUpdatedEvent'));
+      // log all EngineEvents
+      events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
     }
+
+    _setUpListeners();
+    // _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
   }
+
+  Future<void> dispose() async {
+    await events.dispose();
+    await _signalListener.dispose();
+  }
+
+  // void _onStatTimer(Timer _) async {
+  //   //
+  //   final stats = await publisher?.pc.getStats();
+  //   if (stats == null || stats.isEmpty) return;
+
+  //   for (final s in stats) {
+  //     logger.fine('STATS ${s.values}');
+  //   }
+  // }
 
   Future<lk_rtc.JoinResponse> join(
     String url,
@@ -111,18 +98,16 @@ class RTCEngine with SignalClientDelegate {
     this.url = url;
     this.token = token;
 
-    final completer = Completer<lk_rtc.JoinResponse>();
-    _joinCompleter = completer;
+    // connect to rtc server
+    await signalClient.connect(url, token, options: options);
 
-    await client.join(url, token, options: options);
+    // wait for join response
+    final event = await _signalListener.waitFor<SignalConnectedEvent>(
+      duration: Timeouts.connection,
+      onTimeout: () => throw ConnectException(),
+    );
 
-    // if it's not complete after 5 seconds, fail
-    Timer(_connectionTimeout, () {
-      _joinCompleter?.completeError(ConnectException());
-      _joinCompleter = null;
-    });
-
-    return completer.future;
+    return event.response;
   }
 
   Future<void> close() async {
@@ -133,11 +118,11 @@ class RTCEngine with SignalClientDelegate {
     }
     isClosed = true;
 
+    // _statsTimer.cancel();
+
     // cancel events
     await _primaryIceStateListener?.call();
     _primaryIceStateListener = null;
-
-    await events.dispose();
 
     // cancel all ongoing delays
     await delays.dispose();
@@ -149,7 +134,7 @@ class RTCEngine with SignalClientDelegate {
     await subscriber?.dispose();
     subscriber = null;
 
-    client.close();
+    signalClient.close();
   }
 
   Future<lk_models.TrackInfo> addTrack({
@@ -158,16 +143,17 @@ class RTCEngine with SignalClientDelegate {
     required lk_models.TrackType kind,
     TrackDimension? dimension,
   }) async {
-    if (_pendingTrackResolvers[cid] != null) {
-      throw TrackPublishException('a track with the same CID has already been published');
-    }
+    // send request to add track
+    signalClient.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
 
-    final completer = Completer<lk_models.TrackInfo>();
-    _pendingTrackResolvers[cid] = completer;
+    // wait for response, or timeout
+    final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
+      filter: (event) => event.cid == cid,
+      duration: Timeouts.publish,
+      onTimeout: () => throw TrackPublishException(),
+    );
 
-    client.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
-
-    return completer.future;
+    return event.track;
   }
 
   Future<void> negotiate({bool? iceRestart}) async {
@@ -214,7 +200,7 @@ class RTCEngine with SignalClientDelegate {
 
     await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
       filter: (event) => event.iceState.isConnected(),
-      duration: _maxICEConnectTimeout,
+      duration: Timeouts.iceConnection,
     );
 
     logger.fine('[PUBLISHER] connected');
@@ -234,14 +220,13 @@ class RTCEngine with SignalClientDelegate {
     }
 
     if (_reconnectAttempts == 0) {
-      onReconnecting?.call();
-      events.emit(EngineReconnectingEvent());
+      events.emit(const EngineReconnectingEvent());
     }
     _reconnectAttempts++;
 
     try {
       isReconnecting = true;
-      await client.reconnect(url, token);
+      await signalClient.reconnect(url, token);
 
       if (publisher == null || subscriber == null) {
         throw UnexpectedStateException('publisher or subscribers is null');
@@ -260,12 +245,12 @@ class RTCEngine with SignalClientDelegate {
 
         await events.waitFor<EngineIceStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.iceState.isConnected(),
-          duration: _iceRestartTimeout,
+          duration: Timeouts.iceRestart,
         );
       }
 
       logger.fine('reconnect: success');
-      events.emit(EngineReconnectedEvent());
+      events.emit(const EngineReconnectedEvent());
       _reconnectAttempts = 0;
 
       // don't catch and pass up any exception
@@ -293,17 +278,17 @@ class RTCEngine with SignalClientDelegate {
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
-      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
+      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
     subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('subscriber onIceCandidate');
-      client.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
+      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
     publisher?.onOffer = (offer) {
       logger.fine('publisher onOffer');
-      client.sendOffer(offer);
+      signalClient.sendOffer(offer);
     };
 
     // in subscriber primary mode, server side opens sub data channels.
@@ -336,10 +321,9 @@ class RTCEngine with SignalClientDelegate {
         if (!iceConnected) {
           iceConnected = true;
           if (isReconnecting) {
-            onReconnected?.call();
+            events.emit(const EngineReconnectedEvent());
           } else {
-            onICEConnected?.call();
-            events.emit(EngineConnectedEvent());
+            events.emit(const EngineConnectedEvent());
           }
         }
       } else if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
@@ -352,10 +336,16 @@ class RTCEngine with SignalClientDelegate {
     });
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
-      onTrack?.call(event.track, event.streams.firstOrNull, event.receiver);
-      events.emit(EngineMediaTrackAddedEvent(
+      final stream = event.streams.firstOrNull;
+      if (stream == null) {
+        // we need the stream to get the track's id
+        logger.severe('received track without mediastream');
+        return;
+      }
+
+      events.emit(EngineTrackAddedEvent(
         track: event.track,
-        stream: event.streams.firstOrNull,
+        stream: stream,
         receiver: event.receiver,
       ));
     };
@@ -405,11 +395,9 @@ class RTCEngine with SignalClientDelegate {
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
-      onActiveSpeakerUpdated?.call(dp.speaker.speakers);
       events.emit(EngineSpeakersUpdateEvent(speakers: dp.speaker.speakers));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
-      onDataMessage?.call(dp.user, dp.kind);
       events.emit(EngineDataPacketReceivedEvent(
         packet: dp.user,
         kind: dp.kind,
@@ -424,8 +412,7 @@ class RTCEngine with SignalClientDelegate {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       logger.info('could not connect after $_reconnectAttempts, giving up');
       await close();
-      onDisconnected?.call();
-      events.emit(EngineDisconnectedEvent());
+      events.emit(const EngineDisconnectedEvent());
       return;
     }
 
@@ -447,104 +434,82 @@ class RTCEngine with SignalClientDelegate {
 
   //------------------ SignalClient Delegate methods -------------------------//
 
-  @override
-  Future<void> onConnected(lk_rtc.JoinResponse response) async {
-    // create peer connections
-    isClosed = false;
-    _subscriberPrimary = response.subscriberPrimary;
-    _providedIceServers = response.iceServers;
+  void _setUpListeners() => _signalListener
+    ..on<SignalConnectedEvent>((event) async {
+      // create peer connections
+      isClosed = false;
+      _subscriberPrimary = event.response.subscriberPrimary;
+      _providedIceServers = event.response.iceServers;
 
-    logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
-        'serverVersion: ${response.serverVersion}, '
-        'iceServers: ${response.iceServers}');
+      logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
+          'serverVersion: ${event.response.serverVersion}, '
+          'iceServers: ${event.response.iceServers}');
 
-    await _configurePeerConnections();
+      await _configurePeerConnections();
 
-    if (!_subscriberPrimary) {
-      // for subscriberPrimary, we negotiate when necessary (lazy)
-      await negotiate();
-    }
+      if (!_subscriberPrimary) {
+        // for subscriberPrimary, we negotiate when necessary (lazy)
+        await negotiate();
+      }
 
-    _joinCompleter?.complete(Future.value(response));
-    _joinCompleter = null;
-  }
+      // _joinCompleter?.complete(Future.value(event.response));
+      // _joinCompleter = null;
+    })
+    ..on<SignalCloseEvent>((_) async {
+      await _onDisconnected('signal');
+    })
+    ..on<SignalOfferEvent>((event) async {
+      if (subscriber == null) {
+        return;
+      }
 
-  @override
-  Future<void> onClose([String? reason]) async {
-    await _onDisconnected('signal');
-  }
+      logger.fine('received server offer(type: ${event.sd.type}, '
+          '${subscriber!.pc.signalingState})');
 
-  @override
-  Future<void> onOffer(rtc.RTCSessionDescription sd) async {
-    if (subscriber == null) {
-      return;
-    }
+      await subscriber!.setRemoteDescription(event.sd);
 
-    logger.fine('received server offer(type: ${sd.type}, ${subscriber!.pc.signalingState})');
-
-    await subscriber!.setRemoteDescription(sd);
-
-    final answer = await subscriber!.pc.createAnswer();
-    logger.fine('Created answer');
-    logger.finer('sdp: ${answer.sdp}');
-    await subscriber!.pc.setLocalDescription(answer);
-    client.sendAnswer(answer);
-  }
-
-  @override
-  Future<void> onAnswer(rtc.RTCSessionDescription sd) async {
-    if (publisher == null) {
-      return;
-    }
-    logger.fine('received answer (type: ${sd.type})');
-    logger.finer('sdp: ${sd.sdp}');
-    await publisher!.setRemoteDescription(sd);
-  }
-
-  @override
-  Future<void> onTrickle(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) async {
-    if (publisher == null || subscriber == null) {
-      return;
-    }
-    logger.fine('got ICE candidate from peer');
-    if (target == lk_rtc.SignalTarget.SUBSCRIBER) {
-      await subscriber!.addIceCandidate(candidate);
-    } else if (target == lk_rtc.SignalTarget.PUBLISHER) {
-      await publisher!.addIceCandidate(candidate);
-    }
-  }
-
-  @override
-  Future<void> onParticipantUpdate(List<lk_models.ParticipantInfo> updates) async {
-    onParticipantUpdated?.call(updates);
-    events.emit(EngineParticipantUpdateEvent(participants: updates));
-  }
-
-  @override
-  Future<void> onLocalTrackPublished(lk_rtc.TrackPublishedResponse response) async {
-    final completer = _pendingTrackResolvers.remove(response.cid);
-    completer?.complete(Future.value(response.track));
-  }
-
-  @override
-  Future<void> onActiveSpeakersChanged(List<lk_models.SpeakerInfo> speakers) async {
-    onActiveSpeakerUpdated?.call(speakers);
-    events.emit(EngineSpeakersUpdateEvent(speakers: speakers));
-  }
-
-  @override
-  Future<void> onLeave(lk_rtc.LeaveRequest req) async {
-    await close();
-    onDisconnected?.call();
-    events.emit(EngineDisconnectedEvent());
-  }
-
-  @override
-  Future<void> onMuteTrack(lk_rtc.MuteTrackRequest req) async {
-    onRemoteMute?.call(req.sid, req.muted);
-    events.emit(EngineRemoteMuteChangedEvent(
-      sid: req.sid,
-      muted: req.muted,
-    ));
-  }
+      final answer = await subscriber!.pc.createAnswer();
+      logger.fine('Created answer');
+      logger.finer('sdp: ${answer.sdp}');
+      await subscriber!.pc.setLocalDescription(answer);
+      signalClient.sendAnswer(answer);
+    })
+    ..on<SignalAnswerEvent>((event) async {
+      if (publisher == null) {
+        return;
+      }
+      logger.fine('received answer (type: ${event.sd.type})');
+      logger.finer('sdp: ${event.sd.sdp}');
+      await publisher!.setRemoteDescription(event.sd);
+    })
+    ..on<SignalTrickleEvent>((event) async {
+      if (publisher == null || subscriber == null) {
+        logger.warning('Received ${SignalTrickleEvent} but publisher or subscriber was null.');
+        return;
+      }
+      logger.fine('got ICE candidate from peer');
+      if (event.target == lk_rtc.SignalTarget.SUBSCRIBER) {
+        await subscriber!.addIceCandidate(event.candidate);
+      } else if (event.target == lk_rtc.SignalTarget.PUBLISHER) {
+        await publisher!.addIceCandidate(event.candidate);
+      }
+    })
+    ..on<SignalParticipantUpdateEvent>((event) async {
+      events.emit(EngineParticipantUpdateEvent(participants: event.updates));
+    })
+    // ..on<SignalLocalTrackPublishedEvent>((event) async {
+    //   final completer = _pendingTrackResolvers.remove(event.cid);
+    //   completer?.complete(event.track);
+    // })
+    ..on<SignalActiveSpeakersChangedEvent>((event) async {
+      events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
+    })
+    ..on<SignalLeaveEvent>((event) async {
+      await close();
+      events.emit(const EngineDisconnectedEvent());
+    })
+    ..on<SignalMuteTrackEvent>((event) => events.emit(EngineRemoteMuteChangedEvent(
+          sid: event.sid,
+          muted: event.muted,
+        )));
 }

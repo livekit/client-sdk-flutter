@@ -1,28 +1,29 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/classes/change_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;
 
-class TrackDimension {
-  int width;
-  int height;
-
-  TrackDimension(this.width, this.height);
-}
-
 /// Wrapper around a MediaStreamTrack with additional metadata.
-class Track {
+/// Base for [AudioTrack] and [VideoTrack],
+/// can not be instantiated directly.
+abstract class Track extends LKChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
-  String name;
-  lk_models.TrackType kind;
+  final String name;
+  final lk_models.TrackType kind;
   rtc.MediaStreamTrack mediaStreamTrack;
+
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
 
-  Track(this.kind, this.name, this.mediaStreamTrack);
+  Track(
+    this.kind,
+    this.name,
+    this.mediaStreamTrack,
+  );
 
   bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 

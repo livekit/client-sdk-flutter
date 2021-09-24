@@ -2,15 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../errors.dart';
+import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../rtc_engine.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
-import '../track/track.dart';
 import '../track/track_publication.dart';
 import '../types.dart';
 import '../utils.dart';
@@ -25,8 +26,13 @@ class LocalParticipant extends Participant {
     required RTCEngine engine,
     required lk_models.ParticipantInfo info,
     this.defaultPublishOptions,
+    required EventsEmitter<RoomEvent> roomEvents,
   })  : _engine = engine,
-        super(info.sid, info.identity) {
+        super(
+          info.sid,
+          info.identity,
+          roomEvents: roomEvents,
+        ) {
     updateFromInfo(info);
   }
 
@@ -135,21 +141,25 @@ class LocalParticipant extends Participant {
   }
 
   /// Unpublish a track that's already published
-  Future<void> unpublishTrack(Track track) async {
-    final existing = tracks.values.where((element) => element.track == track);
-    if (existing.isEmpty) return;
+  @override
+  Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
+    logger.finer('Unpublish track sid: $trackSid, notify: $notify');
+    final pub = trackPublications.remove(trackSid);
+    if (pub is! LocalTrackPublication) return;
 
-    final pub = existing.first;
+    // final existing = tracks.values.where((element) => element.track == track);
+    // if (existing.isEmpty) return;
+    // final pub = existing.first;
+    final track = pub.track;
+    if (track != null) {
+      await track.stop();
 
-    await track.stop();
-
-    final sender = track.transceiver?.sender;
-    if (sender != null) {
-      await engine.publisher?.pc.removeTrack(sender);
-      await engine.negotiate();
+      final sender = track.transceiver?.sender;
+      if (sender != null) {
+        await engine.publisher?.pc.removeTrack(sender);
+        await engine.negotiate();
+      }
     }
-
-    tracks.remove(pub.sid);
   }
 
   /// Publish a new data payload to the room.

@@ -1,4 +1,7 @@
+import '../events.dart';
+import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
@@ -23,15 +26,20 @@ class LocalTrackPublication extends TrackPublication {
 
     super.muted = val;
     track?.mediaStreamTrack.enabled = !val;
-    _participant.engine.client.sendMuteTrack(sid, val);
+    _participant.engine.signalClient.sendMuteTrack(sid, val);
 
     if (val) {
-      _participant.delegate?.onTrackMuted(_participant, this);
-      _participant.roomDelegate?.onTrackMuted(_participant, this);
+      // Track muted
+      [_participant.events, _participant.roomEvents].emit(TrackMutedEvent(
+        participant: _participant,
+        track: this,
+      ));
     } else {
-      _participant.delegate?.onTrackUnmuted(_participant, this);
-      _participant.roomDelegate?.onTrackUnmuted(_participant, this);
+      // Track un-muted
+      [_participant.events, _participant.roomEvents].emit(TrackUnmutedEvent(
+        participant: _participant,
+        track: this,
+      ));
     }
-    _participant.muteChanged();
   }
 }

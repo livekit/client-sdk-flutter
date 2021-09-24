@@ -1,7 +1,11 @@
+import 'package:livekit_client/livekit_client.dart';
+
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track.dart';
+import '../extensions.dart';
+
 import 'track_publication.dart';
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
@@ -50,16 +54,21 @@ class RemoteTrackPublication extends TrackPublication {
     }
     super.muted = val;
     if (val) {
-      _participant.delegate?.onTrackMuted(_participant, this);
-      _participant.roomDelegate?.onTrackMuted(_participant, this);
+      // Track muted
+      [_participant.events, _participant.roomEvents].emit(TrackMutedEvent(
+        participant: _participant,
+        track: this,
+      ));
     } else {
-      _participant.delegate?.onTrackUnmuted(_participant, this);
-      _participant.roomDelegate?.onTrackUnmuted(_participant, this);
+      // Track un-muted
+      [_participant.events, _participant.roomEvents].emit(TrackUnmutedEvent(
+        participant: _participant,
+        track: this,
+      ));
     }
     if (subscribed) {
       track?.mediaStreamTrack.enabled = !val;
     }
-    _participant.muteChanged();
   }
 
   RemoteTrackPublication(

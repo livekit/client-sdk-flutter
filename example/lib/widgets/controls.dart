@@ -102,8 +102,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     //
     final lp = widget.room.localParticipant;
 
-    for (final tracks in lp.videoTracks) {
-      await lp.unpublishTrack(tracks.track!);
+    for (final track in lp.videoTracks) {
+      await lp.unpublishTrack(track.sid);
     }
 
     try {

@@ -1,12 +1,18 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
+import '../constants.dart';
+import '../events.dart';
+import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';
 import '../track/audio_track.dart';
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../track/video_track.dart';
+import '../types.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].
@@ -18,140 +24,154 @@ class RemoteParticipant extends Participant {
   RemoteParticipant(
     this._client,
     String sid,
-    String identity,
-  ) : super(sid, identity);
+    String identity, {
+    required EventsEmitter<RoomEvent> roomEvents,
+  }) : super(
+          sid,
+          identity,
+          roomEvents: roomEvents,
+        );
 
   RemoteParticipant.fromInfo(
     this._client,
-    lk_models.ParticipantInfo info,
-  ) : super(info.sid, info.identity) {
+    lk_models.ParticipantInfo info, {
+    required EventsEmitter<RoomEvent> roomEvents,
+  }) : super(
+          info.sid,
+          info.identity,
+          roomEvents: roomEvents,
+        ) {
     updateFromInfo(info);
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
-    final pub = tracks[sid];
+    final pub = trackPublications[sid];
     if (pub is RemoteTrackPublication) return pub;
   }
 
   /// for internal use
   /// {@nodoc}
-  void addSubscribedMediaTrack(
+  @internal
+  Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
-    String? sid,
+    String trackSid,
   ) async {
-    if (sid == null) {
-      const msg = 'addSubscribedMediaTrack received null sid';
-      delegate?.onTrackSubscriptionFailed(this, '', msg);
-      roomDelegate?.onTrackSubscriptionFailed(this, '', msg);
-      return;
-    }
+    logger.fine('addSubscribedMediaTrack()');
 
-    var pub = getTrackPublication(sid);
+    // If publication doesn't exist yet...
+    RemoteTrackPublication? pub = getTrackPublication(trackSid);
     if (pub == null) {
-      // we may have received the track prior to metadata. wait up to 3s
-      pub = await _waitForTrackPublication(sid, const Duration(seconds: 3));
-      if (pub == null) {
-        const msg = 'no track metadata found';
-        delegate?.onTrackSubscriptionFailed(this, sid, msg);
-        roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-        return;
-      }
+      logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
+      // Wait for the metadata to arrive
+      final event = await events.waitFor<TrackPublishedEvent>(
+        filter: (event) => event.participant == this && event.publication.sid == trackSid,
+        duration: Timeouts.publish,
+        onTimeout: () => throw TrackSubscriptionExceptionEvent(
+          participant: this,
+          sid: trackSid,
+          reason: TrackSubscribeFailReason.notTrackMetadataFound,
+        ),
+      );
+      pub = event.publication;
+      logger.fine('addSubscribedMediaTrack() did receive pub');
     }
 
-    Track? track;
+    // Check if track type is supported, throw if not.
+    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO].contains(pub.kind)) {
+      throw TrackSubscriptionExceptionEvent(
+        participant: this,
+        sid: trackSid,
+        reason: TrackSubscribeFailReason.unsupportedTrackType,
+      );
+    }
+
+    // create Track
+    final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
+      // audio track
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
-    } else if (pub.kind == lk_models.TrackType.VIDEO) {
-      track = VideoTrack(pub.name, mediaTrack, stream);
     } else {
-      final msg = 'unsupported track type ${pub.kind}';
-      delegate?.onTrackSubscriptionFailed(this, sid, msg);
-      roomDelegate?.onTrackSubscriptionFailed(this, sid, msg);
-      return;
+      // video track
+      track = VideoTrack(pub.name, mediaTrack, stream);
     }
 
     pub.track = track;
     addTrackPublication(pub);
 
-    delegate?.onTrackSubscribed(this, track, pub);
-    roomDelegate?.onTrackSubscribed(this, track, pub);
-    notifyListeners();
+    [events, roomEvents].emit(TrackSubscribedEvent(
+      participant: this,
+      track: track,
+      publication: pub,
+    ));
   }
 
   /// for internal use
   /// {@nodoc}
   @override
-  void updateFromInfo(lk_models.ParticipantInfo info) async {
+  @internal
+  Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
     // figuring out deltas between tracks
-    final validPubs = <String, RemoteTrackPublication>{};
-    final newPubs = <String, RemoteTrackPublication>{};
+    final newPubs = <RemoteTrackPublication>{};
 
-    for (final info in info.tracks) {
-      final sid = info.sid;
-      var pub = getTrackPublication(sid);
-
+    for (final trackInfo in info.tracks) {
+      RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
       if (pub == null) {
-        pub = RemoteTrackPublication(info, this);
-        newPubs[sid] = pub;
+        pub = RemoteTrackPublication(trackInfo, this);
+        newPubs.add(pub);
         addTrackPublication(pub);
       } else {
-        pub.updateFromInfo(info);
+        pub.updateFromInfo(trackInfo);
       }
-
-      validPubs[sid] = pub;
     }
 
     // notify listeners when it's not a new participant
     if (hadInfo) {
-      for (final pub in newPubs.values) {
-        delegate?.onTrackPublished(this, pub);
-        roomDelegate?.onTrackPublished(this, pub);
+      for (final pub in newPubs) {
+        final event = TrackPublishedEvent(
+          participant: this,
+          publication: pub,
+        );
+        [events, roomEvents].emit(event);
       }
     }
 
-    // remove tracks
-    final removeTrackSids =
-        tracks.values.where((e) => !validPubs.containsKey(e.sid)).map((e) => e.sid).toList();
-
-    for (final sid in removeTrackSids) {
-      await unpublishTrack(sid, true);
+    // unpublish any track that is not in the info
+    final validSids = info.tracks.map((e) => e.sid);
+    final removeSids =
+        trackPublications.values.where((e) => !validSids.contains(e.sid)).map((e) => e.sid);
+    for (final sid in removeSids) {
+      await unpublishTrack(sid, notify: true);
     }
   }
 
-  Future<void> unpublishTrack(String sid, [bool notify = false]) async {
-    logger.finer('Unpublish track sid: $sid, notify: $notify');
-    final pub = tracks.remove(sid);
-    if (pub == null || pub is! RemoteTrackPublication) return;
+  @override
+  Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
+    logger.finer('Unpublish track sid: $trackSid, notify: $notify');
+    final pub = trackPublications.remove(trackSid);
+    if (pub is! RemoteTrackPublication) return;
 
     final track = pub.track;
+    // if has track
     if (track != null) {
       await track.stop();
-      delegate?.onTrackUnsubscribed(this, track, pub);
-      roomDelegate?.onTrackUnsubscribed(this, track, pub);
-      notifyListeners();
+      [events, roomEvents].emit(TrackUnsubscribedEvent(
+        participant: this,
+        track: track,
+        publication: pub,
+      ));
     }
 
     if (notify) {
-      delegate?.onTrackUnpublished(this, pub);
-      roomDelegate?.onTrackUnpublished(this, pub);
-    }
-  }
-
-  Future<RemoteTrackPublication?> _waitForTrackPublication(String sid, Duration delay) async {
-    final endTime = DateTime.now().add(delay);
-    while (DateTime.now().isBefore(endTime)) {
-      final pub =
-          await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
-        return getTrackPublication(sid);
-      });
-
-      if (pub != null) return pub;
+      [events, roomEvents].emit(TrackUnpublishedEvent(
+        participant: this,
+        publication: pub,
+      ));
     }
   }
 }

@@ -11,12 +11,10 @@ class LiveKitClient {
     String url,
     String token, {
     ConnectOptions? options,
-  }) {
-    final room = Room();
-    return room.connect(
-      url,
-      token,
-      options: options,
-    );
-  }
+  }) =>
+      Room.connect(
+        url,
+        token,
+        options: options,
+      );
 }
