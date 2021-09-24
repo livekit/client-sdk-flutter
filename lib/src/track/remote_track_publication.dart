@@ -30,14 +30,14 @@ class RemoteTrackPublication extends TrackPublication {
   }
 
   @override
-  bool get isSubscribed {
+  bool get subscribed {
     if (_unsubscribed) {
       return false;
     }
-    return super.isSubscribed;
+    return super.subscribed;
   }
 
-  set isSubscribed(bool val) {
+  set subscribed(bool val) {
     if (_unsubscribed == !val) return;
     _unsubscribed = !val;
     _sendUpdateTrackSettings();
@@ -66,7 +66,7 @@ class RemoteTrackPublication extends TrackPublication {
       _participant.events.emit(event);
       _participant.roomEvents.emit(event);
     }
-    if (isSubscribed) {
+    if (subscribed) {
       track?.mediaStreamTrack.enabled = !val;
     }
   }

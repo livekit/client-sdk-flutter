@@ -67,8 +67,7 @@ abstract class Participant extends LKChangeNotifier {
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks =>
-      tracks.values.where((e) => e.isSubscribed).toList();
+  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}

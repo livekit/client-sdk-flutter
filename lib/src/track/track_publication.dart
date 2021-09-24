@@ -18,7 +18,7 @@ abstract class TrackPublication {
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get isSubscribed => track != null;
+  bool get subscribed => track != null;
 
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,
