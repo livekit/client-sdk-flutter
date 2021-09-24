@@ -37,4 +37,12 @@ abstract class TrackPublication {
       dimension = TrackDimension(info.width, info.height);
     }
   }
+
+  // Equality operators
+  // Object is considered equal when sid is equal
+  @override
+  int get hashCode => sid.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is TrackPublication && sid == other.sid;
 }

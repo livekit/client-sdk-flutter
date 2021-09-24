@@ -1,12 +1,13 @@
-//
-// LiveKit
-//
-
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
 
 typedef CancelListenFunc = Function();
+
+enum ProtocolVersion {
+  protocol2,
+  protocol3,
+}
 
 enum ConnectionState {
   disconnected,
@@ -25,7 +26,7 @@ enum CloseReason {
 }
 
 enum TrackSubscribeFailReason {
-  serverResponseIncorrect,
+  invalidServerResponse,
   notTrackMetadataFound,
   unsupportedTrackType,
   // ...

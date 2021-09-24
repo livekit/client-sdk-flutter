@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'constants.dart';
+import 'extensions.dart';
 import 'logger.dart';
 import 'types.dart';
 import 'utils.dart';
-import 'extensions.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
@@ -31,7 +32,7 @@ class PCTransport {
   late final negotiate = Utils.createDebounceFunc(
     () => createAndSendOffer(),
     cancelFunc: (f) => _cancelDebounce = f,
-    wait: const Duration(milliseconds: 100),
+    wait: Constants.defaultDebounceTimeout,
   );
 
   Future<void> dispose() async {

@@ -1,5 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/livekit_client.dart';
+import 'package:meta/meta.dart';
 
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
@@ -84,6 +85,17 @@ class TrackPublishedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
+/// The participant has unpublished one of their [Track].
+/// Emitted by [Room] and [RemoteParticipant].
+class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
+  const TrackUnpublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+}
+
 /// [LocalParticipant] has subscribed to a new track published by a
 /// [RemoteParticipant].
 /// Emitted by [Room] and [RemoteParticipant].
@@ -98,27 +110,24 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
-/// An error has occured during track subscription.
-/// Emitted by [Room] and [RemoteParticipant].
-class TrackSubscriptionFailedEvent with RoomEvent, ParticipantEvent {
+@internal
+class ParticipantInfoUpdatedEvent with ParticipantEvent {
   final RemoteParticipant participant;
-  final String? sid;
-  final TrackSubscribeFailReason reason;
-  const TrackSubscriptionFailedEvent({
+  const ParticipantInfoUpdatedEvent({
     required this.participant,
-    this.sid,
-    required this.reason,
   });
 }
 
-/// The participant has unpublished one of their [Track].
+/// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
+class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent, Exception {
   final RemoteParticipant participant;
-  final RemoteTrackPublication publication;
-  const TrackUnpublishedEvent({
+  final String? sid;
+  final TrackSubscribeFailReason reason;
+  const TrackSubscriptionExceptionEvent({
     required this.participant,
-    required this.publication,
+    this.sid,
+    required this.reason,
   });
 }
 

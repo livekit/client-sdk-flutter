@@ -1,25 +1,11 @@
-//
-//
-//
-
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'extensions.dart';
 import 'options.dart';
 import 'track/options.dart';
-
-enum ProtocolVersion {
-  protocol2,
-  protocol3,
-}
-
-extension ProtocolVersionExt on ProtocolVersion {
-  String toStringValue() => {
-        ProtocolVersion.protocol2: '2',
-        ProtocolVersion.protocol3: '3',
-      }[this]!;
-}
+import 'types.dart';
 
 extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);

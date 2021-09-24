@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'constants.dart';
 import 'errors.dart';
 import 'events.dart';
 import 'extensions.dart';
@@ -17,25 +18,10 @@ import 'signal_client.dart';
 import 'transport.dart';
 import 'types.dart';
 
-// typedef GenericCallback = void Function();
-// typedef TrackCallback = void Function(
-//   rtc.MediaStreamTrack track,
-//   rtc.MediaStream? stream,
-//   rtc.RTCRtpReceiver? receiver,
-// );
-// typedef ParticipantUpdateCallback = void Function(List<lk_models.ParticipantInfo> participants);
-// typedef ActiveSpeakerChangedCallback = void Function(List<lk_models.SpeakerInfo> speakers);
-// typedef DataPacketCallback = void Function(
-//     lk_models.UserPacket packet, lk_models.DataPacket_Kind kind);
-// typedef RemoteMuteCallback = void Function(String sid, bool mute);
-
 class RTCEngine {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
-  static const _maxICEConnectTimeout = Duration(seconds: 5);
-  static const _connectionTimeout = Duration(seconds: 5);
-  static const _iceRestartTimeout = Duration(seconds: 10);
 
   final SignalClient signalClient;
   // config for RTCPeerConnection
@@ -120,7 +106,7 @@ class RTCEngine {
 
     // wait for join response
     final event = await _signalListener.waitFor<SignalConnectedEvent>(
-      duration: _connectionTimeout,
+      duration: Constants.defaultConnectionTimeout,
       onTimeout: () => throw ConnectException(),
     );
 
@@ -216,7 +202,7 @@ class RTCEngine {
 
     await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
       filter: (event) => event.iceState.isConnected(),
-      duration: _maxICEConnectTimeout,
+      duration: Constants.defaultIceConnectionTimeout,
     );
 
     logger.fine('[PUBLISHER] connected');
@@ -261,7 +247,7 @@ class RTCEngine {
 
         await events.waitFor<EngineIceStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.iceState.isConnected(),
-          duration: _iceRestartTimeout,
+          duration: Constants.defaultIceRestartTimeout,
         );
       }
 

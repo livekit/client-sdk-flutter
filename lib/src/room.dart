@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
 import 'classes/change_notifier.dart';
+import 'constants.dart';
 import 'errors.dart';
 import 'events.dart';
 import 'extensions.dart';
@@ -141,7 +142,7 @@ class Room extends LKChangeNotifier {
 
       // wait until engine is connected
       await room._engineListener.waitFor<EngineConnectedEvent>(
-        duration: const Duration(seconds: 5),
+        duration: Constants.defaultConnectionTimeout,
         onTimeout: () => throw ConnectException(),
       );
 
@@ -179,16 +180,31 @@ class Room extends LKChangeNotifier {
     ..on<EngineSpeakersUpdateEvent>((event) => _onSpeakerUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final track = localParticipant.tracks[event.sid];
+      final track = localParticipant.trackPublications[event.sid];
       track?.muted = event.muted;
     })
     ..on<EngineTrackAddedEvent>((event) async {
       final idParts = event.stream.id.split('|');
       final participantSid = idParts[0];
       final trackSid = idParts.elementAtOrNull(1) ?? event.track.id;
-
       final participant = _getOrCreateRemoteParticipant(participantSid, null);
-      await participant.addSubscribedMediaTrack(event.track, event.stream, trackSid);
+      try {
+        if (trackSid == null || trackSid.isEmpty) {
+          throw TrackSubscriptionExceptionEvent(
+            participant: participant,
+            reason: TrackSubscribeFailReason.invalidServerResponse,
+          );
+        }
+        //
+        await participant.addSubscribedMediaTrack(
+          event.track,
+          event.stream,
+          trackSid,
+        );
+      } catch (e) {
+        if (e is RoomEvent) participant.roomEvents.emit(e);
+        if (e is ParticipantEvent) participant.events.emit(e);
+      }
     });
 
   /// Disconnects from the room, notifying server of disconnection.
@@ -202,7 +218,7 @@ class Room extends LKChangeNotifier {
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
-    var participant = _participants[sid];
+    RemoteParticipant? participant = _participants[sid];
     if (participant != null) {
       return participant;
     }
@@ -357,7 +373,7 @@ class Room extends LKChangeNotifier {
       return;
     }
 
-    final toRemove = List<TrackPublication>.from(participant.tracks.values);
+    final toRemove = List<TrackPublication>.from(participant.trackPublications.values);
     for (final track in toRemove) {
       participant.unpublishTrack(track.sid, notify: true);
     }

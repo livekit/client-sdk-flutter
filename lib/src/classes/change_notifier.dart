@@ -1,7 +1,3 @@
-//
-//
-//
-
 import 'package:flutter/material.dart';
 import 'package:livekit_client/src/logger.dart';
 

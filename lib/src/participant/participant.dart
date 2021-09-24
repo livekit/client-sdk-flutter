@@ -23,13 +23,13 @@ import 'remote_participant.dart';
 /// can not be instantiated directly.
 abstract class Participant extends LKChangeNotifier {
   /// map of track sid => published track
-  final tracks = <String, TrackPublication>{};
+  final trackPublications = <String, TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
 
   /// server assigned unique id
-  String sid;
+  final String sid;
 
   /// user-assigned identity
   String identity;
@@ -67,7 +67,8 @@ abstract class Participant extends LKChangeNotifier {
   bool get hasVideo => videoTracks.isNotEmpty;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks => tracks.values.where((e) => e.subscribed).toList();
+  List<TrackPublication> get subscribedTracks =>
+      trackPublications.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -132,7 +133,7 @@ abstract class Participant extends LKChangeNotifier {
   @internal
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
-    sid = info.sid;
+    // participantSid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
@@ -141,27 +142,36 @@ abstract class Participant extends LKChangeNotifier {
 
   /// for internal use
   /// {@nodoc}
+  @internal
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
-    tracks[pub.sid] = pub;
+    trackPublications[pub.sid] = pub;
   }
 
   // Must implement
   Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
   Future<void> unpublishAllTracks() async {
-    final _ = List<TrackPublication>.from(tracks.values);
+    final _ = List<TrackPublication>.from(trackPublications.values);
     for (final track in _) {
       await unpublishTrack(track.sid);
     }
   }
+
+  // Equality operators
+  // Object is considered equal when sid is equal
+  @override
+  int get hashCode => sid.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is Participant && sid == other.sid;
 }
 
 // Convenience extension
 extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
-      tracks.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 
   List<TrackPublication> get audioTracks =>
-      tracks.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }
