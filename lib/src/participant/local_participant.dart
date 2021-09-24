@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/managers/audio.dart';
+import 'package:livekit_client/src/track/audio_track.dart';
 
 import '../errors.dart';
 import '../events.dart';
@@ -46,29 +48,35 @@ class LocalParticipant extends Participant {
       throw TrackPublishException('track already exists');
     }
 
-    // try {
-    final trackInfo = await _engine.addTrack(
-      cid: track.getCid(),
-      name: track.name,
-      kind: track.kind,
-    );
+    AudioManager().incrementPublish();
 
-    final transceiverInit = rtc.RTCRtpTransceiverInit(
-      direction: rtc.TransceiverDirection.SendOnly,
-    );
-    // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-    track.transceiver = await _engine.publisher?.pc.addTransceiver(
-      track: track.mediaStreamTrack,
-      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
-      init: transceiverInit,
-    );
-    await _engine.negotiate();
+    try {
+      final trackInfo = await _engine.addTrack(
+        cid: track.getCid(),
+        name: track.name,
+        kind: track.kind,
+      );
 
-    final pub = LocalTrackPublication(trackInfo, track, this);
-    addTrackPublication(pub);
-    notifyListeners();
+      final transceiverInit = rtc.RTCRtpTransceiverInit(
+        direction: rtc.TransceiverDirection.SendOnly,
+      );
+      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+      track.transceiver = await _engine.publisher?.pc.addTransceiver(
+        track: track.mediaStreamTrack,
+        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+        init: transceiverInit,
+      );
+      await _engine.negotiate();
 
-    return pub;
+      final pub = LocalTrackPublication(trackInfo, track, this);
+      addTrackPublication(pub);
+      notifyListeners();
+      return pub;
+    } catch (e) {
+      // In any case there was an exception, revert the count.
+      AudioManager().decrementPublish();
+      rethrow;
+    }
   }
 
   /// Publish a video track to the room
@@ -158,6 +166,10 @@ class LocalParticipant extends Participant {
       if (sender != null) {
         await engine.publisher?.pc.removeTrack(sender);
         await engine.negotiate();
+      }
+
+      if (track is AudioTrack) {
+        AudioManager().decrementPublish();
       }
     }
   }

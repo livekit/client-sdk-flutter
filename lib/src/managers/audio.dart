@@ -27,9 +27,11 @@ class AudioManager {
 
   final events = EventsEmitter<AudioManagerEvent>();
 
+  AudioManager._();
+
   // Singleton
   factory AudioManager() {
-    _instance ??= AudioManager();
+    _instance ??= AudioManager._();
     return _instance!;
   }
 

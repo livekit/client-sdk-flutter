@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/managers/audio.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -90,6 +91,8 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
+      AudioManager().incrementListen();
+
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       audioTrack.start();
       track = audioTrack;
@@ -145,6 +148,7 @@ class RemoteParticipant extends Participant {
     final validSids = info.tracks.map((e) => e.sid);
     final removeSids =
         trackPublications.values.where((e) => !validSids.contains(e.sid)).map((e) => e.sid);
+
     for (final sid in removeSids) {
       await unpublishTrack(sid, notify: true);
     }
@@ -165,6 +169,10 @@ class RemoteParticipant extends Participant {
         track: track,
         publication: pub,
       ));
+
+      if (track is AudioTrack) {
+        AudioManager().decrementListen();
+      }
     }
 
     if (notify) {
