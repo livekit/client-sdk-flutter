@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'events.dart';
+import 'managers/event.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'types.dart';
@@ -11,6 +13,10 @@ extension DataPacketKindExt on lk_models.DataPacket_Kind {
         lk_models.DataPacket_Kind.RELIABLE: Reliability.reliable,
         lk_models.DataPacket_Kind.LOSSY: Reliability.lossy,
       }[this]!;
+}
+
+extension LiveKitEventExt on Iterable<EventsEmitter<LiveKitEvent>> {
+  void emit(LiveKitEvent event) => forEach((emitter) => emitter.emit(event));
 }
 
 extension ICEServerExt on lk_rtc.ICEServer {

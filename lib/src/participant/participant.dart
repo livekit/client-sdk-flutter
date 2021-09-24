@@ -80,9 +80,9 @@ abstract class Participant extends LKChangeNotifier {
     this.identity, {
     required this.roomEvents,
   }) {
-    // any event emitted will trigger ChangeNotifier
-    events.listen((_) {
-      logger.fine('will notifyListeners()');
+    // Any event emitted will trigger ChangeNotifier
+    events.listen((event) {
+      logger.fine('$event emitted, will notifyListeners()');
       notifyListeners();
     });
   }
@@ -106,25 +106,19 @@ abstract class Participant extends LKChangeNotifier {
       lastSpokeAt = DateTime.now();
     }
 
-    final event = SpeakingChangedEvent(
+    [events, roomEvents].emit(SpeakingChangedEvent(
       participant: this,
       speaking: speaking,
-    );
-
-    events.emit(event);
-    roomEvents.emit(event);
+    ));
   }
 
   void _setMetadata(String md) {
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
-      final event = ParticipantMetadataUpdatedEvent(
+      [events, roomEvents].emit(ParticipantMetadataUpdatedEvent(
         participant: this,
-      );
-
-      events.emit(event);
-      roomEvents.emit(event);
+      ));
     }
   }
 

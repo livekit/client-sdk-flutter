@@ -32,7 +32,7 @@ class PCTransport {
   late final negotiate = Utils.createDebounceFunc(
     () => createAndSendOffer(),
     cancelFunc: (f) => _cancelDebounce = f,
-    wait: Constants.defaultDebounceTimeout,
+    wait: Timeouts.debounce,
   );
 
   Future<void> dispose() async {

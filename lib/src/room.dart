@@ -142,7 +142,7 @@ class Room extends LKChangeNotifier {
 
       // wait until engine is connected
       await room._engineListener.waitFor<EngineConnectedEvent>(
-        duration: Constants.defaultConnectionTimeout,
+        duration: Timeouts.connection,
         onTimeout: () => throw ConnectException(),
       );
 
@@ -195,15 +195,17 @@ class Room extends LKChangeNotifier {
             reason: TrackSubscribeFailReason.invalidServerResponse,
           );
         }
-        //
         await participant.addSubscribedMediaTrack(
           event.track,
           event.stream,
           trackSid,
         );
-      } catch (e) {
-        if (e is RoomEvent) participant.roomEvents.emit(e);
-        if (e is ParticipantEvent) participant.events.emit(e);
+      } on TrackSubscriptionExceptionEvent catch (event) {
+        logger.warning('addSubscribedMediaTrack() throwed ${event}');
+        [participant.roomEvents, participant.events].emit(event);
+      } catch (exception) {
+        // We don't want to pass up any exception so catch everything here.
+        logger.warning('Unknown exception on addSubscribedMediaTrack() ${exception}');
       }
     });
 

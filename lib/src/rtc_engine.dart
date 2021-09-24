@@ -53,10 +53,7 @@ class RTCEngine {
   List<lk_rtc.ICEServer> _providedIceServers = [];
 
   // internal
-  final Map<String, Completer<lk_models.TrackInfo>> _pendingTrackResolvers = {};
   int _reconnectAttempts = 0;
-  // to complete join request
-  // Completer<lk_rtc.JoinResponse>? _joinCompleter;
 
   final events = EventsEmitter<EngineEvent>();
   late final _signalListener = EventsListener(signalClient.events, synchronized: true);
@@ -106,7 +103,7 @@ class RTCEngine {
 
     // wait for join response
     final event = await _signalListener.waitFor<SignalConnectedEvent>(
-      duration: Constants.defaultConnectionTimeout,
+      duration: Timeouts.connection,
       onTimeout: () => throw ConnectException(),
     );
 
@@ -146,16 +143,17 @@ class RTCEngine {
     required lk_models.TrackType kind,
     TrackDimension? dimension,
   }) async {
-    if (_pendingTrackResolvers[cid] != null) {
-      throw TrackPublishException('a track with the same CID has already been published');
-    }
-
-    final completer = Completer<lk_models.TrackInfo>();
-    _pendingTrackResolvers[cid] = completer;
-
+    // send request to add track
     signalClient.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
 
-    return completer.future;
+    // wait for response, or timeout
+    final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
+      filter: (event) => event.cid == cid,
+      duration: Timeouts.publish,
+      onTimeout: () => throw TrackPublishException(),
+    );
+
+    return event.track;
   }
 
   Future<void> negotiate({bool? iceRestart}) async {
@@ -202,7 +200,7 @@ class RTCEngine {
 
     await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
       filter: (event) => event.iceState.isConnected(),
-      duration: Constants.defaultIceConnectionTimeout,
+      duration: Timeouts.iceConnection,
     );
 
     logger.fine('[PUBLISHER] connected');
@@ -247,7 +245,7 @@ class RTCEngine {
 
         await events.waitFor<EngineIceStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.iceState.isConnected(),
-          duration: Constants.defaultIceRestartTimeout,
+          duration: Timeouts.iceRestart,
         );
       }
 
@@ -499,10 +497,10 @@ class RTCEngine {
     ..on<SignalParticipantUpdateEvent>((event) async {
       events.emit(EngineParticipantUpdateEvent(participants: event.updates));
     })
-    ..on<SignalLocalTrackPublishedEvent>((event) async {
-      final completer = _pendingTrackResolvers.remove(event.cid);
-      completer?.complete(event.track);
-    })
+    // ..on<SignalLocalTrackPublishedEvent>((event) async {
+    //   final completer = _pendingTrackResolvers.remove(event.cid);
+    //   completer?.complete(event.track);
+    // })
     ..on<SignalActiveSpeakersChangedEvent>((event) async {
       events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
     })

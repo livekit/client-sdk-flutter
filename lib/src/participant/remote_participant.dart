@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 
 import '../constants.dart';
 import '../events.dart';
+import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -56,50 +57,28 @@ class RemoteParticipant extends Participant {
     rtc.MediaStream stream,
     String trackSid,
   ) async {
+    logger.fine('addSubscribedMediaTrack()');
+
     // If publication doesn't exist yet...
     RemoteTrackPublication? pub = getTrackPublication(trackSid);
     if (pub == null) {
+      logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       // Wait for the metadata to arrive
       final event = await events.waitFor<TrackPublishedEvent>(
         filter: (event) => event.participant == this && event.publication.sid == trackSid,
-        duration: Constants.defaultPublishTimeout,
+        duration: Timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
           participant: this,
           sid: trackSid,
           reason: TrackSubscribeFailReason.notTrackMetadataFound,
         ),
       );
-
       pub = event.publication;
-
-      // we may have received the track prior to metadata. wait up to 3s
-      // pub = await _waitForTrackPublication(trackSid, Constants.defaultPublishTimeout);
-      // if (pub == null) {
-      //   final event = TrackSubscriptionFailedEvent(
-      //     participant: this,
-      //     sid: trackSid,
-      //     reason: TrackSubscribeFailReason.notTrackMetadataFound,
-      //   );
-
-      //   events.emit(event);
-      //   roomEvents.emit(event);
-
-      //   return;
-      // }
+      logger.fine('addSubscribedMediaTrack() did receive pub');
     }
 
-    // create Track
-    Track? track;
-    if (pub.kind == lk_models.TrackType.AUDIO) {
-      // audio track
-      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
-      audioTrack.start();
-      track = audioTrack;
-    } else if (pub.kind == lk_models.TrackType.VIDEO) {
-      // video track
-      track = VideoTrack(pub.name, mediaTrack, stream);
-    } else {
-      // unsupported track type
+    // Check if track type is supported, throw if not.
+    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO].contains(pub.kind)) {
       throw TrackSubscriptionExceptionEvent(
         participant: this,
         sid: trackSid,
@@ -107,18 +86,26 @@ class RemoteParticipant extends Participant {
       );
     }
 
+    // create Track
+    final Track track;
+    if (pub.kind == lk_models.TrackType.AUDIO) {
+      // audio track
+      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
+      audioTrack.start();
+      track = audioTrack;
+    } else {
+      // video track
+      track = VideoTrack(pub.name, mediaTrack, stream);
+    }
+
     pub.track = track;
     addTrackPublication(pub);
 
-    final event = TrackSubscribedEvent(
+    [events, roomEvents].emit(TrackSubscribedEvent(
       participant: this,
       track: track,
       publication: pub,
-    );
-    events.emit(event);
-    roomEvents.emit(event);
-
-    notifyListeners();
+    ));
   }
 
   /// for internal use
@@ -150,8 +137,7 @@ class RemoteParticipant extends Participant {
           participant: this,
           publication: pub,
         );
-        events.emit(event);
-        roomEvents.emit(event);
+        [events, roomEvents].emit(event);
       }
     }
 
@@ -174,35 +160,18 @@ class RemoteParticipant extends Participant {
     // if has track
     if (track != null) {
       await track.stop();
-      final event = TrackUnsubscribedEvent(
+      [events, roomEvents].emit(TrackUnsubscribedEvent(
         participant: this,
         track: track,
         publication: pub,
-      );
-      events.emit(event);
-      roomEvents.emit(event);
+      ));
     }
 
     if (notify) {
-      final event = TrackUnpublishedEvent(
+      [events, roomEvents].emit(TrackUnpublishedEvent(
         participant: this,
         publication: pub,
-      );
-      events.emit(event);
-      roomEvents.emit(event);
+      ));
     }
   }
-
-  // @Deprecated('Replace with event wait')
-  // Future<RemoteTrackPublication?> _waitForTrackPublication(String sid, Duration delay) async {
-  //   final endTime = DateTime.now().add(delay);
-  //   while (DateTime.now().isBefore(endTime)) {
-  //     final pub =
-  //         await Future<RemoteTrackPublication?>.delayed(const Duration(milliseconds: 100), () {
-  //       return getTrackPublication(sid);
-  //     });
-
-  //     if (pub != null) return pub;
-  //   }
-  // }
 }

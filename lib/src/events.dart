@@ -120,7 +120,7 @@ class ParticipantInfoUpdatedEvent with ParticipantEvent {
 
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent, Exception {
+class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
   final String? sid;
   final TrackSubscribeFailReason reason;

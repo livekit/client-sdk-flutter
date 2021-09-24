@@ -1,5 +1,7 @@
 import '../events.dart';
+import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
@@ -27,19 +29,17 @@ class LocalTrackPublication extends TrackPublication {
     _participant.engine.signalClient.sendMuteTrack(sid, val);
 
     if (val) {
-      final event = TrackMutedEvent(
+      // Track muted
+      [_participant.events, _participant.roomEvents].emit(TrackMutedEvent(
         participant: _participant,
         track: this,
-      );
-      _participant.events.emit(event);
-      _participant.roomEvents.emit(event);
+      ));
     } else {
-      final event = TrackUnmutedEvent(
+      // Track un-muted
+      [_participant.events, _participant.roomEvents].emit(TrackUnmutedEvent(
         participant: _participant,
         track: this,
-      );
-      _participant.events.emit(event);
-      _participant.roomEvents.emit(event);
+      ));
     }
   }
 }
