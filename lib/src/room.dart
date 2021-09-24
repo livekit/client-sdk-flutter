@@ -89,10 +89,11 @@ class Room extends LKChangeNotifier {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
 
-    if (kDebugMode) {
-      // log all RoomEvents
-      events.listen((event) => logger.fine('[RoomEvent] $objectId ${event.runtimeType}'));
-    }
+    // Any event emitted will trigger ChangeNotifier
+    events.listen((event) {
+      logger.fine('[RoomEvent] $event, will notifyListeners()');
+      notifyListeners();
+    });
   }
 
   @override

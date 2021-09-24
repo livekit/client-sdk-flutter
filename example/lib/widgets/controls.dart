@@ -117,15 +117,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _onTapDisconnect() async {
-    // final result = await context.showDisconnectDialog();
-    // if (result == true)
-    await widget.room.disconnect();
+    final result = await context.showDisconnectDialog();
+    if (result == true) await widget.room.disconnect();
   }
 
   void _onTapReconnect() async {
-    // final result = await context.showReconnectDialog();
-    // if (result == true)
-    await widget.room.reconnect();
+    final result = await context.showReconnectDialog();
+    if (result == true) await widget.room.reconnect();
   }
 
   void _onTapSendData() async {

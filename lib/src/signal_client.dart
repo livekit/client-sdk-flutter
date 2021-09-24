@@ -27,10 +27,9 @@ class SignalClient {
   SignalClient({
     this.protocol = ProtocolVersion.protocol3,
   }) {
-    if (kDebugMode) {
-      // log all SignalEvents
-      events.listen((event) => logger.fine('[SignalEvent] $objectId ${event.runtimeType}'));
-    }
+    events.listen((event) {
+      logger.fine('[SignalEvent] $event');
+    });
   }
 
   bool get connected => _connected;

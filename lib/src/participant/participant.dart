@@ -82,7 +82,7 @@ abstract class Participant extends LKChangeNotifier {
   }) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('$event emitted, will notifyListeners()');
+      logger.fine('[ParticipantEvent] $event, will notifyListeners()');
       notifyListeners();
     });
   }
