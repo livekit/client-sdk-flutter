@@ -110,14 +110,6 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
-@internal
-class ParticipantInfoUpdatedEvent with ParticipantEvent {
-  final RemoteParticipant participant;
-  const ParticipantInfoUpdatedEvent({
-    required this.participant,
-  });
-}
-
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
-
 import 'classes/change_notifier.dart';
 import 'constants.dart';
 import 'errors.dart';

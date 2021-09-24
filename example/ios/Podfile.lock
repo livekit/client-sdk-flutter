@@ -1,4 +1,6 @@
 PODS:
+  - audio_session (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_webrtc (0.2.2):
     - Flutter
@@ -12,6 +14,7 @@ PODS:
   - WebRTC-SDK (92.4515.05)
 
 DEPENDENCIES:
+  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - Flutter (from `Flutter`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -23,6 +26,8 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  audio_session:
+    :path: ".symlinks/plugins/audio_session/ios"
   Flutter:
     :path: Flutter
   flutter_webrtc:
@@ -33,6 +38,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
+  audio_session: 4f3e461722055d21515cf3261b64c973c062f345
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_webrtc: c0cb88c7cbd057e6e667ab1560e10c74e2ceb65b
   Libyuv: 5f79ced0ee66e60a612ca97de1e6ccacd187a437
