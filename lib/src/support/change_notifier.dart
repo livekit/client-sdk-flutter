@@ -1,20 +1,27 @@
-import 'package:flutter/material.dart';
-import 'package:livekit_client/src/logger.dart';
+import 'package:flutter/foundation.dart';
+
+import '../logger.dart';
+import 'disposable.dart';
 
 // dispose safe change notifier
-abstract class LKChangeNotifier extends ChangeNotifier {
-  bool _disposed = false;
-  bool get isDisposed => _disposed;
+abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements DisposeAware {
+  //
+  bool _isDisposed = false;
 
   @override
+  bool get isDisposed => _isDisposed;
+
+  // must implement
+  @override
+  @mustCallSuper
   void dispose() {
-    _disposed = true;
+    _isDisposed = true;
     super.dispose();
   }
 
   @override
   void addListener(VoidCallback listener) {
-    if (_disposed) {
+    if (_isDisposed) {
       logger.warning('calling addListener on a disposed ChangeNotifier');
       return;
     }
@@ -23,7 +30,7 @@ abstract class LKChangeNotifier extends ChangeNotifier {
 
   @override
   void removeListener(VoidCallback listener) {
-    if (_disposed) {
+    if (_isDisposed) {
       logger.warning('calling removeListener on a disposed ChangeNotifier');
       return;
     }

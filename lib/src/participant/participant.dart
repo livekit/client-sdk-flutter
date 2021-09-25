@@ -21,9 +21,10 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends LKChangeNotifier {
+abstract class Participant extends DisposeAwareChangeNotifier {
   /// map of track sid => published track
-  final trackPublications = <String, TrackPublication>{};
+  // @Deprecated('This should be a SET')
+  final trackPublications = <TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
@@ -68,7 +69,7 @@ abstract class Participant extends LKChangeNotifier {
 
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks =>
-      trackPublications.values.where((e) => e.subscribed).toList();
+      trackPublications.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -91,8 +92,10 @@ abstract class Participant extends LKChangeNotifier {
   @mustCallSuper
   Future<void> dispose() async {
     logger.fine('$objectId dispose()');
-    await events.dispose();
+    // This will mark object as disposed
     super.dispose();
+    await unpublishAllTracks();
+    await events.dispose();
   }
 
   /// for internal use
@@ -139,21 +142,25 @@ abstract class Participant extends LKChangeNotifier {
   @internal
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
-    trackPublications[pub.sid] = pub;
+    //
+    trackPublications.remove(pub);
+    trackPublications.add(pub);
   }
 
   // Must implement
   Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
-  Future<void> unpublishAllTracks() async {
-    final _ = List<TrackPublication>.from(trackPublications.values);
-    for (final track in _) {
-      await unpublishTrack(track.sid);
+  Future<void> unpublishAllTracks({bool notify = false}) async {
+    final trackSids = trackPublications.map((e) => e.sid);
+    for (final trackid in trackSids) {
+      await unpublishTrack(trackid, notify: notify);
     }
   }
 
+  //
   // Equality operators
   // Object is considered equal when sid is equal
+  //
   @override
   int get hashCode => sid.hashCode;
 
@@ -164,8 +171,8 @@ abstract class Participant extends LKChangeNotifier {
 // Convenience extension
 extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
-      trackPublications.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+      trackPublications.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 
   List<TrackPublication> get audioTracks =>
-      trackPublications.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
+      trackPublications.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }

@@ -1,16 +1,17 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/managers/audio.dart';
-import 'package:livekit_client/src/track/audio_track.dart';
 
 import '../errors.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../managers/audio.dart';
 import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../rtc_engine.dart';
+import '../track/audio_track.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
@@ -152,8 +153,10 @@ class LocalParticipant extends Participant {
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
-    final pub = trackPublications.remove(trackSid);
+    final pub = trackPublications.firstWhereOrNull((e) => e.sid == trackSid);
     if (pub is! LocalTrackPublication) return;
+
+    trackPublications.remove(pub);
 
     // final existing = tracks.values.where((element) => element.track == track);
     // if (existing.isEmpty) return;
@@ -165,7 +168,10 @@ class LocalParticipant extends Participant {
       final sender = track.transceiver?.sender;
       if (sender != null) {
         await engine.publisher?.pc.removeTrack(sender);
-        await engine.negotiate();
+        if (!isDisposed) {
+          // Doesn't make sense to negotiate when disposing
+          await engine.negotiate();
+        }
       }
 
       if (track is AudioTrack) {

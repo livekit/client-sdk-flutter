@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
+
 import 'classes/change_notifier.dart';
 import 'constants.dart';
 import 'errors.dart';
@@ -17,7 +19,6 @@ import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
 import 'signal_client.dart';
 import 'track/track.dart';
-import 'track/track_publication.dart';
 import 'types.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -29,7 +30,7 @@ import 'types.dart';
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends LKChangeNotifier {
+class Room extends DisposeAwareChangeNotifier {
   // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.connected;
 
@@ -96,6 +97,8 @@ class Room extends LKChangeNotifier {
 
   @override
   Future<void> dispose() async {
+    // mark as disposed
+    super.dispose();
     // dispose local participant
     await localParticipant.dispose();
     // dispose Room's events emitter
@@ -104,8 +107,6 @@ class Room extends LKChangeNotifier {
     await _engineListener.dispose();
     // dispose the engine
     await engine.dispose();
-
-    super.dispose();
   }
 
   static Future<Room> connect(
@@ -179,7 +180,7 @@ class Room extends LKChangeNotifier {
     ..on<EngineSpeakersUpdateEvent>((event) => _onSpeakerUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final track = localParticipant.trackPublications[event.sid];
+      final track = localParticipant.trackPublications.firstWhereOrNull((e) => e.sid == event.sid);
       track?.muted = event.muted;
     })
     ..on<EngineTrackAddedEvent>((event) async {
@@ -257,7 +258,6 @@ class Room extends LKChangeNotifier {
     // clean up RemoteParticipants
     for (final _ in _participants.values) {
       // RemoteParticipant is responsible for disposing resources
-      await _.unpublishAllTracks();
       await _.dispose();
     }
     _participants.clear();
@@ -279,7 +279,7 @@ class Room extends LKChangeNotifier {
     events.emit(const RoomDisconnectedEvent());
   }
 
-  void _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
+  Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -290,7 +290,7 @@ class Room extends LKChangeNotifier {
 
       if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
         hasChanged = true;
-        _handleParticipantDisconnect(info.sid);
+        await _handleParticipantDisconnect(info.sid);
         continue;
       }
 
@@ -368,16 +368,13 @@ class Room extends LKChangeNotifier {
     events.emit(event);
   }
 
-  void _handleParticipantDisconnect(String sid) {
+  Future<void> _handleParticipantDisconnect(String sid) async {
     final participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }
 
-    final toRemove = List<TrackPublication>.from(participant.trackPublications.values);
-    for (final track in toRemove) {
-      participant.unpublishTrack(track.sid, notify: true);
-    }
+    await participant.unpublishAllTracks(notify: true);
 
     events.emit(ParticipantDisconnectedEvent(participant: participant));
   }

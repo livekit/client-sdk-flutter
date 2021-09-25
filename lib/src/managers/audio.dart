@@ -1,7 +1,7 @@
-import 'package:livekit_client/src/logger.dart';
 import 'package:audio_session/audio_session.dart' as _as;
 
 import '../events.dart';
+import '../logger.dart';
 import 'event.dart';
 
 enum AudioRecommendationType {
@@ -58,8 +58,6 @@ class AudioManagerUpdatedRecommendationEvent with AudioManagerEvent {
   });
 }
 
-final x = AudioManager();
-
 class AudioManager {
   static AudioManager? _instance;
   bool automaticManagementEnabled = true;
@@ -108,7 +106,7 @@ class AudioManager {
     await _onUpdate();
   }
 
-  AudioRecommendationType _calculateRecommendation() {
+  AudioRecommendationType _computeRecommendation() {
     if (_publishCounter > 0 && _subscribeCounter == 0) {
       return AudioRecommendationType.recordOnly;
     } else if (_publishCounter > 0 && _subscribeCounter > 0) {
@@ -119,7 +117,7 @@ class AudioManager {
   }
 
   Future<void> _onUpdate() async {
-    final newRecommendation = _calculateRecommendation();
+    final newRecommendation = _computeRecommendation();
     if (currentRecommendation != newRecommendation) {
       currentRecommendation = newRecommendation;
       events.emit(AudioManagerUpdatedRecommendationEvent(type: currentRecommendation));
@@ -131,10 +129,12 @@ class AudioManager {
   }
 
   Future<void> _configureCurrentRecommendation() async {
-    logger.fine('[$runtimeType] configuring for ${currentRecommendation}...');
+    final config = currentRecommendation.configuration();
+    logger.fine('[$runtimeType] configuring for ${currentRecommendation}, '
+        '${config.avAudioSessionCategory}...');
     try {
       final _audioSession = await _as.AudioSession.instance;
-      await _audioSession.configure(currentRecommendation.configuration());
+      await _audioSession.configure(config);
       await _audioSession.setActive(true);
     } catch (error) {
       logger.warning('[$runtimeType] Failed to configure ${error}');

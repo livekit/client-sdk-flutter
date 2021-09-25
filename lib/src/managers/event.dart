@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
+import '../classes/disposable.dart';
 import '../errors.dart';
 import '../extensions.dart';
 import '../logger.dart';
@@ -32,8 +33,9 @@ class EventsEmitter<T> extends EventsListenable<T> {
   @override
   @mustCallSuper
   Future<void> dispose() async {
-    await streamCtrl.close();
+    // mark as disposed
     await super.dispose();
+    await streamCtrl.close();
   }
 }
 
@@ -51,7 +53,7 @@ class EventsListener<T> extends EventsListenable<T> {
 }
 
 // ensures all listeners will close on dispose
-abstract class EventsListenable<T> {
+abstract class EventsListenable<T> extends Disposable {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
 
@@ -64,8 +66,11 @@ abstract class EventsListenable<T> {
     required this.synchronized,
   });
 
+  @override
   @mustCallSuper
   Future<void> dispose() async {
+    // mark as disposed
+    super.dispose();
     // Stop listening to all events
     logger.fine('${objectId} dispose() cancelling ${_listeners.length} event(s)');
     for (final listener in _listeners) {

@@ -1,13 +1,13 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/classes/change_notifier.dart';
 import 'package:uuid/uuid.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../support/change_notifier.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends LKChangeNotifier {
+abstract class Track extends DisposeAwareChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 

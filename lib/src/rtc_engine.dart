@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'classes/disposable.dart';
 
 import 'constants.dart';
 import 'errors.dart';
@@ -18,7 +19,7 @@ import 'signal_client.dart';
 import 'transport.dart';
 import 'types.dart';
 
-class RTCEngine {
+class RTCEngine extends Disposable {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -76,6 +77,7 @@ class RTCEngine {
   }
 
   Future<void> dispose() async {
+    super.dispose();
     await events.dispose();
     await _signalListener.dispose();
   }

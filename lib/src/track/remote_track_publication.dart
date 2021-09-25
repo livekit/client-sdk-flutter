@@ -1,11 +1,9 @@
-import 'package:livekit_client/livekit_client.dart';
-
+import '../events.dart';
+import '../extensions.dart';
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track.dart';
-import '../extensions.dart';
-
 import 'track_publication.dart';
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
