@@ -2,17 +2,17 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import '../../logger.dart';
-import '../interface.dart';
+import '../websocket.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, [
-  WebSocketOptions? options,
+  WebSocketEventHandlers? options,
 ]) =>
     LiveKitWebSocketIO.connect(uri, options);
 
 class LiveKitWebSocketIO implements LiveKitWebSocket {
   final io.WebSocket _ws;
-  final WebSocketOptions? options;
+  final WebSocketEventHandlers? options;
   late final StreamSubscription _subscription;
 
   LiveKitWebSocketIO._(
@@ -49,7 +49,7 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
 
   static Future<LiveKitWebSocketIO> connect(
     Uri uri, [
-    WebSocketOptions? options,
+    WebSocketEventHandlers? options,
   ]) async {
     logger.fine('WebSocketIO connect (uri: ${uri.toString()})');
     try {

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
-import '../classes/disposable.dart';
-import '../errors.dart';
+import '../support/disposable.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../types.dart';

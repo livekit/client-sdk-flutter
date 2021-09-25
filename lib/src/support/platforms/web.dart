@@ -4,17 +4,17 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
 
-import '../interface.dart';
+import '../websocket.dart';
 
 Future<LiveKitWebSocketWeb> lkWebSocketConnect(
   Uri uri, [
-  WebSocketOptions? options,
+  WebSocketEventHandlers? options,
 ]) =>
     LiveKitWebSocketWeb.connect(uri, options);
 
 class LiveKitWebSocketWeb implements LiveKitWebSocket {
   final html.WebSocket _ws;
-  final WebSocketOptions? options;
+  final WebSocketEventHandlers? options;
   late final StreamSubscription _messageSubscription;
   late final StreamSubscription _closeSubscription;
 
@@ -43,7 +43,7 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
 
   static Future<LiveKitWebSocketWeb> connect(
     Uri uri, [
-    WebSocketOptions? options,
+    WebSocketEventHandlers? options,
   ]) async {
     final completer = Completer<LiveKitWebSocketWeb>();
     final ws = html.WebSocket(uri.toString());

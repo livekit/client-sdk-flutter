@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
-import '../classes/change_notifier.dart';
+import '../support/change_notifier.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
@@ -91,7 +91,6 @@ abstract class Participant extends DisposeAwareChangeNotifier {
   @override
   @mustCallSuper
   Future<void> dispose() async {
-    logger.fine('$objectId dispose()');
     // This will mark object as disposed
     super.dispose();
     await unpublishAllTracks();

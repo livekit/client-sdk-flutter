@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'classes/disposable.dart';
+import 'support/disposable.dart';
 
 import 'constants.dart';
-import 'errors.dart';
+import 'exceptions.dart';
 import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';

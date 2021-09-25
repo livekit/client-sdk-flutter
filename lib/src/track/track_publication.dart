@@ -1,4 +1,4 @@
-import '../classes/disposable.dart';
+import '../support/disposable.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
 import 'track.dart';

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 
-import 'errors.dart';
+import 'exceptions.dart';
 import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
@@ -14,7 +14,7 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'types.dart';
 import 'utils.dart';
-import 'ws/interface.dart';
+import 'support/websocket.dart';
 
 class SignalClient {
   final events = EventsEmitter<SignalEvent>();
@@ -51,7 +51,7 @@ class SignalClient {
     try {
       _ws = await LiveKitWebSocket.connect(
         rtcUri,
-        WebSocketOptions(
+        WebSocketEventHandlers(
           onData: _onSocketData,
           onDispose: _onSocketDone,
           onError: _handleError,
@@ -99,7 +99,7 @@ class SignalClient {
 
     _ws = await LiveKitWebSocket.connect(
       rtcUri,
-      WebSocketOptions(
+      WebSocketEventHandlers(
         onData: _onSocketData,
         onDispose: _onSocketDone,
         onError: _handleError,

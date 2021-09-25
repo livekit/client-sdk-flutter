@@ -1,6 +1,3 @@
-//
-//
-//
 class LiveKitException implements Exception {
   final String message;
   const LiveKitException._(this.message);

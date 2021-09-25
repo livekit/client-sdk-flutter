@@ -1,4 +1,4 @@
-import 'platform/io.dart' if (dart.library.html) 'platform/web.dart';
+import 'platforms/io.dart' if (dart.library.html) 'platforms/web.dart';
 
 class WebSocketException implements Exception {
   final int code;
@@ -18,11 +18,11 @@ typedef WebSocketOnData = Function(dynamic data);
 typedef WebSocketOnError = Function(dynamic error);
 typedef WebSocketOnDispose = Function();
 
-class WebSocketOptions {
+class WebSocketEventHandlers {
   final WebSocketOnData? onData;
   final WebSocketOnError? onError;
   final WebSocketOnDispose? onDispose;
-  const WebSocketOptions({
+  const WebSocketEventHandlers({
     this.onData,
     this.onError,
     this.onDispose,
@@ -35,7 +35,7 @@ abstract class LiveKitWebSocket {
 
   static Future<LiveKitWebSocket> connect(
     Uri uri, [
-    WebSocketOptions? options,
+    WebSocketEventHandlers? options,
   ]) =>
       lkWebSocketConnect(uri, options);
 }

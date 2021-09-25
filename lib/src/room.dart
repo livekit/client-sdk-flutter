@@ -3,9 +3,9 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 
-import 'classes/change_notifier.dart';
+import 'support/change_notifier.dart';
 import 'constants.dart';
-import 'errors.dart';
+import 'exceptions.dart';
 import 'events.dart';
 import 'extensions.dart';
 import 'logger.dart';
