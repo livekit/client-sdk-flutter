@@ -1,6 +1,8 @@
 import 'package:async/async.dart';
 
-class CancelableDelayManager {
+import '../support/disposable.dart';
+
+class CancelableDelayManager extends Disposable {
   //
   final _delays = <CancelableOperation<void>>[];
 
@@ -19,7 +21,13 @@ class CancelableDelayManager {
     if (!op.isCanceled) ifNotCancelled?.call();
   }
 
+  @override
   Future<void> dispose() async {
+    super.dispose();
+    await cancelAll();
+  }
+
+  Future<void> cancelAll() async {
     // cancel all delays
     if (_delays.isEmpty) return;
     // make a copy so we don't mutate while iterating

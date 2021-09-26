@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'support/disposable.dart';
+import 'package:meta/meta.dart';
 
 import 'constants.dart';
-import 'exceptions.dart';
 import 'events.dart';
+import 'exceptions.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'managers/delay.dart';
@@ -16,6 +16,7 @@ import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'signal_client.dart';
+import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
 
@@ -28,19 +29,31 @@ class RTCEngine extends Disposable {
   // config for RTCPeerConnection
   final RTCConfiguration? rtcConfig;
 
+  @internal
   PCTransport? publisher;
+
+  @internal
   PCTransport? subscriber;
+
+  @internal
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // used for ice state notifications
   CancelListenFunc? _primaryIceStateListener;
 
   // data channels for packets
-  rtc.RTCDataChannel? reliableDC;
-  rtc.RTCDataChannel? lossyDC;
-  bool iceConnected = false;
-  bool isReconnecting = false;
-  bool isClosed = true;
+  rtc.RTCDataChannel? _reliableDC;
+  rtc.RTCDataChannel? _lossyDC;
+  bool _iceConnected = false;
+  // bool isReconnecting = false;
+
+  // Room is only instantiated if connected, so defaults to connected.
+  ConnectionState _connectionState = ConnectionState.disconnected;
+
+  /// connection state of the room
+  ConnectionState get connectionState => _connectionState;
+
+  // bool _isClosed = true;
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
@@ -62,11 +75,12 @@ class RTCEngine extends Disposable {
   final delays = CancelableDelayManager();
 
   // late final Timer _statsTimer;
+  // bool get isClosed =>
 
   RTCEngine(
-    this.signalClient,
-    this.rtcConfig,
-  ) {
+    this.rtcConfig, {
+    SignalClient? signalClient,
+  }) : signalClient = signalClient ?? SignalClient() {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
@@ -79,6 +93,7 @@ class RTCEngine extends Disposable {
   @override
   Future<void> dispose() async {
     super.dispose();
+    await close();
     await events.dispose();
     await _signalListener.dispose();
   }
@@ -113,18 +128,15 @@ class RTCEngine extends Disposable {
     return event.response;
   }
 
+  // there is no side-effect calling this method multiple times
   Future<void> close() async {
-    logger.fine('${objectId} close()');
-    if (isClosed) {
-      logger.fine('${objectId} close() already closed');
-      return;
+    logger.fine('[$objectId] close()');
+    if (_connectionState == ConnectionState.disconnected) {
+      logger.warning('[$objectId]: close() already disconnected');
     }
-    isClosed = true;
-
     // _statsTimer.cancel();
-
     // cancel all ongoing delays
-    await delays.dispose();
+    await delays.cancelAll();
 
     // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
@@ -133,7 +145,10 @@ class RTCEngine extends Disposable {
     await subscriber?.dispose();
     subscriber = null;
 
-    signalClient.dispose();
+    await signalClient.close();
+
+    _connectionState = ConnectionState.disconnected;
+    // notifyListeners();
   }
 
   Future<lk_models.TrackInfo> addTrack({
@@ -173,10 +188,10 @@ class RTCEngine extends Disposable {
 
     final dcMessage = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    if (packet.kind == lk_models.DataPacket_Kind.LOSSY && lossyDC != null) {
-      await lossyDC?.send(dcMessage);
-    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE && reliableDC != null) {
-      await reliableDC?.send(dcMessage);
+    if (packet.kind == lk_models.DataPacket_Kind.LOSSY && _lossyDC != null) {
+      await _lossyDC?.send(dcMessage);
+    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE && _reliableDC != null) {
+      await _reliableDC?.send(dcMessage);
     }
   }
 
@@ -206,7 +221,7 @@ class RTCEngine extends Disposable {
   }
 
   Future<void> reconnect() async {
-    if (isClosed) {
+    if (_connectionState == ConnectionState.disconnected) {
       logger.fine('$objectId reconnect() already closed');
       return;
     }
@@ -224,7 +239,8 @@ class RTCEngine extends Disposable {
     _reconnectAttempts++;
 
     try {
-      isReconnecting = true;
+      // isReconnecting = true;
+      _connectionState = ConnectionState.reconnecting;
       await signalClient.reconnect(url, token);
 
       if (publisher == null || subscriber == null) {
@@ -255,7 +271,8 @@ class RTCEngine extends Disposable {
       // don't catch and pass up any exception
     } finally {
       // always set reconnecting to false
-      isReconnecting = false;
+      // isReconnecting = false;
+      _connectionState = ConnectionState.disconnected;
     }
   }
 
@@ -295,31 +312,25 @@ class RTCEngine extends Disposable {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
-    // logger.fine('subscriber.pc: ${subscriber?.pc}');
-    subscriber?.pc.onIceConnectionState = (state) {
-      //
-      events.emit(EngineSubscriberIceStateUpdatedEvent(
-        state: state,
-        isPrimary: _subscriberPrimary,
-      ));
-    };
+    subscriber?.pc.onIceConnectionState =
+        (state) => events.emit(EngineSubscriberIceStateUpdatedEvent(
+              state: state,
+              isPrimary: _subscriberPrimary,
+            ));
 
-    publisher?.pc.onIceConnectionState = (state) {
-      //
-      events.emit(EnginePublisherIceStateUpdatedEvent(
-        state: state,
-        isPrimary: !_subscriberPrimary,
-      ));
-    };
+    publisher?.pc.onIceConnectionState = (state) => events.emit(EnginePublisherIceStateUpdatedEvent(
+          state: state,
+          isPrimary: !_subscriberPrimary,
+        ));
 
     events.on<EngineIceStateUpdatedEvent>((event) {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
       if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-        if (!iceConnected) {
-          iceConnected = true;
-          if (isReconnecting) {
+        if (!_iceConnected) {
+          _iceConnected = true;
+          if (_connectionState == ConnectionState.reconnecting) {
             events.emit(const EngineReconnectedEvent());
           } else {
             events.emit(const EngineConnectedEvent());
@@ -327,8 +338,8 @@ class RTCEngine extends Disposable {
         }
       } else if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
         // trigger reconnect sequence
-        if (iceConnected) {
-          iceConnected = false;
+        if (_iceConnected) {
+          _iceConnected = false;
           _onDisconnected('peerconnection');
         }
       }
@@ -355,8 +366,8 @@ class RTCEngine extends Disposable {
         ..binaryType = 'binary'
         ..ordered = true
         ..maxRetransmits = 0;
-      lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
-      lossyDC!.onMessage = _onDCMessage;
+      _lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
+      _lossyDC!.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -365,8 +376,8 @@ class RTCEngine extends Disposable {
       final reliableInit = rtc.RTCDataChannelInit()
         ..binaryType = 'binary'
         ..ordered = true;
-      reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
-      reliableDC!.onMessage = _onDCMessage;
+      _reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+      _reliableDC!.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -376,13 +387,13 @@ class RTCEngine extends Disposable {
     switch (dc.label) {
       case _reliableDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
-        reliableDC = dc;
-        reliableDC?.onMessage = _onDCMessage;
+        _reliableDC = dc;
+        _reliableDC?.onMessage = _onDCMessage;
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
-        lossyDC = dc;
-        lossyDC?.onMessage = _onDCMessage;
+        _lossyDC = dc;
+        _lossyDC?.onMessage = _onDCMessage;
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
@@ -411,11 +422,15 @@ class RTCEngine extends Disposable {
   }
 
   Future<void> _onDisconnected(String reason) async {
-    if (isClosed) return;
+    if (_connectionState == ConnectionState.disconnected) {
+      logger.fine('[$objectId] Already disconnected $reason');
+      return;
+    }
 
-    logger.fine('disconnected $reason');
+    logger.fine('[$objectId] Disconnected $reason');
+
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      logger.info('could not connect after $_reconnectAttempts, giving up');
+      logger.info('[$objectId] Could not connect after ${_reconnectAttempts} attempts, giving up');
       await close();
       events.emit(const EngineDisconnectedEvent());
       return;
@@ -437,12 +452,12 @@ class RTCEngine extends Disposable {
     });
   }
 
-  //------------------ SignalClient Delegate methods -------------------------//
-
   void _setUpListeners() => _signalListener
     ..on<SignalConnectedEvent>((event) async {
       // create peer connections
-      isClosed = false;
+      // _isClosed = false;
+      _connectionState = ConnectionState.connected;
+
       _subscriberPrimary = event.response.subscriberPrimary;
       _providedIceServers = event.response.iceServers;
 

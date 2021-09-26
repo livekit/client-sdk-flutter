@@ -115,7 +115,6 @@ class Room extends DisposeAwareChangeNotifier {
   }) async {
     //
     final engine = RTCEngine(
-      SignalClient(),
       rtcConfig,
     );
 
@@ -171,7 +170,7 @@ class Room extends DisposeAwareChangeNotifier {
       _connectionState = ConnectionState.reconnecting;
       events.emit(const RoomReconnectingEvent());
     })
-    ..on<EngineDisconnectedEvent>((event) => _onDisconnectedEvent())
+    ..on<EngineDisconnectedEvent>((event) => close())
     ..on<EngineParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
     ..on<EngineSpeakersUpdateEvent>((event) => _onSpeakerUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
@@ -208,7 +207,7 @@ class Room extends DisposeAwareChangeNotifier {
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
     engine.signalClient.sendLeave();
-    await _onDisconnectedEvent();
+    await close();
   }
 
   Future<void> reconnect() async {
@@ -241,15 +240,15 @@ class Room extends DisposeAwareChangeNotifier {
     return participant;
   }
 
-  Future<void> _onDisconnectedEvent() async {
+  // there is no side-effect calling this method multiple times
+  Future<void> close() async {
+    logger.fine('[$objectId] close()');
     if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('$objectId: _handleDisconnect() already disconnected');
-      return;
+      logger.warning('[$objectId]: close() already disconnected');
     }
     // we need to flag room as disconnected immediately to avoid
     // this method firing multiple times since the following code
     // is being awaited
-    _connectionState = ConnectionState.disconnected;
 
     // clean up RemoteParticipants
     for (final _ in _participants.values) {
@@ -271,6 +270,7 @@ class Room extends DisposeAwareChangeNotifier {
 
     _activeSpeakers.clear();
 
+    _connectionState = ConnectionState.disconnected;
     notifyListeners();
     events.emit(const RoomDisconnectedEvent());
   }

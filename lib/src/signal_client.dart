@@ -110,11 +110,15 @@ class SignalClient extends Disposable {
     _connected = true;
   }
 
+  Future<void> close() async {
+    _connected = false;
+    await _ws?.dispose();
+  }
+
   @override
   void dispose() {
     super.dispose();
-    _connected = false;
-    _ws?.dispose();
+    close();
   }
 
   void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
