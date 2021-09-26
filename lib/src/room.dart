@@ -241,15 +241,12 @@ class Room extends DisposeAwareChangeNotifier {
     return participant;
   }
 
-  // there is no side-effect calling this method multiple times
+  // there should be no problem calling this method multiple times
   Future<void> close() async {
     logger.fine('[$objectId] close()');
     if (_connectionState == ConnectionState.disconnected) {
       logger.warning('[$objectId]: close() already disconnected');
     }
-    // we need to flag room as disconnected immediately to avoid
-    // this method firing multiple times since the following code
-    // is being awaited
 
     // clean up RemoteParticipants
     for (final _ in _participants.values) {
@@ -259,21 +256,19 @@ class Room extends DisposeAwareChangeNotifier {
     _participants.clear();
 
     // clean up LocalParticipant
-    // for (final pub in localParticipant.tracks.values) {
-    //   await pub.track?.stop();
-    // }
     await localParticipant.unpublishAllTracks();
 
-    // await localParticipant.dispose();
-    // localParticipant = null;
-
+    // clean up engine
     await engine.close();
 
     _activeSpeakers.clear();
 
-    _connectionState = ConnectionState.disconnected;
-    notifyListeners();
-    events.emit(const RoomDisconnectedEvent());
+    // only notify if was not disconnected
+    if (_connectionState != ConnectionState.disconnected) {
+      _connectionState = ConnectionState.disconnected;
+      notifyListeners();
+      events.emit(const RoomDisconnectedEvent());
+    }
   }
 
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {

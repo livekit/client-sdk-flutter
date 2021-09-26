@@ -26,7 +26,7 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
   @override
   void addListener(VoidCallback listener) {
     if (_isDisposed) {
-      logger.warning('calling addListener on a disposed ChangeNotifier');
+      logger.warning('called addListener() on a disposed ChangeNotifier');
       return;
     }
     super.addListener(listener);
@@ -35,9 +35,18 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
   @override
   void removeListener(VoidCallback listener) {
     if (_isDisposed) {
-      logger.warning('calling removeListener on a disposed ChangeNotifier');
+      logger.warning('called removeListener() on a disposed ChangeNotifier');
       return;
     }
     super.removeListener(listener);
+  }
+
+  @override
+  void notifyListeners() {
+    if (_isDisposed) {
+      logger.warning('called notifyListeners() on a disposed ChangeNotifier');
+      return;
+    }
+    super.notifyListeners();
   }
 }

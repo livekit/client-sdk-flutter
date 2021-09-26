@@ -6,11 +6,10 @@ import 'package:logging/logging.dart';
 import 'pages/connect.dart';
 
 void main() {
-  print('This is a test for ${SignalTrickleEvent} test.');
   // configure logs for debugging
   Logger.root.level = Level.FINE;
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.time}: ${record.message}');
+    print('${record.level.name}: ${record.message}');
   });
 
   WidgetsFlutterBinding.ensureInitialized();
