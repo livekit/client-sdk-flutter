@@ -47,10 +47,10 @@ class Room extends DisposeAwareChangeNotifier {
   late final LocalParticipant localParticipant;
 
   /// name of the room
-  late final String name;
+  final String name;
 
   /// sid of the room
-  late final String sid;
+  final String sid;
 
   List<Participant> _activeSpeakers = [];
 
@@ -70,7 +70,8 @@ class Room extends DisposeAwareChangeNotifier {
     required this.engine,
     required lk_rtc.JoinResponse joinResponse,
     ConnectOptions? connectOptions,
-  }) {
+  })  : sid = joinResponse.room.sid,
+        name = joinResponse.room.name {
     //
     _setUpListeners();
 
@@ -80,9 +81,6 @@ class Room extends DisposeAwareChangeNotifier {
       defaultPublishOptions: connectOptions?.defaultPublishOptions,
       roomEvents: events,
     );
-
-    sid = joinResponse.room.sid;
-    name = joinResponse.room.name;
 
     for (final info in joinResponse.otherParticipants) {
       _getOrCreateRemoteParticipant(info.sid, info);
@@ -168,12 +166,10 @@ class Room extends DisposeAwareChangeNotifier {
     ..on<EngineReconnectedEvent>((event) async {
       _connectionState = ConnectionState.connected;
       events.emit(const RoomReconnectedEvent());
-      notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
       _connectionState = ConnectionState.reconnecting;
       events.emit(const RoomReconnectingEvent());
-      notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) => _onDisconnectedEvent())
     ..on<EngineParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))

@@ -1,8 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../errors.dart';
+import '../exceptions.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
@@ -22,26 +23,23 @@ import 'participant.dart';
 
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {
-  final RTCEngine _engine;
+  @internal
+  final RTCEngine engine;
+  @internal
   final TrackPublishOptions? defaultPublishOptions;
 
   LocalParticipant({
-    required RTCEngine engine,
+    required this.engine,
     required lk_models.ParticipantInfo info,
     this.defaultPublishOptions,
     required EventsEmitter<RoomEvent> roomEvents,
-  })  : _engine = engine,
-        super(
+  }) : super(
           info.sid,
           info.identity,
           roomEvents: roomEvents,
         ) {
     updateFromInfo(info);
   }
-
-  /// for internal use
-  /// {@nodoc}
-  RTCEngine get engine => _engine;
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
@@ -52,7 +50,7 @@ class LocalParticipant extends Participant {
     await AudioManager().incrementPublishCounter();
 
     try {
-      final trackInfo = await _engine.addTrack(
+      final trackInfo = await engine.addTrack(
         cid: track.getCid(),
         name: track.name,
         kind: track.kind,
@@ -62,12 +60,12 @@ class LocalParticipant extends Participant {
         direction: rtc.TransceiverDirection.SendOnly,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      track.transceiver = await _engine.publisher?.pc.addTransceiver(
+      track.transceiver = await engine.publisher?.pc.addTransceiver(
         track: track.mediaStreamTrack,
         kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
         init: transceiverInit,
       );
-      await _engine.negotiate();
+      await engine.negotiate();
 
       final pub = LocalTrackPublication(trackInfo, track, this);
       addTrackPublication(pub);
@@ -92,7 +90,7 @@ class LocalParticipant extends Participant {
     // Use default options from `ConnectOptions` if options is null
     options = options ?? defaultPublishOptions;
 
-    final trackInfo = await _engine.addTrack(
+    final trackInfo = await engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
@@ -133,14 +131,14 @@ class LocalParticipant extends Participant {
       streams: [track.mediaStream],
     );
 
-    logger.fine('publishVideoTrack publisher: ${_engine.publisher}');
+    logger.fine('publishVideoTrack publisher: ${engine.publisher}');
 
-    track.transceiver = await _engine.publisher?.pc.addTransceiver(
+    track.transceiver = await engine.publisher?.pc.addTransceiver(
       track: track.mediaStreamTrack,
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
-    await _engine.negotiate();
+    await engine.negotiate();
 
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
@@ -167,9 +165,15 @@ class LocalParticipant extends Participant {
 
       final sender = track.transceiver?.sender;
       if (sender != null) {
-        await engine.publisher?.pc.removeTrack(sender);
+        try {
+          await engine.publisher?.pc.removeTrack(sender);
+        } catch (_) {
+          logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
+        }
+
+        // doesn't make sense to negotiate if already disposed
         if (!isDisposed) {
-          // Doesn't make sense to negotiate when disposing
+          // manual negotiation since track changed
           await engine.negotiate();
         }
       }

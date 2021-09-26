@@ -4,19 +4,20 @@ import 'dart:convert';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 
-import 'exceptions.dart';
 import 'events.dart';
+import 'exceptions.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'managers/event.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'support/disposable.dart';
+import 'support/websocket.dart';
 import 'types.dart';
 import 'utils.dart';
-import 'support/websocket.dart';
 
-class SignalClient {
+class SignalClient extends Disposable {
   final events = EventsEmitter<SignalEvent>();
   final ProtocolVersion protocol;
 
@@ -109,7 +110,9 @@ class SignalClient {
     _connected = true;
   }
 
-  void close() {
+  @override
+  void dispose() {
+    super.dispose();
     _connected = false;
     _ws?.dispose();
   }
@@ -181,8 +184,8 @@ class SignalClient {
       ));
 
   void _sendRequest(lk_rtc.SignalRequest req) {
-    if (_ws == null) {
-      logger.warning('could not send message, not connected');
+    if (_ws == null || isDisposed) {
+      logger.warning('[$objectId] Could not send message, not connected or already disposed');
       return;
     }
 

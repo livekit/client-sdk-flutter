@@ -1,6 +1,8 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:uuid/uuid.dart';
 
+import '../extensions.dart';
+import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/change_notifier.dart';
 
@@ -51,6 +53,10 @@ abstract class Track extends DisposeAwareChangeNotifier {
   }
 
   Future<void> stop() async {
-    await mediaStreamTrack.stop();
+    try {
+      await mediaStreamTrack.stop();
+    } catch (_) {
+      logger.warning('[$objectId] rtc.mediaStreamTrack.stop() did throw ${_}');
+    }
   }
 }

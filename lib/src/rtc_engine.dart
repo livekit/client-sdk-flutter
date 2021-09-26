@@ -76,6 +76,7 @@ class RTCEngine extends Disposable {
     // _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
   }
 
+  @override
   Future<void> dispose() async {
     super.dispose();
     await events.dispose();
@@ -122,10 +123,6 @@ class RTCEngine extends Disposable {
 
     // _statsTimer.cancel();
 
-    // cancel events
-    await _primaryIceStateListener?.call();
-    _primaryIceStateListener = null;
-
     // cancel all ongoing delays
     await delays.dispose();
 
@@ -136,7 +133,7 @@ class RTCEngine extends Disposable {
     await subscriber?.dispose();
     subscriber = null;
 
-    signalClient.close();
+    signalClient.dispose();
   }
 
   Future<lk_models.TrackInfo> addTrack({
@@ -190,7 +187,7 @@ class RTCEngine extends Disposable {
     }
 
     if (publisher?.pc.iceConnectionState?.isConnected() == true) {
-      logger.warning('publisher is already connected');
+      logger.warning('[$objectId] publisher is already connected');
       return;
     }
 
@@ -315,7 +312,7 @@ class RTCEngine extends Disposable {
       ));
     };
 
-    _primaryIceStateListener ??= events.on<EngineIceStateUpdatedEvent>((event) {
+    events.on<EngineIceStateUpdatedEvent>((event) {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
@@ -352,21 +349,27 @@ class RTCEngine extends Disposable {
       ));
     };
 
-    // data channels
-    final lossyInit = rtc.RTCDataChannelInit()
-      ..binaryType = 'binary'
-      ..ordered = true
-      ..maxRetransmits = 0;
-    lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
-
-    final reliableInit = rtc.RTCDataChannelInit()
-      ..binaryType = 'binary'
-      ..ordered = true;
-    reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
-
     // also handle messages over the pub channel, for backwards compatibility
-    lossyDC?.onMessage = _onDCMessage;
-    reliableDC?.onMessage = _onDCMessage;
+    try {
+      final lossyInit = rtc.RTCDataChannelInit()
+        ..binaryType = 'binary'
+        ..ordered = true
+        ..maxRetransmits = 0;
+      lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
+      lossyDC!.onMessage = _onDCMessage;
+    } catch (_) {
+      logger.severe('[$objectId] createDataChannel() did throw $_');
+    }
+
+    try {
+      final reliableInit = rtc.RTCDataChannelInit()
+        ..binaryType = 'binary'
+        ..ordered = true;
+      reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+      reliableDC!.onMessage = _onDCMessage;
+    } catch (_) {
+      logger.severe('[$objectId] createDataChannel() did throw $_');
+    }
   }
 
   void _onDataChannel(rtc.RTCDataChannel dc) {
@@ -462,19 +465,24 @@ class RTCEngine extends Disposable {
     })
     ..on<SignalOfferEvent>((event) async {
       if (subscriber == null) {
+        logger.warning('[$objectId] subscriber is null');
         return;
       }
 
-      logger.fine('received server offer(type: ${event.sd.type}, '
+      logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
           '${subscriber!.pc.signalingState})');
 
       await subscriber!.setRemoteDescription(event.sd);
 
-      final answer = await subscriber!.pc.createAnswer();
-      logger.fine('Created answer');
-      logger.finer('sdp: ${answer.sdp}');
-      await subscriber!.pc.setLocalDescription(answer);
-      signalClient.sendAnswer(answer);
+      try {
+        final answer = await subscriber!.pc.createAnswer();
+        logger.fine('Created answer');
+        logger.finer('sdp: ${answer.sdp}');
+        await subscriber!.pc.setLocalDescription(answer);
+        signalClient.sendAnswer(answer);
+      } catch (_) {
+        logger.severe('[$objectId] Failed to createAnswer()');
+      }
     })
     ..on<SignalAnswerEvent>((event) async {
       if (publisher == null) {

@@ -1,6 +1,8 @@
 import 'package:livekit_client/src/logger.dart';
 import 'package:meta/meta.dart';
 
+import '../extensions.dart';
+
 abstract class DisposeAware {
   // Should be true when is disposing or already disposed
   bool get isDisposed;
@@ -18,7 +20,7 @@ abstract class Disposable extends DisposeAware {
   @override
   @mustCallSuper
   void dispose() {
-    logger.fine('${runtimeType}.dispose()');
+    logger.fine('[${objectId}] dispose()');
     _isDisposed = true;
   }
 }

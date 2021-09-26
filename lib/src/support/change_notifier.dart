@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../logger.dart';
+import '../extensions.dart';
 import 'disposable.dart';
 
 // dispose safe change notifier
@@ -15,7 +16,7 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
   @override
   @mustCallSuper
   void dispose() {
-    logger.fine('${runtimeType}.dispose()');
+    logger.fine('[${objectId}] dispose()');
     _isDisposed = true;
     super.dispose();
   }
