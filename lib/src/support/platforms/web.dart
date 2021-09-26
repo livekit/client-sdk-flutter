@@ -34,10 +34,10 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
   void send(List<int> data) => _ws.send(data);
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
     options?.onDispose?.call();
-    _messageSubscription.cancel();
-    _closeSubscription.cancel();
+    await _messageSubscription.cancel();
+    await _closeSubscription.cancel();
     _ws.close();
   }
 

@@ -31,7 +31,7 @@ class WebSocketEventHandlers {
 
 abstract class LiveKitWebSocket {
   void send(List<int> data);
-  void dispose();
+  Future<void> dispose();
 
   static Future<LiveKitWebSocket> connect(
     Uri uri, [

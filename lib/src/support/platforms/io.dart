@@ -3,6 +3,7 @@ import 'dart:io' as io;
 
 import '../../logger.dart';
 import '../websocket.dart';
+import '../../extensions.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, [
@@ -26,24 +27,24 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
   }
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
+    await _subscription.cancel();
+    await _ws.close();
     options?.onDispose?.call();
-    _subscription.cancel();
-    _ws.close();
   }
 
   @override
   void send(List<int> data) {
-    // 0 CONNECTING
-    // 1 OPEN
-    // 2 CLOSING
-    // 3 CLOSED
-    if (_ws.readyState == 1) {
-      try {
-        _ws.add(data);
-      } catch (e) {
-        //
-      }
+    // 0 CONNECTING, 1 OPEN, 2 CLOSING, 3 CLOSED
+    if (_ws.readyState != 1) {
+      logger.fine('[$objectId] Tried to send data (readyState: ${_ws.readyState})');
+      return;
+    }
+
+    try {
+      _ws.add(data);
+    } catch (_) {
+      logger.fine('[$objectId] send did throw ${_}');
     }
   }
 
@@ -51,13 +52,13 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
     Uri uri, [
     WebSocketEventHandlers? options,
   ]) async {
-    logger.fine('WebSocketIO connect (uri: ${uri.toString()})');
+    logger.fine('[WebSocketIO] Connecting(uri: ${uri.toString()})...');
     try {
       final ws = await io.WebSocket.connect(uri.toString());
-      logger.fine('WebSocketIO connected');
+      logger.fine('[WebSocketIO] Connected');
       return LiveKitWebSocketIO._(ws, options);
     } catch (_) {
-      logger.severe('WebSocketIO error ${_}');
+      logger.severe('[WebSocketIO] did throw ${_}');
       throw WebSocketException.connect();
     }
   }
