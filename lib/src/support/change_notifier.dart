@@ -17,8 +17,10 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
   @mustCallSuper
   void dispose() {
     logger.fine('[${objectId}] dispose()');
-    _isDisposed = true;
-    super.dispose();
+    if (!_isDisposed) {
+      _isDisposed = true;
+      super.dispose();
+    }
   }
 
   @override

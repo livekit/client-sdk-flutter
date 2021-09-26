@@ -150,7 +150,7 @@ abstract class Participant extends DisposeAwareChangeNotifier {
   Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
   Future<void> unpublishAllTracks({bool notify = false}) async {
-    final trackSids = trackPublications.map((e) => e.sid);
+    final trackSids = trackPublications.map((e) => e.sid).toSet();
     for (final trackid in trackSids) {
       await unpublishTrack(trackid, notify: notify);
     }

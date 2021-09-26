@@ -688,7 +688,7 @@ class MuteTrackRequest extends $pb.GeneratedMessage {
 class SetSimulcastLayers extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SetSimulcastLayers', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSid')
-    ..pc<VideoQuality>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layers', $pb.PbFieldType.PE, valueOf: VideoQuality.valueOf, enumValues: VideoQuality.values, defaultEnumValue: VideoQuality.LOW)
+    ..pc<VideoQuality>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layers', $pb.PbFieldType.PE, valueOf: VideoQuality.valueOf, enumValues: VideoQuality.values)
     ..hasRequiredFields = false
   ;
 
