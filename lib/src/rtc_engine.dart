@@ -411,7 +411,7 @@ class RTCEngine extends Disposable {
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
-      events.emit(EngineSpeakersUpdateEvent(speakers: dp.speaker.speakers));
+      events.emit(EngineActiveSpeakersUpdateEvent(speakers: dp.speaker.speakers));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
       events.emit(EngineDataPacketReceivedEvent(
@@ -455,9 +455,7 @@ class RTCEngine extends Disposable {
   void _setUpListeners() => _signalListener
     ..on<SignalConnectedEvent>((event) async {
       // create peer connections
-      // _isClosed = false;
       _connectionState = ConnectionState.connected;
-
       _subscriberPrimary = event.response.subscriberPrimary;
       _providedIceServers = event.response.iceServers;
 
@@ -471,9 +469,6 @@ class RTCEngine extends Disposable {
         // for subscriberPrimary, we negotiate when necessary (lazy)
         await negotiate();
       }
-
-      // _joinCompleter?.complete(Future.value(event.response));
-      // _joinCompleter = null;
     })
     ..on<SignalCloseEvent>((_) async {
       await _onDisconnected('signal');
@@ -519,16 +514,10 @@ class RTCEngine extends Disposable {
         await publisher!.addIceCandidate(event.candidate);
       }
     })
-    ..on<SignalParticipantUpdateEvent>((event) async {
-      events.emit(EngineParticipantUpdateEvent(participants: event.updates));
-    })
-    // ..on<SignalLocalTrackPublishedEvent>((event) async {
-    //   final completer = _pendingTrackResolvers.remove(event.cid);
-    //   completer?.complete(event.track);
-    // })
-    ..on<SignalActiveSpeakersChangedEvent>((event) async {
-      events.emit(EngineSpeakersUpdateEvent(speakers: event.speakers));
-    })
+    // relay
+    ..on<SignalParticipantUpdateEvent>((event) => events.emit(event))
+    // relay
+    ..on<SignalSpeakersChangedEvent>((event) => events.emit(event))
     ..on<SignalLeaveEvent>((event) async {
       await close();
       events.emit(const EngineDisconnectedEvent());

@@ -17,7 +17,6 @@ import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
-import 'signal_client.dart';
 import 'track/track.dart';
 import 'types.dart';
 
@@ -37,7 +36,7 @@ class Room extends DisposeAwareChangeNotifier {
   /// connection state of the room
   ConnectionState get connectionState => _connectionState;
 
-  final Map<String, RemoteParticipant> _participants = {};
+  final _participants = <String, RemoteParticipant>{};
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -171,8 +170,10 @@ class Room extends DisposeAwareChangeNotifier {
       events.emit(const RoomReconnectingEvent());
     })
     ..on<EngineDisconnectedEvent>((event) => close())
-    ..on<EngineParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
-    ..on<EngineSpeakersUpdateEvent>((event) => _onSpeakerUpdateEvent(event.speakers))
+    ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
+    ..on<EngineActiveSpeakersUpdateEvent>(
+        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
+    ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
       final track = localParticipant.trackPublications.firstWhereOrNull((e) => e.sid == event.sid);
@@ -306,43 +307,63 @@ class Room extends DisposeAwareChangeNotifier {
     }
   }
 
-  void _onSpeakerUpdateEvent(List<lk_models.SpeakerInfo> speakers) {
-    final seenSids = <String>{};
-    List<Participant> newSpeakers = [];
-    for (final info in speakers) {
-      seenSids.add(info.sid);
+  void _onSignalSpeakersChangedEvent(List<lk_models.SpeakerInfo> speakers) {
+    //
+    final lastSpeakers = {
+      for (final p in _activeSpeakers) p.sid: p,
+    };
 
-      if (info.sid == localParticipant.sid) {
-        localParticipant.audioLevel = info.level;
-        localParticipant.isSpeaking = true;
-        newSpeakers.add(localParticipant);
-        continue;
-      }
+    for (final speaker in speakers) {
+      Participant? p = _participants[speaker.sid];
+      if (speaker.sid == localParticipant.sid) p = localParticipant;
+      if (p == null) continue;
 
-      final participant = participants[info.sid];
-      if (participant != null) {
-        participant.audioLevel = info.level;
-        participant.isSpeaking = true;
-        newSpeakers.add(participant);
-      }
-    }
-
-    // clear previous speakers
-    if (seenSids.contains(localParticipant.sid)) {
-      localParticipant.audioLevel = 0;
-      localParticipant.isSpeaking = false;
-    }
-    for (final participant in _participants.values) {
-      if (!seenSids.contains(participant.sid)) {
-        participant.audioLevel = 0;
-        participant.isSpeaking = false;
+      p.audioLevel = speaker.level;
+      p.isSpeaking = speaker.active;
+      if (speaker.active) {
+        lastSpeakers[speaker.sid] = p;
+      } else {
+        lastSpeakers.remove(speaker.sid);
       }
     }
 
-    events.emit(ActiveSpeakersChangedEvent(speakers: newSpeakers));
+    final activeSpeakers = lastSpeakers.values.toList();
+    activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
+    _activeSpeakers = activeSpeakers;
+    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+  }
 
-    _activeSpeakers = newSpeakers;
-    notifyListeners();
+  // from data channel
+  // updates are sent only when there's a change to speaker ordering
+  void _onEngineActiveSpeakersUpdateEvent(List<lk_models.SpeakerInfo> speakers) {
+    List<Participant> activeSpeakers = [];
+
+    // localParticipant & remote participants
+    final allParticipants = <String, Participant>{
+      localParticipant.sid: localParticipant,
+      ..._participants,
+    };
+
+    for (final speaker in speakers) {
+      final p = allParticipants[speaker.sid];
+      if (p != null) {
+        p.audioLevel = speaker.level;
+        p.isSpeaking = true;
+        activeSpeakers.add(p);
+      }
+    }
+
+    // clear if not in the speakers list
+    final speakerSids = speakers.map((e) => e.sid).toSet();
+    for (final p in allParticipants.values) {
+      if (!speakerSids.contains(p.sid)) {
+        p.audioLevel = 0;
+        p.isSpeaking = false;
+      }
+    }
+
+    _activeSpeakers = activeSpeakers;
+    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {

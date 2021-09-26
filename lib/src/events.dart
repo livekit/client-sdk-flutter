@@ -217,12 +217,12 @@ class EngineReconnectedEvent with EngineEvent {
   const EngineReconnectedEvent();
 }
 
-class EngineParticipantUpdateEvent with EngineEvent {
-  final List<lk_models.ParticipantInfo> participants;
-  const EngineParticipantUpdateEvent({
-    required this.participants,
-  });
-}
+// class EngineParticipantUpdateEvent with EngineEvent {
+//   final List<lk_models.ParticipantInfo> participants;
+//   const EngineParticipantUpdateEvent({
+//     required this.participants,
+//   });
+// }
 
 class EngineTrackAddedEvent with EngineEvent {
   final rtc.MediaStreamTrack track;
@@ -232,13 +232,6 @@ class EngineTrackAddedEvent with EngineEvent {
     required this.track,
     required this.stream,
     required this.receiver,
-  });
-}
-
-class EngineSpeakersUpdateEvent with EngineEvent {
-  final List<lk_models.SpeakerInfo> speakers;
-  const EngineSpeakersUpdateEvent({
-    required this.speakers,
   });
 }
 
@@ -354,10 +347,11 @@ class SignalTrickleEvent with SignalEvent {
   });
 }
 
-class SignalParticipantUpdateEvent with SignalEvent {
-  final List<lk_models.ParticipantInfo> updates;
+// relayed by Engine
+class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
+  final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
-    required this.updates,
+    required this.participants,
   });
 }
 
@@ -370,9 +364,19 @@ class SignalLocalTrackPublishedEvent with SignalEvent {
   });
 }
 
-class SignalActiveSpeakersChangedEvent with SignalEvent {
+// speaker update received through websocket
+// relayed by Engine
+class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
-  const SignalActiveSpeakersChangedEvent({
+  const SignalSpeakersChangedEvent({
+    required this.speakers,
+  });
+}
+
+// Event received through data channel
+class EngineActiveSpeakersUpdateEvent with EngineEvent {
+  final List<lk_models.SpeakerInfo> speakers;
+  const EngineActiveSpeakersUpdateEvent({
     required this.speakers,
   });
 }

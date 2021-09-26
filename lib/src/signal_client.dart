@@ -221,7 +221,7 @@ class SignalClient extends Disposable {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(updates: msg.update.participants));
+        events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -229,8 +229,8 @@ class SignalClient extends Disposable {
           track: msg.trackPublished.track,
         ));
         break;
-      case lk_rtc.SignalResponse_Message.speaker:
-        events.emit(SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
+      case lk_rtc.SignalResponse_Message.speakersChanged:
+        events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
