@@ -149,8 +149,8 @@ class RemoteParticipant extends Participant {
 
     // unpublish any track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
-    final removeSids = trackPublications.where((e) => !validSids.contains(e.sid)).map((e) => e.sid);
-
+    final removeSids =
+        trackPublications.where((e) => !validSids.contains(e.sid)).map((e) => e.sid).toSet();
     for (final sid in removeSids) {
       await unpublishTrack(sid, notify: true);
     }

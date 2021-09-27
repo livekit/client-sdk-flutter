@@ -266,7 +266,6 @@ class Room extends DisposeAwareChangeNotifier {
     // only notify if was not disconnected
     if (_connectionState != ConnectionState.disconnected) {
       _connectionState = ConnectionState.disconnected;
-      notifyListeners();
       events.emit(const RoomDisconnectedEvent());
     }
   }
