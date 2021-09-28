@@ -139,13 +139,11 @@ extension AudioRecommendationTypeExt on AudioTrackState {
     final _baseConfiguration = _as.AudioSessionConfiguration(
       // ios defaults to soloAmbient
       avAudioSessionCategory: _as.AVAudioSessionCategory.soloAmbient,
-      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers &
-          _as.AVAudioSessionCategoryOptions.allowBluetooth &
-          _as.AVAudioSessionCategoryOptions.allowAirPlay &
+      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers |
+          _as.AVAudioSessionCategoryOptions.allowBluetooth |
+          _as.AVAudioSessionCategoryOptions.allowAirPlay |
           _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
-      avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
+      avAudioSessionMode: _as.AVAudioSessionMode.defaultMode,
     );
 
     if (this == AudioTrackState.remoteOnly) {
@@ -153,27 +151,21 @@ extension AudioRecommendationTypeExt on AudioTrackState {
         avAudioSessionCategory: _as.AVAudioSessionCategory.playback,
         avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
         avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-        avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-        avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
       );
       // } else if (this == AudioTrackState.localOnly) {
       //   return _baseConfiguration.copyWith(
       //     avAudioSessionCategory: _as.AVAudioSessionCategory.record,
-      //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.allowBluetooth,
+      //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
       //     avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-      //     avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      //     avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
       //   );
     } else if (this == AudioTrackState.localAndRemote || this == AudioTrackState.localOnly) {
       return _baseConfiguration.copyWith(
         avAudioSessionCategory: _as.AVAudioSessionCategory.playAndRecord,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers &
-            _as.AVAudioSessionCategoryOptions.allowBluetooth &
-            _as.AVAudioSessionCategoryOptions.allowAirPlay &
+        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers |
+            _as.AVAudioSessionCategoryOptions.allowBluetooth |
+            _as.AVAudioSessionCategoryOptions.allowAirPlay |
             _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
         avAudioSessionMode: _as.AVAudioSessionMode.voiceChat,
-        avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-        avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
       );
     }
 
