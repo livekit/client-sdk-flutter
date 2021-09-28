@@ -145,14 +145,14 @@ extension AudioRecommendationTypeExt on AudioTrackState {
           _as.AVAudioSessionCategoryOptions.allowAirPlay &
           _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
       avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.longFormAudio,
+      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
       avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
     );
 
     if (this == AudioTrackState.remoteOnly) {
       return _baseConfiguration.copyWith(
         avAudioSessionCategory: _as.AVAudioSessionCategory.playback,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.allowBluetooth,
+        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
         avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
         avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
         avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,

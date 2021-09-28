@@ -1,18 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
-import '../exceptions.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/audio.dart';
 import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../rtc_engine.dart';
-import '../track/audio_track.dart';
 import '../track/local_audio_track.dart';
 import '../track/local_track_publication.dart';
 import '../track/local_video_track.dart';
@@ -97,7 +95,10 @@ class LocalParticipant extends Participant {
       name: track.name,
       kind: track.kind,
     );
+
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
+
+    await track.start();
 
     // Video encodings and simulcasts
 
