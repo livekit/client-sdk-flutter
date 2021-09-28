@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
-
 import 'classes/change_notifier.dart';
 import 'constants.dart';
 import 'errors.dart';
@@ -63,7 +61,7 @@ class Room extends LKChangeNotifier {
 
   // suppport for multiple event listeners
   final events = EventsEmitter<RoomEvent>();
-  late final _engineListener = EventsListener<LiveKitEvent>(engine.events);
+  late final _engineListener = EventsListener<EngineEvent>(engine.events);
 
   /// internal use
   /// {@nodoc}

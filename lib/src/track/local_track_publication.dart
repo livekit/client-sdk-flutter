@@ -1,7 +1,6 @@
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/event.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
