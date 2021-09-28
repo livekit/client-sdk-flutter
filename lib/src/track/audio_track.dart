@@ -1,13 +1,12 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/managers/audio.dart';
 import 'package:audio_session/audio_session.dart' as _as;
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '_audio_api.dart' if (dart.library.html) '_audio_html.dart' as audio;
 import 'local_audio_track.dart';
 import 'track.dart';
-import 'package:synchronized/synchronized.dart' as sync;
 
 enum AudioTrackState {
   none,
@@ -157,15 +156,15 @@ extension AudioRecommendationTypeExt on AudioTrackState {
         avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
         avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
       );
-    } else if (this == AudioTrackState.localOnly) {
-      return _baseConfiguration.copyWith(
-        avAudioSessionCategory: _as.AVAudioSessionCategory.record,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.allowBluetooth,
-        avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-        avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-        avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
-      );
-    } else if (this == AudioTrackState.localAndRemote) {
+      // } else if (this == AudioTrackState.localOnly) {
+      //   return _baseConfiguration.copyWith(
+      //     avAudioSessionCategory: _as.AVAudioSessionCategory.record,
+      //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.allowBluetooth,
+      //     avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
+      //     avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      //     avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
+      //   );
+    } else if (this == AudioTrackState.localAndRemote || this == AudioTrackState.localOnly) {
       return _baseConfiguration.copyWith(
         avAudioSessionCategory: _as.AVAudioSessionCategory.playAndRecord,
         avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers &

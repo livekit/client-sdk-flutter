@@ -6,7 +6,6 @@ import '../constants.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/audio.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';

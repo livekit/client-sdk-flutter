@@ -44,6 +44,10 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     setState(() {});
   }
 
+  void _unpublishAll() async {
+    await participant.unpublishAllTracks();
+  }
+
   void _muteAudio() {
     if (participant.hasAudio) {
       final audioPub = participant.audioTracks.first;
@@ -146,6 +150,10 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        IconButton(
+          onPressed: _unpublishAll,
+          icon: const Icon(EvaIcons.closeCircleOutline),
+        ),
         if (canMute)
           IconButton(
             onPressed: _muteAudio,
