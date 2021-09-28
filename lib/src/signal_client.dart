@@ -88,7 +88,7 @@ class SignalClient extends Disposable {
     String token,
   ) async {
     _connected = false;
-    _ws?.dispose();
+    await _ws?.dispose();
     _ws = null;
 
     final rtcUri = Utils.buildUri(

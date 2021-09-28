@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../extensions.dart';
@@ -20,6 +21,10 @@ abstract class Track extends DisposeAwareChangeNotifier {
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
+
+  // started / stopped
+  bool _active = false;
+  bool get isActive => _active;
 
   Track(
     this.kind,
@@ -52,11 +57,33 @@ abstract class Track extends DisposeAwareChangeNotifier {
     return cid;
   }
 
-  Future<void> stop() async {
+  // returns true if started, false if already started
+  @mustCallSuper
+  Future<bool> start() async {
+    if (_active) {
+      // already started
+      return false;
+    }
+
+    _active = true;
+    return true;
+  }
+
+  // returns true if stopped, false if already stopped
+  @mustCallSuper
+  Future<bool> stop() async {
+    if (!_active) {
+      // already stopped
+      return false;
+    }
+
     try {
       await mediaStreamTrack.stop();
     } catch (_) {
       logger.warning('[$objectId] rtc.mediaStreamTrack.stop() did throw ${_}');
     }
+
+    _active = false;
+    return true;
   }
 }

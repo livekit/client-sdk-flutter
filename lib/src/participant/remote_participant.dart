@@ -97,7 +97,7 @@ class RemoteParticipant extends Participant {
       await AudioManager().incrementSubscriptionCounter();
 
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
-      audioTrack.start();
+      await audioTrack.start();
       track = audioTrack;
     } else {
       // video track

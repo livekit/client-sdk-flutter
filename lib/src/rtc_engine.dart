@@ -39,7 +39,7 @@ class RTCEngine extends Disposable {
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // used for ice state notifications
-  CancelListenFunc? _primaryIceStateListener;
+  // CancelListenFunc? _primaryIceStateListener;
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDC;

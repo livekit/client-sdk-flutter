@@ -56,6 +56,8 @@ class LocalParticipant extends Participant {
         kind: track.kind,
       );
 
+      await track.start();
+
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
       );

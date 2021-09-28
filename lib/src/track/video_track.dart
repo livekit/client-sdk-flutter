@@ -28,9 +28,12 @@ class VideoTrack extends Track {
   }
 
   @override
-  Future<void> stop() async {
-    await super.stop();
-    await _mediaStream.dispose();
+  Future<bool> stop() async {
+    final didStop = await super.stop();
+    if (didStop) {
+      await _mediaStream.dispose();
+    }
     // _mediaStream = null;
+    return didStop;
   }
 }
