@@ -139,11 +139,10 @@ extension AudioRecommendationTypeExt on AudioTrackState {
     final _baseConfiguration = _as.AudioSessionConfiguration(
       // ios defaults to soloAmbient
       avAudioSessionCategory: _as.AVAudioSessionCategory.soloAmbient,
-      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers |
-          _as.AVAudioSessionCategoryOptions.allowBluetooth |
-          _as.AVAudioSessionCategoryOptions.allowAirPlay |
-          _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers,
       avAudioSessionMode: _as.AVAudioSessionMode.defaultMode,
+      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
     );
 
     if (this == AudioTrackState.remoteOnly) {
