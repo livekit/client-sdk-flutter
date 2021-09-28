@@ -94,7 +94,7 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      await AudioManager().incrementSubscriptionCounter();
+      // await AudioManager().incrementSubscriptionCounter();
 
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       await audioTrack.start();
@@ -174,9 +174,9 @@ class RemoteParticipant extends Participant {
         publication: pub,
       ));
 
-      if (track is AudioTrack) {
-        await AudioManager().decrementSubscriptionCounter();
-      }
+      // if (track is AudioTrack) {
+      //   await AudioManager().decrementSubscriptionCounter();
+      // }
     }
 
     if (notify) {

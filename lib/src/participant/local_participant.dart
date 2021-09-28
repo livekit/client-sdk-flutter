@@ -47,7 +47,7 @@ class LocalParticipant extends Participant {
       throw TrackPublishException('track already exists');
     }
 
-    await AudioManager().incrementPublishCounter();
+    // await AudioManager().incrementPublishCounter();
 
     try {
       final trackInfo = await engine.addTrack(
@@ -75,7 +75,7 @@ class LocalParticipant extends Participant {
       return pub;
     } catch (e) {
       // In any case there was an exception, revert the count.
-      await AudioManager().decrementPublishCounter();
+      // await AudioManager().decrementPublishCounter();
       rethrow;
     }
   }
@@ -180,9 +180,9 @@ class LocalParticipant extends Participant {
         }
       }
 
-      if (track is AudioTrack) {
-        await AudioManager().decrementPublishCounter();
-      }
+      // if (track is AudioTrack) {
+      // await AudioManager().decrementPublishCounter();
+      // }
     }
   }
 

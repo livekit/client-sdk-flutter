@@ -1,143 +1,87 @@
-import 'package:audio_session/audio_session.dart' as _as;
+// import 'package:audio_session/audio_session.dart' as _as;
 
-import '../events.dart';
-import '../logger.dart';
-import 'event.dart';
+// import '../events.dart';
+// import '../logger.dart';
+// import 'event.dart';
 
-enum AudioRecommendationType {
-  playOnly,
-  recordOnly,
-  playAndRecord,
-}
+// // abstract class AudioManagerEvent implements LiveKitEvent {}
 
-extension AudioRecommendationTypeExt on AudioRecommendationType {
-  _as.AudioSessionConfiguration configuration() {
-    //
-    final playOnlyConfiguration = _as.AudioSessionConfiguration(
-      avAudioSessionCategory: _as.AVAudioSessionCategory.playback,
-      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers &
-          _as.AVAudioSessionCategoryOptions.allowBluetooth &
-          _as.AVAudioSessionCategoryOptions.allowAirPlay &
-          _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
-      avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.longFormAudio,
-      avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
-    );
+// // class AudioManagerUpdatedRecommendationEvent with AudioManagerEvent {
+// //   final AudioTrackState type;
+// //   const AudioManagerUpdatedRecommendationEvent({
+// //     required this.type,
+// //   });
+// // }
 
-    if (this == AudioRecommendationType.recordOnly) {
-      return playOnlyConfiguration.copyWith(
-        avAudioSessionCategory: _as.AVAudioSessionCategory.record,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.allowBluetooth,
-        avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-        avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-        avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
-      );
-    } else if (this == AudioRecommendationType.playAndRecord) {
-      return playOnlyConfiguration.copyWith(
-        avAudioSessionCategory: _as.AVAudioSessionCategory.playAndRecord,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers &
-            _as.AVAudioSessionCategoryOptions.allowBluetooth &
-            _as.AVAudioSessionCategoryOptions.allowAirPlay &
-            _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
-        avAudioSessionMode: _as.AVAudioSessionMode.voiceChat,
-        avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-        avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
-      );
-    }
+// class AudioManager {
+//   static AudioManager? _instance;
+//   bool automaticManagementEnabled = true;
+// // Initial state is listen
+//   // AudioTrackState currentRecommendation = AudioTrackState.none;
 
-    return playOnlyConfiguration;
-  }
-}
+//   // final events = EventsEmitter<AudioManagerEvent>();
 
-abstract class AudioManagerEvent implements LiveKitEvent {}
+//   AudioManager._() {
+//     (() async {
+//       // await _configureCurrentRecommendation();
+//     })();
+//   }
 
-class AudioManagerUpdatedRecommendationEvent with AudioManagerEvent {
-  final AudioRecommendationType type;
-  const AudioManagerUpdatedRecommendationEvent({
-    required this.type,
-  });
-}
+//   // Singleton
+//   factory AudioManager() {
+//     _instance ??= AudioManager._();
+//     return _instance!;
+//   }
 
-class AudioManager {
-  static AudioManager? _instance;
-  bool automaticManagementEnabled = true;
-// Initial state is listen
-  AudioRecommendationType currentRecommendation = AudioRecommendationType.playOnly;
-  int _subscribeCounter = 0;
-  int _publishCounter = 0;
+//   Future<void> dispose() async {
+//     // await events.dispose();
+//   }
 
-  final events = EventsEmitter<AudioManagerEvent>();
+//   // Future<void> incrementSubscriptionCounter() async {
+//   //   _subscribeCounter++;
+//   //   await _onUpdate();
+//   // }
 
-  AudioManager._() {
-    (() async {
-      await _configureCurrentRecommendation();
-    })();
-  }
+//   // Future<void> decrementSubscriptionCounter() async {
+//   //   if (_subscribeCounter <= 0) return;
+//   //   _subscribeCounter--;
+//   //   await _onUpdate();
+//   // }
 
-  // Singleton
-  factory AudioManager() {
-    _instance ??= AudioManager._();
-    return _instance!;
-  }
+//   // Future<void> incrementPublishCounter() async {
+//   //   _publishCounter++;
+//   //   await _onUpdate();
+//   // }
 
-  Future<void> dispose() async {
-    await events.dispose();
-  }
+//   // Future<void> decrementPublishCounter() async {
+//   //   if (_publishCounter <= 0) return;
+//   //   _publishCounter--;
+//   //   await _onUpdate();
+//   // }
 
-  Future<void> incrementSubscriptionCounter() async {
-    _subscribeCounter++;
-    await _onUpdate();
-  }
+//   // static AudioTrackState computeAudioTrackState({
+//   //   required int local,
+//   //   required int remote,
+//   // }) {
+//   //   if (local > 0 && remote == 0) {
+//   //     return AudioTrackState.localOnly;
+//   //   } else if (local > 0 && remote > 0) {
+//   //     return AudioTrackState.localAndRemote;
+//   //   }
+//   //   // Default
+//   //   return AudioTrackState.remoteOnly;
+//   // }
 
-  Future<void> decrementSubscriptionCounter() async {
-    if (_subscribeCounter <= 0) return;
-    _subscribeCounter--;
-    await _onUpdate();
-  }
+//   // Future<void> _onUpdate() async {
+//   //   final newRecommendation = computeAudioTrackState();
+//   //   if (currentRecommendation != newRecommendation) {
+//   //     currentRecommendation = newRecommendation;
+//   //     events.emit(AudioManagerUpdatedRecommendationEvent(type: currentRecommendation));
+//   //     logger.fine('[$runtimeType] updated recommendation ${currentRecommendation}');
+//   //     if (automaticManagementEnabled) {
+//   //       await _configureCurrentRecommendation();
+//   //     }
+//   //   }
+//   // }
 
-  Future<void> incrementPublishCounter() async {
-    _publishCounter++;
-    await _onUpdate();
-  }
-
-  Future<void> decrementPublishCounter() async {
-    if (_publishCounter <= 0) return;
-    _publishCounter--;
-    await _onUpdate();
-  }
-
-  AudioRecommendationType _computeRecommendation() {
-    if (_publishCounter > 0 && _subscribeCounter == 0) {
-      return AudioRecommendationType.recordOnly;
-    } else if (_publishCounter > 0 && _subscribeCounter > 0) {
-      return AudioRecommendationType.playAndRecord;
-    }
-    // Default
-    return AudioRecommendationType.playOnly;
-  }
-
-  Future<void> _onUpdate() async {
-    final newRecommendation = _computeRecommendation();
-    if (currentRecommendation != newRecommendation) {
-      currentRecommendation = newRecommendation;
-      events.emit(AudioManagerUpdatedRecommendationEvent(type: currentRecommendation));
-      logger.fine('[$runtimeType] updated recommendation ${currentRecommendation}');
-      if (automaticManagementEnabled) {
-        await _configureCurrentRecommendation();
-      }
-    }
-  }
-
-  Future<void> _configureCurrentRecommendation() async {
-    final config = currentRecommendation.configuration();
-    logger.fine('[$runtimeType] configuring for ${currentRecommendation}, '
-        '${config.avAudioSessionCategory}...');
-    try {
-      final _audioSession = await _as.AudioSession.instance;
-      await _audioSession.configure(config);
-      await _audioSession.setActive(true);
-    } catch (error) {
-      logger.warning('[$runtimeType] Failed to configure ${error}');
-    }
-  }
-}
+// }
