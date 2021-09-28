@@ -61,7 +61,7 @@ class Room extends DisposeAwareChangeNotifier {
 
   // suppport for multiple event listeners
   final events = EventsEmitter<RoomEvent>();
-  late final _engineListener = EventsListener<LiveKitEvent>(engine.events);
+  late final _engineListener = EventsListener<EngineEvent>(engine.events);
 
   /// internal use
   /// {@nodoc}

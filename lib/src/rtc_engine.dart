@@ -70,7 +70,7 @@ class RTCEngine extends Disposable {
   int _reconnectAttempts = 0;
 
   final events = EventsEmitter<EngineEvent>();
-  late final _signalListener = EventsListener(signalClient.events, synchronized: true);
+  late final _signalListener = EventsListener<SignalEvent>(signalClient.events, synchronized: true);
 
   final delays = CancelableDelayManager();
 
