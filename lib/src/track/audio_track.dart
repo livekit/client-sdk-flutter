@@ -1,5 +1,7 @@
-import 'package:audio_session/audio_session.dart' as _as;
+// import 'package:audio_session/audio_session.dart' as _as;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/livekit.dart';
+import '../support/native_audio.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
@@ -19,9 +21,9 @@ typedef AudioTrackConfigureAudioSession = Future<void> Function(AudioTrackState 
 
 class AudioTrack extends Track {
   // it's possible to set custom function here to customize audio session configuration
-  static AudioTrackConfigureAudioSession? onConfigureAudioSession =
+  static AudioTrackConfigureAudioSession onConfigureAudioSession =
       AudioTrackExt.configureAudioSession;
-  // = AudioTrackExt.configureAudioSession;
+
   static final _counterLock = sync.Lock();
   static AudioTrackState state = AudioTrackState.none;
   static int _localCount = 0;
@@ -95,22 +97,32 @@ class AudioTrack extends Track {
     if (state != newState) {
       state = newState;
       logger.fine('[$runtimeType] didUpdateSate: $state');
-      await onConfigureAudioSession?.call(state);
+      await onConfigureAudioSession.call(state);
     }
   }
 }
 
 extension AudioTrackExt on AudioTrack {
   //
+  // static Future<void> configureAudioSession(AudioTrackState state) async {
+  //   final config = state.defaultConfiguration();
+  //   logger.fine('[AudioTrack] configuring for ${state}, ${config.avAudioSessionCategory}...');
+  //   try {
+  //     final _audioSession = await _as.AudioSession.instance;
+  //     await _audioSession.configure(config);
+  //     await _audioSession.setActive(true);
+  //   } catch (error) {
+  //     logger.warning('[$AudioTrack] Failed to configure ${error}');
+  //   }
+  // }
+
   static Future<void> configureAudioSession(AudioTrackState state) async {
-    final config = state.defaultConfiguration();
-    logger.fine('[AudioTrack] configuring for ${state}, ${config.avAudioSessionCategory}...');
+    final config = state.nativeAudioConfiguration();
+    logger.fine('[AudioTrack] NEW configuring for ${state}, ${config}...');
     try {
-      final _audioSession = await _as.AudioSession.instance;
-      await _audioSession.configure(config);
-      await _audioSession.setActive(true);
+      await LiveKitClient.configureAudioSession(config);
     } catch (error) {
-      logger.warning('[$AudioTrack] Failed to configure ${error}');
+      logger.warning('[$AudioTrack] NEW Failed to configure ${error}');
     }
   }
 }
@@ -134,42 +146,85 @@ extension AudioTrackStateExt on AudioTrackState {
 }
 
 extension AudioRecommendationTypeExt on AudioTrackState {
-  // returns default configuration for the AudioTrackState
-  _as.AudioSessionConfiguration defaultConfiguration() {
+  //
+  NativeAudioConfiguration nativeAudioConfiguration() {
     //
-    const _baseConfiguration = _as.AudioSessionConfiguration(
-      // ios defaults to soloAmbient
-      avAudioSessionCategory: _as.AVAudioSessionCategory.soloAmbient,
-      avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers,
-      avAudioSessionMode: _as.AVAudioSessionMode.defaultMode,
-      avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
-    );
-
     if (this == AudioTrackState.remoteOnly) {
-      return _baseConfiguration.copyWith(
-        avAudioSessionCategory: _as.AVAudioSessionCategory.playback,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
-        avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
+      return NativeAudioConfiguration(
+        iosCategory: IosAudioCategory.playback,
+        iosCategoryOptions: {
+          IosAudioCategoryOption.mixWithOthers,
+          IosAudioCategoryOption.duckOthers,
+        },
+        iosMode: IosAudioMode.spokenAudio,
       );
-      // TODO: Support AVAudioSessionCategory.record
-      // } else if (this == AudioTrackState.localOnly) {
-      //   return _baseConfiguration.copyWith(
-      //     avAudioSessionCategory: _as.AVAudioSessionCategory.record,
-      //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
-      //     avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
-      //   );
-    } else if (this == AudioTrackState.localAndRemote || this == AudioTrackState.localOnly) {
-      return _baseConfiguration.copyWith(
-        avAudioSessionCategory: _as.AVAudioSessionCategory.playAndRecord,
-        avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers |
-            _as.AVAudioSessionCategoryOptions.allowBluetooth |
-            _as.AVAudioSessionCategoryOptions.allowAirPlay |
-            _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
-        avAudioSessionMode: _as.AVAudioSessionMode.voiceChat,
+    } else if ([
+      AudioTrackState.localOnly,
+      AudioTrackState.localAndRemote,
+    ].contains(this)) {
+      return NativeAudioConfiguration(
+        iosCategory: IosAudioCategory.playAndRecord,
+        iosCategoryOptions: {
+          IosAudioCategoryOption.allowBluetooth,
+          IosAudioCategoryOption.mixWithOthers,
+          IosAudioCategoryOption.duckOthers,
+        },
+        iosMode: IosAudioMode.voiceChat,
       );
     }
 
-    return _baseConfiguration;
+    // TODO: .record category causes exception in WebRTC lib for unknown reason
+    // AudioTrackState.localOnly: NativeAudioConfiguration(
+    //   iosCategory: IosAudioCategory.record,
+    //   iosCategoryOptions: {
+    //     //   IosAudioCategoryOption.allowBluetooth,
+    //   },
+    //   iosMode: IosAudioMode.spokenAudio,
+    // ),
+
+    return NativeAudioConfiguration(
+      iosCategory: IosAudioCategory.soloAmbient,
+      iosCategoryOptions: {},
+      iosMode: IosAudioMode.default_,
+    );
   }
+
+  // // returns default configuration for the AudioTrackState
+  // _as.AudioSessionConfiguration defaultConfiguration() {
+  //   //
+  //   const _baseConfiguration = _as.AudioSessionConfiguration(
+  //     // ios defaults to soloAmbient
+  //     avAudioSessionCategory: _as.AVAudioSessionCategory.soloAmbient,
+  //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers,
+  //     avAudioSessionMode: _as.AVAudioSessionMode.defaultMode,
+  //     avAudioSessionRouteSharingPolicy: _as.AVAudioSessionRouteSharingPolicy.defaultPolicy,
+  //     avAudioSessionSetActiveOptions: _as.AVAudioSessionSetActiveOptions.none,
+  //   );
+
+  //   if (this == AudioTrackState.remoteOnly) {
+  //     return _baseConfiguration.copyWith(
+  //       avAudioSessionCategory: _as.AVAudioSessionCategory.playback,
+  //       avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
+  //       avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
+  //     );
+  //     // TODO: Support AVAudioSessionCategory.record
+  //     // } else if (this == AudioTrackState.localOnly) {
+  //     //   return _baseConfiguration.copyWith(
+  //     //     avAudioSessionCategory: _as.AVAudioSessionCategory.record,
+  //     //     avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
+  //     //     avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
+  //     //   );
+  //   } else if (this == AudioTrackState.localAndRemote || this == AudioTrackState.localOnly) {
+  //     return _baseConfiguration.copyWith(
+  //       avAudioSessionCategory: _as.AVAudioSessionCategory.playAndRecord,
+  //       avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers |
+  //           _as.AVAudioSessionCategoryOptions.allowBluetooth |
+  //           _as.AVAudioSessionCategoryOptions.allowAirPlay |
+  //           _as.AVAudioSessionCategoryOptions.defaultToSpeaker,
+  //       avAudioSessionMode: _as.AVAudioSessionMode.voiceChat,
+  //     );
+  //   }
+
+  //   return _baseConfiguration;
+  // }
 }

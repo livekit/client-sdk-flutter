@@ -1,3 +1,8 @@
+import 'package:flutter/services.dart';
+import 'package:livekit_client/src/logger.dart';
+import 'package:livekit_client/src/support/native_audio.dart';
+import 'track/audio_track.dart';
+
 import 'options.dart';
 import 'room.dart';
 
@@ -5,6 +10,7 @@ import 'room.dart';
 /// {@category Room}
 class LiveKitClient {
   static const version = '0.4.0';
+  static const _channel = MethodChannel('livekit_client');
 
   /// Connects to a LiveKit room
   static Future<Room> connect(
@@ -17,4 +23,17 @@ class LiveKitClient {
         token,
         options: options,
       );
+
+  static Future<bool> configureAudioSession(NativeAudioConfiguration configuration) async {
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'configureAudioSession',
+        configuration.toMap(),
+      );
+      return result == true;
+    } catch (_) {
+      logger.warning('configureAudioSession did throw $_');
+      return false;
+    }
+  }
 }

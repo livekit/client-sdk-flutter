@@ -16,14 +16,17 @@ dependencies:
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.0
-  audio_session: ^0.1.6+1
-
+  # audio_session: ^0.1.6+1
+ 
   flutter_webrtc:
     # This will use custom webrtc build from
     # https://github.com/webrtc-sdk/Specs/releases
     git:
       url: https://github.com/livekit/flutter-webrtc
       ref: use-custom-webrtc-build
+    # git: 
+    #   url: https://github.com/livekit/flutter-webrtc
+    #   ref: audio-session
 
     # ^0.6.7
     # path: ../../repos_livekit/flutter-webrtc/
@@ -42,3 +45,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.4
+
+flutter:
+  # This section identifies this Flutter project as a plugin project.
+  # The 'pluginClass' and Android 'package' identifiers should not ordinarily
+  # be modified. They are used by the tooling to maintain consistency when
+  # adding or updating assets for this project.
+  plugin:
+    platforms:
+      ios:
+        pluginClass: LivekitClientPlugin

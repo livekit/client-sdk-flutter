@@ -1,51 +1,51 @@
 PODS:
-  - audio_session (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
   - flutter_webrtc (0.2.2):
     - Flutter
     - Libyuv (= 1703)
-    - unx_webrtc (= 2021092804)
+    - WebRTC-SDK (= 92.4515.06)
   - Libyuv (1703)
+  - livekit_client (0.0.1):
+    - Flutter
+    - WebRTC-SDK (= 92.4515.06)
   - path_provider (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
-  - unx_webrtc (2021092804)
+  - WebRTC-SDK (92.4515.06)
 
 DEPENDENCIES:
-  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - Flutter (from `Flutter`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
+  - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - Libyuv
-  https://github.com/HiroshiHorie/unx_webrtc.git:
-    - unx_webrtc
+    - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  audio_session:
-    :path: ".symlinks/plugins/audio_session/ios"
   Flutter:
     :path: Flutter
   flutter_webrtc:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
+  livekit_client:
+    :path: ".symlinks/plugins/livekit_client/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
-  audio_session: 4f3e461722055d21515cf3261b64c973c062f345
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
-  flutter_webrtc: 11be7635286899f31a07d4d691892c58b5f50e7a
+  flutter_webrtc: 251d24d5b756f19e0891d8b69843e53023de3a82
   Libyuv: 5f79ced0ee66e60a612ca97de1e6ccacd187a437
+  livekit_client: 352b5191b41fed22b23fc6a3e58e0fdf50175d5c
   path_provider: d1e9807085df1f9cc9318206cd649dc0b76be3de
   shared_preferences: 5033afbb22d372e15aff8ff766df9021b845f273
-  unx_webrtc: 86c423ae4370af9d102594458263a76e4a0ead64
+  WebRTC-SDK: c116520af8b4be802cc2cdf359791eb23ef86de2
 
 PODFILE CHECKSUM: d99737230d634a0d2df8e653d175b8cab1c12584
 
