@@ -19,8 +19,9 @@ typedef AudioTrackConfigureAudioSession = Future<void> Function(AudioTrackState 
 
 class AudioTrack extends Track {
   // it's possible to set custom function here to customize audio session configuration
-  static AudioTrackConfigureAudioSession onConfigureAudioSession =
+  static AudioTrackConfigureAudioSession? onConfigureAudioSession =
       AudioTrackExt.configureAudioSession;
+  // = AudioTrackExt.configureAudioSession;
   static final _counterLock = sync.Lock();
   static AudioTrackState state = AudioTrackState.none;
   static int _localCount = 0;
@@ -94,7 +95,7 @@ class AudioTrack extends Track {
     if (state != newState) {
       state = newState;
       logger.fine('[$runtimeType] didUpdateSate: $state');
-      await AudioTrackExt.configureAudioSession(state);
+      await onConfigureAudioSession?.call(state);
     }
   }
 }
@@ -136,7 +137,7 @@ extension AudioRecommendationTypeExt on AudioTrackState {
   // returns default configuration for the AudioTrackState
   _as.AudioSessionConfiguration defaultConfiguration() {
     //
-    final _baseConfiguration = _as.AudioSessionConfiguration(
+    const _baseConfiguration = _as.AudioSessionConfiguration(
       // ios defaults to soloAmbient
       avAudioSessionCategory: _as.AVAudioSessionCategory.soloAmbient,
       avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.mixWithOthers,
@@ -151,6 +152,7 @@ extension AudioRecommendationTypeExt on AudioTrackState {
         avAudioSessionCategoryOptions: _as.AVAudioSessionCategoryOptions.none,
         avAudioSessionMode: _as.AVAudioSessionMode.spokenAudio,
       );
+      // TODO: Support AVAudioSessionCategory.record
       // } else if (this == AudioTrackState.localOnly) {
       //   return _baseConfiguration.copyWith(
       //     avAudioSessionCategory: _as.AVAudioSessionCategory.record,
