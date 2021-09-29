@@ -100,7 +100,7 @@ packages:
     description:
       path: "."
       ref: use-custom-webrtc-build
-      resolved-ref: a288de4a4d5aa11ea5688f360eef9c4e18a3f3ff
+      resolved-ref: a514bcc74d323d34f42ec89dc3efd1cd59e1bcc7
       url: "https://github.com/livekit/flutter-webrtc"
     source: git
     version: "0.6.7"
