@@ -17,10 +17,11 @@ class LocalAudioTrack extends AudioTrack {
   static Future<LocalAudioTrack> create([LocalAudioTrackOptions? options]) async {
     // TODO: have back up incase the options fail
     final stream = await rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
-      'audio': <String, dynamic>{
-        'echoCancellation': true,
-        'noiseSuppression': true,
-      },
+      // 'audio': <String, dynamic>{
+      // 'echoCancellation': true,
+      // 'noiseSuppression': true,
+      // },
+      'audio': true,
       'video': false,
     });
 
