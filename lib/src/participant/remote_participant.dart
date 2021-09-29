@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -46,10 +45,8 @@ class RemoteParticipant extends Participant {
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
-    return trackPublications.firstWhereOrNull((element) => element.sid == sid)
-        as RemoteTrackPublication?;
-    // final pub = trackPublications[sid];
-    // if (pub is RemoteTrackPublication) return pub;
+    final pub = trackPublications[sid];
+    if (pub is RemoteTrackPublication) return pub;
   }
 
   /// for internal use
@@ -148,8 +145,7 @@ class RemoteParticipant extends Participant {
 
     // unpublish any track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
-    final removeSids =
-        trackPublications.where((e) => !validSids.contains(e.sid)).map((e) => e.sid).toSet();
+    final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await unpublishTrack(sid, notify: true);
     }
@@ -158,7 +154,7 @@ class RemoteParticipant extends Participant {
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
-    final pub = trackPublications.firstWhereOrNull((e) => e.sid == trackSid);
+    final pub = trackPublications[trackSid];
     if (pub is! RemoteTrackPublication) return;
 
     trackPublications.remove(pub);

@@ -169,14 +169,14 @@ class Room extends DisposeAwareChangeNotifier {
       _connectionState = ConnectionState.reconnecting;
       events.emit(const RoomReconnectingEvent());
     })
-    ..on<EngineDisconnectedEvent>((event) => close())
+    ..on<EngineDisconnectedEvent>((event) => _handleClose())
     ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final track = localParticipant.trackPublications.firstWhereOrNull((e) => e.sid == event.sid);
+      final track = localParticipant.trackPublications[event.sid];
       track?.muted = event.muted;
     })
     ..on<EngineTrackAddedEvent>((event) async {
@@ -207,8 +207,10 @@ class Room extends DisposeAwareChangeNotifier {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    engine.signalClient.sendLeave();
-    await close();
+    if (_connectionState == ConnectionState.disconnected) {
+      engine.signalClient.sendLeave();
+    }
+    await _handleClose();
   }
 
   Future<void> reconnect() async {
@@ -242,8 +244,8 @@ class Room extends DisposeAwareChangeNotifier {
   }
 
   // there should be no problem calling this method multiple times
-  Future<void> close() async {
-    logger.fine('[$objectId] close()');
+  Future<void> _handleClose() async {
+    logger.fine('[$objectId] _handleClose()');
     if (_connectionState == ConnectionState.disconnected) {
       logger.warning('[$objectId]: close() already disconnected');
     }

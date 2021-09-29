@@ -45,15 +45,12 @@ class RTCEngine extends Disposable {
   rtc.RTCDataChannel? _reliableDC;
   rtc.RTCDataChannel? _lossyDC;
   bool _iceConnected = false;
-  // bool isReconnecting = false;
 
-  // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.disconnected;
 
   /// connection state of the room
   ConnectionState get connectionState => _connectionState;
 
-  // bool _isClosed = true;
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;

@@ -24,7 +24,7 @@ import 'remote_participant.dart';
 abstract class Participant extends DisposeAwareChangeNotifier {
   /// map of track sid => published track
   // @Deprecated('This should be a SET')
-  final trackPublications = <TrackPublication>{};
+  final trackPublications = <String, TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
@@ -69,7 +69,7 @@ abstract class Participant extends DisposeAwareChangeNotifier {
 
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks =>
-      trackPublications.where((e) => e.subscribed).toList();
+      trackPublications.values.where((e) => e.subscribed).toList();
 
   /// for internal use
   /// {@nodoc}
@@ -141,16 +141,14 @@ abstract class Participant extends DisposeAwareChangeNotifier {
   @internal
   void addTrackPublication(TrackPublication pub) {
     pub.track?.sid = pub.sid;
-    //
-    trackPublications.remove(pub);
-    trackPublications.add(pub);
+    trackPublications[pub.sid] = pub;
   }
 
   // Must implement
   Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
   Future<void> unpublishAllTracks({bool notify = false}) async {
-    final trackSids = trackPublications.map((e) => e.sid).toSet();
+    final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
       await unpublishTrack(trackid, notify: notify);
     }
@@ -170,8 +168,8 @@ abstract class Participant extends DisposeAwareChangeNotifier {
 // Convenience extension
 extension ParticipantExt on Participant {
   List<TrackPublication> get videoTracks =>
-      trackPublications.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
 
   List<TrackPublication> get audioTracks =>
-      trackPublications.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
+      trackPublications.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
 }

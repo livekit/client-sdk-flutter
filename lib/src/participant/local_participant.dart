@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -154,7 +153,7 @@ class LocalParticipant extends Participant {
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
-    final pub = trackPublications.firstWhereOrNull((e) => e.sid == trackSid);
+    final pub = trackPublications[trackSid];
     if (pub is! LocalTrackPublication) return;
 
     trackPublications.remove(pub);

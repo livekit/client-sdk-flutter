@@ -1,7 +1,7 @@
-import 'package:livekit_client/src/logger.dart';
 import 'package:meta/meta.dart';
 
 import '../extensions.dart';
+import '../logger.dart';
 
 abstract class DisposeAware {
   // Should be true when is disposing or already disposed
