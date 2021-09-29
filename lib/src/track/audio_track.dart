@@ -154,7 +154,7 @@ extension AudioRecommendationTypeExt on AudioTrackState {
         iosCategory: IosAudioCategory.playback,
         iosCategoryOptions: {
           IosAudioCategoryOption.mixWithOthers,
-          IosAudioCategoryOption.duckOthers,
+          // IosAudioCategoryOption.duckOthers,
         },
         iosMode: IosAudioMode.spokenAudio,
       );
@@ -167,7 +167,7 @@ extension AudioRecommendationTypeExt on AudioTrackState {
         iosCategoryOptions: {
           IosAudioCategoryOption.allowBluetooth,
           IosAudioCategoryOption.mixWithOthers,
-          IosAudioCategoryOption.duckOthers,
+          // IosAudioCategoryOption.duckOthers,
         },
         iosMode: IosAudioMode.voiceChat,
       );
