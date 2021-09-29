@@ -1,4 +1,7 @@
 // import 'package:audio_session/audio_session.dart' as _as;
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/livekit.dart';
 import '../support/native_audio.dart';
@@ -117,6 +120,11 @@ extension AudioTrackExt on AudioTrack {
   // }
 
   static Future<void> configureAudioSession(AudioTrackState state) async {
+    if (kIsWeb || !Platform.isIOS) {
+      // no-op other than iOS for now
+      return;
+    }
+
     final config = state.nativeAudioConfiguration();
     logger.fine('[AudioTrack] NEW configuring for ${state}, ${config}...');
     try {
