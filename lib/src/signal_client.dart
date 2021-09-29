@@ -242,7 +242,7 @@ class SignalClient extends Disposable {
         ));
         break;
       default:
-        logger.warning('unsupported message: ' + json.encode(msg));
+        logger.warning('skipping unsupported signal message');
     }
   }
 
