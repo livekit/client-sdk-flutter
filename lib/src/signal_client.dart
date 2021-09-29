@@ -71,7 +71,8 @@ class SignalClient {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) throw ConnectException(validateResponse.body);
+        if (validateResponse.statusCode != 200)
+          throw ConnectException(validateResponse.body);
         throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
@@ -114,15 +115,19 @@ class SignalClient {
     _ws?.dispose();
   }
 
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendOffer(rtc.RTCSessionDescription offer) =>
+      _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
       ));
 
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer) =>
+      _sendRequest(lk_rtc.SignalRequest(
         answer: answer.toSDKType(),
       ));
 
-  void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
+  void sendIceCandidate(
+          rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) =>
+      _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
             candidateInit: candidate.toJson(),
@@ -131,7 +136,8 @@ class SignalClient {
         ),
       );
 
-  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(lk_rtc.SignalRequest(
+  void sendMuteTrack(String trackSid, bool muted) =>
+      _sendRequest(lk_rtc.SignalRequest(
         mute: lk_rtc.MuteTrackRequest(
           sid: trackSid,
           muted: muted,
@@ -168,7 +174,8 @@ class SignalClient {
         subscription: subscription,
       ));
 
-  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) =>
+  void sendSetSimulcastLayers(
+          String trackSid, List<lk_rtc.VideoQuality> layers) =>
       _sendRequest(lk_rtc.SignalRequest(
         simulcast: lk_rtc.SetSimulcastLayers(
           trackSid: trackSid,
@@ -214,7 +221,8 @@ class SignalClient {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(updates: msg.update.participants));
+        events.emit(
+            SignalParticipantUpdateEvent(updates: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -223,7 +231,8 @@ class SignalClient {
         ));
         break;
       case lk_rtc.SignalResponse_Message.speaker:
-        events.emit(SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
+        events.emit(
+            SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
@@ -235,7 +244,7 @@ class SignalClient {
         ));
         break;
       default:
-        logger.warning('unsupported message: ' + json.encode(msg));
+        logger.warning('skipping unsupported signal message');
     }
   }
 
