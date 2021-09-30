@@ -1,10 +1,11 @@
-import 'dart:async';
 import 'dart:collection';
 
-import 'classes/change_notifier.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
+
 import 'constants.dart';
-import 'errors.dart';
 import 'events.dart';
+import 'exceptions.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'managers/event.dart';
@@ -15,9 +16,8 @@ import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
-import 'signal_client.dart';
+import 'support/disposable.dart';
 import 'track/track.dart';
-import 'track/track_publication.dart';
 import 'types.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -29,14 +29,14 @@ import 'types.dart';
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends LKChangeNotifier {
+class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.connected;
 
   /// connection state of the room
   ConnectionState get connectionState => _connectionState;
 
-  final Map<String, RemoteParticipant> _participants = {};
+  final _participants = <String, RemoteParticipant>{};
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -46,10 +46,10 @@ class Room extends LKChangeNotifier {
   late final LocalParticipant localParticipant;
 
   /// name of the room
-  late final String name;
+  final String name;
 
   /// sid of the room
-  late final String sid;
+  final String sid;
 
   List<Participant> _activeSpeakers = [];
 
@@ -60,8 +60,7 @@ class Room extends LKChangeNotifier {
   final RTCEngine engine;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<RoomEvent>();
-  late final _engineListener = EventsListener<EngineEvent>(engine.events);
+  late final _engineListener = engine.createListener();
 
   /// internal use
   /// {@nodoc}
@@ -69,7 +68,8 @@ class Room extends LKChangeNotifier {
     required this.engine,
     required lk_rtc.JoinResponse joinResponse,
     ConnectOptions? connectOptions,
-  }) {
+  })  : sid = joinResponse.room.sid,
+        name = joinResponse.room.name {
     //
     _setUpListeners();
 
@@ -80,9 +80,6 @@ class Room extends LKChangeNotifier {
       roomEvents: events,
     );
 
-    sid = joinResponse.room.sid;
-    name = joinResponse.room.name;
-
     for (final info in joinResponse.otherParticipants) {
       _getOrCreateRemoteParticipant(info.sid, info);
     }
@@ -92,20 +89,17 @@ class Room extends LKChangeNotifier {
       logger.fine('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-  }
 
-  @override
-  Future<void> dispose() async {
-    // dispose local participant
-    await localParticipant.dispose();
-    // dispose Room's events emitter
-    await events.dispose();
-    // dispose all listeners for RTCEngine
-    await _engineListener.dispose();
-    // dispose the engine
-    await engine.dispose();
-
-    super.dispose();
+    onDispose(() async {
+      // dispose events
+      await events.dispose();
+      // dispose local participant
+      await localParticipant.dispose();
+      // dispose all listeners for RTCEngine
+      await _engineListener.dispose();
+      // dispose the engine
+      await engine.dispose();
+    });
   }
 
   static Future<Room> connect(
@@ -116,7 +110,6 @@ class Room extends LKChangeNotifier {
   }) async {
     //
     final engine = RTCEngine(
-      SignalClient(),
       rtcConfig,
     );
 
@@ -167,16 +160,16 @@ class Room extends LKChangeNotifier {
     ..on<EngineReconnectedEvent>((event) async {
       _connectionState = ConnectionState.connected;
       events.emit(const RoomReconnectedEvent());
-      notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
       _connectionState = ConnectionState.reconnecting;
       events.emit(const RoomReconnectingEvent());
-      notifyListeners();
     })
-    ..on<EngineDisconnectedEvent>((event) => _onDisconnectedEvent())
-    ..on<EngineParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
-    ..on<EngineSpeakersUpdateEvent>((event) => _onSpeakerUpdateEvent(event.speakers))
+    ..on<EngineDisconnectedEvent>((event) => _handleClose())
+    ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
+    ..on<EngineActiveSpeakersUpdateEvent>(
+        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
+    ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
       final track = localParticipant.trackPublications[event.sid];
@@ -210,8 +203,10 @@ class Room extends LKChangeNotifier {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    engine.signalClient.sendLeave();
-    await _onDisconnectedEvent();
+    if (_connectionState != ConnectionState.disconnected) {
+      engine.signalClient.sendLeave();
+    }
+    await _handleClose();
   }
 
   Future<void> reconnect() async {
@@ -244,42 +239,36 @@ class Room extends LKChangeNotifier {
     return participant;
   }
 
-  Future<void> _onDisconnectedEvent() async {
+  // there should be no problem calling this method multiple times
+  Future<void> _handleClose() async {
+    logger.fine('[$objectId] _handleClose()');
     if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('$objectId: _handleDisconnect() already disconnected');
-      return;
+      logger.warning('[$objectId]: close() already disconnected');
     }
-    // we need to flag room as disconnected immediately to avoid
-    // this method firing multiple times since the following code
-    // is being awaited
-    _connectionState = ConnectionState.disconnected;
 
     // clean up RemoteParticipants
-    for (final _ in _participants.values) {
+    for (final _ in _participants.values.toList()) {
       // RemoteParticipant is responsible for disposing resources
-      await _.unpublishAllTracks();
       await _.dispose();
     }
     _participants.clear();
 
     // clean up LocalParticipant
-    // for (final pub in localParticipant.tracks.values) {
-    //   await pub.track?.stop();
-    // }
     await localParticipant.unpublishAllTracks();
 
-    // await localParticipant.dispose();
-    // localParticipant = null;
-
+    // clean up engine
     await engine.close();
 
     _activeSpeakers.clear();
 
-    notifyListeners();
-    events.emit(const RoomDisconnectedEvent());
+    // only notify if was not disconnected
+    if (_connectionState != ConnectionState.disconnected) {
+      _connectionState = ConnectionState.disconnected;
+      events.emit(const RoomDisconnectedEvent());
+    }
   }
 
-  void _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
+  Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -290,7 +279,7 @@ class Room extends LKChangeNotifier {
 
       if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
         hasChanged = true;
-        _handleParticipantDisconnect(info.sid);
+        await _handleParticipantDisconnect(info.sid);
         continue;
       }
 
@@ -310,43 +299,63 @@ class Room extends LKChangeNotifier {
     }
   }
 
-  void _onSpeakerUpdateEvent(List<lk_models.SpeakerInfo> speakers) {
-    final seenSids = <String>{};
-    List<Participant> newSpeakers = [];
-    for (final info in speakers) {
-      seenSids.add(info.sid);
+  void _onSignalSpeakersChangedEvent(List<lk_models.SpeakerInfo> speakers) {
+    //
+    final lastSpeakers = {
+      for (final p in _activeSpeakers) p.sid: p,
+    };
 
-      if (info.sid == localParticipant.sid) {
-        localParticipant.audioLevel = info.level;
-        localParticipant.isSpeaking = true;
-        newSpeakers.add(localParticipant);
-        continue;
-      }
+    for (final speaker in speakers) {
+      Participant? p = _participants[speaker.sid];
+      if (speaker.sid == localParticipant.sid) p = localParticipant;
+      if (p == null) continue;
 
-      final participant = participants[info.sid];
-      if (participant != null) {
-        participant.audioLevel = info.level;
-        participant.isSpeaking = true;
-        newSpeakers.add(participant);
-      }
-    }
-
-    // clear previous speakers
-    if (seenSids.contains(localParticipant.sid)) {
-      localParticipant.audioLevel = 0;
-      localParticipant.isSpeaking = false;
-    }
-    for (final participant in _participants.values) {
-      if (!seenSids.contains(participant.sid)) {
-        participant.audioLevel = 0;
-        participant.isSpeaking = false;
+      p.audioLevel = speaker.level;
+      p.isSpeaking = speaker.active;
+      if (speaker.active) {
+        lastSpeakers[speaker.sid] = p;
+      } else {
+        lastSpeakers.remove(speaker.sid);
       }
     }
 
-    events.emit(ActiveSpeakersChangedEvent(speakers: newSpeakers));
+    final activeSpeakers = lastSpeakers.values.toList();
+    activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
+    _activeSpeakers = activeSpeakers;
+    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+  }
 
-    _activeSpeakers = newSpeakers;
-    notifyListeners();
+  // from data channel
+  // updates are sent only when there's a change to speaker ordering
+  void _onEngineActiveSpeakersUpdateEvent(List<lk_models.SpeakerInfo> speakers) {
+    List<Participant> activeSpeakers = [];
+
+    // localParticipant & remote participants
+    final allParticipants = <String, Participant>{
+      localParticipant.sid: localParticipant,
+      ..._participants,
+    };
+
+    for (final speaker in speakers) {
+      final p = allParticipants[speaker.sid];
+      if (p != null) {
+        p.audioLevel = speaker.level;
+        p.isSpeaking = true;
+        activeSpeakers.add(p);
+      }
+    }
+
+    // clear if not in the speakers list
+    final speakerSids = speakers.map((e) => e.sid).toSet();
+    for (final p in allParticipants.values) {
+      if (!speakerSids.contains(p.sid)) {
+        p.audioLevel = 0;
+        p.isSpeaking = false;
+      }
+    }
+
+    _activeSpeakers = activeSpeakers;
+    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {
@@ -368,16 +377,13 @@ class Room extends LKChangeNotifier {
     events.emit(event);
   }
 
-  void _handleParticipantDisconnect(String sid) {
+  Future<void> _handleParticipantDisconnect(String sid) async {
     final participant = _participants.remove(sid);
     if (participant == null) {
       return;
     }
 
-    final toRemove = List<TrackPublication>.from(participant.trackPublications.values);
-    for (final track in toRemove) {
-      participant.unpublishTrack(track.sid, notify: true);
-    }
+    await participant.unpublishAllTracks(notify: true);
 
     events.emit(ParticipantDisconnectedEvent(participant: participant));
   }

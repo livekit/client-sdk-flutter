@@ -40,12 +40,13 @@ const Room$json = const {
       '6': '.livekit.Codec',
       '10': 'enabledCodecs'
     },
+    const {'1': 'metadata', '3': 8, '4': 1, '5': 9, '10': 'metadata'},
   ],
 };
 
 /// Descriptor for `Room`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List roomDescriptor = $convert.base64Decode(
-    'CgRSb29tEhAKA3NpZBgBIAEoCVIDc2lkEhIKBG5hbWUYAiABKAlSBG5hbWUSIwoNZW1wdHlfdGltZW91dBgDIAEoDVIMZW1wdHlUaW1lb3V0EikKEG1heF9wYXJ0aWNpcGFudHMYBCABKA1SD21heFBhcnRpY2lwYW50cxIjCg1jcmVhdGlvbl90aW1lGAUgASgDUgxjcmVhdGlvblRpbWUSIwoNdHVybl9wYXNzd29yZBgGIAEoCVIMdHVyblBhc3N3b3JkEjUKDmVuYWJsZWRfY29kZWNzGAcgAygLMg4ubGl2ZWtpdC5Db2RlY1INZW5hYmxlZENvZGVjcw==');
+    'CgRSb29tEhAKA3NpZBgBIAEoCVIDc2lkEhIKBG5hbWUYAiABKAlSBG5hbWUSIwoNZW1wdHlfdGltZW91dBgDIAEoDVIMZW1wdHlUaW1lb3V0EikKEG1heF9wYXJ0aWNpcGFudHMYBCABKA1SD21heFBhcnRpY2lwYW50cxIjCg1jcmVhdGlvbl90aW1lGAUgASgDUgxjcmVhdGlvblRpbWUSIwoNdHVybl9wYXNzd29yZBgGIAEoCVIMdHVyblBhc3N3b3JkEjUKDmVuYWJsZWRfY29kZWNzGAcgAygLMg4ubGl2ZWtpdC5Db2RlY1INZW5hYmxlZENvZGVjcxIaCghtZXRhZGF0YRgIIAEoCVIIbWV0YWRhdGE=');
 @$core.Deprecated('Use codecDescriptor instead')
 const Codec$json = const {
   '1': 'Codec',
@@ -182,3 +183,17 @@ const UserPacket$json = const {
 /// Descriptor for `UserPacket`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
     'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHM=');
+@$core.Deprecated('Use recordingResultDescriptor instead')
+const RecordingResult$json = const {
+  '1': 'RecordingResult',
+  '2': const [
+    const {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    const {'1': 'error', '3': 2, '4': 1, '5': 9, '10': 'error'},
+    const {'1': 'duration', '3': 3, '4': 1, '5': 3, '10': 'duration'},
+    const {'1': 'location', '3': 4, '4': 1, '5': 9, '10': 'location'},
+  ],
+};
+
+/// Descriptor for `RecordingResult`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List recordingResultDescriptor = $convert.base64Decode(
+    'Cg9SZWNvcmRpbmdSZXN1bHQSDgoCaWQYASABKAlSAmlkEhQKBWVycm9yGAIgASgJUgVlcnJvchIaCghkdXJhdGlvbhgDIAEoA1IIZHVyYXRpb24SGgoIbG9jYXRpb24YBCABKAlSCGxvY2F0aW9u');

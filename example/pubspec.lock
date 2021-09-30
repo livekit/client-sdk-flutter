@@ -111,11 +111,11 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: use-custom-webrtc-build
-      resolved-ref: "4942e7faec2e5775d35c42e22c2929ca6ca53769"
-      url: "https://github.com/livekit/flutter-webrtc"
+      ref: master
+      resolved-ref: "32d83d85fa2faebcd37a19534f8a84273b12cbce"
+      url: "https://github.com/flutter-webrtc/flutter-webrtc"
     source: git
-    version: "0.6.7"
+    version: "0.6.8"
   google_fonts:
     dependency: "direct main"
     description:

@@ -1,7 +1,7 @@
 /// Flutter Client SDK to LiveKit.
 library livekit_client;
 
-export 'src/errors.dart';
+export 'src/exceptions.dart';
 export 'src/events.dart';
 export 'src/livekit.dart';
 export 'src/managers/event.dart';

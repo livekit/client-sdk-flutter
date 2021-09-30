@@ -10,7 +10,7 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <application
         android:label="LiveKit Example"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/livekit_ic_launcher">
     <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
