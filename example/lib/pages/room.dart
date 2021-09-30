@@ -25,7 +25,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   //
   List<Participant> participants = [];
-  late final _listener = EventsListener<RoomEvent>(widget.room.events);
+  late final EventsListener<RoomEvent> _listener = widget.room.createListener();
 
   @override
   void initState() {

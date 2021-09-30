@@ -61,7 +61,7 @@ class Room extends DisposeAwareChangeNotifier {
 
   // suppport for multiple event listeners
   final events = EventsEmitter<RoomEvent>();
-  late final _engineListener = EventsListener<EngineEvent>(engine.events);
+  late final _engineListener = engine.createListener();
 
   /// internal use
   /// {@nodoc}
@@ -391,4 +391,8 @@ class Room extends DisposeAwareChangeNotifier {
 
     events.emit(ParticipantDisconnectedEvent(participant: participant));
   }
+
+  /// convenience method to create [EventsListener]
+  EventsListener<RoomEvent> createListener({bool synchronized = false}) =>
+      EventsListener<RoomEvent>(events, synchronized: synchronized);
 }

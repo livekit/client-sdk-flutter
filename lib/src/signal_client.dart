@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
@@ -256,4 +255,8 @@ class SignalClient extends Disposable {
     _connected = false;
     events.emit(const SignalCloseEvent());
   }
+
+  /// convenience method to create [EventsListener]
+  EventsListener<SignalEvent> createListener({bool synchronized = false}) =>
+      EventsListener<SignalEvent>(events, synchronized: synchronized);
 }
