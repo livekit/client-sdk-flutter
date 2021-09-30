@@ -2,10 +2,10 @@ import Flutter
 import UIKit
 import WebRTC
 
-public class SwiftLiveKitClientPlugin: NSObject, FlutterPlugin {
+public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: registrar.messenger())
-        let instance = SwiftLiveKitClientPlugin()
+        let instance = SwiftLiveKitPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 

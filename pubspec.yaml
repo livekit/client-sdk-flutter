@@ -33,4 +33,4 @@ flutter:
   plugin:
     platforms:
       ios:
-        pluginClass: LiveKitClientPlugin
+        pluginClass: LiveKitPlugin
