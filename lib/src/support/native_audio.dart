@@ -1,4 +1,5 @@
-enum IosAudioCategory {
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/category
+enum AppleAudioCategory {
   soloAmbient,
   playback,
   record,
@@ -6,7 +7,19 @@ enum IosAudioCategory {
   multiRoute,
 }
 
-enum IosAudioMode {
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
+enum AppleAudioCategoryOption {
+  mixWithOthers, // Only playAndRecord, playback, or multiRoute.
+  duckOthers, // Only playAndRecord, playback, or multiRoute.
+  interruptSpokenAudioAndMixWithOthers,
+  allowBluetooth, // Only playAndRecord or record.
+  allowBluetoothA2DP,
+  allowAirPlay,
+  defaultToSpeaker,
+}
+
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
+enum AppleAudioMode {
   default_,
   gameChat,
   measurement,
@@ -18,68 +31,73 @@ enum IosAudioMode {
   voicePrompt,
 }
 
-enum IosAudioCategoryOption {
-  mixWithOthers, // Only playAndRecord, playback, or multiRoute.
-  duckOthers, // Only playAndRecord, playback, or multiRoute.
-  interruptSpokenAudioAndMixWithOthers,
-  allowBluetooth, // Only playAndRecord or record.
-  allowBluetoothA2DP,
-  allowAirPlay,
-  defaultToSpeaker,
-}
-
-extension IOSAudioCategoryExt on IosAudioCategory {
-  String toStringValue() => <IosAudioCategory, String>{
-        IosAudioCategory.soloAmbient: 'soloAmbient',
-        IosAudioCategory.playback: 'playback',
-        IosAudioCategory.record: 'record',
-        IosAudioCategory.playAndRecord: 'playAndRecord',
-        IosAudioCategory.multiRoute: 'multiRoute',
+extension AppleAudioCategoryExt on AppleAudioCategory {
+  String toStringValue() => <AppleAudioCategory, String>{
+        AppleAudioCategory.soloAmbient: 'soloAmbient',
+        AppleAudioCategory.playback: 'playback',
+        AppleAudioCategory.record: 'record',
+        AppleAudioCategory.playAndRecord: 'playAndRecord',
+        AppleAudioCategory.multiRoute: 'multiRoute',
       }[this]!;
 }
 
-extension IosAudioModeExt on IosAudioMode {
-  String toStringValue() => <IosAudioMode, String>{
-        IosAudioMode.default_: 'default',
-        IosAudioMode.gameChat: 'gameChat',
-        IosAudioMode.measurement: 'measurement',
-        IosAudioMode.moviePlayback: 'moviePlayback',
-        IosAudioMode.spokenAudio: 'spokenAudio',
-        IosAudioMode.videoChat: 'videoChat',
-        IosAudioMode.videoRecording: 'videoRecording',
-        IosAudioMode.voiceChat: 'voiceChat',
-        IosAudioMode.voicePrompt: 'voicePrompt',
-      }[this]!;
-}
-
-extension IosAudioCategoryOptionExt on IosAudioCategoryOption {
-  String toStringValue() => <IosAudioCategoryOption, String>{
-        IosAudioCategoryOption.mixWithOthers: 'mixWithOthers',
-        IosAudioCategoryOption.duckOthers: 'duckOthers',
-        IosAudioCategoryOption.interruptSpokenAudioAndMixWithOthers:
+extension AppleAudioCategoryOptionExt on AppleAudioCategoryOption {
+  String toStringValue() => <AppleAudioCategoryOption, String>{
+        AppleAudioCategoryOption.mixWithOthers: 'mixWithOthers',
+        AppleAudioCategoryOption.duckOthers: 'duckOthers',
+        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers:
             'interruptSpokenAudioAndMixWithOthers',
-        IosAudioCategoryOption.allowBluetooth: 'allowBluetooth',
-        IosAudioCategoryOption.allowBluetoothA2DP: 'allowBluetoothA2DP',
-        IosAudioCategoryOption.allowAirPlay: 'allowAirPlay',
-        IosAudioCategoryOption.defaultToSpeaker: 'defaultToSpeaker',
+        AppleAudioCategoryOption.allowBluetooth: 'allowBluetooth',
+        AppleAudioCategoryOption.allowBluetoothA2DP: 'allowBluetoothA2DP',
+        AppleAudioCategoryOption.allowAirPlay: 'allowAirPlay',
+        AppleAudioCategoryOption.defaultToSpeaker: 'defaultToSpeaker',
+      }[this]!;
+}
+
+extension AppleAudioModeExt on AppleAudioMode {
+  String toStringValue() => <AppleAudioMode, String>{
+        AppleAudioMode.default_: 'default',
+        AppleAudioMode.gameChat: 'gameChat',
+        AppleAudioMode.measurement: 'measurement',
+        AppleAudioMode.moviePlayback: 'moviePlayback',
+        AppleAudioMode.spokenAudio: 'spokenAudio',
+        AppleAudioMode.videoChat: 'videoChat',
+        AppleAudioMode.videoRecording: 'videoRecording',
+        AppleAudioMode.voiceChat: 'voiceChat',
+        AppleAudioMode.voicePrompt: 'voicePrompt',
       }[this]!;
 }
 
 class NativeAudioConfiguration {
-  final IosAudioCategory? iosCategory;
-  final IosAudioMode? iosMode;
-  final Set<IosAudioCategoryOption>? iosCategoryOptions;
+  final AppleAudioCategory? appleAudioCategory;
+  final Set<AppleAudioCategoryOption>? appleAudioCategoryOptions;
+  final AppleAudioMode? appleAudioMode;
 
   NativeAudioConfiguration({
-    this.iosCategory,
-    this.iosMode,
-    this.iosCategoryOptions,
+    // for iOS / Mac
+    this.appleAudioCategory,
+    this.appleAudioCategoryOptions,
+    this.appleAudioMode,
+    // Android options
+    // ...
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (iosCategory != null) 'iosCategory': iosCategory!.toStringValue(),
-        if (iosCategoryOptions != null)
-          'iosCategoryOptions': iosCategoryOptions!.map((e) => e.toStringValue()).toList(),
-        if (iosMode != null) 'iosMode': iosMode!.toStringValue(),
+        if (appleAudioCategory != null) 'appleAudioCategory': appleAudioCategory!.toStringValue(),
+        if (appleAudioCategoryOptions != null)
+          'appleAudioCategoryOptions':
+              appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
+        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
       };
+
+  NativeAudioConfiguration copyWith({
+    AppleAudioCategory? appleAudioCategory,
+    AppleAudioMode? appleAudioMode,
+    Set<AppleAudioCategoryOption>? appleAudioCategoryOptions,
+  }) =>
+      NativeAudioConfiguration(
+        appleAudioCategory: appleAudioCategory ?? this.appleAudioCategory,
+        appleAudioCategoryOptions: appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
+        appleAudioMode: appleAudioMode ?? this.appleAudioMode,
+      );
 }

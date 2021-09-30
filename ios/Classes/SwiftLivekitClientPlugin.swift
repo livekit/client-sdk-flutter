@@ -60,20 +60,20 @@ public class SwiftLivekitClientPlugin: NSObject, FlutterPlugin {
         let configuration = RTCAudioSessionConfiguration.webRTC()
 
         // Category
-        if let string = args["iosCategory"] as? String,
+        if let string = args["appleAudioCategory"] as? String,
            let category = categoryMap[string] {
             configuration.category = category.rawValue
             print("[LiveKit] Configuring category: ", configuration.category)
         }
 
         // CategoryOptions
-        if let strings = args["iosCategoryOptions"] as? [String] {
+        if let strings = args["appleAudioCategoryOptions"] as? [String] {
             configuration.categoryOptions = categoryOptions(fromFlutter: strings)
             print("[LiveKit] Configuring categoryOptions: ", strings)
         }
 
         // Mode
-        if let string = args["iosMode"] as? String,
+        if let string = args["appleAudioMode"] as? String,
            let mode = modeMap[string] {
             configuration.mode = mode.rawValue
             print("[LiveKit] Configuring mode: ", configuration.mode)

@@ -147,25 +147,25 @@ extension AudioRecommendationTypeExt on AudioTrackState {
     //
     if (this == AudioTrackState.remoteOnly) {
       return NativeAudioConfiguration(
-        iosCategory: IosAudioCategory.playback,
-        iosCategoryOptions: {
-          IosAudioCategoryOption.mixWithOthers,
+        appleAudioCategory: AppleAudioCategory.playback,
+        appleAudioCategoryOptions: {
+          AppleAudioCategoryOption.mixWithOthers,
           // IosAudioCategoryOption.duckOthers,
         },
-        iosMode: IosAudioMode.spokenAudio,
+        appleAudioMode: AppleAudioMode.spokenAudio,
       );
     } else if ([
       AudioTrackState.localOnly,
       AudioTrackState.localAndRemote,
     ].contains(this)) {
       return NativeAudioConfiguration(
-        iosCategory: IosAudioCategory.playAndRecord,
-        iosCategoryOptions: {
-          IosAudioCategoryOption.allowBluetooth,
-          IosAudioCategoryOption.mixWithOthers,
+        appleAudioCategory: AppleAudioCategory.playAndRecord,
+        appleAudioCategoryOptions: {
+          AppleAudioCategoryOption.allowBluetooth,
+          AppleAudioCategoryOption.mixWithOthers,
           // IosAudioCategoryOption.duckOthers,
         },
-        iosMode: IosAudioMode.voiceChat,
+        appleAudioMode: AppleAudioMode.voiceChat,
       );
     }
 
@@ -181,9 +181,9 @@ extension AudioRecommendationTypeExt on AudioTrackState {
     // }
 
     return NativeAudioConfiguration(
-      iosCategory: IosAudioCategory.soloAmbient,
-      iosCategoryOptions: {},
-      iosMode: IosAudioMode.default_,
+      appleAudioCategory: AppleAudioCategory.soloAmbient,
+      appleAudioCategoryOptions: {},
+      appleAudioMode: AppleAudioMode.default_,
     );
   }
 }
