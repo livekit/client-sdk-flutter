@@ -108,7 +108,7 @@ abstract class Participant extends DisposeAwareChangeNotifier {
       lastSpokeAt = DateTime.now();
     }
 
-    [events, roomEvents].emit(SpeakingChangedEvent(
+    events.emit(SpeakingChangedEvent(
       participant: this,
       speaking: speaking,
     ));
