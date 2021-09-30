@@ -1,25 +1,19 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
-import '../support/disposable.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../support/disposable.dart';
 import '../types.dart';
 
-mixin EventsEmittable<T> on Disposable {
+mixin EventsEmittable<T> {
   final events = EventsEmitter<T>();
   EventsListener<T> createListener({bool synchronized = false}) =>
       EventsListener<T>(events, synchronized: synchronized);
-
-  @override
-  Future<bool> dispose() async {
-    if (!isDisposed) await events.dispose();
-    return await super.dispose();
-  }
 }
+
 // Type-safe, multi-listenable, dispose safe event handling
 // TODO: Move to a separate package
 
@@ -58,7 +52,7 @@ class EventsListener<T> extends EventsListenable<T> {
 }
 
 // ensures all listeners will close on dispose
-abstract class EventsListenable<T> with Disposable {
+abstract class EventsListenable<T> extends Disposable {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
 

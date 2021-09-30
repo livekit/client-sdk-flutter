@@ -6,13 +6,12 @@ import 'package:uuid/uuid.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../support/change_notifier.dart';
 import '../support/disposable.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
+abstract class Track extends DisposableChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 

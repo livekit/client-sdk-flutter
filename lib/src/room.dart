@@ -16,7 +16,6 @@ import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
-import 'support/change_notifier.dart';
 import 'support/disposable.dart';
 import 'track/track.dart';
 import 'types.dart';
@@ -30,8 +29,7 @@ import 'types.dart';
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends ChangeNotifier
-    with Disposable, DisposeGuardChangeNotifier, EventsEmittable<RoomEvent> {
+class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.connected;
 
@@ -93,6 +91,8 @@ class Room extends ChangeNotifier
     });
 
     onDispose(() async {
+      // dispose events
+      await events.dispose();
       // dispose local participant
       await localParticipant.dispose();
       // dispose all listeners for RTCEngine

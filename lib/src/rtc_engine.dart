@@ -20,7 +20,7 @@ import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
 
-class RTCEngine with Disposable, EventsEmittable<EngineEvent> {
+class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -79,6 +79,8 @@ class RTCEngine with Disposable, EventsEmittable<EngineEvent> {
     _setUpListeners();
 
     onDispose(() async {
+      await events.dispose();
+      await delays.dispose();
       await close();
       await _signalListener.dispose();
     });

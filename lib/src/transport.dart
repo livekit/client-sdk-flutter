@@ -12,7 +12,7 @@ import 'utils.dart';
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
 /// a wrapper around PeerConnection
-class PCTransport with Disposable {
+class PCTransport extends Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;

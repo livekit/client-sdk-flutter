@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -7,7 +6,6 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../support/change_notifier.dart';
 import '../support/disposable.dart';
 import '../track/track_publication.dart';
 import 'remote_participant.dart';
@@ -22,8 +20,7 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends ChangeNotifier
-    with Disposable, DisposeGuardChangeNotifier, EventsEmittable<ParticipantEvent> {
+abstract class Participant extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
   /// map of track sid => published track
   final trackPublications = <String, TrackPublication>{};
 
@@ -88,16 +85,10 @@ abstract class Participant extends ChangeNotifier
     });
 
     onDispose(() async {
+      await events.dispose();
       await unpublishAllTracks();
     });
   }
-
-  // @override
-  // @mustCallSuper
-  // Future<void> dispose() async {
-  //   // This will mark object as disposed
-  //   super.dispose();
-  // }
 
   /// for internal use
   /// {@nodoc}

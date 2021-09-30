@@ -2,7 +2,7 @@ import 'package:async/async.dart';
 
 import '../support/disposable.dart';
 
-class CancelableDelayManager with Disposable {
+class CancelableDelayManager extends Disposable {
   //
   final _delays = <CancelableOperation<void>>[];
 
