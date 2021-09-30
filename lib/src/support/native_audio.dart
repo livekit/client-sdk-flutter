@@ -92,8 +92,8 @@ class NativeAudioConfiguration {
 
   NativeAudioConfiguration copyWith({
     AppleAudioCategory? appleAudioCategory,
-    AppleAudioMode? appleAudioMode,
     Set<AppleAudioCategoryOption>? appleAudioCategoryOptions,
+    AppleAudioMode? appleAudioMode,
   }) =>
       NativeAudioConfiguration(
         appleAudioCategory: appleAudioCategory ?? this.appleAudioCategory,

@@ -20,17 +20,17 @@ enum AudioTrackState {
   localAndRemote,
 }
 
-typedef AudioTrackConfigureAudioSession = Future<void> Function(AudioTrackState state);
+typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(AudioTrackState state);
 
 class AudioTrack extends Track {
   // it's possible to set custom function here to customize audio session configuration
-  static AudioTrackConfigureAudioSession onConfigureAudioSession =
-      AudioTrackExt.configureAudioSession;
+  static ConfigureNativeAudioFunc nativeAudioConfigurationForAudioTrackState =
+      defaultNativeAudioConfigurationFunc;
 
-  static final _counterLock = sync.Lock();
-  static AudioTrackState state = AudioTrackState.none;
-  static int _localCount = 0;
-  static int _remoteCount = 0;
+  static final _trackCounterLock = sync.Lock();
+  static AudioTrackState audioTrackState = AudioTrackState.none;
+  static int _localTrackCount = 0;
+  static int _remoteTrackCount = 0;
 
   rtc.MediaStream? mediaStream;
 
@@ -55,13 +55,13 @@ class AudioTrack extends Track {
       }
 
       // update counter
-      await _counterLock.synchronized(() async {
+      await _trackCounterLock.synchronized(() async {
         if (this is LocalAudioTrack) {
-          _localCount++;
+          _localTrackCount++;
         } else if (this is! LocalAudioTrack) {
-          _remoteCount++;
+          _remoteTrackCount++;
         }
-        await _didUpdateCounter();
+        await _onAudioTrackCountDidChange();
       });
     }
 
@@ -77,63 +77,52 @@ class AudioTrack extends Track {
       audio.stopAudio(getCid());
 
       // update counter
-      await _counterLock.synchronized(() async {
+      await _trackCounterLock.synchronized(() async {
         if (this is LocalAudioTrack) {
-          _localCount--;
+          _localTrackCount--;
         } else if (this is! LocalAudioTrack) {
-          _remoteCount--;
+          _remoteTrackCount--;
         }
-        await _didUpdateCounter();
+        await _onAudioTrackCountDidChange();
       });
     }
 
     return didStop;
   }
 
-  Future<void> _didUpdateCounter() async {
-    logger.fine('[$runtimeType] didUpdateCounter: local: $_localCount, remote: $_remoteCount');
-    final newState = AudioTrackStateExt.computeAudioTrackState(
-      local: _localCount,
-      remote: _remoteCount,
-    );
+  Future<void> _onAudioTrackCountDidChange() async {
+    logger.fine('[$runtimeType] onAudioTrackCountDidChange: '
+        'local: $_localTrackCount, remote: $_remoteTrackCount');
 
-    if (state != newState) {
-      state = newState;
-      logger.fine('[$runtimeType] didUpdateSate: $state');
-      await onConfigureAudioSession.call(state);
+    final newState = _computeAudioTrackState();
+
+    if (audioTrackState != newState) {
+      audioTrackState = newState;
+      logger.fine('[$runtimeType] didUpdateSate: $audioTrackState');
+
+      NativeAudioConfiguration? config;
+      if (kIsWeb || !Platform.isIOS) {
+        // Only iOS for now...
+        config = await nativeAudioConfigurationForAudioTrackState.call(audioTrackState);
+      }
+
+      if (config != null) {
+        logger.fine('[$runtimeType] configuring for ${audioTrackState} using ${config}...');
+        try {
+          await LiveKitClient.configureAudioSession(config);
+        } catch (error) {
+          logger.warning('[$runtimeType] Failed to configure ${error}');
+        }
+      }
     }
   }
-}
 
-extension AudioTrackExt on AudioTrack {
-  //
-  static Future<void> configureAudioSession(AudioTrackState state) async {
-    if (kIsWeb || !Platform.isIOS) {
-      // no-op other than iOS for now
-      return;
-    }
-
-    final config = state.defaultNativeAudioConfiguration();
-    logger.fine('[AudioTrack] NEW configuring for ${state}, ${config}...');
-    try {
-      await LiveKitClient.configureAudioSession(config);
-    } catch (error) {
-      logger.warning('[$AudioTrack] NEW Failed to configure ${error}');
-    }
-  }
-}
-
-extension AudioTrackStateExt on AudioTrackState {
-  //
-  static AudioTrackState computeAudioTrackState({
-    required int local,
-    required int remote,
-  }) {
-    if (local > 0 && remote == 0) {
+  static AudioTrackState _computeAudioTrackState() {
+    if (_localTrackCount > 0 && _remoteTrackCount == 0) {
       return AudioTrackState.localOnly;
-    } else if (local == 0 && remote > 0) {
+    } else if (_localTrackCount == 0 && _remoteTrackCount > 0) {
       return AudioTrackState.remoteOnly;
-    } else if (local > 0 && remote > 0) {
+    } else if (_localTrackCount > 0 && _remoteTrackCount > 0) {
       return AudioTrackState.localAndRemote;
     }
     // Default
@@ -141,49 +130,46 @@ extension AudioTrackStateExt on AudioTrackState {
   }
 }
 
-extension AudioRecommendationTypeExt on AudioTrackState {
+Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(AudioTrackState state) async {
   //
-  NativeAudioConfiguration defaultNativeAudioConfiguration() {
-    //
-    if (this == AudioTrackState.remoteOnly) {
-      return NativeAudioConfiguration(
-        appleAudioCategory: AppleAudioCategory.playback,
-        appleAudioCategoryOptions: {
-          AppleAudioCategoryOption.mixWithOthers,
-          // IosAudioCategoryOption.duckOthers,
-        },
-        appleAudioMode: AppleAudioMode.spokenAudio,
-      );
-    } else if ([
-      AudioTrackState.localOnly,
-      AudioTrackState.localAndRemote,
-    ].contains(this)) {
-      return NativeAudioConfiguration(
-        appleAudioCategory: AppleAudioCategory.playAndRecord,
-        appleAudioCategoryOptions: {
-          AppleAudioCategoryOption.allowBluetooth,
-          AppleAudioCategoryOption.mixWithOthers,
-          // IosAudioCategoryOption.duckOthers,
-        },
-        appleAudioMode: AppleAudioMode.voiceChat,
-      );
-    }
-
-    // TODO: .record category causes exception in WebRTC lib for unknown reason
-    // if (this == AudioTrackState.localOnly) {
-    //   return NativeAudioConfiguration(
-    //     iosCategory: IosAudioCategory.record,
-    //     iosCategoryOptions: {
-    //       // IosAudioCategoryOption.allowBluetooth,
-    //     },
-    //     iosMode: IosAudioMode.spokenAudio,
-    //   );
-    // }
-
+  if (state == AudioTrackState.remoteOnly) {
     return NativeAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.soloAmbient,
-      appleAudioCategoryOptions: {},
-      appleAudioMode: AppleAudioMode.default_,
+      appleAudioCategory: AppleAudioCategory.playback,
+      appleAudioCategoryOptions: {
+        AppleAudioCategoryOption.mixWithOthers,
+        // IosAudioCategoryOption.duckOthers,
+      },
+      appleAudioMode: AppleAudioMode.spokenAudio,
+    );
+  } else if ([
+    AudioTrackState.localOnly,
+    AudioTrackState.localAndRemote,
+  ].contains(state)) {
+    return NativeAudioConfiguration(
+      appleAudioCategory: AppleAudioCategory.playAndRecord,
+      appleAudioCategoryOptions: {
+        AppleAudioCategoryOption.allowBluetooth,
+        AppleAudioCategoryOption.mixWithOthers,
+        // IosAudioCategoryOption.duckOthers,
+      },
+      appleAudioMode: AppleAudioMode.voiceChat,
     );
   }
+
+  // TODO: .record category causes exception in WebRTC lib for unknown reason
+  // if (this == AudioTrackState.localOnly) {
+  //   return NativeAudioConfiguration(
+  //     iosCategory: IosAudioCategory.record,
+  //     iosCategoryOptions: {
+  //       // IosAudioCategoryOption.allowBluetooth,
+  //     },
+  //     iosMode: IosAudioMode.spokenAudio,
+  //   );
+  // }
+
+  return NativeAudioConfiguration(
+    appleAudioCategory: AppleAudioCategory.soloAmbient,
+    appleAudioCategoryOptions: {},
+    appleAudioMode: AppleAudioMode.default_,
+  );
 }
