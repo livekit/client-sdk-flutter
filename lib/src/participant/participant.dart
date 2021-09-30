@@ -22,9 +22,9 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
+abstract class Participant extends ChangeNotifier
+    with Disposable, DisposeGuardChangeNotifier, EventsEmittable<ParticipantEvent> {
   /// map of track sid => published track
-  // @Deprecated('This should be a SET')
   final trackPublications = <String, TrackPublication>{};
 
   /// audio level between 0-1, 1 being the loudest
@@ -46,7 +46,6 @@ abstract class Participant extends ChangeNotifier with Disposable, DisposeGuardC
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<ParticipantEvent>();
   final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
@@ -90,7 +89,6 @@ abstract class Participant extends ChangeNotifier with Disposable, DisposeGuardC
 
     onDispose(() async {
       await unpublishAllTracks();
-      await events.dispose();
     });
   }
 

@@ -16,7 +16,7 @@ import 'support/websocket.dart';
 import 'types.dart';
 import 'utils.dart';
 
-class SignalClient with Disposable, EventCreatable<SignalEvent> {
+class SignalClient with Disposable, EventsEmittable<SignalEvent> {
   //
   final ProtocolVersion protocol;
 
@@ -31,7 +31,6 @@ class SignalClient with Disposable, EventCreatable<SignalEvent> {
     });
 
     onDispose(() async {
-      await events.dispose();
       await close();
     });
   }
@@ -261,8 +260,4 @@ class SignalClient with Disposable, EventCreatable<SignalEvent> {
     _connected = false;
     events.emit(const SignalCloseEvent());
   }
-
-  // /// convenience method to create [EventsListener]
-  // EventsListener<SignalEvent> createListener({bool synchronized = false}) =>
-  //     EventsListener<SignalEvent>(events, synchronized: synchronized);
 }

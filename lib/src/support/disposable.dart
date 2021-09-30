@@ -3,13 +3,6 @@ import 'package:meta/meta.dart';
 import '../extensions.dart';
 import '../logger.dart';
 
-// abstract class DisposeAware {
-//   // Should be true when is disposing or already disposed
-//   bool get isDisposed;
-//   @mustCallSuper
-//   void dispose();
-// }
-
 typedef OnDisposeFunc = Future<void> Function();
 mixin Disposable {
   //
@@ -17,6 +10,7 @@ mixin Disposable {
   bool _isDisposed = false;
   bool get isDisposed => _isDisposed;
 
+  // last added func will be called first when disposing
   void onDispose(OnDisposeFunc func) => _disposeFuncs.add(func);
 
   @mustCallSuper
@@ -34,7 +28,9 @@ mixin Disposable {
         logger.fine('[$objectId] dispose complete.');
       }
       return true;
+    } else {
+      logger.warning('[$objectId] unnecessary dispose() called.');
+      return false;
     }
-    return false;
   }
 }

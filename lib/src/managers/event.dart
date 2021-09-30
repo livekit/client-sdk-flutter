@@ -9,16 +9,15 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../types.dart';
 
-mixin EventCreatable<T> on Disposable {
+mixin EventsEmittable<T> on Disposable {
   final events = EventsEmitter<T>();
   EventsListener<T> createListener({bool synchronized = false}) =>
       EventsListener<T>(events, synchronized: synchronized);
 
   @override
   Future<bool> dispose() async {
-    final didDispose = await super.dispose();
-    if (didDispose) await events.dispose();
-    return didDispose;
+    if (!isDisposed) await events.dispose();
+    return await super.dispose();
   }
 }
 // Type-safe, multi-listenable, dispose safe event handling
@@ -30,7 +29,9 @@ class EventsEmitter<T> extends EventsListenable<T> {
 
   EventsEmitter({
     bool listenSynchronized = false,
-  }) : super(synchronized: listenSynchronized);
+  }) : super(synchronized: listenSynchronized) {
+    onDispose(() async => await streamCtrl.close());
+  }
 
   @override
   EventsEmitter<T> get emitter => this;
@@ -40,17 +41,6 @@ class EventsEmitter<T> extends EventsListenable<T> {
     if (streamCtrl.isClosed) return;
     // emit the event
     streamCtrl.add(event);
-  }
-
-  @override
-  @mustCallSuper
-  Future<bool> dispose() async {
-    // mark as disposed
-    final didDispose = await super.dispose();
-    if (didDispose) {
-      await streamCtrl.close();
-    }
-    return didDispose;
   }
 }
 

@@ -30,7 +30,8 @@ import 'types.dart';
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
+class Room extends ChangeNotifier
+    with Disposable, DisposeGuardChangeNotifier, EventsEmittable<RoomEvent> {
   // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.connected;
 
@@ -61,7 +62,6 @@ class Room extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
   final RTCEngine engine;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<RoomEvent>();
   late final _engineListener = engine.createListener();
 
   /// internal use
@@ -95,8 +95,6 @@ class Room extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
     onDispose(() async {
       // dispose local participant
       await localParticipant.dispose();
-      // dispose Room's events emitter
-      await events.dispose();
       // dispose all listeners for RTCEngine
       await _engineListener.dispose();
       // dispose the engine
@@ -389,8 +387,4 @@ class Room extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
 
     events.emit(ParticipantDisconnectedEvent(participant: participant));
   }
-
-  /// convenience method to create [EventsListener]
-  EventsListener<RoomEvent> createListener({bool synchronized = false}) =>
-      EventsListener<RoomEvent>(events, synchronized: synchronized);
 }

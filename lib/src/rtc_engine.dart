@@ -20,7 +20,7 @@ import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
 
-class RTCEngine with Disposable {
+class RTCEngine with Disposable, EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -37,9 +37,6 @@ class RTCEngine with Disposable {
 
   @internal
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
-
-  // used for ice state notifications
-  // CancelListenFunc? _primaryIceStateListener;
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDC;
@@ -66,13 +63,9 @@ class RTCEngine with Disposable {
   // internal
   int _reconnectAttempts = 0;
 
-  final events = EventsEmitter<EngineEvent>();
   late final _signalListener = signalClient.createListener(synchronized: true);
 
   final delays = CancelableDelayManager();
-
-  // late final Timer _statsTimer;
-  // bool get isClosed =>
 
   RTCEngine(
     this.rtcConfig, {
@@ -84,34 +77,12 @@ class RTCEngine with Disposable {
     }
 
     _setUpListeners();
-    // _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
+
     onDispose(() async {
       await close();
-      await events.dispose();
       await _signalListener.dispose();
     });
   }
-
-  // @override
-  // Future<bool> dispose() async {
-  //   final didDispose = await super.dispose();
-  //   if (didDispose) {
-  //     await close();
-  //     await events.dispose();
-  //     await _signalListener.dispose();
-  //   }
-  //   return didDispose;
-  // }
-
-  // void _onStatTimer(Timer _) async {
-  //   //
-  //   final stats = await publisher?.pc.getStats();
-  //   if (stats == null || stats.isEmpty) return;
-
-  //   for (final s in stats) {
-  //     logger.fine('STATS ${s.values}');
-  //   }
-  // }
 
   Future<lk_rtc.JoinResponse> join(
     String url,
@@ -372,7 +343,7 @@ class RTCEngine with Disposable {
         ..ordered = true
         ..maxRetransmits = 0;
       _lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
-      _lossyDC!.onMessage = _onDCMessage;
+      _lossyDC?.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -382,7 +353,7 @@ class RTCEngine with Disposable {
         ..binaryType = 'binary'
         ..ordered = true;
       _reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
-      _reliableDC!.onMessage = _onDCMessage;
+      _reliableDC?.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -531,8 +502,4 @@ class RTCEngine with Disposable {
           sid: event.sid,
           muted: event.muted,
         )));
-
-  /// convenience method to create [EventsListener]
-  EventsListener<EngineEvent> createListener({bool synchronized = false}) =>
-      EventsListener<EngineEvent>(events, synchronized: synchronized);
 }
