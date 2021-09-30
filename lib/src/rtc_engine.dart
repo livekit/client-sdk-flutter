@@ -20,7 +20,7 @@ import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
 
-class RTCEngine extends Disposable {
+class RTCEngine with Disposable {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -85,15 +85,23 @@ class RTCEngine extends Disposable {
 
     _setUpListeners();
     // _statsTimer = Timer.periodic(const Duration(seconds: 1), _onStatTimer);
+    onDispose(() async {
+      await close();
+      await events.dispose();
+      await _signalListener.dispose();
+    });
   }
 
-  @override
-  Future<void> dispose() async {
-    super.dispose();
-    await close();
-    await events.dispose();
-    await _signalListener.dispose();
-  }
+  // @override
+  // Future<bool> dispose() async {
+  //   final didDispose = await super.dispose();
+  //   if (didDispose) {
+  //     await close();
+  //     await events.dispose();
+  //     await _signalListener.dispose();
+  //   }
+  //   return didDispose;
+  // }
 
   // void _onStatTimer(Timer _) async {
   //   //

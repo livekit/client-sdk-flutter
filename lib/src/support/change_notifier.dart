@@ -1,31 +1,22 @@
 import 'package:flutter/foundation.dart';
 
 import '../logger.dart';
-import '../extensions.dart';
 import 'disposable.dart';
 
-// dispose safe change notifier
-abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements DisposeAware {
-  //
-  bool _isDisposed = false;
-
+// A layer to prevent calling ChangeNotifier methods if already disposed
+mixin DisposeGuardChangeNotifier on Disposable, ChangeNotifier {
   @override
-  bool get isDisposed => _isDisposed;
-
-  // must implement
-  @override
-  @mustCallSuper
-  void dispose() {
-    logger.fine('[${objectId}] dispose()');
-    if (!_isDisposed) {
-      _isDisposed = true;
-      super.dispose();
+  bool get hasListeners {
+    if (isDisposed) {
+      logger.warning('called hasListeners on a disposed ChangeNotifier');
+      return false;
     }
+    return super.hasListeners;
   }
 
   @override
   void addListener(VoidCallback listener) {
-    if (_isDisposed) {
+    if (isDisposed) {
       logger.warning('called addListener() on a disposed ChangeNotifier');
       return;
     }
@@ -34,7 +25,7 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
 
   @override
   void removeListener(VoidCallback listener) {
-    if (_isDisposed) {
+    if (isDisposed) {
       logger.warning('called removeListener() on a disposed ChangeNotifier');
       return;
     }
@@ -43,7 +34,7 @@ abstract class DisposeAwareChangeNotifier extends ChangeNotifier implements Disp
 
   @override
   void notifyListeners() {
-    if (_isDisposed) {
+    if (isDisposed) {
       logger.warning('called notifyListeners() on a disposed ChangeNotifier');
       return;
     }

@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 
 import 'constants.dart';
 import 'events.dart';
@@ -17,6 +17,7 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
 import 'support/change_notifier.dart';
+import 'support/disposable.dart';
 import 'track/track.dart';
 import 'types.dart';
 
@@ -29,7 +30,7 @@ import 'types.dart';
 /// * participant membership changes
 /// * active speakers are different
 /// {@category Room}
-class Room extends DisposeAwareChangeNotifier {
+class Room extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
   // Room is only instantiated if connected, so defaults to connected.
   ConnectionState _connectionState = ConnectionState.connected;
 
@@ -90,20 +91,17 @@ class Room extends DisposeAwareChangeNotifier {
       logger.fine('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-  }
 
-  @override
-  Future<void> dispose() async {
-    // mark as disposed
-    super.dispose();
-    // dispose local participant
-    await localParticipant.dispose();
-    // dispose Room's events emitter
-    await events.dispose();
-    // dispose all listeners for RTCEngine
-    await _engineListener.dispose();
-    // dispose the engine
-    await engine.dispose();
+    onDispose(() async {
+      // dispose local participant
+      await localParticipant.dispose();
+      // dispose Room's events emitter
+      await events.dispose();
+      // dispose all listeners for RTCEngine
+      await _engineListener.dispose();
+      // dispose the engine
+      await engine.dispose();
+    });
   }
 
   static Future<Room> connect(

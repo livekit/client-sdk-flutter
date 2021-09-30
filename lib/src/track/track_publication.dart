@@ -9,7 +9,7 @@ import 'track.dart';
 /// Base for [RemoteTrackPublication] and [LocalTrackPublication],
 /// can not be instantiated directly.
 
-abstract class TrackPublication extends Disposable {
+abstract class TrackPublication with Disposable {
   final String sid;
   final String name;
   final lk_models.TrackType kind;

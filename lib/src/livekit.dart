@@ -1,9 +1,5 @@
-import 'package:flutter/services.dart';
-
-import 'logger.dart';
 import 'options.dart';
 import 'room.dart';
-import 'support/native_audio.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}

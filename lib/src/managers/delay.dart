@@ -2,10 +2,13 @@ import 'package:async/async.dart';
 
 import '../support/disposable.dart';
 
-class CancelableDelayManager extends Disposable {
+class CancelableDelayManager with Disposable {
   //
   final _delays = <CancelableOperation<void>>[];
 
+  CancelableDelayManager() {
+    onDispose(() async => await cancelAll());
+  }
   // delay but cancelable
   Future<void> waitFor(
     Duration wait, {
@@ -21,11 +24,14 @@ class CancelableDelayManager extends Disposable {
     if (!op.isCanceled) ifNotCancelled?.call();
   }
 
-  @override
-  Future<void> dispose() async {
-    super.dispose();
-    await cancelAll();
-  }
+  // @override
+  // Future<bool> dispose() async {
+  //   final didDispose = await super.dispose();
+  //   if (didDispose) {
+  //     await cancelAll();
+  //   }
+  //   return didDispose;
+  // }
 
   Future<void> cancelAll() async {
     // cancel all delays

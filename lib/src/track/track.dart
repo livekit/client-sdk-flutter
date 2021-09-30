@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -6,11 +7,12 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/change_notifier.dart';
+import '../support/disposable.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends DisposeAwareChangeNotifier {
+abstract class Track extends ChangeNotifier with Disposable, DisposeGuardChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 

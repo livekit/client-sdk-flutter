@@ -16,8 +16,8 @@ import 'support/websocket.dart';
 import 'types.dart';
 import 'utils.dart';
 
-class SignalClient extends Disposable {
-  final events = EventsEmitter<SignalEvent>();
+class SignalClient with Disposable, EventCreatable<SignalEvent> {
+  //
   final ProtocolVersion protocol;
 
   bool _connected = false;
@@ -28,6 +28,11 @@ class SignalClient extends Disposable {
   }) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
+    });
+
+    onDispose(() async {
+      await events.dispose();
+      await close();
     });
   }
 
@@ -114,11 +119,12 @@ class SignalClient extends Disposable {
     await _ws?.dispose();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    close();
-  }
+  // @override
+  // Future<void> dispose() async {
+  //   super.dispose();
+  //   await events.dispose();
+  //   await close();
+  // }
 
   void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
@@ -256,7 +262,7 @@ class SignalClient extends Disposable {
     events.emit(const SignalCloseEvent());
   }
 
-  /// convenience method to create [EventsListener]
-  EventsListener<SignalEvent> createListener({bool synchronized = false}) =>
-      EventsListener<SignalEvent>(events, synchronized: synchronized);
+  // /// convenience method to create [EventsListener]
+  // EventsListener<SignalEvent> createListener({bool synchronized = false}) =>
+  //     EventsListener<SignalEvent>(events, synchronized: synchronized);
 }

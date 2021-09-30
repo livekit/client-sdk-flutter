@@ -12,7 +12,7 @@ import 'utils.dart';
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
 /// a wrapper around PeerConnection
-class PCTransport extends Disposable {
+class PCTransport with Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
@@ -21,7 +21,38 @@ class PCTransport extends Disposable {
   Function? _cancelDebounce;
 
   // private constructor
-  PCTransport._(this.pc);
+  PCTransport._(this.pc) {
+    //
+    onDispose(() async {
+      _cancelDebounce?.call();
+      _cancelDebounce = null;
+
+      // Ensure callbacks won't fire any more
+      pc.onRenegotiationNeeded = null;
+      pc.onIceCandidate = null;
+      pc.onIceConnectionState = null;
+      pc.onTrack = null;
+
+      // Remove all senders
+      List<rtc.RTCRtpSender> senders = [];
+      try {
+        senders = await pc.getSenders();
+      } catch (_) {
+        logger.warning('getSenders() failed with error: $_');
+      }
+
+      for (final e in senders) {
+        try {
+          await pc.removeTrack(e);
+        } catch (_) {
+          logger.warning('removeTrack() failed with error: $_');
+        }
+      }
+
+      await pc.close();
+      await pc.dispose();
+    });
+  }
 
   static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
@@ -36,38 +67,12 @@ class PCTransport extends Disposable {
     wait: Timeouts.debounce,
   );
 
-  @override
-  Future<void> dispose() async {
-    super.dispose();
-    // Ensure debounce won't fire
-    _cancelDebounce?.call();
-    _cancelDebounce = null;
+  // @override
+  // Future<void> dispose() async {
+  //   super.dispose();
+  //   // Ensure debounce won't fire
 
-    // Ensure callbacks won't fire any more
-    pc.onRenegotiationNeeded = null;
-    pc.onIceCandidate = null;
-    pc.onIceConnectionState = null;
-    pc.onTrack = null;
-
-    // Remove all senders
-    List<rtc.RTCRtpSender> senders = [];
-    try {
-      senders = await pc.getSenders();
-    } catch (_) {
-      logger.warning('getSenders() failed with error: $_');
-    }
-
-    for (final e in senders) {
-      try {
-        await pc.removeTrack(e);
-      } catch (_) {
-        logger.warning('removeTrack() failed with error: $_');
-      }
-    }
-
-    await pc.close();
-    await pc.dispose();
-  }
+  // }
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {
