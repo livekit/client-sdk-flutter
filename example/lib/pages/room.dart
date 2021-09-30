@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -48,7 +49,9 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void _setUpListeners() => _listener
-    ..on<RoomDisconnectedEvent>((_) => Navigator.pop(context))
+    ..on<RoomDisconnectedEvent>((_) async {
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+    })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';
       try {

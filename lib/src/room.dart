@@ -207,7 +207,7 @@ class Room extends DisposeAwareChangeNotifier {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    if (_connectionState == ConnectionState.disconnected) {
+    if (_connectionState != ConnectionState.disconnected) {
       engine.signalClient.sendLeave();
     }
     await _handleClose();
@@ -251,7 +251,7 @@ class Room extends DisposeAwareChangeNotifier {
     }
 
     // clean up RemoteParticipants
-    for (final _ in _participants.values) {
+    for (final _ in _participants.values.toList()) {
       // RemoteParticipant is responsible for disposing resources
       await _.dispose();
     }
