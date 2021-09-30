@@ -153,10 +153,8 @@ class LocalParticipant extends Participant {
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
-    final pub = trackPublications[trackSid];
+    final pub = trackPublications.remove(trackSid);
     if (pub is! LocalTrackPublication) return;
-
-    trackPublications.remove(pub);
 
     // final existing = tracks.values.where((element) => element.track == track);
     // if (existing.isEmpty) return;

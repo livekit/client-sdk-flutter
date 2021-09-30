@@ -154,10 +154,8 @@ class RemoteParticipant extends Participant {
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
-    final pub = trackPublications[trackSid];
+    final pub = trackPublications.remove(trackSid);
     if (pub is! RemoteTrackPublication) return;
-
-    trackPublications.remove(pub);
 
     final track = pub.track;
     // if has track
