@@ -198,7 +198,7 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
 
 /// The participant's isSpeaking property has changed
 /// Emitted on [Participant].
-class SpeakingChangedEvent with RoomEvent, ParticipantEvent {
+class SpeakingChangedEvent with ParticipantEvent {
   final Participant participant;
   final bool speaking;
   const SpeakingChangedEvent({
