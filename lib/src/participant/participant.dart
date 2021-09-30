@@ -147,9 +147,6 @@ abstract class Participant extends DisposableChangeNotifier with EventsEmittable
     }
   }
 
-  /// convenience method to create [EventsListener]
-  EventsListener<ParticipantEvent> createListener({bool synchronized = false}) =>
-      EventsListener<ParticipantEvent>(events, synchronized: synchronized);
   //
   // Equality operators
   // Object is considered equal when sid is equal
