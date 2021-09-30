@@ -8,6 +8,7 @@
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
+
 @$core.Deprecated('Use signalTargetDescriptor instead')
 const SignalTarget$json = const {
   '1': 'SignalTarget',
@@ -18,7 +19,8 @@ const SignalTarget$json = const {
 };
 
 /// Descriptor for `SignalTarget`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List signalTargetDescriptor = $convert.base64Decode('CgxTaWduYWxUYXJnZXQSDQoJUFVCTElTSEVSEAASDgoKU1VCU0NSSUJFUhAB');
+final $typed_data.Uint8List signalTargetDescriptor =
+    $convert.base64Decode('CgxTaWduYWxUYXJnZXQSDQoJUFVCTElTSEVSEAASDgoKU1VCU0NSSUJFUhAB');
 @$core.Deprecated('Use videoQualityDescriptor instead')
 const VideoQuality$json = const {
   '1': 'VideoQuality',
@@ -30,20 +32,93 @@ const VideoQuality$json = const {
 };
 
 /// Descriptor for `VideoQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List videoQualityDescriptor = $convert.base64Decode('CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBAC');
+final $typed_data.Uint8List videoQualityDescriptor =
+    $convert.base64Decode('CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBAC');
 @$core.Deprecated('Use signalRequestDescriptor instead')
 const SignalRequest$json = const {
   '1': 'SignalRequest',
   '2': const [
-    const {'1': 'offer', '3': 1, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'offer'},
-    const {'1': 'answer', '3': 2, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'answer'},
-    const {'1': 'trickle', '3': 3, '4': 1, '5': 11, '6': '.livekit.TrickleRequest', '9': 0, '10': 'trickle'},
-    const {'1': 'add_track', '3': 4, '4': 1, '5': 11, '6': '.livekit.AddTrackRequest', '9': 0, '10': 'addTrack'},
-    const {'1': 'mute', '3': 5, '4': 1, '5': 11, '6': '.livekit.MuteTrackRequest', '9': 0, '10': 'mute'},
-    const {'1': 'subscription', '3': 6, '4': 1, '5': 11, '6': '.livekit.UpdateSubscription', '9': 0, '10': 'subscription'},
-    const {'1': 'track_setting', '3': 7, '4': 1, '5': 11, '6': '.livekit.UpdateTrackSettings', '9': 0, '10': 'trackSetting'},
-    const {'1': 'leave', '3': 8, '4': 1, '5': 11, '6': '.livekit.LeaveRequest', '9': 0, '10': 'leave'},
-    const {'1': 'simulcast', '3': 9, '4': 1, '5': 11, '6': '.livekit.SetSimulcastLayers', '9': 0, '10': 'simulcast'},
+    const {
+      '1': 'offer',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'offer'
+    },
+    const {
+      '1': 'answer',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'answer'
+    },
+    const {
+      '1': 'trickle',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrickleRequest',
+      '9': 0,
+      '10': 'trickle'
+    },
+    const {
+      '1': 'add_track',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '9': 0,
+      '10': 'addTrack'
+    },
+    const {
+      '1': 'mute',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteTrackRequest',
+      '9': 0,
+      '10': 'mute'
+    },
+    const {
+      '1': 'subscription',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscription',
+      '9': 0,
+      '10': 'subscription'
+    },
+    const {
+      '1': 'track_setting',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateTrackSettings',
+      '9': 0,
+      '10': 'trackSetting'
+    },
+    const {
+      '1': 'leave',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.LeaveRequest',
+      '9': 0,
+      '10': 'leave'
+    },
+    const {
+      '1': 'simulcast',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SetSimulcastLayers',
+      '9': 0,
+      '10': 'simulcast'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -51,21 +126,102 @@ const SignalRequest$json = const {
 };
 
 /// Descriptor for `SignalRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List signalRequestDescriptor = $convert.base64Decode('Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEjsKCXNpbXVsY2FzdBgJIAEoCzIbLmxpdmVraXQuU2V0U2ltdWxjYXN0TGF5ZXJzSABSCXNpbXVsY2FzdEIJCgdtZXNzYWdl');
+final $typed_data.Uint8List signalRequestDescriptor = $convert.base64Decode(
+    'Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEjsKCXNpbXVsY2FzdBgJIAEoCzIbLmxpdmVraXQuU2V0U2ltdWxjYXN0TGF5ZXJzSABSCXNpbXVsY2FzdEIJCgdtZXNzYWdl');
 @$core.Deprecated('Use signalResponseDescriptor instead')
 const SignalResponse$json = const {
   '1': 'SignalResponse',
   '2': const [
-    const {'1': 'join', '3': 1, '4': 1, '5': 11, '6': '.livekit.JoinResponse', '9': 0, '10': 'join'},
-    const {'1': 'answer', '3': 2, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'answer'},
-    const {'1': 'offer', '3': 3, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'offer'},
-    const {'1': 'trickle', '3': 4, '4': 1, '5': 11, '6': '.livekit.TrickleRequest', '9': 0, '10': 'trickle'},
-    const {'1': 'update', '3': 5, '4': 1, '5': 11, '6': '.livekit.ParticipantUpdate', '9': 0, '10': 'update'},
-    const {'1': 'track_published', '3': 6, '4': 1, '5': 11, '6': '.livekit.TrackPublishedResponse', '9': 0, '10': 'trackPublished'},
-    const {'1': 'leave', '3': 8, '4': 1, '5': 11, '6': '.livekit.LeaveRequest', '9': 0, '10': 'leave'},
-    const {'1': 'mute', '3': 9, '4': 1, '5': 11, '6': '.livekit.MuteTrackRequest', '9': 0, '10': 'mute'},
-    const {'1': 'speakers_changed', '3': 10, '4': 1, '5': 11, '6': '.livekit.SpeakersChanged', '9': 0, '10': 'speakersChanged'},
-    const {'1': 'room_update', '3': 11, '4': 1, '5': 11, '6': '.livekit.RoomUpdate', '9': 0, '10': 'roomUpdate'},
+    const {
+      '1': 'join',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.JoinResponse',
+      '9': 0,
+      '10': 'join'
+    },
+    const {
+      '1': 'answer',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'answer'
+    },
+    const {
+      '1': 'offer',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'offer'
+    },
+    const {
+      '1': 'trickle',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrickleRequest',
+      '9': 0,
+      '10': 'trickle'
+    },
+    const {
+      '1': 'update',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantUpdate',
+      '9': 0,
+      '10': 'update'
+    },
+    const {
+      '1': 'track_published',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackPublishedResponse',
+      '9': 0,
+      '10': 'trackPublished'
+    },
+    const {
+      '1': 'leave',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.LeaveRequest',
+      '9': 0,
+      '10': 'leave'
+    },
+    const {
+      '1': 'mute',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteTrackRequest',
+      '9': 0,
+      '10': 'mute'
+    },
+    const {
+      '1': 'speakers_changed',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SpeakersChanged',
+      '9': 0,
+      '10': 'speakersChanged'
+    },
+    const {
+      '1': 'room_update',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomUpdate',
+      '9': 0,
+      '10': 'roomUpdate'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -73,7 +229,8 @@ const SignalResponse$json = const {
 };
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode('Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGVCCQoHbWVzc2FnZQ==');
+final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGVCCQoHbWVzc2FnZQ==');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -88,7 +245,8 @@ const AddTrackRequest$json = const {
 };
 
 /// Descriptor for `AddTrackRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List addTrackRequestDescriptor = $convert.base64Decode('Cg9BZGRUcmFja1JlcXVlc3QSEAoDY2lkGAEgASgJUgNjaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRImCgR0eXBlGAMgASgOMhIubGl2ZWtpdC5UcmFja1R5cGVSBHR5cGUSFAoFd2lkdGgYBCABKA1SBXdpZHRoEhYKBmhlaWdodBgFIAEoDVIGaGVpZ2h0EhQKBW11dGVkGAYgASgIUgVtdXRlZA==');
+final $typed_data.Uint8List addTrackRequestDescriptor = $convert.base64Decode(
+    'Cg9BZGRUcmFja1JlcXVlc3QSEAoDY2lkGAEgASgJUgNjaWQSEgoEbmFtZRgCIAEoCVIEbmFtZRImCgR0eXBlGAMgASgOMhIubGl2ZWtpdC5UcmFja1R5cGVSBHR5cGUSFAoFd2lkdGgYBCABKA1SBXdpZHRoEhYKBmhlaWdodBgFIAEoDVIGaGVpZ2h0EhQKBW11dGVkGAYgASgIUgVtdXRlZA==');
 @$core.Deprecated('Use trickleRequestDescriptor instead')
 const TrickleRequest$json = const {
   '1': 'TrickleRequest',
@@ -99,7 +257,8 @@ const TrickleRequest$json = const {
 };
 
 /// Descriptor for `TrickleRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List trickleRequestDescriptor = $convert.base64Decode('Cg5Ucmlja2xlUmVxdWVzdBIkCg1jYW5kaWRhdGVJbml0GAEgASgJUg1jYW5kaWRhdGVJbml0Ei0KBnRhcmdldBgCIAEoDjIVLmxpdmVraXQuU2lnbmFsVGFyZ2V0UgZ0YXJnZXQ=');
+final $typed_data.Uint8List trickleRequestDescriptor = $convert.base64Decode(
+    'Cg5Ucmlja2xlUmVxdWVzdBIkCg1jYW5kaWRhdGVJbml0GAEgASgJUg1jYW5kaWRhdGVJbml0Ei0KBnRhcmdldBgCIAEoDjIVLmxpdmVraXQuU2lnbmFsVGFyZ2V0UgZ0YXJnZXQ=');
 @$core.Deprecated('Use muteTrackRequestDescriptor instead')
 const MuteTrackRequest$json = const {
   '1': 'MuteTrackRequest',
@@ -110,7 +269,8 @@ const MuteTrackRequest$json = const {
 };
 
 /// Descriptor for `MuteTrackRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List muteTrackRequestDescriptor = $convert.base64Decode('ChBNdXRlVHJhY2tSZXF1ZXN0EhAKA3NpZBgBIAEoCVIDc2lkEhQKBW11dGVkGAIgASgIUgVtdXRlZA==');
+final $typed_data.Uint8List muteTrackRequestDescriptor = $convert.base64Decode(
+    'ChBNdXRlVHJhY2tSZXF1ZXN0EhAKA3NpZBgBIAEoCVIDc2lkEhQKBW11dGVkGAIgASgIUgVtdXRlZA==');
 @$core.Deprecated('Use setSimulcastLayersDescriptor instead')
 const SetSimulcastLayers$json = const {
   '1': 'SetSimulcastLayers',
@@ -121,22 +281,45 @@ const SetSimulcastLayers$json = const {
 };
 
 /// Descriptor for `SetSimulcastLayers`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List setSimulcastLayersDescriptor = $convert.base64Decode('ChJTZXRTaW11bGNhc3RMYXllcnMSGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZBItCgZsYXllcnMYAiADKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIGbGF5ZXJz');
+final $typed_data.Uint8List setSimulcastLayersDescriptor = $convert.base64Decode(
+    'ChJTZXRTaW11bGNhc3RMYXllcnMSGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZBItCgZsYXllcnMYAiADKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIGbGF5ZXJz');
 @$core.Deprecated('Use joinResponseDescriptor instead')
 const JoinResponse$json = const {
   '1': 'JoinResponse',
   '2': const [
     const {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
-    const {'1': 'participant', '3': 2, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
-    const {'1': 'other_participants', '3': 3, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'otherParticipants'},
+    const {
+      '1': 'participant',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participant'
+    },
+    const {
+      '1': 'other_participants',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'otherParticipants'
+    },
     const {'1': 'server_version', '3': 4, '4': 1, '5': 9, '10': 'serverVersion'},
-    const {'1': 'ice_servers', '3': 5, '4': 3, '5': 11, '6': '.livekit.ICEServer', '10': 'iceServers'},
+    const {
+      '1': 'ice_servers',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ICEServer',
+      '10': 'iceServers'
+    },
     const {'1': 'subscriber_primary', '3': 6, '4': 1, '5': 8, '10': 'subscriberPrimary'},
   ],
 };
 
 /// Descriptor for `JoinResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode('CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5');
+final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode(
+    'CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5');
 @$core.Deprecated('Use trackPublishedResponseDescriptor instead')
 const TrackPublishedResponse$json = const {
   '1': 'TrackPublishedResponse',
@@ -147,7 +330,8 @@ const TrackPublishedResponse$json = const {
 };
 
 /// Descriptor for `TrackPublishedResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List trackPublishedResponseDescriptor = $convert.base64Decode('ChZUcmFja1B1Ymxpc2hlZFJlc3BvbnNlEhAKA2NpZBgBIAEoCVIDY2lkEigKBXRyYWNrGAIgASgLMhIubGl2ZWtpdC5UcmFja0luZm9SBXRyYWNr');
+final $typed_data.Uint8List trackPublishedResponseDescriptor = $convert.base64Decode(
+    'ChZUcmFja1B1Ymxpc2hlZFJlc3BvbnNlEhAKA2NpZBgBIAEoCVIDY2lkEigKBXRyYWNrGAIgASgLMhIubGl2ZWtpdC5UcmFja0luZm9SBXRyYWNr');
 @$core.Deprecated('Use sessionDescriptionDescriptor instead')
 const SessionDescription$json = const {
   '1': 'SessionDescription',
@@ -158,17 +342,26 @@ const SessionDescription$json = const {
 };
 
 /// Descriptor for `SessionDescription`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List sessionDescriptionDescriptor = $convert.base64Decode('ChJTZXNzaW9uRGVzY3JpcHRpb24SEgoEdHlwZRgBIAEoCVIEdHlwZRIQCgNzZHAYAiABKAlSA3NkcA==');
+final $typed_data.Uint8List sessionDescriptionDescriptor = $convert.base64Decode(
+    'ChJTZXNzaW9uRGVzY3JpcHRpb24SEgoEdHlwZRgBIAEoCVIEdHlwZRIQCgNzZHAYAiABKAlSA3NkcA==');
 @$core.Deprecated('Use participantUpdateDescriptor instead')
 const ParticipantUpdate$json = const {
   '1': 'ParticipantUpdate',
   '2': const [
-    const {'1': 'participants', '3': 1, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participants'},
+    const {
+      '1': 'participants',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participants'
+    },
   ],
 };
 
 /// Descriptor for `ParticipantUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List participantUpdateDescriptor = $convert.base64Decode('ChFQYXJ0aWNpcGFudFVwZGF0ZRI8CgxwYXJ0aWNpcGFudHMYASADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IMcGFydGljaXBhbnRz');
+final $typed_data.Uint8List participantUpdateDescriptor = $convert.base64Decode(
+    'ChFQYXJ0aWNpcGFudFVwZGF0ZRI8CgxwYXJ0aWNpcGFudHMYASADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IMcGFydGljaXBhbnRz');
 @$core.Deprecated('Use updateSubscriptionDescriptor instead')
 const UpdateSubscription$json = const {
   '1': 'UpdateSubscription',
@@ -179,7 +372,8 @@ const UpdateSubscription$json = const {
 };
 
 /// Descriptor for `UpdateSubscription`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateSubscriptionDescriptor = $convert.base64Decode('ChJVcGRhdGVTdWJzY3JpcHRpb24SHQoKdHJhY2tfc2lkcxgBIAMoCVIJdHJhY2tTaWRzEhwKCXN1YnNjcmliZRgCIAEoCFIJc3Vic2NyaWJl');
+final $typed_data.Uint8List updateSubscriptionDescriptor = $convert.base64Decode(
+    'ChJVcGRhdGVTdWJzY3JpcHRpb24SHQoKdHJhY2tfc2lkcxgBIAMoCVIJdHJhY2tTaWRzEhwKCXN1YnNjcmliZRgCIAEoCFIJc3Vic2NyaWJl');
 @$core.Deprecated('Use updateTrackSettingsDescriptor instead')
 const UpdateTrackSettings$json = const {
   '1': 'UpdateTrackSettings',
@@ -191,7 +385,8 @@ const UpdateTrackSettings$json = const {
 };
 
 /// Descriptor for `UpdateTrackSettings`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateTrackSettingsDescriptor = $convert.base64Decode('ChNVcGRhdGVUcmFja1NldHRpbmdzEh0KCnRyYWNrX3NpZHMYASADKAlSCXRyYWNrU2lkcxIaCghkaXNhYmxlZBgDIAEoCFIIZGlzYWJsZWQSLwoHcXVhbGl0eRgEIAEoDjIVLmxpdmVraXQuVmlkZW9RdWFsaXR5UgdxdWFsaXR5');
+final $typed_data.Uint8List updateTrackSettingsDescriptor = $convert.base64Decode(
+    'ChNVcGRhdGVUcmFja1NldHRpbmdzEh0KCnRyYWNrX3NpZHMYASADKAlSCXRyYWNrU2lkcxIaCghkaXNhYmxlZBgDIAEoCFIIZGlzYWJsZWQSLwoHcXVhbGl0eRgEIAEoDjIVLmxpdmVraXQuVmlkZW9RdWFsaXR5UgdxdWFsaXR5');
 @$core.Deprecated('Use leaveRequestDescriptor instead')
 const LeaveRequest$json = const {
   '1': 'LeaveRequest',
@@ -201,7 +396,8 @@ const LeaveRequest$json = const {
 };
 
 /// Descriptor for `LeaveRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List leaveRequestDescriptor = $convert.base64Decode('CgxMZWF2ZVJlcXVlc3QSIwoNY2FuX3JlY29ubmVjdBgBIAEoCFIMY2FuUmVjb25uZWN0');
+final $typed_data.Uint8List leaveRequestDescriptor =
+    $convert.base64Decode('CgxMZWF2ZVJlcXVlc3QSIwoNY2FuX3JlY29ubmVjdBgBIAEoCFIMY2FuUmVjb25uZWN0');
 @$core.Deprecated('Use iCEServerDescriptor instead')
 const ICEServer$json = const {
   '1': 'ICEServer',
@@ -213,7 +409,8 @@ const ICEServer$json = const {
 };
 
 /// Descriptor for `ICEServer`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List iCEServerDescriptor = $convert.base64Decode('CglJQ0VTZXJ2ZXISEgoEdXJscxgBIAMoCVIEdXJscxIaCgh1c2VybmFtZRgCIAEoCVIIdXNlcm5hbWUSHgoKY3JlZGVudGlhbBgDIAEoCVIKY3JlZGVudGlhbA==');
+final $typed_data.Uint8List iCEServerDescriptor = $convert.base64Decode(
+    'CglJQ0VTZXJ2ZXISEgoEdXJscxgBIAMoCVIEdXJscxIaCgh1c2VybmFtZRgCIAEoCVIIdXNlcm5hbWUSHgoKY3JlZGVudGlhbBgDIAEoCVIKY3JlZGVudGlhbA==');
 @$core.Deprecated('Use speakersChangedDescriptor instead')
 const SpeakersChanged$json = const {
   '1': 'SpeakersChanged',
@@ -223,7 +420,8 @@ const SpeakersChanged$json = const {
 };
 
 /// Descriptor for `SpeakersChanged`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List speakersChangedDescriptor = $convert.base64Decode('Cg9TcGVha2Vyc0NoYW5nZWQSMAoIc3BlYWtlcnMYASADKAsyFC5saXZla2l0LlNwZWFrZXJJbmZvUghzcGVha2Vycw==');
+final $typed_data.Uint8List speakersChangedDescriptor = $convert.base64Decode(
+    'Cg9TcGVha2Vyc0NoYW5nZWQSMAoIc3BlYWtlcnMYASADKAsyFC5saXZla2l0LlNwZWFrZXJJbmZvUghzcGVha2Vycw==');
 @$core.Deprecated('Use roomUpdateDescriptor instead')
 const RoomUpdate$json = const {
   '1': 'RoomUpdate',
@@ -233,4 +431,5 @@ const RoomUpdate$json = const {
 };
 
 /// Descriptor for `RoomUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List roomUpdateDescriptor = $convert.base64Decode('CgpSb29tVXBkYXRlEiEKBHJvb20YASABKAsyDS5saXZla2l0LlJvb21SBHJvb20=');
+final $typed_data.Uint8List roomUpdateDescriptor =
+    $convert.base64Decode('CgpSb29tVXBkYXRlEiEKBHJvb20YASABKAsyDS5saXZla2l0LlJvb21SBHJvb20=');
