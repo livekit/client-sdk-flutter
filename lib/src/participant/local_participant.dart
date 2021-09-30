@@ -177,10 +177,6 @@ class LocalParticipant extends Participant {
           await engine.negotiate();
         }
       }
-
-      // if (track is AudioTrack) {
-      // await AudioManager().decrementPublishCounter();
-      // }
     }
   }
 
