@@ -100,7 +100,7 @@ class AudioTrack extends Track {
       logger.fine('[$runtimeType] didUpdateSate: $audioTrackState');
 
       NativeAudioConfiguration? config;
-      if (kIsWeb || !Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         // Only iOS for now...
         config = await nativeAudioConfigurationForAudioTrackState.call(audioTrackState);
       }
