@@ -2,10 +2,10 @@ import Flutter
 import UIKit
 import WebRTC
 
-public class SwiftLivekitClientPlugin: NSObject, FlutterPlugin {
+public class SwiftLiveKitClientPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: registrar.messenger())
-        let instance = SwiftLivekitClientPlugin()
+        let instance = SwiftLiveKitClientPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
@@ -55,7 +55,7 @@ public class SwiftLivekitClientPlugin: NSObject, FlutterPlugin {
         return result
     }
 
-    public func onConfigureAudioSession(args: [String: Any?], result: @escaping FlutterResult) {
+    public func handleConfigureNativeAudio(args: [String: Any?], result: @escaping FlutterResult) {
 
         let configuration = RTCAudioSessionConfiguration.webRTC()
 
@@ -104,8 +104,8 @@ public class SwiftLivekitClientPlugin: NSObject, FlutterPlugin {
         }
 
         switch call.method {
-        case "configureAudioSession":
-            onConfigureAudioSession(args: args, result: result)
+        case "configureNativeAudio":
+            handleConfigureNativeAudio(args: args, result: result)
         default:
             print("[LiveKit] method not found: ", call.method)
             result(FlutterMethodNotImplemented)

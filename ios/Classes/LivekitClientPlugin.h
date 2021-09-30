@@ -1,4 +1,4 @@
 #import <Flutter/Flutter.h>
 
-@interface LivekitClientPlugin : NSObject<FlutterPlugin>
+@interface LiveKitClientPlugin : NSObject<FlutterPlugin>
 @end

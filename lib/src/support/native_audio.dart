@@ -1,4 +1,8 @@
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
+import 'package:flutter/services.dart';
+
+import '../logger.dart';
+
 enum AppleAudioCategory {
   soloAmbient,
   playback,
@@ -100,4 +104,19 @@ class NativeAudioConfiguration {
         appleAudioCategoryOptions: appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
         appleAudioMode: appleAudioMode ?? this.appleAudioMode,
       );
+}
+
+const _lkMethodChannel = MethodChannel('livekit_client');
+
+Future<bool> configureNativeAudio(NativeAudioConfiguration configuration) async {
+  try {
+    final result = await _lkMethodChannel.invokeMethod<bool>(
+      'configureNativeAudio',
+      configuration.toMap(),
+    );
+    return result == true;
+  } catch (_) {
+    logger.warning('configureAudioSession did throw $_');
+    return false;
+  }
 }

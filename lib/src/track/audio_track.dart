@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
-import '../livekit.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/native_audio.dart';
@@ -109,7 +108,7 @@ class AudioTrack extends Track {
       if (config != null) {
         logger.fine('[$runtimeType] configuring for ${audioTrackState} using ${config}...');
         try {
-          await LiveKitClient.configureAudioSession(config);
+          await configureNativeAudio(config);
         } catch (error) {
           logger.warning('[$runtimeType] Failed to configure ${error}');
         }
