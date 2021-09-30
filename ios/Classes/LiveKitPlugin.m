@@ -1,4 +1,4 @@
-#import "LiveKitClientPlugin.h"
+#import "LiveKitPlugin.h"
 #if __has_include(<livekit_client/livekit_client-Swift.h>)
 #import <livekit_client/livekit_client-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "livekit_client-Swift.h"
 #endif
 
-@implementation LiveKitClientPlugin
+@implementation LiveKitPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftLiveKitClientPlugin registerWithRegistrar:registrar];
+  [SwiftLiveKitPlugin registerWithRegistrar:registrar];
 }
 @end
