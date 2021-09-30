@@ -1,23 +1,23 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 
-import 'errors.dart';
 import 'events.dart';
+import 'exceptions.dart';
 import 'extensions.dart';
 import 'logger.dart';
 import 'managers/event.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'support/disposable.dart';
+import 'support/websocket.dart';
 import 'types.dart';
 import 'utils.dart';
-import 'ws/interface.dart';
 
-class SignalClient {
-  final events = EventsEmitter<SignalEvent>();
+class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
+  //
   final ProtocolVersion protocol;
 
   bool _connected = false;
@@ -28,6 +28,11 @@ class SignalClient {
   }) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
+    });
+
+    onDispose(() async {
+      await events.dispose();
+      await close();
     });
   }
 
@@ -51,7 +56,7 @@ class SignalClient {
     try {
       _ws = await LiveKitWebSocket.connect(
         rtcUri,
-        WebSocketOptions(
+        WebSocketEventHandlers(
           onData: _onSocketData,
           onDispose: _onSocketDone,
           onError: _handleError,
@@ -71,8 +76,7 @@ class SignalClient {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200)
-          throw ConnectException(validateResponse.body);
+        if (validateResponse.statusCode != 200) throw ConnectException(validateResponse.body);
         throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
@@ -88,7 +92,7 @@ class SignalClient {
     String token,
   ) async {
     _connected = false;
-    _ws?.dispose();
+    await _ws?.dispose();
     _ws = null;
 
     final rtcUri = Utils.buildUri(
@@ -100,7 +104,7 @@ class SignalClient {
 
     _ws = await LiveKitWebSocket.connect(
       rtcUri,
-      WebSocketOptions(
+      WebSocketEventHandlers(
         onData: _onSocketData,
         onDispose: _onSocketDone,
         onError: _handleError,
@@ -110,24 +114,27 @@ class SignalClient {
     _connected = true;
   }
 
-  void close() {
+  Future<void> close() async {
     _connected = false;
-    _ws?.dispose();
+    await _ws?.dispose();
   }
 
-  void sendOffer(rtc.RTCSessionDescription offer) =>
-      _sendRequest(lk_rtc.SignalRequest(
+  // @override
+  // Future<void> dispose() async {
+  //   super.dispose();
+  //   await events.dispose();
+  //   await close();
+  // }
+
+  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
       ));
 
-  void sendAnswer(rtc.RTCSessionDescription answer) =>
-      _sendRequest(lk_rtc.SignalRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
         answer: answer.toSDKType(),
       ));
 
-  void sendIceCandidate(
-          rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) =>
-      _sendRequest(
+  void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
             candidateInit: candidate.toJson(),
@@ -136,8 +143,7 @@ class SignalClient {
         ),
       );
 
-  void sendMuteTrack(String trackSid, bool muted) =>
-      _sendRequest(lk_rtc.SignalRequest(
+  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(lk_rtc.SignalRequest(
         mute: lk_rtc.MuteTrackRequest(
           sid: trackSid,
           muted: muted,
@@ -174,8 +180,7 @@ class SignalClient {
         subscription: subscription,
       ));
 
-  void sendSetSimulcastLayers(
-          String trackSid, List<lk_rtc.VideoQuality> layers) =>
+  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) =>
       _sendRequest(lk_rtc.SignalRequest(
         simulcast: lk_rtc.SetSimulcastLayers(
           trackSid: trackSid,
@@ -188,8 +193,8 @@ class SignalClient {
       ));
 
   void _sendRequest(lk_rtc.SignalRequest req) {
-    if (_ws == null) {
-      logger.warning('could not send message, not connected');
+    if (_ws == null || isDisposed) {
+      logger.warning('[$objectId] Could not send message, not connected or already disposed');
       return;
     }
 
@@ -221,8 +226,7 @@ class SignalClient {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(
-            SignalParticipantUpdateEvent(updates: msg.update.participants));
+        events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -230,9 +234,8 @@ class SignalClient {
           track: msg.trackPublished.track,
         ));
         break;
-      case lk_rtc.SignalResponse_Message.speaker:
-        events.emit(
-            SignalActiveSpeakersChangedEvent(speakers: msg.speaker.speakers));
+      case lk_rtc.SignalResponse_Message.speakersChanged:
+        events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));

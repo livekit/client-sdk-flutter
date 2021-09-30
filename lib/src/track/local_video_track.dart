@@ -1,6 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../errors.dart';
+import '../exceptions.dart';
 import '../logger.dart';
 import 'options.dart';
 import 'track.dart';

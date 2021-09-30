@@ -5,13 +5,14 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'constants.dart';
 import 'extensions.dart';
 import 'logger.dart';
+import 'support/disposable.dart';
 import 'types.dart';
 import 'utils.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
 /// a wrapper around PeerConnection
-class PCTransport {
+class PCTransport extends Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
@@ -20,11 +21,42 @@ class PCTransport {
   Function? _cancelDebounce;
 
   // private constructor
-  PCTransport._(this.pc);
+  PCTransport._(this.pc) {
+    //
+    onDispose(() async {
+      _cancelDebounce?.call();
+      _cancelDebounce = null;
+
+      // Ensure callbacks won't fire any more
+      pc.onRenegotiationNeeded = null;
+      pc.onIceCandidate = null;
+      pc.onIceConnectionState = null;
+      pc.onTrack = null;
+
+      // Remove all senders
+      List<rtc.RTCRtpSender> senders = [];
+      try {
+        senders = await pc.getSenders();
+      } catch (_) {
+        logger.warning('getSenders() failed with error: $_');
+      }
+
+      for (final e in senders) {
+        try {
+          await pc.removeTrack(e);
+        } catch (_) {
+          logger.warning('removeTrack() failed with error: $_');
+        }
+      }
+
+      await pc.close();
+      await pc.dispose();
+    });
+  }
 
   static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
-    logger.fine('PCTransport creating ${rtcConfig.toMap()}');
+    logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final _ = await rtc.createPeerConnection(rtcConfig.toMap());
     return PCTransport._(_);
   }
@@ -35,39 +67,19 @@ class PCTransport {
     wait: Timeouts.debounce,
   );
 
-  Future<void> dispose() async {
-    logger.fine('${objectId} dispose()');
-    // Ensure debounce won't fire
-    _cancelDebounce?.call();
-    _cancelDebounce = null;
+  // @override
+  // Future<void> dispose() async {
+  //   super.dispose();
+  //   // Ensure debounce won't fire
 
-    // Ensure callbacks won't fire any more
-    pc.onRenegotiationNeeded = null;
-    pc.onIceCandidate = null;
-    pc.onIceConnectionState = null;
-    pc.onTrack = null;
-
-    // Remove all senders
-    List<rtc.RTCRtpSender> senders = [];
-    try {
-      senders = await pc.getSenders();
-    } catch (_) {
-      logger.warning('getSenders() failed with error: $_');
-    }
-
-    for (final e in senders) {
-      try {
-        await pc.removeTrack(e);
-      } catch (_) {
-        logger.warning('removeTrack() failed with error: $_');
-      }
-    }
-
-    await pc.close();
-    await pc.dispose();
-  }
+  // }
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
+    if (isDisposed) {
+      logger.warning('[$objectId] setRemoteDescription() already disposed');
+      return;
+    }
+
     await pc.setRemoteDescription(sd);
 
     for (final candidate in _pendingCandidates) {
@@ -84,6 +96,11 @@ class PCTransport {
   }
 
   Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
+    if (isDisposed) {
+      logger.warning('[$objectId] createAndSendOffer() already disposed');
+      return;
+    }
+
     if (onOffer == null) {
       logger.warning('onOffer is null');
       return;
@@ -116,6 +133,11 @@ class PCTransport {
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
+    if (isDisposed) {
+      logger.warning('[$objectId] addIceCandidate() already disposed');
+      return;
+    }
+
     final desc = await getRemoteDescription();
 
     if (desc != null && !restartingIce) {
@@ -127,6 +149,11 @@ class PCTransport {
   }
 
   Future<rtc.RTCSessionDescription?> getRemoteDescription() async {
+    if (isDisposed) {
+      logger.warning('[$objectId] getRemoteDescription() already disposed');
+      return null;
+    }
+
     // Checking agains null doesn't work as intended
     // if (pc.iceConnectionState == null) return null;
 

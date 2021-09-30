@@ -1,13 +1,12 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
-import '../classes/change_notifier.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../support/disposable.dart';
 import '../track/track_publication.dart';
 import 'remote_participant.dart';
 
@@ -21,7 +20,7 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends LKChangeNotifier {
+abstract class Participant extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
   /// map of track sid => published track
   final trackPublications = <String, TrackPublication>{};
 
@@ -44,7 +43,6 @@ abstract class Participant extends LKChangeNotifier {
   bool _isSpeaking = false;
 
   // suppport for multiple event listeners
-  final events = EventsEmitter<ParticipantEvent>();
   final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
@@ -85,14 +83,11 @@ abstract class Participant extends LKChangeNotifier {
       logger.fine('[ParticipantEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-  }
 
-  @override
-  @mustCallSuper
-  Future<void> dispose() async {
-    logger.fine('$objectId dispose()');
-    await events.dispose();
-    super.dispose();
+    onDispose(() async {
+      await events.dispose();
+      await unpublishAllTracks();
+    });
   }
 
   /// for internal use
@@ -106,7 +101,7 @@ abstract class Participant extends LKChangeNotifier {
       lastSpokeAt = DateTime.now();
     }
 
-    [events, roomEvents].emit(SpeakingChangedEvent(
+    events.emit(SpeakingChangedEvent(
       participant: this,
       speaking: speaking,
     ));
@@ -145,15 +140,17 @@ abstract class Participant extends LKChangeNotifier {
   // Must implement
   Future<void> unpublishTrack(String trackSid, {bool notify = false});
 
-  Future<void> unpublishAllTracks() async {
-    final _ = List<TrackPublication>.from(trackPublications.values);
-    for (final track in _) {
-      await unpublishTrack(track.sid);
+  Future<void> unpublishAllTracks({bool notify = false}) async {
+    final trackSids = trackPublications.keys.toSet();
+    for (final trackid in trackSids) {
+      await unpublishTrack(trackid, notify: notify);
     }
   }
 
+  //
   // Equality operators
   // Object is considered equal when sid is equal
+  //
   @override
   int get hashCode => sid.hashCode;
 

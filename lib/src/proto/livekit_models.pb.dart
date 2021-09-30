@@ -37,6 +37,7 @@ class Room extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledCodecs',
         $pb.PbFieldType.PM,
         subBuilder: Codec.create)
+    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'metadata')
     ..hasRequiredFields = false;
 
   Room._() : super();
@@ -48,6 +49,7 @@ class Room extends $pb.GeneratedMessage {
     $fixnum.Int64? creationTime,
     $core.String? turnPassword,
     $core.Iterable<Codec>? enabledCodecs,
+    $core.String? metadata,
   }) {
     final _result = create();
     if (sid != null) {
@@ -70,6 +72,9 @@ class Room extends $pb.GeneratedMessage {
     }
     if (enabledCodecs != null) {
       _result.enabledCodecs.addAll(enabledCodecs);
+    }
+    if (metadata != null) {
+      _result.metadata = metadata;
     }
     return _result;
   }
@@ -171,6 +176,18 @@ class Room extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(7)
   $core.List<Codec> get enabledCodecs => $_getList(6);
+
+  @$pb.TagNumber(8)
+  $core.String get metadata => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set metadata($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasMetadata() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMetadata() => clearField(8);
 }
 
 class Codec extends $pb.GeneratedMessage {
@@ -921,4 +938,113 @@ class UserPacket extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
+}
+
+class RecordingResult extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RecordingResult',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'id')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error')
+    ..aInt64(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'duration')
+    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'location')
+    ..hasRequiredFields = false;
+
+  RecordingResult._() : super();
+  factory RecordingResult({
+    $core.String? id,
+    $core.String? error,
+    $fixnum.Int64? duration,
+    $core.String? location,
+  }) {
+    final _result = create();
+    if (id != null) {
+      _result.id = id;
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    if (duration != null) {
+      _result.duration = duration;
+    }
+    if (location != null) {
+      _result.location = location;
+    }
+    return _result;
+  }
+  factory RecordingResult.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RecordingResult.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  RecordingResult clone() => RecordingResult()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  RecordingResult copyWith(void Function(RecordingResult) updates) =>
+      super.copyWith((message) => updates(message as RecordingResult))
+          as RecordingResult; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RecordingResult create() => RecordingResult._();
+  RecordingResult createEmptyInstance() => create();
+  static $pb.PbList<RecordingResult> createRepeated() => $pb.PbList<RecordingResult>();
+  @$core.pragma('dart2js:noInline')
+  static RecordingResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RecordingResult>(create);
+  static RecordingResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get id => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set id($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get error => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set error($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasError() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearError() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get duration => $_getI64(2);
+  @$pb.TagNumber(3)
+  set duration($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasDuration() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDuration() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get location => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set location($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasLocation() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLocation() => clearField(4);
 }

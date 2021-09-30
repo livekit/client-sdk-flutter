@@ -1,13 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/classes/change_notifier.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import '../extensions.dart';
+import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../support/disposable.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends LKChangeNotifier {
+abstract class Track extends DisposableChangeNotifier {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
@@ -18,6 +22,10 @@ abstract class Track extends LKChangeNotifier {
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
+
+  // started / stopped
+  bool _active = false;
+  bool get isActive => _active;
 
   Track(
     this.kind,
@@ -50,7 +58,33 @@ abstract class Track extends LKChangeNotifier {
     return cid;
   }
 
-  Future<void> stop() async {
-    await mediaStreamTrack.stop();
+  // returns true if started, false if already started
+  @mustCallSuper
+  Future<bool> start() async {
+    if (_active) {
+      // already started
+      return false;
+    }
+
+    _active = true;
+    return true;
+  }
+
+  // returns true if stopped, false if already stopped
+  @mustCallSuper
+  Future<bool> stop() async {
+    if (!_active) {
+      // already stopped
+      return false;
+    }
+
+    try {
+      await mediaStreamTrack.stop();
+    } catch (_) {
+      logger.warning('[$objectId] rtc.mediaStreamTrack.stop() did throw ${_}');
+    }
+
+    _active = false;
+    return true;
   }
 }

@@ -1,12 +1,18 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
-import '../errors.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../support/disposable.dart';
 import '../types.dart';
+
+mixin EventsEmittable<T> {
+  final events = EventsEmitter<T>();
+  EventsListener<T> createListener({bool synchronized = false}) =>
+      EventsListener<T>(events, synchronized: synchronized);
+}
 
 // Type-safe, multi-listenable, dispose safe event handling
 // TODO: Move to a separate package
@@ -17,7 +23,9 @@ class EventsEmitter<T> extends EventsListenable<T> {
 
   EventsEmitter({
     bool listenSynchronized = false,
-  }) : super(synchronized: listenSynchronized);
+  }) : super(synchronized: listenSynchronized) {
+    onDispose(() async => await streamCtrl.close());
+  }
 
   @override
   EventsEmitter<T> get emitter => this;
@@ -27,13 +35,6 @@ class EventsEmitter<T> extends EventsListenable<T> {
     if (streamCtrl.isClosed) return;
     // emit the event
     streamCtrl.add(event);
-  }
-
-  @override
-  @mustCallSuper
-  Future<void> dispose() async {
-    await streamCtrl.close();
-    await super.dispose();
   }
 }
 
@@ -51,7 +52,7 @@ class EventsListener<T> extends EventsListenable<T> {
 }
 
 // ensures all listeners will close on dispose
-abstract class EventsListenable<T> {
+abstract class EventsListenable<T> extends Disposable {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
 
@@ -62,16 +63,33 @@ abstract class EventsListenable<T> {
 
   EventsListenable({
     required this.synchronized,
-  });
-
-  @mustCallSuper
-  Future<void> dispose() async {
-    // Stop listening to all events
-    logger.fine('${objectId} dispose() cancelling ${_listeners.length} event(s)');
-    for (final listener in _listeners) {
-      await listener.cancel();
-    }
+  }) {
+    onDispose(() async {
+      if (_listeners.isNotEmpty) {
+        // Stop listening to all events
+        logger.fine('${objectId} cancelling ${_listeners.length} listeners(s)');
+        for (final listener in _listeners) {
+          await listener.cancel();
+        }
+      }
+    });
   }
+
+  // @override
+  // @mustCallSuper
+  // Future<bool> dispose() async {
+  //   // mark as disposed
+  //   final didDispose = await super.dispose();
+  //   if (didDispose && _listeners.isNotEmpty) {
+  //     // Stop listening to all events
+  //     logger.fine('${objectId} dispose() cancelling ${_listeners.length} event(s)');
+  //     for (final listener in _listeners) {
+  //       await listener.cancel();
+  //     }
+  //   }
+
+  //   return didDispose;
+  // }
 
   // listens to all events, guaranteed to be cancelled on dispose
   CancelListenFunc listen(FutureOr<void> Function(T) onEvent) {

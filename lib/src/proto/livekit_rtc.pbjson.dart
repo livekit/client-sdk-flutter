@@ -187,15 +187,6 @@ const SignalResponse$json = const {
       '10': 'trackPublished'
     },
     const {
-      '1': 'speaker',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.ActiveSpeakerUpdate',
-      '9': 0,
-      '10': 'speaker'
-    },
-    const {
       '1': 'leave',
       '3': 8,
       '4': 1,
@@ -213,6 +204,24 @@ const SignalResponse$json = const {
       '9': 0,
       '10': 'mute'
     },
+    const {
+      '1': 'speakers_changed',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SpeakersChanged',
+      '9': 0,
+      '10': 'speakersChanged'
+    },
+    const {
+      '1': 'room_update',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomUpdate',
+      '9': 0,
+      '10': 'roomUpdate'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -221,7 +230,7 @@ const SignalResponse$json = const {
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
-    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBI4CgdzcGVha2VyGAcgASgLMhwubGl2ZWtpdC5BY3RpdmVTcGVha2VyVXBkYXRlSABSB3NwZWFrZXISLQoFbGVhdmUYCCABKAsyFS5saXZla2l0LkxlYXZlUmVxdWVzdEgAUgVsZWF2ZRIvCgRtdXRlGAkgASgLMhkubGl2ZWtpdC5NdXRlVHJhY2tSZXF1ZXN0SABSBG11dGVCCQoHbWVzc2FnZQ==');
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGVCCQoHbWVzc2FnZQ==');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -402,3 +411,25 @@ const ICEServer$json = const {
 /// Descriptor for `ICEServer`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List iCEServerDescriptor = $convert.base64Decode(
     'CglJQ0VTZXJ2ZXISEgoEdXJscxgBIAMoCVIEdXJscxIaCgh1c2VybmFtZRgCIAEoCVIIdXNlcm5hbWUSHgoKY3JlZGVudGlhbBgDIAEoCVIKY3JlZGVudGlhbA==');
+@$core.Deprecated('Use speakersChangedDescriptor instead')
+const SpeakersChanged$json = const {
+  '1': 'SpeakersChanged',
+  '2': const [
+    const {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
+  ],
+};
+
+/// Descriptor for `SpeakersChanged`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List speakersChangedDescriptor = $convert.base64Decode(
+    'Cg9TcGVha2Vyc0NoYW5nZWQSMAoIc3BlYWtlcnMYASADKAsyFC5saXZla2l0LlNwZWFrZXJJbmZvUghzcGVha2Vycw==');
+@$core.Deprecated('Use roomUpdateDescriptor instead')
+const RoomUpdate$json = const {
+  '1': 'RoomUpdate',
+  '2': const [
+    const {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
+  ],
+};
+
+/// Descriptor for `RoomUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List roomUpdateDescriptor =
+    $convert.base64Decode('CgpSb29tVXBkYXRlEiEKBHJvb20YASABKAsyDS5saXZla2l0LlJvb21SBHJvb20=');

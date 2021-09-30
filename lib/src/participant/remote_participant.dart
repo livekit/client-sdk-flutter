@@ -90,8 +90,10 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
+      // await AudioManager().incrementSubscriptionCounter();
+
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
-      audioTrack.start();
+      await audioTrack.start();
       track = audioTrack;
     } else {
       // video track
@@ -143,8 +145,7 @@ class RemoteParticipant extends Participant {
 
     // unpublish any track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
-    final removeSids =
-        trackPublications.values.where((e) => !validSids.contains(e.sid)).map((e) => e.sid);
+    final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await unpublishTrack(sid, notify: true);
     }
@@ -165,6 +166,10 @@ class RemoteParticipant extends Participant {
         track: track,
         publication: pub,
       ));
+
+      // if (track is AudioTrack) {
+      //   await AudioManager().decrementSubscriptionCounter();
+      // }
     }
 
     if (notify) {

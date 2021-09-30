@@ -282,9 +282,10 @@ enum SignalResponse_Message {
   trickle,
   update,
   trackPublished,
-  speaker,
   leave,
   mute,
+  speakersChanged,
+  roomUpdate,
   notSet
 }
 
@@ -296,9 +297,10 @@ class SignalResponse extends $pb.GeneratedMessage {
     4: SignalResponse_Message.trickle,
     5: SignalResponse_Message.update,
     6: SignalResponse_Message.trackPublished,
-    7: SignalResponse_Message.speaker,
     8: SignalResponse_Message.leave,
     9: SignalResponse_Message.mute,
+    10: SignalResponse_Message.speakersChanged,
+    11: SignalResponse_Message.roomUpdate,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -306,7 +308,7 @@ class SignalResponse extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11])
     ..aOM<JoinResponse>(
         1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'join',
         subBuilder: JoinResponse.create)
@@ -325,15 +327,18 @@ class SignalResponse extends $pb.GeneratedMessage {
     ..aOM<TrackPublishedResponse>(
         6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackPublished',
         subBuilder: TrackPublishedResponse.create)
-    ..aOM<$0.ActiveSpeakerUpdate>(
-        7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
-        subBuilder: $0.ActiveSpeakerUpdate.create)
     ..aOM<LeaveRequest>(
         8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'leave',
         subBuilder: LeaveRequest.create)
     ..aOM<MuteTrackRequest>(
         9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mute',
         subBuilder: MuteTrackRequest.create)
+    ..aOM<SpeakersChanged>(
+        10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speakersChanged',
+        subBuilder: SpeakersChanged.create)
+    ..aOM<RoomUpdate>(
+        11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'roomUpdate',
+        subBuilder: RoomUpdate.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -344,9 +349,10 @@ class SignalResponse extends $pb.GeneratedMessage {
     TrickleRequest? trickle,
     ParticipantUpdate? update,
     TrackPublishedResponse? trackPublished,
-    $0.ActiveSpeakerUpdate? speaker,
     LeaveRequest? leave,
     MuteTrackRequest? mute,
+    SpeakersChanged? speakersChanged,
+    RoomUpdate? roomUpdate,
   }) {
     final _result = create();
     if (join != null) {
@@ -367,14 +373,17 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (trackPublished != null) {
       _result.trackPublished = trackPublished;
     }
-    if (speaker != null) {
-      _result.speaker = speaker;
-    }
     if (leave != null) {
       _result.leave = leave;
     }
     if (mute != null) {
       _result.mute = mute;
+    }
+    if (speakersChanged != null) {
+      _result.speakersChanged = speakersChanged;
+    }
+    if (roomUpdate != null) {
+      _result.roomUpdate = roomUpdate;
     }
     return _result;
   }
@@ -491,47 +500,61 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   TrackPublishedResponse ensureTrackPublished() => $_ensure(5);
 
-  @$pb.TagNumber(7)
-  $0.ActiveSpeakerUpdate get speaker => $_getN(6);
-  @$pb.TagNumber(7)
-  set speaker($0.ActiveSpeakerUpdate v) {
-    setField(7, v);
-  }
-
-  @$pb.TagNumber(7)
-  $core.bool hasSpeaker() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearSpeaker() => clearField(7);
-  @$pb.TagNumber(7)
-  $0.ActiveSpeakerUpdate ensureSpeaker() => $_ensure(6);
-
   @$pb.TagNumber(8)
-  LeaveRequest get leave => $_getN(7);
+  LeaveRequest get leave => $_getN(6);
   @$pb.TagNumber(8)
   set leave(LeaveRequest v) {
     setField(8, v);
   }
 
   @$pb.TagNumber(8)
-  $core.bool hasLeave() => $_has(7);
+  $core.bool hasLeave() => $_has(6);
   @$pb.TagNumber(8)
   void clearLeave() => clearField(8);
   @$pb.TagNumber(8)
-  LeaveRequest ensureLeave() => $_ensure(7);
+  LeaveRequest ensureLeave() => $_ensure(6);
 
   @$pb.TagNumber(9)
-  MuteTrackRequest get mute => $_getN(8);
+  MuteTrackRequest get mute => $_getN(7);
   @$pb.TagNumber(9)
   set mute(MuteTrackRequest v) {
     setField(9, v);
   }
 
   @$pb.TagNumber(9)
-  $core.bool hasMute() => $_has(8);
+  $core.bool hasMute() => $_has(7);
   @$pb.TagNumber(9)
   void clearMute() => clearField(9);
   @$pb.TagNumber(9)
-  MuteTrackRequest ensureMute() => $_ensure(8);
+  MuteTrackRequest ensureMute() => $_ensure(7);
+
+  @$pb.TagNumber(10)
+  SpeakersChanged get speakersChanged => $_getN(8);
+  @$pb.TagNumber(10)
+  set speakersChanged(SpeakersChanged v) {
+    setField(10, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasSpeakersChanged() => $_has(8);
+  @$pb.TagNumber(10)
+  void clearSpeakersChanged() => clearField(10);
+  @$pb.TagNumber(10)
+  SpeakersChanged ensureSpeakersChanged() => $_ensure(8);
+
+  @$pb.TagNumber(11)
+  RoomUpdate get roomUpdate => $_getN(9);
+  @$pb.TagNumber(11)
+  set roomUpdate(RoomUpdate v) {
+    setField(11, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasRoomUpdate() => $_has(9);
+  @$pb.TagNumber(11)
+  void clearRoomUpdate() => clearField(11);
+  @$pb.TagNumber(11)
+  RoomUpdate ensureRoomUpdate() => $_ensure(9);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -1558,4 +1581,118 @@ class ICEServer extends $pb.GeneratedMessage {
   $core.bool hasCredential() => $_has(2);
   @$pb.TagNumber(3)
   void clearCredential() => clearField(3);
+}
+
+class SpeakersChanged extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SpeakersChanged',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<$0.SpeakerInfo>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speakers',
+        $pb.PbFieldType.PM,
+        subBuilder: $0.SpeakerInfo.create)
+    ..hasRequiredFields = false;
+
+  SpeakersChanged._() : super();
+  factory SpeakersChanged({
+    $core.Iterable<$0.SpeakerInfo>? speakers,
+  }) {
+    final _result = create();
+    if (speakers != null) {
+      _result.speakers.addAll(speakers);
+    }
+    return _result;
+  }
+  factory SpeakersChanged.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SpeakersChanged.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SpeakersChanged clone() => SpeakersChanged()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SpeakersChanged copyWith(void Function(SpeakersChanged) updates) =>
+      super.copyWith((message) => updates(message as SpeakersChanged))
+          as SpeakersChanged; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SpeakersChanged create() => SpeakersChanged._();
+  SpeakersChanged createEmptyInstance() => create();
+  static $pb.PbList<SpeakersChanged> createRepeated() => $pb.PbList<SpeakersChanged>();
+  @$core.pragma('dart2js:noInline')
+  static SpeakersChanged getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakersChanged>(create);
+  static SpeakersChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$0.SpeakerInfo> get speakers => $_getList(0);
+}
+
+class RoomUpdate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RoomUpdate',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<$0.Room>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'room',
+        subBuilder: $0.Room.create)
+    ..hasRequiredFields = false;
+
+  RoomUpdate._() : super();
+  factory RoomUpdate({
+    $0.Room? room,
+  }) {
+    final _result = create();
+    if (room != null) {
+      _result.room = room;
+    }
+    return _result;
+  }
+  factory RoomUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RoomUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  RoomUpdate clone() => RoomUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  RoomUpdate copyWith(void Function(RoomUpdate) updates) =>
+      super.copyWith((message) => updates(message as RoomUpdate))
+          as RoomUpdate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RoomUpdate create() => RoomUpdate._();
+  RoomUpdate createEmptyInstance() => create();
+  static $pb.PbList<RoomUpdate> createRepeated() => $pb.PbList<RoomUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static RoomUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RoomUpdate>(create);
+  static RoomUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.Room get room => $_getN(0);
+  @$pb.TagNumber(1)
+  set room($0.Room v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasRoom() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRoom() => clearField(1);
+  @$pb.TagNumber(1)
+  $0.Room ensureRoom() => $_ensure(0);
 }

@@ -1,6 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
-import 'package:meta/meta.dart';
 
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
@@ -8,6 +6,7 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'track/remote_track_publication.dart';
 import 'track/track.dart';
+import 'track/track_publication.dart';
 import 'types.dart';
 
 abstract class LiveKitEvent {}
@@ -107,14 +106,6 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.track,
     required this.publication,
-  });
-}
-
-@internal
-class ParticipantInfoUpdatedEvent with ParticipantEvent {
-  final RemoteParticipant participant;
-  const ParticipantInfoUpdatedEvent({
-    required this.participant,
   });
 }
 
@@ -226,12 +217,12 @@ class EngineReconnectedEvent with EngineEvent {
   const EngineReconnectedEvent();
 }
 
-class EngineParticipantUpdateEvent with EngineEvent {
-  final List<lk_models.ParticipantInfo> participants;
-  const EngineParticipantUpdateEvent({
-    required this.participants,
-  });
-}
+// class EngineParticipantUpdateEvent with EngineEvent {
+//   final List<lk_models.ParticipantInfo> participants;
+//   const EngineParticipantUpdateEvent({
+//     required this.participants,
+//   });
+// }
 
 class EngineTrackAddedEvent with EngineEvent {
   final rtc.MediaStreamTrack track;
@@ -241,13 +232,6 @@ class EngineTrackAddedEvent with EngineEvent {
     required this.track,
     required this.stream,
     required this.receiver,
-  });
-}
-
-class EngineSpeakersUpdateEvent with EngineEvent {
-  final List<lk_models.SpeakerInfo> speakers;
-  const EngineSpeakersUpdateEvent({
-    required this.speakers,
   });
 }
 
@@ -363,10 +347,11 @@ class SignalTrickleEvent with SignalEvent {
   });
 }
 
-class SignalParticipantUpdateEvent with SignalEvent {
-  final List<lk_models.ParticipantInfo> updates;
+// relayed by Engine
+class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
+  final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
-    required this.updates,
+    required this.participants,
   });
 }
 
@@ -379,9 +364,19 @@ class SignalLocalTrackPublishedEvent with SignalEvent {
   });
 }
 
-class SignalActiveSpeakersChangedEvent with SignalEvent {
+// speaker update received through websocket
+// relayed by Engine
+class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
-  const SignalActiveSpeakersChangedEvent({
+  const SignalSpeakersChangedEvent({
+    required this.speakers,
+  });
+}
+
+// Event received through data channel
+class EngineActiveSpeakersUpdateEvent with EngineEvent {
+  final List<lk_models.SpeakerInfo> speakers;
+  const EngineActiveSpeakersUpdateEvent({
     required this.speakers,
   });
 }
