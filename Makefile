@@ -10,4 +10,7 @@ proto:
 	fi \
 	}
 
-.PHONY: proto
+format:
+	flutter format --set-exit-if-changed -l 100 .
+
+.PHONY: proto format
