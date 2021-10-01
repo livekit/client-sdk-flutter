@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.5.0
+
+* major update with new event system
+* supports simulcast for iOS
+* support for background audio for iOS
+* support for protocol 3, subscriber as primary connection
+* improved audio management for iOS, mic indicator only when audio tracks published
+* fires TrackUnpublished for local tracks
+* fixed occasional crashes during publishing
+
 ## 0.4.1
 
 * fixed video rendering blank after widget changes

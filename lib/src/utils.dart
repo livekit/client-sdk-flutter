@@ -6,6 +6,7 @@ import 'extensions.dart';
 import 'options.dart';
 import 'track/options.dart';
 import 'types.dart';
+import 'version.dart';
 
 extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
@@ -33,9 +34,12 @@ class Utils {
       path: validate ? 'validate' : 'rtc',
       queryParameters: <String, String>{
         'access_token': token,
-        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        if (options != null)
+          'auto_subscribe': options.autoSubscribe ? '1' : '0',
         if (reconnect) 'reconnect': '1',
         'protocol': protocol.toStringValue(),
+        'sdk': 'flutter',
+        'version': clientVersion,
       },
     );
   }
@@ -45,7 +49,9 @@ class Utils {
     int height,
   ) {
     final double aspect = width / height;
-    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) return VideoParameters.presets169;
+    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) {
+      return VideoParameters.presets169;
+    }
     return VideoParameters.presets43;
   }
 
@@ -72,7 +78,9 @@ class Utils {
 
     VideoEncoding? videoEncoding = options.videoEncoding;
 
-    if ((videoEncoding == null && !options.simulcast) || width == null || height == null) {
+    if ((videoEncoding == null && !options.simulcast) ||
+        width == null ||
+        height == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return null;
