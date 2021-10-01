@@ -10,7 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  async: ^2.8.1
+  collection: ^1.15.0
+  fixnum: ^1.0.0
+  meta: ^1.7.0
   http: ^0.13.3
   logging: ^1.0.2
   uuid: ^3.0.4
