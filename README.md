@@ -122,8 +122,8 @@ Audio tracks are rendered automatically as long as you are subscribed to them.
 
 LiveKit client makes it simple to build declarative UI that reacts to state changes. It notifies changes in two ways
 
-* `ChangeNotifier` - generic notification of changes
-* `RoomDelegate` and `ParticipantDelegate` - notification of specific events.
+* `ChangeNotifier` - generic notification of changes. This is useful when you are building reactive UI and only care about changes that may impact rendering.
+* `EventsListener<Event>` - listener pattern to listen to specific events (see [events.dart](https://github.com/livekit/client-sdk-flutter/blob/main/lib/src/events.dart)).
 
 This example will show you how to use both to react to room events.
 
@@ -139,17 +139,30 @@ class RoomWidget extends StatefulWidget {
   }
 }
 
-class _RoomState extends State<RoomWidget> with RoomDelegate {
+class _RoomState extends State<RoomWidget> {
+  late final EventsListener<RoomEvent> _listener = widget.room.createListener();
+
   @override
   void initState() {
     super.initState();
-    widget.room.delegate = this;
+    // used for generic change updates
     widget.room.addListener(_onChange);
+
+    // used for specific events
+    _listener
+      ..on<RoomDisconnectedEvent>((_) {
+        // handle disconnect
+      })
+      ..on<ParticipantConnectedEvent>((e) {
+        print("participant joined: ${e.participant.identity}");
+      })
   }
 
   @override
   void dispose() {
-    widget.room.delegate = null;
+    // be sure to dispose listener to stop listening to further updates
+    _listener.dispose();
+    widget.room.removeListener(_onChange);
     super.dispose();
   }
 
@@ -159,11 +172,6 @@ class _RoomState extends State<RoomWidget> with RoomDelegate {
     setState(() {
       // your updates here
     });
-  }
-
-  @override
-  void onDisconnected() {
-    // onDisconnected is a RoomDelegate method, handle when disconnected from room
   }
 
   @override
@@ -187,7 +195,7 @@ class VideoView extends StatefulWidget {
   }
 }
 
-class _VideoViewState extends State<VideoView> with ParticipantDelegate {
+class _VideoViewState extends State<VideoView> {
   TrackPublication? videoPub;
 
   @override
