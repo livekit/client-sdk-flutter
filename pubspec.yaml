@@ -15,14 +15,8 @@ dependencies:
   logging: ^1.0.2
   uuid: ^3.0.4
   synchronized: ^3.0.0
-  protobuf: ^2.0.0
- 
-  flutter_webrtc:
-    # This will use custom webrtc build from
-    # https://github.com/webrtc-sdk/Specs/releases
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc
-      ref: master
+  protobuf: ^2.0.0 
+  flutter_webrtc: ^0.6.9
 
 dev_dependencies:
   flutter_test:
