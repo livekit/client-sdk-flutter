@@ -47,11 +47,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _unpublishAll() async {
     final result = await context.showUnPublishDialog();
-    if (result == true) {
-      await participant.unpublishAllTracks();
-      // Force to update UI for now
-      participant.notifyListeners();
-    }
+    if (result == true) await participant.unpublishAllTracks();
   }
 
   void _muteAudio() {
