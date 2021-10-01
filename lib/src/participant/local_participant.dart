@@ -151,14 +151,11 @@ class LocalParticipant extends Participant {
 
   /// Unpublish a track that's already published
   @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
+  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub is! LocalTrackPublication) return;
 
-    // final existing = tracks.values.where((element) => element.track == track);
-    // if (existing.isEmpty) return;
-    // final pub = existing.first;
     final track = pub.track;
     if (track != null) {
       await track.stop();
@@ -177,6 +174,13 @@ class LocalParticipant extends Participant {
           await engine.negotiate();
         }
       }
+    }
+
+    if (notify) {
+      [events, roomEvents].emit(TrackUnpublishedEvent(
+        participant: this,
+        publication: pub,
+      ));
     }
   }
 

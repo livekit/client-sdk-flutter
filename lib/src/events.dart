@@ -83,8 +83,8 @@ class TrackPublishedEvent with RoomEvent, ParticipantEvent {
 /// The participant has unpublished one of their [Track].
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
-  final RemoteTrackPublication publication;
+  final Participant participant;
+  final TrackPublication publication;
   const TrackUnpublishedEvent({
     required this.participant,
     required this.publication,

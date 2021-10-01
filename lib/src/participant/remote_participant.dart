@@ -152,7 +152,7 @@ class RemoteParticipant extends Participant {
   }
 
   @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = false}) async {
+  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub is! RemoteTrackPublication) return;
@@ -166,10 +166,6 @@ class RemoteParticipant extends Participant {
         track: track,
         publication: pub,
       ));
-
-      // if (track is AudioTrack) {
-      //   await AudioManager().decrementSubscriptionCounter();
-      // }
     }
 
     if (notify) {
