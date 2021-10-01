@@ -1,6 +1,6 @@
 name: livekit_client
 description: Flutter Client SDK for LiveKit
-version: 0.4.1
+version: 0.5.0
 homepage: https://livekit.io
 
 environment:
@@ -10,13 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   http: ^0.13.3
   logging: ^1.0.2
   uuid: ^3.0.4
   synchronized: ^3.0.0
-  protobuf: ^2.0.0 
-  flutter_webrtc: ^0.6.9
+  protobuf: ^2.0.0
+  flutter_webrtc: ^0.6.10
 
 dev_dependencies:
   flutter_test:
