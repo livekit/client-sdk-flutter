@@ -68,10 +68,6 @@ class ActiveSpeakersChangedEvent with RoomEvent {
   });
 }
 
-class AudioPlaybackChangedEvent with RoomEvent {
-  const AudioPlaybackChangedEvent();
-}
-
 /// When a new [Track] is published to [Room] *after* the current participant has
 /// joined. It will not fire for tracks that are already published.
 /// Emitted by [Room] and [RemoteParticipant].
@@ -87,8 +83,8 @@ class TrackPublishedEvent with RoomEvent, ParticipantEvent {
 /// The participant has unpublished one of their [Track].
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
-  final RemoteTrackPublication publication;
+  final Participant participant;
+  final TrackPublication publication;
   const TrackUnpublishedEvent({
     required this.participant,
     required this.publication,
@@ -217,13 +213,6 @@ class EngineReconnectedEvent with EngineEvent {
   const EngineReconnectedEvent();
 }
 
-// class EngineParticipantUpdateEvent with EngineEvent {
-//   final List<lk_models.ParticipantInfo> participants;
-//   const EngineParticipantUpdateEvent({
-//     required this.participants,
-//   });
-// }
-
 class EngineTrackAddedEvent with EngineEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream stream;
@@ -251,60 +240,6 @@ class EngineRemoteMuteChangedEvent with EngineEvent {
     required this.sid,
     required this.muted,
   });
-}
-
-// added
-abstract class EngineIceStateUpdatedEvent with EngineEvent {
-  final rtc.RTCIceConnectionState iceState;
-  final bool isPrimary;
-  const EngineIceStateUpdatedEvent({
-    required this.iceState,
-    required this.isPrimary,
-  });
-}
-
-class EngineSubscriberIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EngineSubscriberIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState state,
-    required bool isPrimary,
-  }) : super(
-          iceState: state,
-          isPrimary: isPrimary,
-        );
-}
-
-class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EnginePublisherIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState state,
-    required bool isPrimary,
-  }) : super(
-          iceState: state,
-          isPrimary: isPrimary,
-        );
-}
-
-//
-// Track events
-//
-
-class TrackMessageEvent with TrackEvent {
-  const TrackMessageEvent();
-}
-
-class TrackUpdateSettingsEvent with TrackEvent {
-  const TrackUpdateSettingsEvent();
-}
-
-class TrackUpdateSubscriptionEvent with TrackEvent {
-  const TrackUpdateSubscriptionEvent();
-}
-
-class TrackAudioPlaybackStartedEvent with TrackEvent {
-  const TrackAudioPlaybackStartedEvent();
-}
-
-class TrackAudioPlaybackFailedEvent with TrackEvent {
-  const TrackAudioPlaybackFailedEvent();
 }
 
 //
