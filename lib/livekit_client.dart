@@ -1,8 +1,8 @@
 /// Flutter Client SDK to LiveKit.
 library livekit_client;
 
-export 'src/exceptions.dart';
 export 'src/events.dart';
+export 'src/exceptions.dart';
 export 'src/livekit.dart';
 export 'src/managers/event.dart';
 export 'src/options.dart';
@@ -21,5 +21,5 @@ export 'src/track/remote_track_publication.dart';
 export 'src/track/track.dart';
 export 'src/track/track_publication.dart';
 export 'src/track/video_track.dart';
-export 'src/types.dart' show RTCConfiguration, RTCIceServer, RTCIceTransportPolicy, Reliability;
+export 'src/types.dart';
 export 'src/widget/video_track_renderer.dart';
