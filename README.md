@@ -13,7 +13,7 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 | Feature | Subscribe/Publish | Simulcast | Background mode | Screen sharing |
 | :-----: | :---------------: | :-------: | :-------------: | :------------: |
 |   Web   |         🟢         |     🟢     |        🟢        |       🟢        |
-|   iOS   |         🟢         |     🟡     |        🟡        |       🔴        |
+|   iOS   |         🟢         |     🟢     |        🟢        |       🔴        |
 | Android |         🟢         |     🟡     |        🟡        |       🔴        |
 
 🟢 = Available
