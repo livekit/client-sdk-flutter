@@ -34,7 +34,8 @@ class Utils {
       path: validate ? 'validate' : 'rtc',
       queryParameters: <String, String>{
         'access_token': token,
-        if (options != null) 'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        if (options != null)
+          'auto_subscribe': options.autoSubscribe ? '1' : '0',
         if (reconnect) 'reconnect': '1',
         'protocol': protocol.toStringValue(),
         'sdk': 'flutter',
@@ -77,7 +78,9 @@ class Utils {
 
     VideoEncoding? videoEncoding = options.videoEncoding;
 
-    if ((videoEncoding == null && !options.simulcast) || width == null || height == null) {
+    if ((videoEncoding == null && !options.simulcast) ||
+        width == null ||
+        height == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return null;

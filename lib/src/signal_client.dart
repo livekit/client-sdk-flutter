@@ -76,7 +76,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200) throw ConnectException(validateResponse.body);
+        if (validateResponse.statusCode != 200)
+          throw ConnectException(validateResponse.body);
         throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
@@ -126,15 +127,19 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   //   await close();
   // }
 
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendOffer(rtc.RTCSessionDescription offer) =>
+      _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
       ));
 
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer) =>
+      _sendRequest(lk_rtc.SignalRequest(
         answer: answer.toSDKType(),
       ));
 
-  void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
+  void sendIceCandidate(
+          rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) =>
+      _sendRequest(
         lk_rtc.SignalRequest(
           trickle: lk_rtc.TrickleRequest(
             candidateInit: candidate.toJson(),
@@ -143,7 +148,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ),
       );
 
-  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(lk_rtc.SignalRequest(
+  void sendMuteTrack(String trackSid, bool muted) =>
+      _sendRequest(lk_rtc.SignalRequest(
         mute: lk_rtc.MuteTrackRequest(
           sid: trackSid,
           muted: muted,
@@ -180,7 +186,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         subscription: subscription,
       ));
 
-  void sendSetSimulcastLayers(String trackSid, List<lk_rtc.VideoQuality> layers) =>
+  void sendSetSimulcastLayers(
+          String trackSid, List<lk_rtc.VideoQuality> layers) =>
       _sendRequest(lk_rtc.SignalRequest(
         simulcast: lk_rtc.SetSimulcastLayers(
           trackSid: trackSid,
@@ -194,7 +201,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   void _sendRequest(lk_rtc.SignalRequest req) {
     if (_ws == null || isDisposed) {
-      logger.warning('[$objectId] Could not send message, not connected or already disposed');
+      logger.warning(
+          '[$objectId] Could not send message, not connected or already disposed');
       return;
     }
 
@@ -226,7 +234,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
+        events.emit(SignalParticipantUpdateEvent(
+            participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -235,7 +244,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.speakersChanged:
-        events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        events.emit(
+            SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));

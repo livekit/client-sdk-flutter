@@ -33,7 +33,8 @@ abstract class Track extends DisposableChangeNotifier {
     this.mediaStreamTrack,
   );
 
-  bool get muted => mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
+  bool get muted =>
+      mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {

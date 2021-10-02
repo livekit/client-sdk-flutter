@@ -50,7 +50,8 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
     //
-    final firstAudio = widget.participant.audioTracks.firstWhereOrNull((pub) => pub.subscribed);
+    final firstAudio = widget.participant.audioTracks
+        .firstWhereOrNull((pub) => pub.subscribed);
     final firstVideo = widget.participant.videoTracks
         .firstWhereOrNull((pub) => !pub.isScreenShare && pub.subscribed);
 

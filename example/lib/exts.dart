@@ -24,7 +24,8 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('UnPublish'),
-          content: const Text('Would you like to un-publish your Camera & Mic ?'),
+          content:
+              const Text('Would you like to un-publish your Camera & Mic ?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -92,7 +93,8 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Send data'),
-          content: const Text('This will send a sample data to all participants in the room'),
+          content: const Text(
+              'This will send a sample data to all participants in the room'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),

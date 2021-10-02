@@ -9,12 +9,15 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  flutter_web_plugins:
+    sdk: flutter
   flutter:
     sdk: flutter
   async: ^2.8.1
   collection: ^1.15.0
   fixnum: ^1.0.0
   meta: ^1.7.0
+
   http: ^0.13.3
   logging: ^1.0.2
   uuid: ^3.0.4
@@ -32,3 +35,9 @@ flutter:
     platforms:
       ios:
         pluginClass: LiveKitPlugin
+      android:
+        package: io.livekit.plugin
+        pluginClass: LiveKitPlugin
+      web:
+        pluginClass: LiveKitWebPlugin
+        fileName: livekit_client_web.dart

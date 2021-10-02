@@ -20,7 +20,8 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
+abstract class Participant extends DisposableChangeNotifier
+    with EventsEmittable<ParticipantEvent> {
   /// map of track sid => published track
   final trackPublications = <String, TrackPublication>{};
 
@@ -49,7 +50,8 @@ abstract class Participant extends DisposableChangeNotifier with EventsEmittable
   DateTime get joinedAt {
     final pi = _participantInfo;
     if (pi != null) {
-      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000, isUtc: true);
+      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
+          isUtc: true);
     }
     return DateTime.now();
   }
@@ -160,9 +162,11 @@ abstract class Participant extends DisposableChangeNotifier with EventsEmittable
 
 // Convenience extension
 extension ParticipantExt on Participant {
-  List<TrackPublication> get videoTracks =>
-      trackPublications.values.where((e) => e.kind == lk_models.TrackType.VIDEO).toList();
+  List<TrackPublication> get videoTracks => trackPublications.values
+      .where((e) => e.kind == lk_models.TrackType.VIDEO)
+      .toList();
 
-  List<TrackPublication> get audioTracks =>
-      trackPublications.values.where((e) => e.kind == lk_models.TrackType.AUDIO).toList();
+  List<TrackPublication> get audioTracks => trackPublications.values
+      .where((e) => e.kind == lk_models.TrackType.AUDIO)
+      .toList();
 }

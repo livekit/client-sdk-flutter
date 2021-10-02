@@ -26,5 +26,6 @@ class TrackPublishOptions {
   });
 
   @override
-  String toString() => '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
+  String toString() =>
+      '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }

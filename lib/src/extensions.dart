@@ -28,7 +28,8 @@ extension ICEServerExt on lk_rtc.ICEServer {
 }
 
 extension IterableExt<E> on Iterable<E> {
-  E? elementAtOrNull(int index) => (index >= 0 && index < length) ? elementAt(index) : null;
+  E? elementAtOrNull(int index) =>
+      (index >= 0 && index < length) ? elementAt(index) : null;
 }
 
 extension ObjectExt on Object {

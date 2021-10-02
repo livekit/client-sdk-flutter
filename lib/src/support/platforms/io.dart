@@ -37,7 +37,8 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
   void send(List<int> data) {
     // 0 CONNECTING, 1 OPEN, 2 CLOSING, 3 CLOSED
     if (_ws.readyState != 1) {
-      logger.fine('[$objectId] Tried to send data (readyState: ${_ws.readyState})');
+      logger.fine(
+          '[$objectId] Tried to send data (readyState: ${_ws.readyState})');
       return;
     }
 

@@ -72,8 +72,10 @@ class RTCConfiguration {
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
-      if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
-      if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
+      if (iceCandidatePoolSize != null)
+        'iceCandidatePoolSize': iceCandidatePoolSize,
+      if (iceTransportPolicy != null)
+        'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
     };
   }
 

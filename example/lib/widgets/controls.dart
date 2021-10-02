@@ -89,7 +89,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _toggleCamera() async {
     //
-    final track = participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
+    final track =
+        participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
     if (track == null) return;
 
     try {
@@ -113,7 +114,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
 
     try {
-      final screenTrack = await LocalVideoTrack.createScreenTrack(); // Defaults to camera
+      final screenTrack =
+          await LocalVideoTrack.createScreenTrack(); // Defaults to camera
       await widget.room.localParticipant.publishVideoTrack(
         screenTrack,
       );
@@ -177,7 +179,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             icon: const Icon(EvaIcons.videoOff),
           ),
         IconButton(
-          icon: Icon(position == CameraPosition.back ? EvaIcons.camera : EvaIcons.person),
+          icon: Icon(position == CameraPosition.back
+              ? EvaIcons.camera
+              : EvaIcons.person),
           onPressed: () => _toggleCamera(),
         ),
         IconButton(

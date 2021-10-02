@@ -29,7 +29,8 @@ abstract class TrackPublication extends Disposable {
   }
 
   /// True when the track is published with name [Track.screenShareName].
-  bool get isScreenShare => kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
+  bool get isScreenShare =>
+      kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     muted = info.muted;
@@ -45,5 +46,6 @@ abstract class TrackPublication extends Disposable {
   int get hashCode => sid.hashCode;
 
   @override
-  bool operator ==(Object other) => other is TrackPublication && sid == other.sid;
+  bool operator ==(Object other) =>
+      other is TrackPublication && sid == other.sid;
 }
