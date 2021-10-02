@@ -11,7 +11,8 @@ class ConnectException extends LiveKitException {
 }
 
 class UnexpectedStateException extends LiveKitException {
-  UnexpectedStateException([String msg = 'Unexpected connection state']) : super._(msg);
+  UnexpectedStateException([String msg = 'Unexpected connection state'])
+      : super._(msg);
 }
 
 class TrackCreateException extends LiveKitException {
@@ -19,7 +20,8 @@ class TrackCreateException extends LiveKitException {
 }
 
 class TrackPublishException extends LiveKitException {
-  TrackPublishException([String msg = 'Failed to publish track']) : super._(msg);
+  TrackPublishException([String msg = 'Failed to publish track'])
+      : super._(msg);
 }
 
 class DataPublishException extends LiveKitException {

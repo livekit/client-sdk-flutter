@@ -28,7 +28,8 @@ class CameraTrackOptions extends LocalVideoTrackOptions {
   @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         ...super.toMediaConstraintsMap(),
-        'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
+        'facingMode':
+            cameraPosition == CameraPosition.front ? 'user' : 'environment',
       };
 
   // Returns new options with updated properties
@@ -70,7 +71,8 @@ class VideoEncoding {
   });
 
   @override
-  String toString() => '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
+  String toString() =>
+      '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
 }
 
 extension VideoEncodingExt on VideoEncoding {

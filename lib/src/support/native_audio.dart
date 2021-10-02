@@ -87,11 +87,13 @@ class NativeAudioConfiguration {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (appleAudioCategory != null) 'appleAudioCategory': appleAudioCategory!.toStringValue(),
+        if (appleAudioCategory != null)
+          'appleAudioCategory': appleAudioCategory!.toStringValue(),
         if (appleAudioCategoryOptions != null)
           'appleAudioCategoryOptions':
               appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
-        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
+        if (appleAudioMode != null)
+          'appleAudioMode': appleAudioMode!.toStringValue(),
       };
 
   NativeAudioConfiguration copyWith({
@@ -101,14 +103,16 @@ class NativeAudioConfiguration {
   }) =>
       NativeAudioConfiguration(
         appleAudioCategory: appleAudioCategory ?? this.appleAudioCategory,
-        appleAudioCategoryOptions: appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
+        appleAudioCategoryOptions:
+            appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
         appleAudioMode: appleAudioMode ?? this.appleAudioMode,
       );
 }
 
 const _lkMethodChannel = MethodChannel('livekit_client');
 
-Future<bool> configureNativeAudio(NativeAudioConfiguration configuration) async {
+Future<bool> configureNativeAudio(
+    NativeAudioConfiguration configuration) async {
   try {
     final result = await _lkMethodChannel.invokeMethod<bool>(
       'configureNativeAudio',

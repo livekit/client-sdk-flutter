@@ -65,7 +65,8 @@ class _ConnectPageState extends State<ConnectPage> {
       // Save for next time
       await _writePrefs();
 
-      print('Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
+      print(
+          'Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
 
       final room = await LiveKitClient.connect(
         _uriCtrl.text,
@@ -113,7 +114,8 @@ class _ConnectPageState extends State<ConnectPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Theme.of(context).colorScheme.secondary),
+              border:
+                  Border.all(color: Theme.of(context).colorScheme.secondary),
             ),
             constraints: const BoxConstraints(
               maxWidth: 320,

@@ -47,8 +47,10 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
   ]) async {
     final completer = Completer<LiveKitWebSocketWeb>();
     final ws = html.WebSocket(uri.toString());
-    ws.onOpen.listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
-    ws.onError.listen((_) => completer.completeError(WebSocketException.connect()));
+    ws.onOpen
+        .listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
+    ws.onError
+        .listen((_) => completer.completeError(WebSocketException.connect()));
     return completer.future;
   }
 }

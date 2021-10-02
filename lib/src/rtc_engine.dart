@@ -74,7 +74,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   }) : signalClient = signalClient ?? SignalClient() {
     if (kDebugMode) {
       // log all EngineEvents
-      events.listen((event) => logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
+      events.listen((event) =>
+          logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
     }
 
     _setUpListeners();
@@ -137,7 +138,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     TrackDimension? dimension,
   }) async {
     // send request to add track
-    signalClient.sendAddTrack(cid: cid, name: name, type: kind, dimension: dimension);
+    signalClient.sendAddTrack(
+        cid: cid, name: name, type: kind, dimension: dimension);
 
     // wait for response, or timeout
     final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
@@ -165,11 +167,13 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     // make sure we do have a data connection
     await _ensurePublisherConnected();
 
-    final dcMessage = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+    final dcMessage =
+        rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
     if (packet.kind == lk_models.DataPacket_Kind.LOSSY && _lossyDC != null) {
       await _lossyDC?.send(dcMessage);
-    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE && _reliableDC != null) {
+    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE &&
+        _reliableDC != null) {
       await _reliableDC?.send(dcMessage);
     }
   }
@@ -231,7 +235,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       // await negotiate(iceRestart: true);
       if (_hasPublished) {
         logger.fine('reconnect: publisher.createAndSendOffer');
-        await publisher!.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+        await publisher!
+            .createAndSendOffer(const RTCOfferOptions(iceRestart: true));
       }
 
       if (!(primary?.pc.iceConnectionState?.isConnected() ?? false)) {
@@ -263,9 +268,11 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
     RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
-    if ((rtcConfig?.iceServers?.isEmpty ?? true) && _providedIceServers.isNotEmpty) {
+    if ((rtcConfig?.iceServers?.isEmpty ?? true) &&
+        _providedIceServers.isNotEmpty) {
       final iceServers = _providedIceServers.map((e) => e.toSDKType()).toList();
-      config = (rtcConfig ?? const RTCConfiguration()).copyWith(iceServers: iceServers);
+      config = (rtcConfig ?? const RTCConfiguration())
+          .copyWith(iceServers: iceServers);
     }
 
     publisher = await PCTransport.create(config);
@@ -297,16 +304,18 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
               isPrimary: _subscriberPrimary,
             ));
 
-    publisher?.pc.onIceConnectionState = (state) => events.emit(EnginePublisherIceStateUpdatedEvent(
-          state: state,
-          isPrimary: !_subscriberPrimary,
-        ));
+    publisher?.pc.onIceConnectionState =
+        (state) => events.emit(EnginePublisherIceStateUpdatedEvent(
+              state: state,
+              isPrimary: !_subscriberPrimary,
+            ));
 
     events.on<EngineIceStateUpdatedEvent>((event) {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
-      if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+      if (event.iceState ==
+          rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         if (!_iceConnected) {
           _iceConnected = true;
           if (_connectionState == ConnectionState.reconnecting) {
@@ -315,7 +324,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
             events.emit(const EngineConnectedEvent());
           }
         }
-      } else if (event.iceState == rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
+      } else if (event.iceState ==
+          rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
         // trigger reconnect sequence
         if (_iceConnected) {
           _iceConnected = false;
@@ -345,7 +355,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
         ..binaryType = 'binary'
         ..ordered = true
         ..maxRetransmits = 0;
-      _lossyDC = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
+      _lossyDC =
+          await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
       _lossyDC?.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
@@ -355,7 +366,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       final reliableInit = rtc.RTCDataChannelInit()
         ..binaryType = 'binary'
         ..ordered = true;
-      _reliableDC = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+      _reliableDC =
+          await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
       _reliableDC?.onMessage = _onDCMessage;
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
@@ -390,7 +402,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
-      events.emit(EngineActiveSpeakersUpdateEvent(speakers: dp.speaker.speakers));
+      events
+          .emit(EngineActiveSpeakersUpdateEvent(speakers: dp.speaker.speakers));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
       events.emit(EngineDataPacketReceivedEvent(
@@ -409,13 +422,15 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('[$objectId] Disconnected $reason');
 
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      logger.info('[$objectId] Could not connect after ${_reconnectAttempts} attempts, giving up');
+      logger.info(
+          '[$objectId] Could not connect after ${_reconnectAttempts} attempts, giving up');
       await close();
       events.emit(const EngineDisconnectedEvent());
       return;
     }
 
-    final delay = Duration(milliseconds: (_reconnectAttempts * _reconnectAttempts) * 300);
+    final delay =
+        Duration(milliseconds: (_reconnectAttempts * _reconnectAttempts) * 300);
 
     // if this instance is disposed, we probably don't want to continue any more
     // so the whole block will be canceled from being executed
@@ -483,7 +498,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
-        logger.warning('Received ${SignalTrickleEvent} but publisher or subscriber was null.');
+        logger.warning(
+            'Received ${SignalTrickleEvent} but publisher or subscriber was null.');
         return;
       }
       logger.fine('got ICE candidate from peer');
@@ -501,8 +517,9 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       await close();
       events.emit(const EngineDisconnectedEvent());
     })
-    ..on<SignalMuteTrackEvent>((event) => events.emit(EngineRemoteMuteChangedEvent(
-          sid: event.sid,
-          muted: event.muted,
-        )));
+    ..on<SignalMuteTrackEvent>(
+        (event) => events.emit(EngineRemoteMuteChangedEvent(
+              sid: event.sid,
+              muted: event.muted,
+            )));
 }

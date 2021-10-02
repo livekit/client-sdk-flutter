@@ -50,7 +50,8 @@ class _RoomPageState extends State<RoomPage> {
 
   void _setUpListeners() => _listener
     ..on<RoomDisconnectedEvent>((_) async {
-      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+      WidgetsBinding.instance
+          ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
     })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';
@@ -120,7 +121,8 @@ class _RoomPageState extends State<RoomPage> {
       }
 
       // joinedAt
-      return a.joinedAt.millisecondsSinceEpoch - b.joinedAt.millisecondsSinceEpoch;
+      return a.joinedAt.millisecondsSinceEpoch -
+          b.joinedAt.millisecondsSinceEpoch;
     });
 
     if (participants.length > 1) {
@@ -138,8 +140,9 @@ class _RoomPageState extends State<RoomPage> {
         body: Column(
           children: [
             Expanded(
-                child:
-                    participants.isNotEmpty ? ParticipantWidget(participants.first) : Container()),
+                child: participants.isNotEmpty
+                    ? ParticipantWidget(participants.first)
+                    : Container()),
             SizedBox(
               height: 100,
               child: ListView.builder(
@@ -149,7 +152,8 @@ class _RoomPageState extends State<RoomPage> {
                   width: 100,
                   height: 100,
                   padding: const EdgeInsets.all(2),
-                  child: ParticipantWidget(participants[index + 1], quality: VideoQuality.LOW),
+                  child: ParticipantWidget(participants[index + 1],
+                      quality: VideoQuality.LOW),
                 ),
               ),
             ),

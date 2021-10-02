@@ -121,7 +121,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         options: options,
       );
 
-      logger.fine('Connected to LiveKit server, version: ${joinResponse.serverVersion}');
+      logger.fine(
+          'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
       // create Room first to listen to events
       room = Room._(
@@ -165,10 +166,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       events.emit(const RoomReconnectingEvent());
     })
     ..on<EngineDisconnectedEvent>((event) => _handleClose())
-    ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
+    ..on<SignalParticipantUpdateEvent>(
+        (event) => _onParticipantUpdateEvent(event.participants))
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
-    ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
+    ..on<SignalSpeakersChangedEvent>(
+        (event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
       final track = localParticipant.trackPublications[event.sid];
@@ -196,7 +199,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         [participant.roomEvents, participant.events].emit(event);
       } catch (exception) {
         // We don't want to pass up any exception so catch everything here.
-        logger.warning('Unknown exception on addSubscribedMediaTrack() ${exception}');
+        logger.warning(
+            'Unknown exception on addSubscribedMediaTrack() ${exception}');
       }
     });
 
@@ -212,7 +216,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await engine.reconnect();
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(String sid, lk_models.ParticipantInfo? info) {
+  RemoteParticipant _getOrCreateRemoteParticipant(
+      String sid, lk_models.ParticipantInfo? info) {
     RemoteParticipant? participant = _participants[sid];
     if (participant != null) {
       return participant;
@@ -267,7 +272,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
   }
 
-  Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
+  Future<void> _onParticipantUpdateEvent(
+      List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
@@ -326,7 +332,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // from data channel
   // updates are sent only when there's a change to speaker ordering
-  void _onEngineActiveSpeakersUpdateEvent(List<lk_models.SpeakerInfo> speakers) {
+  void _onEngineActiveSpeakersUpdateEvent(
+      List<lk_models.SpeakerInfo> speakers) {
     List<Participant> activeSpeakers = [];
 
     // localParticipant & remote participants

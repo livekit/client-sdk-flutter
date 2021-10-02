@@ -65,7 +65,8 @@ class RemoteParticipant extends Participant {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       // Wait for the metadata to arrive
       final event = await events.waitFor<TrackPublishedEvent>(
-        filter: (event) => event.participant == this && event.publication.sid == trackSid,
+        filter: (event) =>
+            event.participant == this && event.publication.sid == trackSid,
         duration: Timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
           participant: this,
@@ -78,7 +79,8 @@ class RemoteParticipant extends Participant {
     }
 
     // Check if track type is supported, throw if not.
-    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO].contains(pub.kind)) {
+    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO]
+        .contains(pub.kind)) {
       throw TrackSubscriptionExceptionEvent(
         participant: this,
         sid: trackSid,
@@ -145,7 +147,8 @@ class RemoteParticipant extends Participant {
 
     // unpublish any track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
-    final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
+    final removeSids =
+        trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await unpublishTrack(sid, notify: true);
     }

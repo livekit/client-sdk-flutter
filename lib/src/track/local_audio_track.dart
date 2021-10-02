@@ -14,9 +14,11 @@ class LocalAudioTrack extends AudioTrack {
   ) : super(name, track, stream);
 
   /// Creates a new audio track from the default audio input device.
-  static Future<LocalAudioTrack> create([LocalAudioTrackOptions? options]) async {
+  static Future<LocalAudioTrack> create(
+      [LocalAudioTrackOptions? options]) async {
     // TODO: have back up incase the options fail
-    final stream = await rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
+    final stream =
+        await rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
       // 'audio': <String, dynamic>{
       // 'echoCancellation': true,
       // 'noiseSuppression': true,

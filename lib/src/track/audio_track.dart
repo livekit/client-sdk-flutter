@@ -19,7 +19,8 @@ enum AudioTrackState {
   localAndRemote,
 }
 
-typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(AudioTrackState state);
+typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
+    AudioTrackState state);
 
 class AudioTrack extends Track {
   // it's possible to set custom function here to customize audio session configuration
@@ -102,11 +103,13 @@ class AudioTrack extends Track {
       NativeAudioConfiguration? config;
       if (!kIsWeb && Platform.isIOS) {
         // Only iOS for now...
-        config = await nativeAudioConfigurationForAudioTrackState.call(audioTrackState);
+        config = await nativeAudioConfigurationForAudioTrackState
+            .call(audioTrackState);
       }
 
       if (config != null) {
-        logger.fine('[$runtimeType] configuring for ${audioTrackState} using ${config}...');
+        logger.fine(
+            '[$runtimeType] configuring for ${audioTrackState} using ${config}...');
         try {
           await configureNativeAudio(config);
         } catch (error) {
@@ -129,7 +132,8 @@ class AudioTrack extends Track {
   }
 }
 
-Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(AudioTrackState state) async {
+Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
+    AudioTrackState state) async {
   //
   if (state == AudioTrackState.remoteOnly) {
     return NativeAudioConfiguration(

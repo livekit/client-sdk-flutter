@@ -20,8 +20,8 @@ const TrackType$json = const {
 };
 
 /// Descriptor for `TrackType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List trackTypeDescriptor =
-    $convert.base64Decode('CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
+final $typed_data.Uint8List trackTypeDescriptor = $convert.base64Decode(
+    'CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = const {
   '1': 'Room',
@@ -29,7 +29,13 @@ const Room$json = const {
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
     const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'empty_timeout', '3': 3, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    const {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '10': 'maxParticipants'},
+    const {
+      '1': 'max_participants',
+      '3': 4,
+      '4': 1,
+      '5': 13,
+      '10': 'maxParticipants'
+    },
     const {'1': 'creation_time', '3': 5, '4': 1, '5': 3, '10': 'creationTime'},
     const {'1': 'turn_password', '3': 6, '4': 1, '5': 9, '10': 'turnPassword'},
     const {
@@ -57,8 +63,8 @@ const Codec$json = const {
 };
 
 /// Descriptor for `Codec`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List codecDescriptor = $convert
-    .base64Decode('CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
+final $typed_data.Uint8List codecDescriptor = $convert.base64Decode(
+    'CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
 @$core.Deprecated('Use participantInfoDescriptor instead')
 const ParticipantInfo$json = const {
   '1': 'ParticipantInfo',
@@ -73,7 +79,14 @@ const ParticipantInfo$json = const {
       '6': '.livekit.ParticipantInfo.State',
       '10': 'state'
     },
-    const {'1': 'tracks', '3': 4, '4': 3, '5': 11, '6': '.livekit.TrackInfo', '10': 'tracks'},
+    const {
+      '1': 'tracks',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackInfo',
+      '10': 'tracks'
+    },
     const {'1': 'metadata', '3': 5, '4': 1, '5': 9, '10': 'metadata'},
     const {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
@@ -100,7 +113,14 @@ const TrackInfo$json = const {
   '1': 'TrackInfo',
   '2': const [
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
-    const {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackType', '10': 'type'},
+    const {
+      '1': 'type',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.TrackType',
+      '10': 'type'
+    },
     const {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'muted', '3': 4, '4': 1, '5': 8, '10': 'muted'},
     const {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
@@ -116,8 +136,23 @@ final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
 const DataPacket$json = const {
   '1': 'DataPacket',
   '2': const [
-    const {'1': 'kind', '3': 1, '4': 1, '5': 14, '6': '.livekit.DataPacket.Kind', '10': 'kind'},
-    const {'1': 'user', '3': 2, '4': 1, '5': 11, '6': '.livekit.UserPacket', '9': 0, '10': 'user'},
+    const {
+      '1': 'kind',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DataPacket.Kind',
+      '10': 'kind'
+    },
+    const {
+      '1': 'user',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UserPacket',
+      '9': 0,
+      '10': 'user'
+    },
     const {
       '1': 'speaker',
       '3': 3,
@@ -150,7 +185,14 @@ final $typed_data.Uint8List dataPacketDescriptor = $convert.base64Decode(
 const ActiveSpeakerUpdate$json = const {
   '1': 'ActiveSpeakerUpdate',
   '2': const [
-    const {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
+    const {
+      '1': 'speakers',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SpeakerInfo',
+      '10': 'speakers'
+    },
   ],
 };
 
@@ -174,9 +216,21 @@ final $typed_data.Uint8List speakerInfoDescriptor = $convert.base64Decode(
 const UserPacket$json = const {
   '1': 'UserPacket',
   '2': const [
-    const {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
     const {'1': 'payload', '3': 2, '4': 1, '5': 12, '10': 'payload'},
-    const {'1': 'destination_sids', '3': 3, '4': 3, '5': 9, '10': 'destinationSids'},
+    const {
+      '1': 'destination_sids',
+      '3': 3,
+      '4': 3,
+      '5': 9,
+      '10': 'destinationSids'
+    },
   ],
 };
 

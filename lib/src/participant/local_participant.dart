@@ -40,7 +40,8 @@ class LocalParticipant extends Participant {
 
   /// publish an audio track to the room
   Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
-    if (audioTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (audioTracks.any(
+        (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
@@ -82,7 +83,8 @@ class LocalParticipant extends Participant {
     LocalVideoTrack track, {
     TrackPublishOptions? options,
   }) async {
-    if (videoTracks.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (videoTracks.any(
+        (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
@@ -117,7 +119,8 @@ class LocalParticipant extends Participant {
       }
     }
 
-    logger.fine('Compute encodings with resolution: ${width}x${height}, options: ${options}');
+    logger.fine(
+        'Compute encodings with resolution: ${width}x${height}, options: ${options}');
 
     final encodings = Utils.computeVideoEncodings(
       width: width,
