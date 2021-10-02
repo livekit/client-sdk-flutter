@@ -1,4 +1,7 @@
 # CHANGELOG
+## 0.5.1
+
+* include plugins for Android and Web
 
 ## 0.5.0
 
