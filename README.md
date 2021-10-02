@@ -277,19 +277,6 @@ These controls are accessible on the `RemoteTrackPublication` object.
 
 For more info, see [Subscriber controls](https://docs.livekit.io/guides/room/receive#subscriber-controls).
 
-## Development
-
-The project is configured to lint with line length of 100. If using VS Code, set the following in your `settings.json`
-
-```json
-"dart.lineLength": 100,
-"[dart]": {
-  "editor.rulers": [
-    100
-  ]
-}
-```
-
 ## License
 
 Apache License 2.0
