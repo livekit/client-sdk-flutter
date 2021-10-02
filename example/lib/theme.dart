@@ -32,8 +32,9 @@ class LiveKitTheme {
             foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
             // backgroundColor: MaterialStateProperty.all<Color>(accentColor),
             backgroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.disabled))
+              if (states.contains(MaterialState.disabled)) {
                 return accentColor.withOpacity(0.5);
+              }
               return accentColor;
             }),
           ),

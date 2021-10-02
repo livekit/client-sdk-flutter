@@ -76,8 +76,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt Validation
       try {
         final validateResponse = await http.get(validateUri);
-        if (validateResponse.statusCode != 200)
+        if (validateResponse.statusCode != 200) {
           throw ConnectException(validateResponse.body);
+        }
         throw ConnectException();
       } catch (error) {
         // Pass it up if it's already a `ConnectError`
