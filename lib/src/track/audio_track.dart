@@ -140,7 +140,6 @@ Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
       appleAudioCategory: AppleAudioCategory.playback,
       appleAudioCategoryOptions: {
         AppleAudioCategoryOption.mixWithOthers,
-        // IosAudioCategoryOption.duckOthers,
       },
       appleAudioMode: AppleAudioMode.spokenAudio,
     );
@@ -153,9 +152,8 @@ Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
       appleAudioCategoryOptions: {
         AppleAudioCategoryOption.allowBluetooth,
         AppleAudioCategoryOption.mixWithOthers,
-        // IosAudioCategoryOption.duckOthers,
       },
-      appleAudioMode: AppleAudioMode.voiceChat,
+      appleAudioMode: AppleAudioMode.videoChat,
     );
   }
 
