@@ -30,9 +30,7 @@ jobs:
 
       # Upload docs to S3
       - name: S3 Upload
-        uses: ItsKarma/aws-cli@v1.70.0
-        with:
-          args: s3 cp doc/api s3://livekit-docs/client-sdk-flutter --recursive
+        run: aws s3 cp doc/api s3://livekit-docs/client-sdk-flutter --recursive
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
