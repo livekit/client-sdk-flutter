@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/utils.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -17,7 +19,7 @@ class VideoTrackRenderer extends StatefulWidget {
   VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-  }) : super(key: ValueKey(track.sid));
+  }) : super(key: ValueKey('VideoTrackRenderer-${track.sid}'));
 
   @override
   State<StatefulWidget> createState() => _VideoTrackRendererState();
@@ -26,10 +28,20 @@ class VideoTrackRenderer extends StatefulWidget {
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
   EventsListener<TrackEvent>? _listener;
+  // for visibility
+  VisibilityInfo? _visibilityInfo;
+  Function? _visibilityDidUpdate;
+  Function? _cancelDebounce;
 
   @override
   void initState() {
     super.initState();
+
+    _visibilityDidUpdate = Utils.createDebounceFunc(
+      _onShouldReportVisibilityChange,
+      cancelFunc: (func) => _cancelDebounce = func,
+      wait: const Duration(seconds: 2),
+    );
 
     (() async {
       await _renderer.initialize();
@@ -37,8 +49,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     })();
   }
 
+  void _onShouldReportVisibilityChange() {
+    final info = _visibilityInfo;
+    if (info == null) return;
+
+    // TODO: Report to engine to mute/unmute track
+
+    logger.fine('visibility changed for ${widget.objectId} '
+        'visibleFraction: ${info.visibleFraction}');
+  }
+
   @override
   void dispose() {
+    _cancelDebounce?.call();
     _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
@@ -63,10 +86,17 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   @override
-  Widget build(BuildContext context) => rtc.RTCVideoView(
-        _renderer,
-        mirror: widget.track is LocalVideoTrack,
-        filterQuality: FilterQuality.medium,
-        objectFit: widget.fit,
+  Widget build(BuildContext context) => VisibilityDetector(
+        key: ValueKey('VisibilityDetector-${widget.track.sid}'),
+        onVisibilityChanged: (VisibilityInfo info) {
+          _visibilityInfo = info;
+          _visibilityDidUpdate?.call();
+        },
+        child: rtc.RTCVideoView(
+          _renderer,
+          mirror: widget.track is LocalVideoTrack,
+          filterQuality: FilterQuality.medium,
+          objectFit: widget.fit,
+        ),
       );
 }
