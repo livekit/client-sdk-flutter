@@ -157,7 +157,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     _hasPublished = true;
-    publisher!.negotiate();
+    publisher!.negotiate(null);
   }
 
   /* @internal */

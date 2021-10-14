@@ -28,9 +28,7 @@ class VideoTrackRenderer extends StatefulWidget {
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
   EventsListener<TrackEvent>? _listener;
-  // for visibility
-  VisibilityInfo? _visibilityInfo;
-  Function? _visibilityDidUpdate;
+  Function(VisibilityInfo)? _visibilityDidUpdate;
   Function? _cancelDebounce;
 
   @override
@@ -49,9 +47,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     })();
   }
 
-  void _onShouldReportVisibilityChange() {
-    final info = _visibilityInfo;
-    if (info == null) return;
+  void _onShouldReportVisibilityChange(VisibilityInfo info) {
 
     // TODO: Report to engine to mute/unmute track
 
@@ -88,10 +84,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   Widget build(BuildContext context) => VisibilityDetector(
         key: ValueKey('VisibilityDetector-${widget.track.sid}'),
-        onVisibilityChanged: (VisibilityInfo info) {
-          _visibilityInfo = info;
-          _visibilityDidUpdate?.call();
-        },
+        onVisibilityChanged: (VisibilityInfo info) =>
+            _visibilityDidUpdate?.call(info),
         child: rtc.RTCVideoView(
           _renderer,
           mirror: widget.track is LocalVideoTrack,
