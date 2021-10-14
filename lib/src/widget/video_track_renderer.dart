@@ -27,13 +27,20 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
+  bool _rendererReady = false;
   EventsListener<TrackEvent>? _listener;
+  // for visibility detector
   Function(VisibilityInfo)? _visibilityDidUpdate;
   Function? _cancelDebounce;
+
+  Key get _keyForVisibilityDetector =>
+      ValueKey('VisibilityDetector-${widget.track.sid}');
 
   @override
   void initState() {
     super.initState();
+
+    logger.fine('[VideoTrackRenderer] initState');
 
     _visibilityDidUpdate = Utils.createDebounceFunc(
       _onShouldReportVisibilityChange,
@@ -44,20 +51,23 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     (() async {
       await _renderer.initialize();
       await _attach();
+      setState(() => _rendererReady = true);
     })();
   }
 
   void _onShouldReportVisibilityChange(VisibilityInfo info) {
-
     // TODO: Report to engine to mute/unmute track
 
     logger.fine('visibility changed for ${widget.objectId} '
-        'visibleFraction: ${info.visibleFraction}');
+        'visibleFraction: ${info.visibleFraction} '
+        'size: ${info.size}');
   }
 
   @override
   void dispose() {
+    logger.fine('[VideoTrackRenderer] dispose');
     _cancelDebounce?.call();
+    VisibilityDetectorController.instance.forget(_keyForVisibilityDetector);
     _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
@@ -75,22 +85,27 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   @override
-  Future<void> didUpdateWidget(covariant VideoTrackRenderer oldWidget) async {
+  void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
+    logger.fine('[VideoTrackRenderer] didUpdateWidget');
     super.didUpdateWidget(oldWidget);
     // TODO: re-attach only if needed
-    await _attach();
+    (() async {
+      await _attach();
+    })();
   }
 
   @override
-  Widget build(BuildContext context) => VisibilityDetector(
-        key: ValueKey('VisibilityDetector-${widget.track.sid}'),
-        onVisibilityChanged: (VisibilityInfo info) =>
-            _visibilityDidUpdate?.call(info),
-        child: rtc.RTCVideoView(
-          _renderer,
-          mirror: widget.track is LocalVideoTrack,
-          filterQuality: FilterQuality.medium,
-          objectFit: widget.fit,
-        ),
-      );
+  Widget build(BuildContext context) => !_rendererReady
+      ? Container()
+      : VisibilityDetector(
+          key: _keyForVisibilityDetector,
+          onVisibilityChanged: (VisibilityInfo info) =>
+              _visibilityDidUpdate?.call(info),
+          child: rtc.RTCVideoView(
+            _renderer,
+            mirror: widget.track is LocalVideoTrack,
+            filterQuality: FilterQuality.medium,
+            objectFit: widget.fit,
+          ),
+        );
 }
