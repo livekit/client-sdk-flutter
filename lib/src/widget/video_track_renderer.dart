@@ -1,21 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 
+import '../internal/events.dart';
 import '../track/local_video_track.dart';
 import '../track/video_track.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
-  final rtc.RTCVideoRenderer renderer;
   final rtc.RTCVideoViewObjectFit fit;
 
   VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-  })  : renderer = rtc.RTCVideoRenderer(),
-        super(key: ValueKey(track.sid));
+  })  : super(key: ValueKey(track.sid));
 
   @override
   State<StatefulWidget> createState() => _VideoTrackRendererState();
@@ -23,49 +23,48 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
+  EventsListener<TrackEvent>? _listener;
 
   @override
   void initState() {
     super.initState();
-    widget.track.addListener(_trackChanged);
-    _initRenderer();
+
+    (() async {
+      await _renderer.initialize();
+      await _attach();
+    })();
   }
 
   @override
   void dispose() {
-    widget.track.removeListener(_trackChanged);
+    _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
     super.dispose();
   }
 
+  Future<void> _attach() async {
+    _renderer.srcObject = widget.track.mediaStream;
+    await _listener?.dispose();
+    _listener = widget.track.createListener()
+      ..on<TrackUpdatedStream>((event) {
+        _renderer.srcObject = event.stream;
+      });
+  }
+
   @override
-  void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
-    oldWidget.track.removeListener(_trackChanged);
-    widget.track.addListener(_trackChanged);
-    _trackChanged();
+  Future<void> didUpdateWidget(covariant VideoTrackRenderer oldWidget) async {
     super.didUpdateWidget(oldWidget);
-  }
-
-  void _trackChanged() {
-    setState(() {
-      _renderer.srcObject = widget.track.mediaStream;
-    });
-  }
-
-  void _initRenderer() async {
-    await _renderer.initialize();
-    _trackChanged();
+    if (widget.track != oldWidget.track) {
+      await _attach();
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isLocal = widget.track is LocalVideoTrack;
-    return rtc.RTCVideoView(
-      _renderer,
-      mirror: isLocal,
-      filterQuality: FilterQuality.medium,
-      objectFit: widget.fit,
-    );
-  }
+  Widget build(BuildContext context) => rtc.RTCVideoView(
+        _renderer,
+        mirror: widget.track is LocalVideoTrack,
+        filterQuality: FilterQuality.medium,
+        objectFit: widget.fit,
+      );
 }

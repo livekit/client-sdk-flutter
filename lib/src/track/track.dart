@@ -3,15 +3,18 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
+import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends DisposableChangeNotifier {
+abstract class Track extends DisposableChangeNotifier
+    with EventsEmittable<TrackEvent> {
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
@@ -31,7 +34,12 @@ abstract class Track extends DisposableChangeNotifier {
     this.kind,
     this.name,
     this.mediaStreamTrack,
-  );
+  ) {
+    onDispose(() async {
+      // dispose events
+      await events.dispose();
+    });
+  }
 
   bool get muted =>
       mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;

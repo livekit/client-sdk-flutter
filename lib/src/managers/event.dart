@@ -56,23 +56,29 @@ abstract class EventsListenable<T> extends Disposable {
   // the emitter to listen to
   EventsEmitter<T> get emitter;
 
-  bool synchronized;
+  final bool synchronized;
   // keep track of listeners to cancel later
   final _listeners = <StreamSubscription<T>>[];
   final _syncLock = sync.Lock();
+
+  List<StreamSubscription<T>> get listeners => _listeners;
 
   EventsListenable({
     required this.synchronized,
   }) {
     onDispose(() async {
-      if (_listeners.isNotEmpty) {
-        // Stop listening to all events
-        logger.fine('${objectId} cancelling ${_listeners.length} listeners(s)');
-        for (final listener in _listeners) {
-          await listener.cancel();
-        }
-      }
+      await cancelAll();
     });
+  }
+
+  Future<void> cancelAll() async {
+    if (_listeners.isNotEmpty) {
+      // Stop listening to all events
+      logger.fine('${objectId} cancelling ${_listeners.length} listeners(s)');
+      for (final listener in _listeners) {
+        await listener.cancel();
+      }
+    }
   }
 
   // @override

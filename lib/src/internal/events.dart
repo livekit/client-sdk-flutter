@@ -3,6 +3,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../events.dart';
+import '../track/track.dart';
 
 @internal
 abstract class EngineIceStateUpdatedEvent with EngineEvent {
@@ -34,4 +35,14 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
           iceState: state,
           isPrimary: isPrimary,
         );
+}
+
+@internal
+class TrackUpdatedStream with TrackEvent {
+  final Track track;
+  final rtc.MediaStream stream;
+  const TrackUpdatedStream({
+    required this.track,
+    required this.stream,
+  });
 }
