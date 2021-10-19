@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/logger.dart';
 
 import 'extensions.dart';
 import 'options.dart';
@@ -111,16 +112,18 @@ class Utils {
       if (width >= 960) ...[
         midPreset.encoding.toRTCRtpEncoding(
           rid: 'h',
-          scaleResolutionDownBy: height / midPreset.height,
+          // passing decimals to hardware encoder of android devices
+          // often causes issues so we better use integers
+          scaleResolutionDownBy: 2,
         ),
         lowPreset.encoding.toRTCRtpEncoding(
           rid: 'q',
-          scaleResolutionDownBy: height / lowPreset.height,
+          scaleResolutionDownBy: 4,
         ),
       ] else
         lowPreset.encoding.toRTCRtpEncoding(
           rid: 'h',
-          scaleResolutionDownBy: height / lowPreset.height,
+          scaleResolutionDownBy: 2,
         ),
     ];
   }
