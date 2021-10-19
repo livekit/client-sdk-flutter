@@ -23,7 +23,11 @@ dependencies:
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.0
-  flutter_webrtc: ^0.6.10+hotfix.1
+  flutter_webrtc:
+    git:
+      url: https://github.com/flutter-webrtc/flutter-webrtc
+      ref: master
+    #^0.6.10+hotfix.1
 
 dev_dependencies:
   flutter_test:
