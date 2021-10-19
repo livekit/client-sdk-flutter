@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/logger.dart';
 
 import 'extensions.dart';
 import 'options.dart';
