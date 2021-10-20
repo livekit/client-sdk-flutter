@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -81,9 +82,29 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
 
             Align(
               alignment: Alignment.bottomCenter,
-              child: ParticipantInfoWidget(
-                title: widget.participant.identity,
-                muted: audioPub == null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Material(
+                    type: MaterialType.circle,
+                    color: Colors.transparent,
+                    child: IconButton(
+                      onPressed: () {
+                        final pub = widget.participant.audioTracks.firstOrNull;
+                        if (pub is RemoteTrackPublication) {
+                          print('TrackSubscribedEvent updating...');
+                          pub.subscribed = !pub.subscribed;
+                        }
+                      },
+                      icon: Icon(EvaIcons.volumeUpOutline),
+                    ),
+                  ),
+                  ParticipantInfoWidget(
+                    title: widget.participant.identity,
+                    muted: audioPub == null,
+                  ),
+                ],
               ),
             ),
           ],
