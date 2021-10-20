@@ -137,9 +137,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required lk_models.TrackType kind,
     TrackDimension? dimension,
   }) async {
-
     // TODO: Check if cid already published
-    
+
     // send request to add track
     signalClient.sendAddTrack(
         cid: cid, name: name, type: kind, dimension: dimension);
