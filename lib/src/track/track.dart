@@ -18,8 +18,6 @@ abstract class Track extends DisposableChangeNotifier {
   final String name;
   final lk_models.TrackType kind;
   rtc.MediaStreamTrack mediaStreamTrack;
-  @internal
-  bool mediaStreamTrackEnded = false;
 
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
