@@ -103,12 +103,10 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: c47593c429faaf6853b9a9bd62ef8fc96beff54a
-      url: "https://github.com/flutter-webrtc/flutter-webrtc"
-    source: git
-    version: "0.6.10+hotfix.1"
+      name: flutter_webrtc
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.0"
   http:
     dependency: "direct main"
     description:
