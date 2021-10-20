@@ -128,6 +128,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       room = Room._(
         engine: engine,
         joinResponse: joinResponse,
+        connectOptions: options,
       );
 
       logger.fine('Waiting to engine connect...');
