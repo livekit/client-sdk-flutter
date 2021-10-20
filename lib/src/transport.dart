@@ -67,13 +67,6 @@ class PCTransport extends Disposable {
     wait: Timeouts.debounce,
   );
 
-  // @override
-  // Future<void> dispose() async {
-  //   super.dispose();
-  //   // Ensure debounce won't fire
-
-  // }
-
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');

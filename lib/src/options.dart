@@ -3,8 +3,11 @@ import 'track/options.dart';
 /// Options when joining a room.
 /// {@category Room}
 class ConnectOptions {
+
   /// Auto-subscribe to room tracks upon connect, defaults to true.
   final bool autoSubscribe;
+
+  /// Default options used when publishing a track
   final TrackPublishOptions defaultPublishOptions;
 
   const ConnectOptions({

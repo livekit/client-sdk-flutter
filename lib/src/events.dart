@@ -133,7 +133,7 @@ class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
 }
 
 /// A Participant has muted one of the track.
-/// Emitted on [RemoteParticipant] and [LocalParticipant].
+/// Emitted by [RemoteParticipant] and [LocalParticipant].
 class TrackMutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
@@ -144,7 +144,7 @@ class TrackMutedEvent with RoomEvent, ParticipantEvent {
 }
 
 /// This participant has unmuted one of their tracks
-/// Emitted on [RemoteParticipant] and [LocalParticipant].
+/// Emitted by [RemoteParticipant] and [LocalParticipant].
 class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
@@ -154,14 +154,10 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
-//
-// common events for both Room/Participant.
-//
-
 /// Participant metadata is a simple way for app-specific state to be pushed to
 /// all users. When RoomService.UpdateParticipantMetadata is called to change a
 /// [Participant]'s state, *all* [Participant]s in the room will fire this event.
-/// Emitted on [Participant].
+/// Emitted by [Room] and [Participant].
 class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   const ParticipantMetadataUpdatedEvent({
@@ -172,7 +168,7 @@ class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
 /// Data received from  [RemoteParticipant].
 /// Data packets provides the ability to use LiveKit to send/receive arbitrary
 /// payloads.
-/// Emitted on [Room] and [RemoteParticipant].
+/// Emitted by [Room] and [RemoteParticipant].
 class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
@@ -184,7 +180,7 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
 }
 
 /// The participant's isSpeaking property has changed
-/// Emitted on [Participant].
+/// Emitted by [Participant].
 class SpeakingChangedEvent with ParticipantEvent {
   final Participant participant;
   final bool speaking;

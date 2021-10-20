@@ -137,6 +137,9 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required lk_models.TrackType kind,
     TrackDimension? dimension,
   }) async {
+
+    // TODO: Check if cid already published
+    
     // send request to add track
     signalClient.sendAddTrack(
         cid: cid, name: name, type: kind, dimension: dimension);
@@ -422,8 +425,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('[$objectId] Disconnected $reason');
 
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      logger.info(
-          '[$objectId] Could not connect after ${_reconnectAttempts} attempts, giving up');
+      logger.info('[$objectId] Could not connect '
+          'after ${_reconnectAttempts} attempts, giving up');
       await close();
       events.emit(const EngineDisconnectedEvent());
       return;

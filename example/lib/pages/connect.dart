@@ -39,6 +39,7 @@ class _ConnectPageState extends State<ConnectPage> {
     super.dispose();
   }
 
+  // Read saved URL and Token
   Future<void> _readPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _uriCtrl.text = prefs.getString(_storeKeyUri) ?? '';
@@ -48,6 +49,7 @@ class _ConnectPageState extends State<ConnectPage> {
     });
   }
 
+  // Save URL and Token
   Future<void> _writePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
@@ -62,12 +64,14 @@ class _ConnectPageState extends State<ConnectPage> {
         _busy = true;
       });
 
-      // Save for next time
+      // Save URL and Token for convenience
       await _writePrefs();
 
-      print(
-          'Connecting with url: ${_uriCtrl.text}, token: ${_tokenCtrl.text}...');
+      print('Connecting with url: ${_uriCtrl.text}, '
+          'token: ${_tokenCtrl.text}...');
 
+      // Try to connect to a room
+      // This will throw an Exception if it fails for any reason.
       final room = await LiveKitClient.connect(
         _uriCtrl.text,
         _tokenCtrl.text,
@@ -83,7 +87,7 @@ class _ConnectPageState extends State<ConnectPage> {
         MaterialPageRoute(builder: (_) => RoomPage(room)),
       );
     } catch (error) {
-      print('could not connect $error');
+      print('Could not connect $error');
       await ctx.showErrorDialog(error);
     } finally {
       setState(() {
@@ -97,7 +101,6 @@ class _ConnectPageState extends State<ConnectPage> {
     setState(() {
       _simulcast = value;
     });
-    // await _writePrefs();
   }
 
   @override
