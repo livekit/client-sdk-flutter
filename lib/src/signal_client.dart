@@ -121,13 +121,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     await _ws?.dispose();
   }
 
-  // @override
-  // Future<void> dispose() async {
-  //   super.dispose();
-  //   await events.dispose();
-  //   await close();
-  // }
-
   void sendOffer(rtc.RTCSessionDescription offer) =>
       _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
