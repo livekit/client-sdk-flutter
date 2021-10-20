@@ -34,16 +34,16 @@ class RemoteTrackPublication extends TrackPublication {
     if (val == super.subscribed) return;
     _sendUpdateSubscription(subscribed: val);
     if (!val && track != null) {
+      // Ideally, we should wait for WebRTC's onRemoveTrack event
+      // but it does not work reliably across platforms.
+      // So for now we will assume remove track succeeded.
       [_participant.events, _participant.roomEvents]
           .emit(TrackUnsubscribedEvent(
         participant: _participant,
         track: track!,
         publication: this,
       ));
-
-      // Ideally, we should wait for WebRTC's onRemoveTrack event
-      // but it does not work reliably across platforms.
-      // So for now we will assume remove track succeeded.
+      // Simply set to null for now
       track = null;
     }
   }
