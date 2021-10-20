@@ -1,3 +1,5 @@
+import 'package:livekit_client/src/logger.dart';
+
 import '../events.dart';
 import '../extensions.dart';
 import '../participant/remote_participant.dart';
@@ -10,10 +12,8 @@ import 'track_publication.dart';
 /// control if we should subscribe to the track, and its quality (for video).
 class RemoteTrackPublication extends TrackPublication {
   final RemoteParticipant _participant;
-  bool _unsubscribed = false;
   bool _disabled = false;
   lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
-
   lk_rtc.VideoQuality get videoQuality => _videoQuality;
 
   set videoQuality(lk_rtc.VideoQuality val) {
@@ -29,18 +29,23 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
-  @override
-  bool get subscribed {
-    if (_unsubscribed) {
-      return false;
-    }
-    return super.subscribed;
-  }
-
   set subscribed(bool val) {
-    if (_unsubscribed == !val) return;
-    _unsubscribed = !val;
-    _sendUpdateTrackSettings();
+    logger.fine('setting subscribed = ${val}');
+    if (val == super.subscribed) return;
+    _sendUpdateSubscription(subscribed: val);
+    if (!val && track != null) {
+      // Ideally, we should wait for WebRTC's onRemoveTrack event
+      // but it does not work reliably across platforms.
+      // So for now we will assume remove track succeeded.
+      track!.mediaStreamTrackEnded = true;
+
+      [_participant.events, _participant.roomEvents]
+          .emit(TrackUnsubscribedEvent(
+        participant: _participant,
+        track: track!,
+        publication: this,
+      ));
+    }
   }
 
   /// for internal use
@@ -75,6 +80,15 @@ class RemoteTrackPublication extends TrackPublication {
     Track? track,
   ]) : super.fromInfo(info) {
     this.track = track;
+  }
+
+  void _sendUpdateSubscription({required bool subscribed}) {
+    logger.fine('Sending update subscription... ${sid} ${subscribed}');
+    final subscription = lk_rtc.UpdateSubscription(
+      trackSids: [sid],
+      subscribe: subscribed,
+    );
+    _participant.client.sendUpdateSubscription(subscription);
   }
 
   void _sendUpdateTrackSettings() {

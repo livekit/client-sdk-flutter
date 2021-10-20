@@ -19,7 +19,7 @@ abstract class TrackPublication extends Disposable {
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get subscribed => track != null;
+  bool get subscribed => track != null && !track!.mediaStreamTrackEnded;
 
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,
