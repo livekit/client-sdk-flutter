@@ -337,6 +337,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     });
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
+      logger.fine('[WebRTC] pc.onTrack');
+
       final stream = event.streams.firstOrNull;
       if (stream == null) {
         // we need the stream to get the track's id
@@ -344,11 +346,27 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
 
+      // doesn't get called reliably
+      event.track.onEnded = () {
+        logger.fine('[WebRTC] track.onEnded');
+      };
+
+      // doesn't get called reliably
+      stream.onRemoveTrack = (_) {
+        logger.fine('[WebRTC] stream.onRemoveTrack');
+      };
+
       events.emit(EngineTrackAddedEvent(
         track: event.track,
         stream: stream,
         receiver: event.receiver,
       ));
+    };
+
+    // doesn't get called reliably, doesn't work on mac
+    subscriber?.pc.onRemoveTrack =
+        (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+      logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
     };
 
     // also handle messages over the pub channel, for backwards compatibility
