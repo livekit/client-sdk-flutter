@@ -337,7 +337,6 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     });
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
-      //
       logger.fine('[WebRTC] pc.onTrack');
 
       final stream = event.streams.firstOrNull;
@@ -347,10 +346,12 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
 
+      // doesn't get called reliably
       event.track.onEnded = () {
         logger.fine('[WebRTC] track.onEnded');
       };
 
+      // doesn't get called reliably
       stream.onRemoveTrack = (_) {
         logger.fine('[WebRTC] stream.onRemoveTrack');
       };
@@ -362,7 +363,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       ));
     };
 
-    // dosn't work on mac
+    // doesn't get called reliably, doesn't work on mac
     subscriber?.pc.onRemoveTrack =
         (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
       logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
