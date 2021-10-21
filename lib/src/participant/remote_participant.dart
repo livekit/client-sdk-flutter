@@ -88,6 +88,10 @@ class RemoteParticipant extends Participant {
       );
     }
 
+    // apply current muted state of publication
+    logger.fine('RemoteTrackPublication is muted: ${pub.muted}');
+    mediaTrack.enabled = !pub.muted;
+
     // create Track
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
