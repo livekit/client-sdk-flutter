@@ -19,6 +19,9 @@ dependencies:
 
   livekit_client:
     path: ../
+    # git:
+    #   url: https://github.com/livekit/client-sdk-flutter
+    #   ref: main
 
 dev_dependencies:
   flutter_test:

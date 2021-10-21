@@ -45,37 +45,29 @@ class LocalParticipant extends Participant {
       throw TrackPublishException('track already exists');
     }
 
-    // await AudioManager().incrementPublishCounter();
+    final trackInfo = await engine.addTrack(
+      cid: track.getCid(),
+      name: track.name,
+      kind: track.kind,
+    );
 
-    try {
-      final trackInfo = await engine.addTrack(
-        cid: track.getCid(),
-        name: track.name,
-        kind: track.kind,
-      );
+    await track.start();
 
-      await track.start();
+    final transceiverInit = rtc.RTCRtpTransceiverInit(
+      direction: rtc.TransceiverDirection.SendOnly,
+    );
+    // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+    track.transceiver = await engine.publisher?.pc.addTransceiver(
+      track: track.mediaStreamTrack,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+      init: transceiverInit,
+    );
+    await engine.negotiate();
 
-      final transceiverInit = rtc.RTCRtpTransceiverInit(
-        direction: rtc.TransceiverDirection.SendOnly,
-      );
-      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      track.transceiver = await engine.publisher?.pc.addTransceiver(
-        track: track.mediaStreamTrack,
-        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
-        init: transceiverInit,
-      );
-      await engine.negotiate();
-
-      final pub = LocalTrackPublication(trackInfo, track, this);
-      addTrackPublication(pub);
-      notifyListeners();
-      return pub;
-    } catch (e) {
-      // In any case there was an exception, revert the count.
-      // await AudioManager().decrementPublishCounter();
-      rethrow;
-    }
+    final pub = LocalTrackPublication(trackInfo, track, this);
+    addTrackPublication(pub);
+    notifyListeners();
+    return pub;
   }
 
   /// Publish a video track to the room
