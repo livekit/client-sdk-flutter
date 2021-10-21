@@ -208,6 +208,7 @@ class LocalParticipant extends Participant {
 
   /// for internal use
   /// {@nodoc}
+  @internal
   @override
   void updateFromInfo(lk_models.ParticipantInfo info) {
     super.updateFromInfo(info);

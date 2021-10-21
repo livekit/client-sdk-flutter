@@ -94,6 +94,7 @@ abstract class Participant extends DisposableChangeNotifier
 
   /// for internal use
   /// {@nodoc}
+  @internal
   set isSpeaking(bool speaking) {
     if (_isSpeaking == speaking) {
       return;
