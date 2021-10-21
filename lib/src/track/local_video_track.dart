@@ -22,7 +22,7 @@ class LocalVideoTrack extends VideoTrack {
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
     this.currentOptions,
-  ) : super(name, mediaTrack, stream);
+  ) : super(name, mediaTrack, stream, null);
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 

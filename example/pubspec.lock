@@ -110,10 +110,10 @@ packages:
   flutter_webrtc:
     dependency: transitive
     description:
-      name: flutter_webrtc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.0"
+      path: "../../flutter-webrtc"
+      relative: true
+    source: path
+    version: "0.7.0+hotfix.1"
   google_fonts:
     dependency: "direct main"
     description:

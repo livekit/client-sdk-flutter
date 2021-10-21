@@ -18,7 +18,6 @@ import 'participant.dart';
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
   final SignalClient _client;
-
   SignalClient get client => _client;
 
   RemoteParticipant(
@@ -101,7 +100,7 @@ class RemoteParticipant extends Participant {
       track = audioTrack;
     } else {
       // video track
-      track = VideoTrack(pub.name, mediaTrack, stream);
+      track = VideoTrack(pub.name, mediaTrack, stream, _client);
     }
 
     pub.track = track;

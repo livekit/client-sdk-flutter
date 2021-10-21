@@ -15,6 +15,7 @@ import '../support/disposable.dart';
 /// can not be instantiated directly.
 abstract class Track extends DisposableChangeNotifier
     with EventsEmittable<TrackEvent> {
+  static const uuid = Uuid();
   static const cameraName = 'camera';
   static const screenShareName = 'screen';
 
@@ -60,7 +61,6 @@ abstract class Track extends DisposableChangeNotifier
     var cid = _cid ?? mediaStreamTrack.id;
 
     if (cid == null) {
-      const uuid = Uuid();
       cid = uuid.v4();
       _cid = cid;
     }
