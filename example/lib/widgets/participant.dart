@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -23,8 +24,8 @@ class ParticipantWidget extends StatefulWidget {
 
 class _ParticipantWidgetState extends State<ParticipantWidget> {
   //
-  TrackPublication? videoPub;
-  TrackPublication? audioPub;
+  TrackPublication? firstVideoPub;
+  TrackPublication? firstAudioPub;
 
   @override
   void initState() {
@@ -50,18 +51,14 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
   // register for change so Flutter will re-build the widget upon change
   void _onParticipantChanged() {
     //
-    final firstAudio = widget.participant.audioTracks
-        .firstWhereOrNull((pub) => pub.subscribed);
-    final firstVideo = widget.participant.videoTracks
-        .firstWhereOrNull((pub) => !pub.isScreenShare && pub.subscribed);
-
-    if (firstVideo is RemoteTrackPublication) {
-      firstVideo.videoQuality = widget.quality;
-    }
-
     setState(() {
-      audioPub = !(firstAudio?.muted ?? true) ? firstAudio : null;
-      videoPub = !(firstVideo?.muted ?? true) ? firstVideo : null;
+      // For simplification, We are assuming here
+      // there is only 1 video / audio tracks.
+      firstAudioPub = widget.participant.audioTracks.firstOrNull;
+      firstVideoPub = widget.participant.videoTracks.firstOrNull;
+      if (firstVideoPub is RemoteTrackPublication) {
+        (firstVideoPub as RemoteTrackPublication).videoQuality = widget.quality;
+      }
     });
   }
 
@@ -71,9 +68,10 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
         child: Stack(
           children: [
             // Video
-            if (videoPub != null)
+            if (firstVideoPub?.subscribed == true &&
+                firstVideoPub?.muted == false)
               VideoTrackRenderer(
-                videoPub!.track as VideoTrack,
+                firstVideoPub!.track as VideoTrack,
                 fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
               )
             else
@@ -81,12 +79,94 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
 
             Align(
               alignment: Alignment.bottomCenter,
-              child: ParticipantInfoWidget(
-                title: widget.participant.identity,
-                muted: audioPub == null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  //
+                  // Menu for Video RemoteTrackPublication
+                  //
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (firstVideoPub is RemoteTrackPublication)
+                        RemoteTrackPublicationMenuWidget(
+                          pub: firstVideoPub as RemoteTrackPublication,
+                          icon: EvaIcons.videoOutline,
+                        ),
+                      //
+                      // Menu for Audio RemoteTrackPublication
+                      //
+                      if (firstAudioPub is RemoteTrackPublication)
+                        RemoteTrackPublicationMenuWidget(
+                          pub: firstAudioPub as RemoteTrackPublication,
+                          icon: EvaIcons.volumeUpOutline,
+                        ),
+                    ],
+                  ),
+
+                  ParticipantInfoWidget(
+                    title: widget.participant.identity,
+                    audioAvailable: firstAudioPub?.muted == false &&
+                        firstAudioPub?.subscribed == true,
+                  ),
+                ],
               ),
             ),
           ],
+        ),
+      );
+}
+
+class RemoteTrackPublicationMenuWidget extends StatelessWidget {
+  final IconData icon;
+  final RemoteTrackPublication pub;
+  const RemoteTrackPublicationMenuWidget({
+    required this.pub,
+    required this.icon,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => Material(
+        // type: MaterialType.card,
+        color: Colors.black.withOpacity(0.3),
+        // shape: CircleBorder(),
+        child: PopupMenuButton<Function>(
+          // shape: CircleBorder(),
+          icon: Icon(icon),
+          onSelected: (value) => value(),
+          itemBuilder: (BuildContext context) {
+            return <PopupMenuEntry<Function>>[
+              //
+              // Mute/Unmute
+              //
+              if (pub.muted == false)
+                PopupMenuItem(
+                  child: const Text('Mute'),
+                  value: () => pub.muted = true,
+                ),
+              if (pub.muted == true)
+                PopupMenuItem(
+                  child: const Text('Un-mute'),
+                  value: () => pub.muted = false,
+                ),
+              //
+              // Subscribe/Unsubscribe
+              //
+              if (pub.subscribed == false)
+                PopupMenuItem(
+                  child: const Text('Subscribe'),
+                  value: () => pub.subscribed = true,
+                ),
+              if (pub.subscribed == true)
+                PopupMenuItem(
+                  child: const Text('Un-subscribe'),
+                  value: () => pub.subscribed = false,
+                ),
+            ];
+          },
         ),
       );
 }

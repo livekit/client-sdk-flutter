@@ -71,13 +71,7 @@ class _RoomPageState extends State<RoomPage> {
       // Create video track
       final localVideo = await LocalVideoTrack.createCameraTrack();
       // Try to publish the video
-      await widget.room.localParticipant.publishVideoTrack(
-        localVideo,
-        // options: TrackPublishOptions(
-        //   //   simulcast: true,
-        //   videoEncoding: VideoParameters.presetQVGA169.encoding,
-        // ),
-      );
+      await widget.room.localParticipant.publishVideoTrack(localVideo);
 
       // Create mic track
       final localAudio = await LocalAudioTrack.create();

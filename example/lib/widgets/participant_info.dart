@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 class ParticipantInfoWidget extends StatelessWidget {
   //
   final String? title;
-  final bool muted;
+  final bool audioAvailable;
 
   const ParticipantInfoWidget({
     this.title,
-    this.muted = true,
+    this.audioAvailable = true,
     Key? key,
   }) : super(key: key);
 
@@ -33,8 +33,8 @@ class ParticipantInfoWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 5),
               child: Icon(
-                !muted ? EvaIcons.mic : EvaIcons.micOff,
-                color: !muted ? Colors.white : Colors.red,
+                audioAvailable ? EvaIcons.mic : EvaIcons.micOff,
+                color: audioAvailable ? Colors.white : Colors.red,
                 size: 16,
               ),
             ),
