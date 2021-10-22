@@ -34,7 +34,10 @@ class EventsEmitter<T> extends EventsListenable<T> {
   @internal
   void emit(T event) {
     // do nothing if already closed
-    if (streamCtrl.isClosed) return;
+    if (streamCtrl.isClosed) {
+      logger.warning('failed to emit event ${event} on a disposed emitter');
+      return;
+    }
     // emit the event
     streamCtrl.add(event);
   }

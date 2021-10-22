@@ -50,8 +50,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     logger.fine('[VideoTrackRenderer] dispose');
     VisibilityDetectorController.instance.forget(_keyForVisibilityDetector);
     // report that instance is disposing
-    widget.track.events
-        .emit(VideoRendererVisibilityUpdateEvent(rendererId: objectId, info: null));
+    // if the track is disposed first we can't emit event
+    widget.track.events.emit(VideoRendererVisibilityUpdateEvent(
+      rendererId: objectId,
+      track: widget.track,
+      info: null,
+    ));
     _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
@@ -84,8 +88,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       : VisibilityDetector(
           key: _keyForVisibilityDetector,
           // emit event when visibility updates
-          onVisibilityChanged: (VisibilityInfo info) => widget.track.events
-              .emit(VideoRendererVisibilityUpdateEvent(rendererId: objectId, info: info)),
+          onVisibilityChanged: (VisibilityInfo info) =>
+              widget.track.events.emit(VideoRendererVisibilityUpdateEvent(
+            rendererId: objectId,
+            track: widget.track,
+            info: info,
+          )),
           child: rtc.RTCVideoView(
             _renderer,
             mirror: widget.track is LocalVideoTrack,

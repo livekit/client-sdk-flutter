@@ -53,9 +53,11 @@ class TrackUpdatedStream with TrackEvent, InternalEvent {
 @internal
 class VideoRendererVisibilityUpdateEvent with TrackEvent, InternalEvent {
   final String rendererId;
+  final Track track;
   final VisibilityInfo? info; // null means disposed
   const VideoRendererVisibilityUpdateEvent({
     required this.rendererId,
+    required this.track,
     required this.info,
   });
 }
