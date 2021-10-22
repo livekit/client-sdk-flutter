@@ -15,6 +15,11 @@ class LocalTrackPublication extends TrackPublication {
     this._participant,
   ) : super.fromInfo(info) {
     this.track = track;
+    // register dispose func
+    onDispose(() async {
+      // this object is responsible for disposing track
+      await track.dispose();
+    });
   }
 
   /// Mute or unmute the current track. When muted, track will stop sending data

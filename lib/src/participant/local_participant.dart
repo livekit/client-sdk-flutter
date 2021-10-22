@@ -149,7 +149,10 @@ class LocalParticipant extends Participant {
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-    if (pub is! LocalTrackPublication) return;
+    if (pub is! LocalTrackPublication) {
+      await pub?.dispose();
+      return;
+    }
 
     final track = pub.track;
     if (track != null) {
@@ -177,6 +180,8 @@ class LocalParticipant extends Participant {
         publication: pub,
       ));
     }
+
+    await pub.dispose();
   }
 
   /// Publish a new data payload to the room.

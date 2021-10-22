@@ -17,6 +17,19 @@ class RemoteTrackPublication extends TrackPublication {
   lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
   lk_rtc.VideoQuality get videoQuality => _videoQuality;
 
+  RemoteTrackPublication(
+    lk_models.TrackInfo info,
+    this._participant, [
+    Track? track,
+  ]) : super.fromInfo(info) {
+    this.track = track;
+    // register dispose func
+    onDispose(() async {
+      // this object is responsible for disposing track
+      await track?.dispose();
+    });
+  }
+
   set videoQuality(lk_rtc.VideoQuality val) {
     if (val == _videoQuality) return;
     _videoQuality = val;
@@ -74,14 +87,6 @@ class RemoteTrackPublication extends TrackPublication {
     if (subscribed) {
       track?.mediaStreamTrack.enabled = !val;
     }
-  }
-
-  RemoteTrackPublication(
-    lk_models.TrackInfo info,
-    this._participant, [
-    Track? track,
-  ]) : super.fromInfo(info) {
-    this.track = track;
   }
 
   void _sendUpdateSubscription({required bool subscribed}) {
