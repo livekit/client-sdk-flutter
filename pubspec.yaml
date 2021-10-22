@@ -1,7 +1,7 @@
 name: livekit_client
 description: Flutter Client SDK for LiveKit.
   Build real-time video and audio into your apps. Supports iOS, Android, and Web.
-version: 0.5.1
+version: 0.5.2
 homepage: https://livekit.io
 
 environment:
@@ -17,16 +17,13 @@ dependencies:
   collection: ^1.15.0
   fixnum: ^1.0.0
   meta: ^1.7.0
-
   http: ^0.13.3
   logging: ^1.0.2
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.0
-  flutter_webrtc: #^0.7.0
-    path: ../flutter-webrtc
-
   visibility_detector: ^0.2.2
+  flutter_webrtc: ^0.7.0+hotfix.2
 
 dev_dependencies:
   flutter_test:

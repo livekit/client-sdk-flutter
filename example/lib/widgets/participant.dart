@@ -140,19 +140,6 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
           itemBuilder: (BuildContext context) {
             return <PopupMenuEntry<Function>>[
               //
-              // Mute/Unmute
-              //
-              if (pub.muted == false)
-                PopupMenuItem(
-                  child: const Text('Mute'),
-                  value: () => pub.muted = true,
-                ),
-              if (pub.muted == true)
-                PopupMenuItem(
-                  child: const Text('Un-mute'),
-                  value: () => pub.muted = false,
-                ),
-              //
               // Subscribe/Unsubscribe
               //
               if (pub.subscribed == false)

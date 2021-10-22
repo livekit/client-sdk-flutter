@@ -180,14 +180,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         subscription: subscription,
       ));
 
-  void sendSetSimulcastLayers(
-          String trackSid, List<lk_rtc.VideoQuality> layers) =>
-      _sendRequest(lk_rtc.SignalRequest(
-        simulcast: lk_rtc.SetSimulcastLayers(
-          trackSid: trackSid,
-          layers: layers,
-        ),
-      ));
+  // void sendSetSimulcastLayers(
+  //         String trackSid, List<lk_rtc.VideoQuality> layers) =>
+  //     _sendRequest(lk_rtc.SignalRequest(
+  //       simulcast: lk_rtc.SetSimulcastLayers(
+  //         trackSid: trackSid,
+  //         layers: layers,
+  //       ),
+  //     ));
 
   void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
         leave: lk_rtc.LeaveRequest(),

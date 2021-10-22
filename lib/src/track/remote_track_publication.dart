@@ -1,4 +1,5 @@
 import 'package:livekit_client/src/logger.dart';
+import 'package:meta/meta.dart';
 
 import '../events.dart';
 import '../extensions.dart';
@@ -51,6 +52,7 @@ class RemoteTrackPublication extends TrackPublication {
   /// for internal use
   /// {@nodoc}
   @override
+  @internal
   set muted(bool val) {
     if (val == muted) {
       return;
