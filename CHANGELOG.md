@@ -1,4 +1,11 @@
 # CHANGELOG
+
+## 0.5.2
+
+* change ios audio session defaults to support voice isolation
+* fix explicit subscribe/unsubscribe issue
+* fix WebRTC-SDK resolve issue
+
 ## 0.5.1
 
 * include plugins for Android and Web
