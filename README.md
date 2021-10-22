@@ -14,7 +14,7 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 | :-----: | :---------------: | :-------: | :--------------: | :------------: |
 |   Web   |         🟢         |     🟢     |        🟢         |       🟢        |
 |   iOS   |         🟢         |     🟢     |        🟢         |       🔴        |
-| Android |         🟢         |     🟡     |        🟢         |       🔴        |
+| Android |         🟢         |     🟢     |        🟢         |       🔴        |
 
 🟢 = Available
 🟡 = Coming soon (Work in progress)
