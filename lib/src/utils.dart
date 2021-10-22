@@ -28,10 +28,11 @@ class Utils {
     final useSecure = uri.isSecureScheme || forceSecure;
     final httpScheme = useSecure ? 'https' : 'http';
     final wsScheme = useSecure ? 'wss' : 'ws';
+    final pathIterables = [...uri.pathSegments, validate ? 'validate' : 'rtc'];
 
     return uri.replace(
       scheme: validate ? httpScheme : wsScheme,
-      path: validate ? 'validate' : 'rtc',
+      path: pathIterables.join('/'),
       queryParameters: <String, String>{
         'access_token': token,
         if (options != null)
