@@ -158,7 +158,14 @@ class RemoteParticipant extends Participant {
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-    if (pub is! RemoteTrackPublication) return;
+
+    if (pub is! RemoteTrackPublication) {
+      // no publication exists for trackSid 
+      // or publication is not RemoteTrackPublication
+      // logger.warning('pub is not RemoteTrackPublication');
+      await pub?.dispose();
+      return;
+    }
 
     final track = pub.track;
     // if has track
@@ -177,5 +184,7 @@ class RemoteParticipant extends Participant {
         publication: pub,
       ));
     }
+
+    await pub.dispose();
   }
 }
