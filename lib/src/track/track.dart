@@ -37,6 +37,7 @@ abstract class Track extends DisposableChangeNotifier
     this.mediaStreamTrack,
   ) {
     onDispose(() async {
+      logger.fine('Track disposed');
       // dispose events
       await events.dispose();
     });

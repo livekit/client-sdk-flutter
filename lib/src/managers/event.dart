@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:synchronized/synchronized.dart' as sync;
+import 'package:meta/meta.dart';
 
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -30,6 +31,7 @@ class EventsEmitter<T> extends EventsListenable<T> {
   @override
   EventsEmitter<T> get emitter => this;
 
+  @internal
   void emit(T event) {
     // do nothing if already closed
     if (streamCtrl.isClosed) return;

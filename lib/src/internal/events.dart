@@ -1,12 +1,15 @@
 // added
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
 import '../track/track.dart';
 
+abstract class InternalEvent implements LiveKitEvent {}
+
 @internal
-abstract class EngineIceStateUpdatedEvent with EngineEvent {
+abstract class EngineIceStateUpdatedEvent with EngineEvent, InternalEvent {
   final rtc.RTCIceConnectionState iceState;
   final bool isPrimary;
   const EngineIceStateUpdatedEvent({
@@ -38,11 +41,21 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
 }
 
 @internal
-class TrackUpdatedStream with TrackEvent {
+class TrackUpdatedStream with TrackEvent, InternalEvent {
   final Track track;
   final rtc.MediaStream stream;
   const TrackUpdatedStream({
     required this.track,
     required this.stream,
+  });
+}
+
+@internal
+class VideoRendererVisibilityUpdateEvent with TrackEvent, InternalEvent {
+  final String rendererId;
+  final VisibilityInfo? info; // null means disposed
+  const VideoRendererVisibilityUpdateEvent({
+    required this.rendererId,
+    required this.info,
   });
 }

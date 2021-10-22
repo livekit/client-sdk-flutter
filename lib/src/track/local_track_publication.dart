@@ -18,7 +18,7 @@ class LocalTrackPublication extends TrackPublication {
     // register dispose func
     onDispose(() async {
       // this object is responsible for disposing track
-      await track.dispose();
+      await this.track?.dispose();
     });
   }
 

@@ -25,8 +25,9 @@ class RemoteTrackPublication extends TrackPublication {
     this.track = track;
     // register dispose func
     onDispose(() async {
+      logger.fine('disposing RemoteTrackPublication... track: ${this.track}');
       // this object is responsible for disposing track
-      await track?.dispose();
+      await this.track?.dispose();
     });
   }
 

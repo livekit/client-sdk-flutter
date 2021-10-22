@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -19,6 +20,7 @@ import 'participant.dart';
 class RemoteParticipant extends Participant {
   final SignalClient _client;
   SignalClient get client => _client;
+  final List<EventsListener<TrackEvent>> _trackEventListeners = [];
 
   RemoteParticipant(
     this._client,
@@ -96,8 +98,22 @@ class RemoteParticipant extends Participant {
       track = audioTrack;
     } else {
       // video track
-      track = VideoTrack(pub.name, mediaTrack, stream, _client);
+      track = VideoTrack(pub.name, mediaTrack, stream);
     }
+
+    // listen for visibility events
+    final listener = track.createListener()
+      ..on<VideoRendererVisibilityUpdateEvent>((_) {
+        logger.fine('Visibility updated');
+      });
+    // // TODO: Not the best design, room for improvement
+    // _trackEventListeners.add(listener);
+    track.onDispose(() async {
+      logger.fine('disposing Track, removing listener...');
+      // _trackEventListeners.remove(listener);
+      await listener.dispose();
+    });
+    logger.fine('dispose funcs for Track: ${track.disposeFuncCount}');
 
     pub.track = track;
     addTrackPublication(pub);
@@ -157,7 +173,7 @@ class RemoteParticipant extends Participant {
     final pub = trackPublications.remove(trackSid);
 
     if (pub is! RemoteTrackPublication) {
-      // no publication exists for trackSid 
+      // no publication exists for trackSid
       // or publication is not RemoteTrackPublication
       // logger.warning('pub is not RemoteTrackPublication');
       await pub?.dispose();
