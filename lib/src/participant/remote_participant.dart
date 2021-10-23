@@ -160,7 +160,7 @@ class RemoteParticipant extends Participant {
     final pub = trackPublications.remove(trackSid);
 
     if (pub is! RemoteTrackPublication) {
-      // no publication exists for trackSid 
+      // no publication exists for trackSid
       // or publication is not RemoteTrackPublication
       // logger.warning('pub is not RemoteTrackPublication');
       await pub?.dispose();
