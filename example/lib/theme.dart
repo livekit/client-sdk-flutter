@@ -7,17 +7,23 @@ import 'package:google_fonts/google_fonts.dart';
 // https://github.com/flutter/flutter/issues/55092
 // https://github.com/flutter/flutter/issues/39113
 //
+
+extension LKColors on Colors {
+  static const lkBlue = Color(0xFF5A8BFF);
+  static const lkDarkBlue = Color(0xFF00153C);
+}
+
 class LiveKitTheme {
   //
   final bgColor = Colors.black;
   final textColor = Colors.white;
-  final cardColor = const Color(0xFF00163c);
-  final accentColor = const Color(0xFF2d6aef);
+  final cardColor = LKColors.lkDarkBlue;
+  final accentColor = LKColors.lkBlue;
 
   ThemeData buildThemeData(BuildContext ctx) => ThemeData(
         backgroundColor: bgColor,
         // accentColor: accentColor,
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
+        // colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         appBarTheme: AppBarTheme(
           backgroundColor: cardColor,
         ),
@@ -29,6 +35,14 @@ class LiveKitTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
+            textStyle:
+                MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
+              fontSize: 15,
+            )),
+            padding: MaterialStateProperty.all<EdgeInsets>(
+                const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
+            shape: MaterialStateProperty.all<OutlinedBorder>(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
             // backgroundColor: MaterialStateProperty.all<Color>(accentColor),
             backgroundColor: MaterialStateProperty.resolveWith((states) {
@@ -43,8 +57,13 @@ class LiveKitTheme {
           checkColor: MaterialStateProperty.all(Colors.white),
           fillColor: MaterialStateProperty.all(accentColor),
         ),
-        dialogBackgroundColor: cardColor,
-        textTheme: GoogleFonts.latoTextTheme(
+        dialogTheme: DialogTheme(
+          backgroundColor: cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        textTheme: GoogleFonts.montserratTextTheme(
           Theme.of(ctx).textTheme,
         ).apply(
           displayColor: textColor,
@@ -53,15 +72,14 @@ class LiveKitTheme {
         ),
         hintColor: Colors.red,
         inputDecorationTheme: InputDecorationTheme(
-          labelStyle: TextStyle(
-            color: textColor.withOpacity(.5),
+          labelStyle: const TextStyle(
+            color: LKColors.lkBlue,
           ),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: textColor.withOpacity(0.1)),
+          hintStyle: TextStyle(
+            color: LKColors.lkBlue.withOpacity(.5),
           ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: accentColor),
-          ),
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
         ),
       );
 }

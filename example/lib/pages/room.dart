@@ -142,10 +142,9 @@ class _RoomPageState extends State<RoomPage> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: math.max(0, participants.length - 1),
-                itemBuilder: (BuildContext context, int index) => Container(
+                itemBuilder: (BuildContext context, int index) => SizedBox(
                   width: 100,
                   height: 100,
-                  padding: const EdgeInsets.all(2),
                   child: ParticipantWidget(participants[index + 1],
                       quality: VideoQuality.LOW),
                 ),

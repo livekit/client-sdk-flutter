@@ -151,56 +151,74 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     final videoPub = participant.videoTracks.firstOrNull;
     final videoEnabled = videoPub != null && !videoPub.muted;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          onPressed: _unpublishAll,
-          icon: const Icon(EvaIcons.closeCircleOutline),
-        ),
-        if (canMute)
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 15,
+        horizontal: 15,
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 5,
+        runSpacing: 5,
+        children: [
           IconButton(
-            onPressed: _muteAudio,
-            icon: const Icon(EvaIcons.mic),
-          )
-        else
-          IconButton(
-            onPressed: _unmuteAudio,
-            icon: const Icon(EvaIcons.micOff),
+            onPressed: _unpublishAll,
+            icon: const Icon(EvaIcons.closeCircleOutline),
+            tooltip: 'Unpublish all',
           ),
-        if (videoEnabled)
+          if (canMute)
+            IconButton(
+              onPressed: _muteAudio,
+              icon: const Icon(EvaIcons.mic),
+              tooltip: 'mute audio',
+            )
+          else
+            IconButton(
+              onPressed: _unmuteAudio,
+              icon: const Icon(EvaIcons.micOff),
+              tooltip: 'un-mute audio',
+            ),
+          if (videoEnabled)
+            IconButton(
+              onPressed: _muteVideo,
+              icon: const Icon(EvaIcons.video),
+              tooltip: 'mute video',
+            )
+          else
+            IconButton(
+              onPressed: _unmuteVideo,
+              icon: const Icon(EvaIcons.videoOff),
+              tooltip: 'un-mute video',
+            ),
           IconButton(
-            onPressed: _muteVideo,
-            icon: const Icon(EvaIcons.video),
-          )
-        else
-          IconButton(
-            onPressed: _unmuteVideo,
-            icon: const Icon(EvaIcons.videoOff),
+            icon: Icon(position == CameraPosition.back
+                ? EvaIcons.camera
+                : EvaIcons.person),
+            onPressed: () => _toggleCamera(),
+            tooltip: 'toggle camera',
           ),
-        IconButton(
-          icon: Icon(position == CameraPosition.back
-              ? EvaIcons.camera
-              : EvaIcons.person),
-          onPressed: () => _toggleCamera(),
-        ),
-        IconButton(
-          icon: const Icon(EvaIcons.monitor),
-          onPressed: () => _shareScreen(),
-        ),
-        IconButton(
-          onPressed: _onTapDisconnect,
-          icon: const Icon(EvaIcons.closeCircle),
-        ),
-        IconButton(
-          onPressed: _onTapSendData,
-          icon: const Icon(EvaIcons.paperPlane),
-        ),
-        IconButton(
-          onPressed: _onTapReconnect,
-          icon: const Icon(EvaIcons.refresh),
-        ),
-      ],
+          IconButton(
+            icon: const Icon(EvaIcons.monitor),
+            onPressed: () => _shareScreen(),
+            tooltip: 'share screen (experimental)',
+          ),
+          IconButton(
+            onPressed: _onTapDisconnect,
+            icon: const Icon(EvaIcons.closeCircle),
+            tooltip: 'disconnect',
+          ),
+          IconButton(
+            onPressed: _onTapSendData,
+            icon: const Icon(EvaIcons.paperPlane),
+            tooltip: 'send demo data',
+          ),
+          IconButton(
+            onPressed: _onTapReconnect,
+            icon: const Icon(EvaIcons.refresh),
+            tooltip: 're-connect',
+          ),
+        ],
+      ),
     );
   }
 }
