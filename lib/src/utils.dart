@@ -28,10 +28,21 @@ class Utils {
     final useSecure = uri.isSecureScheme || forceSecure;
     final httpScheme = useSecure ? 'https' : 'http';
     final wsScheme = useSecure ? 'wss' : 'ws';
+    final lastSegment = validate ? 'validate' : 'rtc';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+
+    // strip path segment used for LiveKit if already exists
+    pathSegments.removeWhere((e) => e.isEmpty);
+    if (pathSegments.isNotEmpty &&
+        ['rtc', 'validate'].contains(uri.pathSegments.last)) {
+      pathSegments.removeLast();
+    }
+    pathSegments.add(lastSegment);
 
     return uri.replace(
       scheme: validate ? httpScheme : wsScheme,
-      path: validate ? 'validate' : 'rtc',
+      pathSegments: pathSegments,
       queryParameters: <String, String>{
         'access_token': token,
         if (options != null)
