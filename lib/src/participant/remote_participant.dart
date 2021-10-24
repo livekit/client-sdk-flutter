@@ -41,9 +41,9 @@ class RemoteParticipant extends Participant {
 
   // used to report renderer visibility to the server
   // and optimize
-  final _rendererVisibilities = <String, RendererVisibility>{};
-  Function(void)? _visibilityDidUpdate;
-  Function? _cancelDebounceFunc;
+  // final _rendererVisibilities = <String, RendererVisibility>{};
+  // Function(void)? _visibilityDidUpdate;
+  // Function? _cancelDebounceFunc;
 
   RemoteParticipant(
     this._client,
@@ -72,15 +72,15 @@ class RemoteParticipant extends Participant {
   }
 
   void _commonInit() {
-    _visibilityDidUpdate = Utils.createDebounceFunc(
-      _shouldComputeVisibilityUpdate,
-      cancelFunc: (func) => _cancelDebounceFunc = func,
-      wait: const Duration(seconds: 2),
-    );
+    // _visibilityDidUpdate = Utils.createDebounceFunc(
+    //   _shouldComputeVisibilityUpdate,
+    //   cancelFunc: (func) => _cancelDebounceFunc = func,
+    //   wait: const Duration(seconds: 2),
+    // );
 
-    onDispose(() async {
-      _cancelDebounceFunc?.call();
-    });
+    // onDispose(() async {
+    //   _cancelDebounceFunc?.call();
+    // });
   }
 
   RemoteTrackPublication? getTrackPublication(String sid) {
@@ -139,17 +139,17 @@ class RemoteParticipant extends Participant {
       track = VideoTrack(pub.name, mediaTrack, stream);
     }
 
-    // listen for visibility events
-    // TODO: Not the best design, room for improvement
-    final listener = track.createListener()
-      ..on<VideoRendererVisibilityUpdateEvent>(
-          (event) => _onVideoRendererVisibilityUpdateEvent(event));
+    // // listen for visibility events
+    // // TODO: Not the best design, room for improvement
+    // final listener = track.createListener()
+    //   ..on<VideoRendererVisibilityUpdateEvent>(
+    //       (event) => _onVideoRendererVisibilityUpdateEvent(event));
 
-    // dispose listener when track disposes
-    track.onDispose(() async {
-      logger.fine('disposing Track, removing listener...');
-      await listener.dispose();
-    });
+    // // dispose listener when track disposes
+    // track.onDispose(() async {
+    //   logger.fine('disposing Track, removing listener...');
+    //   await listener.dispose();
+    // });
 
     pub.track = track;
     addTrackPublication(pub);
@@ -208,12 +208,12 @@ class RemoteParticipant extends Participant {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
 
-    void cleanUpVisibilityEntriesForDisposedTrack() {
-      // remove all visibility info for dispoed tracks
-      _rendererVisibilities
-          .removeWhere((key, value) => value.trackId == trackSid);
-      // _visibilityDidUpdate?.call(null);
-    }
+    // void cleanUpVisibilityEntriesForDisposedTrack() {
+    //   // remove all visibility info for dispoed tracks
+    //   _rendererVisibilities
+    //       .removeWhere((key, value) => value.trackId == trackSid);
+    //   // _visibilityDidUpdate?.call(null);
+    // }
 
     if (pub is! RemoteTrackPublication) {
       // no publication exists for trackSid
@@ -221,7 +221,7 @@ class RemoteParticipant extends Participant {
       // logger.warning('pub is not RemoteTrackPublication');
 
       await pub?.dispose();
-      cleanUpVisibilityEntriesForDisposedTrack();
+      // cleanUpVisibilityEntriesForDisposedTrack();
       return;
     }
 
@@ -244,60 +244,60 @@ class RemoteParticipant extends Participant {
     }
 
     await pub.dispose();
-    cleanUpVisibilityEntriesForDisposedTrack();
+    // cleanUpVisibilityEntriesForDisposedTrack();
   }
 
   // called any time visibility info updates
   // from one of the renderers
-  void _onVideoRendererVisibilityUpdateEvent(
-      VideoRendererVisibilityUpdateEvent event) {
-    //
-    final info = event.info;
-    final trackSid = event.track.sid;
-    if (trackSid != null && info != null) {
-      logger.fine('visibility update for ${event.rendererId} '
-          'track: ${event.track.sid} '
-          'visibleFraction: ${info.visibleFraction} '
-          'size: ${info.size}');
-      _rendererVisibilities[event.rendererId] = RendererVisibility(
-        rendererId: event.rendererId,
-        trackId: trackSid,
-        visible: info.visibleFraction != 0,
-        size: info.size,
-      );
-      _visibilityDidUpdate?.call(null);
-    } else {
-      // widget as been disposed
-      logger.fine('visibility update for ${event.rendererId}, removed');
-      _rendererVisibilities.remove(event.rendererId);
-    }
-  }
+  // void _onVideoRendererVisibilityUpdateEvent(
+  //     VideoRendererVisibilityUpdateEvent event) {
+  //   //
+  //   final info = event.info;
+  //   final trackSid = event.track.sid;
+  //   if (trackSid != null && info != null) {
+  //     logger.fine('visibility update for ${event.rendererId} '
+  //         'track: ${event.track.sid} '
+  //         'visibleFraction: ${info.visibleFraction} '
+  //         'size: ${info.size}');
+  //     _rendererVisibilities[event.rendererId] = RendererVisibility(
+  //       rendererId: event.rendererId,
+  //       trackId: trackSid,
+  //       visible: info.visibleFraction != 0,
+  //       size: info.size,
+  //     );
+  //     _visibilityDidUpdate?.call(null);
+  //   } else {
+  //     // widget as been disposed
+  //     logger.fine('visibility update for ${event.rendererId}, removed');
+  //     _rendererVisibilities.remove(event.rendererId);
+  //   }
+  // }
 
-  void _shouldComputeVisibilityUpdate(void _) {
-    //
-    logger.fine('should compute visibility info');
+  // void _shouldComputeVisibilityUpdate(void _) {
+  //   //
+  //   logger.fine('should compute visibility info');
 
-    // final notAttachedOrNotVisibleTrackIds = <String>{};
+  //   // final notAttachedOrNotVisibleTrackIds = <String>{};
 
-    // for (final entry in trackPublications.entries) {
-    //   final visible = _rendererVisibilities.values.firstWhereOrNull((e) => e.trackId == entry.key && e.visible);
-    //   if (visible == null) notAttachedOrNotVisibleTrackIds.add(entry.key);
-    // }
+  //   // for (final entry in trackPublications.entries) {
+  //   //   final visible = _rendererVisibilities.values.firstWhereOrNull((e) => e.trackId == entry.key && e.visible);
+  //   //   if (visible == null) notAttachedOrNotVisibleTrackIds.add(entry.key);
+  //   // }
 
-    // final trackSizes = <String, Size>{};
+  //   // final trackSizes = <String, Size>{};
 
-    // // final trackIds = _rendererVisibilities.values.map((e) => e.trackId);
-    // for (final entry in _rendererVisibilities.entries) {
-    //   //
-    // }
+  //   // // final trackIds = _rendererVisibilities.values.map((e) => e.trackId);
+  //   // for (final entry in _rendererVisibilities.entries) {
+  //   //   //
+  //   // }
 
-    //final settings = lk_rtc.UpdateTrackSettings(
-    //  trackSids: [],
-    //  height: 0,
-    //  width: 0,
-    //  disabled: 
-    //);
+  //   //final settings = lk_rtc.UpdateTrackSettings(
+  //   //  trackSids: [],
+  //   //  height: 0,
+  //   //  width: 0,
+  //   //  disabled: 
+  //   //);
 
-    // _client.sendUpdateTrackSettings(settings);
-  }
+  //   // _client.sendUpdateTrackSettings(settings);
+  // }
 }

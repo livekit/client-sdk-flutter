@@ -1,4 +1,6 @@
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/logger.dart';
+import 'package:livekit_client/src/managers/event.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -28,6 +30,22 @@ class RemoteTrackPublication extends TrackPublication {
       logger.fine('disposing RemoteTrackPublication... track: ${this.track}');
       // this object is responsible for disposing track
       await this.track?.dispose();
+    });
+  }
+
+  @override
+  set track(Track? val) {
+    print('VideoRendererVisibilityUpdateEvent set track called');
+    super.track = val;
+    _attachTrackEventsListener();
+  }
+
+  EventsListener<TrackEvent>? _listener;
+  Future<void> _attachTrackEventsListener() async {
+    await _listener?.dispose();
+    _listener = track?.createListener();
+    _listener?.on<VideoRendererVisibilityUpdateEvent>((event) {
+      print('VideoRendererVisibilityUpdateEvent event');
     });
   }
 
