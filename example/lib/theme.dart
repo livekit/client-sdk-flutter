@@ -57,6 +57,15 @@ class LiveKitTheme {
           checkColor: MaterialStateProperty.all(Colors.white),
           fillColor: MaterialStateProperty.all(accentColor),
         ),
+        // switchTheme: SwitchThemeData(
+        //   trackColor: MaterialStateProperty.resolveWith((states) {
+        //     print('states: $states');
+        //     if (states.contains(MaterialState.disabled)) {
+        //       return Colors.red;
+        //     }
+        //     return accentColor;
+        //   }),
+        // ),
         dialogTheme: DialogTheme(
           backgroundColor: cardColor,
           shape: RoundedRectangleBorder(

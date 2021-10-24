@@ -5,6 +5,7 @@ import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../exts.dart';
+import '../theme.dart';
 import 'room.dart';
 
 class ConnectPage extends StatefulWidget {
@@ -115,102 +116,69 @@ class _ConnectPageState extends State<ConnectPage> {
             ),
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 70),
-                    child: SvgPicture.asset(
-                      'images/logo-dark.svg',
-                    ),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 70),
+                  child: SvgPicture.asset(
+                    'images/logo-dark.svg',
                   ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: LKTextField(
-                      label: 'Server URL',
-                      ctrl: _uriCtrl,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 50),
-                    child: LKTextField(
-                      label: 'Token',
-                      ctrl: _tokenCtrl,
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.center,
-                    child: ElevatedButton(
-                      onPressed: _busy ? null : () => _connect(context),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_busy)
-                            const Padding(
-                              padding: EdgeInsets.only(right: 10),
-                              child: SizedBox(
-                                height: 15,
-                                width: 15,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                          const Text('CONNECT'),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  //     Container(
-                  //       padding: const EdgeInsets.symmetric(
-                  //         vertical: 20,
-                  //         horizontal: 20,
-                  //       ),
-                  //       decoration: BoxDecoration(
-                  //         color: Theme.of(context).cardColor,
-                  //         borderRadius: BorderRadius.circular(8),
-                  //         // border: Border.all(
-                  //         //     color: Theme.of(context).colorScheme.secondary),
-                  //       ),
-                  //       constraints: const BoxConstraints(
-                  //         maxWidth: 320,
-                  //       ),
-                  //       child: Column(
-                  //         mainAxisSize: MainAxisSize.min,
-                  //         children: [
-                  //           TextField(
-                  //             enableSuggestions: false,
-                  //             autocorrect: false,
-                  //             controller: _uriCtrl,
-                  //             decoration: const InputDecoration(labelText: 'URL'),
-                  //           ),
-                  //           TextField(
-                  //             enableSuggestions: false,
-                  //             autocorrect: false,
-                  //             controller: _tokenCtrl,
-                  //             decoration: const InputDecoration(labelText: 'Token'),
-                  //           ),
-                  //           Padding(
-                  //             padding: const EdgeInsets.only(top: 20),
-                  //             child: CheckboxListTile(
-                  //               controlAffinity: ListTileControlAffinity.leading,
-                  //               onChanged: (value) => _setSimulcast(value),
-                  //               title: const Text('Use Simulcast'),
-                  //               value: _simulcast,
-                  //             ),
-                  //           ),
-                  //
-                  //         ],
-                  //       ),
-                  //     ),
-                ]
-                // .map((e) => Padding(
-                //     padding: const EdgeInsets.only(bottom: 50), child: e))
-                // .toList(),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 25),
+                  child: LKTextField(
+                    label: 'Server URL',
+                    ctrl: _uriCtrl,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 25),
+                  child: LKTextField(
+                    label: 'Token',
+                    ctrl: _tokenCtrl,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 50),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Simulcast'),
+                      Switch(
+                        value: _simulcast,
+                        onChanged: (value) => _setSimulcast(value),
+                        inactiveTrackColor: Colors.white.withOpacity(.2),
+                        activeTrackColor: LKColors.lkBlue,
+                        inactiveThumbColor: Colors.white.withOpacity(.5),
+                        activeColor: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _busy ? null : () => _connect(context),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_busy)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 10),
+                          child: SizedBox(
+                            height: 15,
+                            width: 15,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                      const Text('CONNECT'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
