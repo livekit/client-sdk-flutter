@@ -38,9 +38,9 @@ class RemoteTrackPublication extends TrackPublication {
 
   // used to report renderer visibility to the server
   // and optimize
-  final _rendererVisibilities = <String, RendererVisibility>{};
+  final _visibilities = <String, RendererVisibility>{};
   Function(void)? _visibilityDidUpdate;
-  Function? _cancelDebounceFunc;
+  Function? _cancelVisibilityDebounceFunc;
 
   RemoteTrackPublication(
     lk_models.TrackInfo info,
@@ -49,14 +49,14 @@ class RemoteTrackPublication extends TrackPublication {
   ]) : super.fromInfo(info) {
     // register dispose func
     onDispose(() async {
-      _cancelDebounceFunc?.call();
+      _cancelVisibilityDebounceFunc?.call();
       // this object is responsible for disposing track
       await this.track?.dispose();
     });
 
     _visibilityDidUpdate = Utils.createDebounceFunc(
       _shouldComputeVisibilityUpdate,
-      cancelFunc: (func) => _cancelDebounceFunc = func,
+      cancelFunc: (func) => _cancelVisibilityDebounceFunc = func,
       wait: const Duration(seconds: 2),
     );
 
@@ -66,7 +66,7 @@ class RemoteTrackPublication extends TrackPublication {
   // called any time visibility info updates
   // from one of the renderers
   void _onVideoRendererVisibilityUpdateEvent(
-      VideoRendererVisibilityUpdateEvent event) {
+      TrackVisibilityUpdatedEvent event) {
     final info = event.info;
     final trackSid = event.track.sid;
     if (trackSid != null && info != null) {
@@ -74,7 +74,7 @@ class RemoteTrackPublication extends TrackPublication {
           'track: ${event.track.sid} '
           'visibleFraction: ${info.visibleFraction} '
           'size: ${info.size}');
-      _rendererVisibilities[event.rendererId] = RendererVisibility(
+      _visibilities[event.rendererId] = RendererVisibility(
         rendererId: event.rendererId,
         trackId: trackSid,
         visible: info.visibleFraction > 0,
@@ -84,7 +84,7 @@ class RemoteTrackPublication extends TrackPublication {
       // quickly enable if currently disabled
       if (!enabled && _hasVisibleRenderers()) {
         logger.fine('[Visibility] Trying to re-enable quickly');
-        _cancelDebounceFunc?.call();
+        _cancelVisibilityDebounceFunc?.call();
         _shouldComputeVisibilityUpdate(null);
       } else {
         _visibilityDidUpdate?.call(null);
@@ -92,16 +92,16 @@ class RemoteTrackPublication extends TrackPublication {
     } else {
       // widget as been disposed, but track still exists
       logger.fine('[Visibility] ${event.rendererId} was removed');
-      _rendererVisibilities.remove(event.rendererId);
+      _visibilities.remove(event.rendererId);
       _visibilityDidUpdate?.call(null);
     }
 
     logger.fine(
-        '[Visibility] Ids ${_rendererVisibilities.values.map((e) => e.rendererId)}');
+        '[Visibility] Ids ${_visibilities.values.map((e) => e.rendererId)}');
   }
 
   bool _hasVisibleRenderers() =>
-      _rendererVisibilities.values.firstWhereOrNull((e) => e.visible) != null;
+      _visibilities.values.firstWhereOrNull((e) => e.visible) != null;
 
   void _shouldComputeVisibilityUpdate(void _) {
     //
@@ -118,7 +118,7 @@ class RemoteTrackPublication extends TrackPublication {
     );
 
     if (!_disabled) {
-      final largest = _rendererVisibilities.values
+      final largest = _visibilities.values
           .map((e) => e.size)
           .reduce((value, element) => maxSize(value, element));
       settings.width = largest.width.floor();
@@ -142,12 +142,12 @@ class RemoteTrackPublication extends TrackPublication {
         // Attach visibility event listener
         //
         final listener = newValue.createListener();
-        listener.on<VideoRendererVisibilityUpdateEvent>(
+        listener.on<TrackVisibilityUpdatedEvent>(
             _onVideoRendererVisibilityUpdateEvent);
         newValue.onDispose(() async {
           await listener.dispose();
           // consider all views are disposed when track is null
-          _rendererVisibilities.clear();
+          _visibilities.clear();
           // _visibilityDidUpdate?.call(null);
         });
       }

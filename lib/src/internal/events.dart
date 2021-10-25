@@ -41,21 +41,21 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
 }
 
 @internal
-class TrackUpdatedStream with TrackEvent, InternalEvent {
+class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
   final Track track;
   final rtc.MediaStream stream;
-  const TrackUpdatedStream({
+  const TrackStreamUpdatedEvent({
     required this.track,
     required this.stream,
   });
 }
 
 @internal
-class VideoRendererVisibilityUpdateEvent with TrackEvent, InternalEvent {
+class TrackVisibilityUpdatedEvent with TrackEvent, InternalEvent {
   final String rendererId;
   final Track track;
   final VisibilityInfo? info; // null means disposed
-  const VideoRendererVisibilityUpdateEvent({
+  const TrackVisibilityUpdatedEvent({
     required this.rendererId,
     required this.track,
     required this.info,
