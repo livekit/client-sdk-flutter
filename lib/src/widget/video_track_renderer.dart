@@ -36,7 +36,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void initState() {
     super.initState();
-    logger.fine('[VideoTrackRenderer] initState');
+    logger.fine('$objectId initState()');
 
     (() async {
       await _renderer.initialize();
@@ -47,7 +47,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    logger.fine('[VideoTrackRenderer] dispose');
+    logger.fine('$objectId dispose()');
     VisibilityDetectorController.instance.forget(_keyForVisibilityDetector);
     // report that instance is disposing
     // if the track is disposed first we can't emit event
@@ -74,31 +74,41 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
-    logger.fine('[VideoTrackRenderer] didUpdateWidget');
     super.didUpdateWidget(oldWidget);
-    // TODO: re-attach only if needed
-    (() async {
-      await _attach();
-    })();
+    if (widget.track != oldWidget.track) {
+      // TODO: re-attach only if needed
+      (() async {
+        await _attach();
+      })();
+    }
   }
 
   @override
-  Widget build(BuildContext context) => !_rendererReady
-      ? Container()
-      : VisibilityDetector(
-          key: _keyForVisibilityDetector,
-          // emit event when visibility updates
-          onVisibilityChanged: (VisibilityInfo info) =>
-              widget.track.events.emit(VideoRendererVisibilityUpdateEvent(
-            rendererId: objectId,
-            track: widget.track,
-            info: info,
-          )),
-          child: rtc.RTCVideoView(
-            _renderer,
-            mirror: widget.track is LocalVideoTrack,
-            filterQuality: FilterQuality.medium,
-            objectFit: widget.fit,
+  Widget build(BuildContext context) => Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: !_rendererReady
+                ? Container()
+                : VisibilityDetector(
+                    key: _keyForVisibilityDetector,
+                    // emit event when visibility updates
+                    onVisibilityChanged: (VisibilityInfo info) => widget
+                        .track.events
+                        .emit(VideoRendererVisibilityUpdateEvent(
+                      rendererId: objectId,
+                      track: widget.track,
+                      info: info,
+                    )),
+                    child: rtc.RTCVideoView(
+                      _renderer,
+                      mirror: widget.track is LocalVideoTrack,
+                      filterQuality: FilterQuality.medium,
+                      objectFit: widget.fit,
+                    ),
+                  ),
           ),
-        );
+          Text('Renderer $objectId'),
+        ],
+      );
 }
