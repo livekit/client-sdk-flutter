@@ -40,6 +40,7 @@ extension ProtocolVersionExt on ProtocolVersion {
   String toStringValue() => {
         ProtocolVersion.protocol2: '2',
         ProtocolVersion.protocol3: '3',
+        ProtocolVersion.protocol4: '4',
       }[this]!;
 }
 
