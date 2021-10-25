@@ -1,4 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/track/remote_audio_track.dart';
+import 'package:livekit_client/src/track/remote_video_track.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -8,10 +10,8 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../signal_client.dart';
-import '../track/audio_track.dart';
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
-import '../track/video_track.dart';
 import '../types.dart';
 import 'participant.dart';
 
@@ -91,13 +91,13 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
-      await audioTrack.start();
-      track = audioTrack;
+      track = RemoteAudioTrack(pub.name, mediaTrack, stream);
     } else {
       // video track
-      track = VideoTrack(pub.name, mediaTrack, stream);
+      track = RemoteVideoTrack(pub.name, mediaTrack, stream);
     }
+
+    await track.start();
 
     pub.track = track;
     addTrackPublication(pub);

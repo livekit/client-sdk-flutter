@@ -92,6 +92,15 @@ class LocalVideoTrack extends VideoTrack {
     if (stream.getVideoTracks().isEmpty) throw TrackCreateException();
     return stream;
   }
+
+  @override
+  Future<bool> stop() async {
+    final didStop = await super.stop();
+    if (didStop) {
+      await mediaStreamTrack.stop();
+    }
+    return didStop;
+  }
 }
 
 //

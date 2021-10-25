@@ -7,6 +7,7 @@ typedef CancelListenFunc = Function();
 enum ProtocolVersion {
   protocol2,
   protocol3,
+  protocol4,
 }
 
 enum ConnectionState {
