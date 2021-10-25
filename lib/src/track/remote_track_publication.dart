@@ -80,35 +80,44 @@ class RemoteTrackPublication extends TrackPublication {
         visible: info.visibleFraction > 0,
         size: info.size,
       );
+
+      // quickly enable if currently disabled
+      if (!enabled && _hasVisibleRenderers()) {
+        logger.fine('[Visibility] enable quickly');
+        _cancelDebounceFunc?.call();
+        _shouldComputeVisibilityUpdate(null);
+      } else {
+        _visibilityDidUpdate?.call(null);
+      }
     } else {
       // widget as been disposed, but track still exists
       logger.fine('[Visibility] ${event.rendererId} was removed');
       _rendererVisibilities.remove(event.rendererId);
+      _visibilityDidUpdate?.call(null);
     }
-    _visibilityDidUpdate?.call(null);
 
     logger.fine(
         '[Visibility] Ids ${_rendererVisibilities.values.map((e) => e.rendererId)}');
   }
 
+  bool _hasVisibleRenderers() =>
+      _rendererVisibilities.values.firstWhereOrNull((e) => e.visible) != null;
+
   void _shouldComputeVisibilityUpdate(void _) {
     //
-    final hasVisibleRenderer =
-        _rendererVisibilities.values.firstWhereOrNull((e) => e.visible) != null;
-
     Size maxSize(Size s1, Size s2) => Size(
           max(s1.width, s2.width),
           max(s1.height, s2.height),
         );
 
-    _disabled = !hasVisibleRenderer;
+    _disabled = !_hasVisibleRenderers();
 
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
       disabled: _disabled,
     );
 
-    if (hasVisibleRenderer) {
+    if (!_disabled) {
       final largest = _rendererVisibilities.values
           .map((e) => e.size)
           .reduce((value, element) => maxSize(value, element));
