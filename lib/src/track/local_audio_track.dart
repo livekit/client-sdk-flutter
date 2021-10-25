@@ -7,7 +7,8 @@ import 'audio_track.dart';
 import 'options.dart';
 
 class LocalAudioTrack extends AudioTrack {
-  LocalAudioTrack(
+  // private constructor
+  LocalAudioTrack._(
     String name,
     rtc.MediaStreamTrack track,
     rtc.MediaStream stream,
@@ -29,6 +30,6 @@ class LocalAudioTrack extends AudioTrack {
 
     if (stream.getAudioTracks().isEmpty) throw TrackCreateException();
 
-    return LocalAudioTrack('', stream.getAudioTracks().first, stream);
+    return LocalAudioTrack._('', stream.getAudioTracks().first, stream);
   }
 }
