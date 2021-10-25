@@ -495,6 +495,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
       logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
           '${subscriber!.pc.signalingState})');
+      logger.finer('sdp: ${event.sd.sdp}');
 
       await subscriber!.setRemoteDescription(event.sd);
 
