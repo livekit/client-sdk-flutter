@@ -75,7 +75,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     localParticipant = LocalParticipant(
       engine: engine,
       info: joinResponse.participant,
-      defaultPublishOptions: connectOptions?.defaultPublishOptions,
+      defaultVideoPublishOptions: connectOptions?.defaultVideoPublishOptions,
+      defaultAudioPublishOptions: connectOptions?.defaultAudioPublishOptions,
       roomEvents: events,
     );
 
