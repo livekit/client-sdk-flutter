@@ -91,13 +91,13 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
-      await audioTrack.start();
-      track = audioTrack;
+      track = AudioTrack(pub.name, mediaTrack, stream);
     } else {
       // video track
       track = VideoTrack(pub.name, mediaTrack, stream);
     }
+
+    await track.start();
 
     pub.track = track;
     addTrackPublication(pub);
