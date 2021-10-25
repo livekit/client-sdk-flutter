@@ -6,23 +6,27 @@ class ConnectOptions {
   /// Auto-subscribe to room tracks upon connect, defaults to true.
   final bool autoSubscribe;
 
-  /// Default options used when publishing a track
-  final TrackPublishOptions defaultPublishOptions;
+  /// Default options used when publishing a video track
+  final VideoPublishOptions defaultVideoPublishOptions;
+
+  /// Default options used when publishing a audio track
+  final AudioPublishOptions defaultAudioPublishOptions;
 
   const ConnectOptions({
     this.autoSubscribe = true,
-    this.defaultPublishOptions = const TrackPublishOptions(),
+    this.defaultVideoPublishOptions = const VideoPublishOptions(),
+    this.defaultAudioPublishOptions = const AudioPublishOptions(),
   });
 }
 
-class TrackPublishOptions {
+class VideoPublishOptions {
   ///
   final VideoEncoding? videoEncoding;
 
   ///
   final bool simulcast;
 
-  const TrackPublishOptions({
+  const VideoPublishOptions({
     this.videoEncoding,
     this.simulcast = false,
   });
@@ -30,4 +34,18 @@ class TrackPublishOptions {
   @override
   String toString() =>
       '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
+}
+
+class AudioPublishOptions {
+  /// DTX (Discontinuous Transmission)
+  /// https://en.wikipedia.org/wiki/Discontinuous_transmission
+  /// defaults to true
+  final bool dtx;
+
+  const AudioPublishOptions({
+    this.dtx = true,
+  });
+
+  @override
+  String toString() => '${runtimeType}(dtx: ${dtx})';
 }

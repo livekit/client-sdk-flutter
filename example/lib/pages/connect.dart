@@ -79,7 +79,7 @@ class _ConnectPageState extends State<ConnectPage> {
         _uriCtrl.text,
         _tokenCtrl.text,
         options: ConnectOptions(
-          defaultPublishOptions: TrackPublishOptions(
+          defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),
         ),

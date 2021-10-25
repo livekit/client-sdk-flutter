@@ -136,12 +136,18 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required String name,
     required lk_models.TrackType kind,
     TrackDimension? dimension,
+    bool? dtx,
   }) async {
     // TODO: Check if cid already published
 
     // send request to add track
     signalClient.sendAddTrack(
-        cid: cid, name: name, type: kind, dimension: dimension);
+      cid: cid,
+      name: name,
+      type: kind,
+      dimension: dimension,
+      dtx: dtx,
+    );
 
     // wait for response, or timeout
     final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(

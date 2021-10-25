@@ -23,12 +23,15 @@ class LocalParticipant extends Participant {
   @internal
   final RTCEngine engine;
   @internal
-  final TrackPublishOptions? defaultPublishOptions;
+  final VideoPublishOptions? defaultVideoPublishOptions;
+  @internal
+  final AudioPublishOptions? defaultAudioPublishOptions;
 
   LocalParticipant({
     required this.engine,
     required lk_models.ParticipantInfo info,
-    this.defaultPublishOptions,
+    this.defaultVideoPublishOptions,
+    this.defaultAudioPublishOptions,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
           info.sid,
@@ -39,16 +42,23 @@ class LocalParticipant extends Participant {
   }
 
   /// publish an audio track to the room
-  Future<TrackPublication> publishAudioTrack(LocalAudioTrack track) async {
+  Future<TrackPublication> publishAudioTrack(
+    LocalAudioTrack track, {
+    AudioPublishOptions? options,
+  }) async {
     if (audioTracks.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
+    // Use defaultPublishOptions if options is null
+    options = options ?? defaultAudioPublishOptions;
+
     final trackInfo = await engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
+      dtx: options?.dtx,
     );
 
     await track.start();
@@ -73,15 +83,15 @@ class LocalParticipant extends Participant {
   /// Publish a video track to the room
   Future<TrackPublication> publishVideoTrack(
     LocalVideoTrack track, {
-    TrackPublishOptions? options,
+    VideoPublishOptions? options,
   }) async {
     if (videoTracks.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
-    // Use default options from `ConnectOptions` if options is null
-    options = options ?? defaultPublishOptions;
+    // Use defaultPublishOptions if options is null
+    options = options ?? defaultVideoPublishOptions;
 
     final trackInfo = await engine.addTrack(
       cid: track.getCid(),

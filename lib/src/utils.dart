@@ -83,9 +83,9 @@ class Utils {
   static List<rtc.RTCRtpEncoding>? computeVideoEncodings({
     int? width,
     int? height,
-    TrackPublishOptions? options,
+    VideoPublishOptions? options,
   }) {
-    options ??= const TrackPublishOptions();
+    options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
 
