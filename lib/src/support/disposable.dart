@@ -13,6 +13,7 @@ mixin _Disposer {
   final _disposeFuncs = <OnDisposeFunc>[];
   bool _isDisposed = false;
   bool get isDisposed => _isDisposed;
+  int get disposeFuncCount => _disposeFuncs.length;
 
   // last added func will be called first when disposing
   void onDispose(OnDisposeFunc func) => _disposeFuncs.add(func);

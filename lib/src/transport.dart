@@ -62,7 +62,7 @@ class PCTransport extends Disposable {
   }
 
   late final negotiate = Utils.createDebounceFunc(
-    () => createAndSendOffer(),
+    (void _) => createAndSendOffer(),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: Timeouts.debounce,
   );

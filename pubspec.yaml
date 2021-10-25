@@ -17,12 +17,12 @@ dependencies:
   collection: ^1.15.0
   fixnum: ^1.0.0
   meta: ^1.7.0
-
   http: ^0.13.3
   logging: ^1.0.2
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.0
+  visibility_detector: ^0.2.2
   flutter_webrtc: ^0.7.0+hotfix.2
 
 dev_dependencies:

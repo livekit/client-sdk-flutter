@@ -27,6 +27,7 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
   //
   TrackPublication? firstVideoPub;
   TrackPublication? firstAudioPub;
+  bool _visible = true;
 
   @override
   void initState() {
@@ -79,14 +80,17 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
         child: Stack(
           children: [
             // Video
-            if (firstVideoPub?.subscribed == true &&
-                firstVideoPub?.muted == false)
-              VideoTrackRenderer(
-                firstVideoPub!.track as VideoTrack,
-                fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-              )
-            else
-              const NoVideoWidget(),
+            InkWell(
+              onTap: () => setState(() => _visible = !_visible),
+              child: (firstVideoPub?.subscribed == true &&
+                      firstVideoPub?.muted == false &&
+                      _visible)
+                  ? VideoTrackRenderer(
+                      firstVideoPub!.track as VideoTrack,
+                      fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                    )
+                  : const NoVideoWidget(),
+            ),
 
             Align(
               alignment: Alignment.bottomCenter,

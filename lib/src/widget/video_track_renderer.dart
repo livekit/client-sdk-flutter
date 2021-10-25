@@ -1,21 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
+import '../extensions.dart';
+import '../internal/events.dart';
+import '../logger.dart';
 import '../track/local_video_track.dart';
 import '../track/video_track.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
-  final rtc.RTCVideoRenderer renderer;
   final rtc.RTCVideoViewObjectFit fit;
 
-  VideoTrackRenderer(
+  const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
-  })  : renderer = rtc.RTCVideoRenderer(),
-        super(key: ValueKey(track.sid));
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _VideoTrackRendererState();
@@ -23,49 +27,79 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
+  bool _rendererReady = false;
+  EventsListener<TrackEvent>? _listener;
+
+  Key get _keyForVisibilityDetector =>
+      ValueKey('${objectId}-VisibilityDetector');
 
   @override
   void initState() {
     super.initState();
-    widget.track.addListener(_trackChanged);
-    _initRenderer();
+    logger.fine('$objectId initState()');
+
+    (() async {
+      await _renderer.initialize();
+      await _attach();
+      setState(() => _rendererReady = true);
+    })();
   }
 
   @override
   void dispose() {
-    widget.track.removeListener(_trackChanged);
+    logger.fine('$objectId dispose()');
+    VisibilityDetectorController.instance.forget(_keyForVisibilityDetector);
+    // report that instance is disposing
+    // if the track is disposed first we can't emit event
+    widget.track.events.emit(TrackVisibilityUpdatedEvent(
+      rendererId: objectId,
+      track: widget.track,
+      info: null,
+    ));
+    _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
     super.dispose();
   }
 
+  Future<void> _attach() async {
+    logger.fine('[VideoTrackRenderer] attached to ${widget.track.objectId}');
+    _renderer.srcObject = widget.track.mediaStream;
+    await _listener?.dispose();
+    _listener = widget.track.createListener()
+      ..on<TrackStreamUpdatedEvent>((event) {
+        _renderer.srcObject = event.stream;
+      });
+  }
+
   @override
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
-    oldWidget.track.removeListener(_trackChanged);
-    widget.track.addListener(_trackChanged);
-    _trackChanged();
     super.didUpdateWidget(oldWidget);
-  }
-
-  void _trackChanged() {
-    setState(() {
-      _renderer.srcObject = widget.track.mediaStream;
-    });
-  }
-
-  void _initRenderer() async {
-    await _renderer.initialize();
-    _trackChanged();
+    if (widget.track != oldWidget.track) {
+      // TODO: re-attach only if needed
+      (() async {
+        await _attach();
+      })();
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isLocal = widget.track is LocalVideoTrack;
-    return rtc.RTCVideoView(
-      _renderer,
-      mirror: isLocal,
-      filterQuality: FilterQuality.medium,
-      objectFit: widget.fit,
-    );
-  }
+  Widget build(BuildContext context) => !_rendererReady
+      ? Container()
+      : VisibilityDetector(
+          key: _keyForVisibilityDetector,
+          // emit event when visibility updates
+          onVisibilityChanged: (VisibilityInfo info) =>
+              widget.track.events.emit(TrackVisibilityUpdatedEvent(
+            rendererId: objectId,
+            track: widget.track,
+            info: info,
+          )),
+          child: rtc.RTCVideoView(
+            _renderer,
+            mirror: widget.track is LocalVideoTrack,
+            filterQuality: FilterQuality.medium,
+            objectFit: widget.fit,
+          ),
+        );
 }

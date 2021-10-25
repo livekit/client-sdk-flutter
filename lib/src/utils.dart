@@ -138,18 +138,18 @@ class Utils {
     ];
   }
 
-  // makes a debounce func
-  static Function createDebounceFunc(
-    Function f, {
+  // makes a debounce func, with 1 param
+  static Function(T) createDebounceFunc<T>(
+    Function(T) f, {
     Function(Function)? cancelFunc,
     required Duration wait,
   }) {
     Timer? t;
-    return () {
+    return (p) {
       t?.cancel();
       t = Timer(wait, () {
         t = null;
-        f();
+        f(p);
       });
       // pass back the cancel method so we can cancel it when no longer needed
       cancelFunc?.call(t!.cancel);

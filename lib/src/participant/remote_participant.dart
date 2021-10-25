@@ -18,7 +18,6 @@ import 'participant.dart';
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
   final SignalClient _client;
-
   SignalClient get client => _client;
 
   RemoteParticipant(
@@ -92,8 +91,6 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      // await AudioManager().incrementSubscriptionCounter();
-
       final audioTrack = AudioTrack(pub.name, mediaTrack, stream);
       await audioTrack.start();
       track = audioTrack;
@@ -162,7 +159,7 @@ class RemoteParticipant extends Participant {
     if (pub is! RemoteTrackPublication) {
       // no publication exists for trackSid
       // or publication is not RemoteTrackPublication
-      // logger.warning('pub is not RemoteTrackPublication');
+
       await pub?.dispose();
       return;
     }
