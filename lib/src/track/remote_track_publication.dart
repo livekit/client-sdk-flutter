@@ -32,7 +32,7 @@ class RendererVisibility {
 /// control if we should subscribe to the track, and its quality (for video).
 class RemoteTrackPublication extends TrackPublication {
   final RemoteParticipant _participant;
-  bool _disabled = false;
+  bool _enabled = true;
   lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
   lk_rtc.VideoQuality get videoQuality => _videoQuality;
 
@@ -104,20 +104,24 @@ class RemoteTrackPublication extends TrackPublication {
       _visibilities.values.firstWhereOrNull((e) => e.visible) != null;
 
   void _shouldComputeVisibilityUpdate(void _) {
-    //
+    if (isDisposed) {
+      logger.warning('_shouldComputeVisibilityUpdate already disposed');
+      return;
+    }
+
     Size maxSize(Size s1, Size s2) => Size(
           max(s1.width, s2.width),
           max(s1.height, s2.height),
         );
 
-    _disabled = !_hasVisibleRenderers();
+    _enabled = _hasVisibleRenderers();
 
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
-      disabled: _disabled,
+      disabled: !_enabled,
     );
 
-    if (!_disabled) {
+    if (_enabled) {
       final largest = _visibilities.values
           .map((e) => e.size)
           .reduce((value, element) => maxSize(value, element));
@@ -137,9 +141,9 @@ class RemoteTrackPublication extends TrackPublication {
       super.track?.dispose();
       super.track = newValue;
 
-      if (newValue != null) {
+      if (newValue != null && newValue.kind == lk_models.TrackType.VIDEO) {
         //
-        // Attach visibility event listener
+        // Attach visibility event listener (if video track)
         //
         final listener = newValue.createListener();
         listener.on<TrackVisibilityUpdatedEvent>(
@@ -148,11 +152,9 @@ class RemoteTrackPublication extends TrackPublication {
           await listener.dispose();
           // consider all views are disposed when track is null
           _visibilities.clear();
-          // _visibilityDidUpdate?.call(null);
+          if (!isDisposed) _visibilityDidUpdate?.call(null);
         });
       }
-
-      _visibilityDidUpdate?.call(null);
     }
   }
 
@@ -162,10 +164,10 @@ class RemoteTrackPublication extends TrackPublication {
     _sendUpdateTrackSettings();
   }
 
-  bool get enabled => !_disabled;
+  bool get enabled => _enabled;
   set enabled(bool val) {
-    if (_disabled == !val) return;
-    _disabled = !val;
+    if (_enabled == val) return;
+    _enabled = val;
     _sendUpdateTrackSettings();
   }
 
@@ -227,7 +229,7 @@ class RemoteTrackPublication extends TrackPublication {
   void _sendUpdateTrackSettings() {
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
-      disabled: _disabled,
+      disabled: !_enabled,
     );
     if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
