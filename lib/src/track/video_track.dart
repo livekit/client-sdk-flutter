@@ -1,5 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;

@@ -50,9 +50,7 @@ abstract class Disposable with _Disposer {
 abstract class DisposableChangeNotifier extends ChangeNotifier with _Disposer {
   @override
   Future<bool> dispose() async {
-    print('DisposableChangeNotifier dispose() called');
     if (!isDisposed) super.dispose();
-    print('DisposableChangeNotifier will call super _dispose()');
     return await super._dispose();
   }
 

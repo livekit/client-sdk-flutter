@@ -83,7 +83,7 @@ class RemoteTrackPublication extends TrackPublication {
 
       // quickly enable if currently disabled
       if (!enabled && _hasVisibleRenderers()) {
-        logger.fine('[Visibility] enable quickly');
+        logger.fine('[Visibility] Trying to re-enable quickly');
         _cancelDebounceFunc?.call();
         _shouldComputeVisibilityUpdate(null);
       } else {
@@ -138,6 +138,9 @@ class RemoteTrackPublication extends TrackPublication {
       super.track = newValue;
 
       if (newValue != null) {
+        //
+        // Attach visibility event listener
+        //
         final listener = newValue.createListener();
         listener.on<VideoRendererVisibilityUpdateEvent>(
             _onVideoRendererVisibilityUpdateEvent);
@@ -152,14 +155,6 @@ class RemoteTrackPublication extends TrackPublication {
       _visibilityDidUpdate?.call(null);
     }
   }
-
-  // Future<void> _attachTrackEventsListener() async {
-  // await _listener?.dispose();
-  // _listener = track?.createListener();
-  // logger.fine('DISPOSE EVENT LISTENING ON ${track?.objectId}');
-  // _listener?.on<VideoRendererVisibilityUpdateEvent>(
-  //     _onVideoRendererVisibilityUpdateEvent);
-  // }
 
   set videoQuality(lk_rtc.VideoQuality val) {
     if (val == _videoQuality) return;
