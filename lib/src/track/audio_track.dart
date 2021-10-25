@@ -8,7 +8,7 @@ import 'package:synchronized/synchronized.dart' as sync;
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/native_audio.dart';
-import '_audio_api.dart' if (dart.library.html) '_audio_html.dart' as audio;
+
 import 'local_audio_track.dart';
 import 'track.dart';
 
@@ -22,7 +22,7 @@ enum AudioTrackState {
 typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
     AudioTrackState state);
 
-class AudioTrack extends Track {
+abstract class AudioTrack extends Track {
   // it's possible to set custom function here to customize audio session configuration
   static ConfigureNativeAudioFunc nativeAudioConfigurationForAudioTrackState =
       defaultNativeAudioConfigurationFunc;
@@ -50,10 +50,6 @@ class AudioTrack extends Track {
   Future<bool> start() async {
     final didStart = await super.start();
     if (didStart) {
-      if (this is! LocalAudioTrack) {
-        audio.startAudio(getCid(), mediaStreamTrack);
-      }
-
       // update counter
       await _trackCounterLock.synchronized(() async {
         if (this is LocalAudioTrack) {
@@ -64,7 +60,6 @@ class AudioTrack extends Track {
         await _onAudioTrackCountDidChange();
       });
     }
-
     return didStart;
   }
 
@@ -72,10 +67,6 @@ class AudioTrack extends Track {
   Future<bool> stop() async {
     final didStop = await super.stop();
     if (didStop) {
-      await mediaStream?.dispose();
-      mediaStream = null;
-      audio.stopAudio(getCid());
-
       // update counter
       await _trackCounterLock.synchronized(() async {
         if (this is LocalAudioTrack) {
@@ -86,7 +77,6 @@ class AudioTrack extends Track {
         await _onAudioTrackCountDidChange();
       });
     }
-
     return didStop;
   }
 

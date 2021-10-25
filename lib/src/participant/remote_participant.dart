@@ -1,4 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/track/remote_audio_track.dart';
+import 'package:livekit_client/src/track/remote_video_track.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -91,10 +93,10 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      track = AudioTrack(pub.name, mediaTrack, stream);
+      track = RemoteAudioTrack(pub.name, mediaTrack, stream);
     } else {
       // video track
-      track = VideoTrack(pub.name, mediaTrack, stream);
+      track = RemoteVideoTrack(pub.name, mediaTrack, stream);
     }
 
     await track.start();

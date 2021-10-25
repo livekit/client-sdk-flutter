@@ -76,12 +76,7 @@ abstract class Track extends DisposableChangeNotifier
       return false;
     }
 
-    try {
-      mediaStreamTrack.enabled = true;
-    } catch (_) {
-      logger.warning(
-          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
-    }
+    logger.fine('Track.start()');
 
     _active = true;
     return true;
@@ -95,14 +90,29 @@ abstract class Track extends DisposableChangeNotifier
       return false;
     }
 
+    logger.fine('Track.stop()');
+
+    _active = false;
+    return true;
+  }
+
+  Future<void> enable() async {
+    logger.fine('Track.enable()');
+    try {
+      mediaStreamTrack.enabled = true;
+    } catch (_) {
+      logger.warning(
+          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    }
+  }
+
+  Future<void> disable() async {
+    logger.fine('Track.disable()');
     try {
       mediaStreamTrack.enabled = false;
     } catch (_) {
       logger.warning(
           '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
     }
-
-    _active = false;
-    return true;
   }
 }

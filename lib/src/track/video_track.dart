@@ -5,7 +5,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import 'track.dart';
 
 /// A video track will notify when its mediaTrack has changed.
-class VideoTrack extends Track {
+abstract class VideoTrack extends Track {
   rtc.MediaStream _mediaStream;
 
   VideoTrack(

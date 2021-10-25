@@ -32,4 +32,13 @@ class LocalAudioTrack extends AudioTrack {
 
     return LocalAudioTrack._('', stream.getAudioTracks().first, stream);
   }
+
+  @override
+  Future<bool> stop() async {
+    final didStop = await super.stop();
+    if (didStop) {
+      await mediaStreamTrack.stop();
+    }
+    return didStop;
+  }
 }
