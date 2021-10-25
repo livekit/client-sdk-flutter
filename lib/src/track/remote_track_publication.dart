@@ -104,7 +104,11 @@ class RemoteTrackPublication extends TrackPublication {
       _visibilities.values.firstWhereOrNull((e) => e.visible) != null;
 
   void _shouldComputeVisibilityUpdate(void _) {
-    //
+    if (isDisposed) {
+      logger.warning('_shouldComputeVisibilityUpdate already disposed');
+      return;
+    }
+
     Size maxSize(Size s1, Size s2) => Size(
           max(s1.width, s2.width),
           max(s1.height, s2.height),
@@ -137,9 +141,9 @@ class RemoteTrackPublication extends TrackPublication {
       super.track?.dispose();
       super.track = newValue;
 
-      if (newValue != null) {
+      if (newValue != null && newValue.kind == lk_models.TrackType.VIDEO) {
         //
-        // Attach visibility event listener
+        // Attach visibility event listener (if video track)
         //
         final listener = newValue.createListener();
         listener.on<TrackVisibilityUpdatedEvent>(
@@ -148,11 +152,9 @@ class RemoteTrackPublication extends TrackPublication {
           await listener.dispose();
           // consider all views are disposed when track is null
           _visibilities.clear();
-          // _visibilityDidUpdate?.call(null);
+          if (!isDisposed) _visibilityDidUpdate?.call(null);
         });
       }
-
-      _visibilityDidUpdate?.call(null);
     }
   }
 
