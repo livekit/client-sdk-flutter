@@ -76,6 +76,13 @@ abstract class Track extends DisposableChangeNotifier
       return false;
     }
 
+    try {
+      mediaStreamTrack.enabled = true;
+    } catch (_) {
+      logger.warning(
+          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    }
+
     _active = true;
     return true;
   }
@@ -89,9 +96,10 @@ abstract class Track extends DisposableChangeNotifier
     }
 
     try {
-      await mediaStreamTrack.stop();
+      mediaStreamTrack.enabled = false;
     } catch (_) {
-      logger.warning('[$objectId] rtc.mediaStreamTrack.stop() did throw ${_}');
+      logger.warning(
+          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
     }
 
     _active = false;
