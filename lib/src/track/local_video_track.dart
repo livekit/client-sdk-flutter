@@ -38,12 +38,19 @@ class LocalVideoTrack extends VideoTrack {
 
     currentOptions = options ?? currentOptions;
 
-    final stream = await _createStream(currentOptions);
-    final track = stream.getVideoTracks().first;
-    setMediaStream(stream);
+    // stop the current track
     await mediaStreamTrack.stop();
-    mediaStreamTrack = track;
-    await sender?.replaceTrack(track);
+
+    // create new track with options
+    final newStream = await _createStream(currentOptions);
+    final newTrack = newStream.getVideoTracks().first;
+
+    // replace track on sender
+    await sender?.replaceTrack(newTrack);
+
+    // set new stream & track to this object
+    setMediaStream(newStream);
+    mediaStreamTrack = newTrack;
   }
 
   /// Creates a LocalVideoTrack from camera input.
