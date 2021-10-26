@@ -38,9 +38,10 @@ class LocalVideoTrack extends VideoTrack {
 
     currentOptions = options ?? currentOptions;
 
-    // stop the current track
+    // stop the current track & stream
     await mediaStreamTrack.stop();
-
+    await mediaStream.dispose();
+    
     // create new track with options
     final newStream = await _createStream(currentOptions);
     final newTrack = newStream.getVideoTracks().first;
