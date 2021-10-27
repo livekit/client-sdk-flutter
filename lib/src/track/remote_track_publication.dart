@@ -130,7 +130,7 @@ class RemoteTrackPublication extends TrackPublication {
     }
 
     logger.fine('[Visibility] Sending to server ${settings.toProto3Json()}');
-    _participant.client.sendUpdateTrackSettings(settings);
+    _participant.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
   @override
@@ -141,7 +141,11 @@ class RemoteTrackPublication extends TrackPublication {
       super.track?.dispose();
       super.track = newValue;
 
-      if (newValue != null && newValue.kind == lk_models.TrackType.VIDEO) {
+      // Only listen for visibility updates if video optimization is on
+      // and the attached track is a video track
+      if (_participant.engine.connectOptions.optimizeVideo &&
+          newValue != null &&
+          newValue.kind == lk_models.TrackType.VIDEO) {
         //
         // Attach visibility event listener (if video track)
         //
@@ -223,7 +227,7 @@ class RemoteTrackPublication extends TrackPublication {
       trackSids: [sid],
       subscribe: subscribed,
     );
-    _participant.client.sendUpdateSubscription(subscription);
+    _participant.engine.signalClient.sendUpdateSubscription(subscription);
   }
 
   void _sendUpdateTrackSettings() {
@@ -234,6 +238,6 @@ class RemoteTrackPublication extends TrackPublication {
     if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
     }
-    _participant.client.sendUpdateTrackSettings(settings);
+    _participant.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 }

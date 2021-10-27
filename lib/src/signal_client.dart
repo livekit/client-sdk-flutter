@@ -41,11 +41,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   Future<void> connect(
     String uriString,
     String token, {
-    ConnectOptions? options,
+    required ConnectOptions options,
   }) async {
-    // Create default options if null
-    options ??= const ConnectOptions();
-
     final rtcUri = Utils.buildUri(
       uriString,
       token: token,

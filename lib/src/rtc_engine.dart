@@ -30,6 +30,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   // config for RTCPeerConnection
   final RTCConfiguration? rtcConfig;
 
+  ConnectOptions connectOptions = const ConnectOptions();
+
   @internal
   PCTransport? publisher;
 
@@ -91,13 +93,21 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   Future<lk_rtc.JoinResponse> join(
     String url,
     String token, {
-    ConnectOptions? options,
+    ConnectOptions? connectOptions,
   }) async {
     this.url = url;
     this.token = token;
 
+    if (connectOptions != null) {
+      this.connectOptions = connectOptions;
+    }
+
     // connect to rtc server
-    await signalClient.connect(url, token, options: options);
+    await signalClient.connect(
+      url,
+      token,
+      options: this.connectOptions,
+    );
 
     // wait for join response
     final event = await _signalListener.waitFor<SignalConnectedEvent>(

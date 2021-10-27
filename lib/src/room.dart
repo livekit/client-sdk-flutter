@@ -119,7 +119,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       final joinResponse = await engine.join(
         url,
         token,
-        options: options,
+        connectOptions: options,
       );
 
       logger.fine(
@@ -227,14 +227,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     if (info == null) {
       participant = RemoteParticipant(
-        engine.signalClient,
+        engine,
         sid,
         '',
         roomEvents: events,
       );
     } else {
       participant = RemoteParticipant.fromInfo(
-        engine.signalClient,
+        engine,
         info,
         roomEvents: events,
       );

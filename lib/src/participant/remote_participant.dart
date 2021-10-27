@@ -9,7 +9,7 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../signal_client.dart';
+import '../rtc_engine.dart';
 import '../track/remote_track_publication.dart';
 import '../track/track.dart';
 import '../types.dart';
@@ -17,11 +17,11 @@ import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
-  final SignalClient _client;
-  SignalClient get client => _client;
+  final RTCEngine _engine;
+  RTCEngine get engine => _engine;
 
   RemoteParticipant(
-    this._client,
+    this._engine,
     String sid,
     String identity, {
     required EventsEmitter<RoomEvent> roomEvents,
@@ -32,7 +32,7 @@ class RemoteParticipant extends Participant {
         );
 
   RemoteParticipant.fromInfo(
-    this._client,
+    this._engine,
     lk_models.ParticipantInfo info, {
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
