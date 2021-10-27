@@ -76,7 +76,7 @@ class LocalParticipant extends Participant {
 
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
-        
+
     [events, roomEvents].emit(TrackPublishedEvent(
       participant: this,
       publication: pub,
