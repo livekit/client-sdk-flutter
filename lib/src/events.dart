@@ -72,8 +72,8 @@ class ActiveSpeakersChangedEvent with RoomEvent {
 /// joined. It will not fire for tracks that are already published.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackPublishedEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
-  final RemoteTrackPublication publication;
+  final Participant participant;
+  final TrackPublication publication;
   const TrackPublishedEvent({
     required this.participant,
     required this.publication,

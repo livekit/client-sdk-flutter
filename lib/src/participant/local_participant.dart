@@ -76,7 +76,12 @@ class LocalParticipant extends Participant {
 
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
-    notifyListeners();
+        
+    [events, roomEvents].emit(TrackPublishedEvent(
+      participant: this,
+      publication: pub,
+    ));
+
     return pub;
   }
 
@@ -149,7 +154,11 @@ class LocalParticipant extends Participant {
 
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
-    notifyListeners();
+
+    [events, roomEvents].emit(TrackPublishedEvent(
+      participant: this,
+      publication: pub,
+    ));
 
     return pub;
   }

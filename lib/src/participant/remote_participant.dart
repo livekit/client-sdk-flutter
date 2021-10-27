@@ -73,7 +73,7 @@ class RemoteParticipant extends Participant {
           reason: TrackSubscribeFailReason.notTrackMetadataFound,
         ),
       );
-      pub = event.publication;
+      pub = event.publication as RemoteTrackPublication;
       logger.fine('addSubscribedMediaTrack() did receive pub');
     }
 
@@ -147,7 +147,7 @@ class RemoteParticipant extends Participant {
     final removeSids =
         trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
-      await unpublishTrack(sid, notify: true);
+      await unpublishTrack(sid);
     }
   }
 
