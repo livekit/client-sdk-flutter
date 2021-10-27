@@ -36,6 +36,12 @@ abstract class Track extends DisposableChangeNotifier
     this.name,
     this.mediaStreamTrack,
   ) {
+    // Any event emitted will trigger ChangeNotifier
+    events.listen((event) {
+      logger.fine('[TrackEvent] $event, will notifyListeners()');
+      notifyListeners();
+    });
+
     onDispose(() async {
       logger.fine('${objectId} onDispose()');
       // dispose events

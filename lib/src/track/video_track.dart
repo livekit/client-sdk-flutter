@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -26,7 +27,10 @@ abstract class VideoTrack extends Track {
   @internal
   void setMediaStream(rtc.MediaStream stream) {
     _mediaStream = stream;
-    notifyListeners();
+    events.emit(TrackStreamUpdatedEvent(
+      track: this,
+      stream: stream,
+    ));
   }
 
   @override
