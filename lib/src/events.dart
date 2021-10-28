@@ -1,9 +1,11 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'track/local_track_publication.dart';
 import 'track/remote_track_publication.dart';
 import 'track/track.dart';
 import 'track/track_publication.dart';
@@ -72,8 +74,8 @@ class ActiveSpeakersChangedEvent with RoomEvent {
 /// joined. It will not fire for tracks that are already published.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackPublishedEvent with RoomEvent, ParticipantEvent {
-  final Participant participant;
-  final TrackPublication publication;
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
   const TrackPublishedEvent({
     required this.participant,
     required this.publication,
@@ -83,9 +85,31 @@ class TrackPublishedEvent with RoomEvent, ParticipantEvent {
 /// The participant has unpublished one of their [Track].
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
-  final Participant participant;
-  final TrackPublication publication;
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
   const TrackUnpublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+}
+
+/// When the local participant publishes a new [Track] to the room.
+/// Emitted by [Room] and [LocalParticipant].
+class LocalTrackPublishedEvent with RoomEvent, ParticipantEvent {
+  final LocalParticipant participant;
+  final LocalTrackPublication publication;
+  const LocalTrackPublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+}
+
+/// The local participant has unpublished one of their [Track].
+/// Emitted by [Room] and [LocalParticipant].
+class LocalTrackUnpublishedEvent with RoomEvent, ParticipantEvent {
+  final LocalParticipant participant;
+  final LocalTrackPublication publication;
+  const LocalTrackUnpublishedEvent({
     required this.participant,
     required this.publication,
   });

@@ -77,7 +77,7 @@ class LocalParticipant extends Participant {
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
 
-    [events, roomEvents].emit(TrackPublishedEvent(
+    [events, roomEvents].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
     ));
@@ -155,7 +155,7 @@ class LocalParticipant extends Participant {
     final pub = LocalTrackPublication(trackInfo, track, this);
     addTrackPublication(pub);
 
-    [events, roomEvents].emit(TrackPublishedEvent(
+    [events, roomEvents].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
     ));
@@ -194,7 +194,7 @@ class LocalParticipant extends Participant {
     }
 
     if (notify) {
-      [events, roomEvents].emit(TrackUnpublishedEvent(
+      [events, roomEvents].emit(LocalTrackUnpublishedEvent(
         participant: this,
         publication: pub,
       ));
