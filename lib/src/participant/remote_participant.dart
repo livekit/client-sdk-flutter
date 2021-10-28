@@ -73,7 +73,7 @@ class RemoteParticipant extends Participant {
           reason: TrackSubscribeFailReason.notTrackMetadataFound,
         ),
       );
-      pub = event.publication as RemoteTrackPublication;
+      pub = event.publication;
       logger.fine('addSubscribedMediaTrack() did receive pub');
     }
 
