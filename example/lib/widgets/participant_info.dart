@@ -53,6 +53,7 @@ class ParticipantInfoWidget extends StatelessWidget {
                     ConnectionQuality.good: Colors.orange,
                     ConnectionQuality.poor: Colors.red,
                   }[connectionQuality],
+                  size: 16,
                 ),
               ),
           ],
