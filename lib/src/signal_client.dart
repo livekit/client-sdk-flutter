@@ -247,6 +247,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(
             SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
         break;
+      case lk_rtc.SignalResponse_Message.connectionQuality:
+        events.emit(SignalConnectionQualityUpdateEvent(
+          updates: msg.connectionQuality.updates,
+        ));
+        break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
         break;

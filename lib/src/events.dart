@@ -310,6 +310,13 @@ class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
   });
 }
 
+class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
+  final List<lk_rtc.ConnectionQualityInfo> updates;
+  const SignalConnectionQualityUpdateEvent({
+    required this.updates,
+  });
+}
+
 class SignalLocalTrackPublishedEvent with SignalEvent {
   final String cid;
   final lk_models.TrackInfo track;
