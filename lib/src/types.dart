@@ -8,6 +8,7 @@ enum ProtocolVersion {
   protocol2,
   protocol3,
   protocol4,
+  protocol5,
 }
 
 enum ConnectionState {

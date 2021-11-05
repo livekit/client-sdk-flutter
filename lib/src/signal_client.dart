@@ -24,7 +24,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   LiveKitWebSocket? _ws;
 
   SignalClient({
-    this.protocol = ProtocolVersion.protocol4,
+    this.protocol = ProtocolVersion.protocol5,
   }) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
