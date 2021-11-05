@@ -91,3 +91,13 @@ extension SessionDescriptionExt on lk_rtc.SessionDescription {
     return rtc.RTCSessionDescription(sdp, type);
   }
 }
+
+extension ConnectionQualityExt on lk_models.ConnectionQuality {
+  ConnectionQuality toLKType() =>
+      {
+        lk_models.ConnectionQuality.POOR: ConnectionQuality.poor,
+        lk_models.ConnectionQuality.GOOD: ConnectionQuality.good,
+        lk_models.ConnectionQuality.EXCELLENT: ConnectionQuality.excellent,
+      }[this] ??
+      ConnectionQuality.unknown;
+}

@@ -16,6 +16,13 @@ enum ConnectionState {
   reconnecting,
 }
 
+enum ConnectionQuality {
+  unknown,
+  poor,
+  good,
+  excellent,
+}
+
 enum Reliability {
   reliable,
   lossy,

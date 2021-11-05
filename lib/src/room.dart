@@ -174,6 +174,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<SignalSpeakersChangedEvent>(
         (event) => _onSignalSpeakersChangedEvent(event.speakers))
+    ..on<SignalConnectionQualityUpdateEvent>(
+        (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
       final track = localParticipant.trackPublications[event.sid];
@@ -364,6 +366,23 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _activeSpeakers = activeSpeakers;
     events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+  }
+
+  void _onSignalConnectionQualityUpdateEvent(
+      List<lk_rtc.ConnectionQualityInfo> updates) {
+    for (final entry in updates) {
+      Participant? participant;
+      if (entry.participantSid == localParticipant.sid) {
+        participant = localParticipant;
+      } else {
+        participant = _participants[entry.participantSid];
+      }
+
+      if (participant != null) {
+        // update the connection quality if the participant is found
+        participant.updateConnectionQuality(entry.quality.toLKType());
+      }
+    }
   }
 
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {

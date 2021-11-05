@@ -8,6 +8,7 @@ import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../track/track_publication.dart';
+import '../types.dart';
 import 'remote_participant.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
@@ -43,6 +44,8 @@ abstract class Participant extends DisposableChangeNotifier
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
+  ConnectionQuality _connectionQuality = ConnectionQuality.unknown;
+
   // suppport for multiple event listeners
   final EventsEmitter<RoomEvent> roomEvents;
 
@@ -65,6 +68,9 @@ abstract class Participant extends DisposableChangeNotifier
   bool get hasAudio => audioTracks.isNotEmpty;
 
   bool get hasVideo => videoTracks.isNotEmpty;
+
+  /// Connection quality of the participant
+  ConnectionQuality get connectionQuality => _connectionQuality;
 
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks =>
@@ -118,6 +124,16 @@ abstract class Participant extends DisposableChangeNotifier
         participant: this,
       ));
     }
+  }
+
+  @internal
+  void updateConnectionQuality(ConnectionQuality quality) {
+    if (_connectionQuality == quality) return;
+    _connectionQuality = quality;
+    [events, roomEvents].emit(ParticipantConnectionQualityUpdatedEvent(
+      participant: this,
+      connectionQuality: _connectionQuality,
+    ));
   }
 
   /// for internal use
