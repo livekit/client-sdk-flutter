@@ -3,7 +3,7 @@
 //  source: livekit_models.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_this,unused_import,unused_shown_name
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 import 'dart:convert' as $convert;
@@ -36,6 +36,19 @@ const TrackSource$json = const {
 /// Descriptor for `TrackSource`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List trackSourceDescriptor = $convert.base64Decode(
     'CgtUcmFja1NvdXJjZRILCgdVTktOT1dOEAASCgoGQ0FNRVJBEAESDgoKTUlDUk9QSE9ORRACEhAKDFNDUkVFTl9TSEFSRRAD');
+@$core.Deprecated('Use connectionQualityDescriptor instead')
+const ConnectionQuality$json = const {
+  '1': 'ConnectionQuality',
+  '2': const [
+    const {'1': 'POOR', '2': 0},
+    const {'1': 'GOOD', '2': 1},
+    const {'1': 'EXCELLENT', '2': 2},
+  ],
+};
+
+/// Descriptor for `ConnectionQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List connectionQualityDescriptor = $convert.base64Decode(
+    'ChFDb25uZWN0aW9uUXVhbGl0eRIICgRQT09SEAASCAoER09PRBABEg0KCUVYQ0VMTEVOVBAC');
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = const {
   '1': 'Room',

@@ -41,6 +41,7 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.protocol2: '2',
         ProtocolVersion.protocol3: '3',
         ProtocolVersion.protocol4: '4',
+        ProtocolVersion.protocol5: '5',
       }[this]!;
 }
 
@@ -90,4 +91,14 @@ extension SessionDescriptionExt on lk_rtc.SessionDescription {
   rtc.RTCSessionDescription toSDKType() {
     return rtc.RTCSessionDescription(sdp, type);
   }
+}
+
+extension ConnectionQualityExt on lk_models.ConnectionQuality {
+  ConnectionQuality toLKType() =>
+      {
+        lk_models.ConnectionQuality.POOR: ConnectionQuality.poor,
+        lk_models.ConnectionQuality.GOOD: ConnectionQuality.good,
+        lk_models.ConnectionQuality.EXCELLENT: ConnectionQuality.excellent,
+      }[this] ??
+      ConnectionQuality.unknown;
 }

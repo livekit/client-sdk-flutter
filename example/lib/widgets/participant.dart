@@ -125,6 +125,7 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
                     title: widget.participant.identity,
                     audioAvailable: firstAudioPub?.muted == false &&
                         firstAudioPub?.subscribed == true,
+                    connectionQuality: widget.participant.connectionQuality,
                   ),
                 ],
               ),

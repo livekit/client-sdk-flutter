@@ -24,7 +24,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   LiveKitWebSocket? _ws;
 
   SignalClient({
-    this.protocol = ProtocolVersion.protocol4,
+    this.protocol = ProtocolVersion.protocol5,
   }) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
@@ -246,6 +246,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.speakersChanged:
         events.emit(
             SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        break;
+      case lk_rtc.SignalResponse_Message.connectionQuality:
+        events.emit(SignalConnectionQualityUpdateEvent(
+          updates: msg.connectionQuality.updates,
+        ));
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));

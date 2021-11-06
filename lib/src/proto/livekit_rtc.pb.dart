@@ -3,7 +3,7 @@
 //  source: livekit_rtc.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_this,unused_import,unused_shown_name
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 
@@ -294,6 +294,7 @@ enum SignalResponse_Message {
   mute,
   speakersChanged,
   roomUpdate,
+  connectionQuality,
   notSet
 }
 
@@ -310,6 +311,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     9: SignalResponse_Message.mute,
     10: SignalResponse_Message.speakersChanged,
     11: SignalResponse_Message.roomUpdate,
+    12: SignalResponse_Message.connectionQuality,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -321,7 +323,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -382,6 +384,12 @@ class SignalResponse extends $pb.GeneratedMessage {
             ? ''
             : 'roomUpdate',
         subBuilder: RoomUpdate.create)
+    ..aOM<ConnectionQualityUpdate>(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'connectionQuality',
+        subBuilder: ConnectionQualityUpdate.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -396,6 +404,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     MuteTrackRequest? mute,
     SpeakersChanged? speakersChanged,
     RoomUpdate? roomUpdate,
+    ConnectionQualityUpdate? connectionQuality,
   }) {
     final _result = create();
     if (join != null) {
@@ -427,6 +436,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (roomUpdate != null) {
       _result.roomUpdate = roomUpdate;
+    }
+    if (connectionQuality != null) {
+      _result.connectionQuality = connectionQuality;
     }
     return _result;
   }
@@ -600,6 +612,20 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearRoomUpdate() => clearField(11);
   @$pb.TagNumber(11)
   RoomUpdate ensureRoomUpdate() => $_ensure(9);
+
+  @$pb.TagNumber(12)
+  ConnectionQualityUpdate get connectionQuality => $_getN(10);
+  @$pb.TagNumber(12)
+  set connectionQuality(ConnectionQualityUpdate v) {
+    setField(12, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasConnectionQuality() => $_has(10);
+  @$pb.TagNumber(12)
+  void clearConnectionQuality() => clearField(12);
+  @$pb.TagNumber(12)
+  ConnectionQualityUpdate ensureConnectionQuality() => $_ensure(10);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -1953,4 +1979,160 @@ class RoomUpdate extends $pb.GeneratedMessage {
   void clearRoom() => clearField(1);
   @$pb.TagNumber(1)
   $0.Room ensureRoom() => $_ensure(0);
+}
+
+class ConnectionQualityInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ConnectionQualityInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..e<$0.ConnectionQuality>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'quality',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: $0.ConnectionQuality.POOR,
+        valueOf: $0.ConnectionQuality.valueOf,
+        enumValues: $0.ConnectionQuality.values)
+    ..hasRequiredFields = false;
+
+  ConnectionQualityInfo._() : super();
+  factory ConnectionQualityInfo({
+    $core.String? participantSid,
+    $0.ConnectionQuality? quality,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (quality != null) {
+      _result.quality = quality;
+    }
+    return _result;
+  }
+  factory ConnectionQualityInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ConnectionQualityInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ConnectionQualityInfo clone() =>
+      ConnectionQualityInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ConnectionQualityInfo copyWith(
+          void Function(ConnectionQualityInfo) updates) =>
+      super.copyWith((message) => updates(message as ConnectionQualityInfo))
+          as ConnectionQualityInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ConnectionQualityInfo create() => ConnectionQualityInfo._();
+  ConnectionQualityInfo createEmptyInstance() => create();
+  static $pb.PbList<ConnectionQualityInfo> createRepeated() =>
+      $pb.PbList<ConnectionQualityInfo>();
+  @$core.pragma('dart2js:noInline')
+  static ConnectionQualityInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectionQualityInfo>(create);
+  static ConnectionQualityInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $0.ConnectionQuality get quality => $_getN(1);
+  @$pb.TagNumber(2)
+  set quality($0.ConnectionQuality v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasQuality() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearQuality() => clearField(2);
+}
+
+class ConnectionQualityUpdate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ConnectionQualityUpdate',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<ConnectionQualityInfo>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'updates',
+        $pb.PbFieldType.PM,
+        subBuilder: ConnectionQualityInfo.create)
+    ..hasRequiredFields = false;
+
+  ConnectionQualityUpdate._() : super();
+  factory ConnectionQualityUpdate({
+    $core.Iterable<ConnectionQualityInfo>? updates,
+  }) {
+    final _result = create();
+    if (updates != null) {
+      _result.updates.addAll(updates);
+    }
+    return _result;
+  }
+  factory ConnectionQualityUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ConnectionQualityUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ConnectionQualityUpdate clone() =>
+      ConnectionQualityUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ConnectionQualityUpdate copyWith(
+          void Function(ConnectionQualityUpdate) updates) =>
+      super.copyWith((message) => updates(message as ConnectionQualityUpdate))
+          as ConnectionQualityUpdate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ConnectionQualityUpdate create() => ConnectionQualityUpdate._();
+  ConnectionQualityUpdate createEmptyInstance() => create();
+  static $pb.PbList<ConnectionQualityUpdate> createRepeated() =>
+      $pb.PbList<ConnectionQualityUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static ConnectionQualityUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectionQualityUpdate>(create);
+  static ConnectionQualityUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<ConnectionQualityInfo> get updates => $_getList(0);
 }

@@ -189,6 +189,18 @@ class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
+/// [Pariticpant]'s [ConnectionQuality] has updated.
+/// Emitted by [Room] and [Participant].
+class ParticipantConnectionQualityUpdatedEvent
+    with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final ConnectionQuality connectionQuality;
+  const ParticipantConnectionQualityUpdatedEvent({
+    required this.participant,
+    required this.connectionQuality,
+  });
+}
+
 /// Data received from  [RemoteParticipant].
 /// Data packets provides the ability to use LiveKit to send/receive arbitrary
 /// payloads.
@@ -307,6 +319,13 @@ class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
   final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
     required this.participants,
+  });
+}
+
+class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
+  final List<lk_rtc.ConnectionQualityInfo> updates;
+  const SignalConnectionQualityUpdateEvent({
+    required this.updates,
   });
 }
 

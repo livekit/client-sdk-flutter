@@ -8,12 +8,20 @@ enum ProtocolVersion {
   protocol2,
   protocol3,
   protocol4,
+  protocol5,
 }
 
 enum ConnectionState {
   disconnected,
   connected,
   reconnecting,
+}
+
+enum ConnectionQuality {
+  unknown,
+  poor,
+  good,
+  excellent,
 }
 
 enum Reliability {
