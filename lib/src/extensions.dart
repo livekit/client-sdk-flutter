@@ -103,7 +103,7 @@ extension ConnectionQualityExt on lk_models.ConnectionQuality {
       ConnectionQuality.unknown;
 }
 
-extension LKTrackSourceExt on lk_models.TrackSource {
+extension PBTrackSourceExt on lk_models.TrackSource {
   TrackSource toLKType() =>
       <lk_models.TrackSource, TrackSource>{
         lk_models.TrackSource.CAMERA: TrackSource.camera,
@@ -113,7 +113,7 @@ extension LKTrackSourceExt on lk_models.TrackSource {
       TrackSource.unknown;
 }
 
-extension PBTrackSourceExt on TrackSource {
+extension LKTrackSourceExt on TrackSource {
   lk_models.TrackSource toPBType() =>
       <TrackSource, lk_models.TrackSource>{
         TrackSource.camera: lk_models.TrackSource.CAMERA,
