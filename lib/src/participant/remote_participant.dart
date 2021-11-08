@@ -1,6 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/track/remote_audio_track.dart';
-import 'package:livekit_client/src/track/remote_video_track.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -10,7 +8,9 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../rtc_engine.dart';
+import '../track/remote_audio_track.dart';
 import '../track/remote_track_publication.dart';
+import '../track/remote_video_track.dart';
 import '../track/track.dart';
 import '../types.dart';
 import 'participant.dart';

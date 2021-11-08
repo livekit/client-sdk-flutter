@@ -3,13 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/native_audio.dart';
-
+import '../types.dart';
 import 'local_audio_track.dart';
 import 'track.dart';
 

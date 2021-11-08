@@ -1,9 +1,9 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
+import '../internal/events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../types.dart';
 import 'track.dart';
 
 /// A video track will notify when its mediaTrack has changed.

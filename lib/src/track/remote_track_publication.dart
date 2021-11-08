@@ -2,12 +2,12 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
-import 'package:livekit_client/src/internal/events.dart';
-import 'package:livekit_client/src/logger.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
+import '../logger.dart';
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
