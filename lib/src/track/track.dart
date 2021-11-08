@@ -9,6 +9,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
+import '../types.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
@@ -21,6 +22,7 @@ abstract class Track extends DisposableChangeNotifier
 
   final String name;
   final lk_models.TrackType kind;
+  final TrackSource source;
   rtc.MediaStreamTrack mediaStreamTrack;
 
   String? sid;
@@ -33,6 +35,7 @@ abstract class Track extends DisposableChangeNotifier
 
   Track(
     this.kind,
+    this.source,
     this.name,
     this.mediaStreamTrack,
   ) {

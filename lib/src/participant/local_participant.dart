@@ -58,6 +58,7 @@ class LocalParticipant extends Participant {
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
+      source: track.source.toPBType(),
       dtx: options?.dtx,
     );
 
@@ -102,6 +103,7 @@ class LocalParticipant extends Participant {
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
+      source: track.source.toPBType(),
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');

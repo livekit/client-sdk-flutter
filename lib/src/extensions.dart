@@ -102,3 +102,23 @@ extension ConnectionQualityExt on lk_models.ConnectionQuality {
       }[this] ??
       ConnectionQuality.unknown;
 }
+
+extension LKTrackSourceExt on lk_models.TrackSource {
+  TrackSource toLKType() =>
+      <lk_models.TrackSource, TrackSource>{
+        lk_models.TrackSource.CAMERA: TrackSource.camera,
+        lk_models.TrackSource.MICROPHONE: TrackSource.microphone,
+        lk_models.TrackSource.SCREEN_SHARE: TrackSource.screenShare,
+      }[this] ??
+      TrackSource.unknown;
+}
+
+extension PBTrackSourceExt on TrackSource {
+  lk_models.TrackSource toPBType() =>
+      <TrackSource, lk_models.TrackSource>{
+        TrackSource.camera: lk_models.TrackSource.CAMERA,
+        TrackSource.microphone: lk_models.TrackSource.MICROPHONE,
+        TrackSource.screenShare: lk_models.TrackSource.SCREEN_SHARE,
+      }[this] ??
+      lk_models.TrackSource.UNKNOWN;
+}

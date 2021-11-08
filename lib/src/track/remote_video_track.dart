@@ -1,13 +1,16 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/track/video_track.dart';
 
+import '../types.dart';
+
 class RemoteVideoTrack extends VideoTrack {
   //
   RemoteVideoTrack(
+    TrackSource source,
     String name,
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
-  ) : super(name, mediaTrack, stream);
+  ) : super(source, name, mediaTrack, stream);
 
   @override
   Future<bool> start() async {

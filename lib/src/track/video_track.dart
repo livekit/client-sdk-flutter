@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
@@ -10,12 +11,13 @@ abstract class VideoTrack extends Track {
   rtc.MediaStream _mediaStream;
 
   VideoTrack(
+    TrackSource source,
     String name,
     rtc.MediaStreamTrack mediaTrack,
     this._mediaStream,
-    // this._client,
   ) : super(
           lk_models.TrackType.VIDEO,
+          source,
           name,
           mediaTrack,
         );
