@@ -189,7 +189,7 @@ extension ParticipantExt on Participant {
       .toList();
 }
 
-extension SimplerAPIsExt on Participant {
+extension ParticipantTrackSourceExt on Participant {
   /// Find a track publication by its [TrackSource]
   TrackPublication? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;
