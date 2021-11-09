@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.5.3
+
+* Connection quality information
+* Automatic video optimizations
+* Fix ios camera switch issue
+* Looser podspec constraint for WebRTC-SDK to avoid build issues
+* Better URL parsing
+
 ## 0.5.2
 
 * change ios audio session defaults to support voice isolation
