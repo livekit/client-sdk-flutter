@@ -41,6 +41,7 @@ class LKTextField extends StatelessWidget {
                 hintText: '',
               ),
               keyboardType: TextInputType.url,
+              autocorrect: false,
             ),
           ),
         ],
