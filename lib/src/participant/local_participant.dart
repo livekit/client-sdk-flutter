@@ -232,3 +232,46 @@ class LocalParticipant extends Participant {
     super.updateFromInfo(info);
   }
 }
+
+extension SimplerAPIsExt on LocalParticipant {
+  Future<void> setCamercaEnabled(bool enabled) async {
+    return setSourceEnabled(TrackSource.camera, enabled);
+  }
+
+  bool isCameraEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
+  }
+
+  Future<void> setMicrophoneEnabled(bool enabled) async {
+    return setSourceEnabled(TrackSource.microphone, enabled);
+  }
+
+  bool isMicrophoneEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
+        true);
+  }
+
+  Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
+    final pub = getTrackPublicationBySource(source);
+    if (pub != null) {
+      if (enabled) {
+        pub.muted = false;
+      } else {
+        if (source == TrackSource.screenShare) {
+          await unpublishTrack(pub.sid);
+        } else {
+          pub.muted = true;
+        }
+      }
+    } else if (enabled) {
+      if (source == TrackSource.camera) {
+        final track = await LocalVideoTrack.createCameraTrack();
+        await publishVideoTrack(track);
+      } else if (source == TrackSource.microphone) {
+        final track = await LocalAudioTrack.create();
+        await publishAudioTrack(track);
+      }
+      // TODO: Screen share
+    }
+  }
+}
