@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'extensions.dart';
+import 'livekit.dart';
 import 'options.dart';
 import 'track/options.dart';
 import 'types.dart';
-import 'version.dart';
 
 extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
@@ -50,7 +50,7 @@ class Utils {
         if (reconnect) 'reconnect': '1',
         'protocol': protocol.toStringValue(),
         'sdk': 'flutter',
-        'version': clientVersion,
+        'version': LiveKitClient.version,
       },
     );
   }
