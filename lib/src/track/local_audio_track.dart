@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../exceptions.dart';
+import '../logger.dart';
 import 'audio_track.dart';
 import 'options.dart';
 
@@ -37,6 +38,7 @@ class LocalAudioTrack extends AudioTrack {
   Future<bool> stop() async {
     final didStop = await super.stop();
     if (didStop) {
+      logger.fine('Stopping mediaStreamTrack...');
       await mediaStreamTrack.stop();
     }
     return didStop;

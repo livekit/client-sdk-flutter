@@ -82,7 +82,7 @@ abstract class Track extends DisposableChangeNotifier
       return false;
     }
 
-    logger.fine('Track.start()');
+    logger.fine('$objectId.start()');
 
     _active = true;
     return true;
@@ -96,14 +96,14 @@ abstract class Track extends DisposableChangeNotifier
       return false;
     }
 
-    logger.fine('Track.stop()');
+    logger.fine('$objectId.stop()');
 
     _active = false;
     return true;
   }
 
   Future<void> enable() async {
-    logger.fine('Track.enable()');
+    logger.fine('$objectId.enable() enabling ${mediaStreamTrack.objectId}...');
     try {
       mediaStreamTrack.enabled = true;
     } catch (_) {
@@ -113,7 +113,7 @@ abstract class Track extends DisposableChangeNotifier
   }
 
   Future<void> disable() async {
-    logger.fine('Track.disable()');
+    logger.fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
       mediaStreamTrack.enabled = false;
     } catch (_) {

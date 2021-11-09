@@ -105,6 +105,7 @@ class LocalVideoTrack extends VideoTrack {
   Future<bool> stop() async {
     final didStop = await super.stop();
     if (didStop) {
+      logger.fine('Stopping mediaStreamTrack...');
       await mediaStreamTrack.stop();
     }
     return didStop;
