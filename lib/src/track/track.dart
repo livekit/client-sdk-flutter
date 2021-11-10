@@ -116,7 +116,8 @@ abstract class Track extends DisposableChangeNotifier
   }
 
   Future<void> disable() async {
-    logger.fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
+    logger
+        .fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
       mediaStreamTrack.enabled = false;
     } catch (_) {
