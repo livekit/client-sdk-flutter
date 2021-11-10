@@ -190,6 +190,15 @@ extension ParticipantExt on Participant {
 }
 
 extension ParticipantTrackSourceExt on Participant {
+  bool isCameraEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
+  }
+
+  bool isMicrophoneEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
+        true);
+  }
+
   /// Find a track publication by its [TrackSource]
   TrackPublication? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;

@@ -238,17 +238,8 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
     return setSourceEnabled(TrackSource.camera, enabled);
   }
 
-  bool isCameraEnabled() {
-    return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
-  }
-
   Future<void> setMicrophoneEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.microphone, enabled);
-  }
-
-  bool isMicrophoneEnabled() {
-    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
-        true);
   }
 
   Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
