@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:livekit_client/src/track/track.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -186,4 +187,39 @@ extension ParticipantExt on Participant {
   List<TrackPublication> get audioTracks => trackPublications.values
       .where((e) => e.kind == lk_models.TrackType.AUDIO)
       .toList();
+}
+
+extension ParticipantTrackSourceExt on Participant {
+  bool isCameraEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
+  }
+
+  bool isMicrophoneEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
+        true);
+  }
+
+  /// Find a track publication by its [TrackSource]
+  TrackPublication? getTrackPublicationBySource(TrackSource source) {
+    if (source == TrackSource.unknown) return null;
+    // try to find by source
+    final result =
+        trackPublications.values.firstWhereOrNull((e) => e.source == source);
+    if (result != null) return result;
+    // try to find by compatibility
+    return trackPublications.values
+        .where((e) => e.source == TrackSource.unknown)
+        .firstWhereOrNull((e) =>
+            (source == TrackSource.microphone &&
+                e.kind == lk_models.TrackType.AUDIO) ||
+            (source == TrackSource.camera &&
+                e.kind == lk_models.TrackType.VIDEO &&
+                e.name != Track.screenShareName) ||
+            (source == TrackSource.screenShareVideo &&
+                e.kind == lk_models.TrackType.VIDEO &&
+                e.name == Track.screenShareName) ||
+            (source == TrackSource.screenShareAudio &&
+                e.kind == lk_models.TrackType.AUDIO &&
+                e.name == Track.screenShareName));
+  }
 }

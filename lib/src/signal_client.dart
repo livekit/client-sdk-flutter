@@ -151,6 +151,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required String cid,
     required String name,
     required lk_models.TrackType type,
+    required lk_models.TrackSource source,
     TrackDimension? dimension,
     bool? dtx,
   }) {
@@ -158,6 +159,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       cid: cid,
       name: name,
       type: type,
+      source: source,
     );
 
     if (type == lk_models.TrackType.VIDEO && dimension != null) {

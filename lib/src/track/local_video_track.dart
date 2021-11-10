@@ -2,6 +2,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../exceptions.dart';
 import '../logger.dart';
+import '../types.dart';
 import 'options.dart';
 import 'track.dart';
 import 'video_track.dart';
@@ -18,11 +19,12 @@ class LocalVideoTrack extends VideoTrack {
   // Private constructor
   //
   LocalVideoTrack._(
+    TrackSource source,
     String name,
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
     this.currentOptions,
-  ) : super(name, mediaTrack, stream);
+  ) : super(source, name, mediaTrack, stream);
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
@@ -61,6 +63,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= const CameraTrackOptions();
     final stream = await _createStream(options);
     return LocalVideoTrack._(
+      TrackSource.camera,
       Track.cameraName,
       stream.getVideoTracks().first,
       stream,
@@ -74,6 +77,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= const ScreenTrackOptions();
     final stream = await _createStream(options);
     return LocalVideoTrack._(
+      TrackSource.screenShareVideo,
       Track.screenShareName,
       stream.getVideoTracks().first,
       stream,

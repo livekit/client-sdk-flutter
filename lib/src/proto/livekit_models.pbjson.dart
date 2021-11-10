@@ -30,12 +30,13 @@ const TrackSource$json = const {
     const {'1': 'CAMERA', '2': 1},
     const {'1': 'MICROPHONE', '2': 2},
     const {'1': 'SCREEN_SHARE', '2': 3},
+    const {'1': 'SCREEN_SHARE_AUDIO', '2': 4},
   ],
 };
 
 /// Descriptor for `TrackSource`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List trackSourceDescriptor = $convert.base64Decode(
-    'CgtUcmFja1NvdXJjZRILCgdVTktOT1dOEAASCgoGQ0FNRVJBEAESDgoKTUlDUk9QSE9ORRACEhAKDFNDUkVFTl9TSEFSRRAD');
+    'CgtUcmFja1NvdXJjZRILCgdVTktOT1dOEAASCgoGQ0FNRVJBEAESDgoKTUlDUk9QSE9ORRACEhAKDFNDUkVFTl9TSEFSRRADEhYKElNDUkVFTl9TSEFSRV9BVURJTxAE');
 @$core.Deprecated('Use connectionQualityDescriptor instead')
 const ConnectionQuality$json = const {
   '1': 'ConnectionQuality',
