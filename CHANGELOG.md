@@ -4,6 +4,7 @@
 
 * Connection quality information
 * Automatic video optimizations
+* Simplified track APIs
 * Fix ios camera switch issue
 * Looser podspec constraint for WebRTC-SDK to avoid build issues
 * Better URL parsing
