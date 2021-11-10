@@ -1,6 +1,7 @@
 import '../support/disposable.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
+import '../extensions.dart';
 import 'track.dart';
 
 /// Represents a track that's published to the server. This class contains
@@ -13,6 +14,7 @@ abstract class TrackPublication extends Disposable {
   final String sid;
   final String name;
   final lk_models.TrackType kind;
+  final TrackSource source;
 
   Track? track;
   bool muted = false;
@@ -24,7 +26,8 @@ abstract class TrackPublication extends Disposable {
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,
         name = info.name,
-        kind = info.type {
+        kind = info.type,
+        source = info.source.toLKType() {
     updateFromInfo(info);
   }
 

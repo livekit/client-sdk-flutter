@@ -29,6 +29,14 @@ enum Reliability {
   lossy,
 }
 
+enum TrackSource {
+  unknown,
+  camera,
+  microphone,
+  screenShareVideo,
+  screenShareAudio,
+}
+
 enum CloseReason {
   network,
   // ...

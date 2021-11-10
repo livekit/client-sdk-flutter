@@ -60,12 +60,18 @@ class TrackSource extends $pb.ProtobufEnum {
       const $core.bool.fromEnvironment('protobuf.omit_enum_names')
           ? ''
           : 'SCREEN_SHARE');
+  static const TrackSource SCREEN_SHARE_AUDIO = TrackSource._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'SCREEN_SHARE_AUDIO');
 
   static const $core.List<TrackSource> values = <TrackSource>[
     UNKNOWN,
     CAMERA,
     MICROPHONE,
     SCREEN_SHARE,
+    SCREEN_SHARE_AUDIO,
   ];
 
   static final $core.Map<$core.int, TrackSource> _byValue =

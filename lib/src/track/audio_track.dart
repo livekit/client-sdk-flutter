@@ -8,7 +8,7 @@ import 'package:synchronized/synchronized.dart' as sync;
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/native_audio.dart';
-
+import '../types.dart';
 import 'local_audio_track.dart';
 import 'track.dart';
 
@@ -35,11 +35,13 @@ abstract class AudioTrack extends Track {
   rtc.MediaStream? mediaStream;
 
   AudioTrack(
+    TrackSource source,
     String name,
     rtc.MediaStreamTrack track,
     this.mediaStream,
   ) : super(
           lk_models.TrackType.AUDIO,
+          source,
           name,
           track,
         );

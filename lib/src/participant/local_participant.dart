@@ -58,6 +58,7 @@ class LocalParticipant extends Participant {
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
+      source: track.source.toPBType(),
       dtx: options?.dtx,
     );
 
@@ -102,6 +103,7 @@ class LocalParticipant extends Participant {
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
+      source: track.source.toPBType(),
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
@@ -228,5 +230,39 @@ class LocalParticipant extends Participant {
   @override
   void updateFromInfo(lk_models.ParticipantInfo info) {
     super.updateFromInfo(info);
+  }
+}
+
+extension LocalParticipantTrackSourceExt on LocalParticipant {
+  Future<void> setCameraEnabled(bool enabled) async {
+    return setSourceEnabled(TrackSource.camera, enabled);
+  }
+
+  Future<void> setMicrophoneEnabled(bool enabled) async {
+    return setSourceEnabled(TrackSource.microphone, enabled);
+  }
+
+  Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
+    final pub = getTrackPublicationBySource(source);
+    if (pub != null) {
+      if (enabled) {
+        pub.muted = false;
+      } else {
+        if (source == TrackSource.screenShareVideo) {
+          await unpublishTrack(pub.sid);
+        } else {
+          pub.muted = true;
+        }
+      }
+    } else if (enabled) {
+      if (source == TrackSource.camera) {
+        final track = await LocalVideoTrack.createCameraTrack();
+        await publishVideoTrack(track);
+      } else if (source == TrackSource.microphone) {
+        final track = await LocalAudioTrack.create();
+        await publishAudioTrack(track);
+      }
+      // TODO: Screen share
+    }
   }
 }

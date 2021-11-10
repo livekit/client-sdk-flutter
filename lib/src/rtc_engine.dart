@@ -145,6 +145,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required String cid,
     required String name,
     required lk_models.TrackType kind,
+    required lk_models.TrackSource source,
     TrackDimension? dimension,
     bool? dtx,
   }) async {
@@ -155,6 +156,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       cid: cid,
       name: name,
       type: kind,
+      source: source,
       dimension: dimension,
       dtx: dtx,
     );

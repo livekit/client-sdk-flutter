@@ -3,16 +3,18 @@ import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../exceptions.dart';
+import '../types.dart';
 import 'audio_track.dart';
 import 'options.dart';
 
 class LocalAudioTrack extends AudioTrack {
   // private constructor
   LocalAudioTrack._(
+    TrackSource source,
     String name,
     rtc.MediaStreamTrack track,
     rtc.MediaStream stream,
-  ) : super(name, track, stream);
+  ) : super(source, name, track, stream);
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create(
@@ -30,7 +32,12 @@ class LocalAudioTrack extends AudioTrack {
 
     if (stream.getAudioTracks().isEmpty) throw TrackCreateException();
 
-    return LocalAudioTrack._('', stream.getAudioTracks().first, stream);
+    return LocalAudioTrack._(
+      TrackSource.microphone,
+      '',
+      stream.getAudioTracks().first,
+      stream,
+    );
   }
 
   @override
