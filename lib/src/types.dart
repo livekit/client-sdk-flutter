@@ -33,7 +33,8 @@ enum TrackSource {
   unknown,
   camera,
   microphone,
-  screenShare,
+  screenShareVideo,
+  screenShareAudio,
 }
 
 enum CloseReason {

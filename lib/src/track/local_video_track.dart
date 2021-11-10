@@ -77,7 +77,7 @@ class LocalVideoTrack extends VideoTrack {
     options ??= const ScreenTrackOptions();
     final stream = await _createStream(options);
     return LocalVideoTrack._(
-      TrackSource.screenShare,
+      TrackSource.screenShareVideo,
       Track.screenShareName,
       stream.getVideoTracks().first,
       stream,

@@ -215,8 +215,11 @@ extension ParticipantTrackSourceExt on Participant {
             (source == TrackSource.camera &&
                 e.kind == lk_models.TrackType.VIDEO &&
                 e.name != Track.screenShareName) ||
-            (source == TrackSource.screenShare &&
+            (source == TrackSource.screenShareVideo &&
                 e.kind == lk_models.TrackType.VIDEO &&
+                e.name == Track.screenShareName) ||
+            (source == TrackSource.screenShareAudio &&
+                e.kind == lk_models.TrackType.AUDIO &&
                 e.name == Track.screenShareName));
   }
 }

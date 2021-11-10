@@ -108,7 +108,8 @@ extension PBTrackSourceExt on lk_models.TrackSource {
       <lk_models.TrackSource, TrackSource>{
         lk_models.TrackSource.CAMERA: TrackSource.camera,
         lk_models.TrackSource.MICROPHONE: TrackSource.microphone,
-        lk_models.TrackSource.SCREEN_SHARE: TrackSource.screenShare,
+        lk_models.TrackSource.SCREEN_SHARE: TrackSource.screenShareVideo,
+        lk_models.TrackSource.SCREEN_SHARE_AUDIO: TrackSource.screenShareAudio,
       }[this] ??
       TrackSource.unknown;
 }
@@ -118,7 +119,8 @@ extension LKTrackSourceExt on TrackSource {
       <TrackSource, lk_models.TrackSource>{
         TrackSource.camera: lk_models.TrackSource.CAMERA,
         TrackSource.microphone: lk_models.TrackSource.MICROPHONE,
-        TrackSource.screenShare: lk_models.TrackSource.SCREEN_SHARE,
+        TrackSource.screenShareVideo: lk_models.TrackSource.SCREEN_SHARE,
+        TrackSource.screenShareAudio: lk_models.TrackSource.SCREEN_SHARE_AUDIO,
       }[this] ??
       lk_models.TrackSource.UNKNOWN;
 }

@@ -248,7 +248,7 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
       if (enabled) {
         pub.muted = false;
       } else {
-        if (source == TrackSource.screenShare) {
+        if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(pub.sid);
         } else {
           pub.muted = true;
