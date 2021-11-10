@@ -18,7 +18,7 @@ abstract class Track extends DisposableChangeNotifier
     with EventsEmittable<TrackEvent> {
   static const uuid = Uuid();
   static const cameraName = 'camera';
-  static const screenShareName = 'screen';
+  static const screenShareName = 'screenshare';
 
   final String name;
   final lk_models.TrackType kind;
