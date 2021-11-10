@@ -234,7 +234,7 @@ class LocalParticipant extends Participant {
 }
 
 extension LocalParticipantTrackSourceExt on LocalParticipant {
-  Future<void> setCamercaEnabled(bool enabled) async {
+  Future<void> setCameraEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.camera, enabled);
   }
 
