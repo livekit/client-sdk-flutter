@@ -242,6 +242,10 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
     return setSourceEnabled(TrackSource.microphone, enabled);
   }
 
+  Future<void> setScreenShareEnabled(bool enabled) async {
+    return setSourceEnabled(TrackSource.screenShareVideo, enabled);
+  }
+
   Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
     final pub = getTrackPublicationBySource(source);
     if (pub != null) {
@@ -261,8 +265,10 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create();
         await publishAudioTrack(track);
+      } else if (source == TrackSource.screenShareVideo) {
+        final track = await LocalVideoTrack.createScreenTrack();
+        await publishVideoTrack(track);
       }
-      // TODO: Screen share
     }
   }
 }

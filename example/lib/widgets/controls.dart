@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import '../exts.dart';
@@ -114,7 +115,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _shareScreen() async {
-    //
     final lp = widget.room.localParticipant;
 
     for (final track in lp.videoTracks) {
@@ -122,6 +122,17 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
 
     try {
+      // Required for android screenshare.
+      const androidConfig = FlutterBackgroundAndroidConfig(
+        notificationTitle: 'Screen Sharing',
+        notificationText: 'LiveKit Example is sharing the screen.',
+        notificationImportance: AndroidNotificationImportance.Default,
+        notificationIcon:
+            AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
+      );
+      await FlutterBackground.initialize(androidConfig: androidConfig);
+      await FlutterBackground.enableBackgroundExecution();
+
       final screenTrack =
           await LocalVideoTrack.createScreenTrack(); // Defaults to camera
       await widget.room.localParticipant.publishVideoTrack(
@@ -129,6 +140,17 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       );
     } catch (e) {
       print('could not publish video: $e');
+    }
+  }
+
+  void _unshareScreen() async {
+    final lp = widget.room.localParticipant;
+
+    try {
+      await lp.setScreenShareEnabled(false);
+      await FlutterBackground.disableBackgroundExecution();
+    } catch (e) {
+      print('error disabling screen share: $e');
     }
   }
 
@@ -156,8 +178,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     // mute audio
     final canMute = participant.hasAudio && !participant.isMuted;
 
-    final videoPub = participant.videoTracks.firstOrNull;
+    final videoPub =
+        participant.getTrackPublicationBySource(TrackSource.camera);
     final videoEnabled = videoPub != null && !videoPub.muted;
+    final screenSharePub =
+        participant.getTrackPublicationBySource(TrackSource.screenShareVideo);
+    final screenShareEnabled = screenSharePub != null && !screenSharePub.muted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -205,11 +231,18 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: () => _toggleCamera(),
             tooltip: 'toggle camera',
           ),
-          IconButton(
-            icon: const Icon(EvaIcons.monitor),
-            onPressed: () => _shareScreen(),
-            tooltip: 'share screen (experimental)',
-          ),
+          if (screenShareEnabled)
+            IconButton(
+              icon: const Icon(EvaIcons.monitorOutline),
+              onPressed: () => _unshareScreen(),
+              tooltip: 'unshare screen (experimental)',
+            )
+          else
+            IconButton(
+              icon: const Icon(EvaIcons.monitor),
+              onPressed: () => _shareScreen(),
+              tooltip: 'share screen (experimental)',
+            ),
           IconButton(
             onPressed: _onTapDisconnect,
             icon: const Icon(EvaIcons.closeCircle),
