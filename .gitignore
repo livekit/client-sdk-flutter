@@ -32,11 +32,11 @@ build/
 
 # Android related
 **/android/**/gradle-wrapper.jar
-**/android/.gradle
+**/.gradle
 **/android/captures/
 **/android/gradlew
 **/android/gradlew.bat
-**/android/local.properties
+**/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 
 # iOS/XCode related
