@@ -6,9 +6,10 @@ import '../exceptions.dart';
 import '../logger.dart';
 import '../types.dart';
 import 'audio_track.dart';
+import 'local_track.dart';
 import 'options.dart';
 
-class LocalAudioTrack extends AudioTrack {
+class LocalAudioTrack extends AudioTrack with LocalTrack {
   // private constructor
   LocalAudioTrack._(
     TrackSource source,

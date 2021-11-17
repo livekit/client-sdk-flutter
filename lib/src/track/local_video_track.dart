@@ -3,13 +3,14 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import '../exceptions.dart';
 import '../logger.dart';
 import '../types.dart';
+import 'local_track.dart';
 import 'options.dart';
 import 'track.dart';
 import 'video_track.dart';
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
-class LocalVideoTrack extends VideoTrack {
+class LocalVideoTrack extends VideoTrack with LocalTrack {
   //
   // Options used for this track
   //

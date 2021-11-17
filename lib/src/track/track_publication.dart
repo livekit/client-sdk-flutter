@@ -1,7 +1,9 @@
-import '../support/disposable.dart';
-import '../proto/livekit_models.pb.dart' as lk_models;
-import '../types.dart';
+import 'package:meta/meta.dart';
+
 import '../extensions.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
+import '../support/disposable.dart';
+import '../types.dart';
 import 'track.dart';
 
 /// Represents a track that's published to the server. This class contains
@@ -17,7 +19,11 @@ abstract class TrackPublication extends Disposable {
   final TrackSource source;
 
   Track? track;
-  bool muted = false;
+
+  // metadata-muted
+  bool _muted = false;
+  bool get muted => _muted;
+
   bool simulcasted = false;
   TrackDimension? dimension;
 
@@ -36,7 +42,7 @@ abstract class TrackPublication extends Disposable {
       kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
 
   void updateFromInfo(lk_models.TrackInfo info) {
-    muted = info.muted;
+    updateMuted(info.muted);
     simulcasted = info.simulcast;
     if (info.type == lk_models.TrackType.VIDEO) {
       dimension = TrackDimension(info.width, info.height);
@@ -51,4 +57,9 @@ abstract class TrackPublication extends Disposable {
   @override
   bool operator ==(Object other) =>
       other is TrackPublication && sid == other.sid;
+
+  @internal
+  void updateMuted(bool muted) {
+    _muted = muted;
+  }
 }

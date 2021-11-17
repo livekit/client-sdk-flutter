@@ -205,13 +205,13 @@ class RemoteTrackPublication extends TrackPublication {
     super.muted = val;
     if (val) {
       // Track muted
-      [_participant.events, _participant.roomEvents].emit(TrackMutedEvent(
+      [_participant.events, _participant.roomEvents].emit(ParticipantTrackMutedEvent(
         participant: _participant,
         track: this,
       ));
     } else {
       // Track un-muted
-      [_participant.events, _participant.roomEvents].emit(TrackUnmutedEvent(
+      [_participant.events, _participant.roomEvents].emit(ParticipantTrackUnmutedEvent(
         participant: _participant,
         track: this,
       ));

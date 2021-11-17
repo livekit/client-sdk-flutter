@@ -33,6 +33,9 @@ abstract class Track extends DisposableChangeNotifier
   bool _active = false;
   bool get isActive => _active;
 
+  bool _muted = false;
+  bool get muted => _muted;
+
   Track(
     this.kind,
     this.source,
@@ -51,9 +54,6 @@ abstract class Track extends DisposableChangeNotifier
       await events.dispose();
     });
   }
-
-  bool get muted =>
-      mediaStreamTrack.muted == null ? false : mediaStreamTrack.muted!;
 
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
@@ -125,4 +125,7 @@ abstract class Track extends DisposableChangeNotifier
           '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
     }
   }
+
+  @internal
+  void updateMuted(bool muted) => _muted = muted;
 }
