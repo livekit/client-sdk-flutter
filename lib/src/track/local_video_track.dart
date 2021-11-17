@@ -71,6 +71,10 @@ class LocalVideoTrack extends VideoTrack {
     );
   }
 
+  /// Creates a LocalVideoTrack from the display.
+  ///
+  /// Note: Android requires a foreground service to be started prior to
+  /// creating a screen track. Refer to the example app for an implementation.
   static Future<LocalVideoTrack> createScreenTrack([
     ScreenTrackOptions? options,
   ]) async {
