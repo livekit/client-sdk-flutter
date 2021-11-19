@@ -175,7 +175,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(
         vertical: 15,
