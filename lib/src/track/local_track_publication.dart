@@ -3,7 +3,7 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../track/local_track.dart';
+import 'local_track.dart';
 import 'track.dart';
 import 'track_publication.dart';
 
