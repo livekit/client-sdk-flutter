@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:livekit_client/src/track/track.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -8,6 +7,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
+import '../track/track.dart';
 import '../track/track_publication.dart';
 import '../types.dart';
 import 'remote_participant.dart';
@@ -196,6 +196,11 @@ extension ParticipantTrackSourceExt on Participant {
 
   bool isMicrophoneEnabled() {
     return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
+        true);
+  }
+
+  bool isScreenShareEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
         true);
   }
 

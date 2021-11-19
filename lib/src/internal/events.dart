@@ -61,3 +61,13 @@ class TrackVisibilityUpdatedEvent with TrackEvent, InternalEvent {
     required this.info,
   });
 }
+
+@internal
+class TrackMuteUpdatedEvent with TrackEvent, InternalEvent {
+  final Track track;
+  final bool muted;
+  const TrackMuteUpdatedEvent({
+    required this.track,
+    required this.muted,
+  });
+}
