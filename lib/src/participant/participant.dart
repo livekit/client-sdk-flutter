@@ -199,6 +199,11 @@ extension ParticipantTrackSourceExt on Participant {
         true);
   }
 
+  bool isScreenShareEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
+        true);
+  }
+
   /// Find a track publication by its [TrackSource]
   TrackPublication? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;

@@ -51,7 +51,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result == true) await participant.unpublishAllTracks();
   }
 
-  void _muteAudio() async {
+  void _disableAudio() async {
     await participant.setMicrophoneEnabled(false);
     // The following code is an example how to mute a track
     // if (participant.hasAudio) {
@@ -60,7 +60,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     // }
   }
 
-  Future<void> _unmuteAudio() async {
+  Future<void> _enableAudio() async {
     await participant.setMicrophoneEnabled(true);
     // The following code is an example how to unmute / publish a audio track
     // if (participant.hasAudio) {
@@ -73,7 +73,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     // }
   }
 
-  void _muteVideo() async {
+  void _disableVideo() async {
     await participant.setCameraEnabled(false);
     // The following code is an example how to mute a video track
     // if (participant.hasVideo) {
@@ -82,7 +82,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     // }
   }
 
-  void _unmuteVideo() async {
+  void _enableVideo() async {
     await participant.setCameraEnabled(true);
     // The following code is an example how to unmute / publish a video track
     // if (participant.hasVideo) {
@@ -114,7 +114,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
   }
 
-  void _shareScreen() async {
+  void _enableScreenShare() async {
     final lp = widget.room.localParticipant;
 
     for (final track in lp.videoTracks) {
@@ -143,7 +143,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
   }
 
-  void _unshareScreen() async {
+  void _disableScreenShare() async {
     final lp = widget.room.localParticipant;
 
     try {
@@ -175,15 +175,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // mute audio
-    final canMute = participant.hasAudio && !participant.isMuted;
-
-    final videoPub =
-        participant.getTrackPublicationBySource(TrackSource.camera);
-    final videoEnabled = videoPub != null && !videoPub.muted;
-    final screenSharePub =
-        participant.getTrackPublicationBySource(TrackSource.screenShareVideo);
-    final screenShareEnabled = screenSharePub != null && !screenSharePub.muted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -200,27 +191,27 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             icon: const Icon(EvaIcons.closeCircleOutline),
             tooltip: 'Unpublish all',
           ),
-          if (canMute)
+          if (participant.isMicrophoneEnabled())
             IconButton(
-              onPressed: _muteAudio,
+              onPressed: _disableAudio,
               icon: const Icon(EvaIcons.mic),
               tooltip: 'mute audio',
             )
           else
             IconButton(
-              onPressed: _unmuteAudio,
+              onPressed: _enableAudio,
               icon: const Icon(EvaIcons.micOff),
               tooltip: 'un-mute audio',
             ),
-          if (videoEnabled)
+          if (participant.isCameraEnabled())
             IconButton(
-              onPressed: _muteVideo,
+              onPressed: _disableVideo,
               icon: const Icon(EvaIcons.video),
               tooltip: 'mute video',
             )
           else
             IconButton(
-              onPressed: _unmuteVideo,
+              onPressed: _enableVideo,
               icon: const Icon(EvaIcons.videoOff),
               tooltip: 'un-mute video',
             ),
@@ -231,16 +222,16 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: () => _toggleCamera(),
             tooltip: 'toggle camera',
           ),
-          if (screenShareEnabled)
+          if (participant.isScreenShareEnabled())
             IconButton(
               icon: const Icon(EvaIcons.monitorOutline),
-              onPressed: () => _unshareScreen(),
+              onPressed: () => _disableScreenShare(),
               tooltip: 'unshare screen (experimental)',
             )
           else
             IconButton(
               icon: const Icon(EvaIcons.monitor),
-              onPressed: () => _shareScreen(),
+              onPressed: () => _enableScreenShare(),
               tooltip: 'share screen (experimental)',
             ),
           IconButton(
