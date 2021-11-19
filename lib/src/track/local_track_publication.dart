@@ -47,6 +47,9 @@ class LocalTrackPublication extends TrackPublication {
     return didUpdate;
   }
 
+  @override
+  bool get muted => track?.muted ?? super.muted;
+
   Future<void> mute() async {
     if (track is! LocalTrack) return;
     // Mute the track associated with this publication

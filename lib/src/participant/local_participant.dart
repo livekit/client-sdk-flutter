@@ -247,6 +247,7 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
   }
 
   Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
+    logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final pub = getTrackPublicationBySource(source) as LocalTrackPublication?;
     if (pub != null) {
       if (enabled) {

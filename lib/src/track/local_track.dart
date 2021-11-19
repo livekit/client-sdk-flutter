@@ -4,6 +4,7 @@ import 'track.dart';
 mixin LocalTrack on Track {
   // only local tracks can set muted
   Future<void> mute() async {
+    print("mute() muted:$muted");
     if (muted) return;
     await disable();
     updateMuted(true);
@@ -11,6 +12,7 @@ mixin LocalTrack on Track {
   }
 
   Future<void> unmute() async {
+    print("un-mute() muted:$muted");
     if (!muted) return;
     await enable();
     updateMuted(false);
