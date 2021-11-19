@@ -18,7 +18,8 @@ abstract class TrackPublication extends Disposable {
   final lk_models.TrackType kind;
   final TrackSource source;
 
-  Track? track;
+  Track? _track;
+  Track? get track => _track;
 
   // metadata-muted
   bool _muted = false;
@@ -27,7 +28,7 @@ abstract class TrackPublication extends Disposable {
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get subscribed => track != null;
+  bool get subscribed => _track != null;
 
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,
@@ -42,7 +43,6 @@ abstract class TrackPublication extends Disposable {
       kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
 
   void updateFromInfo(lk_models.TrackInfo info) {
-    updateMuted(info.muted);
     simulcasted = info.simulcast;
     if (info.type == lk_models.TrackType.VIDEO) {
       dimension = TrackDimension(info.width, info.height);
@@ -59,7 +59,17 @@ abstract class TrackPublication extends Disposable {
       other is TrackPublication && sid == other.sid;
 
   @internal
-  void updateMuted(bool muted) {
-    _muted = muted;
+  void updateMuted(bool muted) => _muted = muted;
+
+  // Update track to new value, dispose previous if exists.
+  // Returns true if value has changed.
+  // Intended for internal use only.
+  @internal
+  Future<bool> updateTrack(Track? newValue) async {
+    if (_track == newValue) return false;
+    // dispose previous track (if exists)
+    await _track?.dispose();
+    _track = newValue;
+    return true;
   }
 }

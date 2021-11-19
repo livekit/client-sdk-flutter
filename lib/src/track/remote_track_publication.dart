@@ -60,7 +60,15 @@ class RemoteTrackPublication extends TrackPublication {
       wait: const Duration(seconds: 2),
     );
 
-    this.track = track;
+    updateTrack(track);
+  }
+
+  @internal
+  @override
+  void updateFromInfo(lk_models.TrackInfo info) {
+    super.updateFromInfo(info);
+    updateMuted(info.muted);
+    track?.updateMuted(info.muted);
   }
 
   // called any time visibility info updates
@@ -133,33 +141,33 @@ class RemoteTrackPublication extends TrackPublication {
     _participant.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
+  @internal
   @override
-  set track(Track? newValue) {
-    if (super.track != newValue) {
-      logger.fine('setTrack ${newValue} $sid ${objectId}');
-      // dispose previous track (if exists)
-      super.track?.dispose();
-      super.track = newValue;
+  Future<bool> updateTrack(Track? newValue) async {
+    final didUpdate = await super.updateTrack(track);
 
-      // Only listen for visibility updates if video optimization is on
-      // and the attached track is a video track
-      if (_participant.engine.connectOptions.optimizeVideo &&
-          newValue != null &&
-          newValue.kind == lk_models.TrackType.VIDEO) {
-        //
-        // Attach visibility event listener (if video track)
-        //
-        final listener = newValue.createListener();
-        listener.on<TrackVisibilityUpdatedEvent>(
-            _onVideoRendererVisibilityUpdateEvent);
-        newValue.onDispose(() async {
-          await listener.dispose();
-          // consider all views are disposed when track is null
-          _visibilities.clear();
-          if (!isDisposed) _visibilityDidUpdate?.call(null);
-        });
-      }
+    // Only listen for visibility updates if video optimization is on
+    // and the attached track is a video track
+    if (didUpdate &&
+        newValue != null &&
+        _participant.engine.connectOptions.optimizeVideo &&
+        newValue.kind == lk_models.TrackType.VIDEO) {
+      //
+      // Attach visibility event listener (if video track)
+      //
+      final listener = newValue.createListener();
+      listener.on<TrackVisibilityUpdatedEvent>(
+          _onVideoRendererVisibilityUpdateEvent);
+      //
+      newValue.onDispose(() async {
+        await listener.dispose();
+        // consider all views are disposed when track is null
+        _visibilities.clear();
+        if (!isDisposed) _visibilityDidUpdate?.call(null);
+      });
     }
+
+    return didUpdate;
   }
 
   set videoQuality(lk_rtc.VideoQuality val) {
@@ -190,36 +198,36 @@ class RemoteTrackPublication extends TrackPublication {
         publication: this,
       ));
       // Simply set to null for now
-      track = null;
+      updateTrack(null);
     }
   }
 
-  /// for internal use
-  /// {@nodoc}
-  @override
-  @internal
-  set muted(bool val) {
-    if (val == muted) {
-      return;
-    }
-    super.muted = val;
-    if (val) {
-      // Track muted
-      [_participant.events, _participant.roomEvents].emit(ParticipantTrackMutedEvent(
-        participant: _participant,
-        track: this,
-      ));
-    } else {
-      // Track un-muted
-      [_participant.events, _participant.roomEvents].emit(ParticipantTrackUnmutedEvent(
-        participant: _participant,
-        track: this,
-      ));
-    }
-    if (subscribed) {
-      track?.mediaStreamTrack.enabled = !val;
-    }
-  }
+  // /// for internal use
+  // /// {@nodoc}
+  // @override
+  // @internal
+  // set muted(bool val) {
+  //   if (val == muted) {
+  //     return;
+  //   }
+  //   super.muted = val;
+  //   if (val) {
+  //     // Track muted
+  //     [_participant.events, _participant.roomEvents].emit(ParticipantTrackMutedEvent(
+  //       participant: _participant,
+  //       track: this,
+  //     ));
+  //   } else {
+  //     // Track un-muted
+  //     [_participant.events, _participant.roomEvents].emit(ParticipantTrackUnmutedEvent(
+  //       participant: _participant,
+  //       track: this,
+  //     ));
+  //   }
+  //   if (subscribed) {
+  //     track?.mediaStreamTrack.enabled = !val;
+  //   }
+  // }
 
   void _sendUpdateSubscription({required bool subscribed}) {
     logger.fine('Sending update subscription... ${sid} ${subscribed}');

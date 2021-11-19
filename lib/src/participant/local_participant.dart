@@ -247,15 +247,15 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
   }
 
   Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
-    final pub = getTrackPublicationBySource(source);
+    final pub = getTrackPublicationBySource(source) as LocalTrackPublication?;
     if (pub != null) {
       if (enabled) {
-        pub.muted = false;
+        await pub.mute();
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(pub.sid);
         } else {
-          pub.muted = true;
+          await pub.unmute();
         }
       }
     } else if (enabled) {

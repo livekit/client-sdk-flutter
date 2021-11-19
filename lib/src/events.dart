@@ -158,10 +158,10 @@ class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
 
 /// A Participant has muted one of the track.
 /// Emitted by [RemoteParticipant] and [LocalParticipant].
-class ParticipantTrackMutedEvent with RoomEvent, ParticipantEvent {
+class TrackMutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
-  const ParticipantTrackMutedEvent({
+  const TrackMutedEvent({
     required this.participant,
     required this.track,
   });
@@ -169,25 +169,11 @@ class ParticipantTrackMutedEvent with RoomEvent, ParticipantEvent {
 
 /// This participant has unmuted one of their tracks
 /// Emitted by [RemoteParticipant] and [LocalParticipant].
-class ParticipantTrackUnmutedEvent with RoomEvent, ParticipantEvent {
+class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication track;
-  const ParticipantTrackUnmutedEvent({
-    required this.participant,
-    required this.track,
-  });
-}
-
-class TrackMutedEvent with TrackEvent {
-  final Track track;
-  const TrackMutedEvent({
-    required this.track,
-  });
-}
-
-class TrackUnmutedEvent with TrackEvent {
-  final Track track;
   const TrackUnmutedEvent({
+    required this.participant,
     required this.track,
   });
 }

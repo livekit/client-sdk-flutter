@@ -98,8 +98,7 @@ class RemoteParticipant extends Participant {
     }
 
     await track.start();
-
-    pub.track = track;
+    await pub.updateTrack(track);
     addTrackPublication(pub);
 
     [events, roomEvents].emit(TrackSubscribedEvent(

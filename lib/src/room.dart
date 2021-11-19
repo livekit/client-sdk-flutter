@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 import 'constants.dart';
 import 'events.dart';
@@ -178,8 +179,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final track = localParticipant.trackPublications[event.sid];
-      track?.muted = event.muted;
+      final publication = localParticipant.trackPublications[event.sid]
+          as LocalTrackPublication?;
+      if (event.muted) {
+        await publication?.mute();
+      } else {
+        await publication?.unmute();
+      }
     })
     ..on<EngineTrackAddedEvent>((event) async {
       final idParts = event.stream.id.split('|');
