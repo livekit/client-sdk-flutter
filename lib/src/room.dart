@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:livekit_client/livekit_client.dart';
 
 import 'constants.dart';
 import 'events.dart';
@@ -17,6 +16,7 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
 import 'support/disposable.dart';
+import 'track/local_track_publication.dart';
 import 'track/track.dart';
 import 'types.dart';
 
