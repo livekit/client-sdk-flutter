@@ -250,12 +250,12 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
     final pub = getTrackPublicationBySource(source) as LocalTrackPublication?;
     if (pub != null) {
       if (enabled) {
-        await pub.mute();
+        await pub.unmute();
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(pub.sid);
         } else {
-          await pub.unmute();
+          await pub.mute();
         }
       }
     } else if (enabled) {
