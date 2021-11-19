@@ -30,8 +30,9 @@ class LocalTrackPublication extends TrackPublication {
     if (newValue != null) {
       // attach listener to track
       final listener = newValue.createListener()
+        // listen for track muted events
         ..on<TrackMuteUpdatedEvent>((event) {
-          // send signal
+          // send signal to server
           _participant.engine.signalClient.sendMuteTrack(sid, event.muted);
           // emit events
           if (event.muted) {

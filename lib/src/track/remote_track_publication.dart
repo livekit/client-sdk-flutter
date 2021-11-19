@@ -202,33 +202,6 @@ class RemoteTrackPublication extends TrackPublication {
     }
   }
 
-  // /// for internal use
-  // /// {@nodoc}
-  // @override
-  // @internal
-  // set muted(bool val) {
-  //   if (val == muted) {
-  //     return;
-  //   }
-  //   super.muted = val;
-  //   if (val) {
-  //     // Track muted
-  //     [_participant.events, _participant.roomEvents].emit(ParticipantTrackMutedEvent(
-  //       participant: _participant,
-  //       track: this,
-  //     ));
-  //   } else {
-  //     // Track un-muted
-  //     [_participant.events, _participant.roomEvents].emit(ParticipantTrackUnmutedEvent(
-  //       participant: _participant,
-  //       track: this,
-  //     ));
-  //   }
-  //   if (subscribed) {
-  //     track?.mediaStreamTrack.enabled = !val;
-  //   }
-  // }
-
   void _sendUpdateSubscription({required bool subscribed}) {
     logger.fine('Sending update subscription... ${sid} ${subscribed}');
     final subscription = lk_rtc.UpdateSubscription(
