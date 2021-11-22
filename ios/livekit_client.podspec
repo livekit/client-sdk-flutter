@@ -1,9 +1,3 @@
-#
-# LiveKit
-# https://livekit.io/
-# https://github.com/livekit
-#
-
 Pod::Spec.new do |s|
   s.name                = 'livekit_client'
   s.version             = '0.5.3'
