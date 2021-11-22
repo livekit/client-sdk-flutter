@@ -144,7 +144,7 @@ class RemoteTrackPublication extends TrackPublication {
   @internal
   @override
   Future<bool> updateTrack(Track? newValue) async {
-    final didUpdate = await super.updateTrack(track);
+    final didUpdate = await super.updateTrack(newValue);
 
     // Only listen for visibility updates if video optimization is on
     // and the attached track is a video track
