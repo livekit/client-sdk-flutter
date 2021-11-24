@@ -8,7 +8,7 @@ import Flutter
 import UIKit
 #endif
 
-public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
+public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
 
@@ -19,7 +19,7 @@ public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
         #endif
 
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: messenger)
-        let instance = SwiftLiveKitPlugin()
+        let instance = LiveKitPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
