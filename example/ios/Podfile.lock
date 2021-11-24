@@ -8,7 +8,7 @@ PODS:
   - livekit_client (0.5.3):
     - Flutter
     - WebRTC-SDK (~> 92.4515)
-  - path_provider (0.0.1):
+  - path_provider_ios (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
@@ -18,7 +18,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
-  - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
@@ -33,8 +33,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
-  path_provider:
-    :path: ".symlinks/plugins/path_provider/ios"
+  path_provider_ios:
+    :path: ".symlinks/plugins/path_provider_ios/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
 
@@ -43,7 +43,7 @@ SPEC CHECKSUMS:
   flutter_webrtc: a5a79904f0bca0ea23aff49c51ca765f70a0f703
   Libyuv: 5f79ced0ee66e60a612ca97de1e6ccacd187a437
   livekit_client: 2b15f8f6f37bc447184af227bd66d30ed1c5fd38
-  path_provider: d1e9807085df1f9cc9318206cd649dc0b76be3de
+  path_provider_ios: 7d7ce634493af4477d156294792024ec3485acd5
   shared_preferences: 5033afbb22d372e15aff8ff766df9021b845f273
   WebRTC-SDK: 21dbc6028a68f3a89718057a2caa970a4da8ebb7
 

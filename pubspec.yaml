@@ -35,6 +35,8 @@ flutter:
     platforms:
       ios:
         pluginClass: LiveKitPlugin
+      macos:
+        pluginClass: LiveKitPlugin
       android:
         package: io.livekit.plugin
         pluginClass: LiveKitPlugin

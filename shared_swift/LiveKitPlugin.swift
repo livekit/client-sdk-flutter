@@ -1,14 +1,29 @@
-import Flutter
-import UIKit
 import WebRTC
 
-public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
+#if os(macOS)
+import Cocoa
+import FlutterMacOS
+#else
+import Flutter
+import UIKit
+#endif
+
+public class LiveKitPlugin: NSObject, FlutterPlugin {
+
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: registrar.messenger())
-        let instance = SwiftLiveKitPlugin()
+
+        #if os(macOS)
+        let messenger = registrar.messenger
+        #else
+        let messenger = registrar.messenger()
+        #endif
+
+        let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: messenger)
+        let instance = LiveKitPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
+    #if !os(macOS)
     // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
     let categoryMap: [String: AVAudioSession.Category] = [
         "ambient": .ambient,
@@ -16,7 +31,7 @@ public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
         "playAndRecord": .playAndRecord,
         "playback": .playback,
         "record": .record,
-        "soloAmbient": .soloAmbient,
+        "soloAmbient": .soloAmbient
     ]
 
     // https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
@@ -27,9 +42,9 @@ public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
         "allowBluetooth": .allowBluetooth,
         "allowBluetoothA2DP": .allowBluetoothA2DP,
         "allowAirPlay": .allowAirPlay,
-        "defaultToSpeaker": .defaultToSpeaker,
-//        @available(iOS 14.5, *)
-//        "overrideMutedMicrophoneInterruption": .overrideMutedMicrophoneInterruption,
+        "defaultToSpeaker": .defaultToSpeaker
+        //        @available(iOS 14.5, *)
+        //        "overrideMutedMicrophoneInterruption": .overrideMutedMicrophoneInterruption,
     ]
 
     // https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
@@ -42,20 +57,25 @@ public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
         "videoChat": .videoChat,
         "videoRecording": .videoRecording,
         "voiceChat": .voiceChat,
-        "voicePrompt": .voicePrompt,
+        "voicePrompt": .voicePrompt
     ]
 
     private func categoryOptions(fromFlutter options: [String]) -> AVAudioSession.CategoryOptions {
         var result: AVAudioSession.CategoryOptions = []
         for option in categoryOptionsMap {
-            if (options.contains(option.key)) {
+            if options.contains(option.key) {
                 result.insert(option.value)
             }
         }
         return result
     }
+    #endif
 
     public func handleConfigureNativeAudio(args: [String: Any?], result: @escaping FlutterResult) {
+
+        #if os(macOS)
+        result(FlutterMethodNotImplemented)
+        #else
 
         let configuration = RTCAudioSessionConfiguration.webRTC()
 
@@ -117,6 +137,7 @@ public class SwiftLiveKitPlugin: NSObject, FlutterPlugin {
             print("[LiveKit] Configure audio error: ", error)
             result(FlutterError(code: "configure", message: error.localizedDescription, details: nil))
         }
+        #endif
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
