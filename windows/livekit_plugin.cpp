@@ -1,4 +1,4 @@
-#include "include/livekit_client/livekit_client_plugin.h"
+#include "include/livekit_client/livekit_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
@@ -16,13 +16,13 @@
 
 namespace {
 
-class LivekitClientPlugin : public flutter::Plugin {
+class LiveKitPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
-  LivekitClientPlugin();
+  LiveKitPlugin();
 
-  virtual ~LivekitClientPlugin();
+  virtual ~LiveKitPlugin();
 
  private:
   // Called when a method is called on this plugin's channel from Dart.
@@ -32,14 +32,14 @@ class LivekitClientPlugin : public flutter::Plugin {
 };
 
 // static
-void LivekitClientPlugin::RegisterWithRegistrar(
+void LiveKitPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "livekit_client",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<LivekitClientPlugin>();
+  auto plugin = std::make_unique<LiveKitPlugin>();
 
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -49,11 +49,11 @@ void LivekitClientPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-LivekitClientPlugin::LivekitClientPlugin() {}
+LiveKitPlugin::LiveKitPlugin() {}
 
-LivekitClientPlugin::~LivekitClientPlugin() {}
+LiveKitPlugin::~LiveKitPlugin() {}
 
-void LivekitClientPlugin::HandleMethodCall(
+void LiveKitPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
@@ -74,9 +74,9 @@ void LivekitClientPlugin::HandleMethodCall(
 
 }  // namespace
 
-void LivekitClientPluginRegisterWithRegistrar(
+void LiveKitPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  LivekitClientPlugin::RegisterWithRegistrar(
+  LiveKitPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }

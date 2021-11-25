@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_LIVEKIT_CLIENT_PLUGIN_H_
-#define FLUTTER_PLUGIN_LIVEKIT_CLIENT_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_LIVEKIT_PLUGIN_H_
+#define FLUTTER_PLUGIN_LIVEKIT_PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void LivekitClientPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void LiveKitPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"
 #endif
 
-#endif  // FLUTTER_PLUGIN_LIVEKIT_CLIENT_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_LIVEKIT_PLUGIN_H_

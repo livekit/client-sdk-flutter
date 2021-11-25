@@ -35,10 +35,12 @@ flutter:
     platforms:
       ios:
         pluginClass: LiveKitPlugin
-      macos:
-        pluginClass: LiveKitPlugin
       android:
         package: io.livekit.plugin
+        pluginClass: LiveKitPlugin
+      macos:
+        pluginClass: LiveKitPlugin
+      windows:
         pluginClass: LiveKitPlugin
       web:
         pluginClass: LiveKitWebPlugin

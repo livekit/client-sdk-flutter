@@ -4,10 +4,10 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed
-set(PLUGIN_NAME "livekit_client_plugin")
+set(PLUGIN_NAME "livekit_plugin")
 
 add_library(${PLUGIN_NAME} SHARED
-  "livekit_client_plugin.cpp"
+  "livekit_plugin.cpp"
 )
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
