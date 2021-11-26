@@ -228,8 +228,8 @@ class VideoParameters {
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
   //
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'maxWidth': width,
-        'maxHeight': height,
+        'minWidth': width,
+        'minHeight': height,
         'maxFrameRate': encoding.maxFramerate,
       };
 }
