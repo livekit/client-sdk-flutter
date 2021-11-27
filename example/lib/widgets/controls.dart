@@ -53,47 +53,18 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _disableAudio() async {
     await participant.setMicrophoneEnabled(false);
-    // The following code is an example how to mute a track
-    // if (participant.hasAudio) {
-    // final audioPub = participant.audioTracks.first;
-    // audioPub.muted = true;
-    // }
   }
 
   Future<void> _enableAudio() async {
     await participant.setMicrophoneEnabled(true);
-    // The following code is an example how to unmute / publish a audio track
-    // if (participant.hasAudio) {
-    //   final audioPub = participant.audioTracks.first;
-    //   audioPub.muted = false;
-    // } else {
-    //   // publish audio track
-    //   final audioTrack = await LocalAudioTrack.create();
-    //   await participant.publishAudioTrack(audioTrack);
-    // }
   }
 
   void _disableVideo() async {
     await participant.setCameraEnabled(false);
-    // The following code is an example how to mute a video track
-    // if (participant.hasVideo) {
-    //   final videoPub = participant.videoTracks.first;
-    //   videoPub.muted = true;
-    // }
   }
 
   void _enableVideo() async {
     await participant.setCameraEnabled(true);
-    // The following code is an example how to unmute / publish a video track
-    // if (participant.hasVideo) {
-    //   print('Un-muting video');
-    //   final videoPub = participant.videoTracks.first;
-    //   videoPub.muted = false;
-    // } else {
-    //   // publish audio track
-    //   final videoTrack = await LocalVideoTrack.createCameraTrack();
-    //   await participant.publishVideoTrack(videoTrack);
-    // }
   }
 
   void _toggleCamera() async {
