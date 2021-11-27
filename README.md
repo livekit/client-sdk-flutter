@@ -14,7 +14,7 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 | :-----: | :---------------: | :-------: | :--------------: | :------------: |
 |   Web   |         🟢         |     🟢     |        🟢         |       🟢        |
 |   iOS   |         🟢         |     🟢     |        🟢         |       🔴        |
-| Android |         🟢         |     🟢     |        🟢         |       🔴        |
+| Android |         🟢         |     🟢     |        🟢         |       🟢        |
 
 🟢 = Available
 🟡 = Coming soon (Work in progress)
@@ -82,7 +82,14 @@ We built a multi-user conferencing app as an example in the [example/](example/)
 ### Connecting to a room, publish video & audio
 
 ```dart
-var room = await LiveKitClient.connect(url, token);
+var options = ConnectOptions(
+  autoSubscribe: false,
+  optimizeVideo: true,
+  defaultVideoPublishOptions: VideoPublishOptions(
+    simulcast: true,
+  ),
+)
+var room = await LiveKitClient.connect(url, token, options: options);
 try {
   // video will fail when running in ios simulator
   await room.localParticipant.setCameraEnabled(true);
@@ -91,6 +98,27 @@ try {
 }
 
 await room.localParticipant.setMicrophoneEnabled(true);
+```
+
+### Screen sharing
+
+```dart
+room.localParticipant.setScreenShareEnabled(true);
+```
+
+On Android, you would have to define a foreground service in your AndroidManifest.xml.
+
+```xml title="AndroidManifest.xml"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    ...
+    <service
+        android:name="de.julianassmann.flutter_background.IsolateHolderService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
+  </application>
+</manifest>
 ```
 
 ### Advanced track manipulation
