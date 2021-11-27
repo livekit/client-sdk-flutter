@@ -68,17 +68,15 @@ class _RoomPageState extends State<RoomPage> {
     if (result != true) return;
     // video will fail when running in ios simulator
     try {
-      // Create video track
-      final localVideo = await LocalVideoTrack.createCameraTrack();
-      // Try to publish the video
-      await widget.room.localParticipant.publishVideoTrack(localVideo);
-
-      // Create mic track
-      final localAudio = await LocalAudioTrack.create();
-      // // Try to publish audio
-      await widget.room.localParticipant.publishAudioTrack(localAudio);
+      await widget.room.localParticipant.setCameraEnabled(true);
     } catch (error) {
       print('could not publish video: $error');
+      await context.showErrorDialog(error);
+    }
+    try {
+      await widget.room.localParticipant.setMicrophoneEnabled(true);
+    } catch (error) {
+      print('could not publish audio: $error');
       await context.showErrorDialog(error);
     }
   }

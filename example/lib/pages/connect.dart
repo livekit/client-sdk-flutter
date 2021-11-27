@@ -26,7 +26,7 @@ class _ConnectPageState extends State<ConnectPage> {
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
-  bool _simulcast = false;
+  bool _simulcast = true;
   bool _busy = false;
 
   @override
@@ -48,7 +48,7 @@ class _ConnectPageState extends State<ConnectPage> {
     _uriCtrl.text = prefs.getString(_storeKeyUri) ?? '';
     _tokenCtrl.text = prefs.getString(_storeKeyToken) ?? '';
     setState(() {
-      _simulcast = prefs.getBool(_storeKeySimulcast) ?? false;
+      _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
     });
   }
 

@@ -85,14 +85,23 @@ We built a multi-user conferencing app as an example in the [example/](example/)
 var room = await LiveKitClient.connect(url, token);
 try {
   // video will fail when running in ios simulator
-  var localVideo = await LocalVideoTrack.createCameraTrack();
-  await room.localParticipant.publishVideoTrack(localVideo);
+  await room.localParticipant.setCameraEnabled(true);
 } catch (e) {
   print('could not publish video: $e');
 }
 
-var localAudio = await LocalAudioTrack.createTrack();
-await room.localParticipant.publishAudioTrack(localAudio);
+await room.localParticipant.setMicrophoneEnabled(true);
+```
+
+### Advanced track manipulation
+
+The setCameraEnabled/setMicrophoneEnabled helpers are wrappers around the Track API.
+
+You can also manually create and publish tracks:
+
+```dart
+var localVideo = await LocalVideoTrack.createCameraTrack();
+await room.localParticipant.publishVideoTrack(localVideo);
 ```
 
 ### Rendering video
@@ -116,7 +125,7 @@ Widget build(BuildContext context) {
 
 ### Audio handling
 
-Audio tracks are rendered automatically as long as you are subscribed to them.
+Audio tracks are played automatically as long as you are subscribed to them.
 
 ### Handling changes
 
