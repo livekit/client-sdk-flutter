@@ -15,9 +15,13 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 |   Web   |         🟢         |     🟢     |        🟢         |       🟢        |
 |   iOS   |         🟢         |     🟢     |        🟢         |       🔴        |
 | Android |         🟢         |     🟢     |        🟢         |       🟢        |
+|   Mac   |         🟢         |     🟢     |        🟢         |       🔴        |
+| Windows |         🟡         |     🟡     |        🟡         |       🔴        |
 
 🟢 = Available
+
 🟡 = Coming soon (Work in progress)
+
 🔴 = Not currently available (Possibly in the future)
 
 ## Installation
@@ -71,6 +75,16 @@ We require a set of permissions that need to be declared in your `AppManifest.xm
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
   ...
 </manifest>
+```
+
+### Desktop support
+
+In order to enable Flutter desktop development, please follow [instructions here](https://docs.flutter.dev/desktop#set-up).
+
+On M1 Macs, you will also need to install x86_64 version of FFI:
+
+```
+sudo arch -x86_64 gem install ffi
 ```
 
 ## Example app
