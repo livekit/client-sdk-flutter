@@ -236,5 +236,32 @@ class VideoParameters {
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.
 class LocalAudioTrackOptions {
-  const LocalAudioTrackOptions();
+  final bool noiseSuppression;
+  final bool echoCancellation;
+  final bool autoGainControl;
+  final bool highPassFilter;
+  final bool typingNoiseDetection;
+
+  const LocalAudioTrackOptions({
+    this.noiseSuppression = true,
+    this.echoCancellation = true,
+    this.autoGainControl = true,
+    this.highPassFilter = false,
+    this.typingNoiseDetection = true,
+  });
+
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+        'optional': <Map<String, dynamic>>[
+          <String, dynamic>{'echoCancellation': echoCancellation},
+          <String, dynamic>{'googDAEchoCancellation': echoCancellation},
+          <String, dynamic>{'googEchoCancellation': echoCancellation},
+          <String, dynamic>{'googEchoCancellation2': echoCancellation},
+          <String, dynamic>{'noiseSuppression': noiseSuppression},
+          <String, dynamic>{'googNoiseSuppression': noiseSuppression},
+          <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
+          <String, dynamic>{'googAutoGainControl': autoGainControl},
+          <String, dynamic>{'googHighpassFilter': highPassFilter},
+          <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+        ],
+      };
 }
