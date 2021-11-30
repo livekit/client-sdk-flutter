@@ -2,21 +2,18 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
-import '_audio_api.dart' if (dart.library.html) '_audio_html.dart' as audio;
-import 'audio_management.dart';
-import 'local_track.dart';
-import 'remote_track.dart';
+import 'track.dart';
 
-class RemoteAudioTrack extends RemoteTrack with AudioTrack, AudioManagementMixin {
-  //
-  RemoteAudioTrack(
+abstract class RemoteTrack extends Track {
+  RemoteTrack(
     String name,
+    lk_models.TrackType kind,
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
   ) : super(
           name,
-          lk_models.TrackType.AUDIO,
+          kind,
           source,
           stream,
           track,
@@ -26,8 +23,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, AudioManagementMixin
   Future<bool> start() async {
     final didStart = await super.start();
     if (didStart) {
-      // web support
-      audio.startAudio(getCid(), mediaStreamTrack);
+      await enable();
     }
     return didStart;
   }
@@ -36,8 +32,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, AudioManagementMixin
   Future<bool> stop() async {
     final didStop = await super.stop();
     if (didStop) {
-      // web support
-      audio.stopAudio(getCid());
+      await disable();
     }
     return didStop;
   }

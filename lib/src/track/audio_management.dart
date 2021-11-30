@@ -1,16 +1,14 @@
 // import 'package:audio_session/audio_session.dart' as _as;
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
-import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/native_audio.dart';
-import '../types.dart';
 import 'local_audio_track.dart';
-import 'track.dart';
+import 'local_track.dart';
 
 enum AudioTrackState {
   none,
@@ -22,7 +20,7 @@ enum AudioTrackState {
 typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
     AudioTrackState state);
 
-abstract class AudioTrack extends Track {
+mixin AudioManagementMixin on AudioTrack {
   // it's possible to set custom function here to customize audio session configuration
   static ConfigureNativeAudioFunc nativeAudioConfigurationForAudioTrackState =
       defaultNativeAudioConfigurationFunc;
@@ -31,20 +29,6 @@ abstract class AudioTrack extends Track {
   static AudioTrackState audioTrackState = AudioTrackState.none;
   static int _localTrackCount = 0;
   static int _remoteTrackCount = 0;
-
-  rtc.MediaStream? mediaStream;
-
-  AudioTrack(
-    TrackSource source,
-    String name,
-    rtc.MediaStreamTrack track,
-    this.mediaStream,
-  ) : super(
-          lk_models.TrackType.AUDIO,
-          source,
-          name,
-          track,
-        );
 
   /// Start playing audio track. On web platform, create an audio element and
   /// start playback
@@ -148,17 +132,6 @@ Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
       appleAudioMode: AppleAudioMode.videoChat,
     );
   }
-
-  // TODO: .record category causes exception in WebRTC lib for unknown reason
-  // if (this == AudioTrackState.localOnly) {
-  //   return NativeAudioConfiguration(
-  //     iosCategory: IosAudioCategory.record,
-  //     iosCategoryOptions: {
-  //       // IosAudioCategoryOption.allowBluetooth,
-  //     },
-  //     iosMode: IosAudioMode.spokenAudio,
-  //   );
-  // }
 
   return NativeAudioConfiguration(
     appleAudioCategory: AppleAudioCategory.soloAmbient,
