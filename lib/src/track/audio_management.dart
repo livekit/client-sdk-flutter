@@ -7,8 +7,8 @@ import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
 import '../support/native_audio.dart';
-import 'local_audio_track.dart';
-import 'local_track.dart';
+import 'local/audio.dart';
+import 'local.dart';
 
 enum AudioTrackState {
   none,

@@ -1,11 +1,11 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../logger.dart';
-import '../proto/livekit_models.pb.dart' as lk_models;
-import '../types.dart';
-import 'local_track.dart';
-import 'options.dart';
-import 'track.dart';
+import '../../logger.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../types.dart';
+import '../local.dart';
+import '../options.dart';
+import '../track.dart';
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.

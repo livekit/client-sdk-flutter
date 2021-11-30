@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../proto/livekit_models.pb.dart' as lk_models;
-import '../types.dart';
-import 'audio_management.dart';
-import 'local_track.dart';
-import 'options.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../types.dart';
+import '../audio_management.dart';
+import '../local.dart';
+import '../options.dart';
 
 class LocalAudioTrack extends LocalTrack with AudioTrack, AudioManagementMixin {
   // Options used for this track

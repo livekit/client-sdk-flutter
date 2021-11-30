@@ -1,9 +1,9 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/track/local_track.dart';
+import 'package:livekit_client/src/track/local.dart';
 
-import '../proto/livekit_models.pb.dart' as lk_models;
-import '../types.dart';
-import 'remote_track.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../types.dart';
+import '../remote.dart';
 
 class RemoteVideoTrack extends RemoteTrack with VideoTrack {
   //

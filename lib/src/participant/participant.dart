@@ -8,7 +8,7 @@ import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../track/track.dart';
-import '../track/track_publication.dart';
+import '../publication/track_publication.dart';
 import '../types.dart';
 import 'remote_participant.dart';
 

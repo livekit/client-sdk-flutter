@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/track/local_track.dart';
+import 'package:livekit_client/src/track/local.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../events.dart';
@@ -9,7 +9,7 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
-import '../track/local_video_track.dart';
+import '../track/local/video.dart';
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {

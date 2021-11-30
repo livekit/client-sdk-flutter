@@ -3,8 +3,8 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import 'local_track.dart';
-import 'track.dart';
+import '../track/local.dart';
+import '../track/track.dart';
 import 'track_publication.dart';
 
 class LocalTrackPublication extends TrackPublication {
