@@ -10,6 +10,9 @@ import 'track_publication.dart';
 class LocalTrackPublication extends TrackPublication {
   final LocalParticipant _participant;
 
+  @override
+  covariant LocalTrack? track;
+
   LocalTrackPublication(
     lk_models.TrackInfo info,
     Track track,
