@@ -279,7 +279,7 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
         final track = await LocalAudioTrack.create();
         await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
-        final track = await LocalVideoTrack.createScreenTrack();
+        final track = await LocalVideoTrack.createScreenShareTrack();
         await publishVideoTrack(track);
       }
     }

@@ -43,12 +43,19 @@ class CameraTrackOptions extends LocalVideoTrackOptions {
       );
 }
 
-class ScreenTrackOptions extends LocalVideoTrackOptions {
-  const ScreenTrackOptions();
+class ScreenShareTrackOptions extends LocalVideoTrackOptions {
+  const ScreenShareTrackOptions();
+}
+
+/// Base class for track options.
+abstract class LocalTrackOptions {
+  const LocalTrackOptions();
+  // All subclasses must be able to report constraints
+  Map<String, dynamic> toMediaConstraintsMap();
 }
 
 /// Options when creating a LocalVideoTrack.
-abstract class LocalVideoTrackOptions {
+abstract class LocalVideoTrackOptions extends LocalTrackOptions {
   // final LocalVideoTrackType type;
   final VideoParameters params;
 
@@ -56,6 +63,7 @@ abstract class LocalVideoTrackOptions {
     this.params = VideoParameters.presetQHD169,
   });
 
+  @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         'mandatory': params.toMediaConstraintsMap(),
       };
@@ -235,7 +243,7 @@ class VideoParameters {
 }
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.
-class LocalAudioTrackOptions {
+class LocalAudioTrackOptions extends LocalTrackOptions {
   final bool noiseSuppression;
   final bool echoCancellation;
   final bool autoGainControl;
@@ -250,6 +258,7 @@ class LocalAudioTrackOptions {
     this.typingNoiseDetection = true,
   });
 
+  @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         'optional': <Map<String, dynamic>>[
           <String, dynamic>{'echoCancellation': echoCancellation},

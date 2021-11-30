@@ -2,50 +2,45 @@ import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../exceptions.dart';
-import '../logger.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
-import 'audio_track.dart';
+import 'audio_management.dart';
 import 'local_track.dart';
 import 'options.dart';
 
-class LocalAudioTrack extends AudioTrack with LocalTrack {
+class LocalAudioTrack extends LocalTrack with AudioTrack, AudioManagementMixin {
+  // Options used for this track
+  @override
+  covariant LocalAudioTrackOptions currentOptions;
+
   // private constructor
   LocalAudioTrack._(
-    TrackSource source,
     String name,
-    rtc.MediaStreamTrack track,
+    TrackSource source,
     rtc.MediaStream stream,
-  ) : super(source, name, track, stream);
+    rtc.MediaStreamTrack track,
+    this.currentOptions,
+  ) : super(
+          name,
+          lk_models.TrackType.AUDIO,
+          source,
+          stream,
+          track,
+        );
 
   /// Creates a new audio track from the default audio input device.
-  static Future<LocalAudioTrack> create(
-      [LocalAudioTrackOptions? options]) async {
-    final audioConstraints = options?.toMediaConstraintsMap() ??
-        const LocalAudioTrackOptions().toMediaConstraintsMap();
-    final stream =
-        await rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
-      'audio': audioConstraints,
-      'video': false,
-    });
-
-    if (stream.getAudioTracks().isEmpty) throw TrackCreateException();
+  static Future<LocalAudioTrack> create([
+    LocalAudioTrackOptions? options,
+  ]) async {
+    options ??= const LocalAudioTrackOptions();
+    final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack._(
-      TrackSource.microphone,
       '',
-      stream.getAudioTracks().first,
+      TrackSource.microphone,
       stream,
+      stream.getAudioTracks().first,
+      options,
     );
-  }
-
-  @override
-  Future<bool> stop() async {
-    final didStop = await super.stop();
-    if (didStop) {
-      logger.fine('Stopping mediaStreamTrack...');
-      await mediaStreamTrack.stop();
-    }
-    return didStop;
   }
 }
