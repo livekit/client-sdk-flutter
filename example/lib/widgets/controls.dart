@@ -104,10 +104,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       await FlutterBackground.initialize(androidConfig: androidConfig);
       await FlutterBackground.enableBackgroundExecution();
 
-      final screenTrack =
-          await LocalVideoTrack.createScreenShareTrack(); // Defaults to camera
+      final screenShareTrack = await LocalVideoTrack.createScreenShareTrack();
       await widget.room.localParticipant.publishVideoTrack(
-        screenTrack,
+        screenShareTrack,
       );
     } catch (e) {
       print('could not publish video: $e');
