@@ -24,6 +24,11 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 
 🔴 = Not currently available (Possibly in the future)
 
+
+## Example app
+
+We built a multi-user conferencing app as an example in the [example/](example/) folder. You can join the same room from any supported LiveKit clients.
+
 ## Installation
 
 Include this package to your `pubspec.yaml`
@@ -86,10 +91,6 @@ On M1 Macs, you will also need to install x86_64 version of FFI:
 ```
 sudo arch -x86_64 gem install ffi
 ```
-
-## Example app
-
-We built a multi-user conferencing app as an example in the [example/](example/) folder. You can join the same room from any supported LiveKit clients.
 
 ## Usage
 
