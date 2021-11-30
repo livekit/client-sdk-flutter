@@ -141,7 +141,8 @@ abstract class Track extends DisposableChangeNotifier
   void updateMuted(bool muted) => _muted = muted;
 
   @internal
-  void updateMediaStreamAndTrack(rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+  void updateMediaStreamAndTrack(
+      rtc.MediaStream stream, rtc.MediaStreamTrack track) {
     _mediaStream = stream;
     _mediaStreamTrack = track;
     events.emit(TrackStreamUpdatedEvent(

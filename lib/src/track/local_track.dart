@@ -53,6 +53,7 @@ abstract class LocalTrack extends Track {
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       await mediaStreamTrack.stop();
+      await mediaStream.dispose();
     }
     return didStop;
   }
@@ -102,11 +103,8 @@ abstract class LocalTrack extends Track {
 
     currentOptions = options ?? currentOptions;
 
-    if (isActive) {
-      // await mediaStreamTrack.stop();
-      // await mediaStream.dispose();
-      await stop();
-    }
+    // stop if not already stopped...
+    await stop();
 
     // create new track with options
     final newStream = await LocalTrack.createStream(currentOptions);
@@ -117,5 +115,8 @@ abstract class LocalTrack extends Track {
 
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
+
+    // mark as started
+    await start();
   }
 }

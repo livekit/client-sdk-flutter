@@ -7,7 +7,8 @@ import 'audio_management.dart';
 import 'local_track.dart';
 import 'remote_track.dart';
 
-class RemoteAudioTrack extends RemoteTrack with AudioTrack, AudioManagementMixin {
+class RemoteAudioTrack extends RemoteTrack
+    with AudioTrack, AudioManagementMixin {
   //
   RemoteAudioTrack(
     String name,
