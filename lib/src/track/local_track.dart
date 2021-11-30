@@ -101,9 +101,12 @@ abstract class LocalTrack extends Track {
     }
 
     currentOptions = options ?? currentOptions;
-    
-    await mediaStreamTrack.stop();
-    await mediaStream.dispose();
+
+    if (isActive) {
+      // await mediaStreamTrack.stop();
+      // await mediaStream.dispose();
+      await stop();
+    }
 
     // create new track with options
     final newStream = await LocalTrack.createStream(currentOptions);
@@ -115,6 +118,4 @@ abstract class LocalTrack extends Track {
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
   }
-
-  
 }

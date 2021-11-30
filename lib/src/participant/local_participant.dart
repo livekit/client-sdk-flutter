@@ -252,11 +252,13 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
     if (pub != null) {
       if (enabled) {
         await pub.unmute();
+        await pub.track?.restartTrack();
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(pub.sid);
         } else {
           await pub.mute();
+          await pub.track?.stop();
         }
       }
     } else if (enabled) {
