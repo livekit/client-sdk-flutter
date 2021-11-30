@@ -21,9 +21,8 @@ class RemoteParticipant extends Participant {
   RTCEngine get engine => _engine;
 
   @override
-  List<RemoteTrackPublication> get subscribedTracks => super.subscribedTracks
-      .cast<RemoteTrackPublication>()
-      .toList();
+  List<RemoteTrackPublication> get subscribedTracks =>
+      super.subscribedTracks.cast<RemoteTrackPublication>().toList();
 
   @override
   List<RemoteTrackPublication> get videoTracks =>

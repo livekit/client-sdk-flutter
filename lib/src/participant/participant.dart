@@ -74,9 +74,8 @@ abstract class Participant extends DisposableChangeNotifier
   ConnectionQuality get connectionQuality => _connectionQuality;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks => trackPublications.values
-      .where((e) => e.subscribed)
-      .toList();
+  List<TrackPublication> get subscribedTracks =>
+      trackPublications.values.where((e) => e.subscribed).toList();
 
   List<TrackPublication> get videoTracks => trackPublications.values
       .where((e) => e.kind == lk_models.TrackType.VIDEO)
