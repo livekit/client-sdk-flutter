@@ -35,6 +35,7 @@ abstract class LocalTrack extends Track {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return;
     await disable();
+    await stop();
     updateMuted(true);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
   }
@@ -42,6 +43,7 @@ abstract class LocalTrack extends Track {
   Future<void> unmute() async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return;
+    await restartTrack();
     await enable();
     updateMuted(false);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
