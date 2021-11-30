@@ -231,6 +231,18 @@ class LocalParticipant extends Participant {
   void updateFromInfo(lk_models.ParticipantInfo info) {
     super.updateFromInfo(info);
   }
+
+  @override
+  List<LocalTrackPublication> get subscribedTracks =>
+      super.subscribedTracks.cast<LocalTrackPublication>().toList();
+
+  @override
+  List<LocalTrackPublication> get videoTracks =>
+      super.videoTracks.cast<LocalTrackPublication>();
+
+  @override
+  List<LocalTrackPublication> get audioTracks =>
+      super.audioTracks.cast<LocalTrackPublication>();
 }
 
 extension LocalParticipantTrackSourceExt on LocalParticipant {

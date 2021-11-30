@@ -74,8 +74,17 @@ abstract class Participant extends DisposableChangeNotifier
   ConnectionQuality get connectionQuality => _connectionQuality;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks =>
-      trackPublications.values.where((e) => e.subscribed).toList();
+  List<TrackPublication> get subscribedTracks => trackPublications.values
+      .where((e) => e.subscribed)
+      .toList();
+
+  List<TrackPublication> get videoTracks => trackPublications.values
+      .where((e) => e.kind == lk_models.TrackType.VIDEO)
+      .toList();
+
+  List<TrackPublication> get audioTracks => trackPublications.values
+      .where((e) => e.kind == lk_models.TrackType.AUDIO)
+      .toList();
 
   /// for internal use
   /// {@nodoc}
@@ -176,17 +185,6 @@ abstract class Participant extends DisposableChangeNotifier
 
   @override
   bool operator ==(Object other) => other is Participant && sid == other.sid;
-}
-
-// Convenience extension
-extension ParticipantExt on Participant {
-  List<TrackPublication> get videoTracks => trackPublications.values
-      .where((e) => e.kind == lk_models.TrackType.VIDEO)
-      .toList();
-
-  List<TrackPublication> get audioTracks => trackPublications.values
-      .where((e) => e.kind == lk_models.TrackType.AUDIO)
-      .toList();
 }
 
 extension ParticipantTrackSourceExt on Participant {
