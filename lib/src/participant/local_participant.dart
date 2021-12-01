@@ -99,38 +99,42 @@ class LocalParticipant extends Participant {
     // Use defaultPublishOptions if options is null
     options = options ?? defaultVideoPublishOptions;
 
-    final trackInfo = await engine.addTrack(
-      cid: track.getCid(),
-      name: track.name,
-      kind: track.kind,
-      source: track.source.toPBType(),
-    );
-
-    logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
-
-    await track.start();
-
-    // Video encodings and simulcasts
-
     // use constraints passed to getUserMedia by default
-    int? width = track.currentOptions.params.width;
-    int? height = track.currentOptions.params.height;
+    int width = track.currentOptions.params.width;
+    int height = track.currentOptions.params.height;
 
     if (kIsWeb) {
       // getSettings() is only implemented for Web
       try {
         // try to use getSettings for more accurate resolution
         final settings = track.mediaStreamTrack.getSettings();
-        width = settings['width'] as int?;
-        height = settings['height'] as int?;
+        if (settings['width'] is int) {
+          width = settings['width'] as int;
+        }
+        if (settings['height'] is int) {
+          height = settings['height'] as int;
+        }
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
       }
     }
 
+    final trackInfo = await engine.addTrack(
+      cid: track.getCid(),
+      name: track.name,
+      kind: track.kind,
+      source: track.source.toPBType(),
+      dimension: TrackDimension(width, height),
+    );
+
+    logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
+
+    await track.start();
+
     logger.fine(
         'Compute encodings with resolution: ${width}x${height}, options: ${options}');
 
+    // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
       width: width,
       height: height,
