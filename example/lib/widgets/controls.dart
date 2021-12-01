@@ -69,8 +69,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _toggleCamera() async {
     //
-    final track =
-        participant.videoTracks.firstOrNull?.track as LocalVideoTrack?;
+    final track = participant.videoTracks.firstOrNull?.track;
     if (track == null) return;
 
     try {

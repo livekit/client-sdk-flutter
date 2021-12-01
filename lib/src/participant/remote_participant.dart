@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -7,9 +8,9 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../publication/remote_track_publication.dart';
 import '../rtc_engine.dart';
 import '../track/remote/audio.dart';
-import '../publication/remote_track_publication.dart';
 import '../track/remote/video.dart';
 import '../track/track.dart';
 import '../types.dart';
@@ -25,12 +26,12 @@ class RemoteParticipant extends Participant {
       super.subscribedTracks.cast<RemoteTrackPublication>().toList();
 
   @override
-  List<RemoteTrackPublication> get videoTracks =>
-      super.videoTracks.cast<RemoteTrackPublication>();
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+      super.videoTracks.cast<RemoteTrackPublication<RemoteVideoTrack>>();
 
   @override
-  List<RemoteTrackPublication> get audioTracks =>
-      super.audioTracks.cast<RemoteTrackPublication>();
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+      super.audioTracks.cast<RemoteTrackPublication<RemoteAudioTrack>>();
 
   RemoteParticipant(
     this._engine,
@@ -134,7 +135,14 @@ class RemoteParticipant extends Participant {
     for (final trackInfo in info.tracks) {
       RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
       if (pub == null) {
-        pub = RemoteTrackPublication(trackInfo, this);
+        final RemoteTrackPublication pub;
+        if (trackInfo.type == lk_models.TrackType.VIDEO) {
+          pub = RemoteTrackPublication<RemoteVideoTrack>(trackInfo, this);
+        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
+          pub = RemoteTrackPublication<RemoteAudioTrack>(trackInfo, this);
+        } else {
+          throw UnexpectedStateException('Unknown track type');
+        }
         newPubs.add(pub);
         addTrackPublication(pub);
       } else {
