@@ -1,4 +1,4 @@
-#include "include/livekit_client/livekit_plugin.h"
+#include "include/livekit_client/live_kit_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
