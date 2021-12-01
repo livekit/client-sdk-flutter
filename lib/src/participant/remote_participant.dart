@@ -26,12 +26,12 @@ class RemoteParticipant extends Participant {
       super.subscribedTracks.cast<RemoteTrackPublication>().toList();
 
   @override
-  List<RemoteTrackPublication> get videoTracks =>
-      super.videoTracks.cast<RemoteTrackPublication>();
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+      super.videoTracks.cast<RemoteTrackPublication<RemoteVideoTrack>>();
 
   @override
-  List<RemoteTrackPublication> get audioTracks =>
-      super.audioTracks.cast<RemoteTrackPublication>();
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+      super.audioTracks.cast<RemoteTrackPublication<RemoteAudioTrack>>();
 
   RemoteParticipant(
     this._engine,

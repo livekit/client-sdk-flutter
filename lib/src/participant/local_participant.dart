@@ -241,8 +241,8 @@ class LocalParticipant extends Participant {
       super.videoTracks.cast<LocalTrackPublication<LocalVideoTrack>>();
 
   @override
-  List<LocalTrackPublication> get audioTracks =>
-      super.audioTracks.cast<LocalTrackPublication>();
+  List<LocalTrackPublication<LocalAudioTrack>> get audioTracks =>
+      super.audioTracks.cast<LocalTrackPublication<LocalAudioTrack>>();
 }
 
 extension LocalParticipantTrackSourceExt on LocalParticipant {
