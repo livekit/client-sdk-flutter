@@ -75,7 +75,7 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalAudioTrack>(trackInfo, track, this);
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -154,7 +154,7 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalVideoTrack>(trackInfo, track, this);
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -237,8 +237,8 @@ class LocalParticipant extends Participant {
       super.subscribedTracks.cast<LocalTrackPublication>().toList();
 
   @override
-  List<LocalTrackPublication> get videoTracks =>
-      super.videoTracks.cast<LocalTrackPublication>();
+  List<LocalTrackPublication<LocalVideoTrack>> get videoTracks =>
+      super.videoTracks.cast<LocalTrackPublication<LocalVideoTrack>>();
 
   @override
   List<LocalTrackPublication> get audioTracks =>
