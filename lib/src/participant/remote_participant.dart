@@ -16,10 +16,7 @@ import '../types.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].
-class RemoteParticipant extends Participant {
-  @override
-  final Map<String, RemoteTrackPublication> trackPublications = {};
-
+class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @override
   List<RemoteTrackPublication> get subscribedTracks =>
       super.subscribedTracks.cast<RemoteTrackPublication>().toList();

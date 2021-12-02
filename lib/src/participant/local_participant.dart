@@ -18,14 +18,11 @@ import '../utils.dart';
 import 'participant.dart';
 
 /// Represents the current participant in the room.
-class LocalParticipant extends Participant {
+class LocalParticipant extends Participant<LocalTrackPublication> {
   @internal
   final VideoPublishOptions? defaultVideoPublishOptions;
   @internal
   final AudioPublishOptions? defaultAudioPublishOptions;
-
-  @override
-  final Map<String, LocalTrackPublication> trackPublications = {};
 
   LocalParticipant({
     required RTCEngine engine,
@@ -261,9 +258,7 @@ class LocalParticipant extends Participant {
       trackPublications.values
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
-}
 
-extension LocalParticipantTrackSourceExt on LocalParticipant {
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.camera, enabled);
@@ -283,8 +278,7 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
-    final publication =
-        getTrackPublicationBySource(source) as LocalTrackPublication?;
+    final publication = getTrackPublicationBySource(source);
     if (publication != null) {
       if (enabled) {
         await publication.unmute();

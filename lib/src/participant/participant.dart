@@ -23,14 +23,14 @@ import 'remote_participant.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant extends DisposableChangeNotifier
-    with EventsEmittable<ParticipantEvent> {
+abstract class Participant<T extends TrackPublication>
+    extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
   /// Reference to [RTCEngine]
   @internal
   final RTCEngine engine;
 
   /// map of track sid => published track
-  abstract final Map<String, TrackPublication> trackPublications;
+  final Map<String, T> trackPublications = {};
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
@@ -79,14 +79,14 @@ abstract class Participant extends DisposableChangeNotifier
   ConnectionQuality get connectionQuality => _connectionQuality;
 
   /// tracks that are subscribed to
-  List<TrackPublication> get subscribedTracks =>
+  List<T> get subscribedTracks =>
       trackPublications.values.where((e) => e.subscribed).toList();
 
   // Must be implemented by child class
-  List<TrackPublication> get videoTracks;
+  List<T> get videoTracks;
 
   // Must be implemented by child class
-  List<TrackPublication> get audioTracks;
+  List<T> get audioTracks;
 
   /// for internal use
   /// {@nodoc}
@@ -164,7 +164,7 @@ abstract class Participant extends DisposableChangeNotifier
   /// for internal use
   /// {@nodoc}
   @internal
-  void addTrackPublication(TrackPublication pub) {
+  void addTrackPublication(T pub) {
     pub.track?.sid = pub.sid;
     trackPublications[pub.sid] = pub;
   }
@@ -188,9 +188,7 @@ abstract class Participant extends DisposableChangeNotifier
 
   @override
   bool operator ==(Object other) => other is Participant && sid == other.sid;
-}
 
-extension ParticipantTrackSourceExt on Participant {
   bool isCameraEnabled() {
     return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
   }
@@ -206,7 +204,7 @@ extension ParticipantTrackSourceExt on Participant {
   }
 
   /// Find a track publication by its [TrackSource]
-  TrackPublication? getTrackPublicationBySource(TrackSource source) {
+  T? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;
     // try to find by source
     final result =
