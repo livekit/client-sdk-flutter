@@ -104,12 +104,14 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // create Track
     final RemoteTrack track;
-    if (pub.kind == lk_models.TrackType.AUDIO) {
+    if (pub.kind == lk_models.TrackType.VIDEO) {
+      // video track
+      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
+    } else if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
       track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack);
     } else {
-      // video track
-      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
+      throw UnexpectedStateException('Unknown track type');
     }
 
     await track.start();
