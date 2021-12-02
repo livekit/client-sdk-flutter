@@ -14,11 +14,20 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 | :-----: | :---------------: | :-------: | :--------------: | :------------: |
 |   Web   |         🟢         |     🟢     |        🟢         |       🟢        |
 |   iOS   |         🟢         |     🟢     |        🟢         |       🔴        |
-| Android |         🟢         |     🟢     |        🟢         |       🔴        |
+| Android |         🟢         |     🟢     |        🟢         |       🟢        |
+|   Mac   |         🟢         |     🟢     |        🟢         |       🔴        |
+| Windows |         🟡         |     🟡     |        🟡         |       🔴        |
 
 🟢 = Available
+
 🟡 = Coming soon (Work in progress)
+
 🔴 = Not currently available (Possibly in the future)
+
+
+## Example app
+
+We built a multi-user conferencing app as an example in the [example/](example/) folder. You can join the same room from any supported LiveKit clients.
 
 ## Installation
 
@@ -73,26 +82,69 @@ We require a set of permissions that need to be declared in your `AppManifest.xm
 </manifest>
 ```
 
-## Example app
+### Desktop support
 
-We built a multi-user conferencing app as an example in the [example/](example/) folder. You can join the same room from any supported LiveKit clients.
+In order to enable Flutter desktop development, please follow [instructions here](https://docs.flutter.dev/desktop#set-up).
+
+On M1 Macs, you will also need to install x86_64 version of FFI:
+
+```
+sudo arch -x86_64 gem install ffi
+```
 
 ## Usage
 
 ### Connecting to a room, publish video & audio
 
 ```dart
-var room = await LiveKitClient.connect(url, token);
+var options = ConnectOptions(
+  autoSubscribe: false,
+  optimizeVideo: true,
+  defaultVideoPublishOptions: VideoPublishOptions(
+    simulcast: true,
+  ),
+)
+var room = await LiveKitClient.connect(url, token, options: options);
 try {
   // video will fail when running in ios simulator
-  var localVideo = await LocalVideoTrack.createCameraTrack();
-  await room.localParticipant.publishVideoTrack(localVideo);
+  await room.localParticipant.setCameraEnabled(true);
 } catch (e) {
   print('could not publish video: $e');
 }
 
-var localAudio = await LocalAudioTrack.createTrack();
-await room.localParticipant.publishAudioTrack(localAudio);
+await room.localParticipant.setMicrophoneEnabled(true);
+```
+
+### Screen sharing
+
+```dart
+room.localParticipant.setScreenShareEnabled(true);
+```
+
+On Android, you would have to define a foreground service in your AndroidManifest.xml.
+
+```xml title="AndroidManifest.xml"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    ...
+    <service
+        android:name="de.julianassmann.flutter_background.IsolateHolderService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
+  </application>
+</manifest>
+```
+
+### Advanced track manipulation
+
+The setCameraEnabled/setMicrophoneEnabled helpers are wrappers around the Track API.
+
+You can also manually create and publish tracks:
+
+```dart
+var localVideo = await LocalVideoTrack.createCameraTrack();
+await room.localParticipant.publishVideoTrack(localVideo);
 ```
 
 ### Rendering video
@@ -116,7 +168,7 @@ Widget build(BuildContext context) {
 
 ### Audio handling
 
-Audio tracks are rendered automatically as long as you are subscribed to them.
+Audio tracks are played automatically as long as you are subscribed to them.
 
 ### Handling changes
 

@@ -295,6 +295,7 @@ enum SignalResponse_Message {
   speakersChanged,
   roomUpdate,
   connectionQuality,
+  streamedTracksUpdate,
   notSet
 }
 
@@ -312,6 +313,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     10: SignalResponse_Message.speakersChanged,
     11: SignalResponse_Message.roomUpdate,
     12: SignalResponse_Message.connectionQuality,
+    13: SignalResponse_Message.streamedTracksUpdate,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -323,7 +325,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -390,6 +392,12 @@ class SignalResponse extends $pb.GeneratedMessage {
             ? ''
             : 'connectionQuality',
         subBuilder: ConnectionQualityUpdate.create)
+    ..aOM<StreamedTracksUpdate>(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'streamedTracksUpdate',
+        subBuilder: StreamedTracksUpdate.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -405,6 +413,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     SpeakersChanged? speakersChanged,
     RoomUpdate? roomUpdate,
     ConnectionQualityUpdate? connectionQuality,
+    StreamedTracksUpdate? streamedTracksUpdate,
   }) {
     final _result = create();
     if (join != null) {
@@ -439,6 +448,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (connectionQuality != null) {
       _result.connectionQuality = connectionQuality;
+    }
+    if (streamedTracksUpdate != null) {
+      _result.streamedTracksUpdate = streamedTracksUpdate;
     }
     return _result;
   }
@@ -626,6 +638,20 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearConnectionQuality() => clearField(12);
   @$pb.TagNumber(12)
   ConnectionQualityUpdate ensureConnectionQuality() => $_ensure(10);
+
+  @$pb.TagNumber(13)
+  StreamedTracksUpdate get streamedTracksUpdate => $_getN(11);
+  @$pb.TagNumber(13)
+  set streamedTracksUpdate(StreamedTracksUpdate v) {
+    setField(13, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasStreamedTracksUpdate() => $_has(11);
+  @$pb.TagNumber(13)
+  void clearStreamedTracksUpdate() => clearField(13);
+  @$pb.TagNumber(13)
+  StreamedTracksUpdate ensureStreamedTracksUpdate() => $_ensure(11);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -2135,4 +2161,167 @@ class ConnectionQualityUpdate extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $core.List<ConnectionQualityInfo> get updates => $_getList(0);
+}
+
+class StreamedTrack extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'StreamedTrack',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..hasRequiredFields = false;
+
+  StreamedTrack._() : super();
+  factory StreamedTrack({
+    $core.String? participantSid,
+    $core.String? trackSid,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    return _result;
+  }
+  factory StreamedTrack.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory StreamedTrack.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  StreamedTrack clone() => StreamedTrack()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  StreamedTrack copyWith(void Function(StreamedTrack) updates) =>
+      super.copyWith((message) => updates(message as StreamedTrack))
+          as StreamedTrack; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static StreamedTrack create() => StreamedTrack._();
+  StreamedTrack createEmptyInstance() => create();
+  static $pb.PbList<StreamedTrack> createRepeated() =>
+      $pb.PbList<StreamedTrack>();
+  @$core.pragma('dart2js:noInline')
+  static StreamedTrack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StreamedTrack>(create);
+  static StreamedTrack? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get trackSid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set trackSid($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasTrackSid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTrackSid() => clearField(2);
+}
+
+class StreamedTracksUpdate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'StreamedTracksUpdate',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<StreamedTrack>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'paused',
+        $pb.PbFieldType.PM,
+        subBuilder: StreamedTrack.create)
+    ..pc<StreamedTrack>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'resumed',
+        $pb.PbFieldType.PM,
+        subBuilder: StreamedTrack.create)
+    ..hasRequiredFields = false;
+
+  StreamedTracksUpdate._() : super();
+  factory StreamedTracksUpdate({
+    $core.Iterable<StreamedTrack>? paused,
+    $core.Iterable<StreamedTrack>? resumed,
+  }) {
+    final _result = create();
+    if (paused != null) {
+      _result.paused.addAll(paused);
+    }
+    if (resumed != null) {
+      _result.resumed.addAll(resumed);
+    }
+    return _result;
+  }
+  factory StreamedTracksUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory StreamedTracksUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  StreamedTracksUpdate clone() =>
+      StreamedTracksUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  StreamedTracksUpdate copyWith(void Function(StreamedTracksUpdate) updates) =>
+      super.copyWith((message) => updates(message as StreamedTracksUpdate))
+          as StreamedTracksUpdate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static StreamedTracksUpdate create() => StreamedTracksUpdate._();
+  StreamedTracksUpdate createEmptyInstance() => create();
+  static $pb.PbList<StreamedTracksUpdate> createRepeated() =>
+      $pb.PbList<StreamedTracksUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static StreamedTracksUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StreamedTracksUpdate>(create);
+  static StreamedTracksUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<StreamedTrack> get paused => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.List<StreamedTrack> get resumed => $_getList(1);
 }

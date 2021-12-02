@@ -4,7 +4,7 @@ import '../extensions.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../types.dart';
-import 'track.dart';
+import '../track/track.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.
@@ -18,8 +18,8 @@ abstract class TrackPublication extends Disposable {
   final lk_models.TrackType kind;
   final TrackSource source;
 
-  Track? _track;
-  Track? get track => _track;
+  abstract Track? track;
+  // Track? get track => _track;
 
   // metadata-muted
   bool _muted = false;
@@ -28,7 +28,7 @@ abstract class TrackPublication extends Disposable {
   bool simulcasted = false;
   TrackDimension? dimension;
 
-  bool get subscribed => _track != null;
+  bool get subscribed => track != null;
 
   TrackPublication.fromInfo(lk_models.TrackInfo info)
       : sid = info.sid,
@@ -66,10 +66,10 @@ abstract class TrackPublication extends Disposable {
   // Intended for internal use only.
   @internal
   Future<bool> updateTrack(Track? newValue) async {
-    if (_track == newValue) return false;
+    if (track == newValue) return false;
     // dispose previous track (if exists)
-    await _track?.dispose();
-    _track = newValue;
+    await track?.dispose();
+    track = newValue;
     return true;
   }
 }

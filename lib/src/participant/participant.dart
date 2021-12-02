@@ -8,7 +8,7 @@ import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../track/track.dart';
-import '../track/track_publication.dart';
+import '../publication/track_publication.dart';
 import '../types.dart';
 import 'remote_participant.dart';
 
@@ -76,6 +76,12 @@ abstract class Participant extends DisposableChangeNotifier
   /// tracks that are subscribed to
   List<TrackPublication> get subscribedTracks =>
       trackPublications.values.where((e) => e.subscribed).toList();
+
+  // Must be implemented by child class
+  List<TrackPublication> get videoTracks;
+
+  // Must be implemented by child class
+  List<TrackPublication> get audioTracks;
 
   /// for internal use
   /// {@nodoc}
@@ -176,17 +182,6 @@ abstract class Participant extends DisposableChangeNotifier
 
   @override
   bool operator ==(Object other) => other is Participant && sid == other.sid;
-}
-
-// Convenience extension
-extension ParticipantExt on Participant {
-  List<TrackPublication> get videoTracks => trackPublications.values
-      .where((e) => e.kind == lk_models.TrackType.VIDEO)
-      .toList();
-
-  List<TrackPublication> get audioTracks => trackPublications.values
-      .where((e) => e.kind == lk_models.TrackType.AUDIO)
-      .toList();
 }
 
 extension ParticipantTrackSourceExt on Participant {

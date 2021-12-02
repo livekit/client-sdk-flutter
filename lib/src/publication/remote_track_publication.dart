@@ -12,7 +12,8 @@ import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../utils.dart';
-import 'track.dart';
+import '../track/remote.dart';
+import '../track/track.dart';
 import 'track_publication.dart';
 
 class RendererVisibility {
@@ -30,7 +31,10 @@ class RendererVisibility {
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
-class RemoteTrackPublication extends TrackPublication {
+class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
+  @override
+  covariant T? track;
+
   final RemoteParticipant _participant;
   bool _enabled = true;
   lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;

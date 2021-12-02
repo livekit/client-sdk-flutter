@@ -9,11 +9,10 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../publication/local_track_publication.dart';
 import '../rtc_engine.dart';
-import '../track/local_audio_track.dart';
-import '../track/local_track_publication.dart';
-import '../track/local_video_track.dart';
-import '../track/track_publication.dart';
+import '../track/local/audio.dart';
+import '../track/local/video.dart';
 import '../types.dart';
 import '../utils.dart';
 import 'participant.dart';
@@ -42,7 +41,7 @@ class LocalParticipant extends Participant {
   }
 
   /// publish an audio track to the room
-  Future<TrackPublication> publishAudioTrack(
+  Future<LocalTrackPublication<LocalAudioTrack>> publishAudioTrack(
     LocalAudioTrack track, {
     AudioPublishOptions? options,
   }) async {
@@ -75,7 +74,7 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalAudioTrack>(trackInfo, track, this);
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -87,7 +86,7 @@ class LocalParticipant extends Participant {
   }
 
   /// Publish a video track to the room
-  Future<TrackPublication> publishVideoTrack(
+  Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
     LocalVideoTrack track, {
     VideoPublishOptions? options,
   }) async {
@@ -99,38 +98,42 @@ class LocalParticipant extends Participant {
     // Use defaultPublishOptions if options is null
     options = options ?? defaultVideoPublishOptions;
 
-    final trackInfo = await engine.addTrack(
-      cid: track.getCid(),
-      name: track.name,
-      kind: track.kind,
-      source: track.source.toPBType(),
-    );
-
-    logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
-
-    await track.start();
-
-    // Video encodings and simulcasts
-
     // use constraints passed to getUserMedia by default
-    int? width = track.currentOptions.params.width;
-    int? height = track.currentOptions.params.height;
+    int width = track.currentOptions.params.width;
+    int height = track.currentOptions.params.height;
 
     if (kIsWeb) {
       // getSettings() is only implemented for Web
       try {
         // try to use getSettings for more accurate resolution
         final settings = track.mediaStreamTrack.getSettings();
-        width = settings['width'] as int?;
-        height = settings['height'] as int?;
+        if (settings['width'] is int) {
+          width = settings['width'] as int;
+        }
+        if (settings['height'] is int) {
+          height = settings['height'] as int;
+        }
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
       }
     }
 
+    final trackInfo = await engine.addTrack(
+      cid: track.getCid(),
+      name: track.name,
+      kind: track.kind,
+      source: track.source.toPBType(),
+      dimension: TrackDimension(width, height),
+    );
+
+    logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
+
+    await track.start();
+
     logger.fine(
         'Compute encodings with resolution: ${width}x${height}, options: ${options}');
 
+    // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
       width: width,
       height: height,
@@ -154,7 +157,7 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalVideoTrack>(trackInfo, track, this);
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -231,44 +234,67 @@ class LocalParticipant extends Participant {
   void updateFromInfo(lk_models.ParticipantInfo info) {
     super.updateFromInfo(info);
   }
+
+  @override
+  List<LocalTrackPublication> get subscribedTracks =>
+      super.subscribedTracks.cast<LocalTrackPublication>().toList();
+
+  @override
+  List<LocalTrackPublication<LocalVideoTrack>> get videoTracks =>
+      trackPublications.values
+          .whereType<LocalTrackPublication<LocalVideoTrack>>()
+          .toList();
+
+  @override
+  List<LocalTrackPublication<LocalAudioTrack>> get audioTracks =>
+      trackPublications.values
+          .whereType<LocalTrackPublication<LocalAudioTrack>>()
+          .toList();
 }
 
 extension LocalParticipantTrackSourceExt on LocalParticipant {
-  Future<void> setCameraEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.camera]
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.camera, enabled);
   }
 
-  Future<void> setMicrophoneEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.microphone]
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.microphone, enabled);
   }
 
-  Future<void> setScreenShareEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.screenShareVideo]
+  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.screenShareVideo, enabled);
   }
 
-  Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
+  /// A convenience method to publish a track for a specific [TrackSource].
+  Future<LocalTrackPublication?> setSourceEnabled(
+      TrackSource source, bool enabled) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
-    final pub = getTrackPublicationBySource(source) as LocalTrackPublication?;
-    if (pub != null) {
+    final publication =
+        getTrackPublicationBySource(source) as LocalTrackPublication?;
+    if (publication != null) {
       if (enabled) {
-        await pub.unmute();
+        await publication.unmute();
       } else {
         if (source == TrackSource.screenShareVideo) {
-          await unpublishTrack(pub.sid);
+          await unpublishTrack(publication.sid);
         } else {
-          await pub.mute();
+          await publication.mute();
         }
       }
+      return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
         final track = await LocalVideoTrack.createCameraTrack();
-        await publishVideoTrack(track);
+        return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create();
-        await publishAudioTrack(track);
+        return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
-        final track = await LocalVideoTrack.createScreenTrack();
-        await publishVideoTrack(track);
+        final track = await LocalVideoTrack.createScreenShareTrack();
+        return await publishVideoTrack(track);
       }
     }
   }

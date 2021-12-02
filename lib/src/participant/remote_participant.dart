@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -7,10 +8,10 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../publication/remote_track_publication.dart';
 import '../rtc_engine.dart';
-import '../track/remote_audio_track.dart';
-import '../track/remote_track_publication.dart';
-import '../track/remote_video_track.dart';
+import '../track/remote/audio.dart';
+import '../track/remote/video.dart';
 import '../track/track.dart';
 import '../types.dart';
 import 'participant.dart';
@@ -19,6 +20,22 @@ import 'participant.dart';
 class RemoteParticipant extends Participant {
   final RTCEngine _engine;
   RTCEngine get engine => _engine;
+
+  @override
+  List<RemoteTrackPublication> get subscribedTracks =>
+      super.subscribedTracks.cast<RemoteTrackPublication>().toList();
+
+  @override
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
+          .toList();
+
+  @override
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
+          .toList();
 
   RemoteParticipant(
     this._engine,
@@ -91,10 +108,10 @@ class RemoteParticipant extends Participant {
     final Track track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      track = RemoteAudioTrack(pub.source, pub.name, mediaTrack, stream);
+      track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack);
     } else {
       // video track
-      track = RemoteVideoTrack(pub.source, pub.name, mediaTrack, stream);
+      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
     }
 
     await track.start();
@@ -122,7 +139,14 @@ class RemoteParticipant extends Participant {
     for (final trackInfo in info.tracks) {
       RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
       if (pub == null) {
-        pub = RemoteTrackPublication(trackInfo, this);
+        final RemoteTrackPublication pub;
+        if (trackInfo.type == lk_models.TrackType.VIDEO) {
+          pub = RemoteTrackPublication<RemoteVideoTrack>(trackInfo, this);
+        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
+          pub = RemoteTrackPublication<RemoteAudioTrack>(trackInfo, this);
+        } else {
+          throw UnexpectedStateException('Unknown track type');
+        }
         newPubs.add(pub);
         addTrackPublication(pub);
       } else {

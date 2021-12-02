@@ -191,9 +191,11 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
     if (packet.kind == lk_models.DataPacket_Kind.LOSSY && _lossyDC != null) {
+      logger.fine('Sending lossy data...');
       await _lossyDC?.send(dcMessage);
     } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE &&
         _reliableDC != null) {
+      logger.fine('Sending reliable data...');
       await _reliableDC?.send(dcMessage);
     }
   }

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.5.4
+
+* Screen sharing support for Android
+* Fixed TrackPublication/Track mute status
+* Fixed bug with updateTrack
+* Fixed being able to apply capture resolution constraints
+* initial macOS support
+
 ## 0.5.3
 
 * Connection quality information

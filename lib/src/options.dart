@@ -37,7 +37,7 @@ class VideoPublishOptions {
 
   const VideoPublishOptions({
     this.videoEncoding,
-    this.simulcast = false,
+    this.simulcast = true,
   });
 
   @override

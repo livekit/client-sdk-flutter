@@ -5,10 +5,10 @@ import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
-import 'track/local_track_publication.dart';
-import 'track/remote_track_publication.dart';
+import 'publication/local_track_publication.dart';
+import 'publication/remote_track_publication.dart';
 import 'track/track.dart';
-import 'track/track_publication.dart';
+import 'publication/track_publication.dart';
 import 'types.dart';
 
 abstract class LiveKitEvent {}

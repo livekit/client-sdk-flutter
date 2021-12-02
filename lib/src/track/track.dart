@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../events.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -23,7 +24,14 @@ abstract class Track extends DisposableChangeNotifier
   final String name;
   final lk_models.TrackType kind;
   final TrackSource source;
-  rtc.MediaStreamTrack mediaStreamTrack;
+
+  // read only
+  rtc.MediaStream get mediaStream => _mediaStream;
+  rtc.MediaStream _mediaStream;
+
+  // read only
+  rtc.MediaStreamTrack get mediaStreamTrack => _mediaStreamTrack;
+  rtc.MediaStreamTrack _mediaStreamTrack;
 
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
@@ -36,11 +44,14 @@ abstract class Track extends DisposableChangeNotifier
   bool _muted = false;
   bool get muted => _muted;
 
+  rtc.RTCRtpSender? get sender => transceiver?.sender;
+
   Track(
+    this.name,
     this.kind,
     this.source,
-    this.name,
-    this.mediaStreamTrack,
+    this._mediaStream,
+    this._mediaStreamTrack,
   ) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
@@ -128,4 +139,15 @@ abstract class Track extends DisposableChangeNotifier
 
   @internal
   void updateMuted(bool muted) => _muted = muted;
+
+  @internal
+  void updateMediaStreamAndTrack(
+      rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+    _mediaStream = stream;
+    _mediaStreamTrack = track;
+    events.emit(TrackStreamUpdatedEvent(
+      track: this,
+      stream: stream,
+    ));
+  }
 }
