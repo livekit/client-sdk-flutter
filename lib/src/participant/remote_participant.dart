@@ -18,9 +18,6 @@ import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
-  final RTCEngine _engine;
-  RTCEngine get engine => _engine;
-
   @override
   covariant Map<String, RemoteTrackPublication> trackPublications = {};
 
@@ -40,24 +37,26 @@ class RemoteParticipant extends Participant {
           .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
           .toList();
 
-  RemoteParticipant(
-    this._engine,
-    String sid,
-    String identity, {
+  RemoteParticipant({
+    required RTCEngine engine,
+    required String sid,
+    required String identity,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          sid,
-          identity,
+          engine: engine,
+          sid: sid,
+          identity: identity,
           roomEvents: roomEvents,
         );
 
-  RemoteParticipant.fromInfo(
-    this._engine,
-    lk_models.ParticipantInfo info, {
+  RemoteParticipant.fromInfo({
+    required RTCEngine engine,
+    required lk_models.ParticipantInfo info,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          info.sid,
-          info.identity,
+          engine: engine,
+          sid: info.sid,
+          identity: info.identity,
           roomEvents: roomEvents,
         ) {
     updateFromInfo(info);

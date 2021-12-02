@@ -235,15 +235,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     if (info == null) {
       participant = RemoteParticipant(
-        engine,
-        sid,
-        '',
+        engine: engine,
+        sid: sid,
+        identity: '',
         roomEvents: events,
       );
     } else {
       participant = RemoteParticipant.fromInfo(
-        engine,
-        info,
+        engine: engine,
+        info: info,
         roomEvents: events,
       );
     }

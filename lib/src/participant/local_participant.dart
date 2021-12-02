@@ -20,8 +20,6 @@ import 'participant.dart';
 /// Represents the current participant in the room.
 class LocalParticipant extends Participant {
   @internal
-  final RTCEngine engine;
-  @internal
   final VideoPublishOptions? defaultVideoPublishOptions;
   @internal
   final AudioPublishOptions? defaultAudioPublishOptions;
@@ -30,14 +28,15 @@ class LocalParticipant extends Participant {
   covariant Map<String, LocalTrackPublication> trackPublications = {};
 
   LocalParticipant({
-    required this.engine,
+    required RTCEngine engine,
     required lk_models.ParticipantInfo info,
     this.defaultVideoPublishOptions,
     this.defaultAudioPublishOptions,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          info.sid,
-          info.identity,
+          engine: engine,
+          sid: info.sid,
+          identity: info.identity,
           roomEvents: roomEvents,
         ) {
     updateFromInfo(info);

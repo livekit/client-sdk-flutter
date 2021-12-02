@@ -6,6 +6,7 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../rtc_engine.dart';
 import '../support/disposable.dart';
 import '../track/track.dart';
 import '../publication/track_publication.dart';
@@ -24,6 +25,10 @@ import 'remote_participant.dart';
 /// can not be instantiated directly.
 abstract class Participant extends DisposableChangeNotifier
     with EventsEmittable<ParticipantEvent> {
+  /// Reference to [RTCEngine]
+  @internal
+  final RTCEngine engine;
+
   /// map of track sid => published track
   abstract final Map<String, TrackPublication> trackPublications;
 
@@ -88,9 +93,10 @@ abstract class Participant extends DisposableChangeNotifier
   @internal
   bool get hasInfo => _participantInfo != null;
 
-  Participant(
-    this.sid,
-    this.identity, {
+  Participant({
+    required this.engine,
+    required this.sid,
+    required this.identity,
     required this.roomEvents,
   }) {
     // Any event emitted will trigger ChangeNotifier
