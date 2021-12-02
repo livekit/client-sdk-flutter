@@ -6,10 +6,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/local.dart';
 import 'track_publication.dart';
 
-class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
-  @override
-  covariant T? track;
-
+class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   @override
   final LocalParticipant participant;
 
@@ -27,7 +24,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   }
 
   @override
-  Future<bool> updateTrack(covariant T? newValue) async {
+  Future<bool> updateTrack(T? newValue) async {
     final didUpdate = await super.updateTrack(newValue);
 
     if (newValue != null) {

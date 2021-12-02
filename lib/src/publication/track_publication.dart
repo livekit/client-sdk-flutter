@@ -13,16 +13,16 @@ import '../types.dart';
 /// Base for [RemoteTrackPublication] and [LocalTrackPublication],
 /// can not be instantiated directly.
 
-abstract class TrackPublication extends Disposable {
+abstract class TrackPublication<T extends Track> extends Disposable {
   final String sid;
   final String name;
   final lk_models.TrackType kind;
   final TrackSource source;
 
-  // Relevant type must be implemented
-  abstract Track? track;
+  /// The current [Track] for this publication (readonly).
+  T? get track => _track;
+  T? _track;
 
-  // Relevant type must be implemented
   /// The [Participant] this publication belongs to.
   abstract final Participant participant;
 
@@ -71,11 +71,11 @@ abstract class TrackPublication extends Disposable {
   // Returns true if value has changed.
   // Intended for internal use only.
   @internal
-  Future<bool> updateTrack(Track? newValue) async {
-    if (track == newValue) return false;
+  Future<bool> updateTrack(T? newValue) async {
+    if (_track == newValue) return false;
     // dispose previous track (if exists)
-    await track?.dispose();
-    track = newValue;
+    await _track?.dispose();
+    _track = newValue;
     return true;
   }
 }

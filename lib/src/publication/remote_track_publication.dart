@@ -30,10 +30,8 @@ class RendererVisibility {
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
-class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
-  @override
-  covariant T? track;
-
+class RemoteTrackPublication<T extends RemoteTrack>
+    extends TrackPublication<T> {
   @override
   final RemoteParticipant participant;
 
