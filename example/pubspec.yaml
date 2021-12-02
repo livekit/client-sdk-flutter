@@ -20,7 +20,7 @@ dependencies:
   eva_icons_flutter: ^3.0.0
   flutter_svg: ^0.23.0+1
 
-  livekit_client:
+  livekit:
     path: ../
     # git:
     #   url: https://github.com/livekit/client-sdk-flutter

@@ -1,5 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';

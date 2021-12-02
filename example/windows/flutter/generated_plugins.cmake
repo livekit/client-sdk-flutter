@@ -4,7 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_webrtc
-  livekit_client
+  livekit
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
