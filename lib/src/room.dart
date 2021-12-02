@@ -179,8 +179,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final publication = localParticipant.trackPublications[event.sid]
-          as LocalTrackPublication?;
+      final publication = localParticipant.trackPublications[event.sid];
       if (event.muted) {
         await publication?.mute();
       } else {
