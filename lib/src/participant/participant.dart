@@ -164,12 +164,19 @@ abstract class Participant extends DisposableChangeNotifier
   }
 
   // Must implement
-  Future<void> unpublishTrack(String trackSid, {bool notify = true});
+  Future<void> unpublishTrack(
+    String trackSid, {
+    bool notify = true,
+    bool? stopTrack,
+  });
 
-  Future<void> unpublishAllTracks({bool notify = true}) async {
+  Future<void> unpublishAllTracks({
+    bool notify = true,
+    bool? stopTracks,
+  }) async {
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
-      await unpublishTrack(trackid, notify: notify);
+      await unpublishTrack(trackid, notify: notify, stopTrack: stopTracks);
     }
   }
 

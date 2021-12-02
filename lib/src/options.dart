@@ -20,11 +20,16 @@ class ConnectOptions {
   /// defaults to true.
   final bool optimizeVideo;
 
+  /// Set this to false in case you would like to stop the track yourself.
+  /// defaults to true.
+  final bool shouldStopTrackOnUnpublish;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.optimizeVideo = true,
+    this.shouldStopTrackOnUnpublish = true,
   });
 }
 

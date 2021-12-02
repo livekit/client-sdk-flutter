@@ -170,7 +170,11 @@ class LocalParticipant extends Participant {
 
   /// Unpublish a track that's already published
   @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
+  Future<void> unpublishTrack(
+    String trackSid, {
+    bool notify = true,
+    bool? stopTrack,
+  }) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub is! LocalTrackPublication) {
@@ -180,7 +184,11 @@ class LocalParticipant extends Participant {
 
     final track = pub.track;
     if (track != null) {
-      await track.stop();
+      final shouldStopTrack =
+          stopTrack ?? engine.connectOptions.shouldStopTrackOnUnpublish;
+      if (shouldStopTrack) {
+        await track.stop();
+      }
 
       final sender = track.transceiver?.sender;
       if (sender != null) {
