@@ -26,6 +26,9 @@ class LocalParticipant extends Participant {
   @internal
   final AudioPublishOptions? defaultAudioPublishOptions;
 
+  @override
+  covariant Map<String, LocalTrackPublication> trackPublications = {};
+
   LocalParticipant({
     required this.engine,
     required lk_models.ParticipantInfo info,
@@ -173,10 +176,11 @@ class LocalParticipant extends Participant {
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-    if (pub is! LocalTrackPublication) {
-      await pub?.dispose();
+    if (pub == null) {
+      logger.warning('Publication not found $trackSid');
       return;
     }
+    await pub.dispose();
 
     final track = pub.track;
     if (track != null) {

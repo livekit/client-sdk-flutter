@@ -22,6 +22,9 @@ class RemoteParticipant extends Participant {
   RTCEngine get engine => _engine;
 
   @override
+  covariant Map<String, RemoteTrackPublication> trackPublications = {};
+
+  @override
   List<RemoteTrackPublication> get subscribedTracks =>
       super.subscribedTracks.cast<RemoteTrackPublication>().toList();
 
@@ -178,14 +181,11 @@ class RemoteParticipant extends Participant {
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-
-    if (pub is! RemoteTrackPublication) {
-      // no publication exists for trackSid
-      // or publication is not RemoteTrackPublication
-
-      await pub?.dispose();
+    if (pub == null) {
+      logger.warning('Publication not found $trackSid');
       return;
     }
+    await pub.dispose();
 
     final track = pub.track;
     // if has track

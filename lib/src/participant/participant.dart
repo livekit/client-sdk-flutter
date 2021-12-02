@@ -25,7 +25,7 @@ import 'remote_participant.dart';
 abstract class Participant extends DisposableChangeNotifier
     with EventsEmittable<ParticipantEvent> {
   /// map of track sid => published track
-  final trackPublications = <String, TrackPublication>{};
+  abstract final Map<String, TrackPublication> trackPublications;
 
   /// audio level between 0-1, 1 being the loudest
   double audioLevel = 0;
