@@ -54,15 +54,9 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   @override
   bool get muted => track?.muted ?? super.muted;
 
-  Future<void> mute() async {
-    if (track is! LocalTrack) return;
-    // Mute the track associated with this publication
-    return (track as LocalTrack).mute();
-  }
+  /// Mute the track associated with this publication
+  Future<void> mute() async => await track?.mute();
 
-  Future<void> unmute() async {
-    if (track is! LocalTrack) return;
-    // Unmute the track associated with this publication
-    return (track as LocalTrack).unmute();
-  }
+  /// Unmute the track associated with this publication
+  Future<void> unmute() async => await track?.unmute();
 }
