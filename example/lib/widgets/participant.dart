@@ -84,22 +84,12 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
     super.didUpdateWidget(oldWidget);
   }
 
-  // register for change so Flutter will re-build the widget upon change
-  void _onParticipantChanged() {
-    //
-    setState(() {
-      // For simplification, We are assuming here
-      // there is only 1 video / audio tracks.
-      // firstAudioPub = widget.participant.audioTracks.firstOrNull;
-      // firstVideoPub = widget.participant.videoTracks.firstOrNull;
-      // if (firstVideoPub is RemoteTrackPublication) {
-      //   (firstVideoPub as RemoteTrackPublication).videoQuality = widget.quality;
-      // }
-    });
-  }
+  // Notify Flutter that UI re-build is required, but we don't set anything here
+  // since the updated values are computed properties.
+  void _onParticipantChanged() => setState(() {});
 
-  // Widgets to stack above
-  List<Widget> above() => [];
+  // Widgets to show above the info bar
+  List<Widget> extraWidgets() => [];
 
   @override
   Widget build(BuildContext ctx) => Container(
@@ -134,7 +124,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ...above(),
+                  ...extraWidgets(),
                   ParticipantInfoWidget(
                     title: widget.participant.identity,
                     audioAvailable: firstAudioPublication?.muted == false &&
@@ -189,17 +179,18 @@ class _RemoteParticipantWidgetState
   }
 
   @override
-  List<Widget> above() => [
+  List<Widget> extraWidgets() => [
         Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            // Menu for RemoteTrackPublication<RemoteVideoTrack>
             if (firstVideoPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: firstVideoPublication!,
                 icon: EvaIcons.videoOutline,
               ),
-            // Menu for Audio RemoteTrackPublication
+            // Menu for RemoteTrackPublication<RemoteAudioTrack>
             if (firstAudioPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: firstAudioPublication!,
@@ -221,24 +212,19 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        // type: MaterialType.card,
         color: Colors.black.withOpacity(0.3),
-        // shape: CircleBorder(),
         child: PopupMenuButton<Function>(
-          // shape: CircleBorder(),
           icon: Icon(icon),
           onSelected: (value) => value(),
           itemBuilder: (BuildContext context) {
             return <PopupMenuEntry<Function>>[
-              //
               // Subscribe/Unsubscribe
-              //
               if (pub.subscribed == false)
                 PopupMenuItem(
                   child: const Text('Subscribe'),
                   value: () => pub.subscribed = true,
-                ),
-              if (pub.subscribed == true)
+                )
+              else if (pub.subscribed == true)
                 PopupMenuItem(
                   child: const Text('Un-subscribe'),
                   value: () => pub.subscribed = false,
