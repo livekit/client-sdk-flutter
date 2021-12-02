@@ -194,7 +194,9 @@ class RemoteParticipant extends Participant {
     final track = pub.track;
     // if has track
     if (track != null) {
-      await track.stop();
+      if (stopTrack ?? true) {
+        await track.stop();
+      }
       [events, roomEvents].emit(TrackUnsubscribedEvent(
         participant: this,
         track: track,
