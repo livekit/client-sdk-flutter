@@ -1,10 +1,11 @@
 import 'package:meta/meta.dart';
 
 import '../extensions.dart';
+import '../participant/participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
-import '../types.dart';
 import '../track/track.dart';
+import '../types.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.
@@ -18,8 +19,12 @@ abstract class TrackPublication extends Disposable {
   final lk_models.TrackType kind;
   final TrackSource source;
 
+  // Relevant type must be implemented
   abstract Track? track;
-  // Track? get track => _track;
+
+  // Relevant type must be implemented
+  /// The [Participant] this publication belongs to.
+  abstract final Participant participant;
 
   // metadata-muted
   bool _muted = false;
@@ -30,8 +35,9 @@ abstract class TrackPublication extends Disposable {
 
   bool get subscribed => track != null;
 
-  TrackPublication.fromInfo(lk_models.TrackInfo info)
-      : sid = info.sid,
+  TrackPublication({
+    required lk_models.TrackInfo info,
+  })  : sid = info.sid,
         name = info.name,
         kind = info.type,
         source = info.source.toLKType() {

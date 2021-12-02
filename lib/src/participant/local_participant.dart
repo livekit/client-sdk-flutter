@@ -76,7 +76,11 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication<LocalAudioTrack>(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalAudioTrack>(
+      participant: this,
+      info: trackInfo,
+      track: track,
+    );
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -159,7 +163,11 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication<LocalVideoTrack>(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalVideoTrack>(
+      participant: this,
+      info: trackInfo,
+      track: track,
+    );
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
