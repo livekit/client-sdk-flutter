@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/livekit_client?label=livekit_client&color=blue)](https://pub.dev/packages/livekit_client)
+
 # LiveKit Flutter SDK
 
 Official Flutter SDK for [LiveKit](https://livekit.io). Easily add real-time video and audio to your Flutter apps.
