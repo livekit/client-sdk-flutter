@@ -4,7 +4,6 @@ import '../internal/events.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/local.dart';
-import '../track/track.dart';
 import 'track_publication.dart';
 
 class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
@@ -17,7 +16,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   LocalTrackPublication({
     required this.participant,
     required lk_models.TrackInfo info,
-    required Track track,
+    required T track,
   }) : super(info: info) {
     updateTrack(track);
     // register dispose func
@@ -28,7 +27,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   }
 
   @override
-  Future<bool> updateTrack(Track? newValue) async {
+  Future<bool> updateTrack(covariant T? newValue) async {
     final didUpdate = await super.updateTrack(newValue);
 
     if (newValue != null) {

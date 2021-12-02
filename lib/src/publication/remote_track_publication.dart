@@ -51,7 +51,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
   RemoteTrackPublication({
     required this.participant,
     required lk_models.TrackInfo info,
-    Track? track,
+    T? track,
   }) : super(info: info) {
     // register dispose func
     onDispose(() async {
@@ -149,7 +149,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
 
   @internal
   @override
-  Future<bool> updateTrack(Track? newValue) async {
+  Future<bool> updateTrack(covariant T? newValue) async {
     final didUpdate = await super.updateTrack(newValue);
 
     // Only listen for visibility updates if video optimization is on

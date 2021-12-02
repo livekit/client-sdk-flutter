@@ -107,7 +107,7 @@ class RemoteParticipant extends Participant {
     }
 
     // create Track
-    final Track track;
+    final RemoteTrack track;
     if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
       track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack);
