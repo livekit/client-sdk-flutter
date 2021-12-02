@@ -253,41 +253,48 @@ class LocalParticipant extends Participant {
 }
 
 extension LocalParticipantTrackSourceExt on LocalParticipant {
-  Future<void> setCameraEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.camera]
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.camera, enabled);
   }
 
-  Future<void> setMicrophoneEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.microphone]
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.microphone, enabled);
   }
 
-  Future<void> setScreenShareEnabled(bool enabled) async {
+  /// Shortcut for publishing a [TrackSource.screenShareVideo]
+  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.screenShareVideo, enabled);
   }
 
-  Future<void> setSourceEnabled(TrackSource source, bool enabled) async {
+  /// A convenience method to publish a track for a specific [TrackSource].
+  Future<LocalTrackPublication?> setSourceEnabled(
+      TrackSource source, bool enabled) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
-    final pub = getTrackPublicationBySource(source) as LocalTrackPublication?;
-    if (pub != null) {
+    final publication =
+        getTrackPublicationBySource(source) as LocalTrackPublication?;
+    if (publication != null) {
       if (enabled) {
-        await pub.unmute();
+        await publication.unmute();
       } else {
         if (source == TrackSource.screenShareVideo) {
-          await unpublishTrack(pub.sid);
+          await unpublishTrack(publication.sid);
         } else {
-          await pub.mute();
+          await publication.mute();
         }
       }
+      return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
         final track = await LocalVideoTrack.createCameraTrack();
-        await publishVideoTrack(track);
+        return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create();
-        await publishAudioTrack(track);
+        return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         final track = await LocalVideoTrack.createScreenShareTrack();
-        await publishVideoTrack(track);
+        return await publishVideoTrack(track);
       }
     }
   }
