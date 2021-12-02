@@ -77,3 +77,6 @@ build/
 # VS Code
 .vscode/
 *.code-workspace
+
+# Windows
+_build
