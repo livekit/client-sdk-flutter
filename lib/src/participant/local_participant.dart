@@ -185,7 +185,7 @@ class LocalParticipant extends Participant {
     final track = pub.track;
     if (track != null) {
       final shouldStopTrack =
-          stopTrack ?? engine.connectOptions.stopTrackOnUnpublish;
+          stopTrack ?? engine.connectOptions.stopLocalTrackOnUnpublish;
       if (shouldStopTrack) {
         await track.stop();
       }
