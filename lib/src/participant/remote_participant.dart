@@ -27,11 +27,15 @@ class RemoteParticipant extends Participant {
 
   @override
   List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
-      super.videoTracks.cast<RemoteTrackPublication<RemoteVideoTrack>>();
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
+          .toList();
 
   @override
   List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
-      super.audioTracks.cast<RemoteTrackPublication<RemoteAudioTrack>>();
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
+          .toList();
 
   RemoteParticipant(
     this._engine,
