@@ -25,7 +25,7 @@ class LocalParticipant extends Participant {
   final AudioPublishOptions? defaultAudioPublishOptions;
 
   @override
-  covariant Map<String, LocalTrackPublication> trackPublications = {};
+  final Map<String, LocalTrackPublication> trackPublications = {};
 
   LocalParticipant({
     required RTCEngine engine,

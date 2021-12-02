@@ -12,14 +12,13 @@ import '../publication/remote_track_publication.dart';
 import '../rtc_engine.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
-import '../track/track.dart';
 import '../types.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant {
   @override
-  covariant Map<String, RemoteTrackPublication> trackPublications = {};
+  final Map<String, RemoteTrackPublication> trackPublications = {};
 
   @override
   List<RemoteTrackPublication> get subscribedTracks =>
