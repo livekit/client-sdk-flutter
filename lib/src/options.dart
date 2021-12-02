@@ -22,14 +22,14 @@ class ConnectOptions {
 
   /// Set this to false in case you would like to stop the track yourself.
   /// defaults to true.
-  final bool shouldStopTrackOnUnpublish;
+  final bool stopTrackOnUnpublish;
 
   const ConnectOptions({
     this.autoSubscribe = true,
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.optimizeVideo = true,
-    this.shouldStopTrackOnUnpublish = true,
+    this.stopTrackOnUnpublish = true,
   });
 }
 

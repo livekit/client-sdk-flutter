@@ -195,7 +195,7 @@ class RemoteParticipant extends Participant {
     // if has track
     if (track != null) {
       final shouldStopTrack =
-          stopTrack ?? engine.connectOptions.shouldStopTrackOnUnpublish;
+          stopTrack ?? engine.connectOptions.stopTrackOnUnpublish;
       if (shouldStopTrack) {
         await track.stop();
       }
