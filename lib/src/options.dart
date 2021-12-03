@@ -1,4 +1,5 @@
 import 'track/options.dart';
+import 'track/track.dart';
 
 /// Options when joining a room.
 /// {@category Room}
@@ -21,6 +22,7 @@ class ConnectOptions {
   final bool optimizeVideo;
 
   /// Set this to false in case you would like to stop the track yourself.
+  /// If you set this to false, make sure you call [Track.stop].
   /// defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
@@ -37,7 +39,9 @@ class VideoPublishOptions {
   ///
   final VideoEncoding? videoEncoding;
 
-  ///
+  /// Whether to enable simulcast or not.
+  /// https://blog.livekit.io/an-introduction-to-webrtc-simulcast-6c5f1f6402eb
+  /// defaults to true.
   final bool simulcast;
 
   const VideoPublishOptions({
@@ -51,9 +55,9 @@ class VideoPublishOptions {
 }
 
 class AudioPublishOptions {
-  /// DTX (Discontinuous Transmission)
+  /// Whether to enable DTX (Discontinuous Transmission) or not.
   /// https://en.wikipedia.org/wiki/Discontinuous_transmission
-  /// defaults to true
+  /// defaults to true.
   final bool dtx;
 
   const AudioPublishOptions({

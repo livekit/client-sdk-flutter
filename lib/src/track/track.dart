@@ -88,7 +88,8 @@ abstract class Track extends DisposableChangeNotifier
     return cid;
   }
 
-  // returns true if started, false if already started
+  /// Start this [Track] if not started.
+  /// Returns true if started, false if already started
   @mustCallSuper
   Future<bool> start() async {
     if (_active) {
@@ -102,7 +103,8 @@ abstract class Track extends DisposableChangeNotifier
     return true;
   }
 
-  // returns true if stopped, false if already stopped
+  /// Stop this [Track] if not stopped.
+  /// Returns true if stopped, false if already stopped
   @mustCallSuper
   Future<bool> stop() async {
     if (!_active) {
