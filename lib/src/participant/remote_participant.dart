@@ -12,15 +12,11 @@ import '../publication/remote_track_publication.dart';
 import '../rtc_engine.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
-import '../track/track.dart';
 import '../types.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].
-class RemoteParticipant extends Participant {
-  final RTCEngine _engine;
-  RTCEngine get engine => _engine;
-
+class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @override
   List<RemoteTrackPublication> get subscribedTracks =>
       super.subscribedTracks.cast<RemoteTrackPublication>().toList();
@@ -37,24 +33,26 @@ class RemoteParticipant extends Participant {
           .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
           .toList();
 
-  RemoteParticipant(
-    this._engine,
-    String sid,
-    String identity, {
+  RemoteParticipant({
+    required RTCEngine engine,
+    required String sid,
+    required String identity,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          sid,
-          identity,
+          engine: engine,
+          sid: sid,
+          identity: identity,
           roomEvents: roomEvents,
         );
 
-  RemoteParticipant.fromInfo(
-    this._engine,
-    lk_models.ParticipantInfo info, {
+  RemoteParticipant.fromInfo({
+    required RTCEngine engine,
+    required lk_models.ParticipantInfo info,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          info.sid,
-          info.identity,
+          engine: engine,
+          sid: info.sid,
+          identity: info.identity,
           roomEvents: roomEvents,
         ) {
     updateFromInfo(info);
@@ -105,13 +103,15 @@ class RemoteParticipant extends Participant {
     }
 
     // create Track
-    final Track track;
-    if (pub.kind == lk_models.TrackType.AUDIO) {
+    final RemoteTrack track;
+    if (pub.kind == lk_models.TrackType.VIDEO) {
+      // video track
+      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
+    } else if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
       track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack);
     } else {
-      // video track
-      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
+      throw UnexpectedStateException('Unknown track type');
     }
 
     await track.start();
@@ -141,9 +141,15 @@ class RemoteParticipant extends Participant {
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {
-          pub = RemoteTrackPublication<RemoteVideoTrack>(trackInfo, this);
+          pub = RemoteTrackPublication<RemoteVideoTrack>(
+            participant: this,
+            info: trackInfo,
+          );
         } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
-          pub = RemoteTrackPublication<RemoteAudioTrack>(trackInfo, this);
+          pub = RemoteTrackPublication<RemoteAudioTrack>(
+            participant: this,
+            info: trackInfo,
+          );
         } else {
           throw UnexpectedStateException('Unknown track type');
         }
@@ -182,14 +188,11 @@ class RemoteParticipant extends Participant {
   }) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-
-    if (pub is! RemoteTrackPublication) {
-      // no publication exists for trackSid
-      // or publication is not RemoteTrackPublication
-
-      await pub?.dispose();
+    if (pub == null) {
+      logger.warning('Publication not found $trackSid');
       return;
     }
+    await pub.dispose();
 
     final track = pub.track;
     // if has track

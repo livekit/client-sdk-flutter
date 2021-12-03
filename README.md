@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/livekit_client?label=livekit_client&color=blue)](https://pub.dev/packages/livekit_client)
+
 # LiveKit Flutter SDK
 
 Official Flutter SDK for [LiveKit](https://livekit.io). Easily add real-time video and audio to your Flutter apps.
@@ -91,6 +93,8 @@ On M1 Macs, you will also need to install x86_64 version of FFI:
 ```
 sudo arch -x86_64 gem install ffi
 ```
+
+On Windows [VS 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=community&rel=16) is needed (link in flutter docs will download VS 2022).
 
 ## Usage
 

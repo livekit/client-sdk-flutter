@@ -133,7 +133,7 @@ class _RoomPageState extends State<RoomPage> {
           children: [
             Expanded(
                 child: participants.isNotEmpty
-                    ? ParticipantWidget(participants.first)
+                    ? ParticipantWidget.widgetFor(participants.first)
                     : Container()),
             SizedBox(
               height: 100,
@@ -143,8 +143,7 @@ class _RoomPageState extends State<RoomPage> {
                 itemBuilder: (BuildContext context, int index) => SizedBox(
                   width: 100,
                   height: 100,
-                  child: ParticipantWidget(participants[index + 1],
-                      quality: VideoQuality.LOW),
+                  child: ParticipantWidget.widgetFor(participants[index + 1]),
                 ),
               ),
             ),

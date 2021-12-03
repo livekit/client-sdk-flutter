@@ -18,23 +18,22 @@ import '../utils.dart';
 import 'participant.dart';
 
 /// Represents the current participant in the room.
-class LocalParticipant extends Participant {
-  @internal
-  final RTCEngine engine;
+class LocalParticipant extends Participant<LocalTrackPublication> {
   @internal
   final VideoPublishOptions? defaultVideoPublishOptions;
   @internal
   final AudioPublishOptions? defaultAudioPublishOptions;
 
   LocalParticipant({
-    required this.engine,
+    required RTCEngine engine,
     required lk_models.ParticipantInfo info,
     this.defaultVideoPublishOptions,
     this.defaultAudioPublishOptions,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          info.sid,
-          info.identity,
+          engine: engine,
+          sid: info.sid,
+          identity: info.identity,
           roomEvents: roomEvents,
         ) {
     updateFromInfo(info);
@@ -74,7 +73,11 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication<LocalAudioTrack>(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalAudioTrack>(
+      participant: this,
+      info: trackInfo,
+      track: track,
+    );
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -157,7 +160,11 @@ class LocalParticipant extends Participant {
     );
     await engine.negotiate();
 
-    final pub = LocalTrackPublication<LocalVideoTrack>(trackInfo, track, this);
+    final pub = LocalTrackPublication<LocalVideoTrack>(
+      participant: this,
+      info: trackInfo,
+      track: track,
+    );
     addTrackPublication(pub);
 
     [events, roomEvents].emit(LocalTrackPublishedEvent(
@@ -177,10 +184,11 @@ class LocalParticipant extends Participant {
   }) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
-    if (pub is! LocalTrackPublication) {
-      await pub?.dispose();
+    if (pub == null) {
+      logger.warning('Publication not found $trackSid');
       return;
     }
+    await pub.dispose();
 
     final track = pub.track;
     if (track != null) {
@@ -258,9 +266,7 @@ class LocalParticipant extends Participant {
       trackPublications.values
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
-}
 
-extension LocalParticipantTrackSourceExt on LocalParticipant {
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
     return setSourceEnabled(TrackSource.camera, enabled);
@@ -280,8 +286,7 @@ extension LocalParticipantTrackSourceExt on LocalParticipant {
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
-    final publication =
-        getTrackPublicationBySource(source) as LocalTrackPublication?;
+    final publication = getTrackPublicationBySource(source);
     if (publication != null) {
       if (enabled) {
         await publication.unmute();

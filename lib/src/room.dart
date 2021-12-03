@@ -16,7 +16,6 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'rtc_engine.dart';
 import 'support/disposable.dart';
-import 'publication/local_track_publication.dart';
 import 'track/track.dart';
 import 'types.dart';
 
@@ -179,8 +178,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final publication = localParticipant.trackPublications[event.sid]
-          as LocalTrackPublication?;
+      final publication = localParticipant.trackPublications[event.sid];
       if (event.muted) {
         await publication?.mute();
       } else {
@@ -235,15 +233,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     if (info == null) {
       participant = RemoteParticipant(
-        engine,
-        sid,
-        '',
+        engine: engine,
+        sid: sid,
+        identity: '',
         roomEvents: events,
       );
     } else {
       participant = RemoteParticipant.fromInfo(
-        engine,
-        info,
+        engine: engine,
+        info: info,
         roomEvents: events,
       );
     }

@@ -4,20 +4,17 @@ import '../internal/events.dart';
 import '../participant/local_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/local.dart';
-import '../track/track.dart';
 import 'track_publication.dart';
 
-class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
-  final LocalParticipant _participant;
-
+class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   @override
-  covariant T? track;
+  final LocalParticipant participant;
 
-  LocalTrackPublication(
-    lk_models.TrackInfo info,
-    Track track,
-    this._participant,
-  ) : super.fromInfo(info) {
+  LocalTrackPublication({
+    required this.participant,
+    required lk_models.TrackInfo info,
+    required T track,
+  }) : super(info: info) {
     updateTrack(track);
     // register dispose func
     onDispose(() async {
@@ -27,7 +24,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   }
 
   @override
-  Future<bool> updateTrack(Track? newValue) async {
+  Future<bool> updateTrack(T? newValue) async {
     final didUpdate = await super.updateTrack(newValue);
 
     if (newValue != null) {
@@ -36,12 +33,12 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
         // listen for track muted events
         ..on<TrackMuteUpdatedEvent>((event) {
           // send signal to server
-          _participant.engine.signalClient.sendMuteTrack(sid, event.muted);
+          participant.engine.signalClient.sendMuteTrack(sid, event.muted);
           // emit events
           final newEvent = event.muted
-              ? TrackMutedEvent(participant: _participant, track: this)
-              : TrackUnmutedEvent(participant: _participant, track: this);
-          [_participant.events, _participant.roomEvents].emit(newEvent);
+              ? TrackMutedEvent(participant: participant, track: this)
+              : TrackUnmutedEvent(participant: participant, track: this);
+          [participant.events, participant.roomEvents].emit(newEvent);
         });
       // dispose listener when the track is disposed
       newValue.onDispose(() => listener.dispose());
@@ -53,15 +50,9 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication {
   @override
   bool get muted => track?.muted ?? super.muted;
 
-  Future<void> mute() async {
-    if (track is! LocalTrack) return;
-    // Mute the track associated with this publication
-    return (track as LocalTrack).mute();
-  }
+  /// Mute the track associated with this publication
+  Future<void> mute() async => await track?.mute();
 
-  Future<void> unmute() async {
-    if (track is! LocalTrack) return;
-    // Unmute the track associated with this publication
-    return (track as LocalTrack).unmute();
-  }
+  /// Unmute the track associated with this publication
+  Future<void> unmute() async => await track?.unmute();
 }

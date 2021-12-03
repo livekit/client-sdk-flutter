@@ -11,9 +11,8 @@ import '../logger.dart';
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
-import '../utils.dart';
 import '../track/remote.dart';
-import '../track/track.dart';
+import '../utils.dart';
 import 'track_publication.dart';
 
 class RendererVisibility {
@@ -31,11 +30,11 @@ class RendererVisibility {
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
-class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
+class RemoteTrackPublication<T extends RemoteTrack>
+    extends TrackPublication<T> {
   @override
-  covariant T? track;
+  final RemoteParticipant participant;
 
-  final RemoteParticipant _participant;
   bool _enabled = true;
   lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
   lk_rtc.VideoQuality get videoQuality => _videoQuality;
@@ -46,11 +45,11 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
   Function(void)? _visibilityDidUpdate;
   Function? _cancelVisibilityDebounceFunc;
 
-  RemoteTrackPublication(
-    lk_models.TrackInfo info,
-    this._participant, [
-    Track? track,
-  ]) : super.fromInfo(info) {
+  RemoteTrackPublication({
+    required this.participant,
+    required lk_models.TrackInfo info,
+    T? track,
+  }) : super(info: info) {
     // register dispose func
     onDispose(() async {
       _cancelVisibilityDebounceFunc?.call();
@@ -142,19 +141,19 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
     }
 
     logger.fine('[Visibility] Sending to server ${settings.toProto3Json()}');
-    _participant.engine.signalClient.sendUpdateTrackSettings(settings);
+    participant.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
   @internal
   @override
-  Future<bool> updateTrack(Track? newValue) async {
+  Future<bool> updateTrack(covariant T? newValue) async {
     final didUpdate = await super.updateTrack(newValue);
 
     // Only listen for visibility updates if video optimization is on
     // and the attached track is a video track
     if (didUpdate &&
         newValue != null &&
-        _participant.engine.connectOptions.optimizeVideo &&
+        participant.engine.connectOptions.optimizeVideo &&
         newValue.kind == lk_models.TrackType.VIDEO) {
       //
       // Attach visibility event listener (if video track)
@@ -195,9 +194,8 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
       // Ideally, we should wait for WebRTC's onRemoveTrack event
       // but it does not work reliably across platforms.
       // So for now we will assume remove track succeeded.
-      [_participant.events, _participant.roomEvents]
-          .emit(TrackUnsubscribedEvent(
-        participant: _participant,
+      [participant.events, participant.roomEvents].emit(TrackUnsubscribedEvent(
+        participant: participant,
         track: track!,
         publication: this,
       ));
@@ -212,7 +210,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
       trackSids: [sid],
       subscribe: subscribed,
     );
-    _participant.engine.signalClient.sendUpdateSubscription(subscription);
+    participant.engine.signalClient.sendUpdateSubscription(subscription);
   }
 
   void _sendUpdateTrackSettings() {
@@ -223,6 +221,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication {
     if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
     }
-    _participant.engine.signalClient.sendUpdateTrackSettings(settings);
+    participant.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 }

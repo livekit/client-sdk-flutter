@@ -8,26 +8,60 @@ import 'package:livekit_example/theme.dart';
 import 'no_video.dart';
 import 'participant_info.dart';
 
-class ParticipantWidget extends StatefulWidget {
-  //
-  final Participant participant;
+abstract class ParticipantWidget extends StatefulWidget {
+  // Convenience method to return relevant widget for participant
+  static ParticipantWidget widgetFor(Participant participant) {
+    if (participant is LocalParticipant) {
+      return LocalParticipantWidget(participant);
+    } else if (participant is RemoteParticipant) {
+      return RemoteParticipantWidget(participant);
+    }
+    throw UnimplementedError('Unknown participant type');
+  }
+
+  // Must be implemented by child class
+  abstract final Participant participant;
   final VideoQuality quality;
 
-  const ParticipantWidget(
-    this.participant, {
+  const ParticipantWidget({
     this.quality = VideoQuality.MEDIUM,
+    Key? key,
+  }) : super(key: key);
+}
+
+class LocalParticipantWidget extends ParticipantWidget {
+  @override
+  final LocalParticipant participant;
+
+  const LocalParticipantWidget(
+    this.participant, {
     Key? key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _ParticipantWidgetState();
+  State<StatefulWidget> createState() => _LocalParticipantWidgetState();
 }
 
-class _ParticipantWidgetState extends State<ParticipantWidget> {
+class RemoteParticipantWidget extends ParticipantWidget {
+  @override
+  final RemoteParticipant participant;
+
+  const RemoteParticipantWidget(
+    this.participant, {
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _RemoteParticipantWidgetState();
+}
+
+abstract class _ParticipantWidgetState<T extends ParticipantWidget>
+    extends State<T> {
   //
-  TrackPublication? firstVideoPub;
-  TrackPublication? firstAudioPub;
   bool _visible = true;
+  VideoTrack? get activeVideoTrack;
+  TrackPublication? get firstVideoPublication;
+  TrackPublication? get firstAudioPublication;
 
   @override
   void initState() {
@@ -43,26 +77,19 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
   }
 
   @override
-  void didUpdateWidget(covariant ParticipantWidget oldWidget) {
+  void didUpdateWidget(covariant T oldWidget) {
     oldWidget.participant.removeListener(_onParticipantChanged);
     widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
     super.didUpdateWidget(oldWidget);
   }
 
-  // register for change so Flutter will re-build the widget upon change
-  void _onParticipantChanged() {
-    //
-    setState(() {
-      // For simplification, We are assuming here
-      // there is only 1 video / audio tracks.
-      firstAudioPub = widget.participant.audioTracks.firstOrNull;
-      firstVideoPub = widget.participant.videoTracks.firstOrNull;
-      if (firstVideoPub is RemoteTrackPublication) {
-        (firstVideoPub as RemoteTrackPublication).videoQuality = widget.quality;
-      }
-    });
-  }
+  // Notify Flutter that UI re-build is required, but we don't set anything here
+  // since the updated values are computed properties.
+  void _onParticipantChanged() => setState(() {});
+
+  // Widgets to show above the info bar
+  List<Widget> extraWidgets() => [];
 
   @override
   Widget build(BuildContext ctx) => Container(
@@ -82,49 +109,26 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
             // Video
             InkWell(
               onTap: () => setState(() => _visible = !_visible),
-              child: (firstVideoPub?.subscribed == true &&
-                      firstVideoPub?.muted == false &&
-                      _visible)
+              child: activeVideoTrack != null
                   ? VideoTrackRenderer(
-                      firstVideoPub!.track as VideoTrack,
+                      activeVideoTrack!,
                       fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                     )
                   : const NoVideoWidget(),
             ),
 
+            // Bottom bar
             Align(
               alignment: Alignment.bottomCenter,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  //
-                  // Menu for Video RemoteTrackPublication
-                  //
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (firstVideoPub is RemoteTrackPublication)
-                        RemoteTrackPublicationMenuWidget(
-                          pub: firstVideoPub as RemoteTrackPublication,
-                          icon: EvaIcons.videoOutline,
-                        ),
-                      //
-                      // Menu for Audio RemoteTrackPublication
-                      //
-                      if (firstAudioPub is RemoteTrackPublication)
-                        RemoteTrackPublicationMenuWidget(
-                          pub: firstAudioPub as RemoteTrackPublication,
-                          icon: EvaIcons.volumeUpOutline,
-                        ),
-                    ],
-                  ),
-
+                  ...extraWidgets(),
                   ParticipantInfoWidget(
                     title: widget.participant.identity,
-                    audioAvailable: firstAudioPub?.muted == false &&
-                        firstAudioPub?.subscribed == true,
+                    audioAvailable: firstAudioPublication?.muted == false &&
+                        firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
                   ),
                 ],
@@ -133,6 +137,68 @@ class _ParticipantWidgetState extends State<ParticipantWidget> {
           ],
         ),
       );
+}
+
+class _LocalParticipantWidgetState
+    extends _ParticipantWidgetState<LocalParticipantWidget> {
+  @override
+  LocalTrackPublication<LocalVideoTrack>? get firstVideoPublication =>
+      widget.participant.videoTracks.firstOrNull;
+
+  @override
+  LocalTrackPublication<LocalAudioTrack>? get firstAudioPublication =>
+      widget.participant.audioTracks.firstOrNull;
+
+  @override
+  VideoTrack? get activeVideoTrack {
+    if (firstVideoPublication?.subscribed == true &&
+        firstVideoPublication?.muted == false &&
+        _visible) {
+      return firstVideoPublication?.track;
+    }
+  }
+}
+
+class _RemoteParticipantWidgetState
+    extends _ParticipantWidgetState<RemoteParticipantWidget> {
+  @override
+  RemoteTrackPublication<RemoteVideoTrack>? get firstVideoPublication =>
+      widget.participant.videoTracks.firstOrNull;
+
+  @override
+  RemoteTrackPublication<RemoteAudioTrack>? get firstAudioPublication =>
+      widget.participant.audioTracks.firstOrNull;
+
+  @override
+  VideoTrack? get activeVideoTrack {
+    if (firstVideoPublication?.subscribed == true &&
+        firstVideoPublication?.muted == false &&
+        _visible) {
+      return firstVideoPublication?.track;
+    }
+  }
+
+  @override
+  List<Widget> extraWidgets() => [
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Menu for RemoteTrackPublication<RemoteVideoTrack>
+            if (firstVideoPublication != null)
+              RemoteTrackPublicationMenuWidget(
+                pub: firstVideoPublication!,
+                icon: EvaIcons.videoOutline,
+              ),
+            // Menu for RemoteTrackPublication<RemoteAudioTrack>
+            if (firstAudioPublication != null)
+              RemoteTrackPublicationMenuWidget(
+                pub: firstAudioPublication!,
+                icon: EvaIcons.volumeUpOutline,
+              ),
+          ],
+        ),
+      ];
 }
 
 class RemoteTrackPublicationMenuWidget extends StatelessWidget {
@@ -146,24 +212,19 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        // type: MaterialType.card,
         color: Colors.black.withOpacity(0.3),
-        // shape: CircleBorder(),
         child: PopupMenuButton<Function>(
-          // shape: CircleBorder(),
           icon: Icon(icon),
           onSelected: (value) => value(),
           itemBuilder: (BuildContext context) {
             return <PopupMenuEntry<Function>>[
-              //
               // Subscribe/Unsubscribe
-              //
               if (pub.subscribed == false)
                 PopupMenuItem(
                   child: const Text('Subscribe'),
                   value: () => pub.subscribed = true,
-                ),
-              if (pub.subscribed == true)
+                )
+              else if (pub.subscribed == true)
                 PopupMenuItem(
                   child: const Text('Un-subscribe'),
                   value: () => pub.subscribed = false,
