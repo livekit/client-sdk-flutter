@@ -188,7 +188,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final track = pub.track;
     if (track != null) {
-      await track.stop();
+      if (engine.connectOptions.stopLocalTrackOnUnpublish) {
+        await track.stop();
+      }
 
       final sender = track.transceiver?.sender;
       if (sender != null) {
