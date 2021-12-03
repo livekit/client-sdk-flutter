@@ -184,7 +184,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   Future<void> unpublishTrack(
     String trackSid, {
     bool notify = true,
-    bool? stopTrack,
   }) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
@@ -197,9 +196,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final track = pub.track;
     // if has track
     if (track != null) {
-      if (stopTrack ?? true) {
-        await track.stop();
-      }
+      await track.stop();
       [events, roomEvents].emit(TrackUnsubscribedEvent(
         participant: this,
         track: track,

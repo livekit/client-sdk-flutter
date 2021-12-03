@@ -173,16 +173,14 @@ abstract class Participant<T extends TrackPublication>
   Future<void> unpublishTrack(
     String trackSid, {
     bool notify = true,
-    bool? stopTrack,
   });
 
   Future<void> unpublishAllTracks({
     bool notify = true,
-    bool? stopTracks,
   }) async {
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
-      await unpublishTrack(trackid, notify: notify, stopTrack: stopTracks);
+      await unpublishTrack(trackid, notify: notify);
     }
   }
 

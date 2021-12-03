@@ -180,7 +180,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   Future<void> unpublishTrack(
     String trackSid, {
     bool notify = true,
-    bool? stopTrack,
   }) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
@@ -192,9 +191,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final track = pub.track;
     if (track != null) {
-      final shouldStopTrack =
-          stopTrack ?? engine.connectOptions.stopLocalTrackOnUnpublish;
-      if (shouldStopTrack) {
+      if (engine.connectOptions.stopLocalTrackOnUnpublish) {
         await track.stop();
       }
 
