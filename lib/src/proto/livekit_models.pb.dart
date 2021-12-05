@@ -74,6 +74,11 @@ class Room extends $pb.GeneratedMessage {
             ? ''
             : 'numParticipants',
         $pb.PbFieldType.OU3)
+    ..aOB(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'activeRecording')
     ..hasRequiredFields = false;
 
   Room._() : super();
@@ -87,6 +92,7 @@ class Room extends $pb.GeneratedMessage {
     $core.Iterable<Codec>? enabledCodecs,
     $core.String? metadata,
     $core.int? numParticipants,
+    $core.bool? activeRecording,
   }) {
     final _result = create();
     if (sid != null) {
@@ -115,6 +121,9 @@ class Room extends $pb.GeneratedMessage {
     }
     if (numParticipants != null) {
       _result.numParticipants = numParticipants;
+    }
+    if (activeRecording != null) {
+      _result.activeRecording = activeRecording;
     }
     return _result;
   }
@@ -242,6 +251,18 @@ class Room extends $pb.GeneratedMessage {
   $core.bool hasNumParticipants() => $_has(8);
   @$pb.TagNumber(9)
   void clearNumParticipants() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.bool get activeRecording => $_getBF(9);
+  @$pb.TagNumber(10)
+  set activeRecording($core.bool v) {
+    $_setBool(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasActiveRecording() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearActiveRecording() => clearField(10);
 }
 
 class Codec extends $pb.GeneratedMessage {
@@ -382,6 +403,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'hidden')
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'recorder')
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -393,6 +419,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.String? metadata,
     $fixnum.Int64? joinedAt,
     $core.bool? hidden,
+    $core.bool? recorder,
   }) {
     final _result = create();
     if (sid != null) {
@@ -415,6 +442,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (hidden != null) {
       _result.hidden = hidden;
+    }
+    if (recorder != null) {
+      _result.recorder = recorder;
     }
     return _result;
   }
@@ -519,6 +549,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasHidden() => $_has(6);
   @$pb.TagNumber(7)
   void clearHidden() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get recorder => $_getBF(7);
+  @$pb.TagNumber(8)
+  set recorder($core.bool v) {
+    $_setBool(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasRecorder() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearRecorder() => clearField(8);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {

@@ -34,6 +34,18 @@ const VideoQuality$json = const {
 /// Descriptor for `VideoQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List videoQualityDescriptor = $convert.base64Decode(
     'CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBAC');
+@$core.Deprecated('Use streamStateDescriptor instead')
+const StreamState$json = const {
+  '1': 'StreamState',
+  '2': const [
+    const {'1': 'ACTIVE', '2': 0},
+    const {'1': 'PAUSED', '2': 1},
+  ],
+};
+
+/// Descriptor for `StreamState`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List streamStateDescriptor = $convert
+    .base64Decode('CgtTdHJlYW1TdGF0ZRIKCgZBQ1RJVkUQABIKCgZQQVVTRUQQAQ==');
 @$core.Deprecated('Use signalRequestDescriptor instead')
 const SignalRequest$json = const {
   '1': 'SignalRequest',
@@ -223,13 +235,13 @@ const SignalResponse$json = const {
       '10': 'connectionQuality'
     },
     const {
-      '1': 'streamed_tracks_update',
+      '1': 'stream_state_update',
       '3': 13,
       '4': 1,
       '5': 11,
-      '6': '.livekit.StreamedTracksUpdate',
+      '6': '.livekit.StreamStateUpdate',
       '9': 0,
-      '10': 'streamedTracksUpdate'
+      '10': 'streamStateUpdate'
     },
   ],
   '8': const [
@@ -239,7 +251,7 @@ const SignalResponse$json = const {
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
-    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJVChZzdHJlYW1lZF90cmFja3NfdXBkYXRlGA0gASgLMh0ubGl2ZWtpdC5TdHJlYW1lZFRyYWNrc1VwZGF0ZUgAUhRzdHJlYW1lZFRyYWNrc1VwZGF0ZUIJCgdtZXNzYWdl');
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZUIJCgdtZXNzYWdl');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -554,9 +566,9 @@ const ConnectionQualityUpdate$json = const {
 final $typed_data.Uint8List connectionQualityUpdateDescriptor =
     $convert.base64Decode(
         'ChdDb25uZWN0aW9uUXVhbGl0eVVwZGF0ZRI4Cgd1cGRhdGVzGAEgAygLMh4ubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eUluZm9SB3VwZGF0ZXM=');
-@$core.Deprecated('Use streamedTrackDescriptor instead')
-const StreamedTrack$json = const {
-  '1': 'StreamedTrack',
+@$core.Deprecated('Use streamStateInfoDescriptor instead')
+const StreamStateInfo$json = const {
+  '1': 'StreamStateInfo',
   '2': const [
     const {
       '1': 'participant_sid',
@@ -566,35 +578,35 @@ const StreamedTrack$json = const {
       '10': 'participantSid'
     },
     const {'1': 'track_sid', '3': 2, '4': 1, '5': 9, '10': 'trackSid'},
+    const {
+      '1': 'state',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.StreamState',
+      '10': 'state'
+    },
   ],
 };
 
-/// Descriptor for `StreamedTrack`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List streamedTrackDescriptor = $convert.base64Decode(
-    'Cg1TdHJlYW1lZFRyYWNrEicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGwoJdHJhY2tfc2lkGAIgASgJUgh0cmFja1NpZA==');
-@$core.Deprecated('Use streamedTracksUpdateDescriptor instead')
-const StreamedTracksUpdate$json = const {
-  '1': 'StreamedTracksUpdate',
+/// Descriptor for `StreamStateInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List streamStateInfoDescriptor = $convert.base64Decode(
+    'Cg9TdHJlYW1TdGF0ZUluZm8SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBIbCgl0cmFja19zaWQYAiABKAlSCHRyYWNrU2lkEioKBXN0YXRlGAMgASgOMhQubGl2ZWtpdC5TdHJlYW1TdGF0ZVIFc3RhdGU=');
+@$core.Deprecated('Use streamStateUpdateDescriptor instead')
+const StreamStateUpdate$json = const {
+  '1': 'StreamStateUpdate',
   '2': const [
     const {
-      '1': 'paused',
+      '1': 'stream_states',
       '3': 1,
       '4': 3,
       '5': 11,
-      '6': '.livekit.StreamedTrack',
-      '10': 'paused'
-    },
-    const {
-      '1': 'resumed',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.StreamedTrack',
-      '10': 'resumed'
+      '6': '.livekit.StreamStateInfo',
+      '10': 'streamStates'
     },
   ],
 };
 
-/// Descriptor for `StreamedTracksUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List streamedTracksUpdateDescriptor = $convert.base64Decode(
-    'ChRTdHJlYW1lZFRyYWNrc1VwZGF0ZRIuCgZwYXVzZWQYASADKAsyFi5saXZla2l0LlN0cmVhbWVkVHJhY2tSBnBhdXNlZBIwCgdyZXN1bWVkGAIgAygLMhYubGl2ZWtpdC5TdHJlYW1lZFRyYWNrUgdyZXN1bWVk');
+/// Descriptor for `StreamStateUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List streamStateUpdateDescriptor = $convert.base64Decode(
+    'ChFTdHJlYW1TdGF0ZVVwZGF0ZRI9Cg1zdHJlYW1fc3RhdGVzGAEgAygLMhgubGl2ZWtpdC5TdHJlYW1TdGF0ZUluZm9SDHN0cmVhbVN0YXRlcw==');

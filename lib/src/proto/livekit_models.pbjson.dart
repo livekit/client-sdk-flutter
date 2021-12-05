@@ -82,12 +82,19 @@ const Room$json = const {
       '5': 13,
       '10': 'numParticipants'
     },
+    const {
+      '1': 'active_recording',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'activeRecording'
+    },
   ],
 };
 
 /// Descriptor for `Room`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List roomDescriptor = $convert.base64Decode(
-    'CgRSb29tEhAKA3NpZBgBIAEoCVIDc2lkEhIKBG5hbWUYAiABKAlSBG5hbWUSIwoNZW1wdHlfdGltZW91dBgDIAEoDVIMZW1wdHlUaW1lb3V0EikKEG1heF9wYXJ0aWNpcGFudHMYBCABKA1SD21heFBhcnRpY2lwYW50cxIjCg1jcmVhdGlvbl90aW1lGAUgASgDUgxjcmVhdGlvblRpbWUSIwoNdHVybl9wYXNzd29yZBgGIAEoCVIMdHVyblBhc3N3b3JkEjUKDmVuYWJsZWRfY29kZWNzGAcgAygLMg4ubGl2ZWtpdC5Db2RlY1INZW5hYmxlZENvZGVjcxIaCghtZXRhZGF0YRgIIAEoCVIIbWV0YWRhdGESKQoQbnVtX3BhcnRpY2lwYW50cxgJIAEoDVIPbnVtUGFydGljaXBhbnRz');
+    'CgRSb29tEhAKA3NpZBgBIAEoCVIDc2lkEhIKBG5hbWUYAiABKAlSBG5hbWUSIwoNZW1wdHlfdGltZW91dBgDIAEoDVIMZW1wdHlUaW1lb3V0EikKEG1heF9wYXJ0aWNpcGFudHMYBCABKA1SD21heFBhcnRpY2lwYW50cxIjCg1jcmVhdGlvbl90aW1lGAUgASgDUgxjcmVhdGlvblRpbWUSIwoNdHVybl9wYXNzd29yZBgGIAEoCVIMdHVyblBhc3N3b3JkEjUKDmVuYWJsZWRfY29kZWNzGAcgAygLMg4ubGl2ZWtpdC5Db2RlY1INZW5hYmxlZENvZGVjcxIaCghtZXRhZGF0YRgIIAEoCVIIbWV0YWRhdGESKQoQbnVtX3BhcnRpY2lwYW50cxgJIAEoDVIPbnVtUGFydGljaXBhbnRzEikKEGFjdGl2ZV9yZWNvcmRpbmcYCiABKAhSD2FjdGl2ZVJlY29yZGluZw==');
 @$core.Deprecated('Use codecDescriptor instead')
 const Codec$json = const {
   '1': 'Codec',
@@ -125,6 +132,7 @@ const ParticipantInfo$json = const {
     const {'1': 'metadata', '3': 5, '4': 1, '5': 9, '10': 'metadata'},
     const {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
+    const {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
   ],
   '4': const [ParticipantInfo_State$json],
 };
@@ -142,7 +150,7 @@ const ParticipantInfo_State$json = const {
 
 /// Descriptor for `ParticipantInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
-    'Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCGlkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVSBXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSGgoIbWV0YWRhdGEYBSABKAlSCG1ldGFkYXRhEhsKCWpvaW5lZF9hdBgGIAEoA1IIam9pbmVkQXQSFgoGaGlkZGVuGAcgASgIUgZoaWRkZW4iPgoFU3RhdGUSCwoHSk9JTklORxAAEgoKBkpPSU5FRBABEgoKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBAD');
+    'Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCGlkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVSBXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSGgoIbWV0YWRhdGEYBSABKAlSCG1ldGFkYXRhEhsKCWpvaW5lZF9hdBgGIAEoA1IIam9pbmVkQXQSFgoGaGlkZGVuGAcgASgIUgZoaWRkZW4SGgoIcmVjb3JkZXIYCCABKAhSCHJlY29yZGVyIj4KBVN0YXRlEgsKB0pPSU5JTkcQABIKCgZKT0lORUQQARIKCgZBQ1RJVkUQAhIQCgxESVNDT05ORUNURUQQAw==');
 @$core.Deprecated('Use trackInfoDescriptor instead')
 const TrackInfo$json = const {
   '1': 'TrackInfo',
