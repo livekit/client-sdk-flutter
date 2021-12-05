@@ -3,12 +3,13 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
 import '../support/native_audio.dart';
-import 'local/audio.dart';
 import 'local.dart';
+import 'local/audio.dart';
 
 enum AudioTrackState {
   none,

@@ -1,7 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../constants.dart';
 import '../events.dart';
 import '../extensions.dart';

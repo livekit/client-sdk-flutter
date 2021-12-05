@@ -1,7 +1,8 @@
 // added
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:meta/meta.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../events.dart';
 import '../track/track.dart';

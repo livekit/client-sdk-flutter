@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:synchronized/synchronized.dart' as sync;
 import 'package:meta/meta.dart';
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../exceptions.dart';
 import '../extensions.dart';

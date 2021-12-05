@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/track/local.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import 'package:livekit_client/src/track/local.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';

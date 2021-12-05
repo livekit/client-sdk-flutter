@@ -6,10 +6,10 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../publication/track_publication.dart';
 import '../rtc_engine.dart';
 import '../support/disposable.dart';
 import '../track/track.dart';
-import '../publication/track_publication.dart';
 import '../types.dart';
 import 'remote_participant.dart';
 

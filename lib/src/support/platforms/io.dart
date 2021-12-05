@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import '../../extensions.dart';
 import '../../logger.dart';
 import '../websocket.dart';
-import '../../extensions.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, [

@@ -7,8 +7,8 @@ import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'publication/local_track_publication.dart';
 import 'publication/remote_track_publication.dart';
-import 'track/track.dart';
 import 'publication/track_publication.dart';
+import 'track/track.dart';
 import 'types.dart';
 
 abstract class LiveKitEvent {}

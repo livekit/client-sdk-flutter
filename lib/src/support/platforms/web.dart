@@ -1,10 +1,11 @@
 import 'dart:async';
-
-// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'dart:typed_data';
 
 import '../websocket.dart';
+
+// ignore: avoid_web_libraries_in_flutter
+
 
 Future<LiveKitWebSocketWeb> lkWebSocketConnect(
   Uri uri, [
