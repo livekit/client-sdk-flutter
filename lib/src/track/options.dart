@@ -11,6 +11,7 @@ enum CameraPosition {
 }
 
 extension CameraPositionExt on CameraPosition {
+  /// Return a [CameraPosition] which front and back is switched.
   CameraPosition swap() => {
         CameraPosition.front: CameraPosition.back,
         CameraPosition.back: CameraPosition.front,
