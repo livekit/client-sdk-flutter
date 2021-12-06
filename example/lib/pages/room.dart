@@ -68,13 +68,13 @@ class _RoomPageState extends State<RoomPage> {
     if (result != true) return;
     // video will fail when running in ios simulator
     try {
-      await widget.room.localParticipant.setCameraEnabled(true);
+      await widget.room.localParticipant?.setCameraEnabled(true);
     } catch (error) {
       print('could not publish video: $error');
       await context.showErrorDialog(error);
     }
     try {
-      await widget.room.localParticipant.setMicrophoneEnabled(true);
+      await widget.room.localParticipant?.setMicrophoneEnabled(true);
     } catch (error) {
       print('could not publish audio: $error');
       await context.showErrorDialog(error);
@@ -117,10 +117,13 @@ class _RoomPageState extends State<RoomPage> {
           b.joinedAt.millisecondsSinceEpoch;
     });
 
+    final localParticipant = widget.room.localParticipant;
+    if (localParticipant != null) {
     if (participants.length > 1) {
-      participants.insert(1, widget.room.localParticipant);
+      participants.insert(1, localParticipant);
     } else {
-      participants.add(widget.room.localParticipant);
+      participants.add(localParticipant);
+    }
     }
     setState(() {
       this.participants = participants;
@@ -147,9 +150,10 @@ class _RoomPageState extends State<RoomPage> {
                 ),
               ),
             ),
+            if (widget.room.localParticipant != null)
             SafeArea(
               top: false,
-              child: ControlsWidget(widget.room),
+              child: ControlsWidget(widget.room, widget.room.localParticipant!),
             ),
           ],
         ),
