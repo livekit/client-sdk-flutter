@@ -14,10 +14,10 @@ class ControlsWidget extends StatefulWidget {
   final LocalParticipant participant;
 
   const ControlsWidget(
-    this.room, 
+    this.room,
     this.participant, {
     Key? key,
-  })  : super(key: key);
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ControlsWidgetState();

@@ -119,11 +119,11 @@ class _RoomPageState extends State<RoomPage> {
 
     final localParticipant = widget.room.localParticipant;
     if (localParticipant != null) {
-    if (participants.length > 1) {
-      participants.insert(1, localParticipant);
-    } else {
-      participants.add(localParticipant);
-    }
+      if (participants.length > 1) {
+        participants.insert(1, localParticipant);
+      } else {
+        participants.add(localParticipant);
+      }
     }
     setState(() {
       this.participants = participants;
@@ -151,10 +151,11 @@ class _RoomPageState extends State<RoomPage> {
               ),
             ),
             if (widget.room.localParticipant != null)
-            SafeArea(
-              top: false,
-              child: ControlsWidget(widget.room, widget.room.localParticipant!),
-            ),
+              SafeArea(
+                top: false,
+                child:
+                    ControlsWidget(widget.room, widget.room.localParticipant!),
+              ),
           ],
         ),
       );
