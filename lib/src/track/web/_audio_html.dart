@@ -1,9 +1,9 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 // ignore: implementation_imports
-import 'package:flutter_webrtc/src/web/media_stream_track_impl.dart';
+import 'package:dart_webrtc/src/media_stream_track_impl.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
