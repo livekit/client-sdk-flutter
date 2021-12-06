@@ -42,13 +42,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       UnmodifiableMapView(_participants);
 
   /// the current participant
-  late final LocalParticipant localParticipant;
+  LocalParticipant? localParticipant;
 
   /// name of the room
-  final String name;
+  String? name;
 
   /// sid of the room
-  final String sid;
+  String? sid;
 
   List<Participant> _activeSpeakers = [];
 
@@ -61,28 +61,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // suppport for multiple event listeners
   late final _engineListener = engine.createListener();
 
-  /// internal use
-  /// {@nodoc}
-  Room._({
-    required this.engine,
-    required lk_rtc.JoinResponse joinResponse,
+  Room({
+    RTCEngine? engine,
     ConnectOptions? connectOptions,
-  })  : sid = joinResponse.room.sid,
-        name = joinResponse.room.name {
+  }) : engine = engine ?? RTCEngine() {
     //
     _setUpListeners();
-
-    localParticipant = LocalParticipant(
-      engine: engine,
-      info: joinResponse.participant,
-      defaultVideoPublishOptions: connectOptions?.defaultVideoPublishOptions,
-      defaultAudioPublishOptions: connectOptions?.defaultAudioPublishOptions,
-      roomEvents: events,
-    );
-
-    for (final info in joinResponse.otherParticipants) {
-      _getOrCreateRemoteParticipant(info.sid, info);
-    }
 
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
@@ -94,63 +78,51 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // dispose events
       await events.dispose();
       // dispose local participant
-      await localParticipant.dispose();
+      await localParticipant?.dispose();
       // dispose all listeners for RTCEngine
       await _engineListener.dispose();
       // dispose the engine
-      await engine.dispose();
+      await this.engine.dispose();
     });
   }
 
-  static Future<Room> connect(
+  Future<void> connect(
     String url,
     String token, {
     ConnectOptions? options,
     RTCConfiguration? rtcConfig,
   }) async {
     //
-    final engine = RTCEngine(
-      rtcConfig,
+    final joinResponse = await engine.join(
+      url,
+      token,
+      connectOptions: options,
     );
 
-    Room? room;
+    sid = joinResponse.room.sid;
+    name = joinResponse.room.name;
 
-    try {
-      final joinResponse = await engine.join(
-        url,
-        token,
-        connectOptions: options,
-      );
+    logger.fine(
+        'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-      logger.fine(
-          'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
+    logger.fine('Waiting to engine connect...');
 
-      // create Room first to listen to events
-      room = Room._(
-        engine: engine,
-        joinResponse: joinResponse,
-        connectOptions: options,
-      );
+    // wait until engine is connected
+    await _engineListener.waitFor<EngineConnectedEvent>(
+      duration: Timeouts.connection,
+      onTimeout: () => throw ConnectException(),
+    );
 
-      logger.fine('Waiting to engine connect...');
+    localParticipant = LocalParticipant(
+      engine: engine,
+      info: joinResponse.participant,
+      defaultVideoPublishOptions: options?.defaultVideoPublishOptions,
+      defaultAudioPublishOptions: options?.defaultAudioPublishOptions,
+      roomEvents: events,
+    );
 
-      // wait until engine is connected
-      await room._engineListener.waitFor<EngineConnectedEvent>(
-        duration: Timeouts.connection,
-        onTimeout: () => throw ConnectException(),
-      );
-
-      return room;
-      // catch any exception
-    } catch (_) {
-      // dispose engine if there was any exception while connecting
-      if (room != null) {
-        // room.dispose will also dispose engine
-        await room.dispose();
-      } else {
-        await engine.dispose();
-      }
-      rethrow;
+    for (final info in joinResponse.otherParticipants) {
+      _getOrCreateRemoteParticipant(info.sid, info);
     }
   }
 
@@ -178,7 +150,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final publication = localParticipant.trackPublications[event.sid];
+      final publication = localParticipant?.trackPublications[event.sid];
       if (event.muted) {
         await publication?.mute();
       } else {
@@ -266,7 +238,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _participants.clear();
 
     // clean up LocalParticipant
-    await localParticipant.unpublishAllTracks();
+    await localParticipant?.unpublishAllTracks();
 
     // clean up engine
     await engine.close();
@@ -285,8 +257,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
-      if (localParticipant.sid == info.sid) {
-        localParticipant.updateFromInfo(info);
+      if (localParticipant?.sid == info.sid) {
+        localParticipant?.updateFromInfo(info);
         continue;
       }
 
@@ -320,7 +292,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     for (final speaker in speakers) {
       Participant? p = _participants[speaker.sid];
-      if (speaker.sid == localParticipant.sid) p = localParticipant;
+      if (speaker.sid == localParticipant?.sid) p = localParticipant;
       if (p == null) continue;
 
       p.audioLevel = speaker.level;
@@ -346,7 +318,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
-      localParticipant.sid: localParticipant,
+      if (localParticipant != null) localParticipant!.sid: localParticipant!,
       ..._participants,
     };
 
@@ -376,7 +348,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       List<lk_rtc.ConnectionQualityInfo> updates) {
     for (final entry in updates) {
       Participant? participant;
-      if (entry.participantSid == localParticipant.sid) {
+      if (entry.participantSid == localParticipant?.sid) {
         participant = localParticipant;
       } else {
         participant = _participants[entry.participantSid];

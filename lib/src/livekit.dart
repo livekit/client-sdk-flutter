@@ -11,10 +11,18 @@ class LiveKitClient {
     String url,
     String token, {
     ConnectOptions? options,
-  }) =>
-      Room.connect(
+  }) async {
+    final room = Room();
+    try {
+      await room.connect(
         url,
         token,
         options: options,
       );
+      return room;
+    } catch (error) {
+      await room.dispose();
+      rethrow;
+    }
+  }
 }

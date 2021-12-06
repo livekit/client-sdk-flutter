@@ -29,7 +29,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
   final SignalClient signalClient;
   // config for RTCPeerConnection
-  final RTCConfiguration? rtcConfig;
+  RTCConfiguration? rtcConfig;
 
   ConnectOptions connectOptions = const ConnectOptions();
 
@@ -71,8 +71,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
   final delays = CancelableDelayManager();
 
-  RTCEngine(
-    this.rtcConfig, {
+  RTCEngine({
     SignalClient? signalClient,
   }) : signalClient = signalClient ?? SignalClient() {
     if (kDebugMode) {
@@ -94,11 +93,13 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   Future<lk_rtc.JoinResponse> join(
     String url,
     String token, {
+    RTCConfiguration? rtcConfig,
     ConnectOptions? connectOptions,
   }) async {
     this.url = url;
     this.token = token;
 
+    this.rtcConfig = rtcConfig;
     if (connectOptions != null) {
       this.connectOptions = connectOptions;
     }
