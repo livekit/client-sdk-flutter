@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -35,7 +36,9 @@ abstract class LocalTrack extends Track {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return;
     await disable();
-    await stop();
+    if (!Platform.isWindows) {
+      await stop();
+    }
     updateMuted(true);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
   }
@@ -43,7 +46,9 @@ abstract class LocalTrack extends Track {
   Future<void> unmute() async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return;
-    await restartTrack();
+    if (!Platform.isWindows) {
+      await restartTrack();
+    }
     await enable();
     updateMuted(false);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
