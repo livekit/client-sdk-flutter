@@ -65,9 +65,8 @@ abstract class LocalVideoTrackOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'mandatory': params.toMediaConstraintsMap(),
-      };
+  Map<String, dynamic> toMediaConstraintsMap() =>
+      params.toMediaConstraintsMap();
 }
 
 class VideoEncoding {
@@ -237,9 +236,9 @@ class VideoParameters {
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
   //
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'minWidth': width,
-        'minHeight': height,
-        'maxFrameRate': encoding.maxFramerate,
+        'width': width,
+        'height': height,
+        'frameRate': encoding.maxFramerate,
       };
 }
 
