@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
@@ -86,43 +87,36 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _enableScreenShare() async {
     await participant.setScreenShareEnabled(true);
-    // final lp = widget.room.localParticipant;
 
-    // for (final track in lp.videoTracks) {
-    //   await lp.unpublishTrack(track.sid);
-    // }
-
-    // try {
-    //   // Required for android screenshare.
-    //   const androidConfig = FlutterBackgroundAndroidConfig(
-    //     notificationTitle: 'Screen Sharing',
-    //     notificationText: 'LiveKit Example is sharing the screen.',
-    //     notificationImportance: AndroidNotificationImportance.Default,
-    //     notificationIcon:
-    //         AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
-    //   );
-    //   await FlutterBackground.initialize(androidConfig: androidConfig);
-    //   await FlutterBackground.enableBackgroundExecution();
-
-    //   final screenShareTrack = await LocalVideoTrack.createScreenShareTrack();
-    //   await widget.room.localParticipant.publishVideoTrack(
-    //     screenShareTrack,
-    //   );
-    // } catch (e) {
-    //   print('could not publish video: $e');
-    // }
+    if (Platform.isAndroid) {
+      // Android specific
+      try {
+        // Required for android screenshare.
+        const androidConfig = FlutterBackgroundAndroidConfig(
+          notificationTitle: 'Screen Sharing',
+          notificationText: 'LiveKit Example is sharing the screen.',
+          notificationImportance: AndroidNotificationImportance.Default,
+          notificationIcon:
+              AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
+        );
+        await FlutterBackground.initialize(androidConfig: androidConfig);
+        await FlutterBackground.enableBackgroundExecution();
+      } catch (e) {
+        print('could not publish video: $e');
+      }
+    }
   }
 
   void _disableScreenShare() async {
     await participant.setScreenShareEnabled(false);
-    // final lp = widget.room.localParticipant;
-
-    // try {
-    //   await lp.setScreenShareEnabled(false);
-    //   await FlutterBackground.disableBackgroundExecution();
-    // } catch (e) {
-    //   print('error disabling screen share: $e');
-    // }
+    if (Platform.isAndroid) {
+      // Android specific
+      try {
+        //   await FlutterBackground.disableBackgroundExecution();
+      } catch (error) {
+        print('error disabling screen share: $error');
+      }
+    }
   }
 
   void _onTapDisconnect() async {

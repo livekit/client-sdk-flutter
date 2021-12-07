@@ -36,8 +36,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
   final RemoteParticipant participant;
 
   bool _enabled = true;
-  lk_rtc.VideoQuality _videoQuality = lk_rtc.VideoQuality.HIGH;
-  lk_rtc.VideoQuality get videoQuality => _videoQuality;
+  lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
+  lk_models.VideoQuality get videoQuality => _videoQuality;
 
   // used to report renderer visibility to the server
   // and optimize
@@ -173,7 +173,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
-  set videoQuality(lk_rtc.VideoQuality val) {
+  set videoQuality(lk_models.VideoQuality val) {
     if (val == _videoQuality) return;
     _videoQuality = val;
     _sendUpdateTrackSettings();
