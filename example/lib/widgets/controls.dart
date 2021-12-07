@@ -14,11 +14,11 @@ class ControlsWidget extends StatefulWidget {
   final Room room;
   final LocalParticipant participant;
 
-  ControlsWidget(
-    this.room, {
+  const ControlsWidget(
+    this.room,
+    this.participant, {
     Key? key,
-  })  : participant = room.localParticipant,
-        super(key: key);
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ControlsWidgetState();
@@ -132,7 +132,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   void _onTapSendData() async {
     final result = await context.showSendDataDialog();
     if (result == true) {
-      await widget.room.localParticipant.publishData(
+      await widget.participant.publishData(
         utf8.encode('This is a sample data message'),
       );
     }
