@@ -6,7 +6,6 @@ import 'dart:html' as html;
 import 'package:dart_webrtc/src/media_stream_track_impl.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
