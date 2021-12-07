@@ -171,10 +171,12 @@ class _RemoteParticipantWidgetState
 
   @override
   VideoTrack? get activeVideoTrack {
-    if (firstVideoPublication?.subscribed == true &&
-        firstVideoPublication?.muted == false &&
-        _visible) {
-      return firstVideoPublication?.track;
+    for (final trackPublication in widget.participant.videoTracks) {
+      print(
+          'video track ${trackPublication.sid} subscribed ${trackPublication.subscribed} muted ${trackPublication.muted}');
+      if (trackPublication.subscribed && !trackPublication.muted) {
+        return trackPublication.track;
+      }
     }
   }
 
