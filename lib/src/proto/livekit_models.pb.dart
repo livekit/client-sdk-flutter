@@ -628,6 +628,13 @@ class TrackInfo extends $pb.GeneratedMessage {
         defaultOrMaker: TrackSource.UNKNOWN,
         valueOf: TrackSource.valueOf,
         enumValues: TrackSource.values)
+    ..pc<VideoLayer>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
+        $pb.PbFieldType.PM,
+        subBuilder: VideoLayer.create)
     ..hasRequiredFields = false;
 
   TrackInfo._() : super();
@@ -641,6 +648,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.bool? simulcast,
     $core.bool? disableDtx,
     TrackSource? source,
+    $core.Iterable<VideoLayer>? layers,
   }) {
     final _result = create();
     if (sid != null) {
@@ -669,6 +677,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     }
     if (source != null) {
       _result.source = source;
+    }
+    if (layers != null) {
+      _result.layers.addAll(layers);
     }
     return _result;
   }
@@ -805,6 +816,145 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool hasSource() => $_has(8);
   @$pb.TagNumber(9)
   void clearSource() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.List<VideoLayer> get layers => $_getList(9);
+}
+
+class VideoLayer extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'VideoLayer',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..e<VideoQuality>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'quality',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: VideoQuality.LOW,
+        valueOf: VideoQuality.valueOf,
+        enumValues: VideoQuality.values)
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'width',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'height',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrate',
+        $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  VideoLayer._() : super();
+  factory VideoLayer({
+    VideoQuality? quality,
+    $core.int? width,
+    $core.int? height,
+    $core.int? bitrate,
+  }) {
+    final _result = create();
+    if (quality != null) {
+      _result.quality = quality;
+    }
+    if (width != null) {
+      _result.width = width;
+    }
+    if (height != null) {
+      _result.height = height;
+    }
+    if (bitrate != null) {
+      _result.bitrate = bitrate;
+    }
+    return _result;
+  }
+  factory VideoLayer.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VideoLayer.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  VideoLayer clone() => VideoLayer()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  VideoLayer copyWith(void Function(VideoLayer) updates) =>
+      super.copyWith((message) => updates(message as VideoLayer))
+          as VideoLayer; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static VideoLayer create() => VideoLayer._();
+  VideoLayer createEmptyInstance() => create();
+  static $pb.PbList<VideoLayer> createRepeated() => $pb.PbList<VideoLayer>();
+  @$core.pragma('dart2js:noInline')
+  static VideoLayer getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
+  static VideoLayer? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  VideoQuality get quality => $_getN(0);
+  @$pb.TagNumber(1)
+  set quality(VideoQuality v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasQuality() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearQuality() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get width => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set width($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasWidth() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWidth() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get height => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set height($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasHeight() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHeight() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get bitrate => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set bitrate($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasBitrate() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearBitrate() => clearField(4);
 }
 
 enum DataPacket_Value { user, speaker, notSet }

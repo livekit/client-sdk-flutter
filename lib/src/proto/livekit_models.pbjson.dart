@@ -37,6 +37,19 @@ const TrackSource$json = const {
 /// Descriptor for `TrackSource`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List trackSourceDescriptor = $convert.base64Decode(
     'CgtUcmFja1NvdXJjZRILCgdVTktOT1dOEAASCgoGQ0FNRVJBEAESDgoKTUlDUk9QSE9ORRACEhAKDFNDUkVFTl9TSEFSRRADEhYKElNDUkVFTl9TSEFSRV9BVURJTxAE');
+@$core.Deprecated('Use videoQualityDescriptor instead')
+const VideoQuality$json = const {
+  '1': 'VideoQuality',
+  '2': const [
+    const {'1': 'LOW', '2': 0},
+    const {'1': 'MEDIUM', '2': 1},
+    const {'1': 'HIGH', '2': 2},
+  ],
+};
+
+/// Descriptor for `VideoQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List videoQualityDescriptor = $convert.base64Decode(
+    'CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBAC');
 @$core.Deprecated('Use connectionQualityDescriptor instead')
 const ConnectionQuality$json = const {
   '1': 'ConnectionQuality',
@@ -178,12 +191,41 @@ const TrackInfo$json = const {
       '6': '.livekit.TrackSource',
       '10': 'source'
     },
+    const {
+      '1': 'layers',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
   ],
 };
 
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
-    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2U=');
+    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnM=');
+@$core.Deprecated('Use videoLayerDescriptor instead')
+const VideoLayer$json = const {
+  '1': 'VideoLayer',
+  '2': const [
+    const {
+      '1': 'quality',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'quality'
+    },
+    const {'1': 'width', '3': 2, '4': 1, '5': 13, '10': 'width'},
+    const {'1': 'height', '3': 3, '4': 1, '5': 13, '10': 'height'},
+    const {'1': 'bitrate', '3': 4, '4': 1, '5': 13, '10': 'bitrate'},
+  ],
+};
+
+/// Descriptor for `VideoLayer`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List videoLayerDescriptor = $convert.base64Decode(
+    'CgpWaWRlb0xheWVyEi8KB3F1YWxpdHkYASABKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIHcXVhbGl0eRIUCgV3aWR0aBgCIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAMgASgNUgZoZWlnaHQSGAoHYml0cmF0ZRgEIAEoDVIHYml0cmF0ZQ==');
 @$core.Deprecated('Use dataPacketDescriptor instead')
 const DataPacket$json = const {
   '1': 'DataPacket',

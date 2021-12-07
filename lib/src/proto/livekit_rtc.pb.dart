@@ -24,6 +24,7 @@ enum SignalRequest_Message {
   subscription,
   trackSetting,
   leave,
+  updateLayers,
   notSet
 }
 
@@ -38,6 +39,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     6: SignalRequest_Message.subscription,
     7: SignalRequest_Message.trackSetting,
     8: SignalRequest_Message.leave,
+    10: SignalRequest_Message.updateLayers,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -49,7 +51,7 @@ class SignalRequest extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10])
     ..aOM<SessionDescription>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -98,6 +100,12 @@ class SignalRequest extends $pb.GeneratedMessage {
             ? ''
             : 'leave',
         subBuilder: LeaveRequest.create)
+    ..aOM<UpdateVideoLayers>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'updateLayers',
+        subBuilder: UpdateVideoLayers.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -110,6 +118,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     UpdateSubscription? subscription,
     UpdateTrackSettings? trackSetting,
     LeaveRequest? leave,
+    UpdateVideoLayers? updateLayers,
   }) {
     final _result = create();
     if (offer != null) {
@@ -135,6 +144,9 @@ class SignalRequest extends $pb.GeneratedMessage {
     }
     if (leave != null) {
       _result.leave = leave;
+    }
+    if (updateLayers != null) {
+      _result.updateLayers = updateLayers;
     }
     return _result;
   }
@@ -280,6 +292,20 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearLeave() => clearField(8);
   @$pb.TagNumber(8)
   LeaveRequest ensureLeave() => $_ensure(7);
+
+  @$pb.TagNumber(10)
+  UpdateVideoLayers get updateLayers => $_getN(8);
+  @$pb.TagNumber(10)
+  set updateLayers(UpdateVideoLayers v) {
+    setField(10, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasUpdateLayers() => $_has(8);
+  @$pb.TagNumber(10)
+  void clearUpdateLayers() => clearField(10);
+  @$pb.TagNumber(10)
+  UpdateVideoLayers ensureUpdateLayers() => $_ensure(8);
 }
 
 enum SignalResponse_Message {
@@ -713,6 +739,13 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         defaultOrMaker: $0.TrackSource.UNKNOWN,
         valueOf: $0.TrackSource.valueOf,
         enumValues: $0.TrackSource.values)
+    ..pc<$0.VideoLayer>(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
+        $pb.PbFieldType.PM,
+        subBuilder: $0.VideoLayer.create)
     ..hasRequiredFields = false;
 
   AddTrackRequest._() : super();
@@ -725,6 +758,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $core.bool? muted,
     $core.bool? disableDtx,
     $0.TrackSource? source,
+    $core.Iterable<$0.VideoLayer>? layers,
   }) {
     final _result = create();
     if (cid != null) {
@@ -750,6 +784,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     }
     if (source != null) {
       _result.source = source;
+    }
+    if (layers != null) {
+      _result.layers.addAll(layers);
     }
     return _result;
   }
@@ -875,6 +912,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   $core.bool hasSource() => $_has(7);
   @$pb.TagNumber(8)
   void clearSource() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.List<$0.VideoLayer> get layers => $_getList(8);
 }
 
 class TrickleRequest extends $pb.GeneratedMessage {
@@ -1583,15 +1623,15 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'disabled')
-    ..e<VideoQuality>(
+    ..e<$0.VideoQuality>(
         4,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'quality',
         $pb.PbFieldType.OE,
-        defaultOrMaker: VideoQuality.LOW,
-        valueOf: VideoQuality.valueOf,
-        enumValues: VideoQuality.values)
+        defaultOrMaker: $0.VideoQuality.LOW,
+        valueOf: $0.VideoQuality.valueOf,
+        enumValues: $0.VideoQuality.values)
     ..a<$core.int>(
         5,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -1610,7 +1650,7 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   factory UpdateTrackSettings({
     $core.Iterable<$core.String>? trackSids,
     $core.bool? disabled,
-    VideoQuality? quality,
+    $0.VideoQuality? quality,
     $core.int? width,
     $core.int? height,
   }) {
@@ -1675,9 +1715,9 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   void clearDisabled() => clearField(3);
 
   @$pb.TagNumber(4)
-  VideoQuality get quality => $_getN(2);
+  $0.VideoQuality get quality => $_getN(2);
   @$pb.TagNumber(4)
-  set quality(VideoQuality v) {
+  set quality($0.VideoQuality v) {
     setField(4, v);
   }
 
@@ -1776,6 +1816,87 @@ class LeaveRequest extends $pb.GeneratedMessage {
   $core.bool hasCanReconnect() => $_has(0);
   @$pb.TagNumber(1)
   void clearCanReconnect() => clearField(1);
+}
+
+class UpdateVideoLayers extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'UpdateVideoLayers',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..pc<$0.VideoLayer>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
+        $pb.PbFieldType.PM,
+        subBuilder: $0.VideoLayer.create)
+    ..hasRequiredFields = false;
+
+  UpdateVideoLayers._() : super();
+  factory UpdateVideoLayers({
+    $core.String? trackSid,
+    $core.Iterable<$0.VideoLayer>? layers,
+  }) {
+    final _result = create();
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    if (layers != null) {
+      _result.layers.addAll(layers);
+    }
+    return _result;
+  }
+  factory UpdateVideoLayers.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UpdateVideoLayers.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UpdateVideoLayers clone() => UpdateVideoLayers()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UpdateVideoLayers copyWith(void Function(UpdateVideoLayers) updates) =>
+      super.copyWith((message) => updates(message as UpdateVideoLayers))
+          as UpdateVideoLayers; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static UpdateVideoLayers create() => UpdateVideoLayers._();
+  UpdateVideoLayers createEmptyInstance() => create();
+  static $pb.PbList<UpdateVideoLayers> createRepeated() =>
+      $pb.PbList<UpdateVideoLayers>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateVideoLayers getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateVideoLayers>(create);
+  static UpdateVideoLayers? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$0.VideoLayer> get layers => $_getList(1);
 }
 
 class ICEServer extends $pb.GeneratedMessage {

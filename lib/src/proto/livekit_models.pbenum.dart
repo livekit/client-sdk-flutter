@@ -83,6 +83,36 @@ class TrackSource extends $pb.ProtobufEnum {
   const TrackSource._($core.int v, $core.String n) : super(v, n);
 }
 
+class VideoQuality extends $pb.ProtobufEnum {
+  static const VideoQuality LOW = VideoQuality._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'LOW');
+  static const VideoQuality MEDIUM = VideoQuality._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'MEDIUM');
+  static const VideoQuality HIGH = VideoQuality._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'HIGH');
+
+  static const $core.List<VideoQuality> values = <VideoQuality>[
+    LOW,
+    MEDIUM,
+    HIGH,
+  ];
+
+  static final $core.Map<$core.int, VideoQuality> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static VideoQuality? valueOf($core.int value) => _byValue[value];
+
+  const VideoQuality._($core.int v, $core.String n) : super(v, n);
+}
+
 class ConnectionQuality extends $pb.ProtobufEnum {
   static const ConnectionQuality POOR = ConnectionQuality._(
       0,
