@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/livekit_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
+import '../options.dart';
 import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;

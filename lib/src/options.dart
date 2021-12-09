@@ -1,6 +1,6 @@
-import 'package:livekit_client/src/types.dart';
 import 'track/options.dart';
 import 'track/track.dart';
+import 'types.dart';
 
 class ConnectOptions {
   /// Auto-subscribe to room tracks upon connect, defaults to true.

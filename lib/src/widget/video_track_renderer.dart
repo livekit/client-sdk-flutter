@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:visibility_detector/visibility_detector.dart';
 
-import 'package:livekit_client/src/track/local.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
+import '../track/local.dart';
 import '../track/local/video.dart';
 
 /// Widget that renders a [VideoTrack].

@@ -1,14 +1,16 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/livekit_client.dart';
 import '../constants.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/remote_track_publication.dart';
+import '../room.dart';
+import '../track/remote.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
 import '../types.dart';
