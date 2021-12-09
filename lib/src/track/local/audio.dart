@@ -11,7 +11,7 @@ import '../options.dart';
 class LocalAudioTrack extends LocalTrack with AudioTrack, AudioManagementMixin {
   // Options used for this track
   @override
-  covariant LocalAudioTrackOptions currentOptions;
+  covariant AudioCaptureOptions currentOptions;
 
   // private constructor
   LocalAudioTrack._(
@@ -30,9 +30,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, AudioManagementMixin {
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
-    LocalAudioTrackOptions? options,
+    AudioCaptureOptions? options,
   ]) async {
-    options ??= const LocalAudioTrackOptions();
+    options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack._(

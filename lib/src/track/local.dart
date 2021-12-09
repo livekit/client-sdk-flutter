@@ -72,16 +72,16 @@ abstract class LocalTrack extends Track {
     LocalTrackOptions options,
   ) async {
     final constraints = <String, dynamic>{
-      'audio': options is LocalAudioTrackOptions
+      'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : false,
-      'video': options is LocalVideoTrackOptions
+      'video': options is VideoCaptureOptions
           ? options.toMediaConstraintsMap()
           : false,
     };
 
     final rtc.MediaStream stream;
-    if (options is ScreenShareTrackOptions) {
+    if (options is ScreenShareCaptureOptions) {
       stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
       // options is CameraVideoTrackOptions
@@ -89,10 +89,8 @@ abstract class LocalTrack extends Track {
     }
 
     // Check if the stream looks good
-    if ((options is LocalVideoTrackOptions &&
-            stream.getVideoTracks().isEmpty) ||
-        (options is LocalAudioTrackOptions &&
-            stream.getAudioTracks().isEmpty)) {
+    if ((options is VideoCaptureOptions && stream.getVideoTracks().isEmpty) ||
+        (options is AudioCaptureOptions && stream.getAudioTracks().isEmpty)) {
       throw TrackCreateException(
           'Failed to create stream, at least 1 video or audio track should exist');
     }

@@ -18,13 +18,17 @@ extension CameraPositionExt on CameraPosition {
       }[this]!;
 }
 
-class CameraTrackOptions extends LocalVideoTrackOptions {
+class CameraCaptureOptions extends VideoCaptureOptions {
   final CameraPosition cameraPosition;
 
-  const CameraTrackOptions({
+  const CameraCaptureOptions({
     this.cameraPosition = CameraPosition.front,
     VideoParameters params = VideoParameters.presetQHD169,
   }) : super(params: params);
+
+  CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
+      : cameraPosition = CameraPosition.front,
+        super(params: captureOptions.params);
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
@@ -34,18 +38,21 @@ class CameraTrackOptions extends LocalVideoTrackOptions {
       };
 
   // Returns new options with updated properties
-  CameraTrackOptions copyWith({
+  CameraCaptureOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
   }) =>
-      CameraTrackOptions(
+      CameraCaptureOptions(
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
       );
 }
 
-class ScreenShareTrackOptions extends LocalVideoTrackOptions {
-  const ScreenShareTrackOptions();
+class ScreenShareCaptureOptions extends VideoCaptureOptions {
+  const ScreenShareCaptureOptions();
+
+  ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
+      : super(params: captureOptions.params);
 }
 
 /// Base class for track options.
@@ -56,11 +63,10 @@ abstract class LocalTrackOptions {
 }
 
 /// Options when creating a LocalVideoTrack.
-abstract class LocalVideoTrackOptions extends LocalTrackOptions {
-  // final LocalVideoTrackType type;
+class VideoCaptureOptions extends LocalTrackOptions {
   final VideoParameters params;
 
-  const LocalVideoTrackOptions({
+  const VideoCaptureOptions({
     this.params = VideoParameters.presetQHD169,
   });
 
@@ -243,14 +249,14 @@ class VideoParameters {
 }
 
 /// Options when creating an LocalAudioTrack. Placeholder for now.
-class LocalAudioTrackOptions extends LocalTrackOptions {
+class AudioCaptureOptions extends LocalTrackOptions {
   final bool noiseSuppression;
   final bool echoCancellation;
   final bool autoGainControl;
   final bool highPassFilter;
   final bool typingNoiseDetection;
 
-  const LocalAudioTrackOptions({
+  const AudioCaptureOptions({
     this.noiseSuppression = true,
     this.echoCancellation = true,
     this.autoGainControl = true,
