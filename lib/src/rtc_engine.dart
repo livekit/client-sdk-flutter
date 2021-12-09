@@ -17,11 +17,11 @@ import 'managers/event.dart';
 import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'room.dart';
 import 'signal_client.dart';
 import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
-import 'room.dart';
 
 class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';

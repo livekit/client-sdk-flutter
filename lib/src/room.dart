@@ -6,6 +6,7 @@ import 'constants.dart';
 import 'events.dart';
 import 'exceptions.dart';
 import 'extensions.dart';
+import 'internal/events.dart';
 import 'logger.dart';
 import 'managers/event.dart';
 import 'options.dart';

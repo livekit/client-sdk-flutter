@@ -1,19 +1,17 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:meta/meta.dart';
 
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
-import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'publication/local_track_publication.dart';
 import 'publication/remote_track_publication.dart';
 import 'publication/track_publication.dart';
-import 'track/track.dart';
-import 'types.dart';
 import 'room.dart';
 import 'rtc_engine.dart';
 import 'signal_client.dart';
+import 'track/track.dart';
+import 'types.dart';
 
 /// Base type for all LiveKit events.
 abstract class LiveKitEvent {}
@@ -279,116 +277,6 @@ class EngineRemoteMuteChangedEvent with EngineEvent {
   final String sid;
   final bool muted;
   const EngineRemoteMuteChangedEvent({
-    required this.sid,
-    required this.muted,
-  });
-}
-
-//
-// Signal events
-//
-
-@internal
-class SignalConnectedEvent with SignalEvent {
-  final lk_rtc.JoinResponse response;
-  const SignalConnectedEvent({
-    required this.response,
-  });
-}
-
-@internal
-class SignalCloseEvent with SignalEvent {
-  final CloseReason? reason;
-  const SignalCloseEvent({
-    this.reason,
-  });
-}
-
-@internal
-class SignalOfferEvent with SignalEvent {
-  final rtc.RTCSessionDescription sd;
-  const SignalOfferEvent({
-    required this.sd,
-  });
-}
-
-@internal
-class SignalAnswerEvent with SignalEvent {
-  final rtc.RTCSessionDescription sd;
-  const SignalAnswerEvent({
-    required this.sd,
-  });
-}
-
-@internal
-class SignalTrickleEvent with SignalEvent {
-  final rtc.RTCIceCandidate candidate;
-  final lk_rtc.SignalTarget target;
-  const SignalTrickleEvent({
-    required this.candidate,
-    required this.target,
-  });
-}
-
-@internal
-// relayed by Engine
-class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
-  final List<lk_models.ParticipantInfo> participants;
-  const SignalParticipantUpdateEvent({
-    required this.participants,
-  });
-}
-
-@internal
-class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
-  final List<lk_rtc.ConnectionQualityInfo> updates;
-  const SignalConnectionQualityUpdateEvent({
-    required this.updates,
-  });
-}
-
-@internal
-class SignalLocalTrackPublishedEvent with SignalEvent {
-  final String cid;
-  final lk_models.TrackInfo track;
-  const SignalLocalTrackPublishedEvent({
-    required this.cid,
-    required this.track,
-  });
-}
-
-@internal
-// Speaker update received through websocket
-// relayed by Engine
-class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
-  final List<lk_models.SpeakerInfo> speakers;
-  const SignalSpeakersChangedEvent({
-    required this.speakers,
-  });
-}
-
-@internal
-// Event received through data channel
-class EngineActiveSpeakersUpdateEvent with EngineEvent {
-  final List<lk_models.SpeakerInfo> speakers;
-  const EngineActiveSpeakersUpdateEvent({
-    required this.speakers,
-  });
-}
-
-@internal
-class SignalLeaveEvent with SignalEvent {
-  final bool canReconnect;
-  const SignalLeaveEvent({
-    required this.canReconnect,
-  });
-}
-
-@internal
-class SignalMuteTrackEvent with SignalEvent {
-  final String sid;
-  final bool muted;
-  const SignalMuteTrackEvent({
     required this.sid,
     required this.muted,
   });

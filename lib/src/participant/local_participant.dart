@@ -11,13 +11,13 @@ import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/local_track_publication.dart';
+import '../room.dart';
 import '../rtc_engine.dart';
 import '../track/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types.dart';
 import '../utils.dart';
-import '../room.dart';
 import 'participant.dart';
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
