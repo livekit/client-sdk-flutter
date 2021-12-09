@@ -21,6 +21,7 @@ import 'signal_client.dart';
 import 'support/disposable.dart';
 import 'transport.dart';
 import 'types.dart';
+import 'room.dart';
 
 class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
@@ -49,7 +50,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
   ConnectionState _connectionState = ConnectionState.disconnected;
 
-  /// connection state of the room
+  /// Connection state of the [Room].
   ConnectionState get connectionState => _connectionState;
 
   // true if publisher connection has already been established.
@@ -120,7 +121,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     return event.response;
   }
 
-  // there is no side-effect calling this method multiple times
+  /// Close connection between the server.
   Future<void> close() async {
     logger.fine('[$objectId] close()');
     if (_connectionState == ConnectionState.disconnected) {
@@ -143,6 +144,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     // notifyListeners();
   }
 
+  @internal
   Future<lk_models.TrackInfo> addTrack({
     required String cid,
     required String name,
@@ -173,6 +175,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     return event.track;
   }
 
+  @internal
   Future<void> negotiate({bool? iceRestart}) async {
     if (publisher == null) {
       return;
@@ -182,7 +185,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     publisher!.negotiate(null);
   }
 
-  /* @internal */
+  @internal
   Future<void> sendDataPacket(
     lk_models.DataPacket packet,
   ) async {
@@ -227,6 +230,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('[PUBLISHER] connected');
   }
 
+  @internal
   Future<void> reconnect() async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('$objectId reconnect() already closed');

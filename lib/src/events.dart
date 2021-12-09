@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
@@ -10,17 +11,26 @@ import 'publication/remote_track_publication.dart';
 import 'publication/track_publication.dart';
 import 'track/track.dart';
 import 'types.dart';
+import 'room.dart';
+import 'rtc_engine.dart';
+import 'signal_client.dart';
 
+/// Base type for all LiveKit events.
 abstract class LiveKitEvent {}
 
+/// Base type for all [Room] events.
 abstract class RoomEvent implements LiveKitEvent {}
 
+/// Base type for all [Participant] events.
 abstract class ParticipantEvent implements LiveKitEvent {}
 
+/// Base type for all [Track] events.
 abstract class TrackEvent implements LiveKitEvent {}
 
+/// Base type for all [RTCEngine] events.
 abstract class EngineEvent implements LiveKitEvent {}
 
+/// Base type for all [SignalClient] events.
 abstract class SignalEvent implements LiveKitEvent {}
 
 /// When the connection to the server has been interrupted and it's attempting
@@ -277,6 +287,8 @@ class EngineRemoteMuteChangedEvent with EngineEvent {
 //
 // Signal events
 //
+
+@internal
 class SignalConnectedEvent with SignalEvent {
   final lk_rtc.JoinResponse response;
   const SignalConnectedEvent({
@@ -284,6 +296,7 @@ class SignalConnectedEvent with SignalEvent {
   });
 }
 
+@internal
 class SignalCloseEvent with SignalEvent {
   final CloseReason? reason;
   const SignalCloseEvent({
@@ -291,6 +304,7 @@ class SignalCloseEvent with SignalEvent {
   });
 }
 
+@internal
 class SignalOfferEvent with SignalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalOfferEvent({
@@ -298,6 +312,7 @@ class SignalOfferEvent with SignalEvent {
   });
 }
 
+@internal
 class SignalAnswerEvent with SignalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalAnswerEvent({
@@ -305,6 +320,7 @@ class SignalAnswerEvent with SignalEvent {
   });
 }
 
+@internal
 class SignalTrickleEvent with SignalEvent {
   final rtc.RTCIceCandidate candidate;
   final lk_rtc.SignalTarget target;
@@ -314,6 +330,7 @@ class SignalTrickleEvent with SignalEvent {
   });
 }
 
+@internal
 // relayed by Engine
 class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
   final List<lk_models.ParticipantInfo> participants;
@@ -322,6 +339,7 @@ class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
   });
 }
 
+@internal
 class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
   final List<lk_rtc.ConnectionQualityInfo> updates;
   const SignalConnectionQualityUpdateEvent({
@@ -329,6 +347,7 @@ class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
   });
 }
 
+@internal
 class SignalLocalTrackPublishedEvent with SignalEvent {
   final String cid;
   final lk_models.TrackInfo track;
@@ -338,7 +357,8 @@ class SignalLocalTrackPublishedEvent with SignalEvent {
   });
 }
 
-// speaker update received through websocket
+@internal
+// Speaker update received through websocket
 // relayed by Engine
 class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
@@ -347,6 +367,7 @@ class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
   });
 }
 
+@internal
 // Event received through data channel
 class EngineActiveSpeakersUpdateEvent with EngineEvent {
   final List<lk_models.SpeakerInfo> speakers;
@@ -355,6 +376,7 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent {
   });
 }
 
+@internal
 class SignalLeaveEvent with SignalEvent {
   final bool canReconnect;
   const SignalLeaveEvent({
@@ -362,6 +384,7 @@ class SignalLeaveEvent with SignalEvent {
   });
 }
 
+@internal
 class SignalMuteTrackEvent with SignalEvent {
   final String sid;
   final bool muted;

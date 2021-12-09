@@ -29,30 +29,31 @@ abstract class Participant<T extends TrackPublication>
   @internal
   final RTCEngine engine;
 
-  /// map of track sid => published track
+  /// Map of track sid => published track
   final Map<String, T> trackPublications = {};
 
-  /// audio level between 0-1, 1 being the loudest
+  /// Audio level between 0-1, 1 being the loudest.
   double audioLevel = 0;
 
-  /// server assigned unique id
+  /// Server assigned unique id.
   final String sid;
 
-  /// user-assigned identity
+  /// User-assigned identity.
   String identity;
 
-  /// client-assigned metadata, opaque to livekit
+  /// Client-assigned metadata, opaque to livekit.
   String? metadata;
 
-  /// when the participant had last spoken
+  /// When the participant had last spoken.
   DateTime? lastSpokeAt;
 
   lk_models.ParticipantInfo? _participantInfo;
   bool _isSpeaking = false;
 
+  /// Connection quality between the [Participant] and the server.
   ConnectionQuality _connectionQuality = ConnectionQuality.unknown;
 
-  // suppport for multiple event listeners
+  // Suppport for multiple event listeners.
   final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
@@ -169,9 +170,10 @@ abstract class Participant<T extends TrackPublication>
     trackPublications[pub.sid] = pub;
   }
 
-  // Must implement
+  // Must be implemented by subclasses.
   Future<void> unpublishTrack(String trackSid, {bool notify = true});
 
+  /// Convenience method to unpublish all tracks.
   Future<void> unpublishAllTracks({bool notify = true}) async {
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
@@ -179,31 +181,26 @@ abstract class Participant<T extends TrackPublication>
     }
   }
 
-  //
-  // Equality operators
-  // Object is considered equal when sid is equal
-  //
-  @override
-  int get hashCode => sid.hashCode;
-
-  @override
-  bool operator ==(Object other) => other is Participant && sid == other.sid;
-
+  /// Convenience property to check whether [TrackSource.camera] is published or not.
   bool isCameraEnabled() {
     return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
   }
 
+  /// Convenience property to check whether [TrackSource.microphone] is published or not.
   bool isMicrophoneEnabled() {
     return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
         true);
   }
 
+  /// Convenience property to check whether [TrackSource.screenShareVideo] is published or not.
   bool isScreenShareEnabled() {
     return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
         true);
   }
 
-  /// Find a track publication by its [TrackSource]
+  /// Tries to find a [TrackPublication] by its [TrackSource]. Otherwise, will
+  /// return a compatible type of [TrackPublication] for the [TrackSource] specified.
+  /// returns null when not found.
   T? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;
     // try to find by source
@@ -226,4 +223,12 @@ abstract class Participant<T extends TrackPublication>
                 e.kind == lk_models.TrackType.AUDIO &&
                 e.name == Track.screenShareName));
   }
+
+  // Equality operators
+  // Object is considered equal when sid is equal
+  @override
+  int get hashCode => sid.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is Participant && sid == other.sid;
 }

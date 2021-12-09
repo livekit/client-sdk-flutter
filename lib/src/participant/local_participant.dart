@@ -12,13 +12,16 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/local_track_publication.dart';
 import '../rtc_engine.dart';
+import '../track/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types.dart';
 import '../utils.dart';
+import '../room.dart';
 import 'participant.dart';
 
-/// Represents the current participant in the room.
+/// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
+/// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
   @internal
   final VideoPublishOptions? defaultVideoPublishOptions;
@@ -40,7 +43,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     updateFromInfo(info);
   }
 
-  /// publish an audio track to the room
+  /// Publish an [AudioTrack] to the [Room].
+  /// For most cases, using [setMicrophoneEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalAudioTrack>> publishAudioTrack(
     LocalAudioTrack track, {
     AudioPublishOptions? options,
@@ -250,12 +254,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   List<LocalTrackPublication> get subscribedTracks =>
       super.subscribedTracks.cast<LocalTrackPublication>().toList();
 
+  /// A convenience property to get all video tracks.
   @override
   List<LocalTrackPublication<LocalVideoTrack>> get videoTracks =>
       trackPublications.values
           .whereType<LocalTrackPublication<LocalVideoTrack>>()
           .toList();
 
+  /// A convenience property to get all audio tracks.
   @override
   List<LocalTrackPublication<LocalAudioTrack>> get audioTracks =>
       trackPublications.values

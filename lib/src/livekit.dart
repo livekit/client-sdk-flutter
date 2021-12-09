@@ -6,7 +6,9 @@ import 'room.dart';
 class LiveKitClient {
   static const version = '0.5.4';
 
-  /// Connects to a LiveKit room
+  /// Convenience method for connecting to a LiveKit server.
+  /// Returns a [Room] upon a successful connect or throws when it fails.
+  /// Alternatively, it is possible to instantiate [Room] and call [Room.connect] directly.
   static Future<Room> connect(
     String url,
     String token, {
