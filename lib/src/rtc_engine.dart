@@ -28,11 +28,10 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
 
-  final SignalClient signalClient;
-  // config for RTCPeerConnection
-  RTCConfiguration? rtcConfig;
+  // Reference to the Room
+  final Room room;
 
-  ConnectOptions connectOptions = const ConnectOptions();
+  final SignalClient signalClient;
 
   @internal
   PCTransport? publisher;
@@ -63,7 +62,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool _subscriberPrimary = false;
   // server-provided ice servers
-  List<lk_rtc.ICEServer> _providedIceServers = [];
+  List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
 
   // internal
   int _reconnectAttempts = 0;
@@ -73,6 +72,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   final delays = CancelableDelayManager();
 
   RTCEngine({
+    required this.room,
     SignalClient? signalClient,
   }) : signalClient = signalClient ?? SignalClient() {
     if (kDebugMode) {
@@ -91,25 +91,18 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     });
   }
 
-  Future<lk_rtc.JoinResponse> join(
+  Future<lk_rtc.JoinResponse> connect(
     String url,
-    String token, {
-    RTCConfiguration? rtcConfig,
-    ConnectOptions? connectOptions,
-  }) async {
+    String token,
+  ) async {
     this.url = url;
     this.token = token;
-
-    this.rtcConfig = rtcConfig;
-    if (connectOptions != null) {
-      this.connectOptions = connectOptions;
-    }
 
     // connect to rtc server
     await signalClient.connect(
       url,
       token,
-      options: this.connectOptions,
+      connectOptions: room.connectOptions,
     );
 
     // wait for join response
@@ -252,7 +245,11 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       // isReconnecting = true;
       _connectionState = ConnectionState.reconnecting;
-      await signalClient.reconnect(url, token);
+      await signalClient.reconnect(
+        url,
+        token,
+        connectOptions: room.connectOptions,
+      );
 
       if (publisher == null || subscriber == null) {
         throw UnexpectedStateException('publisher or subscribers is null');
@@ -294,17 +291,21 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    RTCConfiguration? config;
+    // RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
-    if ((rtcConfig?.iceServers?.isEmpty ?? true) &&
-        _providedIceServers.isNotEmpty) {
-      final iceServers = _providedIceServers.map((e) => e.toSDKType()).toList();
-      config = (rtcConfig ?? const RTCConfiguration())
-          .copyWith(iceServers: iceServers);
+    final connectOptions = room.connectOptions ?? const ConnectOptions();
+    final serverIceServers =
+        _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
+
+    RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
+    if (serverIceServers.isNotEmpty) {
+      // use server provided iceServers if exists
+      rtcConfiguration = connectOptions.rtcConfiguration
+          .copyWith(iceServers: serverIceServers);
     }
 
-    publisher = await PCTransport.create(config);
-    subscriber = await PCTransport.create(config);
+    publisher = await PCTransport.create(rtcConfiguration);
+    subscriber = await PCTransport.create(rtcConfiguration);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
@@ -497,7 +498,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       // create peer connections
       _connectionState = ConnectionState.connected;
       _subscriberPrimary = event.response.subscriberPrimary;
-      _providedIceServers = event.response.iceServers;
+      _serverProvidedIceServers = event.response.iceServers;
 
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '

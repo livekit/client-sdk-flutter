@@ -1,12 +1,23 @@
+import 'package:livekit_client/src/types.dart';
 import 'track/options.dart';
 import 'track/track.dart';
 
-/// Options when joining a room.
-/// {@category Room}
 class ConnectOptions {
   /// Auto-subscribe to room tracks upon connect, defaults to true.
   final bool autoSubscribe;
+  final RTCConfiguration rtcConfiguration;
+  final ProtocolVersion protocolVersion;
 
+  const ConnectOptions({
+    this.autoSubscribe = true,
+    this.rtcConfiguration = const RTCConfiguration(),
+    this.protocolVersion = ProtocolVersion.v5,
+  });
+}
+
+/// Options when joining a room.
+/// {@category Room}
+class RoomOptions {
   /// Default options used when publishing a video track
   final VideoPublishOptions defaultVideoPublishOptions;
 
@@ -26,8 +37,7 @@ class ConnectOptions {
   /// defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
-  const ConnectOptions({
-    this.autoSubscribe = true,
+  const RoomOptions({
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.optimizeVideo = true,

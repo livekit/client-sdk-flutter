@@ -9,7 +9,6 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/remote_track_publication.dart';
-import '../rtc_engine.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
 import '../types.dart';
@@ -34,26 +33,23 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           .toList();
 
   RemoteParticipant({
-    required RTCEngine engine,
+    required Room room,
     required String sid,
     required String identity,
-    required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          engine: engine,
+          room: room,
           sid: sid,
           identity: identity,
-          roomEvents: roomEvents,
         );
 
   RemoteParticipant.fromInfo({
-    required RTCEngine engine,
+    required Room room,
     required lk_models.ParticipantInfo info,
     required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          engine: engine,
+          room: room,
           sid: info.sid,
           identity: info.identity,
-          roomEvents: roomEvents,
         ) {
     updateFromInfo(info);
   }
@@ -118,7 +114,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await pub.updateTrack(track);
     addTrackPublication(pub);
 
-    [events, roomEvents].emit(TrackSubscribedEvent(
+    [events, room.events].emit(TrackSubscribedEvent(
       participant: this,
       track: track,
       publication: pub,
@@ -167,7 +163,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           participant: this,
           publication: pub,
         );
-        [events, roomEvents].emit(event);
+        [events, room.events].emit(event);
       }
     }
 
@@ -194,7 +190,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     // if has track
     if (track != null) {
       await track.stop();
-      [events, roomEvents].emit(TrackUnsubscribedEvent(
+      [events, room.events].emit(TrackUnsubscribedEvent(
         participant: this,
         track: track,
         publication: pub,
@@ -202,7 +198,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     if (notify) {
-      [events, roomEvents].emit(TrackUnpublishedEvent(
+      [events, room.events].emit(TrackUnpublishedEvent(
         participant: this,
         publication: pub,
       ));

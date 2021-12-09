@@ -38,10 +38,10 @@ extension ObjectExt on Object {
 
 extension ProtocolVersionExt on ProtocolVersion {
   String toStringValue() => {
-        ProtocolVersion.protocol2: '2',
-        ProtocolVersion.protocol3: '3',
-        ProtocolVersion.protocol4: '4',
-        ProtocolVersion.protocol5: '5',
+        ProtocolVersion.v2: '2',
+        ProtocolVersion.v3: '3',
+        ProtocolVersion.v4: '4',
+        ProtocolVersion.v5: '5',
       }[this]!;
 }
 

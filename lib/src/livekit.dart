@@ -12,14 +12,16 @@ class LiveKitClient {
   static Future<Room> connect(
     String url,
     String token, {
-    ConnectOptions? options,
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
   }) async {
     final room = Room();
     try {
       await room.connect(
         url,
         token,
-        options: options,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
       );
       return room;
     } catch (error) {

@@ -5,10 +5,10 @@ import 'extensions.dart';
 typedef CancelListenFunc = Function();
 
 enum ProtocolVersion {
-  protocol2,
-  protocol3,
-  protocol4,
-  protocol5,
+  v2,
+  v3,
+  v4,
+  v5,
 }
 
 enum ConnectionState {

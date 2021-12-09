@@ -7,7 +7,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
-import '../rtc_engine.dart';
+import '../room.dart';
 import '../support/disposable.dart';
 import '../track/track.dart';
 import '../types.dart';
@@ -25,9 +25,9 @@ import 'remote_participant.dart';
 /// can not be instantiated directly.
 abstract class Participant<T extends TrackPublication>
     extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
-  /// Reference to [RTCEngine]
+  /// Reference to [Room]
   @internal
-  final RTCEngine engine;
+  final Room room;
 
   /// Map of track sid => published track
   final Map<String, T> trackPublications = {};
@@ -52,9 +52,6 @@ abstract class Participant<T extends TrackPublication>
 
   /// Connection quality between the [Participant] and the server.
   ConnectionQuality _connectionQuality = ConnectionQuality.unknown;
-
-  // Suppport for multiple event listeners.
-  final EventsEmitter<RoomEvent> roomEvents;
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -95,10 +92,9 @@ abstract class Participant<T extends TrackPublication>
   bool get hasInfo => _participantInfo != null;
 
   Participant({
-    required this.engine,
+    required this.room,
     required this.sid,
     required this.identity,
-    required this.roomEvents,
   }) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
@@ -134,7 +130,7 @@ abstract class Participant<T extends TrackPublication>
     final changed = _participantInfo?.metadata != md;
     metadata = md;
     if (changed) {
-      [events, roomEvents].emit(ParticipantMetadataUpdatedEvent(
+      [events, room.events].emit(ParticipantMetadataUpdatedEvent(
         participant: this,
       ));
     }
@@ -144,7 +140,7 @@ abstract class Participant<T extends TrackPublication>
   void updateConnectionQuality(ConnectionQuality quality) {
     if (_connectionQuality == quality) return;
     _connectionQuality = quality;
-    [events, roomEvents].emit(ParticipantConnectionQualityUpdatedEvent(
+    [events, room.events].emit(ParticipantConnectionQualityUpdatedEvent(
       participant: this,
       connectionQuality: _connectionQuality,
     ));

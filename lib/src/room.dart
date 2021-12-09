@@ -42,6 +42,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
       UnmodifiableMapView(_participants);
 
+  ConnectOptions? connectOptions;
+
+  RoomOptions? roomOptions;
+
   /// the current participant
   LocalParticipant? localParticipant;
 
@@ -57,15 +61,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
 
-  final RTCEngine engine;
+  late final engine = RTCEngine(room: this);
 
   // suppport for multiple event listeners
   late final _engineListener = engine.createListener();
 
   Room({
-    RTCEngine? engine,
-    ConnectOptions? connectOptions,
-  }) : engine = engine ?? RTCEngine() {
+    this.connectOptions,
+    this.roomOptions,
+  }) {
     //
     _setUpListeners();
 
@@ -83,21 +87,23 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // dispose all listeners for RTCEngine
       await _engineListener.dispose();
       // dispose the engine
-      await this.engine.dispose();
+      await engine.dispose();
     });
   }
 
   Future<void> connect(
     String url,
     String token, {
-    ConnectOptions? options,
-    RTCConfiguration? rtcConfig,
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
   }) async {
-    //
-    final joinResponse = await engine.join(
+    // update options if provided
+    this.connectOptions = connectOptions ?? this.connectOptions;
+    this.roomOptions = roomOptions ?? this.roomOptions;
+
+    final joinResponse = await engine.connect(
       url,
       token,
-      connectOptions: options,
     );
 
     sid = joinResponse.room.sid;
@@ -115,11 +121,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     localParticipant = LocalParticipant(
-      engine: engine,
+      room: this,
       info: joinResponse.participant,
-      defaultVideoPublishOptions: options?.defaultVideoPublishOptions,
-      defaultAudioPublishOptions: options?.defaultAudioPublishOptions,
-      roomEvents: events,
     );
 
     for (final info in joinResponse.otherParticipants) {
@@ -177,7 +180,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.warning('addSubscribedMediaTrack() throwed ${event}');
-        [participant.roomEvents, participant.events].emit(event);
+        [participant.room.events, participant.events].emit(event);
       } catch (exception) {
         // We don't want to pass up any exception so catch everything here.
         logger.warning(
@@ -206,14 +209,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     if (info == null) {
       participant = RemoteParticipant(
-        engine: engine,
+        room: this,
         sid: sid,
         identity: '',
-        roomEvents: events,
       );
     } else {
       participant = RemoteParticipant.fromInfo(
-        engine: engine,
+        room: this,
         info: info,
         roomEvents: events,
       );

@@ -6,7 +6,6 @@ import 'extensions.dart';
 import 'livekit.dart';
 import 'options.dart';
 import 'track/options.dart';
-import 'types.dart';
 
 extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
@@ -17,12 +16,13 @@ class Utils {
   static Uri buildUri(
     String uriString, {
     required String token,
-    ConnectOptions? options,
+    ConnectOptions? connectOptions,
     bool reconnect = false,
     bool validate = false,
     bool forceSecure = false,
-    required ProtocolVersion protocol,
   }) {
+    connectOptions ??= const ConnectOptions();
+
     final Uri uri = Uri.parse(uriString);
 
     final useSecure = uri.isSecureScheme || forceSecure;
@@ -45,10 +45,9 @@ class Utils {
       pathSegments: pathSegments,
       queryParameters: <String, String>{
         'access_token': token,
-        if (options != null)
-          'auto_subscribe': options.autoSubscribe ? '1' : '0',
+        'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         if (reconnect) 'reconnect': '1',
-        'protocol': protocol.toStringValue(),
+        'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
       },

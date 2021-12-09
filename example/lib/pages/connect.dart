@@ -78,7 +78,7 @@ class _ConnectPageState extends State<ConnectPage> {
       final room = await LiveKitClient.connect(
         _uriCtrl.text,
         _tokenCtrl.text,
-        options: ConnectOptions(
+        roomOptions: RoomOptions(
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),

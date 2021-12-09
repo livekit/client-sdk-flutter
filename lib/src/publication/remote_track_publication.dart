@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -141,7 +142,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     }
 
     logger.fine('[Visibility] Sending to server ${settings.toProto3Json()}');
-    participant.engine.signalClient.sendUpdateTrackSettings(settings);
+    participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
   @internal
@@ -151,9 +152,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
     // Only listen for visibility updates if video optimization is on
     // and the attached track is a video track
+    final roomOptions = participant.room.roomOptions ?? const RoomOptions();
+    //
     if (didUpdate &&
         newValue != null &&
-        participant.engine.connectOptions.optimizeVideo &&
+        roomOptions.optimizeVideo &&
         newValue.kind == lk_models.TrackType.VIDEO) {
       //
       // Attach visibility event listener (if video track)
@@ -194,7 +197,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       // Ideally, we should wait for WebRTC's onRemoveTrack event
       // but it does not work reliably across platforms.
       // So for now we will assume remove track succeeded.
-      [participant.events, participant.roomEvents].emit(TrackUnsubscribedEvent(
+      [participant.events, participant.room.events].emit(TrackUnsubscribedEvent(
         participant: participant,
         track: track!,
         publication: this,
@@ -210,7 +213,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       trackSids: [sid],
       subscribe: subscribed,
     );
-    participant.engine.signalClient.sendUpdateSubscription(subscription);
+    participant.room.engine.signalClient.sendUpdateSubscription(subscription);
   }
 
   void _sendUpdateTrackSettings() {
@@ -221,6 +224,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
     if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
     }
-    participant.engine.signalClient.sendUpdateTrackSettings(settings);
+    participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 }

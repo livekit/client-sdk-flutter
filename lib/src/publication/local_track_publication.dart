@@ -33,12 +33,12 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
         // listen for track muted events
         ..on<TrackMuteUpdatedEvent>((event) {
           // send signal to server
-          participant.engine.signalClient.sendMuteTrack(sid, event.muted);
+          participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
           // emit events
           final newEvent = event.muted
               ? TrackMutedEvent(participant: participant, track: this)
               : TrackUnmutedEvent(participant: participant, track: this);
-          [participant.events, participant.roomEvents].emit(newEvent);
+          [participant.events, participant.room.events].emit(newEvent);
         });
       // dispose listener when the track is disposed
       newValue.onDispose(() => listener.dispose());

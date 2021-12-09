@@ -7,12 +7,10 @@ import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/local_track_publication.dart';
 import '../room.dart';
-import '../rtc_engine.dart';
 import '../track/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -23,22 +21,14 @@ import 'participant.dart';
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
-  @internal
-  final VideoPublishOptions? defaultVideoPublishOptions;
-  @internal
-  final AudioPublishOptions? defaultAudioPublishOptions;
-
+  //
   LocalParticipant({
-    required RTCEngine engine,
+    required Room room,
     required lk_models.ParticipantInfo info,
-    this.defaultVideoPublishOptions,
-    this.defaultAudioPublishOptions,
-    required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
-          engine: engine,
+          room: room,
           sid: info.sid,
           identity: info.identity,
-          roomEvents: roomEvents,
         ) {
     updateFromInfo(info);
   }
@@ -47,7 +37,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// For most cases, using [setMicrophoneEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalAudioTrack>> publishAudioTrack(
     LocalAudioTrack track, {
-    AudioPublishOptions? options,
+    AudioPublishOptions? publishOptions,
   }) async {
     if (audioTracks.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
@@ -55,14 +45,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     // Use defaultPublishOptions if options is null
-    options = options ?? defaultAudioPublishOptions;
+    publishOptions =
+        publishOptions ?? room.roomOptions?.defaultAudioPublishOptions;
 
-    final trackInfo = await engine.addTrack(
+    final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
       source: track.source.toPBType(),
-      dtx: options?.dtx,
+      dtx: publishOptions?.dtx,
     );
 
     await track.start();
@@ -71,12 +62,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       direction: rtc.TransceiverDirection.SendOnly,
     );
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-    track.transceiver = await engine.publisher?.pc.addTransceiver(
+    track.transceiver = await room.engine.publisher?.pc.addTransceiver(
       track: track.mediaStreamTrack,
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
       init: transceiverInit,
     );
-    await engine.negotiate();
+
+    await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalAudioTrack>(
       participant: this,
@@ -85,7 +77,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
     addTrackPublication(pub);
 
-    [events, roomEvents].emit(LocalTrackPublishedEvent(
+    [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
     ));
@@ -96,7 +88,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish a video track to the room
   Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
     LocalVideoTrack track, {
-    VideoPublishOptions? options,
+    VideoPublishOptions? publishOptions,
   }) async {
     if (videoTracks.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
@@ -104,7 +96,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     // Use defaultPublishOptions if options is null
-    options = options ?? defaultVideoPublishOptions;
+    publishOptions =
+        publishOptions ?? room.roomOptions?.defaultVideoPublishOptions;
 
     // use constraints passed to getUserMedia by default
     int width = track.currentOptions.params.width;
@@ -126,7 +119,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
     }
 
-    final trackInfo = await engine.addTrack(
+    final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
@@ -139,13 +132,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.start();
 
     logger.fine(
-        'Compute encodings with resolution: ${width}x${height}, options: ${options}');
+        'Compute encodings with resolution: ${width}x${height}, options: ${publishOptions}');
 
     // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
       width: width,
       height: height,
-      options: options,
+      options: publishOptions,
     );
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
@@ -156,14 +149,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       streams: [track.mediaStream],
     );
 
-    logger.fine('publishVideoTrack publisher: ${engine.publisher}');
+    logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
 
-    track.transceiver = await engine.publisher?.pc.addTransceiver(
+    track.transceiver = await room.engine.publisher?.pc.addTransceiver(
       track: track.mediaStreamTrack,
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
-    await engine.negotiate();
+
+    await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(
       participant: this,
@@ -172,7 +166,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
     addTrackPublication(pub);
 
-    [events, roomEvents].emit(LocalTrackPublishedEvent(
+    [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
     ));
@@ -193,14 +187,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final track = pub.track;
     if (track != null) {
-      if (engine.connectOptions.stopLocalTrackOnUnpublish) {
+      final roomOptions = room.roomOptions ?? const RoomOptions();
+      if (roomOptions.stopLocalTrackOnUnpublish) {
         await track.stop();
       }
 
       final sender = track.transceiver?.sender;
       if (sender != null) {
         try {
-          await engine.publisher?.pc.removeTrack(sender);
+          await room.engine.publisher?.pc.removeTrack(sender);
         } catch (_) {
           logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
         }
@@ -208,13 +203,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         // doesn't make sense to negotiate if already disposed
         if (!isDisposed) {
           // manual negotiation since track changed
-          await engine.negotiate();
+          await room.engine.negotiate();
         }
       }
     }
 
     if (notify) {
-      [events, roomEvents].emit(LocalTrackUnpublishedEvent(
+      [events, room.events].emit(LocalTrackUnpublishedEvent(
         participant: this,
         publication: pub,
       ));
@@ -239,7 +234,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     );
 
-    await engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet);
   }
 
   /// for internal use

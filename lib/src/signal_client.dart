@@ -19,14 +19,10 @@ import 'utils.dart';
 
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   //
-  final ProtocolVersion protocol;
-
   bool _connected = false;
   LiveKitWebSocket? _ws;
 
-  SignalClient({
-    this.protocol = ProtocolVersion.protocol5,
-  }) {
+  SignalClient() {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
     });
@@ -42,13 +38,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   Future<void> connect(
     String uriString,
     String token, {
-    required ConnectOptions options,
+    ConnectOptions? connectOptions,
   }) async {
     final rtcUri = Utils.buildUri(
       uriString,
       token: token,
-      options: options,
-      protocol: protocol,
+      connectOptions: connectOptions,
     );
 
     try {
@@ -65,10 +60,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       final validateUri = Utils.buildUri(
         uriString,
         token: token,
-        options: options,
+        connectOptions: connectOptions,
         validate: true,
         forceSecure: rtcUri.isSecureScheme,
-        protocol: protocol,
       );
 
       // Attempt Validation
@@ -89,8 +83,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   Future<void> reconnect(
     String uriString,
-    String token,
-  ) async {
+    String token, {
+    ConnectOptions? connectOptions,
+  }) async {
     _connected = false;
     await _ws?.dispose();
     _ws = null;
@@ -99,7 +94,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       uriString,
       token: token,
       reconnect: true,
-      protocol: protocol,
+      connectOptions: connectOptions,
     );
 
     _ws = await LiveKitWebSocket.connect(
