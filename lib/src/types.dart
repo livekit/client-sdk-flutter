@@ -37,6 +37,11 @@ enum TrackSource {
   screenShareAudio,
 }
 
+enum StreamState {
+  paused,
+  active,
+}
+
 enum CloseReason {
   network,
   // ...

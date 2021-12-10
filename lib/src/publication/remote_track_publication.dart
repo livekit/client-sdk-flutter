@@ -13,6 +13,7 @@ import '../participant/remote_participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../track/remote.dart';
+import '../types.dart';
 import '../utils.dart';
 import 'track_publication.dart';
 
@@ -39,6 +40,22 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool _enabled = true;
   lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
   lk_models.VideoQuality get videoQuality => _videoQuality;
+
+  StreamState _streamState = StreamState.paused;
+  StreamState get streamState => _streamState;
+
+  @internal
+  Future<void> updateStreamState(StreamState streamState) async {
+    // return if no change
+    if (_streamState == streamState) return;
+    _streamState = streamState;
+    [participant.events, participant.room.events]
+        .emit(TrackStreamStateUpdatedEvent(
+      participant: participant,
+      trackPublication: this,
+      streamState: streamState,
+    ));
+  }
 
   // used to report renderer visibility to the server
   // and optimize

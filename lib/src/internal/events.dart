@@ -185,3 +185,11 @@ class SignalMuteTrackEvent with SignalEvent {
     required this.muted,
   });
 }
+
+@internal
+class SignalStreamStateUpdatedEvent with SignalEvent, EngineEvent {
+  final List<lk_rtc.StreamStateInfo> updates;
+  const SignalStreamStateUpdatedEvent({
+    required this.updates,
+  });
+}
