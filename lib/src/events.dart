@@ -187,6 +187,7 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
+/// See [RemoteTrackPublication.streamState] for more information.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;

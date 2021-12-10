@@ -42,6 +42,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
   lk_models.VideoQuality get videoQuality => _videoQuality;
 
   StreamState _streamState = StreamState.paused;
+
+  /// The server may pause the track when they are bandwidth limitations and resume
+  /// when there is more capacity. This property will be updated when the track is
+  /// paused / resumed by the server. See [TrackStreamStateUpdatedEvent] for the
+  /// relevant event.
   StreamState get streamState => _streamState;
 
   @internal
