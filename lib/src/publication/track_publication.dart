@@ -89,7 +89,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   void _onTrackMuteUpdatedEvent(InternalTrackMuteUpdatedEvent event) {
     // send signal to server (if mute initiated by local user)
-      if (event.shouldSendSignal) {
+    if (event.shouldSendSignal) {
       logger.fine(
           '${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
       participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
