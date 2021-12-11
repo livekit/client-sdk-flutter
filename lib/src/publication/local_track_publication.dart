@@ -1,3 +1,4 @@
+import '../logger.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -33,6 +34,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
         // listen for track muted events
         ..on<TrackMuteUpdatedEvent>((event) {
           // send signal to server
+          logger.fine('${this} sending mute signal ${sid}, ${event.muted}');
           participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
           // emit events
           final newEvent = event.muted

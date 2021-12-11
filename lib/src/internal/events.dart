@@ -74,6 +74,10 @@ class TrackMuteUpdatedEvent with TrackEvent, InternalEvent {
     required this.track,
     required this.muted,
   });
+
+  @override
+  String toString() =>
+      'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
 }
 
 //

@@ -32,27 +32,31 @@ abstract class LocalTrack extends Track {
           mediaStreamTrack,
         );
 
-  // only local tracks can set muted
-  Future<void> mute() async {
+  // Only local tracks can set muted.
+  // Returns true if muted, false if unchanged.
+  Future<bool> mute() async {
     logger.fine('LocalTrack.mute() muted: $muted');
-    if (muted) return;
+    if (muted) return false; // already muted
     await disable();
     if (!Platform.isWindows) {
       await stop();
     }
     updateMuted(true);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
+    return true;
   }
 
-  Future<void> unmute() async {
+  // Returns true if unmuted, false if unchanged.
+  Future<bool> unmute() async {
     logger.fine('LocalTrack.unmute() muted: $muted');
-    if (!muted) return;
+    if (!muted) return false; // already un-muted
     if (!Platform.isWindows) {
       await restartTrack();
     }
     await enable();
     updateMuted(false);
     events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
+    return true;
   }
 
   @override
