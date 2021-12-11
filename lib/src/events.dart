@@ -186,6 +186,20 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   });
 }
 
+/// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
+/// See [RemoteTrackPublication.streamState] for more information.
+/// Emitted by [Room] and [RemoteParticipant].
+class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication trackPublication;
+  final StreamState streamState;
+  const TrackStreamStateUpdatedEvent({
+    required this.participant,
+    required this.trackPublication,
+    required this.streamState,
+  });
+}
+
 /// Participant metadata is a simple way for app-specific state to be pushed to
 /// all users. When RoomService.UpdateParticipantMetadata is called to change a
 /// [Participant]'s state, *all* [Participant]s in the room will fire this event.

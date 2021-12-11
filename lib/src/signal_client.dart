@@ -250,6 +250,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           muted: msg.mute.muted,
         ));
         break;
+      case lk_rtc.SignalResponse_Message.streamStateUpdate:
+        events.emit(SignalStreamStateUpdatedEvent(
+          updates: msg.streamStateUpdate.streamStates,
+        ));
+        break;
       default:
         logger.warning('skipping unsupported signal message');
     }

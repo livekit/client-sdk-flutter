@@ -124,3 +124,11 @@ extension LKTrackSourceExt on TrackSource {
       }[this] ??
       lk_models.TrackSource.UNKNOWN;
 }
+
+extension PBStreamStateExt on lk_rtc.StreamState {
+  StreamState toLKType() =>
+      <lk_rtc.StreamState, StreamState>{
+        lk_rtc.StreamState.ACTIVE: StreamState.active,
+      }[this] ??
+      StreamState.paused;
+}
