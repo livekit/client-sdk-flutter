@@ -93,7 +93,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
   @override
   void updateFromInfo(lk_models.TrackInfo info) {
     super.updateFromInfo(info);
-    updateMuted(info.muted);
     track?.updateMuted(info.muted);
   }
 

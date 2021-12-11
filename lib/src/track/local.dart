@@ -4,7 +4,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../exceptions.dart';
-import '../internal/events.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
@@ -41,8 +40,7 @@ abstract class LocalTrack extends Track {
     if (!Platform.isWindows) {
       await stop();
     }
-    updateMuted(true);
-    events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
+    updateMuted(true, shouldSendSignal: true);
     return true;
   }
 
@@ -54,8 +52,7 @@ abstract class LocalTrack extends Track {
       await restartTrack();
     }
     await enable();
-    updateMuted(false);
-    events.emit(TrackMuteUpdatedEvent(track: this, muted: muted));
+    updateMuted(false, shouldSendSignal: true);
     return true;
   }
 
