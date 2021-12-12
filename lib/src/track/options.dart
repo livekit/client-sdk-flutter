@@ -49,7 +49,9 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 }
 
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
-  const ScreenShareCaptureOptions();
+  const ScreenShareCaptureOptions({
+    VideoParameters params = VideoParameters.presetHD169,
+  }) : super(params: params);
 
   ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);

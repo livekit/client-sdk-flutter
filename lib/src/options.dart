@@ -20,8 +20,11 @@ class ConnectOptions {
 /// Options when joining a room.
 /// {@category Room}
 class RoomOptions {
-  /// Default options used when capturing video for a [LocalVideoTrack].
-  final VideoCaptureOptions defaultVideoCaptureOptions;
+  /// Default options used for [LocalVideoTrack.createCameraTrack].
+  final CameraCaptureOptions defaultCameraCaptureOptions;
+
+  /// Default options used for [LocalVideoTrack.createScreenShareTrack].
+  final ScreenShareCaptureOptions defaultScreenShareCaptureOptions;
 
   /// Default options used when capturing video for a [LocalAudioTrack].
   final AudioCaptureOptions defaultAudioCaptureOptions;
@@ -46,7 +49,8 @@ class RoomOptions {
   final bool stopLocalTrackOnUnpublish;
 
   const RoomOptions({
-    this.defaultVideoCaptureOptions = const VideoCaptureOptions(),
+    this.defaultCameraCaptureOptions = const CameraCaptureOptions(),
+    this.defaultScreenShareCaptureOptions = const ScreenShareCaptureOptions(),
     this.defaultAudioCaptureOptions = const AudioCaptureOptions(),
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),

@@ -297,7 +297,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     } else if (enabled) {
       if (source == TrackSource.camera) {
         final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions?.defaultVideoCaptureOptions);
+            room.roomOptions?.defaultCameraCaptureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create(
@@ -305,7 +305,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         final track = await LocalVideoTrack.createScreenShareTrack(
-            room.roomOptions?.defaultVideoCaptureOptions);
+            room.roomOptions?.defaultScreenShareCaptureOptions);
         return await publishVideoTrack(track);
       }
     }

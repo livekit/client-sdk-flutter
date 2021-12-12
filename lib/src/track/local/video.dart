@@ -31,11 +31,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([
-    VideoCaptureOptions? options,
+    CameraCaptureOptions? options,
   ]) async {
-    if (options is VideoCaptureOptions && options is! CameraCaptureOptions) {
-      options = CameraCaptureOptions.from(captureOptions: options);
-    }
     options ??= const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
@@ -53,13 +50,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   /// Note: Android requires a foreground service to be started prior to
   /// creating a screen track. Refer to the example app for an implementation.
   static Future<LocalVideoTrack> createScreenShareTrack([
-    VideoCaptureOptions? options,
+    ScreenShareCaptureOptions? options,
   ]) async {
-    if (options is VideoCaptureOptions &&
-        options is! ScreenShareCaptureOptions) {
-      options = ScreenShareCaptureOptions.from(captureOptions: options);
-    }
     options ??= const ScreenShareCaptureOptions();
+
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
       Track.screenShareName,
