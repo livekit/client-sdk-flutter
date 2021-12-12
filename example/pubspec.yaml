@@ -11,14 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_background: 1.0.2+2
+  flutter_background: 1.1.0
   provider: ^6.0.1
   logging: ^1.0.1
-  shared_preferences: ^2.0.7
+  shared_preferences: ^2.0.11
 
   google_fonts: ^2.1.0
   eva_icons_flutter: ^3.0.0
-  flutter_svg: ^0.23.0+1
+  flutter_svg: ^1.0.0
 
   livekit_client:
     path: ../
