@@ -1,9 +1,6 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
-import 'proto/livekit_models.pb.dart' as lk_models;
 import 'publication/local_track_publication.dart';
 import 'publication/remote_track_publication.dart';
 import 'publication/track_publication.dart';
@@ -245,53 +242,5 @@ class SpeakingChangedEvent with ParticipantEvent {
   const SpeakingChangedEvent({
     required this.participant,
     required this.speaking,
-  });
-}
-
-//
-// Engine events
-//
-class EngineConnectedEvent with EngineEvent {
-  const EngineConnectedEvent();
-}
-
-class EngineDisconnectedEvent with EngineEvent {
-  const EngineDisconnectedEvent();
-}
-
-class EngineReconnectingEvent with EngineEvent {
-  const EngineReconnectingEvent();
-}
-
-class EngineReconnectedEvent with EngineEvent {
-  const EngineReconnectedEvent();
-}
-
-class EngineTrackAddedEvent with EngineEvent {
-  final rtc.MediaStreamTrack track;
-  final rtc.MediaStream stream;
-  final rtc.RTCRtpReceiver? receiver;
-  const EngineTrackAddedEvent({
-    required this.track,
-    required this.stream,
-    required this.receiver,
-  });
-}
-
-class EngineDataPacketReceivedEvent with EngineEvent {
-  final lk_models.UserPacket packet;
-  final lk_models.DataPacket_Kind kind;
-  const EngineDataPacketReceivedEvent({
-    required this.packet,
-    required this.kind,
-  });
-}
-
-class EngineRemoteMuteChangedEvent with EngineEvent {
-  final String sid;
-  final bool muted;
-  const EngineRemoteMuteChangedEvent({
-    required this.sid,
-    required this.muted,
   });
 }
