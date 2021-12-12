@@ -71,11 +71,11 @@ abstract class LocalVideoTrackOptions extends LocalTrackOptions {
 
 class VideoEncoding {
   final int maxFramerate;
-  final int? maxBitrate;
+  final int maxBitrate;
 
   const VideoEncoding({
     required this.maxFramerate,
-    this.maxBitrate,
+    required this.maxBitrate,
   });
 
   @override
