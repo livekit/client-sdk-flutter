@@ -139,7 +139,15 @@ abstract class Track extends DisposableChangeNotifier
   }
 
   @internal
-  void updateMuted(bool muted) => _muted = muted;
+  void updateMuted(bool muted, {bool shouldSendSignal = false}) {
+    if (_muted == muted) return;
+    _muted = muted;
+    events.emit(InternalTrackMuteUpdatedEvent(
+      track: this,
+      muted: muted,
+      shouldSendSignal: shouldSendSignal,
+    ));
+  }
 
   @internal
   void updateMediaStreamAndTrack(

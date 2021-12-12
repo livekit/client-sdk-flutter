@@ -1,6 +1,9 @@
+import '../events.dart';
+import '../internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../extensions.dart';
+import '../logger.dart';
 import '../participant/participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
@@ -26,9 +29,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   /// The [Participant] this publication belongs to.
   abstract final Participant participant;
 
-  // metadata-muted
-  bool _muted = false;
-  bool get muted => _muted;
+  bool get muted => track?.muted ?? false;
 
   bool simulcasted = false;
   TrackDimension? dimension;
@@ -64,9 +65,6 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   bool operator ==(Object other) =>
       other is TrackPublication && sid == other.sid;
 
-  @internal
-  void updateMuted(bool muted) => _muted = muted;
-
   // Update track to new value, dispose previous if exists.
   // Returns true if value has changed.
   // Intended for internal use only.
@@ -76,6 +74,30 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     // dispose previous track (if exists)
     await _track?.dispose();
     _track = newValue;
+
+    if (newValue != null) {
+      // listen for Track's muted events
+      final listener = newValue.createListener()
+        ..on<InternalTrackMuteUpdatedEvent>(
+            (event) => _onTrackMuteUpdatedEvent(event));
+      // dispose listener when the track is disposed
+      newValue.onDispose(() => listener.dispose());
+    }
+
     return true;
+  }
+
+  void _onTrackMuteUpdatedEvent(InternalTrackMuteUpdatedEvent event) {
+    // send signal to server (if mute initiated by local user)
+    if (event.shouldSendSignal) {
+      logger.fine(
+          '${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
+      participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
+    }
+    // emit events
+    final newEvent = event.muted
+        ? TrackMutedEvent(participant: participant, track: this)
+        : TrackUnmutedEvent(participant: participant, track: this);
+    [participant.events, participant.room.events].emit(newEvent);
   }
 }
