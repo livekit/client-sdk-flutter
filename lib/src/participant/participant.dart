@@ -10,8 +10,10 @@ import '../publication/track_publication.dart';
 import '../room.dart';
 import '../support/disposable.dart';
 import '../track/track.dart';
+import '../track/local.dart';
 import '../types.dart';
 import 'remote_participant.dart';
+import 'local_participant.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -63,27 +65,29 @@ abstract class Participant<T extends TrackPublication>
     return DateTime.now();
   }
 
-  /// if participant is currently speaking
+  /// if [Participant] is currently speaking.
   bool get isSpeaking => _isSpeaking;
 
-  /// true if participant is publishing an audio track and is muted
+  /// true if [Participant] is publishing an [AudioTrack] and is muted.
   bool get isMuted => audioTracks.firstOrNull?.muted ?? true;
 
+  /// true if this [Participant] has more than 1 [AudioTrack].
   bool get hasAudio => audioTracks.isNotEmpty;
 
+  /// true if this [Participant] has more than 1 [VideoTrack].
   bool get hasVideo => videoTracks.isNotEmpty;
 
-  /// Connection quality of the participant
+  /// Connection quality between the [Participant] and the Server.
   ConnectionQuality get connectionQuality => _connectionQuality;
 
-  /// tracks that are subscribed to
+  /// [Track]s that this [Participant] is subscribed to.
   List<T> get subscribedTracks =>
       trackPublications.values.where((e) => e.subscribed).toList();
 
-  // Must be implemented by child class
+  // Must be implemented by child class.
   List<T> get videoTracks;
 
-  // Must be implemented by child class
+  // Must be implemented by child class.
   List<T> get audioTracks;
 
   /// for internal use
@@ -220,11 +224,11 @@ abstract class Participant<T extends TrackPublication>
                 e.name == Track.screenShareName));
   }
 
-  // Equality operators
-  // Object is considered equal when sid is equal
+  /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].
   @override
   int get hashCode => sid.hashCode;
 
+  /// (Equality operator) [Participant] is considered equal when [sid]'s are equal.
   @override
   bool operator ==(Object other) => other is Participant && sid == other.sid;
 }

@@ -2,12 +2,21 @@ import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
 import 'track/track.dart';
+import 'publication/remote_track_publication.dart';
 import 'types.dart';
+import 'room.dart';
 
+/// Options used when connecting to the server.
 class ConnectOptions {
-  /// Auto-subscribe to room tracks upon connect, defaults to true.
+  /// Auto-subscribe to existing and new [RemoteTrackPublication]s after
+  /// successfully connecting to the [Room].
+  /// Defaults to true.
   final bool autoSubscribe;
+
+  /// The default [RTCConfiguration] to be used.
   final RTCConfiguration rtcConfiguration;
+
+  /// The protocol version to be used. Usually this doesn't need to be modified.
   final ProtocolVersion protocolVersion;
 
   const ConnectOptions({
@@ -17,7 +26,7 @@ class ConnectOptions {
   });
 }
 
-/// Options when joining a room.
+/// Options used to modify the behavior of the [Room].
 /// {@category Room}
 class RoomOptions {
   /// Default options used for [LocalVideoTrack.createCameraTrack].
@@ -40,12 +49,12 @@ class RoomOptions {
   /// [VideoTrackRenderer]'s visibility on screen.
   /// - Re-sizing a [VideoTrackRenderer] will signal the server to send down
   /// a relavant quality layer (if simulcast is enabled on the publisher)
-  /// defaults to true.
+  /// Defaults to true.
   final bool optimizeVideo;
 
   /// Set this to false in case you would like to stop the track yourself.
   /// If you set this to false, make sure you call [Track.stop].
-  /// defaults to true.
+  /// Defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
   const RoomOptions({
@@ -59,13 +68,16 @@ class RoomOptions {
   });
 }
 
+/// Options used when publishing video.
 class VideoPublishOptions {
-  ///
+  /// If provided, this will be used instead of the SDK's suggested encodings.
+  /// Usually you don't need to provide this.
+  /// Defaults to null.
   final VideoEncoding? videoEncoding;
 
   /// Whether to enable simulcast or not.
   /// https://blog.livekit.io/an-introduction-to-webrtc-simulcast-6c5f1f6402eb
-  /// defaults to true.
+  /// Defaults to true.
   final bool simulcast;
 
   const VideoPublishOptions({
@@ -78,10 +90,11 @@ class VideoPublishOptions {
       '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }
 
+/// Options used when publishing audio.
 class AudioPublishOptions {
   /// Whether to enable DTX (Discontinuous Transmission) or not.
   /// https://en.wikipedia.org/wiki/Discontinuous_transmission
-  /// defaults to true.
+  /// Defaults to true.
   final bool dtx;
 
   const AudioPublishOptions({

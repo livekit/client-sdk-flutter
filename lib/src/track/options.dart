@@ -1,23 +1,23 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import '../track/local/video.dart';
+import '../track/local/audio.dart';
 
-enum LocalVideoTrackType {
-  camera,
-  display,
-}
-
+/// A type that represents front or back of the camera.
 enum CameraPosition {
   front,
   back,
 }
 
+/// Convenience extension for [CameraPosition].
 extension CameraPositionExt on CameraPosition {
   /// Return a [CameraPosition] which front and back is switched.
-  CameraPosition swap() => {
+  CameraPosition switched() => {
         CameraPosition.front: CameraPosition.back,
         CameraPosition.back: CameraPosition.front,
       }[this]!;
 }
 
+/// Options used when creating a [LocalVideoTrack] that captures the camera.
 class CameraCaptureOptions extends VideoCaptureOptions {
   final CameraPosition cameraPosition;
 
@@ -48,6 +48,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
       );
 }
 
+/// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
   const ScreenShareCaptureOptions({
     VideoParameters params = VideoParameters.presetHD169,
@@ -64,8 +65,9 @@ abstract class LocalTrackOptions {
   Map<String, dynamic> toMediaConstraintsMap();
 }
 
-/// Options when creating a LocalVideoTrack.
-class VideoCaptureOptions extends LocalTrackOptions {
+/// Base class for options when creating a [LocalVideoTrack].
+abstract class VideoCaptureOptions extends LocalTrackOptions {
+  // final LocalVideoTrackType type;
   final VideoParameters params;
 
   const VideoCaptureOptions({
@@ -77,13 +79,14 @@ class VideoCaptureOptions extends LocalTrackOptions {
       params.toMediaConstraintsMap();
 }
 
+/// A type that represents video encoding information.
 class VideoEncoding {
   final int maxFramerate;
-  final int? maxBitrate;
+  final int maxBitrate;
 
   const VideoEncoding({
     required this.maxFramerate,
-    this.maxBitrate,
+    required this.maxBitrate,
   });
 
   @override
@@ -91,6 +94,7 @@ class VideoEncoding {
       '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
 }
 
+/// Convenience extension for [VideoEncoding].
 extension VideoEncodingExt on VideoEncoding {
   rtc.RTCRtpEncoding toRTCRtpEncoding({
     String? rid,
@@ -250,12 +254,29 @@ class VideoParameters {
       };
 }
 
-/// Options when creating an LocalAudioTrack. Placeholder for now.
+/// Options used when creating a [LocalAudioTrack].
 class AudioCaptureOptions extends LocalTrackOptions {
+  /// Attempt to use noiseSuppression option (if supported by the platform)
+  /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/noiseSuppression
+  /// Defaults to true.
   final bool noiseSuppression;
+
+  /// Attempt to use echoCancellation option (if supported by the platform)
+  /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/echoCancellation
+  /// Defaults to true.
   final bool echoCancellation;
+
+  /// Attempt to use autoGainControl option (if supported by the platform)
+  /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/autoGainControl
+  /// Defaults to true.
   final bool autoGainControl;
+
+  /// Attempt to use highPassFilter options (if supported by the platform)
+  /// Defaults to false.
   final bool highPassFilter;
+
+  /// Attempt to use typingNoiseDetection option (if supported by the platform)
+  /// Defaults to true.
   final bool typingNoiseDetection;
 
   const AudioCaptureOptions({

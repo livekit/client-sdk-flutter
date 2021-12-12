@@ -1,5 +1,3 @@
-// added
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -88,7 +86,7 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
 //
 
 @internal
-class SignalConnectedEvent with SignalEvent {
+class SignalConnectedEvent with SignalEvent, InternalEvent {
   final lk_rtc.JoinResponse response;
   const SignalConnectedEvent({
     required this.response,
@@ -96,7 +94,7 @@ class SignalConnectedEvent with SignalEvent {
 }
 
 @internal
-class SignalCloseEvent with SignalEvent {
+class SignalCloseEvent with SignalEvent, InternalEvent {
   final CloseReason? reason;
   const SignalCloseEvent({
     this.reason,
@@ -104,7 +102,7 @@ class SignalCloseEvent with SignalEvent {
 }
 
 @internal
-class SignalOfferEvent with SignalEvent {
+class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalOfferEvent({
     required this.sd,
@@ -112,7 +110,7 @@ class SignalOfferEvent with SignalEvent {
 }
 
 @internal
-class SignalAnswerEvent with SignalEvent {
+class SignalAnswerEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalAnswerEvent({
     required this.sd,
@@ -120,7 +118,7 @@ class SignalAnswerEvent with SignalEvent {
 }
 
 @internal
-class SignalTrickleEvent with SignalEvent {
+class SignalTrickleEvent with SignalEvent, InternalEvent {
   final rtc.RTCIceCandidate candidate;
   final lk_rtc.SignalTarget target;
   const SignalTrickleEvent({
@@ -131,7 +129,8 @@ class SignalTrickleEvent with SignalEvent {
 
 @internal
 // relayed by Engine
-class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
+class SignalParticipantUpdateEvent
+    with SignalEvent, EngineEvent, InternalEvent {
   final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
     required this.participants,
@@ -139,7 +138,8 @@ class SignalParticipantUpdateEvent with SignalEvent, EngineEvent {
 }
 
 @internal
-class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
+class SignalConnectionQualityUpdateEvent
+    with SignalEvent, EngineEvent, InternalEvent {
   final List<lk_rtc.ConnectionQualityInfo> updates;
   const SignalConnectionQualityUpdateEvent({
     required this.updates,
@@ -147,7 +147,7 @@ class SignalConnectionQualityUpdateEvent with SignalEvent, EngineEvent {
 }
 
 @internal
-class SignalLocalTrackPublishedEvent with SignalEvent {
+class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
   final String cid;
   final lk_models.TrackInfo track;
   const SignalLocalTrackPublishedEvent({
@@ -159,7 +159,7 @@ class SignalLocalTrackPublishedEvent with SignalEvent {
 @internal
 // Speaker update received through websocket
 // relayed by Engine
-class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
+class SignalSpeakersChangedEvent with SignalEvent, EngineEvent, InternalEvent {
   final List<lk_models.SpeakerInfo> speakers;
   const SignalSpeakersChangedEvent({
     required this.speakers,
@@ -168,7 +168,7 @@ class SignalSpeakersChangedEvent with SignalEvent, EngineEvent {
 
 @internal
 // Event received through data channel
-class EngineActiveSpeakersUpdateEvent with EngineEvent {
+class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
   final List<lk_models.SpeakerInfo> speakers;
   const EngineActiveSpeakersUpdateEvent({
     required this.speakers,
@@ -176,7 +176,7 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent {
 }
 
 @internal
-class SignalLeaveEvent with SignalEvent {
+class SignalLeaveEvent with SignalEvent, InternalEvent {
   final bool canReconnect;
   const SignalLeaveEvent({
     required this.canReconnect,
@@ -184,7 +184,7 @@ class SignalLeaveEvent with SignalEvent {
 }
 
 @internal
-class SignalMuteTrackEvent with SignalEvent {
+class SignalMuteTrackEvent with SignalEvent, InternalEvent {
   final String sid;
   final bool muted;
   const SignalMuteTrackEvent({
@@ -194,9 +194,58 @@ class SignalMuteTrackEvent with SignalEvent {
 }
 
 @internal
-class SignalStreamStateUpdatedEvent with SignalEvent, EngineEvent {
+class SignalStreamStateUpdatedEvent
+    with SignalEvent, EngineEvent, InternalEvent {
   final List<lk_rtc.StreamStateInfo> updates;
   const SignalStreamStateUpdatedEvent({
     required this.updates,
+  });
+}
+
+// ----------------------------------------------------------------------
+// Engine events
+// ----------------------------------------------------------------------
+class EngineConnectedEvent with EngineEvent, InternalEvent {
+  const EngineConnectedEvent();
+}
+
+class EngineDisconnectedEvent with EngineEvent, InternalEvent {
+  const EngineDisconnectedEvent();
+}
+
+class EngineReconnectingEvent with EngineEvent, InternalEvent {
+  const EngineReconnectingEvent();
+}
+
+class EngineReconnectedEvent with EngineEvent, InternalEvent {
+  const EngineReconnectedEvent();
+}
+
+class EngineTrackAddedEvent with EngineEvent, InternalEvent {
+  final rtc.MediaStreamTrack track;
+  final rtc.MediaStream stream;
+  final rtc.RTCRtpReceiver? receiver;
+  const EngineTrackAddedEvent({
+    required this.track,
+    required this.stream,
+    required this.receiver,
+  });
+}
+
+class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.UserPacket packet;
+  final lk_models.DataPacket_Kind kind;
+  const EngineDataPacketReceivedEvent({
+    required this.packet,
+    required this.kind,
+  });
+}
+
+class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
+  final String sid;
+  final bool muted;
+  const EngineRemoteMuteChangedEvent({
+    required this.sid,
+    required this.muted,
   });
 }

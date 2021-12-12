@@ -85,7 +85,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return pub;
   }
 
-  /// Publish a video track to the room
+  /// Publish a [LocalVideoTrack] to the [Room].
+  /// For most cases, using [setCameraEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
@@ -174,7 +175,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return pub;
   }
 
-  /// Unpublish a track that's already published
+  /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
   @override
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
@@ -279,6 +280,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
+  /// This is the recommended method to publish tracks.
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
