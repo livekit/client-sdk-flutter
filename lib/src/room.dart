@@ -152,6 +152,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>(
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
+    ..on<SignalStreamStateUpdatedEvent>(
+        (event) => _onSignalStreamStateUpdateEvent(event.updates))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineRemoteMuteChangedEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
@@ -361,6 +363,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         // update the connection quality if the participant is found
         participant.updateConnectionQuality(entry.quality.toLKType());
       }
+    }
+  }
+
+  void _onSignalStreamStateUpdateEvent(
+      List<lk_rtc.StreamStateInfo> updates) async {
+    for (final update in updates) {
+      // try to find RemoteParticipant
+      final participant = participants[update.participantSid];
+      if (participant == null) continue;
+      // try to find RemoteTrackPublication
+      final trackPublication = participant.trackPublications[update.trackSid];
+      if (trackPublication == null) continue;
+      // update the stream state
+      await trackPublication.updateStreamState(update.state.toLKType());
     }
   }
 

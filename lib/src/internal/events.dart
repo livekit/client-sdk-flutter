@@ -66,14 +66,21 @@ class TrackVisibilityUpdatedEvent with TrackEvent, InternalEvent {
   });
 }
 
+// Used to notify muted state from Track to TrackPublication.
 @internal
-class TrackMuteUpdatedEvent with TrackEvent, InternalEvent {
+class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
   final Track track;
   final bool muted;
-  const TrackMuteUpdatedEvent({
+  final bool shouldSendSignal;
+  const InternalTrackMuteUpdatedEvent({
     required this.track,
     required this.muted,
+    required this.shouldSendSignal,
   });
+
+  @override
+  String toString() =>
+      'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
 }
 
 //
@@ -183,5 +190,13 @@ class SignalMuteTrackEvent with SignalEvent {
   const SignalMuteTrackEvent({
     required this.sid,
     required this.muted,
+  });
+}
+
+@internal
+class SignalStreamStateUpdatedEvent with SignalEvent, EngineEvent {
+  final List<lk_rtc.StreamStateInfo> updates;
+  const SignalStreamStateUpdatedEvent({
+    required this.updates,
   });
 }
