@@ -9,12 +9,22 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types.dart';
 import 'options.dart';
 import 'track.dart';
+import '../track/local/audio.dart';
+import '../track/local/video.dart';
+import '../track/remote/audio.dart';
+import '../track/remote/video.dart';
+import '../events.dart';
+import '../participant/remote_participant.dart';
 
+/// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {}
+
+/// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {}
 
+/// Base class for [LocalAudioTrack] and [LocalVideoTrack].
 abstract class LocalTrack extends Track {
-  // Options used for this track
+  /// Options used for this track
   abstract LocalTrackOptions currentOptions;
 
   LocalTrack(
@@ -31,8 +41,9 @@ abstract class LocalTrack extends Track {
           mediaStreamTrack,
         );
 
-  // Only local tracks can set muted.
-  // Returns true if muted, false if unchanged.
+  /// Mutes this [LocalTrack]. This will stop the sending of track data
+  /// and notify the [RemoteParticipant] with [TrackMutedEvent].
+  /// Returns true if muted, false if unchanged.
   Future<bool> mute() async {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return false; // already muted
@@ -44,7 +55,9 @@ abstract class LocalTrack extends Track {
     return true;
   }
 
-  // Returns true if unmuted, false if unchanged.
+  /// Un-mutes this [LocalTrack]. This will re-start the sending of track data
+  /// and notify the [RemoteParticipant] with [TrackUnmutedEvent].
+  /// Returns true if un-muted, false if unchanged.
   Future<bool> unmute() async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return false; // already un-muted
@@ -67,7 +80,7 @@ abstract class LocalTrack extends Track {
     return didStop;
   }
 
-  /// Creates a [rtc.MediaStream] from LocalTrackOptions.
+  /// Creates a [rtc.MediaStream] from [LocalTrackOptions].
   @internal
   static Future<rtc.MediaStream> createStream(
     LocalTrackOptions options,

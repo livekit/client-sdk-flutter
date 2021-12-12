@@ -74,7 +74,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (track == null) return;
 
     try {
-      final newPosition = position.swap();
+      final newPosition = position.switched();
       await track.setCameraPosition(newPosition);
       setState(() {
         position = newPosition;
