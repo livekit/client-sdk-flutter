@@ -1,12 +1,23 @@
 # CHANGELOG
 
+## 0.5.5
+
+* Default capture options for setCameraEnabled, setMicrophoneEnabled
+* Track stream update events
+* Room instance can be created without connecting
+* Release Camera/Mic when track is muted
+* Better type handling
+* Option to unpublish without stopping track
+* Fixed RemoteTrackPublication mute events
+* Initial Windows support
+
 ## 0.5.4
 
 * Screen sharing support for Android
 * Fixed TrackPublication/Track mute status
 * Fixed bug with updateTrack
 * Fixed being able to apply capture resolution constraints
-* initial macOS support
+* Initial macOS support
 
 ## 0.5.3
 
