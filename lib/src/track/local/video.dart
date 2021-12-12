@@ -12,7 +12,7 @@ import '../track.dart';
 class LocalVideoTrack extends LocalTrack with VideoTrack {
   // Options used for this track
   @override
-  covariant LocalVideoTrackOptions currentOptions;
+  covariant VideoCaptureOptions currentOptions;
 
   // Private constructor
   LocalVideoTrack._(
@@ -31,9 +31,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([
-    CameraTrackOptions? options,
+    CameraCaptureOptions? options,
   ]) async {
-    options ??= const CameraTrackOptions();
+    options ??= const CameraCaptureOptions();
+
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
       Track.cameraName,
@@ -49,9 +50,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   /// Note: Android requires a foreground service to be started prior to
   /// creating a screen track. Refer to the example app for an implementation.
   static Future<LocalVideoTrack> createScreenShareTrack([
-    ScreenShareTrackOptions? options,
+    ScreenShareCaptureOptions? options,
   ]) async {
-    options ??= const ScreenShareTrackOptions();
+    options ??= const ScreenShareCaptureOptions();
+
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
       Track.screenShareName,
@@ -70,7 +72,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   // Calls restartTrack under the hood
   Future<void> setCameraPosition(CameraPosition position) async {
     final options = currentOptions;
-    if (options is! CameraTrackOptions) {
+    if (options is! CameraCaptureOptions) {
       logger.warning('Not a camera track');
       return;
     }

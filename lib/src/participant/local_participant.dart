@@ -298,13 +298,16 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        final track = await LocalVideoTrack.createCameraTrack();
+        final track = await LocalVideoTrack.createCameraTrack(
+            room.roomOptions?.defaultCameraCaptureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        final track = await LocalAudioTrack.create();
+        final track = await LocalAudioTrack.create(
+            room.roomOptions?.defaultAudioCaptureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
-        final track = await LocalVideoTrack.createScreenShareTrack();
+        final track = await LocalVideoTrack.createScreenShareTrack(
+            room.roomOptions?.defaultScreenShareCaptureOptions);
         return await publishVideoTrack(track);
       }
     }

@@ -18,13 +18,17 @@ extension CameraPositionExt on CameraPosition {
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the camera.
-class CameraTrackOptions extends LocalVideoTrackOptions {
+class CameraCaptureOptions extends VideoCaptureOptions {
   final CameraPosition cameraPosition;
 
-  const CameraTrackOptions({
+  const CameraCaptureOptions({
     this.cameraPosition = CameraPosition.front,
     VideoParameters params = VideoParameters.presetQHD169,
   }) : super(params: params);
+
+  CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
+      : cameraPosition = CameraPosition.front,
+        super(params: captureOptions.params);
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
@@ -34,19 +38,24 @@ class CameraTrackOptions extends LocalVideoTrackOptions {
       };
 
   // Returns new options with updated properties
-  CameraTrackOptions copyWith({
+  CameraCaptureOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
   }) =>
-      CameraTrackOptions(
+      CameraCaptureOptions(
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
       );
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
-class ScreenShareTrackOptions extends LocalVideoTrackOptions {
-  const ScreenShareTrackOptions();
+class ScreenShareCaptureOptions extends VideoCaptureOptions {
+  const ScreenShareCaptureOptions({
+    VideoParameters params = VideoParameters.presetHD169,
+  }) : super(params: params);
+
+  ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
+      : super(params: captureOptions.params);
 }
 
 /// Base class for track options.
@@ -57,11 +66,11 @@ abstract class LocalTrackOptions {
 }
 
 /// Base class for options when creating a [LocalVideoTrack].
-abstract class LocalVideoTrackOptions extends LocalTrackOptions {
+abstract class VideoCaptureOptions extends LocalTrackOptions {
   // final LocalVideoTrackType type;
   final VideoParameters params;
 
-  const LocalVideoTrackOptions({
+  const VideoCaptureOptions({
     this.params = VideoParameters.presetQHD169,
   });
 
@@ -246,7 +255,7 @@ class VideoParameters {
 }
 
 /// Options used when creating a [LocalAudioTrack].
-class LocalAudioTrackOptions extends LocalTrackOptions {
+class AudioCaptureOptions extends LocalTrackOptions {
   /// Attempt to use noiseSuppression option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/noiseSuppression
   /// Defaults to true.
@@ -270,7 +279,7 @@ class LocalAudioTrackOptions extends LocalTrackOptions {
   /// Defaults to true.
   final bool typingNoiseDetection;
 
-  const LocalAudioTrackOptions({
+  const AudioCaptureOptions({
     this.noiseSuppression = true,
     this.echoCancellation = true,
     this.autoGainControl = true,

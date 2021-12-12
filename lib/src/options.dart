@@ -1,3 +1,5 @@
+import 'track/local/audio.dart';
+import 'track/local/video.dart';
 import 'track/options.dart';
 import 'track/track.dart';
 import 'publication/remote_track_publication.dart';
@@ -27,10 +29,19 @@ class ConnectOptions {
 /// Options used to modify the behavior of the [Room].
 /// {@category Room}
 class RoomOptions {
-  /// Default options used when publishing a video track.
+  /// Default options used for [LocalVideoTrack.createCameraTrack].
+  final CameraCaptureOptions defaultCameraCaptureOptions;
+
+  /// Default options used for [LocalVideoTrack.createScreenShareTrack].
+  final ScreenShareCaptureOptions defaultScreenShareCaptureOptions;
+
+  /// Default options used when capturing video for a [LocalAudioTrack].
+  final AudioCaptureOptions defaultAudioCaptureOptions;
+
+  /// Default options used when publishing a [LocalVideoTrack].
   final VideoPublishOptions defaultVideoPublishOptions;
 
-  /// Default options used when publishing a audio track.
+  /// Default options used when publishing a [LocalAudioTrack].
   final AudioPublishOptions defaultAudioPublishOptions;
 
   /// When this is turned on, the following optimizations will be made:
@@ -47,6 +58,9 @@ class RoomOptions {
   final bool stopLocalTrackOnUnpublish;
 
   const RoomOptions({
+    this.defaultCameraCaptureOptions = const CameraCaptureOptions(),
+    this.defaultScreenShareCaptureOptions = const ScreenShareCaptureOptions(),
+    this.defaultAudioCaptureOptions = const AudioCaptureOptions(),
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.optimizeVideo = true,
