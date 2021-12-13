@@ -112,12 +112,12 @@ extension VideoEncodingExt on VideoEncoding {
 }
 
 class VideoParameters {
-  final String description;
+  final String? description;
   final VideoDimensions dimensions;
   final VideoEncoding encoding;
 
   const VideoParameters({
-    required this.description,
+    this.description,
     required this.dimensions,
     required this.encoding,
   });
@@ -216,6 +216,51 @@ class VideoParameters {
     ),
   );
 
+  static const presetScreenShareVGA = VideoParameters(
+    description: 'ScreenShareVGA(640x360)',
+    dimensions: VideoDimensions(640, 360),
+    encoding: VideoEncoding(
+      maxBitrate: 200000,
+      maxFramerate: 3,
+    ),
+  );
+
+  static const presetScreenShareHD5 = VideoParameters(
+    description: 'ScreenShareHD5(1280x720)',
+    dimensions: VideoDimensions(1280, 720),
+    encoding: VideoEncoding(
+      maxBitrate: 400000,
+      maxFramerate: 5,
+    ),
+  );
+
+  static const presetScreenShareHD15 = VideoParameters(
+    description: 'ScreenShareHD15(1280x720)',
+    dimensions: VideoDimensions(1280, 720),
+    encoding: VideoEncoding(
+      maxBitrate: 1250000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetScreenShareFHD15 = VideoParameters(
+    description: 'ScreenShareFHD15(1920x1080)',
+    dimensions: VideoDimensions(1920, 1080),
+    encoding: VideoEncoding(
+      maxBitrate: 2000000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetScreenShareFHD30 = VideoParameters(
+    description: 'ScreenShareFHD30(1920x1080)',
+    dimensions: VideoDimensions(1920, 1080),
+    encoding: VideoEncoding(
+      maxBitrate: 4000000,
+      maxFramerate: 30,
+    ),
+  );
+
   static final List<VideoParameters> presets169 = [
     presetQVGA169,
     presetVGA169,
@@ -230,6 +275,14 @@ class VideoParameters {
     presetQHD43,
     presetHD43,
     presetFHD43,
+  ];
+
+  static final List<VideoParameters> presetsScreenShare = [
+    presetScreenShareVGA,
+    presetScreenShareHD5,
+    presetScreenShareHD15,
+    presetScreenShareFHD15,
+    presetScreenShareFHD30,
   ];
 
   //
