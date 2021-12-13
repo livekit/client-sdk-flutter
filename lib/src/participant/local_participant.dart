@@ -101,8 +101,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         publishOptions ?? room.roomOptions?.defaultVideoPublishOptions;
 
     // use constraints passed to getUserMedia by default
-    int width = track.currentOptions.params.width;
-    int height = track.currentOptions.params.height;
+    VideoDimensions dimensions = track.currentOptions.params.dimensions;
 
     if (kIsWeb) {
       // getSettings() is only implemented for Web
@@ -110,10 +109,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         // try to use getSettings for more accurate resolution
         final settings = track.mediaStreamTrack.getSettings();
         if (settings['width'] is int) {
-          width = settings['width'] as int;
+          dimensions = dimensions.copyWith(width: settings['width'] as int);
         }
         if (settings['height'] is int) {
-          height = settings['height'] as int;
+          dimensions = dimensions.copyWith(height: settings['height'] as int);
         }
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
@@ -125,7 +124,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       name: track.name,
       kind: track.kind,
       source: track.source.toPBType(),
-      dimension: TrackDimension(width, height),
+      dimensions: dimensions,
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
@@ -133,12 +132,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.start();
 
     logger.fine(
-        'Compute encodings with resolution: ${width}x${height}, options: ${publishOptions}');
+        'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
     // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
-      width: width,
-      height: height,
+      dimensions: dimensions,
       options: publishOptions,
     );
 

@@ -1,6 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import '../track/local/video.dart';
 import '../track/local/audio.dart';
+import '../types.dart';
 
 /// A type that represents front or back of the camera.
 enum CameraPosition {
@@ -112,14 +113,12 @@ extension VideoEncodingExt on VideoEncoding {
 
 class VideoParameters {
   final String description;
-  final int width;
-  final int height;
+  final VideoDimensions dimensions;
   final VideoEncoding encoding;
 
   const VideoParameters({
     required this.description,
-    required this.width,
-    required this.height,
+    required this.dimensions,
     required this.encoding,
   });
 
@@ -129,8 +128,7 @@ class VideoParameters {
 
   static const presetQVGA169 = VideoParameters(
     description: 'QVGA(320x180) 16:9',
-    width: 320,
-    height: 180,
+    dimensions: VideoDimensions(320, 180),
     encoding: VideoEncoding(
       maxBitrate: 125000,
       maxFramerate: 15,
@@ -139,8 +137,7 @@ class VideoParameters {
 
   static const presetVGA169 = VideoParameters(
     description: 'VGA(640x360) 16:9',
-    width: 640,
-    height: 360,
+    dimensions: VideoDimensions(640, 360),
     encoding: VideoEncoding(
       maxBitrate: 400000,
       maxFramerate: 30,
@@ -149,8 +146,7 @@ class VideoParameters {
 
   static const presetQHD169 = VideoParameters(
     description: 'QHD(960x540) 16:9',
-    width: 960,
-    height: 540,
+    dimensions: VideoDimensions(960, 540),
     encoding: VideoEncoding(
       maxBitrate: 800000,
       maxFramerate: 30,
@@ -159,8 +155,7 @@ class VideoParameters {
 
   static const presetHD169 = VideoParameters(
     description: 'HD(1280x720) 16:9',
-    width: 1280,
-    height: 720,
+    dimensions: VideoDimensions(1280, 720),
     encoding: VideoEncoding(
       maxBitrate: 2500000,
       maxFramerate: 30,
@@ -169,8 +164,7 @@ class VideoParameters {
 
   static const presetFHD169 = VideoParameters(
     description: 'FHD(1920x1080) 16:9',
-    width: 1920,
-    height: 1080,
+    dimensions: VideoDimensions(1920, 1080),
     encoding: VideoEncoding(
       maxBitrate: 4000000,
       maxFramerate: 30,
@@ -179,8 +173,7 @@ class VideoParameters {
 
   static const presetQVGA43 = VideoParameters(
     description: 'QVGA(240x180) 4:3',
-    width: 240,
-    height: 180,
+    dimensions: VideoDimensions(240, 180),
     encoding: VideoEncoding(
       maxBitrate: 100000,
       maxFramerate: 15,
@@ -189,8 +182,7 @@ class VideoParameters {
 
   static const presetVGA43 = VideoParameters(
     description: 'VGA(480x360) 4:3',
-    width: 480,
-    height: 360,
+    dimensions: VideoDimensions(480, 360),
     encoding: VideoEncoding(
       maxBitrate: 320000,
       maxFramerate: 30,
@@ -199,8 +191,7 @@ class VideoParameters {
 
   static const presetQHD43 = VideoParameters(
     description: 'QHD(720x540) 4:3',
-    width: 720,
-    height: 540,
+    dimensions: VideoDimensions(720, 540),
     encoding: VideoEncoding(
       maxBitrate: 640000,
       maxFramerate: 30,
@@ -209,8 +200,7 @@ class VideoParameters {
 
   static const presetHD43 = VideoParameters(
     description: 'HD(960x720) 4:3',
-    width: 960,
-    height: 720,
+    dimensions: VideoDimensions(960, 720),
     encoding: VideoEncoding(
       maxBitrate: 2000000,
       maxFramerate: 30,
@@ -219,8 +209,7 @@ class VideoParameters {
 
   static const presetFHD43 = VideoParameters(
     description: 'FHD(1440x1080) 4:3',
-    width: 1440,
-    height: 1080,
+    dimensions: VideoDimensions(1440, 1080),
     encoding: VideoEncoding(
       maxBitrate: 3200000,
       maxFramerate: 30,
@@ -248,8 +237,8 @@ class VideoParameters {
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
   //
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'width': width,
-        'height': height,
+        'width': dimensions.width,
+        'height': dimensions.height,
         'frameRate': encoding.maxFramerate,
       };
 }

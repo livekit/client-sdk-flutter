@@ -32,7 +32,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   bool get muted => track?.muted ?? false;
 
   bool simulcasted = false;
-  TrackDimension? dimension;
+  VideoDimensions? dimension;
 
   bool get subscribed => track != null;
 
@@ -52,7 +52,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   void updateFromInfo(lk_models.TrackInfo info) {
     simulcasted = info.simulcast;
     if (info.type == lk_models.TrackType.VIDEO) {
-      dimension = TrackDimension(info.width, info.height);
+      dimension = VideoDimensions(info.width, info.height);
     }
   }
 

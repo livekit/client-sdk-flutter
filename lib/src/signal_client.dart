@@ -148,7 +148,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required String name,
     required lk_models.TrackType type,
     required lk_models.TrackSource source,
-    TrackDimension? dimension,
+    VideoDimensions? dimensions,
     bool? dtx,
   }) {
     final req = lk_rtc.AddTrackRequest(
@@ -158,10 +158,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       source: source,
     );
 
-    if (type == lk_models.TrackType.VIDEO && dimension != null) {
+    if (type == lk_models.TrackType.VIDEO && dimensions != null) {
       // video specific
-      req.width = dimension.width;
-      req.height = dimension.height;
+      req.width = dimensions.width;
+      req.height = dimensions.height;
     }
 
     if (type == lk_models.TrackType.AUDIO && dtx != null) {
