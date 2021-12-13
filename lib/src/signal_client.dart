@@ -184,6 +184,17 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         subscription: subscription,
       ));
 
+  void sendUpdateVideoLayers(
+    String trackSid,
+    List<lk_models.VideoLayer> layers,
+  ) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        updateLayers: lk_rtc.UpdateVideoLayers(
+          trackSid: trackSid,
+          layers: layers,
+        ),
+      ));
+
   void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
         leave: lk_rtc.LeaveRequest(),
       ));
