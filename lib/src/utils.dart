@@ -94,8 +94,8 @@ class Utils {
 
   static final videoRids = ['q', 'h', 'f'];
 
-  static List<rtc.RTCRtpEncoding> encodingsFromPresets({
-    required VideoDimensions dimensions,
+  static List<rtc.RTCRtpEncoding> encodingsFromPresets(
+    VideoDimensions dimensions, {
     required List<VideoParameters> presets,
   }) {
     List<rtc.RTCRtpEncoding> result = [];
@@ -159,20 +159,18 @@ class Utils {
     );
 
     final size = dimensions.max();
+    List<VideoParameters> computedPresets = [original];
+
     if (size >= 960 && midPreset != null) {
-      return encodingsFromPresets(dimensions: dimensions, presets: [
-        lowPreset,
-        midPreset,
-        original,
-      ]);
+      computedPresets = [lowPreset, midPreset, original];
     } else if (size >= 500) {
-      return encodingsFromPresets(dimensions: dimensions, presets: [
-        lowPreset,
-        original,
-      ]);
+      computedPresets = [lowPreset, original];
     }
 
-    return encodingsFromPresets(dimensions: dimensions, presets: [original]);
+    return encodingsFromPresets(
+      dimensions,
+      presets: computedPresets,
+    );
   }
 
   static List<lk_models.VideoLayer> computeVideoLayers(
