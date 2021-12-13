@@ -45,6 +45,10 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   // data channels for packets
   rtc.RTCDataChannel? _reliableDC;
   rtc.RTCDataChannel? _lossyDC;
+  rtc.RTCDataChannelState get reliableDataChannelState =>
+      _reliableDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
+  rtc.RTCDataChannelState get lossyDataChannelState =>
+      _lossyDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
   bool _iceConnected = false;
 
   ConnectionState _connectionState = ConnectionState.disconnected;
@@ -185,17 +189,21 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     // make sure we do have a data connection
     await _ensurePublisherConnected();
 
-    final dcMessage =
+    // construct the data channel message
+    final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    if (packet.kind == lk_models.DataPacket_Kind.LOSSY && _lossyDC != null) {
-      logger.fine('Sending lossy data...');
-      await _lossyDC?.send(dcMessage);
-    } else if (packet.kind == lk_models.DataPacket_Kind.RELIABLE &&
-        _reliableDC != null) {
-      logger.fine('Sending reliable data...');
-      await _reliableDC?.send(dcMessage);
+    // chose data channel
+    final rtc.RTCDataChannel? channel =
+        packet.kind == lk_models.DataPacket_Kind.LOSSY ? _lossyDC : _reliableDC;
+
+    // send if channel exists
+    if (channel == null) {
+      throw UnexpectedStateException('Data channel is not ready');
     }
+
+    logger.fine('sendDataPacket(label:${channel.label})');
+    await channel.send(message);
   }
 
   Future<void> _ensurePublisherConnected() async {
@@ -405,6 +413,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       _lossyDC =
           await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
       _lossyDC?.onMessage = _onDCMessage;
+      _lossyDC?.stateChangeStream
+          .listen((state) => _onDCStateUpdated(Reliability.lossy, state));
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -416,6 +426,8 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       _reliableDC =
           await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
       _reliableDC?.onMessage = _onDCMessage;
+      _reliableDC?.stateChangeStream
+          .listen((state) => _onDCStateUpdated(Reliability.reliable, state));
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -427,16 +439,27 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Server opened DC label: ${dc.label}');
         _reliableDC = dc;
         _reliableDC?.onMessage = _onDCMessage;
+        _reliableDC?.stateChangeStream
+            .listen((state) => _onDCStateUpdated(Reliability.reliable, state));
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
         _lossyDC = dc;
         _lossyDC?.onMessage = _onDCMessage;
+        _lossyDC?.stateChangeStream
+            .listen((event) => _onDCStateUpdated(Reliability.lossy, event));
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
         break;
     }
+  }
+
+  void _onDCStateUpdated(
+    Reliability channel,
+    rtc.RTCDataChannelState state,
+  ) {
+    logger.fine('Data channel state updated ${channel} ${state}');
   }
 
   void _onDCMessage(rtc.RTCDataChannelMessage message) {
