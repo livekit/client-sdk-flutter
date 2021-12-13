@@ -147,7 +147,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required String name,
     required lk_models.TrackType kind,
     required lk_models.TrackSource source,
-    TrackDimension? dimension,
+    VideoDimensions? dimensions,
     bool? dtx,
     List<lk_models.VideoLayer>? videoLayers,
   }) async {
@@ -159,7 +159,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       name: name,
       type: kind,
       source: source,
-      dimension: dimension,
+      dimensions: dimensions,
       dtx: dtx,
       videoLayers: videoLayers,
     );

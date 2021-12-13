@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
+import 'dart:math' as math;
 
 typedef CancelListenFunc = Function();
 
@@ -134,12 +135,27 @@ class RTCIceServer {
 }
 
 @immutable
-class TrackDimension {
+class VideoDimensions {
   final int width;
   final int height;
 
-  const TrackDimension(
+  const VideoDimensions(
     this.width,
     this.height,
   );
+
+  @override
+  String toString() => 'VideoDimensions(${width}×${height})';
+
+  /// Returns the larger value
+  int max() => math.max(width, height);
+
+  VideoDimensions copyWith({
+    int? width,
+    int? height,
+  }) =>
+      VideoDimensions(
+        width ?? this.width,
+        height ?? this.height,
+      );
 }

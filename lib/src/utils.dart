@@ -6,6 +6,7 @@ import 'extensions.dart';
 import 'livekit.dart';
 import 'options.dart';
 import 'track/options.dart';
+import 'types.dart';
 
 extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
@@ -54,53 +55,49 @@ class Utils {
     );
   }
 
-  static List<VideoParameters> _presetsForResolution(
-    int width,
-    int height,
+  static List<VideoParameters> _presetsForDimensions(
+    VideoDimensions dimensions,
   ) {
-    final double aspect = width / height;
+    final double aspect = dimensions.width / dimensions.height;
     if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) {
       return VideoParameters.presets169;
     }
     return VideoParameters.presets43;
   }
 
-  static VideoParameters _findPresetForResolution(
-    int width,
-    int height, {
+  static VideoParameters _findPresetForDimensions(
+    VideoDimensions dimensions, {
     required List<VideoParameters> presets,
   }) {
     assert(presets.isNotEmpty, 'presets should not be empty');
     VideoParameters result = presets.first;
     for (final preset in presets) {
-      if (width >= preset.width && height >= preset.height) result = preset;
+      if (dimensions.width >= preset.dimensions.width &&
+          dimensions.height >= preset.dimensions.height) result = preset;
     }
 
     return result;
   }
 
   static List<rtc.RTCRtpEncoding>? computeVideoEncodings({
-    int? width,
-    int? height,
+    VideoDimensions? dimensions,
     VideoPublishOptions? options,
   }) {
     options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
 
-    if ((videoEncoding == null && !options.simulcast) ||
-        width == null ||
-        height == null) {
+    if ((videoEncoding == null && !options.simulcast) || dimensions == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return null;
     }
 
-    final presets = _presetsForResolution(width, height);
+    final presets = _presetsForDimensions(dimensions);
 
     if (videoEncoding == null) {
       // find the right encoding based on width/height
-      final preset = _findPresetForResolution(width, height, presets: presets);
+      final preset = _findPresetForDimensions(dimensions, presets: presets);
       // print('Using preset: ${preset.id}');
       videoEncoding = preset.encoding;
       //   log.debug('using video encoding', videoEncoding);
@@ -118,7 +115,7 @@ class Utils {
       ),
       // if resolution is high enough, we would send both h and q res..
       // otherwise only send h
-      if (width >= 960) ...[
+      if (dimensions.max() >= 960) ...[
         midPreset.encoding.toRTCRtpEncoding(
           rid: 'h',
           // passing decimals to hardware encoder of android devices

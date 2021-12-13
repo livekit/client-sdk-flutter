@@ -148,7 +148,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required String name,
     required lk_models.TrackType type,
     required lk_models.TrackSource source,
-    TrackDimension? dimension,
+    VideoDimensions? dimensions,
     bool? dtx,
     List<lk_models.VideoLayer>? videoLayers,
   }) {
@@ -161,9 +161,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     if (type == lk_models.TrackType.VIDEO) {
       // video specific
-      if (dimension != null) {
-        req.width = dimension.width;
-        req.height = dimension.height;
+      if (dimensions != null) {
+        req.width = dimensions.width;
+        req.height = dimensions.height;
       }
       if (videoLayers != null && videoLayers.isNotEmpty) {
         req.layers
