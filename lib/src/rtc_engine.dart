@@ -149,6 +149,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     required lk_models.TrackSource source,
     TrackDimension? dimension,
     bool? dtx,
+    List<lk_models.VideoLayer>? videoLayers,
   }) async {
     // TODO: Check if cid already published
 
@@ -160,6 +161,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
       source: source,
       dimension: dimension,
       dtx: dtx,
+      videoLayers: videoLayers,
     );
 
     // wait for response, or timeout

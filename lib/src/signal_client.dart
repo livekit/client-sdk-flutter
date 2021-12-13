@@ -150,6 +150,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required lk_models.TrackSource source,
     TrackDimension? dimension,
     bool? dtx,
+    List<lk_models.VideoLayer>? videoLayers,
   }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
@@ -158,10 +159,17 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       source: source,
     );
 
-    if (type == lk_models.TrackType.VIDEO && dimension != null) {
+    if (type == lk_models.TrackType.VIDEO) {
       // video specific
-      req.width = dimension.width;
-      req.height = dimension.height;
+      if (dimension != null) {
+        req.width = dimension.width;
+        req.height = dimension.height;
+      }
+      if (videoLayers != null && videoLayers.isNotEmpty) {
+        req.layers
+          ..clear()
+          ..addAll(videoLayers);
+      }
     }
 
     if (type == lk_models.TrackType.AUDIO && dtx != null) {
