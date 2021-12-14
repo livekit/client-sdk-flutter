@@ -130,8 +130,8 @@ class VideoParameters {
     description: 'QVGA(320x180) 16:9',
     dimensions: VideoDimensions(320, 180),
     encoding: VideoEncoding(
-      maxBitrate: 125000,
-      maxFramerate: 15,
+      maxBitrate: 120000,
+      maxFramerate: 10,
     ),
   );
 
@@ -139,8 +139,8 @@ class VideoParameters {
     description: 'VGA(640x360) 16:9',
     dimensions: VideoDimensions(640, 360),
     encoding: VideoEncoding(
-      maxBitrate: 400000,
-      maxFramerate: 30,
+      maxBitrate: 300000,
+      maxFramerate: 20,
     ),
   );
 
@@ -148,8 +148,8 @@ class VideoParameters {
     description: 'QHD(960x540) 16:9',
     dimensions: VideoDimensions(960, 540),
     encoding: VideoEncoding(
-      maxBitrate: 800000,
-      maxFramerate: 30,
+      maxBitrate: 600000,
+      maxFramerate: 25,
     ),
   );
 
@@ -157,7 +157,7 @@ class VideoParameters {
     description: 'HD(1280x720) 16:9',
     dimensions: VideoDimensions(1280, 720),
     encoding: VideoEncoding(
-      maxBitrate: 2500000,
+      maxBitrate: 2000000,
       maxFramerate: 30,
     ),
   );
@@ -166,7 +166,7 @@ class VideoParameters {
     description: 'FHD(1920x1080) 16:9',
     dimensions: VideoDimensions(1920, 1080),
     encoding: VideoEncoding(
-      maxBitrate: 4000000,
+      maxBitrate: 3000000,
       maxFramerate: 30,
     ),
   );
@@ -175,8 +175,8 @@ class VideoParameters {
     description: 'QVGA(240x180) 4:3',
     dimensions: VideoDimensions(240, 180),
     encoding: VideoEncoding(
-      maxBitrate: 100000,
-      maxFramerate: 15,
+      maxBitrate: 90000,
+      maxFramerate: 10,
     ),
   );
 
@@ -184,8 +184,8 @@ class VideoParameters {
     description: 'VGA(480x360) 4:3',
     dimensions: VideoDimensions(480, 360),
     encoding: VideoEncoding(
-      maxBitrate: 320000,
-      maxFramerate: 30,
+      maxBitrate: 225000,
+      maxFramerate: 20,
     ),
   );
 
@@ -193,8 +193,8 @@ class VideoParameters {
     description: 'QHD(720x540) 4:3',
     dimensions: VideoDimensions(720, 540),
     encoding: VideoEncoding(
-      maxBitrate: 640000,
-      maxFramerate: 30,
+      maxBitrate: 450000,
+      maxFramerate: 25,
     ),
   );
 
@@ -202,7 +202,7 @@ class VideoParameters {
     description: 'HD(960x720) 4:3',
     dimensions: VideoDimensions(960, 720),
     encoding: VideoEncoding(
-      maxBitrate: 2000000,
+      maxBitrate: 1500000,
       maxFramerate: 30,
     ),
   );
@@ -211,7 +211,7 @@ class VideoParameters {
     description: 'FHD(1440x1080) 4:3',
     dimensions: VideoDimensions(1440, 1080),
     encoding: VideoEncoding(
-      maxBitrate: 3200000,
+      maxBitrate: 2800000,
       maxFramerate: 30,
     ),
   );
@@ -238,7 +238,7 @@ class VideoParameters {
     description: 'ScreenShareHD15(1280x720)',
     dimensions: VideoDimensions(1280, 720),
     encoding: VideoEncoding(
-      maxBitrate: 1250000,
+      maxBitrate: 1000000,
       maxFramerate: 15,
     ),
   );
@@ -247,7 +247,7 @@ class VideoParameters {
     description: 'ScreenShareFHD15(1920x1080)',
     dimensions: VideoDimensions(1920, 1080),
     encoding: VideoEncoding(
-      maxBitrate: 2000000,
+      maxBitrate: 1500000,
       maxFramerate: 15,
     ),
   );
@@ -256,7 +256,7 @@ class VideoParameters {
     description: 'ScreenShareFHD30(1920x1080)',
     dimensions: VideoDimensions(1920, 1080),
     encoding: VideoEncoding(
-      maxBitrate: 4000000,
+      maxBitrate: 3000000,
       maxFramerate: 30,
     ),
   );
