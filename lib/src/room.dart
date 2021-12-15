@@ -114,12 +114,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     logger.fine('Waiting to engine connect...');
 
-    // wait until engine is connected
-    await _engineListener.waitFor<EngineConnectedEvent>(
-      duration: Timeouts.connection,
-      onTimeout: () => throw ConnectException(),
-    );
-
     localParticipant = LocalParticipant(
       room: this,
       info: joinResponse.participant,
@@ -132,6 +126,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           'DEBUG_01 Existing Participant: ${info.sid}(${info.identity}) tracks:${info.tracks.map((e) => e.sid)}');
       _getOrCreateRemoteParticipant(info.sid, info);
     }
+
+    // wait until engine is connected
+    await _engineListener.waitFor<EngineConnectedEvent>(
+      duration: Timeouts.connection,
+      onTimeout: () => throw ConnectException(),
+    );
   }
 
   void _setUpListeners() => _engineListener
