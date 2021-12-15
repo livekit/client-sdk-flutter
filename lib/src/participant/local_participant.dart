@@ -119,28 +119,34 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
     }
 
+    logger.fine(
+        'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
+
+    // Video encodings and simulcasts
+    final encodings = Utils.computeVideoEncodings(
+      isScreenShare: track.source == TrackSource.screenShareVideo,
+      dimensions: dimensions,
+      options: publishOptions,
+    );
+
+    logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
+
+    final layers = Utils.computeVideoLayers(dimensions, encodings);
+
+    logger.fine('Video layers: ${layers.map((e) => e)}');
+
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
       source: track.source.toPBType(),
       dimensions: dimensions,
+      videoLayers: layers,
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 
     await track.start();
-
-    logger.fine(
-        'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
-
-    // Video encodings and simulcasts
-    final encodings = Utils.computeVideoEncodings(
-      dimensions: dimensions,
-      options: publishOptions,
-    );
-
-    logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
