@@ -1,4 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import '../participant/remote_participant.dart';
+import '../publication/remote_track_publication.dart';
 import 'package:meta/meta.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -247,5 +249,16 @@ class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
   const EngineRemoteMuteChangedEvent({
     required this.sid,
     required this.muted,
+  });
+}
+
+// Always emitted regardless of the participant existed or not.
+@internal
+class InternalTrackPublishedEvent with RoomEvent, ParticipantEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
+  const InternalTrackPublishedEvent({
+    required this.participant,
+    required this.publication,
   });
 }
