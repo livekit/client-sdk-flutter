@@ -1,8 +1,4 @@
-// import 'package:audio_session/audio_session.dart' as _as;
-
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
+import '../support/platform.dart';
 
 import 'package:synchronized/synchronized.dart' as sync;
 
@@ -78,7 +74,7 @@ mixin AudioManagementMixin on AudioTrack {
       logger.fine('[$runtimeType] didUpdateSate: $audioTrackState');
 
       NativeAudioConfiguration? config;
-      if (!kIsWeb && Platform.isIOS) {
+      if (!lkPlatformIs(PlatformType.iOS)) {
         // Only iOS for now...
         config = await nativeAudioConfigurationForAudioTrackState
             .call(audioTrackState);
