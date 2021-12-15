@@ -125,7 +125,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       info: joinResponse.participant,
     );
 
+    logger.fine('DEBUG_01 Did connect');
+
     for (final info in joinResponse.otherParticipants) {
+      logger.fine(
+          'DEBUG_01 Existing Participant: ${info.sid}(${info.identity}) tracks:${info.tracks.map((e) => e.sid)}');
       _getOrCreateRemoteParticipant(info.sid, info);
     }
   }
@@ -164,6 +168,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     })
     ..on<EngineTrackAddedEvent>((event) async {
+      logger.fine('DEBUG_01 EngineTrackAddedEvent id:${event.track.id}');
+
       final idParts = event.stream.id.split('|');
       final participantSid = idParts[0];
       final trackSid = idParts.elementAtOrNull(1) ?? event.track.id;
@@ -181,7 +187,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           trackSid,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
-        logger.warning('addSubscribedMediaTrack() throwed ${event}');
+        logger.severe('addSubscribedMediaTrack() throwed ${event}');
         [participant.room.events, participant.events].emit(event);
       } catch (exception) {
         // We don't want to pass up any exception so catch everything here.
@@ -210,6 +216,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     if (info == null) {
+      logger.warning('DEBUG_01 RemoteParticipant.info is null... sid:$sid');
       participant = RemoteParticipant(
         room: this,
         sid: sid,
@@ -219,7 +226,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       participant = RemoteParticipant.fromInfo(
         room: this,
         info: info,
-        roomEvents: events,
       );
     }
 

@@ -47,7 +47,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   RemoteParticipant.fromInfo({
     required Room room,
     required lk_models.ParticipantInfo info,
-    required EventsEmitter<RoomEvent> roomEvents,
   }) : super(
           room: room,
           sid: info.sid,
@@ -75,6 +74,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     RemoteTrackPublication? pub = getTrackPublication(trackSid);
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
+      logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
       // Wait for the metadata to arrive
       final event = await events.waitFor<TrackPublishedEvent>(
         filter: (event) =>
@@ -128,6 +128,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @override
   @internal
   Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
+    logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
     final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
