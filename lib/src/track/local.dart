@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import '../support/platform.dart';
 import 'package:meta/meta.dart';
 
 import '../exceptions.dart';
@@ -48,7 +47,7 @@ abstract class LocalTrack extends Track {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return false; // already muted
     await disable();
-    if (!Platform.isWindows) {
+    if (!lkPlatformIs(PlatformType.windows)) {
       await stop();
     }
     updateMuted(true, shouldSendSignal: true);
@@ -61,7 +60,7 @@ abstract class LocalTrack extends Track {
   Future<bool> unmute() async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return false; // already un-muted
-    if (!Platform.isWindows) {
+    if (!lkPlatformIs(PlatformType.windows)) {
       await restartTrack();
     }
     await enable();
@@ -74,8 +73,16 @@ abstract class LocalTrack extends Track {
     final didStop = await super.stop();
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
-      await mediaStreamTrack.stop();
-      await mediaStream.dispose();
+      try {
+        await mediaStreamTrack.stop();
+      } catch (error) {
+        logger.severe('MediaStreamTrack.stop() did throw $error');
+      }
+      try {
+        await mediaStream.dispose();
+      } catch (error) {
+        logger.severe('MediaStreamTrack.dispose() did throw $error');
+      }
     }
     return didStop;
   }
@@ -131,7 +138,11 @@ abstract class LocalTrack extends Track {
     final newTrack = newStream.getTracks().first;
 
     // replace track on sender
-    await sender?.replaceTrack(newTrack);
+    try {
+      await sender?.replaceTrack(newTrack);
+    } catch (error) {
+      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
+    }
 
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);

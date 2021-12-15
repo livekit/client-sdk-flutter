@@ -1,4 +1,4 @@
-import 'platforms/io.dart' if (dart.library.html) 'platforms/web.dart';
+import 'websocket/io.dart' if (dart.library.html) 'websocket/web.dart';
 
 class WebSocketException implements Exception {
   final int code;
