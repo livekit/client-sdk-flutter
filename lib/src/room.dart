@@ -123,7 +123,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       final isNew = !_participants.containsKey(info.sid);
       final participant = _getOrCreateRemoteParticipant(info.sid, info);
       if (!isNew) {
-        participant.hasInfo;
         // update participant in cases where track arrived first and participant was already created.
         await participant.updateFromInfo(info);
       }
