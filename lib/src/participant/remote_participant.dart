@@ -6,7 +6,6 @@ import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/remote_track_publication.dart';
 import '../room.dart';

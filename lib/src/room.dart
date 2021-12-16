@@ -112,6 +112,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     logger.fine(
         'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
+    localParticipant = LocalParticipant(
+      room: this,
+      info: joinResponse.participant,
+    );
+
+    for (final info in joinResponse.otherParticipants) {
+      logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
+          'tracks:${info.tracks.map((e) => e.sid)}');
+      _getOrCreateRemoteParticipant(info.sid, info);
+    }
+
     logger.fine('Waiting to engine connect...');
 
     // wait until engine is connected
@@ -120,18 +131,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       onTimeout: () => throw ConnectException(),
     );
 
-    localParticipant = LocalParticipant(
-      room: this,
-      info: joinResponse.participant,
-    );
-
-    logger.fine('DEBUG_01 Did connect');
-
-    for (final info in joinResponse.otherParticipants) {
-      logger.fine(
-          'DEBUG_01 Existing Participant: ${info.sid}(${info.identity}) tracks:${info.tracks.map((e) => e.sid)}');
-      _getOrCreateRemoteParticipant(info.sid, info);
-    }
+    logger.fine('Room Connect completed');
   }
 
   void _setUpListeners() => _engineListener
@@ -168,7 +168,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     })
     ..on<EngineTrackAddedEvent>((event) async {
-      logger.fine('DEBUG_01 EngineTrackAddedEvent id:${event.track.id}');
+      logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
       final idParts = event.stream.id.split('|');
       final participantSid = idParts[0];
@@ -216,7 +216,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     if (info == null) {
-      logger.warning('DEBUG_01 RemoteParticipant.info is null... sid:$sid');
+      logger.warning('RemoteParticipant.info is null trackSid: $sid');
       participant = RemoteParticipant(
         room: this,
         sid: sid,
