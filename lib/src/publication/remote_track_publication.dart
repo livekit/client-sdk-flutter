@@ -50,7 +50,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
   StreamState get streamState => _streamState;
 
   // latest TrackInfo
-  lk_models.TrackInfo? _trackInfo;
+  bool _metadataMuted = false;
 
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
@@ -101,7 +101,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
         'RemoteTrackPublication.updateFromInfo sid: ${info.sid} muted: ${info.muted}');
     super.updateFromInfo(info);
     track?.updateMuted(info.muted);
-    _trackInfo = info;
+    _metadataMuted = info.muted;
   }
 
   // called any time visibility info updates
@@ -185,12 +185,10 @@ class RemoteTrackPublication<T extends RemoteTrack>
     if (didUpdate && newValue != null) {
       // if new Track has been set to this RemoteTrackPublication,
       // update the Track's muted state from the latest info.
-      if (_trackInfo != null) {
-        newValue.updateMuted(
-          _trackInfo!.muted,
-          shouldNotify: false, // don't emit event since this is initial state
-        );
-      }
+      newValue.updateMuted(
+        _metadataMuted,
+        shouldNotify: false, // don't emit event since this is initial state
+      );
 
       // Only listen for visibility updates if video optimization is on
       // and the attached track is a video track
