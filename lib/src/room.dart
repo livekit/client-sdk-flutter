@@ -120,12 +120,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     for (final info in joinResponse.otherParticipants) {
       logger.fine('DEBUG_01 participant: ${info.sid}(${info.identity}) '
           'tracks:${info.tracks.map((e) => e.sid)}');
-      final isNew = !_participants.containsKey(info.sid);
-      final participant = _getOrCreateRemoteParticipant(info.sid, info);
-      if (!isNew) {
-        // update participant in cases where track arrived first and participant was already created.
-        await participant.updateFromInfo(info);
-      }
+      _getOrCreateRemoteParticipant(info.sid, info);
     }
 
     logger.fine('Waiting to engine connect...');

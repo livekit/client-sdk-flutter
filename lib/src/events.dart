@@ -1,4 +1,3 @@
-import 'internal/events.dart';
 import 'participant/local_participant.dart';
 import 'participant/participant.dart';
 import 'participant/remote_participant.dart';
@@ -79,14 +78,13 @@ class ActiveSpeakersChangedEvent with RoomEvent {
 /// When a new [Track] is published to [Room] *after* the current participant has
 /// joined. It will not fire for tracks that are already published.
 /// Emitted by [Room] and [RemoteParticipant].
-class TrackPublishedEvent extends InternalTrackPublishedEvent {
+class TrackPublishedEvent with RoomEvent, ParticipantEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
   const TrackPublishedEvent({
-    required RemoteParticipant participant,
-    required RemoteTrackPublication publication,
-  }) : super(
-          participant: participant,
-          publication: publication,
-        );
+    required this.participant,
+    required this.publication,
+  });
 }
 
 /// The participant has unpublished one of their [Track].

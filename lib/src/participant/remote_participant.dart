@@ -1,5 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import '../internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -76,7 +75,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
       // Wait for the metadata to arrive
-      final event = await events.waitFor<InternalTrackPublishedEvent>(
+      final event = await events.waitFor<TrackPublishedEvent>(
         filter: (event) =>
             event.participant == this && event.publication.sid == trackSid,
         duration: Timeouts.publish,
@@ -159,20 +158,17 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
-    for (final pub in newPubs) {
-      // notify listeners when it's not a new participant (TrackPublishedEvent)
-      // otherwise emit InternalTrackPublishedEvent so addSubscribedMediaTrack
-      // can continue.
-      final event = hadInfo
-          ? TrackPublishedEvent(
-              participant: this,
-              publication: pub,
-            )
-          : InternalTrackPublishedEvent(
-              participant: this,
-              publication: pub,
-            );
-      [events, room.events].emit(event);
+    if (hadInfo) {
+      for (final pub in newPubs) {
+        // notify listeners when it's not a new participant (TrackPublishedEvent)
+        // otherwise emit InternalTrackPublishedEvent so addSubscribedMediaTrack
+        // can continue.
+        final event = TrackPublishedEvent(
+          participant: this,
+          publication: pub,
+        );
+        [events, room.events].emit(event);
+      }
     }
 
     // unpublish any track that is not in the info
