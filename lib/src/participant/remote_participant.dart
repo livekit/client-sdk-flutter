@@ -158,11 +158,9 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
+    // notify listeners when it's not a new participant
     if (hadInfo) {
       for (final pub in newPubs) {
-        // notify listeners when it's not a new participant (TrackPublishedEvent)
-        // otherwise emit InternalTrackPublishedEvent so addSubscribedMediaTrack
-        // can continue.
         final event = TrackPublishedEvent(
           participant: this,
           publication: pub,
