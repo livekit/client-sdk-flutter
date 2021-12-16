@@ -118,7 +118,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     for (final info in joinResponse.otherParticipants) {
-      logger.fine('DEBUG_01 participant: ${info.sid}(${info.identity}) '
+      logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
           'tracks:${info.tracks.map((e) => e.sid)}');
       _getOrCreateRemoteParticipant(info.sid, info);
     }
@@ -131,7 +131,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       onTimeout: () => throw ConnectException(),
     );
 
-    logger.fine('DEBUG_01 Connect complete');
+    logger.fine('Room Connect completed');
   }
 
   void _setUpListeners() => _engineListener
@@ -168,7 +168,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     })
     ..on<EngineTrackAddedEvent>((event) async {
-      logger.fine('DEBUG_01 EngineTrackAddedEvent id:${event.track.id}');
+      logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
       final idParts = event.stream.id.split('|');
       final participantSid = idParts[0];
@@ -216,7 +216,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     if (info == null) {
-      logger.warning('DEBUG_01 RemoteParticipant.info is null... sid:$sid');
+      logger.warning('RemoteParticipant.info is null trackSid: $sid');
       participant = RemoteParticipant(
         room: this,
         sid: sid,
