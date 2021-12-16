@@ -49,6 +49,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
   /// relevant event.
   StreamState get streamState => _streamState;
 
+  // latest TrackInfo
+  lk_models.TrackInfo? _trackInfo;
+
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
     // return if no change
@@ -73,6 +76,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
     required lk_models.TrackInfo info,
     T? track,
   }) : super(info: info) {
+    logger.fine('RemoteTrackPublication.init track: $track, info: $info');
+
     // register dispose func
     onDispose(() async {
       _cancelVisibilityDebounceFunc?.call();
@@ -92,8 +97,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
   @internal
   @override
   void updateFromInfo(lk_models.TrackInfo info) {
+    logger.fine(
+        'RemoteTrackPublication.updateFromInfo sid: ${info.sid} muted: ${info.muted}');
     super.updateFromInfo(info);
     track?.updateMuted(info.muted);
+    _trackInfo = info;
   }
 
   // called any time visibility info updates
@@ -169,29 +177,37 @@ class RemoteTrackPublication<T extends RemoteTrack>
   @internal
   @override
   Future<bool> updateTrack(covariant T? newValue) async {
+    logger.fine('RemoteTrackPublication.updateTrack track: $newValue');
     final didUpdate = await super.updateTrack(newValue);
 
-    // Only listen for visibility updates if video optimization is on
-    // and the attached track is a video track
     final roomOptions = participant.room.roomOptions ?? const RoomOptions();
-    //
-    if (didUpdate &&
-        newValue != null &&
-        roomOptions.optimizeVideo &&
-        newValue.kind == lk_models.TrackType.VIDEO) {
-      //
-      // Attach visibility event listener (if video track)
-      //
-      final listener = newValue.createListener();
-      listener.on<TrackVisibilityUpdatedEvent>(
-          _onVideoRendererVisibilityUpdateEvent);
-      //
-      newValue.onDispose(() async {
-        await listener.dispose();
-        // consider all views are disposed when track is null
-        _visibilities.clear();
-        if (!isDisposed) _visibilityDidUpdate?.call(null);
-      });
+
+    if (didUpdate && newValue != null) {
+      // if new Track has been set to this RemoteTrackPublication,
+      // update the Track's muted state from the latest info.
+      if (_trackInfo != null) {
+        newValue.updateMuted(
+          _trackInfo!.muted,
+          shouldNotify: false, // don't emit event since this is initial state
+        );
+      }
+
+      // Only listen for visibility updates if video optimization is on
+      // and the attached track is a video track
+      if (roomOptions.optimizeVideo &&
+          newValue.kind == lk_models.TrackType.VIDEO) {
+        // Attach visibility event listener
+        final listener = newValue.createListener();
+        listener.on<TrackVisibilityUpdatedEvent>(
+            _onVideoRendererVisibilityUpdateEvent);
+
+        newValue.onDispose(() async {
+          await listener.dispose();
+          // consider all views are disposed when track is null
+          _visibilities.clear();
+          if (!isDisposed) _visibilityDidUpdate?.call(null);
+        });
+      }
     }
 
     return didUpdate;

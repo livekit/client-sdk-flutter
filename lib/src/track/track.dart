@@ -139,14 +139,20 @@ abstract class Track extends DisposableChangeNotifier
   }
 
   @internal
-  void updateMuted(bool muted, {bool shouldSendSignal = false}) {
+  void updateMuted(
+    bool muted, {
+    bool shouldNotify = true,
+    bool shouldSendSignal = false,
+  }) {
     if (_muted == muted) return;
     _muted = muted;
-    events.emit(InternalTrackMuteUpdatedEvent(
-      track: this,
-      muted: muted,
-      shouldSendSignal: shouldSendSignal,
-    ));
+    if (shouldNotify) {
+      events.emit(InternalTrackMuteUpdatedEvent(
+        track: this,
+        muted: muted,
+        shouldSendSignal: shouldSendSignal,
+      ));
+    }
   }
 
   @internal
