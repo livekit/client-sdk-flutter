@@ -112,24 +112,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     logger.fine(
         'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
 
-    logger.fine('Waiting to engine connect...');
-
-    // wait until engine is connected
-    await _engineListener.waitFor<EngineConnectedEvent>(
-      duration: Timeouts.connection,
-      onTimeout: () => throw ConnectException(),
-    );
-
     localParticipant = LocalParticipant(
       room: this,
       info: joinResponse.participant,
     );
 
-    // logger.fine('DEBUG_01 Did connect');
-
     for (final info in joinResponse.otherParticipants) {
-      logger.fine(
-          'DEBUG_01 Existing Participant: ${info.sid}(${info.identity}) tracks:${info.tracks.map((e) => e.sid)}');
+      logger.fine('DEBUG_01 participant: ${info.sid}(${info.identity}) '
+          'tracks:${info.tracks.map((e) => e.sid)}');
       final isNew = !_participants.containsKey(info.sid);
       final participant = _getOrCreateRemoteParticipant(info.sid, info);
       if (!isNew) {
@@ -138,6 +128,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         await participant.updateFromInfo(info);
       }
     }
+
+    logger.fine('Waiting to engine connect...');
+
+    // wait until engine is connected
+    await _engineListener.waitFor<EngineConnectedEvent>(
+      duration: Timeouts.connection,
+      onTimeout: () => throw ConnectException(),
+    );
+
     logger.fine('DEBUG_01 Connect complete');
   }
 
