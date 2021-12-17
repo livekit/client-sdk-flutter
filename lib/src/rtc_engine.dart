@@ -45,8 +45,12 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   // data channels for packets
   rtc.RTCDataChannel? _reliableDC;
   rtc.RTCDataChannel? _lossyDC;
+  rtc.RTCDataChannel? _reliableDCSub;
+  rtc.RTCDataChannel? _lossyDCSub;
+
   rtc.RTCDataChannelState get reliableDataChannelState =>
       _reliableDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
+
   rtc.RTCDataChannelState get lossyDataChannelState =>
       _lossyDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
   bool _iceConnected = false;
@@ -65,6 +69,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
   String? token;
 
   bool _subscriberPrimary = false;
+
   // server-provided ice servers
   List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
 
@@ -439,16 +444,16 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
     switch (dc.label) {
       case _reliableDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
-        _reliableDC = dc;
-        _reliableDC?.onMessage = _onDCMessage;
-        _reliableDC?.stateChangeStream
+        _reliableDCSub = dc;
+        _reliableDCSub?.onMessage = _onDCMessage;
+        _reliableDCSub?.stateChangeStream
             .listen((state) => _onDCStateUpdated(Reliability.reliable, state));
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
-        _lossyDC = dc;
-        _lossyDC?.onMessage = _onDCMessage;
-        _lossyDC?.stateChangeStream
+        _lossyDCSub = dc;
+        _lossyDCSub?.onMessage = _onDCMessage;
+        _lossyDCSub?.stateChangeStream
             .listen((event) => _onDCStateUpdated(Reliability.lossy, event));
         break;
       default:
