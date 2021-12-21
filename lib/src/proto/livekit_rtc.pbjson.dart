@@ -5,8 +5,8 @@
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
-import 'dart:convert' as $convert;
 import 'dart:core' as $core;
+import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use signalTargetDescriptor instead')
@@ -239,6 +239,15 @@ const SignalResponse$json = const {
       '9': 0,
       '10': 'streamStateUpdate'
     },
+    const {
+      '1': 'subscribed_quality_update',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscribedQualityUpdate',
+      '9': 0,
+      '10': 'subscribedQualityUpdate'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -247,7 +256,7 @@ const SignalResponse$json = const {
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
-    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZUIJCgdtZXNzYWdl');
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZRJeChlzdWJzY3JpYmVkX3F1YWxpdHlfdXBkYXRlGA4gASgLMiAubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUIJCgdtZXNzYWdl');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -564,12 +573,13 @@ const ConnectionQualityInfo$json = const {
       '6': '.livekit.ConnectionQuality',
       '10': 'quality'
     },
+    const {'1': 'score', '3': 3, '4': 1, '5': 2, '10': 'score'},
   ],
 };
 
 /// Descriptor for `ConnectionQualityInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List connectionQualityInfoDescriptor = $convert.base64Decode(
-    'ChVDb25uZWN0aW9uUXVhbGl0eUluZm8SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBI0CgdxdWFsaXR5GAIgASgOMhoubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVIHcXVhbGl0eQ==');
+    'ChVDb25uZWN0aW9uUXVhbGl0eUluZm8SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBI0CgdxdWFsaXR5GAIgASgOMhoubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVIHcXVhbGl0eRIUCgVzY29yZRgDIAEoAlIFc2NvcmU=');
 @$core.Deprecated('Use connectionQualityUpdateDescriptor instead')
 const ConnectionQualityUpdate$json = const {
   '1': 'ConnectionQualityUpdate',
@@ -633,3 +643,42 @@ const StreamStateUpdate$json = const {
 /// Descriptor for `StreamStateUpdate`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List streamStateUpdateDescriptor = $convert.base64Decode(
     'ChFTdHJlYW1TdGF0ZVVwZGF0ZRI9Cg1zdHJlYW1fc3RhdGVzGAEgAygLMhgubGl2ZWtpdC5TdHJlYW1TdGF0ZUluZm9SDHN0cmVhbVN0YXRlcw==');
+@$core.Deprecated('Use subscribedQualityDescriptor instead')
+const SubscribedQuality$json = const {
+  '1': 'SubscribedQuality',
+  '2': const [
+    const {
+      '1': 'quality',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'quality'
+    },
+    const {'1': 'enabled', '3': 2, '4': 1, '5': 8, '10': 'enabled'},
+  ],
+};
+
+/// Descriptor for `SubscribedQuality`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List subscribedQualityDescriptor = $convert.base64Decode(
+    'ChFTdWJzY3JpYmVkUXVhbGl0eRIvCgdxdWFsaXR5GAEgASgOMhUubGl2ZWtpdC5WaWRlb1F1YWxpdHlSB3F1YWxpdHkSGAoHZW5hYmxlZBgCIAEoCFIHZW5hYmxlZA==');
+@$core.Deprecated('Use subscribedQualityUpdateDescriptor instead')
+const SubscribedQualityUpdate$json = const {
+  '1': 'SubscribedQualityUpdate',
+  '2': const [
+    const {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
+    const {
+      '1': 'subscribed_qualities',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SubscribedQuality',
+      '10': 'subscribedQualities'
+    },
+  ],
+};
+
+/// Descriptor for `SubscribedQualityUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List subscribedQualityUpdateDescriptor =
+    $convert.base64Decode(
+        'ChdTdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZRIbCgl0cmFja19zaWQYASABKAlSCHRyYWNrU2lkEk0KFHN1YnNjcmliZWRfcXVhbGl0aWVzGAIgAygLMhoubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVITc3Vic2NyaWJlZFF1YWxpdGllcw==');

@@ -10,6 +10,7 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'livekit_models.pb.dart' as $0;
+
 import 'livekit_models.pbenum.dart' as $0;
 import 'livekit_rtc.pbenum.dart';
 
@@ -321,6 +322,7 @@ enum SignalResponse_Message {
   roomUpdate,
   connectionQuality,
   streamStateUpdate,
+  subscribedQualityUpdate,
   notSet
 }
 
@@ -339,6 +341,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     11: SignalResponse_Message.roomUpdate,
     12: SignalResponse_Message.connectionQuality,
     13: SignalResponse_Message.streamStateUpdate,
+    14: SignalResponse_Message.subscribedQualityUpdate,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -350,7 +353,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -423,6 +426,12 @@ class SignalResponse extends $pb.GeneratedMessage {
             ? ''
             : 'streamStateUpdate',
         subBuilder: StreamStateUpdate.create)
+    ..aOM<SubscribedQualityUpdate>(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscribedQualityUpdate',
+        subBuilder: SubscribedQualityUpdate.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -439,6 +448,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     RoomUpdate? roomUpdate,
     ConnectionQualityUpdate? connectionQuality,
     StreamStateUpdate? streamStateUpdate,
+    SubscribedQualityUpdate? subscribedQualityUpdate,
   }) {
     final _result = create();
     if (join != null) {
@@ -476,6 +486,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (streamStateUpdate != null) {
       _result.streamStateUpdate = streamStateUpdate;
+    }
+    if (subscribedQualityUpdate != null) {
+      _result.subscribedQualityUpdate = subscribedQualityUpdate;
     }
     return _result;
   }
@@ -677,6 +690,20 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearStreamStateUpdate() => clearField(13);
   @$pb.TagNumber(13)
   StreamStateUpdate ensureStreamStateUpdate() => $_ensure(11);
+
+  @$pb.TagNumber(14)
+  SubscribedQualityUpdate get subscribedQualityUpdate => $_getN(12);
+  @$pb.TagNumber(14)
+  set subscribedQualityUpdate(SubscribedQualityUpdate v) {
+    setField(14, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasSubscribedQualityUpdate() => $_has(12);
+  @$pb.TagNumber(14)
+  void clearSubscribedQualityUpdate() => clearField(14);
+  @$pb.TagNumber(14)
+  SubscribedQualityUpdate ensureSubscribedQualityUpdate() => $_ensure(12);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -2151,12 +2178,19 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
         defaultOrMaker: $0.ConnectionQuality.POOR,
         valueOf: $0.ConnectionQuality.valueOf,
         enumValues: $0.ConnectionQuality.values)
+    ..a<$core.double>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'score',
+        $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
   ConnectionQualityInfo._() : super();
   factory ConnectionQualityInfo({
     $core.String? participantSid,
     $0.ConnectionQuality? quality,
+    $core.double? score,
   }) {
     final _result = create();
     if (participantSid != null) {
@@ -2164,6 +2198,9 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
     }
     if (quality != null) {
       _result.quality = quality;
+    }
+    if (score != null) {
+      _result.score = score;
     }
     return _result;
   }
@@ -2219,6 +2256,18 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
   $core.bool hasQuality() => $_has(1);
   @$pb.TagNumber(2)
   void clearQuality() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get score => $_getN(2);
+  @$pb.TagNumber(3)
+  set score($core.double v) {
+    $_setFloat(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasScore() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearScore() => clearField(3);
 }
 
 class ConnectionQualityUpdate extends $pb.GeneratedMessage {
@@ -2454,4 +2503,179 @@ class StreamStateUpdate extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $core.List<StreamStateInfo> get streamStates => $_getList(0);
+}
+
+class SubscribedQuality extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SubscribedQuality',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..e<$0.VideoQuality>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'quality',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: $0.VideoQuality.LOW,
+        valueOf: $0.VideoQuality.valueOf,
+        enumValues: $0.VideoQuality.values)
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'enabled')
+    ..hasRequiredFields = false;
+
+  SubscribedQuality._() : super();
+  factory SubscribedQuality({
+    $0.VideoQuality? quality,
+    $core.bool? enabled,
+  }) {
+    final _result = create();
+    if (quality != null) {
+      _result.quality = quality;
+    }
+    if (enabled != null) {
+      _result.enabled = enabled;
+    }
+    return _result;
+  }
+  factory SubscribedQuality.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SubscribedQuality.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SubscribedQuality clone() => SubscribedQuality()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SubscribedQuality copyWith(void Function(SubscribedQuality) updates) =>
+      super.copyWith((message) => updates(message as SubscribedQuality))
+          as SubscribedQuality; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SubscribedQuality create() => SubscribedQuality._();
+  SubscribedQuality createEmptyInstance() => create();
+  static $pb.PbList<SubscribedQuality> createRepeated() =>
+      $pb.PbList<SubscribedQuality>();
+  @$core.pragma('dart2js:noInline')
+  static SubscribedQuality getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedQuality>(create);
+  static SubscribedQuality? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.VideoQuality get quality => $_getN(0);
+  @$pb.TagNumber(1)
+  set quality($0.VideoQuality v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasQuality() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearQuality() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get enabled => $_getBF(1);
+  @$pb.TagNumber(2)
+  set enabled($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasEnabled() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEnabled() => clearField(2);
+}
+
+class SubscribedQualityUpdate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SubscribedQualityUpdate',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..pc<SubscribedQuality>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscribedQualities',
+        $pb.PbFieldType.PM,
+        subBuilder: SubscribedQuality.create)
+    ..hasRequiredFields = false;
+
+  SubscribedQualityUpdate._() : super();
+  factory SubscribedQualityUpdate({
+    $core.String? trackSid,
+    $core.Iterable<SubscribedQuality>? subscribedQualities,
+  }) {
+    final _result = create();
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    if (subscribedQualities != null) {
+      _result.subscribedQualities.addAll(subscribedQualities);
+    }
+    return _result;
+  }
+  factory SubscribedQualityUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SubscribedQualityUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SubscribedQualityUpdate clone() =>
+      SubscribedQualityUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SubscribedQualityUpdate copyWith(
+          void Function(SubscribedQualityUpdate) updates) =>
+      super.copyWith((message) => updates(message as SubscribedQualityUpdate))
+          as SubscribedQualityUpdate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SubscribedQualityUpdate create() => SubscribedQualityUpdate._();
+  SubscribedQualityUpdate createEmptyInstance() => create();
+  static $pb.PbList<SubscribedQualityUpdate> createRepeated() =>
+      $pb.PbList<SubscribedQualityUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static SubscribedQualityUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedQualityUpdate>(create);
+  static SubscribedQualityUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<SubscribedQuality> get subscribedQualities => $_getList(1);
 }
