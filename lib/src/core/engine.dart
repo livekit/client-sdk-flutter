@@ -595,6 +595,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalConnectionQualityUpdateEvent>((event) => events.emit(event))
     // relay
     ..on<SignalStreamStateUpdatedEvent>((event) => events.emit(event))
+    ..on<SignalSubscribedQualityUpdatedEvent>((event) {
+      //
+    })
     ..on<SignalLeaveEvent>((event) async {
       await close();
       events.emit(const EngineDisconnectedEvent());
