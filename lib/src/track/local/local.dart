@@ -1,19 +1,19 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import '../support/platform.dart';
 import 'package:meta/meta.dart';
 
-import '../exceptions.dart';
-import '../logger.dart';
-import '../proto/livekit_models.pb.dart' as lk_models;
-import '../types.dart';
-import 'options.dart';
-import 'track.dart';
-import '../track/local/audio.dart';
-import '../track/local/video.dart';
-import '../track/remote/audio.dart';
-import '../track/remote/video.dart';
-import '../events.dart';
-import '../participant/remote_participant.dart';
+import '../../events.dart';
+import '../../exceptions.dart';
+import '../../logger.dart';
+import '../../participant/remote.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../support/platform.dart';
+import '../../types.dart';
+import '../options.dart';
+import '../remote/audio.dart';
+import '../remote/video.dart';
+import '../track.dart';
+import 'audio.dart';
+import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {}

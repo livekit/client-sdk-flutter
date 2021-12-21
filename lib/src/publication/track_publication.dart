@@ -1,8 +1,8 @@
-import '../events.dart';
-import '../internal/events.dart';
 import 'package:meta/meta.dart';
 
+import '../events.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
 import '../logger.dart';
 import '../participant/participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;

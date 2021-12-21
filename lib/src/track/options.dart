@@ -1,6 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import '../track/local/video.dart';
+
 import '../track/local/audio.dart';
+import '../track/local/video.dart';
 import '../types.dart';
 
 /// A type that represents front or back of the camera.

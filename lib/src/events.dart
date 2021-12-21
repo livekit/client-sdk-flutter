@@ -1,12 +1,12 @@
-import 'participant/local_participant.dart';
+import 'core/engine.dart';
+import 'core/room.dart';
+import 'core/signal_client.dart';
+import 'participant/local.dart';
 import 'participant/participant.dart';
-import 'participant/remote_participant.dart';
-import 'publication/local_track_publication.dart';
-import 'publication/remote_track_publication.dart';
+import 'participant/remote.dart';
+import 'publication/local.dart';
+import 'publication/remote.dart';
 import 'publication/track_publication.dart';
-import 'room.dart';
-import 'rtc_engine.dart';
-import 'signal_client.dart';
 import 'track/track.dart';
 import 'types.dart';
 
@@ -22,7 +22,7 @@ abstract class ParticipantEvent implements LiveKitEvent {}
 /// Base type for all [Track] events.
 abstract class TrackEvent implements LiveKitEvent {}
 
-/// Base type for all [RTCEngine] events.
+/// Base type for all [Engine] events.
 abstract class EngineEvent implements LiveKitEvent {}
 
 /// Base type for all [SignalClient] events.

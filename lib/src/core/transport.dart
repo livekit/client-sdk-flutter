@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import 'constants.dart';
-import 'extensions.dart';
-import 'logger.dart';
-import 'support/disposable.dart';
-import 'types.dart';
-import 'utils.dart';
+import '../constants.dart';
+import '../extensions.dart';
+import '../logger.dart';
+import '../support/disposable.dart';
+import '../types.dart';
+import '../utils.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 

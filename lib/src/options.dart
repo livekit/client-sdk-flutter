@@ -1,10 +1,10 @@
+import 'core/room.dart';
+import 'publication/remote.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
 import 'track/track.dart';
-import 'publication/remote_track_publication.dart';
 import 'types.dart';
-import 'room.dart';
 
 /// Options used when connecting to the server.
 class ConnectOptions {

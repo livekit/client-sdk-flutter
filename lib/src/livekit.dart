@@ -1,5 +1,5 @@
+import 'core/room.dart';
 import 'options.dart';
-import 'room.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}

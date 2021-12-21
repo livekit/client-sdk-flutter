@@ -6,24 +6,24 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
-import 'constants.dart';
-import 'events.dart';
-import 'exceptions.dart';
-import 'extensions.dart';
-import 'internal/events.dart';
-import 'logger.dart';
-import 'managers/delay.dart';
-import 'managers/event.dart';
-import 'options.dart';
-import 'proto/livekit_models.pb.dart' as lk_models;
-import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../constants.dart';
+import '../events.dart';
+import '../exceptions.dart';
+import '../extensions.dart';
+import '../internal/events.dart';
+import '../logger.dart';
+import '../managers/delay.dart';
+import '../managers/event.dart';
+import '../options.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
+import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../support/disposable.dart';
+import '../types.dart';
 import 'room.dart';
 import 'signal_client.dart';
-import 'support/disposable.dart';
 import 'transport.dart';
-import 'types.dart';
 
-class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
+class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   static const _maxReconnectAttempts = 5;
@@ -80,7 +80,7 @@ class RTCEngine extends Disposable with EventsEmittable<EngineEvent> {
 
   final delays = CancelableDelayManager();
 
-  RTCEngine({
+  Engine({
     required this.room,
     SignalClient? signalClient,
   }) : signalClient = signalClient ?? SignalClient() {

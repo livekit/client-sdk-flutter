@@ -1,19 +1,19 @@
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+import '../core/room.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
-import '../room.dart';
 import '../support/disposable.dart';
+import '../track/local/local.dart';
 import '../track/track.dart';
-import '../track/local.dart';
 import '../types.dart';
-import 'remote_participant.dart';
-import 'local_participant.dart';
+import 'local.dart';
+import 'remote.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.

@@ -1,7 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
-import 'dart:math' as math;
 
 typedef CancelListenFunc = Function();
 

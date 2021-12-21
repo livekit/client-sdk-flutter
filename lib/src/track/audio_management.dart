@@ -1,11 +1,10 @@
-import '../support/platform.dart';
-
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
 import '../support/native_audio.dart';
-import 'local.dart';
+import '../support/platform.dart';
 import 'local/audio.dart';
+import 'local/local.dart';
 
 enum AudioTrackState {
   none,

@@ -1,5 +1,6 @@
-import '../platform.dart';
 import 'dart:io';
+
+import '../platform.dart';
 
 PlatformType lkPlatformImplementation() {
   if (Platform.isWindows) return PlatformType.windows;

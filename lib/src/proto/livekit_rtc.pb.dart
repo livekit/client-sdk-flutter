@@ -10,7 +10,6 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'livekit_models.pb.dart' as $0;
-
 import 'livekit_models.pbenum.dart' as $0;
 import 'livekit_rtc.pbenum.dart';
 

@@ -8,7 +8,7 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
-import '../track/local.dart';
+import '../track/local/local.dart';
 import '../track/local/video.dart';
 
 /// Widget that renders a [VideoTrack].
