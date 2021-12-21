@@ -242,14 +242,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await room.engine.sendDataPacket(packet);
   }
 
-  /// for internal use
-  /// {@nodoc}
-  @internal
-  @override
-  void updateFromInfo(lk_models.ParticipantInfo info) {
-    super.updateFromInfo(info);
-  }
-
   @override
   List<LocalTrackPublication> get subscribedTracks =>
       super.subscribedTracks.cast<LocalTrackPublication>().toList();
