@@ -9,6 +9,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../track/track.dart';
 import '../types.dart';
+import '../core/signal_client.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.

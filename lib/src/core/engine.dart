@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -11,6 +10,7 @@ import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
+import '../internal/types.dart';
 import '../logger.dart';
 import '../managers/delay.dart';
 import '../managers/event.dart';
@@ -86,8 +86,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) : signalClient = signalClient ?? SignalClient() {
     if (kDebugMode) {
       // log all EngineEvents
-      events.listen((event) =>
-          logger.fine('[EngineEvent] $objectId ${event.runtimeType}'));
+      events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
     }
 
     _setUpListeners();
@@ -241,7 +240,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Future<void> reconnect() async {
     if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('$objectId reconnect() already closed');
+      logger.fine('Reconnect: Already closed.');
       return;
     }
 
@@ -252,14 +251,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       throw ConnectException('could not reconnect without url and token');
     }
 
+    _connectionState = ConnectionState.reconnecting;
+
     if (_reconnectAttempts == 0) {
       events.emit(const EngineReconnectingEvent());
     }
     _reconnectAttempts++;
 
     try {
-      // isReconnecting = true;
-      _connectionState = ConnectionState.reconnecting;
       await signalClient.reconnect(
         url,
         token,
@@ -272,15 +271,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       subscriber!.restartingIce = true;
 
-      // await negotiate(iceRestart: true);
       if (_hasPublished) {
-        logger.fine('reconnect: publisher.createAndSendOffer');
-        await publisher!
-            .createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+        logger.fine('Reconnect: negotiating publisher...');
+        await publisher!.createAndSendOffer(const RTCOfferOptions(
+          iceRestart: true,
+        ));
       }
 
-      if (!(primary?.pc.iceConnectionState?.isConnected() ?? false)) {
-        logger.fine('reconnect: waiting for primary to ice-connect...');
+      final iceConnected =
+          primary?.pc.iceConnectionState?.isConnected() ?? false;
+
+      logger.fine('Reconnect: iceConnected: $iceConnected');
+
+      if (!iceConnected) {
+        logger.fine('Reconnect: Waiting for primary to connect...');
 
         await events.waitFor<EngineIceStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.iceState.isConnected(),
@@ -288,15 +292,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
 
-      logger.fine('reconnect: success');
+      logger.fine('Reconnect: success');
+      _connectionState = ConnectionState.connected;
       events.emit(const EngineReconnectedEvent());
       _reconnectAttempts = 0;
-
-      // don't catch and pass up any exception
-    } finally {
-      // always set reconnecting to false
-      // isReconnecting = false;
+    } catch (error) {
+      logger.fine('Reconnect: error ${error}');
+      // Pass up all exceptions
       _connectionState = ConnectionState.disconnected;
+      rethrow;
     }
   }
 
@@ -344,7 +348,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     subscriber?.pc.onIceConnectionState =
         (state) => events.emit(EngineSubscriberIceStateUpdatedEvent(
-              state: state,
+              iceState: state,
               isPrimary: _subscriberPrimary,
             ));
 
@@ -491,6 +495,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _onDisconnected(String reason) async {
+    logger.info('onDisconnected reason: $reason');
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('[$objectId] Already disconnected $reason');
       return;
@@ -599,6 +604,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       //
     })
     ..on<SignalLeaveEvent>((event) async {
+      if (connectionState == ConnectionState.reconnecting) {
+        logger.warning('Received leave signal while engine is reconnecting.');
+      }
       await close();
       events.emit(const EngineDisconnectedEvent());
     })

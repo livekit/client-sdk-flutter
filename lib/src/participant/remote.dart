@@ -17,22 +17,7 @@ import 'participant.dart';
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant<RemoteTrackPublication> {
-  @override
-  List<RemoteTrackPublication> get subscribedTracks =>
-      super.subscribedTracks.cast<RemoteTrackPublication>().toList();
-
-  @override
-  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
-      trackPublications.values
-          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
-          .toList();
-
-  @override
-  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
-      trackPublications.values
-          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
-          .toList();
-
+  @internal
   RemoteParticipant({
     required Room room,
     required String sid,
@@ -43,6 +28,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           identity: identity,
         );
 
+  @internal
   RemoteParticipant.fromInfo({
     required Room room,
     required lk_models.ParticipantInfo info,
@@ -53,6 +39,25 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
         ) {
     updateFromInfo(info);
   }
+
+  /// A convenience property to get all video tracks.
+  @override
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
+          .toList();
+
+  /// A convenience property to get all audio tracks.
+  @override
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
+          .toList();
+
+  List<RemoteTrackPublication> get subscribedTracks => trackPublications.values
+      .where((e) => e.subscribed)
+      .cast<RemoteTrackPublication>()
+      .toList();
 
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = trackPublications[sid];

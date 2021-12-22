@@ -4,9 +4,11 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
+import '../internal/types.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../participant/remote.dart';
@@ -16,19 +18,6 @@ import '../track/remote/remote.dart';
 import '../types.dart';
 import '../utils.dart';
 import 'track_publication.dart';
-
-class RendererVisibility {
-  final String rendererId;
-  final String trackId;
-  final bool visible;
-  final Size size;
-  RendererVisibility({
-    required this.rendererId,
-    required this.trackId,
-    required this.visible,
-    required this.size,
-  });
-}
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).

@@ -3,7 +3,9 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../track/local/local.dart';
 import 'track_publication.dart';
 
+/// A [TrackPublication] which belongs to the [LocalParticipant].
 class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
+  /// The [LocalParticipant] this instance belongs to.
   @override
   final LocalParticipant participant;
 

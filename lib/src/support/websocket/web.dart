@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
 
+import '../../extensions.dart';
+import '../../logger.dart';
 import '../websocket.dart';
 
 // ignore: avoid_web_libraries_in_flutter
@@ -12,7 +14,7 @@ Future<LiveKitWebSocketWeb> lkWebSocketConnect(
 ]) =>
     LiveKitWebSocketWeb.connect(uri, options);
 
-class LiveKitWebSocketWeb implements LiveKitWebSocket {
+class LiveKitWebSocketWeb extends LiveKitWebSocket {
   final html.WebSocket _ws;
   final WebSocketEventHandlers? options;
   late final StreamSubscription _messageSubscription;
@@ -24,22 +26,28 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
   ]) {
     _ws.binaryType = 'arraybuffer';
     _messageSubscription = _ws.onMessage.listen((_) {
+      if (isDisposed) {
+        logger.warning('$objectId already disposed, ignoring received data.');
+        return;
+      }
       dynamic _data = _.data is ByteBuffer ? _.data.asUint8List() : _.data;
       options?.onData?.call(_data);
     });
-    _closeSubscription = _ws.onClose.listen((_) => dispose());
+    _closeSubscription = _ws.onClose.listen((_) async {
+      await _messageSubscription.cancel();
+      await _closeSubscription.cancel();
+      options?.onDispose?.call();
+    });
+
+    onDispose(() async {
+      if (_ws.readyState != html.WebSocket.CLOSED) {
+        _ws.close();
+      }
+    });
   }
 
   @override
   void send(List<int> data) => _ws.send(data);
-
-  @override
-  Future<void> dispose() async {
-    options?.onDispose?.call();
-    await _messageSubscription.cancel();
-    await _closeSubscription.cancel();
-    _ws.close();
-  }
 
   static Future<LiveKitWebSocketWeb> connect(
     Uri uri, [

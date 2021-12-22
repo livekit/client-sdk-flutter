@@ -86,22 +86,6 @@ abstract class EventsListenable<T> extends Disposable {
     }
   }
 
-  // @override
-  // @mustCallSuper
-  // Future<bool> dispose() async {
-  //   // mark as disposed
-  //   final didDispose = await super.dispose();
-  //   if (didDispose && _listeners.isNotEmpty) {
-  //     // Stop listening to all events
-  //     logger.fine('${objectId} dispose() cancelling ${_listeners.length} event(s)');
-  //     for (final listener in _listeners) {
-  //       await listener.cancel();
-  //     }
-  //   }
-
-  //   return didDispose;
-  // }
-
   // listens to all events, guaranteed to be cancelled on dispose
   CancelListenFunc listen(FutureOr<void> Function(T) onEvent) {
     //

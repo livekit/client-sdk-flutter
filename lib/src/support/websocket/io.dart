@@ -11,7 +11,7 @@ Future<LiveKitWebSocketIO> lkWebSocketConnect(
 ]) =>
     LiveKitWebSocketIO.connect(uri, options);
 
-class LiveKitWebSocketIO implements LiveKitWebSocket {
+class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;
   final WebSocketEventHandlers? options;
   late final StreamSubscription _subscription;
@@ -21,24 +21,30 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
     this.options,
   ]) {
     _subscription = _ws.listen(
-      (dynamic data) => options?.onData?.call(data),
-      onDone: () => dispose(),
+      (dynamic data) {
+        if (isDisposed) {
+          logger.warning('$objectId already disposed, ignoring received data.');
+          return;
+        }
+        options?.onData?.call(data);
+      },
+      onDone: () async {
+        await _subscription.cancel();
+        options?.onDispose?.call();
+      },
     );
-  }
 
-  @override
-  Future<void> dispose() async {
-    await _subscription.cancel();
-    await _ws.close();
-    options?.onDispose?.call();
+    onDispose(() async {
+      if (_ws.readyState != io.WebSocket.closed) {
+        await _ws.close();
+      }
+    });
   }
 
   @override
   void send(List<int> data) {
-    // 0 CONNECTING, 1 OPEN, 2 CLOSING, 3 CLOSED
-    if (_ws.readyState != 1) {
-      logger.fine(
-          '[$objectId] Tried to send data (readyState: ${_ws.readyState})');
+    if (_ws.readyState != io.WebSocket.open) {
+      logger.fine('[$objectId] Socket not open (state: ${_ws.readyState})');
       return;
     }
 
