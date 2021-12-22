@@ -80,21 +80,16 @@ abstract class Participant<T extends TrackPublication>
   /// Connection quality between the [Participant] and the Server.
   ConnectionQuality get connectionQuality => _connectionQuality;
 
-  /// [Track]s that this [Participant] is subscribed to.
-  List<T> get subscribedTracks =>
-      trackPublications.values.where((e) => e.subscribed).toList();
-
   // Must be implemented by child class.
   List<T> get videoTracks;
 
   // Must be implemented by child class.
   List<T> get audioTracks;
 
-  /// for internal use
-  /// {@nodoc}
   @internal
   bool get hasInfo => _participantInfo != null;
 
+  @internal
   Participant({
     required this.room,
     required this.sid,

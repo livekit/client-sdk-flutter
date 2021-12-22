@@ -3,9 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'extensions.dart';
+import 'participant/participant.dart';
 
 typedef CancelListenFunc = Function();
 
+/// Protocol version to use when connecting to server.
+/// Usually it's not recommended to change this.
 enum ProtocolVersion {
   v2,
   v3,
@@ -13,12 +16,14 @@ enum ProtocolVersion {
   v5,
 }
 
+/// Connection state type used throughout the SDK.
 enum ConnectionState {
   disconnected,
   connected,
   reconnecting,
 }
 
+/// Connection quality between the [Participant] and server.
 enum ConnectionQuality {
   unknown,
   poor,
@@ -26,6 +31,7 @@ enum ConnectionQuality {
   excellent,
 }
 
+/// Reliability used for publishing data through data channel.
 enum Reliability {
   reliable,
   lossy,
@@ -39,6 +45,8 @@ enum TrackSource {
   screenShareAudio,
 }
 
+/// The state of track data stream.
+/// This is controlled by server to optimize bandwidth.
 enum StreamState {
   paused,
   active,
@@ -49,6 +57,7 @@ enum CloseReason {
   // ...
 }
 
+/// The reason why a track failed to publish.
 enum TrackSubscribeFailReason {
   invalidServerResponse,
   notTrackMetadataFound,
@@ -56,22 +65,11 @@ enum TrackSubscribeFailReason {
   // ...
 }
 
+/// The iceTransportPolicy used for [RTCConfiguration].
+/// See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection
 enum RTCIceTransportPolicy {
   all,
   relay,
-}
-
-@immutable
-class RTCOfferOptions {
-  final bool iceRestart;
-
-  const RTCOfferOptions({
-    this.iceRestart = false,
-  });
-
-  Map<String, dynamic> toMap() => <String, dynamic>{
-        if (iceRestart) 'iceRestart': true,
-      };
 }
 
 @immutable
@@ -135,6 +133,7 @@ class RTCIceServer {
       };
 }
 
+/// A simple class that represents dimensions of video.
 @immutable
 class VideoDimensions {
   final int width;
@@ -146,7 +145,7 @@ class VideoDimensions {
   );
 
   @override
-  String toString() => 'VideoDimensions(${width}×${height})';
+  String toString() => '${runtimeType}(${width}x${height})';
 
   /// Returns the larger value
   int max() => math.max(width, height);

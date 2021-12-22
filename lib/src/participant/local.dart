@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../core/room.dart';
 import '../events.dart';
@@ -19,7 +20,7 @@ import 'participant.dart';
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
-  //
+  @internal
   LocalParticipant({
     required Room room,
     required lk_models.ParticipantInfo info,
@@ -239,10 +240,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     await room.engine.sendDataPacket(packet);
   }
-
-  @override
-  List<LocalTrackPublication> get subscribedTracks =>
-      super.subscribedTracks.cast<LocalTrackPublication>().toList();
 
   /// A convenience property to get all video tracks.
   @override

@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -11,6 +10,7 @@ import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
+import '../internal/types.dart';
 import '../logger.dart';
 import '../managers/delay.dart';
 import '../managers/event.dart';
