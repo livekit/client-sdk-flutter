@@ -126,7 +126,14 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _onTapReconnect() async {
     final result = await context.showReconnectDialog();
-    if (result == true) await widget.room.reconnect();
+    if (result == true) {
+      try {
+        await widget.room.reconnect();
+        await context.showReconnectSuccessDialog();
+      } catch (error) {
+        await context.showErrorDialog(error);
+      }
+    }
   }
 
   void _onTapSendData() async {

@@ -89,6 +89,20 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
+  Future<void> showReconnectSuccessDialog() => showDialog<void>(
+        context: this,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Reconnect'),
+          content: const Text('Reconnection was successful.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
   Future<bool?> showSendDataDialog() => showDialog<bool>(
         context: this,
         builder: (ctx) => AlertDialog(

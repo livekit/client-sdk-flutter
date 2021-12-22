@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
+import '../core/signal_client.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';

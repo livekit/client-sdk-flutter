@@ -18,6 +18,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../track/track.dart';
 import '../types.dart';
+import '../core/signal_client.dart';
 import 'engine.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a

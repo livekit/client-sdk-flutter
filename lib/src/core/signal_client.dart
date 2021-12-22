@@ -18,8 +18,9 @@ import '../types.dart';
 import '../utils.dart';
 
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
-  //
-  bool _connected = false;
+  // Connection state of the socket conection.
+  ConnectionState _connectionState = ConnectionState.disconnected;
+
   LiveKitWebSocket? _ws;
 
   SignalClient() {
@@ -32,8 +33,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       await close();
     });
   }
-
-  bool get connected => _connected;
 
   Future<void> connect(
     String uriString,
@@ -51,7 +50,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         rtcUri,
         WebSocketEventHandlers(
           onData: _onSocketData,
-          onDispose: _onSocketDone,
+          onDispose: _onSocketDispose,
           onError: _handleError,
         ),
       );
@@ -86,7 +85,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     String token, {
     ConnectOptions? connectOptions,
   }) async {
-    _connected = false;
+    logger.fine('SignalClient reconnecting...');
+    _connectionState = ConnectionState.reconnecting;
     await _ws?.dispose();
     _ws = null;
 
@@ -101,19 +101,106 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       rtcUri,
       WebSocketEventHandlers(
         onData: _onSocketData,
-        onDispose: _onSocketDone,
+        onDispose: _onSocketDispose,
         onError: _handleError,
       ),
     );
 
-    _connected = true;
+    logger.fine('SignalClient socket reconnected');
+    _connectionState = ConnectionState.connected;
   }
 
   Future<void> close() async {
-    _connected = false;
+    logger.fine('SignalClient close');
     await _ws?.dispose();
+    _ws = null;
   }
 
+  void _sendRequest(lk_rtc.SignalRequest req) {
+    if (_ws == null || isDisposed) {
+      logger.warning(
+          '[$objectId] Could not send message, not connected or already disposed');
+      return;
+    }
+
+    final buf = req.writeToBuffer();
+    _ws?.send(buf);
+  }
+
+  Future<void> _onSocketData(dynamic message) async {
+    if (message is! List<int>) return;
+    final msg = lk_rtc.SignalResponse.fromBuffer(message);
+
+    switch (msg.whichMessage()) {
+      case lk_rtc.SignalResponse_Message.join:
+        events.emit(SignalConnectedEvent(response: msg.join));
+        break;
+      case lk_rtc.SignalResponse_Message.answer:
+        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
+        break;
+      case lk_rtc.SignalResponse_Message.offer:
+        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
+        break;
+      case lk_rtc.SignalResponse_Message.trickle:
+        events.emit(SignalTrickleEvent(
+          candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
+          target: msg.trickle.target,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.update:
+        events.emit(SignalParticipantUpdateEvent(
+            participants: msg.update.participants));
+        break;
+      case lk_rtc.SignalResponse_Message.trackPublished:
+        events.emit(SignalLocalTrackPublishedEvent(
+          cid: msg.trackPublished.cid,
+          track: msg.trackPublished.track,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.speakersChanged:
+        events.emit(
+            SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        break;
+      case lk_rtc.SignalResponse_Message.connectionQuality:
+        events.emit(SignalConnectionQualityUpdateEvent(
+          updates: msg.connectionQuality.updates,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.leave:
+        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
+        break;
+      case lk_rtc.SignalResponse_Message.mute:
+        events.emit(SignalMuteTrackEvent(
+          sid: msg.mute.sid,
+          muted: msg.mute.muted,
+        ));
+        break;
+      case lk_rtc.SignalResponse_Message.streamStateUpdate:
+        events.emit(SignalStreamStateUpdatedEvent(
+          updates: msg.streamStateUpdate.streamStates,
+        ));
+        break;
+      default:
+        logger.warning('skipping unsupported signal message');
+    }
+  }
+
+  void _handleError(dynamic error) {
+    logger.warning('received websocket error $error');
+  }
+
+  void _onSocketDispose() {
+    logger.fine('SignalClient onSocketDispose $_connectionState');
+    // don't emit event's when reconnecting state
+    if (_connectionState != ConnectionState.reconnecting) {
+      logger.fine('SignalClient did disconnect ${_connectionState}');
+      _connectionState = ConnectionState.disconnected;
+      events.emit(const SignalCloseEvent());
+    }
+  }
+}
+
+extension SignalClientRequests on SignalClient {
   void sendOffer(rtc.RTCSessionDescription offer) =>
       _sendRequest(lk_rtc.SignalRequest(
         offer: offer.toSDKType(),
@@ -206,87 +293,4 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
         leave: lk_rtc.LeaveRequest(),
       ));
-
-  void _sendRequest(lk_rtc.SignalRequest req) {
-    if (_ws == null || isDisposed) {
-      logger.warning(
-          '[$objectId] Could not send message, not connected or already disposed');
-      return;
-    }
-
-    final buf = req.writeToBuffer();
-    _ws?.send(buf);
-  }
-
-  Future<void> _onSocketData(dynamic message) async {
-    if (message is! List<int>) return;
-    final msg = lk_rtc.SignalResponse.fromBuffer(message);
-
-    switch (msg.whichMessage()) {
-      case lk_rtc.SignalResponse_Message.join:
-        if (!_connected) {
-          _connected = true;
-          events.emit(SignalConnectedEvent(response: msg.join));
-        }
-        break;
-      case lk_rtc.SignalResponse_Message.answer:
-        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
-        break;
-      case lk_rtc.SignalResponse_Message.offer:
-        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
-        break;
-      case lk_rtc.SignalResponse_Message.trickle:
-        events.emit(SignalTrickleEvent(
-          candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
-          target: msg.trickle.target,
-        ));
-        break;
-      case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(
-            participants: msg.update.participants));
-        break;
-      case lk_rtc.SignalResponse_Message.trackPublished:
-        events.emit(SignalLocalTrackPublishedEvent(
-          cid: msg.trackPublished.cid,
-          track: msg.trackPublished.track,
-        ));
-        break;
-      case lk_rtc.SignalResponse_Message.speakersChanged:
-        events.emit(
-            SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
-        break;
-      case lk_rtc.SignalResponse_Message.connectionQuality:
-        events.emit(SignalConnectionQualityUpdateEvent(
-          updates: msg.connectionQuality.updates,
-        ));
-        break;
-      case lk_rtc.SignalResponse_Message.leave:
-        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
-        break;
-      case lk_rtc.SignalResponse_Message.mute:
-        events.emit(SignalMuteTrackEvent(
-          sid: msg.mute.sid,
-          muted: msg.mute.muted,
-        ));
-        break;
-      case lk_rtc.SignalResponse_Message.streamStateUpdate:
-        events.emit(SignalStreamStateUpdatedEvent(
-          updates: msg.streamStateUpdate.streamStates,
-        ));
-        break;
-      default:
-        logger.warning('skipping unsupported signal message');
-    }
-  }
-
-  void _handleError(dynamic error) {
-    logger.warning('received websocket error $error');
-  }
-
-  void _onSocketDone() {
-    if (!_connected) return;
-    _ws = null;
-    _connected = false;
-    events.emit(const SignalCloseEvent());
-  }
 }

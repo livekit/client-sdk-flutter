@@ -23,12 +23,16 @@ abstract class EngineIceStateUpdatedEvent with EngineEvent, InternalEvent {
 @internal
 class EngineSubscriberIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
   const EngineSubscriberIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState state,
+    required rtc.RTCIceConnectionState iceState,
     required bool isPrimary,
   }) : super(
-          iceState: state,
+          iceState: iceState,
           isPrimary: isPrimary,
         );
+
+  @override
+  String toString() =>
+      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -40,6 +44,9 @@ class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
           iceState: state,
           isPrimary: isPrimary,
         );
+  @override
+  String toString() =>
+      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
 }
 
 @internal
