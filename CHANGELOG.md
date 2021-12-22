@@ -4,11 +4,13 @@
 
 * Default capture options for setCameraEnabled, setMicrophoneEnabled
 * Track stream update events
+* Send video layers to server for more video optimization
 * Room instance can be created without connecting
 * Release Camera/Mic when track is muted
 * Better type handling
 * Option to unpublish without stopping track
 * Fixed RemoteTrackPublication mute events
+* Fixed data channel publish bug
 * Initial Windows support
 
 ## 0.5.4
