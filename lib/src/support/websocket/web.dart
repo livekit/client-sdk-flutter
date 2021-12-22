@@ -27,7 +27,11 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
       dynamic _data = _.data is ByteBuffer ? _.data.asUint8List() : _.data;
       options?.onData?.call(_data);
     });
-    _closeSubscription = _ws.onClose.listen((_) => dispose());
+    _closeSubscription = _ws.onClose.listen((_) async {
+      await _messageSubscription.cancel();
+      await _closeSubscription.cancel();
+      options?.onDispose?.call();
+    });
   }
 
   @override
@@ -35,10 +39,9 @@ class LiveKitWebSocketWeb implements LiveKitWebSocket {
 
   @override
   Future<void> dispose() async {
-    options?.onDispose?.call();
-    await _messageSubscription.cancel();
-    await _closeSubscription.cancel();
-    _ws.close();
+    if (_ws.readyState != html.WebSocket.CLOSED) {
+      _ws.close();
+    }
   }
 
   static Future<LiveKitWebSocketWeb> connect(
