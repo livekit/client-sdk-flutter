@@ -259,7 +259,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _reconnectAttempts++;
 
     try {
-      // isReconnecting = true;
       await signalClient.reconnect(
         url,
         token,
@@ -272,7 +271,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       subscriber!.restartingIce = true;
 
-      // await negotiate(iceRestart: true);
       if (_hasPublished) {
         logger.fine('Reconnect: negotiating publisher...');
         await publisher!.createAndSendOffer(const RTCOfferOptions(
@@ -604,8 +602,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalStreamStateUpdatedEvent>((event) => events.emit(event))
     ..on<SignalLeaveEvent>((event) async {
       if (connectionState == ConnectionState.reconnecting) {
-        logger.fine('Ignoring leave signal since engine is reconnecting...');
-        return;
+        logger.warning('Received leave signal while engine is reconnecting.');
       }
       await close();
       events.emit(const EngineDisconnectedEvent());

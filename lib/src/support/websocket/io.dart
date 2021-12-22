@@ -11,7 +11,7 @@ Future<LiveKitWebSocketIO> lkWebSocketConnect(
 ]) =>
     LiveKitWebSocketIO.connect(uri, options);
 
-class LiveKitWebSocketIO implements LiveKitWebSocket {
+class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;
   final WebSocketEventHandlers? options;
   late final StreamSubscription _subscription;
@@ -21,19 +21,24 @@ class LiveKitWebSocketIO implements LiveKitWebSocket {
     this.options,
   ]) {
     _subscription = _ws.listen(
-      (dynamic data) => options?.onData?.call(data),
+      (dynamic data) {
+        if (isDisposed) {
+          logger.warning('$objectId already disposed, ignoring received data.');
+          return;
+        }
+        options?.onData?.call(data);
+      },
       onDone: () async {
         await _subscription.cancel();
         options?.onDispose?.call();
       },
     );
-  }
 
-  @override
-  Future<void> dispose() async {
-    if (_ws.readyState != io.WebSocket.closed) {
-      await _ws.close();
-    }
+    onDispose(() async {
+      if (_ws.readyState != io.WebSocket.closed) {
+        await _ws.close();
+      }
+    });
   }
 
   @override
