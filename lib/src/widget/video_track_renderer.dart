@@ -32,12 +32,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   EventsListener<TrackEvent>? _listener;
 
   Key get _keyForVisibilityDetector =>
-      ValueKey('${objectId}-VisibilityDetector');
+      ValueKey('${widget.objectId}-VisibilityDetector');
 
   @override
   void initState() {
     super.initState();
-    logger.fine('$objectId initState()');
+    logger.fine('$widget.objectId initState()');
 
     (() async {
       await _renderer.initialize();
@@ -48,12 +48,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    logger.fine('$objectId dispose()');
+    logger.fine('$widget.objectId dispose()');
     VisibilityDetectorController.instance.forget(_keyForVisibilityDetector);
     // report that instance is disposing
     // if the track is disposed first we can't emit event
     widget.track.events.emit(TrackVisibilityUpdatedEvent(
-      rendererId: objectId,
+      rendererId: widget.objectId,
       track: widget.track,
       info: null,
     ));
@@ -92,7 +92,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           // emit event when visibility updates
           onVisibilityChanged: (VisibilityInfo info) =>
               widget.track.events.emit(TrackVisibilityUpdatedEvent(
-            rendererId: objectId,
+            rendererId: widget.objectId,
             track: widget.track,
             info: info,
           )),
