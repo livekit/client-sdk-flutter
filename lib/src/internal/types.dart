@@ -4,17 +4,31 @@ import 'package:meta/meta.dart';
 
 @internal
 @immutable
-class RendererVisibility {
-  final String rendererId;
-  final String trackId;
+class VisibilityState {
   final bool visible;
   final Size size;
-  const RendererVisibility({
-    required this.rendererId,
-    required this.trackId,
+  const VisibilityState({
     required this.visible,
     required this.size,
   });
+
+  VisibilityState copyWith({
+    bool? visible,
+    Size? size,
+  }) =>
+      VisibilityState(
+        visible: visible ?? this.visible,
+        size: size ?? this.size,
+      );
+
+  @override
+  int get hashCode => hashValues(visible, size);
+
+  @override
+  bool operator ==(Object other) =>
+      other is VisibilityState &&
+      visible == other.visible &&
+      size == other.size;
 }
 
 @internal

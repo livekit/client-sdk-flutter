@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:uuid/uuid.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 import '../events.dart';
 import '../internal/events.dart';
@@ -13,13 +11,12 @@ import '../track/local/video.dart';
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final rtc.RTCVideoViewObjectFit fit;
-  static const uuid = Uuid();
 
-  VideoTrackRenderer(
+  const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     Key? key,
-  }) : super(key: key ?? ValueKey('VideoView-${uuid.v4()}'));
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _VideoTrackRendererState();
@@ -29,10 +26,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   final _renderer = rtc.RTCVideoRenderer();
   bool _rendererReady = false;
   EventsListener<TrackEvent>? _listener;
+  // Used to compute visibility information
+  late GlobalKey visibilityKey;
 
   @override
   void initState() {
     super.initState();
+    visibilityKey = widget.track.addViewKey();
 
     (() async {
       await _renderer.initialize();
@@ -43,14 +43,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    VisibilityDetectorController.instance.forget(widget.key!);
-    // report that instance is disposing
-    // if the track is disposed first we can't emit event
-    widget.track.events.emit(TrackVisibilityUpdatedEvent(
-      rendererId: widget.key!.toString(),
-      track: widget.track,
-      info: null,
-    ));
+    widget.track.removeViewKey(visibilityKey);
     _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
@@ -71,7 +64,10 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    //
     if (widget.track != oldWidget.track) {
+      oldWidget.track.removeViewKey(visibilityKey);
+      visibilityKey = widget.track.addViewKey();
       // TODO: re-attach only if needed
       (() async {
         await _attach();
@@ -82,15 +78,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   Widget build(BuildContext context) => !_rendererReady
       ? Container()
-      : VisibilityDetector(
-          key: widget.key!,
-          // emit event when visibility updates
-          onVisibilityChanged: (VisibilityInfo info) =>
-              widget.track.events.emit(TrackVisibilityUpdatedEvent(
-            rendererId: widget.key!.toString(),
-            track: widget.track,
-            info: info,
-          )),
+      : Container(
+          key: visibilityKey,
           child: rtc.RTCVideoView(
             _renderer,
             mirror: widget.track is LocalVideoTrack,
