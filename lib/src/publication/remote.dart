@@ -14,7 +14,6 @@ import '../options.dart';
 import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
-import '../track/local/video.dart';
 import '../track/remote/remote.dart';
 import '../types.dart';
 import '../utils.dart';
