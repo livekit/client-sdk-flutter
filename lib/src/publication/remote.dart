@@ -98,10 +98,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
   // from one of the renderers
   void _onVideoRendererVisibilityUpdateEvent(
       TrackVisibilityUpdatedEvent event) {
-    if (event.track is LocalVideoTrack) {
-      // Ignore visibility events from LocalVideoTracks
-      return;
-    }
     final info = event.info;
     final trackSid = event.track.sid;
     if (trackSid != null && info != null) {
