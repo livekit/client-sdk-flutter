@@ -104,10 +104,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
     );
 
     // filter visible build contexts
-    final ctxs = videoTrack.viewKeys
-        .where((e) => e.currentState?.mounted == true)
-        .map((e) => e.currentContext)
-        .whereNotNull();
+    final ctxs =
+        videoTrack.viewKeys.map((e) => e.currentContext).whereNotNull();
 
     if (ctxs.isNotEmpty) {
       // compute largest size
