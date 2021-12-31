@@ -27,12 +27,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   bool _rendererReady = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
-  late GlobalKey visibilityKey;
+  late GlobalKey _internalKey;
 
   @override
   void initState() {
     super.initState();
-    visibilityKey = widget.track.addViewKey();
+    _internalKey = widget.track.addViewKey();
 
     (() async {
       await _renderer.initialize();
@@ -43,7 +43,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    widget.track.removeViewKey(visibilityKey);
+    widget.track.removeViewKey(_internalKey);
     _listener?.dispose();
     _renderer.srcObject = null;
     _renderer.dispose();
@@ -66,8 +66,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.didUpdateWidget(oldWidget);
     //
     if (widget.track != oldWidget.track) {
-      oldWidget.track.removeViewKey(visibilityKey);
-      visibilityKey = widget.track.addViewKey();
+      oldWidget.track.removeViewKey(_internalKey);
+      _internalKey = widget.track.addViewKey();
       // TODO: re-attach only if needed
       (() async {
         await _attach();
@@ -78,13 +78,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   Widget build(BuildContext context) => !_rendererReady
       ? Container()
-      : Container(
-          key: visibilityKey,
-          child: rtc.RTCVideoView(
-            _renderer,
-            mirror: widget.track is LocalVideoTrack,
-            filterQuality: FilterQuality.medium,
-            objectFit: widget.fit,
-          ),
+      : Builder(
+          key: _internalKey,
+          builder: (ctx) {
+            // let it render before notifying build
+            WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+              widget.track.onVideoViewDidBuild?.call(_internalKey);
+            });
+            return rtc.RTCVideoView(
+              _renderer,
+              mirror: widget.track is LocalVideoTrack,
+              filterQuality: FilterQuality.medium,
+              objectFit: widget.fit,
+            );
+          },
         );
 }

@@ -18,8 +18,11 @@ import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
-  //
+  @internal
   final List<GlobalKey> viewKeys = [];
+
+  @internal
+  Function(Key)? onVideoViewDidBuild;
 
   GlobalKey addViewKey() {
     final key = GlobalKey();

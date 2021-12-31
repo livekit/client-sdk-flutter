@@ -79,12 +79,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
     });
 
     _setPendingTrackSettingsUpdateRequest = Utils.createDebounceFunc(
-      (settings) {
-        logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
-        participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
-      },
+      _sendPendingTrackSettingsUpdateRequest,
       cancelFunc: (func) => _cancelPendingTrackSettingsUpdateRequest = func,
-      wait: const Duration(seconds: 1),
+      wait: const Duration(milliseconds: 1500),
     );
 
     updateTrack(track);
@@ -100,7 +97,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _metadataMuted = info.muted;
   }
 
-  void _onComputeVisibility(Timer v) {
+  void _computeVideoViewVisibility({
+    bool quick = false,
+  }) {
     //
     Size maxOfSizes(Size s1, Size s2) => Size(
           max(s1.width, s2.width),
@@ -115,14 +114,20 @@ class RemoteTrackPublication<T extends RemoteTrack>
     );
 
     // filter visible build contexts
-    final ctxs =
-        videoTrack.viewKeys.map((e) => e.currentContext).whereNotNull();
+    final viewSizes = videoTrack.viewKeys
+        .map((e) => e.currentContext)
+        .whereNotNull()
+        .map((e) => e.findRenderObject() as RenderBox?)
+        .whereNotNull()
+        .map((e) => e.size);
 
-    if (ctxs.isNotEmpty) {
+    logger.finer(
+        '[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+
+    if (viewSizes.isNotEmpty) {
       // compute largest size
-      final largestSize = ctxs
-          .map((e) => (e.findRenderObject() as RenderBox).size)
-          .reduce((value, element) => maxOfSizes(value, element));
+      final largestSize =
+          viewSizes.reduce((value, element) => maxOfSizes(value, element));
 
       settings
         ..disabled = false
@@ -133,9 +138,19 @@ class RemoteTrackPublication<T extends RemoteTrack>
     // Only send new settings to server if it changed
     if (settings != _lastSentTrackSettings) {
       _lastSentTrackSettings = settings;
-      logger.fine('[Visibility] detected visibility update $settings');
-      _setPendingTrackSettingsUpdateRequest?.call(settings);
+      logger.fine('[Visibility] Change detected, quick: $quick');
+      if (quick) {
+        _sendPendingTrackSettingsUpdateRequest(settings);
+      } else {
+        _setPendingTrackSettingsUpdateRequest?.call(settings);
+      }
     }
+  }
+
+  void _sendPendingTrackSettingsUpdateRequest(
+      lk_rtc.UpdateTrackSettings settings) {
+    logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
+    participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
   @internal
@@ -154,8 +169,17 @@ class RemoteTrackPublication<T extends RemoteTrack>
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
           const Duration(milliseconds: 300),
-          _onComputeVisibility,
+          (_) => _computeVideoViewVisibility(),
         );
+
+        newValue.onVideoViewDidBuild = (_) {
+          logger.fine('[Visibility] VideoView did build');
+          if (_lastSentTrackSettings?.disabled == true) {
+            // quick enable
+            _cancelPendingTrackSettingsUpdateRequest?.call();
+            _computeVideoViewVisibility(quick: true);
+          }
+        };
       }
 
       if (newValue != null) {
