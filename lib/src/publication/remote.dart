@@ -8,7 +8,6 @@ import 'package:meta/meta.dart';
 import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
-import '../internal/types.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../participant/remote.dart';
@@ -18,6 +17,7 @@ import '../track/local/local.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
 import '../types.dart';
+import '../utils.dart';
 import 'track_publication.dart';
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
@@ -57,8 +57,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   // used to report renderer visibility to the server
   // and optimize
-  VisibilityState? _lastSentVisibilityState;
+  lk_rtc.UpdateTrackSettings? _lastSentTrackSettings;
   Timer? _visibilityTimer;
+
+  Function(lk_rtc.UpdateTrackSettings)? _setPendingTrackSettingsUpdateRequest;
+  Function? _cancelPendingTrackSettingsUpdateRequest;
 
   RemoteTrackPublication({
     required this.participant,
@@ -69,10 +72,20 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
     // register dispose func
     onDispose(() async {
+      _cancelPendingTrackSettingsUpdateRequest?.call();
       _visibilityTimer?.cancel();
       // this object is responsible for disposing track
       await this.track?.dispose();
     });
+
+    _setPendingTrackSettingsUpdateRequest = Utils.createDebounceFunc(
+      (settings) {
+        logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
+        participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
+      },
+      cancelFunc: (func) => _cancelPendingTrackSettingsUpdateRequest = func,
+      wait: const Duration(seconds: 1),
+    );
 
     updateTrack(track);
   }
@@ -96,11 +109,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
     final videoTrack = track as VideoTrack;
 
-    logger.fine('onComputeVisibility views: ${videoTrack.viewKeys.length}');
-
-    VisibilityState v = const VisibilityState(
-      visible: false,
-      size: Size.zero,
+    final settings = lk_rtc.UpdateTrackSettings(
+      trackSids: [sid],
+      disabled: true,
     );
 
     // filter visible build contexts
@@ -113,25 +124,17 @@ class RemoteTrackPublication<T extends RemoteTrack>
           .map((e) => (e.findRenderObject() as RenderBox).size)
           .reduce((value, element) => maxOfSizes(value, element));
 
-      v = v.copyWith(
-        visible: true,
-        size: largestSize,
-      );
+      settings
+        ..disabled = false
+        ..width = largestSize.width.ceil()
+        ..height = largestSize.height.ceil();
     }
 
     // Only send new settings to server if it changed
-    if (v != _lastSentVisibilityState) {
-      _lastSentVisibilityState = v;
-
-      final settings = lk_rtc.UpdateTrackSettings(
-        trackSids: [sid],
-        disabled: !v.visible,
-        width: v.size.width.ceil(),
-        height: v.size.height.ceil(),
-      );
-
-      logger.fine('[Visibility] Sending to server ${settings.toProto3Json()}');
-      participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
+    if (settings != _lastSentTrackSettings) {
+      _lastSentTrackSettings = settings;
+      logger.fine('[Visibility] detected visibility update $settings');
+      _setPendingTrackSettingsUpdateRequest?.call(settings);
     }
   }
 
@@ -143,13 +146,14 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
     if (didUpdate) {
       // Stop current visibility timer (if exists)
+      _cancelPendingTrackSettingsUpdateRequest?.call();
       _visibilityTimer?.cancel();
 
       final roomOptions = participant.room.roomOptions ?? const RoomOptions();
       if (roomOptions.optimizeVideo && newValue is RemoteVideoTrack) {
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
-          const Duration(seconds: 1),
+          const Duration(milliseconds: 300),
           _onComputeVisibility,
         );
       }
