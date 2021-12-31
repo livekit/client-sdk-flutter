@@ -172,7 +172,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
           (_) => _computeVideoViewVisibility(),
         );
 
-        newValue.onVideoViewDidBuild = (_) {
+        newValue.onVideoViewBuild = (_) {
           logger.fine('[Visibility] VideoView did build');
           if (_lastSentTrackSettings?.disabled == true) {
             // quick enable

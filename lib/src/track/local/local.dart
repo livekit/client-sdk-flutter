@@ -22,14 +22,16 @@ mixin VideoTrack on Track {
   final List<GlobalKey> viewKeys = [];
 
   @internal
-  Function(Key)? onVideoViewDidBuild;
+  Function(Key)? onVideoViewBuild;
 
+  @internal
   GlobalKey addViewKey() {
     final key = GlobalKey();
     viewKeys.add(key);
     return key;
   }
 
+  @internal
   void removeViewKey(GlobalKey key) {
     viewKeys.remove(key);
   }

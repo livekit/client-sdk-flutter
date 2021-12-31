@@ -83,7 +83,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           builder: (ctx) {
             // let it render before notifying build
             WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewDidBuild?.call(_internalKey);
+              widget.track.onVideoViewBuild?.call(_internalKey);
             });
             return rtc.RTCVideoView(
               _renderer,
