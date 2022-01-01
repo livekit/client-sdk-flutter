@@ -46,8 +46,13 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
     bool didChange = false;
 
     for (final encoding in encodings) {
-      final layer =
-          layers.firstWhereOrNull((e) => e.quality.toRid() == encoding.rid);
+      final layer = layers.firstWhereOrNull((e) {
+        // If there is exact match, use it
+        if (e.quality.toRid() == encoding.rid) return true;
+        // Use first layer found if not simulcast
+        if (encoding.rid == null && encodings.length == 1) return true;
+        return false;
+      });
       if (layer != null && encoding.active != layer.enabled) {
         encoding.active = layer.enabled;
         logger.fine('Setting layer ${layer.quality} to ${layer.enabled}');
