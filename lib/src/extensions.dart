@@ -132,3 +132,11 @@ extension PBStreamStateExt on lk_rtc.StreamState {
       }[this] ??
       StreamState.paused;
 }
+
+extension VideoQualityExt on lk_models.VideoQuality {
+  String toRid() => {
+        lk_models.VideoQuality.HIGH: 'f',
+        lk_models.VideoQuality.MEDIUM: 'h',
+        lk_models.VideoQuality.LOW: 'q',
+      }[this]!;
+}
