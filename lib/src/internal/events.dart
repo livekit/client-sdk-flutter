@@ -1,6 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -56,18 +55,6 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
   const TrackStreamUpdatedEvent({
     required this.track,
     required this.stream,
-  });
-}
-
-@internal
-class TrackVisibilityUpdatedEvent with TrackEvent, InternalEvent {
-  final String rendererId;
-  final Track track;
-  final VisibilityInfo? info; // null means disposed
-  const TrackVisibilityUpdatedEvent({
-    required this.rendererId,
-    required this.track,
-    required this.info,
   });
 }
 

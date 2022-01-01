@@ -408,6 +408,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'recorder')
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -420,6 +425,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $fixnum.Int64? joinedAt,
     $core.bool? hidden,
     $core.bool? recorder,
+    $core.String? name,
   }) {
     final _result = create();
     if (sid != null) {
@@ -445,6 +451,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (recorder != null) {
       _result.recorder = recorder;
+    }
+    if (name != null) {
+      _result.name = name;
     }
     return _result;
   }
@@ -561,6 +570,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasRecorder() => $_has(7);
   @$pb.TagNumber(8)
   void clearRecorder() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get name => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set name($core.String v) {
+    $_setString(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasName() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearName() => clearField(9);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
@@ -635,6 +656,11 @@ class TrackInfo extends $pb.GeneratedMessage {
             : 'layers',
         $pb.PbFieldType.PM,
         subBuilder: VideoLayer.create)
+    ..aOS(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mimeType')
     ..hasRequiredFields = false;
 
   TrackInfo._() : super();
@@ -649,6 +675,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.bool? disableDtx,
     TrackSource? source,
     $core.Iterable<VideoLayer>? layers,
+    $core.String? mimeType,
   }) {
     final _result = create();
     if (sid != null) {
@@ -680,6 +707,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     }
     if (layers != null) {
       _result.layers.addAll(layers);
+    }
+    if (mimeType != null) {
+      _result.mimeType = mimeType;
     }
     return _result;
   }
@@ -819,6 +849,18 @@ class TrackInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(10)
   $core.List<VideoLayer> get layers => $_getList(9);
+
+  @$pb.TagNumber(11)
+  $core.String get mimeType => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set mimeType($core.String v) {
+    $_setString(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasMimeType() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearMimeType() => clearField(11);
 }
 
 class VideoLayer extends $pb.GeneratedMessage {
@@ -1353,4 +1395,83 @@ class UserPacket extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
+}
+
+class ParticipantTracks extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ParticipantTracks',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSids')
+    ..hasRequiredFields = false;
+
+  ParticipantTracks._() : super();
+  factory ParticipantTracks({
+    $core.String? participantSid,
+    $core.Iterable<$core.String>? trackSids,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (trackSids != null) {
+      _result.trackSids.addAll(trackSids);
+    }
+    return _result;
+  }
+  factory ParticipantTracks.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ParticipantTracks.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ParticipantTracks clone() => ParticipantTracks()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ParticipantTracks copyWith(void Function(ParticipantTracks) updates) =>
+      super.copyWith((message) => updates(message as ParticipantTracks))
+          as ParticipantTracks; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ParticipantTracks create() => ParticipantTracks._();
+  ParticipantTracks createEmptyInstance() => create();
+  static $pb.PbList<ParticipantTracks> createRepeated() =>
+      $pb.PbList<ParticipantTracks>();
+  @$core.pragma('dart2js:noInline')
+  static ParticipantTracks getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
+  static ParticipantTracks? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.String> get trackSids => $_getList(1);
 }

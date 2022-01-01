@@ -43,6 +43,10 @@ abstract class Participant<T extends TrackPublication>
   /// User-assigned identity.
   String identity;
 
+  /// Name of the participant (readonly).
+  String get name => _name;
+  String _name;
+
   /// Client-assigned metadata, opaque to livekit.
   String? metadata;
 
@@ -94,7 +98,8 @@ abstract class Participant<T extends TrackPublication>
     required this.room,
     required this.sid,
     required this.identity,
-  }) {
+    required String name,
+  }) : _name = name {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.fine('[ParticipantEvent] $event, will notifyListeners()');
@@ -150,6 +155,7 @@ abstract class Participant<T extends TrackPublication>
   @internal
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
+    _name = info.name;
     // participantSid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);

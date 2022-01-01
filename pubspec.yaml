@@ -22,7 +22,6 @@ dependencies:
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.1
-  visibility_detector: ^0.2.2
   flutter_webrtc: ^0.8.0
   dart_webrtc: ^1.0.2
 

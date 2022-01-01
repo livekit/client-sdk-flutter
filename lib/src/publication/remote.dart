@@ -1,20 +1,21 @@
+import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
-import '../internal/events.dart';
-import '../internal/types.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../track/local/local.dart';
 import '../track/remote/remote.dart';
+import '../track/remote/video.dart';
 import '../types.dart';
 import '../utils.dart';
 import 'track_publication.dart';
@@ -56,9 +57,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   // used to report renderer visibility to the server
   // and optimize
-  final _visibilities = <String, RendererVisibility>{};
-  Function(void)? _visibilityDidUpdate;
-  Function? _cancelVisibilityDebounceFunc;
+  lk_rtc.UpdateTrackSettings? _lastSentTrackSettings;
+  Timer? _visibilityTimer;
+
+  Function(lk_rtc.UpdateTrackSettings)? _setPendingTrackSettingsUpdateRequest;
+  Function? _cancelPendingTrackSettingsUpdateRequest;
 
   RemoteTrackPublication({
     required this.participant,
@@ -69,15 +72,16 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
     // register dispose func
     onDispose(() async {
-      _cancelVisibilityDebounceFunc?.call();
+      _cancelPendingTrackSettingsUpdateRequest?.call();
+      _visibilityTimer?.cancel();
       // this object is responsible for disposing track
       await this.track?.dispose();
     });
 
-    _visibilityDidUpdate = Utils.createDebounceFunc(
-      _shouldComputeVisibilityUpdate,
-      cancelFunc: (func) => _cancelVisibilityDebounceFunc = func,
-      wait: const Duration(seconds: 2),
+    _setPendingTrackSettingsUpdateRequest = Utils.createDebounceFunc(
+      _sendPendingTrackSettingsUpdateRequest,
+      cancelFunc: (func) => _cancelPendingTrackSettingsUpdateRequest = func,
+      wait: const Duration(milliseconds: 1500),
     );
 
     updateTrack(track);
@@ -93,73 +97,59 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _metadataMuted = info.muted;
   }
 
-  // called any time visibility info updates
-  // from one of the renderers
-  void _onVideoRendererVisibilityUpdateEvent(
-      TrackVisibilityUpdatedEvent event) {
-    final info = event.info;
-    final trackSid = event.track.sid;
-    if (trackSid != null && info != null) {
-      logger.fine('[Visibility] ${event.rendererId} did update '
-          'track: ${event.track.sid} '
-          'visibleFraction: ${info.visibleFraction} '
-          'size: ${info.size}');
-      _visibilities[event.rendererId] = RendererVisibility(
-        rendererId: event.rendererId,
-        trackId: trackSid,
-        visible: info.visibleFraction > 0,
-        size: info.size,
-      );
-
-      // quickly enable if currently disabled
-      if (!enabled && _hasVisibleRenderers()) {
-        logger.fine('[Visibility] Trying to re-enable quickly');
-        _cancelVisibilityDebounceFunc?.call();
-        _shouldComputeVisibilityUpdate(null);
-      } else {
-        _visibilityDidUpdate?.call(null);
-      }
-    } else {
-      // widget as been disposed, but track still exists
-      logger.fine('[Visibility] ${event.rendererId} was removed');
-      _visibilities.remove(event.rendererId);
-      _visibilityDidUpdate?.call(null);
-    }
-
-    logger.fine(
-        '[Visibility] Ids ${_visibilities.values.map((e) => e.rendererId)}');
-  }
-
-  bool _hasVisibleRenderers() =>
-      _visibilities.values.firstWhereOrNull((e) => e.visible) != null;
-
-  void _shouldComputeVisibilityUpdate(void _) {
-    if (isDisposed) {
-      logger.warning('_shouldComputeVisibilityUpdate already disposed');
-      return;
-    }
-
-    Size maxSize(Size s1, Size s2) => Size(
+  void _computeVideoViewVisibility({
+    bool quick = false,
+  }) {
+    //
+    Size maxOfSizes(Size s1, Size s2) => Size(
           max(s1.width, s2.width),
           max(s1.height, s2.height),
         );
 
-    _enabled = _hasVisibleRenderers();
+    final videoTrack = track as VideoTrack;
 
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
-      disabled: !_enabled,
+      disabled: true,
     );
 
-    if (_enabled) {
-      final largest = _visibilities.values
-          .map((e) => e.size)
-          .reduce((value, element) => maxSize(value, element));
-      settings.width = largest.width.floor();
-      settings.height = largest.height.floor();
+    // filter visible build contexts
+    final viewSizes = videoTrack.viewKeys
+        .map((e) => e.currentContext)
+        .whereNotNull()
+        .map((e) => e.findRenderObject() as RenderBox?)
+        .whereNotNull()
+        .map((e) => e.size);
+
+    logger.finer(
+        '[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+
+    if (viewSizes.isNotEmpty) {
+      // compute largest size
+      final largestSize =
+          viewSizes.reduce((value, element) => maxOfSizes(value, element));
+
+      settings
+        ..disabled = false
+        ..width = largestSize.width.ceil()
+        ..height = largestSize.height.ceil();
     }
 
-    logger.fine('[Visibility] Sending to server ${settings.toProto3Json()}');
+    // Only send new settings to server if it changed
+    if (settings != _lastSentTrackSettings) {
+      _lastSentTrackSettings = settings;
+      logger.fine('[Visibility] Change detected, quick: $quick');
+      if (quick) {
+        _sendPendingTrackSettingsUpdateRequest(settings);
+      } else {
+        _setPendingTrackSettingsUpdateRequest?.call(settings);
+      }
+    }
+  }
+
+  void _sendPendingTrackSettingsUpdateRequest(
+      lk_rtc.UpdateTrackSettings settings) {
+    logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
 
@@ -169,31 +159,36 @@ class RemoteTrackPublication<T extends RemoteTrack>
     logger.fine('RemoteTrackPublication.updateTrack track: $newValue');
     final didUpdate = await super.updateTrack(newValue);
 
-    final roomOptions = participant.room.roomOptions ?? const RoomOptions();
+    if (didUpdate) {
+      // Stop current visibility timer (if exists)
+      _cancelPendingTrackSettingsUpdateRequest?.call();
+      _visibilityTimer?.cancel();
 
-    if (didUpdate && newValue != null) {
-      // if new Track has been set to this RemoteTrackPublication,
-      // update the Track's muted state from the latest info.
-      newValue.updateMuted(
-        _metadataMuted,
-        shouldNotify: false, // don't emit event since this is initial state
-      );
+      final roomOptions = participant.room.roomOptions ?? const RoomOptions();
+      if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
+        // Start monitoring visibility
+        _visibilityTimer = Timer.periodic(
+          const Duration(milliseconds: 300),
+          (_) => _computeVideoViewVisibility(),
+        );
 
-      // Only listen for visibility updates if video optimization is on
-      // and the attached track is a video track
-      if (roomOptions.optimizeVideo &&
-          newValue.kind == lk_models.TrackType.VIDEO) {
-        // Attach visibility event listener
-        final listener = newValue.createListener();
-        listener.on<TrackVisibilityUpdatedEvent>(
-            _onVideoRendererVisibilityUpdateEvent);
+        newValue.onVideoViewBuild = (_) {
+          logger.fine('[Visibility] VideoView did build');
+          if (_lastSentTrackSettings?.disabled == true) {
+            // quick enable
+            _cancelPendingTrackSettingsUpdateRequest?.call();
+            _computeVideoViewVisibility(quick: true);
+          }
+        };
+      }
 
-        newValue.onDispose(() async {
-          await listener.dispose();
-          // consider all views are disposed when track is null
-          _visibilities.clear();
-          if (!isDisposed) _visibilityDidUpdate?.call(null);
-        });
+      if (newValue != null) {
+        // if new Track has been set to this RemoteTrackPublication,
+        // update the Track's muted state from the latest info.
+        newValue.updateMuted(
+          _metadataMuted,
+          shouldNotify: false, // don't emit event since this is initial state
+        );
       }
     }
 

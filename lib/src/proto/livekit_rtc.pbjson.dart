@@ -5,8 +5,8 @@
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
-import 'dart:convert' as $convert;
 import 'dart:core' as $core;
+import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use signalTargetDescriptor instead')
@@ -118,6 +118,15 @@ const SignalRequest$json = const {
       '9': 0,
       '10': 'updateLayers'
     },
+    const {
+      '1': 'subscription_permissions',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscriptionPermissions',
+      '9': 0,
+      '10': 'subscriptionPermissions'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -126,7 +135,7 @@ const SignalRequest$json = const {
 
 /// Descriptor for `SignalRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalRequestDescriptor = $convert.base64Decode(
-    'Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEkEKDXVwZGF0ZV9sYXllcnMYCiABKAsyGi5saXZla2l0LlVwZGF0ZVZpZGVvTGF5ZXJzSABSDHVwZGF0ZUxheWVyc0IJCgdtZXNzYWdl');
+    'Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEkEKDXVwZGF0ZV9sYXllcnMYCiABKAsyGi5saXZla2l0LlVwZGF0ZVZpZGVvTGF5ZXJzSABSDHVwZGF0ZUxheWVycxJjChhzdWJzY3JpcHRpb25fcGVybWlzc2lvbnMYCyABKAsyJi5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblBlcm1pc3Npb25zSABSF3N1YnNjcmlwdGlvblBlcm1pc3Npb25zQgkKB21lc3NhZ2U=');
 @$core.Deprecated('Use signalResponseDescriptor instead')
 const SignalResponse$json = const {
   '1': 'SignalResponse',
@@ -248,6 +257,15 @@ const SignalResponse$json = const {
       '9': 0,
       '10': 'subscribedQualityUpdate'
     },
+    const {
+      '1': 'subscription_permission_update',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscriptionPermissionUpdate',
+      '9': 0,
+      '10': 'subscriptionPermissionUpdate'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -256,7 +274,7 @@ const SignalResponse$json = const {
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
-    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZRJeChlzdWJzY3JpYmVkX3F1YWxpdHlfdXBkYXRlGA4gASgLMiAubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUIJCgdtZXNzYWdl');
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZRJeChlzdWJzY3JpYmVkX3F1YWxpdHlfdXBkYXRlGA4gASgLMiAubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZRJtCh5zdWJzY3JpcHRpb25fcGVybWlzc2lvbl91cGRhdGUYDyABKAsyJS5saXZla2l0LlN1YnNjcmlwdGlvblBlcm1pc3Npb25VcGRhdGVIAFIcc3Vic2NyaXB0aW9uUGVybWlzc2lvblVwZGF0ZUIJCgdtZXNzYWdl');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -447,12 +465,20 @@ const UpdateSubscription$json = const {
   '2': const [
     const {'1': 'track_sids', '3': 1, '4': 3, '5': 9, '10': 'trackSids'},
     const {'1': 'subscribe', '3': 2, '4': 1, '5': 8, '10': 'subscribe'},
+    const {
+      '1': 'participant_tracks',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantTracks',
+      '10': 'participantTracks'
+    },
   ],
 };
 
 /// Descriptor for `UpdateSubscription`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateSubscriptionDescriptor = $convert.base64Decode(
-    'ChJVcGRhdGVTdWJzY3JpcHRpb24SHQoKdHJhY2tfc2lkcxgBIAMoCVIJdHJhY2tTaWRzEhwKCXN1YnNjcmliZRgCIAEoCFIJc3Vic2NyaWJl');
+    'ChJVcGRhdGVTdWJzY3JpcHRpb24SHQoKdHJhY2tfc2lkcxgBIAMoCVIJdHJhY2tTaWRzEhwKCXN1YnNjcmliZRgCIAEoCFIJc3Vic2NyaWJlEkkKEnBhcnRpY2lwYW50X3RyYWNrcxgDIAMoCzIaLmxpdmVraXQuUGFydGljaXBhbnRUcmFja3NSEXBhcnRpY2lwYW50VHJhY2tz');
 @$core.Deprecated('Use updateTrackSettingsDescriptor instead')
 const UpdateTrackSettings$json = const {
   '1': 'UpdateTrackSettings',
@@ -682,3 +708,68 @@ const SubscribedQualityUpdate$json = const {
 final $typed_data.Uint8List subscribedQualityUpdateDescriptor =
     $convert.base64Decode(
         'ChdTdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZRIbCgl0cmFja19zaWQYASABKAlSCHRyYWNrU2lkEk0KFHN1YnNjcmliZWRfcXVhbGl0aWVzGAIgAygLMhoubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVITc3Vic2NyaWJlZFF1YWxpdGllcw==');
+@$core.Deprecated('Use trackPermissionDescriptor instead')
+const TrackPermission$json = const {
+  '1': 'TrackPermission',
+  '2': const [
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
+    const {'1': 'all_tracks', '3': 2, '4': 1, '5': 8, '10': 'allTracks'},
+    const {'1': 'track_sids', '3': 3, '4': 3, '5': 9, '10': 'trackSids'},
+  ],
+};
+
+/// Descriptor for `TrackPermission`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List trackPermissionDescriptor = $convert.base64Decode(
+    'Cg9UcmFja1Blcm1pc3Npb24SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBIdCgphbGxfdHJhY2tzGAIgASgIUglhbGxUcmFja3MSHQoKdHJhY2tfc2lkcxgDIAMoCVIJdHJhY2tTaWRz');
+@$core.Deprecated('Use updateSubscriptionPermissionsDescriptor instead')
+const UpdateSubscriptionPermissions$json = const {
+  '1': 'UpdateSubscriptionPermissions',
+  '2': const [
+    const {
+      '1': 'all_participants',
+      '3': 1,
+      '4': 1,
+      '5': 8,
+      '10': 'allParticipants'
+    },
+    const {
+      '1': 'track_permissions',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackPermission',
+      '10': 'trackPermissions'
+    },
+  ],
+};
+
+/// Descriptor for `UpdateSubscriptionPermissions`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List updateSubscriptionPermissionsDescriptor =
+    $convert.base64Decode(
+        'Ch1VcGRhdGVTdWJzY3JpcHRpb25QZXJtaXNzaW9ucxIpChBhbGxfcGFydGljaXBhbnRzGAEgASgIUg9hbGxQYXJ0aWNpcGFudHMSRQoRdHJhY2tfcGVybWlzc2lvbnMYAiADKAsyGC5saXZla2l0LlRyYWNrUGVybWlzc2lvblIQdHJhY2tQZXJtaXNzaW9ucw==');
+@$core.Deprecated('Use subscriptionPermissionUpdateDescriptor instead')
+const SubscriptionPermissionUpdate$json = const {
+  '1': 'SubscriptionPermissionUpdate',
+  '2': const [
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
+    const {'1': 'track_sid', '3': 2, '4': 1, '5': 9, '10': 'trackSid'},
+    const {'1': 'allowed', '3': 3, '4': 1, '5': 8, '10': 'allowed'},
+  ],
+};
+
+/// Descriptor for `SubscriptionPermissionUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List subscriptionPermissionUpdateDescriptor =
+    $convert.base64Decode(
+        'ChxTdWJzY3JpcHRpb25QZXJtaXNzaW9uVXBkYXRlEicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGwoJdHJhY2tfc2lkGAIgASgJUgh0cmFja1NpZBIYCgdhbGxvd2VkGAMgASgIUgdhbGxvd2Vk');

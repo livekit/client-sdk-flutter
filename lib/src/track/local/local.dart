@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -16,7 +17,25 @@ import 'audio.dart';
 import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
-mixin VideoTrack on Track {}
+mixin VideoTrack on Track {
+  @internal
+  final List<GlobalKey> viewKeys = [];
+
+  @internal
+  Function(Key)? onVideoViewBuild;
+
+  @internal
+  GlobalKey addViewKey() {
+    final key = GlobalKey();
+    viewKeys.add(key);
+    return key;
+  }
+
+  @internal
+  void removeViewKey(GlobalKey key) {
+    viewKeys.remove(key);
+  }
+}
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {}

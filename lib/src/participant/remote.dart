@@ -22,10 +22,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     required Room room,
     required String sid,
     required String identity,
+    required String name,
   }) : super(
           room: room,
           sid: sid,
           identity: identity,
+          name: name,
         );
 
   @internal
@@ -36,6 +38,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           room: room,
           sid: info.sid,
           identity: info.identity,
+          name: info.name,
         ) {
     updateFromInfo(info);
   }

@@ -49,8 +49,8 @@ class RoomOptions {
   /// [VideoTrackRenderer]'s visibility on screen.
   /// - Re-sizing a [VideoTrackRenderer] will signal the server to send down
   /// a relavant quality layer (if simulcast is enabled on the publisher)
-  /// Defaults to true.
-  final bool optimizeVideo;
+  /// Defaults to false.
+  final bool adaptiveStream;
 
   /// Set this to false in case you would like to stop the track yourself.
   /// If you set this to false, make sure you call [Track.stop].
@@ -63,7 +63,7 @@ class RoomOptions {
     this.defaultAudioCaptureOptions = const AudioCaptureOptions(),
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
-    this.optimizeVideo = true,
+    this.adaptiveStream = false,
     this.stopLocalTrackOnUnpublish = true,
   });
 }

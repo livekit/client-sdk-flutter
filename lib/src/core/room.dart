@@ -222,6 +222,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         room: this,
         sid: sid,
         identity: '',
+        name: '',
       );
     } else {
       participant = RemoteParticipant.fromInfo(

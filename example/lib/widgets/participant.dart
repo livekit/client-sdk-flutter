@@ -126,7 +126,9 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 children: [
                   ...extraWidgets(),
                   ParticipantInfoWidget(
-                    title: widget.participant.identity,
+                    title: widget.participant.name.isNotEmpty
+                        ? '${widget.participant.name} (${widget.participant.identity})'
+                        : widget.participant.identity,
                     audioAvailable: firstAudioPublication?.muted == false &&
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
@@ -174,7 +176,7 @@ class _RemoteParticipantWidgetState
     for (final trackPublication in widget.participant.videoTracks) {
       print(
           'video track ${trackPublication.sid} subscribed ${trackPublication.subscribed} muted ${trackPublication.muted}');
-      if (trackPublication.subscribed && !trackPublication.muted) {
+      if (trackPublication.subscribed && !trackPublication.muted && _visible) {
         return trackPublication.track;
       }
     }
