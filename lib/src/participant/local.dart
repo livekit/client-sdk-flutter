@@ -28,6 +28,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           room: room,
           sid: info.sid,
           identity: info.identity,
+          name: info.name,
         ) {
     updateFromInfo(info);
   }

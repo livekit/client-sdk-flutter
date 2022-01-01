@@ -126,7 +126,9 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 children: [
                   ...extraWidgets(),
                   ParticipantInfoWidget(
-                    title: widget.participant.identity,
+                    title: widget.participant.name.isNotEmpty
+                        ? '${widget.participant.name} (${widget.participant.identity})'
+                        : widget.participant.identity,
                     audioAvailable: firstAudioPublication?.muted == false &&
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
