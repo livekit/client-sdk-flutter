@@ -10,6 +10,7 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'livekit_models.pb.dart' as $0;
+
 import 'livekit_models.pbenum.dart' as $0;
 import 'livekit_rtc.pbenum.dart';
 
@@ -25,6 +26,7 @@ enum SignalRequest_Message {
   trackSetting,
   leave,
   updateLayers,
+  subscriptionPermissions,
   notSet
 }
 
@@ -40,6 +42,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     7: SignalRequest_Message.trackSetting,
     8: SignalRequest_Message.leave,
     10: SignalRequest_Message.updateLayers,
+    11: SignalRequest_Message.subscriptionPermissions,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -51,7 +54,7 @@ class SignalRequest extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11])
     ..aOM<SessionDescription>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -106,6 +109,12 @@ class SignalRequest extends $pb.GeneratedMessage {
             ? ''
             : 'updateLayers',
         subBuilder: UpdateVideoLayers.create)
+    ..aOM<UpdateSubscriptionPermissions>(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscriptionPermissions',
+        subBuilder: UpdateSubscriptionPermissions.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -119,6 +128,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     UpdateTrackSettings? trackSetting,
     LeaveRequest? leave,
     UpdateVideoLayers? updateLayers,
+    UpdateSubscriptionPermissions? subscriptionPermissions,
   }) {
     final _result = create();
     if (offer != null) {
@@ -147,6 +157,9 @@ class SignalRequest extends $pb.GeneratedMessage {
     }
     if (updateLayers != null) {
       _result.updateLayers = updateLayers;
+    }
+    if (subscriptionPermissions != null) {
+      _result.subscriptionPermissions = subscriptionPermissions;
     }
     return _result;
   }
@@ -306,6 +319,20 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearUpdateLayers() => clearField(10);
   @$pb.TagNumber(10)
   UpdateVideoLayers ensureUpdateLayers() => $_ensure(8);
+
+  @$pb.TagNumber(11)
+  UpdateSubscriptionPermissions get subscriptionPermissions => $_getN(9);
+  @$pb.TagNumber(11)
+  set subscriptionPermissions(UpdateSubscriptionPermissions v) {
+    setField(11, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasSubscriptionPermissions() => $_has(9);
+  @$pb.TagNumber(11)
+  void clearSubscriptionPermissions() => clearField(11);
+  @$pb.TagNumber(11)
+  UpdateSubscriptionPermissions ensureSubscriptionPermissions() => $_ensure(9);
 }
 
 enum SignalResponse_Message {
@@ -322,6 +349,7 @@ enum SignalResponse_Message {
   connectionQuality,
   streamStateUpdate,
   subscribedQualityUpdate,
+  subscriptionPermissionUpdate,
   notSet
 }
 
@@ -341,6 +369,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     12: SignalResponse_Message.connectionQuality,
     13: SignalResponse_Message.streamStateUpdate,
     14: SignalResponse_Message.subscribedQualityUpdate,
+    15: SignalResponse_Message.subscriptionPermissionUpdate,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -352,7 +381,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -431,6 +460,12 @@ class SignalResponse extends $pb.GeneratedMessage {
             ? ''
             : 'subscribedQualityUpdate',
         subBuilder: SubscribedQualityUpdate.create)
+    ..aOM<SubscriptionPermissionUpdate>(
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscriptionPermissionUpdate',
+        subBuilder: SubscriptionPermissionUpdate.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -448,6 +483,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     ConnectionQualityUpdate? connectionQuality,
     StreamStateUpdate? streamStateUpdate,
     SubscribedQualityUpdate? subscribedQualityUpdate,
+    SubscriptionPermissionUpdate? subscriptionPermissionUpdate,
   }) {
     final _result = create();
     if (join != null) {
@@ -488,6 +524,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (subscribedQualityUpdate != null) {
       _result.subscribedQualityUpdate = subscribedQualityUpdate;
+    }
+    if (subscriptionPermissionUpdate != null) {
+      _result.subscriptionPermissionUpdate = subscriptionPermissionUpdate;
     }
     return _result;
   }
@@ -703,6 +742,21 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearSubscribedQualityUpdate() => clearField(14);
   @$pb.TagNumber(14)
   SubscribedQualityUpdate ensureSubscribedQualityUpdate() => $_ensure(12);
+
+  @$pb.TagNumber(15)
+  SubscriptionPermissionUpdate get subscriptionPermissionUpdate => $_getN(13);
+  @$pb.TagNumber(15)
+  set subscriptionPermissionUpdate(SubscriptionPermissionUpdate v) {
+    setField(15, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasSubscriptionPermissionUpdate() => $_has(13);
+  @$pb.TagNumber(15)
+  void clearSubscriptionPermissionUpdate() => clearField(15);
+  @$pb.TagNumber(15)
+  SubscriptionPermissionUpdate ensureSubscriptionPermissionUpdate() =>
+      $_ensure(13);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -1570,12 +1624,20 @@ class UpdateSubscription extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'subscribe')
+    ..pc<$0.ParticipantTracks>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantTracks',
+        $pb.PbFieldType.PM,
+        subBuilder: $0.ParticipantTracks.create)
     ..hasRequiredFields = false;
 
   UpdateSubscription._() : super();
   factory UpdateSubscription({
     $core.Iterable<$core.String>? trackSids,
     $core.bool? subscribe,
+    $core.Iterable<$0.ParticipantTracks>? participantTracks,
   }) {
     final _result = create();
     if (trackSids != null) {
@@ -1583,6 +1645,9 @@ class UpdateSubscription extends $pb.GeneratedMessage {
     }
     if (subscribe != null) {
       _result.subscribe = subscribe;
+    }
+    if (participantTracks != null) {
+      _result.participantTracks.addAll(participantTracks);
     }
     return _result;
   }
@@ -1627,6 +1692,9 @@ class UpdateSubscription extends $pb.GeneratedMessage {
   $core.bool hasSubscribe() => $_has(1);
   @$pb.TagNumber(2)
   void clearSubscribe() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$0.ParticipantTracks> get participantTracks => $_getList(2);
 }
 
 class UpdateTrackSettings extends $pb.GeneratedMessage {
@@ -2677,4 +2745,302 @@ class SubscribedQualityUpdate extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.List<SubscribedQuality> get subscribedQualities => $_getList(1);
+}
+
+class TrackPermission extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TrackPermission',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'allTracks')
+    ..pPS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSids')
+    ..hasRequiredFields = false;
+
+  TrackPermission._() : super();
+  factory TrackPermission({
+    $core.String? participantSid,
+    $core.bool? allTracks,
+    $core.Iterable<$core.String>? trackSids,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (allTracks != null) {
+      _result.allTracks = allTracks;
+    }
+    if (trackSids != null) {
+      _result.trackSids.addAll(trackSids);
+    }
+    return _result;
+  }
+  factory TrackPermission.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TrackPermission.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TrackPermission clone() => TrackPermission()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TrackPermission copyWith(void Function(TrackPermission) updates) =>
+      super.copyWith((message) => updates(message as TrackPermission))
+          as TrackPermission; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static TrackPermission create() => TrackPermission._();
+  TrackPermission createEmptyInstance() => create();
+  static $pb.PbList<TrackPermission> createRepeated() =>
+      $pb.PbList<TrackPermission>();
+  @$core.pragma('dart2js:noInline')
+  static TrackPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackPermission>(create);
+  static TrackPermission? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get allTracks => $_getBF(1);
+  @$pb.TagNumber(2)
+  set allTracks($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasAllTracks() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAllTracks() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.String> get trackSids => $_getList(2);
+}
+
+class UpdateSubscriptionPermissions extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'UpdateSubscriptionPermissions',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOB(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'allParticipants')
+    ..pc<TrackPermission>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackPermissions',
+        $pb.PbFieldType.PM,
+        subBuilder: TrackPermission.create)
+    ..hasRequiredFields = false;
+
+  UpdateSubscriptionPermissions._() : super();
+  factory UpdateSubscriptionPermissions({
+    $core.bool? allParticipants,
+    $core.Iterable<TrackPermission>? trackPermissions,
+  }) {
+    final _result = create();
+    if (allParticipants != null) {
+      _result.allParticipants = allParticipants;
+    }
+    if (trackPermissions != null) {
+      _result.trackPermissions.addAll(trackPermissions);
+    }
+    return _result;
+  }
+  factory UpdateSubscriptionPermissions.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UpdateSubscriptionPermissions.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UpdateSubscriptionPermissions clone() =>
+      UpdateSubscriptionPermissions()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UpdateSubscriptionPermissions copyWith(
+          void Function(UpdateSubscriptionPermissions) updates) =>
+      super.copyWith(
+              (message) => updates(message as UpdateSubscriptionPermissions))
+          as UpdateSubscriptionPermissions; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static UpdateSubscriptionPermissions create() =>
+      UpdateSubscriptionPermissions._();
+  UpdateSubscriptionPermissions createEmptyInstance() => create();
+  static $pb.PbList<UpdateSubscriptionPermissions> createRepeated() =>
+      $pb.PbList<UpdateSubscriptionPermissions>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateSubscriptionPermissions getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateSubscriptionPermissions>(create);
+  static UpdateSubscriptionPermissions? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get allParticipants => $_getBF(0);
+  @$pb.TagNumber(1)
+  set allParticipants($core.bool v) {
+    $_setBool(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasAllParticipants() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAllParticipants() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<TrackPermission> get trackPermissions => $_getList(1);
+}
+
+class SubscriptionPermissionUpdate extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SubscriptionPermissionUpdate',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'allowed')
+    ..hasRequiredFields = false;
+
+  SubscriptionPermissionUpdate._() : super();
+  factory SubscriptionPermissionUpdate({
+    $core.String? participantSid,
+    $core.String? trackSid,
+    $core.bool? allowed,
+  }) {
+    final _result = create();
+    if (participantSid != null) {
+      _result.participantSid = participantSid;
+    }
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    if (allowed != null) {
+      _result.allowed = allowed;
+    }
+    return _result;
+  }
+  factory SubscriptionPermissionUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SubscriptionPermissionUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SubscriptionPermissionUpdate clone() =>
+      SubscriptionPermissionUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SubscriptionPermissionUpdate copyWith(
+          void Function(SubscriptionPermissionUpdate) updates) =>
+      super.copyWith(
+              (message) => updates(message as SubscriptionPermissionUpdate))
+          as SubscriptionPermissionUpdate; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SubscriptionPermissionUpdate create() =>
+      SubscriptionPermissionUpdate._();
+  SubscriptionPermissionUpdate createEmptyInstance() => create();
+  static $pb.PbList<SubscriptionPermissionUpdate> createRepeated() =>
+      $pb.PbList<SubscriptionPermissionUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static SubscriptionPermissionUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscriptionPermissionUpdate>(create);
+  static SubscriptionPermissionUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get participantSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasParticipantSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearParticipantSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get trackSid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set trackSid($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasTrackSid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTrackSid() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get allowed => $_getBF(2);
+  @$pb.TagNumber(3)
+  set allowed($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasAllowed() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAllowed() => clearField(3);
 }

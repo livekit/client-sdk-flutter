@@ -5,8 +5,8 @@
 // @dart = 2.12
 // ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,deprecated_member_use_from_same_package,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
-import 'dart:convert' as $convert;
 import 'dart:core' as $core;
+import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
 @$core.Deprecated('Use trackTypeDescriptor instead')
@@ -146,6 +146,7 @@ const ParticipantInfo$json = const {
     const {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
     const {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
+    const {'1': 'name', '3': 9, '4': 1, '5': 9, '10': 'name'},
   ],
   '4': const [ParticipantInfo_State$json],
 };
@@ -163,7 +164,7 @@ const ParticipantInfo_State$json = const {
 
 /// Descriptor for `ParticipantInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
-    'Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCGlkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVSBXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSGgoIbWV0YWRhdGEYBSABKAlSCG1ldGFkYXRhEhsKCWpvaW5lZF9hdBgGIAEoA1IIam9pbmVkQXQSFgoGaGlkZGVuGAcgASgIUgZoaWRkZW4SGgoIcmVjb3JkZXIYCCABKAhSCHJlY29yZGVyIj4KBVN0YXRlEgsKB0pPSU5JTkcQABIKCgZKT0lORUQQARIKCgZBQ1RJVkUQAhIQCgxESVNDT05ORUNURUQQAw==');
+    'Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCGlkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVSBXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSGgoIbWV0YWRhdGEYBSABKAlSCG1ldGFkYXRhEhsKCWpvaW5lZF9hdBgGIAEoA1IIam9pbmVkQXQSFgoGaGlkZGVuGAcgASgIUgZoaWRkZW4SGgoIcmVjb3JkZXIYCCABKAhSCHJlY29yZGVyEhIKBG5hbWUYCSABKAlSBG5hbWUiPgoFU3RhdGUSCwoHSk9JTklORxAAEgoKBkpPSU5FRBABEgoKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBAD');
 @$core.Deprecated('Use trackInfoDescriptor instead')
 const TrackInfo$json = const {
   '1': 'TrackInfo',
@@ -199,12 +200,13 @@ const TrackInfo$json = const {
       '6': '.livekit.VideoLayer',
       '10': 'layers'
     },
+    const {'1': 'mime_type', '3': 11, '4': 1, '5': 9, '10': 'mimeType'},
   ],
 };
 
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
-    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnM=');
+    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSGwoJbWltZV90eXBlGAsgASgJUghtaW1lVHlwZQ==');
 @$core.Deprecated('Use videoLayerDescriptor instead')
 const VideoLayer$json = const {
   '1': 'VideoLayer',
@@ -331,3 +333,21 @@ const UserPacket$json = const {
 /// Descriptor for `UserPacket`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
     'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHM=');
+@$core.Deprecated('Use participantTracksDescriptor instead')
+const ParticipantTracks$json = const {
+  '1': 'ParticipantTracks',
+  '2': const [
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
+    const {'1': 'track_sids', '3': 2, '4': 3, '5': 9, '10': 'trackSids'},
+  ],
+};
+
+/// Descriptor for `ParticipantTracks`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List participantTracksDescriptor = $convert.base64Decode(
+    'ChFQYXJ0aWNpcGFudFRyYWNrcxInCg9wYXJ0aWNpcGFudF9zaWQYASABKAlSDnBhcnRpY2lwYW50U2lkEh0KCnRyYWNrX3NpZHMYAiADKAlSCXRyYWNrU2lkcw==');
