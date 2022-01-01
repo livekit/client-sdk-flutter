@@ -165,7 +165,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       _visibilityTimer?.cancel();
 
       final roomOptions = participant.room.roomOptions ?? const RoomOptions();
-      if (roomOptions.optimizeVideo && newValue is RemoteVideoTrack) {
+      if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
           const Duration(milliseconds: 300),
