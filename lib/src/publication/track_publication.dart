@@ -8,6 +8,7 @@ import '../participant/participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 import '../track/track.dart';
+import '../track/local/local.dart';
 import '../types.dart';
 import '../core/signal_client.dart';
 
@@ -32,12 +33,18 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   bool get muted => track?.muted ?? false;
 
-  bool simulcasted = false;
-  VideoDimensions? dimension;
+  /// If the [Track] is published with simulcast, only for video. (readonly)
+  bool get simulcasted => _simulcasted;
+  bool _simulcasted;
 
-  /// The MIME type of the track
+  /// The MIME type of the [Track] (readonly)
   String get mimeType => _mimeType;
   String _mimeType;
+
+  /// The video dimensions of the [Track], reported by publisher.
+  /// Only available for [VideoTrack]s. (readonly)
+  VideoDimensions? get dimensions => _dimensions;
+  VideoDimensions? _dimensions;
 
   bool get subscribed => track != null;
 
@@ -45,9 +52,10 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     required lk_models.TrackInfo info,
   })  : sid = info.sid,
         name = info.name,
-        _mimeType = info.mimeType,
         kind = info.type,
-        source = info.source.toLKType() {
+        source = info.source.toLKType(),
+        _simulcasted = info.simulcast,
+        _mimeType = info.mimeType {
     updateFromInfo(info);
   }
 
@@ -56,10 +64,10 @@ abstract class TrackPublication<T extends Track> extends Disposable {
       kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
 
   void updateFromInfo(lk_models.TrackInfo info) {
-    simulcasted = info.simulcast;
+    _simulcasted = info.simulcast;
     _mimeType = info.mimeType;
     if (info.type == lk_models.TrackType.VIDEO) {
-      dimension = VideoDimensions(info.width, info.height);
+      _dimensions = VideoDimensions(info.width, info.height);
     }
   }
 
