@@ -52,6 +52,11 @@ class RoomOptions {
   /// Defaults to false.
   final bool adaptiveStream;
 
+  /// enable Dynacast, off by default. With Dynacast dynamically pauses
+  /// video layers that are not being consumed by any subscribers, significantly
+  /// reducing publishing CPU and bandwidth usage.
+  final bool dynacast;
+
   /// Set this to false in case you would like to stop the track yourself.
   /// If you set this to false, make sure you call [Track.stop].
   /// Defaults to true.
@@ -64,6 +69,7 @@ class RoomOptions {
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.adaptiveStream = false,
+    this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
   });
 }
