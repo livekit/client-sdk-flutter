@@ -174,7 +174,7 @@ class _RemoteParticipantWidgetState
     for (final trackPublication in widget.participant.videoTracks) {
       print(
           'video track ${trackPublication.sid} subscribed ${trackPublication.subscribed} muted ${trackPublication.muted}');
-      if (trackPublication.subscribed && !trackPublication.muted) {
+      if (trackPublication.subscribed && !trackPublication.muted && _visible) {
         return trackPublication.track;
       }
     }
