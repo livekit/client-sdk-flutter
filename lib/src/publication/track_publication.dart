@@ -35,12 +35,17 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   bool simulcasted = false;
   VideoDimensions? dimension;
 
+  /// The MIME type of the track
+  String get mimeType => _mimeType;
+  String _mimeType;
+
   bool get subscribed => track != null;
 
   TrackPublication({
     required lk_models.TrackInfo info,
   })  : sid = info.sid,
         name = info.name,
+        _mimeType = info.mimeType,
         kind = info.type,
         source = info.source.toLKType() {
     updateFromInfo(info);
@@ -52,6 +57,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   void updateFromInfo(lk_models.TrackInfo info) {
     simulcasted = info.simulcast;
+    _mimeType = info.mimeType;
     if (info.type == lk_models.TrackType.VIDEO) {
       dimension = VideoDimensions(info.width, info.height);
     }
