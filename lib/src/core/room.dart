@@ -56,6 +56,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   /// sid of the room
   String? sid;
 
+  /// Server version
+  String? get serverVersion => _serverVersion;
+  String? _serverVersion;
+
   List<Participant> _activeSpeakers = [];
 
   /// a list of participants that are actively speaking, including local participant.
@@ -109,6 +113,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     sid = joinResponse.room.sid;
     name = joinResponse.room.name;
+    _serverVersion = joinResponse.serverVersion;
 
     logger.fine(
         'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
@@ -167,6 +172,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else {
         await publication?.unmute();
       }
+    })
+    ..on<SignalSubscribedQualityUpdatedEvent>((event) {
+      // Signal for Dynacast
+      final options = roomOptions ?? const RoomOptions();
+      // Dynacast is off or is unsupported
+      if (!options.dynacast || _serverVersion == '0.15.1') return;
+      // Find the publication
+      final publication = localParticipant?.trackPublications[event.trackSid];
+      if (publication == null) {
+        logger.warning(
+            'Received subscribed quality update for unknown track (${event.trackSid})');
+        return;
+      }
+      publication.updatePublishingLayers(event.updates);
     })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');

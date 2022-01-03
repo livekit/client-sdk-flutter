@@ -196,6 +196,17 @@ class SignalStreamStateUpdatedEvent
   });
 }
 
+@internal
+class SignalSubscribedQualityUpdatedEvent
+    with SignalEvent, EngineEvent, InternalEvent {
+  final String trackSid;
+  final List<lk_rtc.SubscribedQuality> updates;
+  const SignalSubscribedQualityUpdatedEvent({
+    required this.trackSid,
+    required this.updates,
+  });
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
