@@ -3,8 +3,12 @@
 ## 0.5.6
 
 * Using WebRTC version M93.
-* New `dynacast` option to `RoomOptions`.
+* New `dynacast` option to `RoomOptions`. Dynacast dynamically pauses
+  video layers that are not being consumed by any subscribers, significantly
+  reducing publishing CPU and bandwidth usage. (currently defaults to off)
 * Rename `optimizeVideo` to `adaptiveStream` and improve stability.
+  AdaptiveStream lets LiveKit automatically manage quality of subscribed 
+  video tracks to optimize for bandwidth and CPU.
 
 ## 0.5.5
 

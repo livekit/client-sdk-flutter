@@ -44,12 +44,13 @@ class RoomOptions {
   /// Default options used when publishing a [LocalAudioTrack].
   final AudioPublishOptions defaultAudioPublishOptions;
 
-  /// When this is turned on, the following optimizations will be made:
-  /// - [RemoteTrackPublication] will be enabled/disabled based on the corresponding
-  /// [VideoTrackRenderer]'s visibility on screen.
-  /// - Re-sizing a [VideoTrackRenderer] will signal the server to send down
-  /// a relavant quality layer (if simulcast is enabled on the publisher)
-  /// Defaults to false.
+  /// AdaptiveStream lets LiveKit automatically manage quality of subscribed
+  /// video tracks to optimize for bandwidth and CPU.
+  /// When attached video elements are visible, it'll choose an appropriate
+  /// resolution based on the size of largest video element it's attached to.
+  ///
+  /// When none of the video elements are visible, it'll temporarily pause
+  /// the data flow until they are visible again.
   final bool adaptiveStream;
 
   /// enable Dynacast, off by default. With Dynacast dynamically pauses
