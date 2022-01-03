@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.5.6
+
+* Using WebRTC version M93.
+* New `dynacast` option to `RoomOptions`.
+* Rename `optimizeVideo` to `adaptiveStream` and improve stability.
+
 ## 0.5.5
 
 * Default capture options for setCameraEnabled, setMicrophoneEnabled
