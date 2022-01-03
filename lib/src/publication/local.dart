@@ -37,15 +37,24 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   @internal
   void updatePublishingLayers(List<lk_rtc.SubscribedQuality> layers) async {
     //
+    logger.fine('Update publishing layers: $layers');
+
     final params = track?.sender?.parameters;
-    if (params == null) return;
+    if (params == null) {
+      logger.fine('Update publishing layers: sender params are null');
+      return;
+    }
 
     final encodings = params.encodings;
-    if (encodings == null) return;
+    if (encodings == null) {
+      logger.fine('Update publishing layers: encodings are null');
+      return;
+    }
 
     bool didChange = false;
 
     for (final encoding in encodings) {
+      logger.fine('Processing encoding: ${encoding.rid}...');
       final layer = layers.firstWhereOrNull((e) =>
           // If there is exact match, use it
           (e.quality.toRid() == encoding.rid) ||
@@ -67,6 +76,8 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
       if (result == false) {
         logger.warning('Failed to update sender parameters');
       }
+    } else {
+      logger.fine('Update publishing layers: nothing to change');
     }
   }
 }

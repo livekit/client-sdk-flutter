@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
+import 'package:intl/intl.dart';
 
 import 'pages/connect.dart';
 
 void main() {
+  final format = DateFormat('HH:mm:ss');
   // configure logs for debugging
   Logger.root.level = Level.FINE;
   Logger.root.onRecord.listen((record) {
-    print('${record.level.name}: ${record.message}');
+    print('${format.format(record.time)}: ${record.message}');
   });
 
   WidgetsFlutterBinding.ensureInitialized();

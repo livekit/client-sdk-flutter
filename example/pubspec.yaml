@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  intl: ^0.17.0
   flutter_background: 1.1.0
   provider: ^6.0.1
   logging: ^1.0.1

@@ -177,7 +177,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // Signal for Dynacast
       final options = roomOptions ?? const RoomOptions();
       // Dynacast is off or is unsupported
-      if (!options.dynacast || _serverVersion == '0.15.1') return;
+      if (!options.dynacast || _serverVersion == '0.15.1') {
+        logger.fine('Received subscribed quality update'
+            ' but Dynacast is off or server version is not supported.');
+        return;
+      }
       // Find the publication
       final publication = localParticipant?.trackPublications[event.trackSid];
       if (publication == null) {
