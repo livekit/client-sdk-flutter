@@ -54,6 +54,9 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
       if (layer != null && encoding.active != layer.enabled) {
         encoding.active = layer.enabled;
         logger.fine('Setting layer ${layer.quality} to ${layer.enabled}');
+        // FireFox does not support setting encoding.active to false, so we
+        // have a workaround of lowering its bitrate and resolution to the min.
+        // TODO: Workaround for firefox
         didChange = true;
       }
     }
