@@ -214,9 +214,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           await negotiate();
         }
 
-        logger.fine('Publisher waiting for to ice-connect '
-            '(current: ${publisher?.pc.iceConnectionState})');
-
+        logger.fine('Waiting for publisher to ice-connect...');
         await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
           filter: (event) => event.iceState.isConnected(),
           duration: Timeouts.iceConnection,
