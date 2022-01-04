@@ -43,16 +43,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // data channels for packets
-  rtc.RTCDataChannel? _reliableDC;
-  rtc.RTCDataChannel? _lossyDC;
+  rtc.RTCDataChannel? _reliableDCPub;
+  rtc.RTCDataChannel? _lossyDCPub;
   rtc.RTCDataChannel? _reliableDCSub;
   rtc.RTCDataChannel? _lossyDCSub;
 
-  rtc.RTCDataChannelState get reliableDataChannelState =>
-      _reliableDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
-
-  rtc.RTCDataChannelState get lossyDataChannelState =>
-      _lossyDC?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
   bool _iceConnected = false;
 
   ConnectionState _connectionState = ConnectionState.disconnected;
@@ -192,49 +187,63 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> sendDataPacket(
     lk_models.DataPacket packet,
   ) async {
-    // make sure we do have a data connection
-    await _ensurePublisherConnected();
+    //
+    rtc.RTCDataChannel? publisherDataChannel(Reliability reliability) =>
+        reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
+
+    rtc.RTCDataChannelState publisherDataChannelState(
+            Reliability reliability) =>
+        publisherDataChannel(reliability)?.state ??
+        rtc.RTCDataChannelState.RTCDataChannelClosed;
+
+    final reliability = packet.kind.toSDKType();
 
     // construct the data channel message
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    // chose data channel
-    final rtc.RTCDataChannel? channel =
-        packet.kind == lk_models.DataPacket_Kind.LOSSY ? _lossyDC : _reliableDC;
+    if (_subscriberPrimary) {
+      // make sure publisher transport is connected
 
-    // send if channel exists
+      if (publisher?.pc.iceConnectionState?.isConnected() != true) {
+        logger.fine('Publisher is not connected...');
+
+        // start negotiation
+        if (publisher?.pc.iceConnectionState !=
+            rtc.RTCIceConnectionState.RTCIceConnectionStateChecking) {
+          await negotiate();
+        }
+
+        logger.fine('Publisher waiting for to ice-connect '
+            '(current: ${publisher?.pc.iceConnectionState})');
+
+        await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
+          filter: (event) => event.iceState.isConnected(),
+          duration: Timeouts.iceConnection,
+        );
+      }
+
+      // wait for data channel to open (if not already)
+      if (publisherDataChannelState(packet.kind.toSDKType()) !=
+          rtc.RTCDataChannelState.RTCDataChannelOpen) {
+        logger.fine('Waiting for data channel ${reliability} to open...');
+        await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
+          filter: (event) => event.type == reliability,
+          duration: Timeouts.connection,
+        );
+      }
+    }
+
+    // chose data channel
+    final rtc.RTCDataChannel? channel = publisherDataChannel(reliability);
+
     if (channel == null) {
-      throw UnexpectedStateException('Data channel is not ready');
+      throw UnexpectedStateException(
+          'Data channel for ${packet.kind.toSDKType()} is null');
     }
 
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
-  }
-
-  Future<void> _ensurePublisherConnected() async {
-    logger.fine('ensurePublisherConnected()');
-    if (!_subscriberPrimary) {
-      return;
-    }
-
-    if (publisher?.pc.iceConnectionState?.isConnected() == true) {
-      logger.warning('[$objectId] publisher is already connected');
-      return;
-    }
-
-    // start negotiation
-    await negotiate();
-
-    logger.fine('[PUBLISHER] waiting for to ice-connect '
-        '(current: ${publisher?.pc.iceConnectionState})');
-
-    await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
-      filter: (event) => event.iceState.isConnected(),
-      duration: Timeouts.iceConnection,
-    );
-
-    logger.fine('[PUBLISHER] connected');
   }
 
   @internal
@@ -421,11 +430,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ..binaryType = 'binary'
         ..ordered = true
         ..maxRetransmits = 0;
-      _lossyDC =
+      _lossyDCPub =
           await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
-      _lossyDC?.onMessage = _onDCMessage;
-      _lossyDC?.stateChangeStream
-          .listen((state) => _onDCStateUpdated(Reliability.lossy, state));
+      _lossyDCPub?.onMessage = _onDCMessage;
+      _lossyDCPub?.stateChangeStream
+          .listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+                isPrimary: !_subscriberPrimary,
+                state: state,
+                type: Reliability.lossy,
+              )));
+      // _onDCStateUpdated(Reliability.lossy, state)
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -434,11 +448,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       final reliableInit = rtc.RTCDataChannelInit()
         ..binaryType = 'binary'
         ..ordered = true;
-      _reliableDC =
+      _reliableDCPub =
           await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
-      _reliableDC?.onMessage = _onDCMessage;
-      _reliableDC?.stateChangeStream
-          .listen((state) => _onDCStateUpdated(Reliability.reliable, state));
+      _reliableDCPub?.onMessage = _onDCMessage;
+      _reliableDCPub?.stateChangeStream
+          .listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+                isPrimary: !_subscriberPrimary,
+                state: state,
+                type: Reliability.reliable,
+              )));
     } catch (_) {
       logger.severe('[$objectId] createDataChannel() did throw $_');
     }
@@ -450,27 +468,30 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Server opened DC label: ${dc.label}');
         _reliableDCSub = dc;
         _reliableDCSub?.onMessage = _onDCMessage;
-        _reliableDCSub?.stateChangeStream
-            .listen((state) => _onDCStateUpdated(Reliability.reliable, state));
+        _reliableDCSub?.stateChangeStream.listen((state) =>
+            _reliableDCPub?.stateChangeStream.listen(
+                (state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+                      isPrimary: _subscriberPrimary,
+                      state: state,
+                      type: Reliability.reliable,
+                    ))));
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
         _lossyDCSub = dc;
         _lossyDCSub?.onMessage = _onDCMessage;
-        _lossyDCSub?.stateChangeStream
-            .listen((event) => _onDCStateUpdated(Reliability.lossy, event));
+        _lossyDCSub?.stateChangeStream.listen((event) =>
+            _reliableDCPub?.stateChangeStream.listen(
+                (state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+                      isPrimary: _subscriberPrimary,
+                      state: state,
+                      type: Reliability.lossy,
+                    ))));
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
         break;
     }
-  }
-
-  void _onDCStateUpdated(
-    Reliability channel,
-    rtc.RTCDataChannelState state,
-  ) {
-    logger.fine('Data channel state updated ${channel} ${state}');
   }
 
   void _onDCMessage(rtc.RTCDataChannelMessage message) {
