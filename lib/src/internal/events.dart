@@ -210,22 +210,28 @@ class SignalSubscribedQualityUpdatedEvent
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
+
+@internal
 class EngineConnectedEvent with EngineEvent, InternalEvent {
   const EngineConnectedEvent();
 }
 
+@internal
 class EngineDisconnectedEvent with EngineEvent, InternalEvent {
   const EngineDisconnectedEvent();
 }
 
+@internal
 class EngineReconnectingEvent with EngineEvent, InternalEvent {
   const EngineReconnectingEvent();
 }
 
+@internal
 class EngineReconnectedEvent with EngineEvent, InternalEvent {
   const EngineReconnectedEvent();
 }
 
+@internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream stream;
@@ -237,6 +243,7 @@ class EngineTrackAddedEvent with EngineEvent, InternalEvent {
   });
 }
 
+@internal
 class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
   final lk_models.UserPacket packet;
   final lk_models.DataPacket_Kind kind;
@@ -246,6 +253,7 @@ class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
   });
 }
 
+@internal
 class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
   final String sid;
   final bool muted;
@@ -253,4 +261,44 @@ class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
     required this.sid,
     required this.muted,
   });
+}
+
+@internal
+abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
+  final bool isPrimary;
+  final Reliability type;
+  final rtc.RTCDataChannelState state;
+  const DataChannelStateUpdatedEvent({
+    required this.isPrimary,
+    required this.type,
+    required this.state,
+  });
+}
+
+@internal
+class PublisherDataChannelStateUpdatedEvent
+    extends DataChannelStateUpdatedEvent {
+  PublisherDataChannelStateUpdatedEvent({
+    required bool isPrimary,
+    required Reliability type,
+    required rtc.RTCDataChannelState state,
+  }) : super(
+          isPrimary: isPrimary,
+          type: type,
+          state: state,
+        );
+}
+
+@internal
+class SubscriberDataChannelStateUpdatedEvent
+    extends DataChannelStateUpdatedEvent {
+  SubscriberDataChannelStateUpdatedEvent({
+    required bool isPrimary,
+    required Reliability type,
+    required rtc.RTCDataChannelState state,
+  }) : super(
+          isPrimary: isPrimary,
+          type: type,
+          state: state,
+        );
 }
