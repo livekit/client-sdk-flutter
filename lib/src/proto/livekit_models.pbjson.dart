@@ -44,12 +44,13 @@ const VideoQuality$json = const {
     const {'1': 'LOW', '2': 0},
     const {'1': 'MEDIUM', '2': 1},
     const {'1': 'HIGH', '2': 2},
+    const {'1': 'OFF', '2': 3},
   ],
 };
 
 /// Descriptor for `VideoQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List videoQualityDescriptor = $convert.base64Decode(
-    'CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBAC');
+    'CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBACEgcKA09GRhAD');
 @$core.Deprecated('Use connectionQualityDescriptor instead')
 const ConnectionQuality$json = const {
   '1': 'ConnectionQuality',

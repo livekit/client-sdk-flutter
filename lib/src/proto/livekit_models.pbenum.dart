@@ -97,11 +97,17 @@ class VideoQuality extends $pb.ProtobufEnum {
       const $core.bool.fromEnvironment('protobuf.omit_enum_names')
           ? ''
           : 'HIGH');
+  static const VideoQuality OFF = VideoQuality._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'OFF');
 
   static const $core.List<VideoQuality> values = <VideoQuality>[
     LOW,
     MEDIUM,
     HIGH,
+    OFF,
   ];
 
   static final $core.Map<$core.int, VideoQuality> _byValue =
