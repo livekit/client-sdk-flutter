@@ -187,7 +187,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
-        events.emit(SubscriptionPermissionUpdateEvent(
+        events.emit(SignalSubscriptionPermissionUpdateEvent(
           participantSid: msg.subscriptionPermissionUpdate.participantSid,
           trackSid: msg.subscriptionPermissionUpdate.trackSid,
           allowed: msg.subscriptionPermissionUpdate.allowed,
