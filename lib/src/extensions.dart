@@ -144,7 +144,7 @@ extension VideoQualityExt on lk_models.VideoQuality {
 extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
   lk_rtc.TrackPermission toPBType() => lk_rtc.TrackPermission(
         participantSid: participantSid,
-        allTracks: allowedTrackSids == null,
-        trackSids: allowedTrackSids ?? [],
+        allTracks: allTracksAllowed,
+        trackSids: allowedTrackSids,
       );
 }

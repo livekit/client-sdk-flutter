@@ -312,14 +312,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// who is able to subscribe at a participant and track level.
   ///
   /// Note: if access is given at a track-level (i.e. both [allParticipantsAllowed] and
-  /// [allTracksAllowed] are false), any newer published tracks
+  /// [ParticipantTrackPermission.allTracksAllowed] are false), any newer published tracks
   /// will not grant permissions to any participants and will require a subsequent
   /// permissions update to allow subscription.
   ///
-  /// @param allParticipantsAllowed Allows all participants to subscribe all tracks.
-  /// Takes precedence over [[participantTrackPermissions]] if set to true.
+  /// [allParticipantsAllowed] Allows all participants to subscribe all tracks.
+  /// Takes precedence over [trackPermissions] if set to true.
   /// By default this is set to true.
-  /// @param participantTrackPermissions Full list of individual permissions per
+  ///
+  /// [trackPermissions] Full list of individual permissions per
   /// participant/track. Any omitted participants will not receive any permissions.
 
   void setTrackSubscriptionPermissions({

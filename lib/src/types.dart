@@ -171,13 +171,16 @@ class ParticipantTrackPermission {
   /// The participant id this permission applies to.
   final String participantSid;
 
-  // The list of track ids that the target participant can subscribe to.
-  // When unset, it'll allow all tracks to be subscribed by the participant.
-  // When empty, this participant is disallowed from subscribing to any tracks.
-  final List<String>? allowedTrackSids;
+  /// If set to true, the target participant can subscribe to all tracks from the local participant.
+  /// Takes precedence over [allowedTrackSids].
+  final bool allTracksAllowed;
+
+  /// The list of track ids that the target participant can subscribe to.
+  final List<String> allowedTrackSids;
 
   const ParticipantTrackPermission(
     this.participantSid,
+    this.allTracksAllowed,
     this.allowedTrackSids,
   );
 }
