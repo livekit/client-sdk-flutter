@@ -42,6 +42,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
   // latest TrackInfo
   bool _metadataMuted = false;
 
+  // allowed to subscribe
+  bool _allowedToSubscribe = true;
+
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
     // return if no change
@@ -244,5 +247,22 @@ class RemoteTrackPublication<T extends RemoteTrack>
       settings.quality = _videoQuality;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
+  }
+
+  @internal
+  // Update internal var and return true if changed
+  bool updateAllowedToSubscribe(bool allowed) {
+    if (_allowedToSubscribe == allowed) return false;
+    _allowedToSubscribe = allowed;
+    return true;
+  }
+
+  TrackSubscriptionState subscriptionState() {
+    if (!subscribed || !super.subscribed) {
+      return TrackSubscriptionState.unsubscribed;
+    } else if (!_allowedToSubscribe) {
+      return TrackSubscriptionState.notAllowed;
+    }
+    return TrackSubscriptionState.subscribed;
   }
 }

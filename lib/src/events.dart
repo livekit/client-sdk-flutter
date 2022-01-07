@@ -244,3 +244,18 @@ class SpeakingChangedEvent with ParticipantEvent {
     required this.speaking,
   });
 }
+
+/// One of subscribed tracks have changed its permissions for the current
+/// participant. If permission was revoked, then the track will no longer
+/// be subscribed. If permission was granted, a TrackSubscribed event will
+/// be emitted.
+class TrackSubscriptionPermissionChangedEvent with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final RemoteTrackPublication trackPublication;
+  final TrackSubscriptionState state;
+  const TrackSubscriptionPermissionChangedEvent({
+    required this.participant,
+    required this.trackPublication,
+    required this.state,
+  });
+}

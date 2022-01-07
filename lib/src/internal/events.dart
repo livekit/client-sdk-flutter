@@ -208,7 +208,8 @@ class SignalSubscribedQualityUpdatedEvent
 }
 
 @internal
-class SubscriptionPermissionUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
+class SubscriptionPermissionUpdateEvent
+    with SignalEvent, EngineEvent, InternalEvent {
   final String participantSid;
   final String trackSid;
   final bool allowed;
