@@ -303,6 +303,17 @@ extension SignalClientRequests on SignalClient {
         ),
       ));
 
+  void sendUpdateSubscriptionPermissions({
+    required bool allParticipants,
+    required List<lk_rtc.TrackPermission> trackPermissions,
+  }) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        subscriptionPermissions: lk_rtc.UpdateSubscriptionPermissions(
+          allParticipants: allParticipants,
+          trackPermissions: trackPermissions,
+        ),
+      ));
+
   void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
         leave: lk_rtc.LeaveRequest(),
       ));
