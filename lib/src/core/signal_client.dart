@@ -186,6 +186,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           updates: msg.subscribedQualityUpdate.subscribedQualities,
         ));
         break;
+      case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
+        events.emit(SubscriptionPermissionUpdateEvent(
+          participantSid: msg.subscriptionPermissionUpdate.participantSid,
+          trackSid: msg.subscriptionPermissionUpdate.trackSid,
+          allowed: msg.subscriptionPermissionUpdate.allowed,
+        ));
+        break;
       default:
         logger.warning('skipping unsupported signal message');
     }
