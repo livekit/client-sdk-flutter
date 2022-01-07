@@ -43,7 +43,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool _metadataMuted = false;
 
   // allowed to subscribe
-  bool _allowedToSubscribe = true;
+  bool _subscriptionAllowed = true;
+  bool get subscriptionAllowed => _subscriptionAllowed;
 
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
@@ -251,16 +252,16 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   @internal
   // Update internal var and return true if changed
-  bool updateAllowedToSubscribe(bool allowed) {
-    if (_allowedToSubscribe == allowed) return false;
-    _allowedToSubscribe = allowed;
+  bool updateSubscriptionAllowed(bool allowed) {
+    if (_subscriptionAllowed == allowed) return false;
+    _subscriptionAllowed = allowed;
     return true;
   }
 
   TrackSubscriptionState subscriptionState() {
     if (!subscribed || !super.subscribed) {
       return TrackSubscriptionState.unsubscribed;
-    } else if (!_allowedToSubscribe) {
+    } else if (!_subscriptionAllowed) {
       return TrackSubscriptionState.notAllowed;
     }
     return TrackSubscriptionState.subscribed;

@@ -203,7 +203,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         return;
       }
       //
-      if (publication.updateAllowedToSubscribe(event.allowed)) {
+      if (publication.updateSubscriptionAllowed(event.allowed)) {
         [participant.events, events]
             .emit(TrackSubscriptionPermissionChangedEvent(
           participant: participant,
