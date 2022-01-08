@@ -9,6 +9,7 @@
 * Rename `optimizeVideo` to `adaptiveStream` and improve stability.
   AdaptiveStream lets LiveKit automatically manage quality of subscribed 
   video tracks to optimize for bandwidth and CPU.
+* Ensure data channel is ready state when `LocalParticipant.publishData` api is called.
 
 ## 0.5.5
 
