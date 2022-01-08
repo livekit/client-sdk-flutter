@@ -272,9 +272,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
   @override
   bool get subscribed {
     // always return false when subscription is not allowed
-    if (!_subscriptionAllowed) {
-      return false;
-    }
+    if (!_subscriptionAllowed) return false;
     return super.subscribed;
   }
 
