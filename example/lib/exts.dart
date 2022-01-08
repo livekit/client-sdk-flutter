@@ -136,12 +136,12 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
-
   Future<bool?> showSubscribePermissionDialog() => showDialog<bool>(
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Allow subscription'),
-          content: const Text('Allow all participants to subscribe tracks published by local participant?'),
+          content: const Text(
+              'Allow all participants to subscribe tracks published by local participant?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -154,5 +154,4 @@ extension LKExampleExt on BuildContext {
           ],
         ),
       );
-
 }

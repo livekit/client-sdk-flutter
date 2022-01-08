@@ -224,19 +224,19 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
                 TrackSubscriptionState.notAllowed: Colors.red,
                 TrackSubscriptionState.unsubscribed: Colors.grey,
                 TrackSubscriptionState.subscribed: Colors.green,
-              }[pub.subscriptionState()]),
+              }[pub.subscriptionState]),
           onSelected: (value) => value(),
           itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
             // Subscribe/Unsubscribe
             if (pub.subscribed == false)
               PopupMenuItem(
                 child: const Text('Subscribe'),
-                value: () => pub.subscribed = true,
+                value: () => pub.subscribe(),
               )
             else if (pub.subscribed == true)
               PopupMenuItem(
                 child: const Text('Un-subscribe'),
-                value: () => pub.subscribed = false,
+                value: () => pub.unsubscribe(),
               ),
           ],
         ),

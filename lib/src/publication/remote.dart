@@ -212,11 +212,27 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _sendUpdateTrackSettings();
   }
 
+  @Deprecated('use subscribe() or unsubscribe() instead')
   set subscribed(bool val) {
     logger.fine('setting subscribed = ${val}');
-    if (val == super.subscribed) return;
-    _sendUpdateSubscription(subscribed: val);
-    if (!val && track != null) {
+    val ? subscribe() : unsubscribe();
+  }
+
+  Future<void> subscribe() async {
+    if (super.subscribed || !_subscriptionAllowed) {
+      logger.fine('ignoring subscribe() request...');
+      return;
+    }
+    _sendUpdateSubscription(subscribed: true);
+  }
+
+  Future<void> unsubscribe() async {
+    if (!super.subscribed || !_subscriptionAllowed) {
+      logger.fine('ignoring unsubscribe() request...');
+      return;
+    }
+    _sendUpdateSubscription(subscribed: false);
+    if (track != null) {
       // Ideally, we should wait for WebRTC's onRemoveTrack event
       // but it does not work reliably across platforms.
       // So for now we will assume remove track succeeded.
@@ -226,7 +242,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
         publication: this,
       ));
       // Simply set to null for now
-      updateTrack(null);
+      await updateTrack(null);
     }
   }
 
@@ -256,6 +272,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     if (_subscriptionAllowed == allowed) return false;
     _subscriptionAllowed = allowed;
 
+    logger.fine('updateSubscriptionAllowed allowed: ${allowed}');
     // emit events
     [
       participant.events,
@@ -263,7 +280,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     ].emit(TrackSubscriptionPermissionChangedEvent(
       participant: participant,
       trackPublication: this,
-      state: subscriptionState(),
+      state: subscriptionState,
     ));
 
     return true;
@@ -276,7 +293,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return super.subscribed;
   }
 
-  TrackSubscriptionState subscriptionState() {
+  TrackSubscriptionState get subscriptionState {
     if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
     return super.subscribed
         ? TrackSubscriptionState.subscribed
