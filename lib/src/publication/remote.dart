@@ -255,6 +255,17 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool updateSubscriptionAllowed(bool allowed) {
     if (_subscriptionAllowed == allowed) return false;
     _subscriptionAllowed = allowed;
+
+    // emit events
+    [
+      participant.events,
+      participant.room.events,
+    ].emit(TrackSubscriptionPermissionChangedEvent(
+      participant: participant,
+      trackPublication: this,
+      state: subscriptionState(),
+    ));
+
     return true;
   }
 

@@ -203,14 +203,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         return;
       }
       //
-      if (publication.updateSubscriptionAllowed(event.allowed)) {
-        [participant.events, events]
-            .emit(TrackSubscriptionPermissionChangedEvent(
-          participant: participant,
-          trackPublication: publication,
-          state: publication.subscriptionState(),
-        ));
-      }
+      publication.updateSubscriptionAllowed(event.allowed);
     })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
