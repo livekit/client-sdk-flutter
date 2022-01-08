@@ -192,13 +192,13 @@ class _RemoteParticipantWidgetState
             if (firstVideoPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: firstVideoPublication!,
-                icon: EvaIcons.videoOutline,
+                icon: EvaIcons.video,
               ),
             // Menu for RemoteTrackPublication<RemoteAudioTrack>
             if (firstAudioPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: firstAudioPublication!,
-                icon: EvaIcons.volumeUpOutline,
+                icon: EvaIcons.volumeUp,
               ),
           ],
         ),
@@ -218,23 +218,27 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
   Widget build(BuildContext context) => Material(
         color: Colors.black.withOpacity(0.3),
         child: PopupMenuButton<Function>(
-          icon: Icon(icon),
+          tooltip: 'Subscribe menu',
+          icon: Icon(icon,
+              color: {
+                TrackSubscriptionState.notAllowed: Colors.red,
+                TrackSubscriptionState.unsubscribed: Colors.grey,
+                TrackSubscriptionState.subscribed: Colors.green,
+              }[pub.subscriptionState()]),
           onSelected: (value) => value(),
-          itemBuilder: (BuildContext context) {
-            return <PopupMenuEntry<Function>>[
-              // Subscribe/Unsubscribe
-              if (pub.subscribed == false)
-                PopupMenuItem(
-                  child: const Text('Subscribe'),
-                  value: () => pub.subscribed = true,
-                )
-              else if (pub.subscribed == true)
-                PopupMenuItem(
-                  child: const Text('Un-subscribe'),
-                  value: () => pub.subscribed = false,
-                ),
-            ];
-          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
+            // Subscribe/Unsubscribe
+            if (pub.subscribed == false)
+              PopupMenuItem(
+                child: const Text('Subscribe'),
+                value: () => pub.subscribed = true,
+              )
+            else if (pub.subscribed == true)
+              PopupMenuItem(
+                child: const Text('Un-subscribe'),
+                value: () => pub.subscribed = false,
+              ),
+          ],
         ),
       );
 }

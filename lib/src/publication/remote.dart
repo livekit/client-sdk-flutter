@@ -277,11 +277,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
   }
 
   TrackSubscriptionState subscriptionState() {
-    if (!super.subscribed) {
-      return TrackSubscriptionState.unsubscribed;
-    } else if (!_subscriptionAllowed) {
-      return TrackSubscriptionState.notAllowed;
-    }
-    return TrackSubscriptionState.subscribed;
+    if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
+    return super.subscribed
+        ? TrackSubscriptionState.subscribed
+        : TrackSubscriptionState.unsubscribed;
   }
 }
