@@ -199,16 +199,16 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
-  set videoQuality(lk_models.VideoQuality val) {
-    if (val == _videoQuality) return;
-    _videoQuality = val;
+  set videoQuality(lk_models.VideoQuality newValue) {
+    if (newValue == _videoQuality) return;
+    _videoQuality = newValue;
     _sendUpdateTrackSettings();
   }
 
   bool get enabled => _enabled;
-  set enabled(bool val) {
-    if (_enabled == val) return;
-    _enabled = val;
+  set enabled(bool newValue) {
+    if (_enabled == newValue) return;
+    _enabled = newValue;
     _sendUpdateTrackSettings();
   }
 
