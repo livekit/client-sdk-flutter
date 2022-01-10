@@ -11,40 +11,49 @@ import 'track/track.dart';
 import 'types.dart';
 
 /// Base type for all LiveKit events.
-abstract class LiveKitEvent {}
+mixin LiveKitEvent {}
 
 /// Base type for all [Room] events.
-abstract class RoomEvent implements LiveKitEvent {}
+mixin RoomEvent implements LiveKitEvent {}
 
 /// Base type for all [Participant] events.
-abstract class ParticipantEvent implements LiveKitEvent {}
+mixin ParticipantEvent implements LiveKitEvent {}
 
 /// Base type for all [Track] events.
-abstract class TrackEvent implements LiveKitEvent {}
+mixin TrackEvent implements LiveKitEvent {}
 
 /// Base type for all [Engine] events.
-abstract class EngineEvent implements LiveKitEvent {}
+mixin EngineEvent implements LiveKitEvent {}
 
 /// Base type for all [SignalClient] events.
-abstract class SignalEvent implements LiveKitEvent {}
+mixin SignalEvent implements LiveKitEvent {}
 
 /// When the connection to the server has been interrupted and it's attempting
 /// to reconnect.
 /// Emitted by [Room].
 class RoomReconnectingEvent with RoomEvent {
   const RoomReconnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 /// Connection to room is re-established. All existing state is preserved.
 /// Emitted by [Room].
 class RoomReconnectedEvent with RoomEvent {
   const RoomReconnectedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 /// Disconnected from the room
 /// Emitted by [Room].
 class RoomDisconnectedEvent with RoomEvent {
   const RoomDisconnectedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 /// When a new [RemoteParticipant] joins *after* the current participant has connected
@@ -55,6 +64,9 @@ class ParticipantConnectedEvent with RoomEvent {
   const ParticipantConnectedEvent({
     required this.participant,
   });
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant})';
 }
 
 /// When a [RemoteParticipant] leaves the room
@@ -64,6 +76,9 @@ class ParticipantDisconnectedEvent with RoomEvent {
   const ParticipantDisconnectedEvent({
     required this.participant,
   });
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant})';
 }
 
 /// Active speakers changed. List of speakers are ordered by their audio level.
@@ -73,6 +88,10 @@ class ActiveSpeakersChangedEvent with RoomEvent {
   const ActiveSpeakersChangedEvent({
     required this.speakers,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(speakers: ${speakers.map((e) => e.toString()).join(', ')})';
 }
 
 /// When a new [Track] is published to [Room] *after* the current participant has
@@ -85,6 +104,10 @@ class TrackPublishedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.publication,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
 }
 
 /// The participant has unpublished one of their [Track].
@@ -96,6 +119,10 @@ class TrackUnpublishedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.publication,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
 }
 
 /// When the local participant publishes a new [Track] to the room.
@@ -107,6 +134,10 @@ class LocalTrackPublishedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.publication,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
 }
 
 /// The local participant has unpublished one of their [Track].
@@ -118,6 +149,10 @@ class LocalTrackUnpublishedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.publication,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
 }
 
 /// [LocalParticipant] has subscribed to a new track published by a
@@ -125,13 +160,18 @@ class LocalTrackUnpublishedEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
-  final Track track;
   final RemoteTrackPublication publication;
+  final Track track;
   const TrackSubscribedEvent({
     required this.participant,
-    required this.track,
     required this.publication,
+    required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication}, '
+      'track: ${track})';
 }
 
 /// An error has occured during track subscription.
@@ -152,13 +192,18 @@ class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
-  final Track track;
   final RemoteTrackPublication publication;
+  final Track track;
   const TrackUnsubscribedEvent({
     required this.participant,
-    required this.track,
     required this.publication,
+    required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication}, '
+      'track: ${track})';
 }
 
 /// A Participant has muted one of the track.
@@ -170,6 +215,10 @@ class TrackMutedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${track})';
 }
 
 /// This participant has unmuted one of their tracks
@@ -181,6 +230,10 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${track})';
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
@@ -195,6 +248,11 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
     required this.trackPublication,
     required this.streamState,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${trackPublication}, '
+      'streamState: ${streamState})';
 }
 
 /// Participant metadata is a simple way for app-specific state to be pushed to
@@ -206,6 +264,9 @@ class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   const ParticipantMetadataUpdatedEvent({
     required this.participant,
   });
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant})';
 }
 
 /// [Pariticpant]'s [ConnectionQuality] has updated.
@@ -218,6 +279,10 @@ class ParticipantConnectionQualityUpdatedEvent
     required this.participant,
     required this.connectionQuality,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, connectionQuality: ${connectionQuality})';
 }
 
 /// Data received from  [RemoteParticipant].
@@ -232,6 +297,10 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
     required this.participant,
     required this.data,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, data: ${data})';
 }
 
 /// The participant's isSpeaking property has changed
@@ -243,6 +312,10 @@ class SpeakingChangedEvent with ParticipantEvent {
     required this.participant,
     required this.speaking,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, speaking: ${speaking})';
 }
 
 /// One of subscribed tracks have changed its permissions for the current
@@ -258,4 +331,9 @@ class TrackSubscriptionPermissionChangedEvent with RoomEvent, ParticipantEvent {
     required this.trackPublication,
     required this.state,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${trackPublication}, '
+      'state: ${state})';
 }

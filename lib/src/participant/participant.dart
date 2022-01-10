@@ -232,4 +232,7 @@ abstract class Participant<T extends TrackPublication>
   /// (Equality operator) [Participant] is considered equal when [sid]'s are equal.
   @override
   bool operator ==(Object other) => other is Participant && sid == other.sid;
+
+  @override
+  String toString() => '${runtimeType}(sid: ${sid}, identity: ${identity})';
 }

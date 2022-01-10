@@ -115,4 +115,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
         : TrackUnmutedEvent(participant: participant, track: this);
     [participant.events, participant.room.events].emit(newEvent);
   }
+
+  @override
+  String toString() => '${runtimeType}(sid: ${sid}, source: ${source})';
 }
