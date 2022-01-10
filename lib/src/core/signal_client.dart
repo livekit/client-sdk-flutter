@@ -186,6 +186,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           updates: msg.subscribedQualityUpdate.subscribedQualities,
         ));
         break;
+      case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
+        events.emit(SignalSubscriptionPermissionUpdateEvent(
+          participantSid: msg.subscriptionPermissionUpdate.participantSid,
+          trackSid: msg.subscriptionPermissionUpdate.trackSid,
+          allowed: msg.subscriptionPermissionUpdate.allowed,
+        ));
+        break;
       default:
         logger.warning('skipping unsupported signal message');
     }
@@ -293,6 +300,17 @@ extension SignalClientRequests on SignalClient {
         updateLayers: lk_rtc.UpdateVideoLayers(
           trackSid: trackSid,
           layers: layers,
+        ),
+      ));
+
+  void sendUpdateSubscriptionPermissions({
+    required bool allParticipants,
+    required List<lk_rtc.TrackPermission> trackPermissions,
+  }) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        subscriptionPermissions: lk_rtc.UpdateSubscriptionPermissions(
+          allParticipants: allParticipants,
+          trackPermissions: trackPermissions,
         ),
       ));
 

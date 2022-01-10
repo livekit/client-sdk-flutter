@@ -3,6 +3,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
+import '../core/signal_client.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -304,4 +305,30 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
     }
   }
+
+  /// Control who can subscribe to LocalParticipant's published tracks.
+  ///
+  /// By default, all participants can subscribe. This allows fine-grained control over
+  /// who is able to subscribe at a participant and track level.
+  ///
+  /// Note: if access is given at a track-level (i.e. both [allParticipantsAllowed] and
+  /// [ParticipantTrackPermission.allTracksAllowed] are false), any newer published tracks
+  /// will not grant permissions to any participants and will require a subsequent
+  /// permissions update to allow subscription.
+  ///
+  /// [allParticipantsAllowed] Allows all participants to subscribe all tracks.
+  /// Takes precedence over [trackPermissions] if set to true.
+  /// By default this is set to true.
+  ///
+  /// [trackPermissions] Full list of individual permissions per
+  /// participant/track. Any omitted participants will not receive any permissions.
+
+  void setTrackSubscriptionPermissions({
+    required bool allParticipantsAllowed,
+    List<ParticipantTrackPermission> trackPermissions = const [],
+  }) =>
+      room.engine.signalClient.sendUpdateSubscriptionPermissions(
+        allParticipants: allParticipantsAllowed,
+        trackPermissions: trackPermissions.map((e) => e.toPBType()).toList(),
+      );
 }

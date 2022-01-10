@@ -207,6 +207,19 @@ class SignalSubscribedQualityUpdatedEvent
   });
 }
 
+@internal
+class SignalSubscriptionPermissionUpdateEvent
+    with SignalEvent, EngineEvent, InternalEvent {
+  final String participantSid;
+  final String trackSid;
+  final bool allowed;
+  const SignalSubscriptionPermissionUpdateEvent({
+    required this.participantSid,
+    required this.trackSid,
+    required this.allowed,
+  });
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------

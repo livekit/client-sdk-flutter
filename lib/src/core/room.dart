@@ -191,6 +191,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       publication.updatePublishingLayers(event.updates);
     })
+    ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
+      logger.fine('SignalSubscriptionPermissionUpdateEvent '
+          'participantSid:${event.participantSid} '
+          'trackSid:${event.trackSid} '
+          'allowed:${event.allowed}');
+
+      // find participant
+      final participant = _participants[event.participantSid];
+      if (participant == null) {
+        return;
+      }
+      // find track
+      final publication = participant.trackPublications[event.trackSid];
+      if (publication == null) {
+        return;
+      }
+      //
+      await publication.updateSubscriptionAllowed(event.allowed);
+    })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 

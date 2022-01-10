@@ -621,6 +621,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalStreamStateUpdatedEvent>((event) => events.emit(event))
     // relay to Room
     ..on<SignalSubscribedQualityUpdatedEvent>((event) => events.emit(event))
+    // relay to Room
+    ..on<SignalSubscriptionPermissionUpdateEvent>((event) => events.emit(event))
     ..on<SignalLeaveEvent>((event) async {
       if (connectionState == ConnectionState.reconnecting) {
         logger.warning('Received leave signal while engine is reconnecting.');

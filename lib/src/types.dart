@@ -45,6 +45,12 @@ enum TrackSource {
   screenShareAudio,
 }
 
+enum TrackSubscriptionState {
+  unsubscribed,
+  subscribed,
+  notAllowed,
+}
+
 /// The state of track data stream.
 /// This is controlled by server to optimize bandwidth.
 enum StreamState {
@@ -158,4 +164,23 @@ class VideoDimensions {
         width ?? this.width,
         height ?? this.height,
       );
+}
+
+@immutable
+class ParticipantTrackPermission {
+  /// The participant id this permission applies to.
+  final String participantSid;
+
+  /// If set to true, the target participant can subscribe to all tracks from the local participant.
+  /// Takes precedence over [allowedTrackSids].
+  final bool allTracksAllowed;
+
+  /// The list of track ids that the target participant can subscribe to.
+  final List<String> allowedTrackSids;
+
+  const ParticipantTrackPermission(
+    this.participantSid,
+    this.allTracksAllowed,
+    this.allowedTrackSids,
+  );
 }

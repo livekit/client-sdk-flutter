@@ -42,6 +42,10 @@ class RemoteTrackPublication<T extends RemoteTrack>
   // latest TrackInfo
   bool _metadataMuted = false;
 
+  // allowed to subscribe
+  bool _subscriptionAllowed = true;
+  bool get subscriptionAllowed => _subscriptionAllowed;
+
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
     // return if no change
@@ -208,11 +212,27 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _sendUpdateTrackSettings();
   }
 
-  set subscribed(bool newValue) {
-    logger.fine('setting subscribed = ${newValue}');
-    if (newValue == super.subscribed) return;
-    _sendUpdateSubscription(subscribed: newValue);
-    if (!newValue && track != null) {
+  @Deprecated('use subscribe() or unsubscribe() instead')
+  set subscribed(bool val) {
+    logger.fine('setting subscribed = ${val}');
+    val ? subscribe() : unsubscribe();
+  }
+
+  Future<void> subscribe() async {
+    if (super.subscribed || !_subscriptionAllowed) {
+      logger.fine('ignoring subscribe() request...');
+      return;
+    }
+    _sendUpdateSubscription(subscribed: true);
+  }
+
+  Future<void> unsubscribe() async {
+    if (!super.subscribed || !_subscriptionAllowed) {
+      logger.fine('ignoring unsubscribe() request...');
+      return;
+    }
+    _sendUpdateSubscription(subscribed: false);
+    if (track != null) {
       // Ideally, we should wait for WebRTC's onRemoveTrack event
       // but it does not work reliably across platforms.
       // So for now we will assume remove track succeeded.
@@ -222,7 +242,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
         publication: this,
       ));
       // Simply set to null for now
-      updateTrack(null);
+      await updateTrack(null);
     }
   }
 
@@ -244,5 +264,52 @@ class RemoteTrackPublication<T extends RemoteTrack>
       settings.quality = _videoQuality;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
+  }
+
+  @internal
+  // Update internal var and return true if changed
+  Future<bool> updateSubscriptionAllowed(bool allowed) async {
+    if (_subscriptionAllowed == allowed) return false;
+    _subscriptionAllowed = allowed;
+
+    logger.fine('updateSubscriptionAllowed allowed: ${allowed}');
+    // emit events
+    [
+      participant.events,
+      participant.room.events,
+    ].emit(TrackSubscriptionPermissionChangedEvent(
+      participant: participant,
+      trackPublication: this,
+      state: subscriptionState,
+    ));
+
+    if (!_subscriptionAllowed && super.subscribed /* track != null */) {
+      // Ideally, we should wait for WebRTC's onRemoveTrack event
+      // but it does not work reliably across platforms.
+      // So for now we will assume remove track succeeded.
+      [participant.events, participant.room.events].emit(TrackUnsubscribedEvent(
+        participant: participant,
+        track: track!,
+        publication: this,
+      ));
+      // Simply set to null for now
+      await updateTrack(null);
+    }
+
+    return true;
+  }
+
+  @override
+  bool get subscribed {
+    // always return false when subscription is not allowed
+    if (!_subscriptionAllowed) return false;
+    return super.subscribed;
+  }
+
+  TrackSubscriptionState get subscriptionState {
+    if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
+    return super.subscribed
+        ? TrackSubscriptionState.subscribed
+        : TrackSubscriptionState.unsubscribed;
   }
 }

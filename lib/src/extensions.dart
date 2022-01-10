@@ -140,3 +140,11 @@ extension VideoQualityExt on lk_models.VideoQuality {
         lk_models.VideoQuality.LOW: 'q',
       }[this]!;
 }
+
+extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
+  lk_rtc.TrackPermission toPBType() => lk_rtc.TrackPermission(
+        participantSid: participantSid,
+        allTracks: allTracksAllowed,
+        trackSids: allowedTrackSids,
+      );
+}

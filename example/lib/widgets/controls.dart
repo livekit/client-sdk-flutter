@@ -136,6 +136,19 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
   }
 
+  void _onTapUpdateSubscribePermission() async {
+    final result = await context.showSubscribePermissionDialog();
+    if (result != null) {
+      try {
+        widget.room.localParticipant?.setTrackSubscriptionPermissions(
+          allParticipantsAllowed: result,
+        );
+      } catch (error) {
+        await context.showErrorDialog(error);
+      }
+    }
+  }
+
   void _onTapSendData() async {
     final result = await context.showSendDataDialog();
     if (result == true) {
@@ -219,6 +232,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: _onTapReconnect,
             icon: const Icon(EvaIcons.refresh),
             tooltip: 're-connect',
+          ),
+          IconButton(
+            onPressed: _onTapUpdateSubscribePermission,
+            icon: const Icon(EvaIcons.settings2),
+            tooltip: 'Subscribe permission',
           ),
         ],
       ),
