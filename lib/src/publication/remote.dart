@@ -72,7 +72,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       participant.room.events,
     ].emit(TrackStreamStateUpdatedEvent(
       participant: participant,
-      trackPublication: this,
+      publication: this,
       streamState: streamState,
     ));
   }
@@ -296,7 +296,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       participant.room.events,
     ].emit(TrackSubscriptionPermissionChangedEvent(
       participant: participant,
-      trackPublication: this,
+      publication: this,
       state: subscriptionState,
     ));
 

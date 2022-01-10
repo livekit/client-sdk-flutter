@@ -210,30 +210,36 @@ class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [RemoteParticipant] and [LocalParticipant].
 class TrackMutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
-  final TrackPublication track;
+  final TrackPublication publication;
   const TrackMutedEvent({
     required this.participant,
-    required this.track,
+    required this.publication,
   });
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, publication: ${track})';
+      '(participant: ${participant}, publication: ${publication})';
+
+  @Deprecated('Use publication instead')
+  TrackPublication get track => publication;
 }
 
 /// This participant has unmuted one of their tracks
 /// Emitted by [RemoteParticipant] and [LocalParticipant].
 class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
-  final TrackPublication track;
+  final TrackPublication publication;
   const TrackUnmutedEvent({
     required this.participant,
-    required this.track,
+    required this.publication,
   });
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, publication: ${track})';
+      '(participant: ${participant}, publication: ${publication})';
+
+  @Deprecated('Use publication instead')
+  TrackPublication get track => publication;
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
@@ -241,18 +247,21 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant participant;
-  final RemoteTrackPublication trackPublication;
+  final RemoteTrackPublication publication;
   final StreamState streamState;
   const TrackStreamStateUpdatedEvent({
     required this.participant,
-    required this.trackPublication,
+    required this.publication,
     required this.streamState,
   });
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, publication: ${trackPublication}, '
+      '(participant: ${participant}, publication: ${publication}, '
       'streamState: ${streamState})';
+
+  @Deprecated('Use publication instead')
+  RemoteTrackPublication get trackPublication => publication;
 }
 
 /// Participant metadata is a simple way for app-specific state to be pushed to
@@ -324,16 +333,16 @@ class SpeakingChangedEvent with ParticipantEvent {
 /// be emitted.
 class TrackSubscriptionPermissionChangedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
-  final RemoteTrackPublication trackPublication;
+  final RemoteTrackPublication publication;
   final TrackSubscriptionState state;
   const TrackSubscriptionPermissionChangedEvent({
     required this.participant,
-    required this.trackPublication,
+    required this.publication,
     required this.state,
   });
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, publication: ${trackPublication}, '
+      '(participant: ${participant}, publication: ${publication}, '
       'state: ${state})';
 }

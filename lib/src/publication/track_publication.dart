@@ -111,8 +111,8 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     }
     // emit events
     final newEvent = event.muted
-        ? TrackMutedEvent(participant: participant, track: this)
-        : TrackUnmutedEvent(participant: participant, track: this);
+        ? TrackMutedEvent(participant: participant, publication: this)
+        : TrackUnmutedEvent(participant: participant, publication: this);
     [participant.events, participant.room.events].emit(newEvent);
   }
 
