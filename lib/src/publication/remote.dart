@@ -24,20 +24,22 @@ import 'track_publication.dart';
 /// control if we should subscribe to the track, and its quality (for video).
 class RemoteTrackPublication<T extends RemoteTrack>
     extends TrackPublication<T> {
+  /// The [RemoteParticipant] this [RemoteTrackPublication] belongs to.
   @override
   final RemoteParticipant participant;
 
+  bool get enabled => _enabled;
   bool _enabled = true;
+
   lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
   lk_models.VideoQuality get videoQuality => _videoQuality;
-
-  StreamState _streamState = StreamState.paused;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
   /// paused / resumed by the server. See [TrackStreamStateUpdatedEvent] for the
   /// relevant event.
   StreamState get streamState => _streamState;
+  StreamState _streamState = StreamState.paused;
 
   // latest TrackInfo
   bool _metadataMuted = false;
@@ -46,13 +48,29 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool _subscriptionAllowed = true;
   bool get subscriptionAllowed => _subscriptionAllowed;
 
+  @override
+  bool get subscribed {
+    // always return false when subscription is not allowed
+    if (!_subscriptionAllowed) return false;
+    return super.subscribed;
+  }
+
+  TrackSubscriptionState get subscriptionState {
+    if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
+    return super.subscribed
+        ? TrackSubscriptionState.subscribed
+        : TrackSubscriptionState.unsubscribed;
+  }
+
   @internal
   Future<void> updateStreamState(StreamState streamState) async {
     // return if no change
     if (_streamState == streamState) return;
     _streamState = streamState;
-    [participant.events, participant.room.events]
-        .emit(TrackStreamStateUpdatedEvent(
+    [
+      participant.events,
+      participant.room.events,
+    ].emit(TrackStreamStateUpdatedEvent(
       participant: participant,
       trackPublication: this,
       streamState: streamState,
@@ -205,17 +223,16 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _sendUpdateTrackSettings();
   }
 
-  bool get enabled => _enabled;
-  set enabled(bool newValue) {
-    if (_enabled == newValue) return;
-    _enabled = newValue;
+  Future<void> enable() async {
+    if (_enabled) return;
+    _enabled = true;
     _sendUpdateTrackSettings();
   }
 
-  @Deprecated('use subscribe() or unsubscribe() instead')
-  set subscribed(bool val) {
-    logger.fine('setting subscribed = ${val}');
-    val ? subscribe() : unsubscribe();
+  Future<void> disable() async {
+    if (!_enabled) return;
+    _enabled = false;
+    _sendUpdateTrackSettings();
   }
 
   Future<void> subscribe() async {
@@ -299,17 +316,17 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return true;
   }
 
-  @override
-  bool get subscribed {
-    // always return false when subscription is not allowed
-    if (!_subscriptionAllowed) return false;
-    return super.subscribed;
+  // Deprecated --------------------------------------------------
+
+  @Deprecated('use subscribe() or unsubscribe() instead')
+  set subscribed(bool newValue) {
+    logger.fine('Setting subscribed = ${newValue}');
+    newValue ? subscribe() : unsubscribe();
   }
 
-  TrackSubscriptionState get subscriptionState {
-    if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
-    return super.subscribed
-        ? TrackSubscriptionState.subscribed
-        : TrackSubscriptionState.unsubscribed;
+  @Deprecated('Use enable() or disable() instead')
+  set enabled(bool newValue) {
+    logger.fine('Setting enabled = ${newValue}');
+    newValue ? enable() : disable();
   }
 }
