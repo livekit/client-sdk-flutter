@@ -268,7 +268,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   @internal
   // Update internal var and return true if changed
-  bool updateSubscriptionAllowed(bool allowed) {
+  Future<bool> updateSubscriptionAllowed(bool allowed) async {
     if (_subscriptionAllowed == allowed) return false;
     _subscriptionAllowed = allowed;
 
@@ -282,6 +282,19 @@ class RemoteTrackPublication<T extends RemoteTrack>
       trackPublication: this,
       state: subscriptionState,
     ));
+
+    if (!_subscriptionAllowed && super.subscribed /* track != null */) {
+      // Ideally, we should wait for WebRTC's onRemoveTrack event
+      // but it does not work reliably across platforms.
+      // So for now we will assume remove track succeeded.
+      [participant.events, participant.room.events].emit(TrackUnsubscribedEvent(
+        participant: participant,
+        track: track!,
+        publication: this,
+      ));
+      // Simply set to null for now
+      await updateTrack(null);
+    }
 
     return true;
   }
