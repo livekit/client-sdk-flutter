@@ -1,30 +1,81 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
 import 'extensions.dart';
 import 'livekit.dart';
 import 'logger.dart';
 import 'options.dart';
+import 'support/platform.dart';
 import 'track/options.dart';
 import 'types.dart';
 
 extension UriExt on Uri {
+  @internal
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
 // Collection of state-less static methods
 class Utils {
-  static Uri buildUri(
+  // DeviceInfoPlugin caches internally
+  static final _deviceInfoPlugin = DeviceInfoPlugin();
+
+  static Future<lk_models.ClientInfo?> _clientInfo() async {
+    switch (lkPlatform()) {
+      // case PlatformType.web:
+      //   final info = await _deviceInfoPlugin.webBrowserInfo;
+      //
+      case PlatformType.windows:
+        return lk_models.ClientInfo(
+          os: 'windows',
+          // details not available...
+        );
+      case PlatformType.macOS:
+        final info = await _deviceInfoPlugin.macOsInfo;
+        return lk_models.ClientInfo(
+          os: 'macOS',
+          osVersion: info.osRelease,
+          deviceModel: info.model,
+        );
+      case PlatformType.android:
+        final info = await _deviceInfoPlugin.androidInfo;
+        return lk_models.ClientInfo(
+          os: 'android',
+          osVersion: info.version.release,
+          deviceModel: info.model,
+        );
+      case PlatformType.iOS:
+        final info = await _deviceInfoPlugin.iosInfo;
+        return lk_models.ClientInfo(
+          os: 'iOS',
+          osVersion: info.systemVersion,
+          deviceModel: info.model,
+        );
+      case PlatformType.linux:
+        final info = await _deviceInfoPlugin.linuxInfo;
+        return lk_models.ClientInfo(
+          os: 'linux',
+          osVersion: info.versionId,
+          deviceModel: info.machineId,
+        );
+      default:
+      // case PlatformType.fuchsia:
+    }
+  }
+
+  @internal
+  static Future<Uri> buildUri(
     String uriString, {
     required String token,
     ConnectOptions? connectOptions,
     bool reconnect = false,
     bool validate = false,
     bool forceSecure = false,
-  }) {
+  }) async {
     connectOptions ??= const ConnectOptions();
 
     final Uri uri = Uri.parse(uriString);
@@ -44,6 +95,8 @@ class Utils {
     }
     pathSegments.add(lastSegment);
 
+    final clientInfo = await _clientInfo();
+
     return uri.replace(
       scheme: validate ? httpScheme : wsScheme,
       pathSegments: pathSegments,
@@ -54,6 +107,13 @@ class Utils {
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
+        // client info
+        if (clientInfo != null) ...{
+          if (clientInfo.hasOs()) 'os': clientInfo.os,
+          if (clientInfo.hasOsVersion()) 'os_version': clientInfo.osVersion,
+          if (clientInfo.hasDeviceModel())
+            'device_model': clientInfo.deviceModel,
+        },
       },
     );
   }
@@ -94,6 +154,7 @@ class Utils {
 
   static final videoRids = ['q', 'h', 'f'];
 
+  @internal
   static List<rtc.RTCRtpEncoding> encodingsFromPresets(
     VideoDimensions dimensions, {
     required List<VideoParameters> presets,
@@ -113,6 +174,7 @@ class Utils {
     return result;
   }
 
+  @internal
   static List<rtc.RTCRtpEncoding>? computeVideoEncodings({
     required bool isScreenShare,
     VideoDimensions? dimensions,
@@ -173,6 +235,7 @@ class Utils {
     );
   }
 
+  @internal
   static List<lk_models.VideoLayer> computeVideoLayers(
     VideoDimensions dimensions,
     List<rtc.RTCRtpEncoding>? encodings,
@@ -204,6 +267,7 @@ class Utils {
     }).toList();
   }
 
+  @internal
   static lk_models.VideoQuality? videoQualityForRid(String? rid) => {
         'f': lk_models.VideoQuality.HIGH,
         'h': lk_models.VideoQuality.MEDIUM,
@@ -211,6 +275,7 @@ class Utils {
       }[rid];
 
   // makes a debounce func, with 1 param
+  @internal
   static Function(T) createDebounceFunc<T>(
     Function(T) f, {
     Function(Function)? cancelFunc,
