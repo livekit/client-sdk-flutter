@@ -36,10 +36,22 @@ class Utils {
         );
       case PlatformType.macOS:
         final info = await _deviceInfoPlugin.macOsInfo;
+
+        /// [MacOsDeviceInfo.osRelease] returns Darwin version instead of macOS version
+        /// So call native code to get os version
+        String? osVersionString;
+        try {
+          osVersionString = await LiveKitClient.channel.invokeMethod<String>(
+            'osVersionString',
+            <String, dynamic>{},
+          );
+        } catch (error) {
+          logger.warning('osVersionString did throw error: ${error}');
+        }
+
         return lk_models.ClientInfo(
           os: 'macOS',
-          // TODO: This returns Darwin version instead of macOS version
-          osVersion: info.osRelease,
+          osVersion: osVersionString,
           // Confirmed
           deviceModel: info.model,
         );

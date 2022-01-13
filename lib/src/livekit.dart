@@ -1,3 +1,6 @@
+import 'package:flutter/services.dart';
+import 'package:meta/meta.dart';
+
 import 'core/room.dart';
 import 'options.dart';
 
@@ -5,6 +8,9 @@ import 'options.dart';
 /// {@category Room}
 class LiveKitClient {
   static const version = '0.5.6';
+
+  @internal
+  static const channel = MethodChannel('livekit_client');
 
   /// Convenience method for connecting to a LiveKit server.
   /// Returns a [Room] upon a successful connect or throws when it fails.
