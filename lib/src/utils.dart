@@ -52,13 +52,15 @@ class Utils {
         );
       case PlatformType.iOS:
         final info = await _deviceInfoPlugin.iosInfo;
+        String? model = info.utsname.machine;
+        if (model != null && ['i386', 'x86_64', 'arm64'].contains(model)) {
+          model = 'iOSSimulator,${model}';
+        }
         return lk_models.ClientInfo(
           os: 'iOS',
           // Confirmed
           osVersion: info.systemVersion,
-          // Simulator will return `x86_64` etc.
-          // TODO: Match format with Swift SDK
-          deviceModel: info.utsname.machine,
+          deviceModel: model,
         );
       case PlatformType.linux:
         final info = await _deviceInfoPlugin.linuxInfo;
