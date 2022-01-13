@@ -202,12 +202,13 @@ const TrackInfo$json = const {
       '10': 'layers'
     },
     const {'1': 'mime_type', '3': 11, '4': 1, '5': 9, '10': 'mimeType'},
+    const {'1': 'mid', '3': 12, '4': 1, '5': 9, '10': 'mid'},
   ],
 };
 
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
-    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSGwoJbWltZV90eXBlGAsgASgJUghtaW1lVHlwZQ==');
+    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSGwoJbWltZV90eXBlGAsgASgJUghtaW1lVHlwZRIQCgNtaWQYDCABKAlSA21pZA==');
 @$core.Deprecated('Use videoLayerDescriptor instead')
 const VideoLayer$json = const {
   '1': 'VideoLayer',
@@ -223,12 +224,13 @@ const VideoLayer$json = const {
     const {'1': 'width', '3': 2, '4': 1, '5': 13, '10': 'width'},
     const {'1': 'height', '3': 3, '4': 1, '5': 13, '10': 'height'},
     const {'1': 'bitrate', '3': 4, '4': 1, '5': 13, '10': 'bitrate'},
+    const {'1': 'ssrc', '3': 5, '4': 1, '5': 13, '10': 'ssrc'},
   ],
 };
 
 /// Descriptor for `VideoLayer`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List videoLayerDescriptor = $convert.base64Decode(
-    'CgpWaWRlb0xheWVyEi8KB3F1YWxpdHkYASABKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIHcXVhbGl0eRIUCgV3aWR0aBgCIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAMgASgNUgZoZWlnaHQSGAoHYml0cmF0ZRgEIAEoDVIHYml0cmF0ZQ==');
+    'CgpWaWRlb0xheWVyEi8KB3F1YWxpdHkYASABKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIHcXVhbGl0eRIUCgV3aWR0aBgCIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAMgASgNUgZoZWlnaHQSGAoHYml0cmF0ZRgEIAEoDVIHYml0cmF0ZRISCgRzc3JjGAUgASgNUgRzc3Jj');
 @$core.Deprecated('Use dataPacketDescriptor instead')
 const DataPacket$json = const {
   '1': 'DataPacket',
@@ -352,3 +354,49 @@ const ParticipantTracks$json = const {
 /// Descriptor for `ParticipantTracks`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantTracksDescriptor = $convert.base64Decode(
     'ChFQYXJ0aWNpcGFudFRyYWNrcxInCg9wYXJ0aWNpcGFudF9zaWQYASABKAlSDnBhcnRpY2lwYW50U2lkEh0KCnRyYWNrX3NpZHMYAiADKAlSCXRyYWNrU2lkcw==');
+@$core.Deprecated('Use clientInfoDescriptor instead')
+const ClientInfo$json = const {
+  '1': 'ClientInfo',
+  '2': const [
+    const {
+      '1': 'sdk',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ClientInfo.SDK',
+      '10': 'sdk'
+    },
+    const {'1': 'version', '3': 2, '4': 1, '5': 9, '10': 'version'},
+    const {'1': 'protocol', '3': 3, '4': 1, '5': 5, '10': 'protocol'},
+    const {'1': 'os', '3': 4, '4': 1, '5': 9, '10': 'os'},
+    const {'1': 'os_version', '3': 5, '4': 1, '5': 9, '10': 'osVersion'},
+    const {'1': 'device_model', '3': 6, '4': 1, '5': 9, '10': 'deviceModel'},
+    const {'1': 'browser', '3': 7, '4': 1, '5': 9, '10': 'browser'},
+    const {
+      '1': 'browser_version',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'browserVersion'
+    },
+  ],
+  '4': const [ClientInfo_SDK$json],
+};
+
+@$core.Deprecated('Use clientInfoDescriptor instead')
+const ClientInfo_SDK$json = const {
+  '1': 'SDK',
+  '2': const [
+    const {'1': 'UNKNOWN', '2': 0},
+    const {'1': 'JS', '2': 1},
+    const {'1': 'SWIFT', '2': 2},
+    const {'1': 'ANDROID', '2': 3},
+    const {'1': 'FLUTTER', '2': 4},
+    const {'1': 'GO', '2': 5},
+    const {'1': 'UNITY', '2': 6},
+  ],
+};
+
+/// Descriptor for `ClientInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List clientInfoDescriptor = $convert.base64Decode(
+    'CgpDbGllbnRJbmZvEikKA3NkaxgBIAEoDjIXLmxpdmVraXQuQ2xpZW50SW5mby5TREtSA3NkaxIYCgd2ZXJzaW9uGAIgASgJUgd2ZXJzaW9uEhoKCHByb3RvY29sGAMgASgFUghwcm90b2NvbBIOCgJvcxgEIAEoCVICb3MSHQoKb3NfdmVyc2lvbhgFIAEoCVIJb3NWZXJzaW9uEiEKDGRldmljZV9tb2RlbBgGIAEoCVILZGV2aWNlTW9kZWwSGAoHYnJvd3NlchgHIAEoCVIHYnJvd3NlchInCg9icm93c2VyX3ZlcnNpb24YCCABKAlSDmJyb3dzZXJWZXJzaW9uIlIKA1NESxILCgdVTktOT1dOEAASBgoCSlMQARIJCgVTV0lGVBACEgsKB0FORFJPSUQQAxILCgdGTFVUVEVSEAQSBgoCR08QBRIJCgVVTklUWRAG');

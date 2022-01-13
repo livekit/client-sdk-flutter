@@ -207,3 +207,51 @@ class DataPacket_Kind extends $pb.ProtobufEnum {
 
   const DataPacket_Kind._($core.int v, $core.String n) : super(v, n);
 }
+
+class ClientInfo_SDK extends $pb.ProtobufEnum {
+  static const ClientInfo_SDK UNKNOWN = ClientInfo_SDK._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'UNKNOWN');
+  static const ClientInfo_SDK JS = ClientInfo_SDK._(1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'JS');
+  static const ClientInfo_SDK SWIFT = ClientInfo_SDK._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'SWIFT');
+  static const ClientInfo_SDK ANDROID = ClientInfo_SDK._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'ANDROID');
+  static const ClientInfo_SDK FLUTTER = ClientInfo_SDK._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'FLUTTER');
+  static const ClientInfo_SDK GO = ClientInfo_SDK._(5,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'GO');
+  static const ClientInfo_SDK UNITY = ClientInfo_SDK._(
+      6,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'UNITY');
+
+  static const $core.List<ClientInfo_SDK> values = <ClientInfo_SDK>[
+    UNKNOWN,
+    JS,
+    SWIFT,
+    ANDROID,
+    FLUTTER,
+    GO,
+    UNITY,
+  ];
+
+  static final $core.Map<$core.int, ClientInfo_SDK> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ClientInfo_SDK? valueOf($core.int value) => _byValue[value];
+
+  const ClientInfo_SDK._($core.int v, $core.String n) : super(v, n);
+}

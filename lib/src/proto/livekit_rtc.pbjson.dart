@@ -127,6 +127,24 @@ const SignalRequest$json = const {
       '9': 0,
       '10': 'subscriptionPermissions'
     },
+    const {
+      '1': 'sync_state',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SyncState',
+      '9': 0,
+      '10': 'syncState'
+    },
+    const {
+      '1': 'simulate',
+      '3': 13,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SimulateScenario',
+      '9': 0,
+      '10': 'simulate'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -135,7 +153,7 @@ const SignalRequest$json = const {
 
 /// Descriptor for `SignalRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalRequestDescriptor = $convert.base64Decode(
-    'Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEkEKDXVwZGF0ZV9sYXllcnMYCiABKAsyGi5saXZla2l0LlVwZGF0ZVZpZGVvTGF5ZXJzSABSDHVwZGF0ZUxheWVycxJjChhzdWJzY3JpcHRpb25fcGVybWlzc2lvbnMYCyABKAsyJi5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblBlcm1pc3Npb25zSABSF3N1YnNjcmlwdGlvblBlcm1pc3Npb25zQgkKB21lc3NhZ2U=');
+    'Cg1TaWduYWxSZXF1ZXN0EjMKBW9mZmVyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIFb2ZmZXISNQoGYW5zd2VyGAIgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25IAFIGYW5zd2VyEjMKB3RyaWNrbGUYAyABKAsyFy5saXZla2l0LlRyaWNrbGVSZXF1ZXN0SABSB3RyaWNrbGUSNwoJYWRkX3RyYWNrGAQgASgLMhgubGl2ZWtpdC5BZGRUcmFja1JlcXVlc3RIAFIIYWRkVHJhY2sSLwoEbXV0ZRgFIAEoCzIZLmxpdmVraXQuTXV0ZVRyYWNrUmVxdWVzdEgAUgRtdXRlEkEKDHN1YnNjcmlwdGlvbhgGIAEoCzIbLmxpdmVraXQuVXBkYXRlU3Vic2NyaXB0aW9uSABSDHN1YnNjcmlwdGlvbhJDCg10cmFja19zZXR0aW5nGAcgASgLMhwubGl2ZWtpdC5VcGRhdGVUcmFja1NldHRpbmdzSABSDHRyYWNrU2V0dGluZxItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEkEKDXVwZGF0ZV9sYXllcnMYCiABKAsyGi5saXZla2l0LlVwZGF0ZVZpZGVvTGF5ZXJzSABSDHVwZGF0ZUxheWVycxJjChhzdWJzY3JpcHRpb25fcGVybWlzc2lvbnMYCyABKAsyJi5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblBlcm1pc3Npb25zSABSF3N1YnNjcmlwdGlvblBlcm1pc3Npb25zEjMKCnN5bmNfc3RhdGUYDCABKAsyEi5saXZla2l0LlN5bmNTdGF0ZUgAUglzeW5jU3RhdGUSNwoIc2ltdWxhdGUYDSABKAsyGS5saXZla2l0LlNpbXVsYXRlU2NlbmFyaW9IAFIIc2ltdWxhdGVCCQoHbWVzc2FnZQ==');
 @$core.Deprecated('Use signalResponseDescriptor instead')
 const SignalResponse$json = const {
   '1': 'SignalResponse',
@@ -773,3 +791,75 @@ const SubscriptionPermissionUpdate$json = const {
 final $typed_data.Uint8List subscriptionPermissionUpdateDescriptor =
     $convert.base64Decode(
         'ChxTdWJzY3JpcHRpb25QZXJtaXNzaW9uVXBkYXRlEicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGwoJdHJhY2tfc2lkGAIgASgJUgh0cmFja1NpZBIYCgdhbGxvd2VkGAMgASgIUgdhbGxvd2Vk');
+@$core.Deprecated('Use syncStateDescriptor instead')
+const SyncState$json = const {
+  '1': 'SyncState',
+  '2': const [
+    const {
+      '1': 'answer',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'answer'
+    },
+    const {
+      '1': 'subscription',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscription',
+      '10': 'subscription'
+    },
+    const {
+      '1': 'publish_tracks',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackPublishedResponse',
+      '10': 'publishTracks'
+    },
+  ],
+};
+
+/// Descriptor for `SyncState`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List syncStateDescriptor = $convert.base64Decode(
+    'CglTeW5jU3RhdGUSMwoGYW5zd2VyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25SBmFuc3dlchI/CgxzdWJzY3JpcHRpb24YAiABKAsyGy5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblIMc3Vic2NyaXB0aW9uEkYKDnB1Ymxpc2hfdHJhY2tzGAMgAygLMh8ubGl2ZWtpdC5UcmFja1B1Ymxpc2hlZFJlc3BvbnNlUg1wdWJsaXNoVHJhY2tz');
+@$core.Deprecated('Use simulateScenarioDescriptor instead')
+const SimulateScenario$json = const {
+  '1': 'SimulateScenario',
+  '2': const [
+    const {
+      '1': 'speaker_update',
+      '3': 1,
+      '4': 1,
+      '5': 5,
+      '9': 0,
+      '10': 'speakerUpdate'
+    },
+    const {
+      '1': 'node_failure',
+      '3': 2,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'nodeFailure'
+    },
+    const {'1': 'migration', '3': 3, '4': 1, '5': 8, '9': 0, '10': 'migration'},
+    const {
+      '1': 'server_leave',
+      '3': 4,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'serverLeave'
+    },
+  ],
+  '8': const [
+    const {'1': 'scenario'},
+  ],
+};
+
+/// Descriptor for `SimulateScenario`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List simulateScenarioDescriptor = $convert.base64Decode(
+    'ChBTaW11bGF0ZVNjZW5hcmlvEicKDnNwZWFrZXJfdXBkYXRlGAEgASgFSABSDXNwZWFrZXJVcGRhdGUSIwoMbm9kZV9mYWlsdXJlGAIgASgISABSC25vZGVGYWlsdXJlEh4KCW1pZ3JhdGlvbhgDIAEoCEgAUgltaWdyYXRpb24SIwoMc2VydmVyX2xlYXZlGAQgASgISABSC3NlcnZlckxlYXZlQgoKCHNjZW5hcmlv');

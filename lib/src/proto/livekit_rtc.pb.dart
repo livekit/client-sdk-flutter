@@ -27,6 +27,8 @@ enum SignalRequest_Message {
   leave,
   updateLayers,
   subscriptionPermissions,
+  syncState,
+  simulate,
   notSet
 }
 
@@ -43,6 +45,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     8: SignalRequest_Message.leave,
     10: SignalRequest_Message.updateLayers,
     11: SignalRequest_Message.subscriptionPermissions,
+    12: SignalRequest_Message.syncState,
+    13: SignalRequest_Message.simulate,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -54,7 +58,7 @@ class SignalRequest extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13])
     ..aOM<SessionDescription>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -115,6 +119,18 @@ class SignalRequest extends $pb.GeneratedMessage {
             ? ''
             : 'subscriptionPermissions',
         subBuilder: UpdateSubscriptionPermissions.create)
+    ..aOM<SyncState>(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'syncState',
+        subBuilder: SyncState.create)
+    ..aOM<SimulateScenario>(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'simulate',
+        subBuilder: SimulateScenario.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -129,6 +145,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     LeaveRequest? leave,
     UpdateVideoLayers? updateLayers,
     UpdateSubscriptionPermissions? subscriptionPermissions,
+    SyncState? syncState,
+    SimulateScenario? simulate,
   }) {
     final _result = create();
     if (offer != null) {
@@ -160,6 +178,12 @@ class SignalRequest extends $pb.GeneratedMessage {
     }
     if (subscriptionPermissions != null) {
       _result.subscriptionPermissions = subscriptionPermissions;
+    }
+    if (syncState != null) {
+      _result.syncState = syncState;
+    }
+    if (simulate != null) {
+      _result.simulate = simulate;
     }
     return _result;
   }
@@ -333,6 +357,34 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearSubscriptionPermissions() => clearField(11);
   @$pb.TagNumber(11)
   UpdateSubscriptionPermissions ensureSubscriptionPermissions() => $_ensure(9);
+
+  @$pb.TagNumber(12)
+  SyncState get syncState => $_getN(10);
+  @$pb.TagNumber(12)
+  set syncState(SyncState v) {
+    setField(12, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasSyncState() => $_has(10);
+  @$pb.TagNumber(12)
+  void clearSyncState() => clearField(12);
+  @$pb.TagNumber(12)
+  SyncState ensureSyncState() => $_ensure(10);
+
+  @$pb.TagNumber(13)
+  SimulateScenario get simulate => $_getN(11);
+  @$pb.TagNumber(13)
+  set simulate(SimulateScenario v) {
+    setField(13, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasSimulate() => $_has(11);
+  @$pb.TagNumber(13)
+  void clearSimulate() => clearField(13);
+  @$pb.TagNumber(13)
+  SimulateScenario ensureSimulate() => $_ensure(11);
 }
 
 enum SignalResponse_Message {
@@ -3043,4 +3095,263 @@ class SubscriptionPermissionUpdate extends $pb.GeneratedMessage {
   $core.bool hasAllowed() => $_has(2);
   @$pb.TagNumber(3)
   void clearAllowed() => clearField(3);
+}
+
+class SyncState extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SyncState',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<SessionDescription>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'answer',
+        subBuilder: SessionDescription.create)
+    ..aOM<UpdateSubscription>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscription',
+        subBuilder: UpdateSubscription.create)
+    ..pc<TrackPublishedResponse>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'publishTracks',
+        $pb.PbFieldType.PM,
+        subBuilder: TrackPublishedResponse.create)
+    ..hasRequiredFields = false;
+
+  SyncState._() : super();
+  factory SyncState({
+    SessionDescription? answer,
+    UpdateSubscription? subscription,
+    $core.Iterable<TrackPublishedResponse>? publishTracks,
+  }) {
+    final _result = create();
+    if (answer != null) {
+      _result.answer = answer;
+    }
+    if (subscription != null) {
+      _result.subscription = subscription;
+    }
+    if (publishTracks != null) {
+      _result.publishTracks.addAll(publishTracks);
+    }
+    return _result;
+  }
+  factory SyncState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SyncState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SyncState clone() => SyncState()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SyncState copyWith(void Function(SyncState) updates) =>
+      super.copyWith((message) => updates(message as SyncState))
+          as SyncState; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SyncState create() => SyncState._();
+  SyncState createEmptyInstance() => create();
+  static $pb.PbList<SyncState> createRepeated() => $pb.PbList<SyncState>();
+  @$core.pragma('dart2js:noInline')
+  static SyncState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncState>(create);
+  static SyncState? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  SessionDescription get answer => $_getN(0);
+  @$pb.TagNumber(1)
+  set answer(SessionDescription v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasAnswer() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAnswer() => clearField(1);
+  @$pb.TagNumber(1)
+  SessionDescription ensureAnswer() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  UpdateSubscription get subscription => $_getN(1);
+  @$pb.TagNumber(2)
+  set subscription(UpdateSubscription v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasSubscription() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSubscription() => clearField(2);
+  @$pb.TagNumber(2)
+  UpdateSubscription ensureSubscription() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.List<TrackPublishedResponse> get publishTracks => $_getList(2);
+}
+
+enum SimulateScenario_Scenario {
+  speakerUpdate,
+  nodeFailure,
+  migration,
+  serverLeave,
+  notSet
+}
+
+class SimulateScenario extends $pb.GeneratedMessage {
+  static const $core.Map<$core.int, SimulateScenario_Scenario>
+      _SimulateScenario_ScenarioByTag = {
+    1: SimulateScenario_Scenario.speakerUpdate,
+    2: SimulateScenario_Scenario.nodeFailure,
+    3: SimulateScenario_Scenario.migration,
+    4: SimulateScenario_Scenario.serverLeave,
+    0: SimulateScenario_Scenario.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SimulateScenario',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..oo(0, [1, 2, 3, 4])
+    ..a<$core.int>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'speakerUpdate',
+        $pb.PbFieldType.O3)
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nodeFailure')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'migration')
+    ..aOB(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'serverLeave')
+    ..hasRequiredFields = false;
+
+  SimulateScenario._() : super();
+  factory SimulateScenario({
+    $core.int? speakerUpdate,
+    $core.bool? nodeFailure,
+    $core.bool? migration,
+    $core.bool? serverLeave,
+  }) {
+    final _result = create();
+    if (speakerUpdate != null) {
+      _result.speakerUpdate = speakerUpdate;
+    }
+    if (nodeFailure != null) {
+      _result.nodeFailure = nodeFailure;
+    }
+    if (migration != null) {
+      _result.migration = migration;
+    }
+    if (serverLeave != null) {
+      _result.serverLeave = serverLeave;
+    }
+    return _result;
+  }
+  factory SimulateScenario.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SimulateScenario.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SimulateScenario clone() => SimulateScenario()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SimulateScenario copyWith(void Function(SimulateScenario) updates) =>
+      super.copyWith((message) => updates(message as SimulateScenario))
+          as SimulateScenario; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SimulateScenario create() => SimulateScenario._();
+  SimulateScenario createEmptyInstance() => create();
+  static $pb.PbList<SimulateScenario> createRepeated() =>
+      $pb.PbList<SimulateScenario>();
+  @$core.pragma('dart2js:noInline')
+  static SimulateScenario getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulateScenario>(create);
+  static SimulateScenario? _defaultInstance;
+
+  SimulateScenario_Scenario whichScenario() =>
+      _SimulateScenario_ScenarioByTag[$_whichOneof(0)]!;
+  void clearScenario() => clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  $core.int get speakerUpdate => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set speakerUpdate($core.int v) {
+    $_setSignedInt32(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasSpeakerUpdate() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSpeakerUpdate() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get nodeFailure => $_getBF(1);
+  @$pb.TagNumber(2)
+  set nodeFailure($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasNodeFailure() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNodeFailure() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get migration => $_getBF(2);
+  @$pb.TagNumber(3)
+  set migration($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasMigration() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMigration() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get serverLeave => $_getBF(3);
+  @$pb.TagNumber(4)
+  set serverLeave($core.bool v) {
+    $_setBool(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasServerLeave() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearServerLeave() => clearField(4);
 }

@@ -661,6 +661,11 @@ class TrackInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'mimeType')
+    ..aOS(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mid')
     ..hasRequiredFields = false;
 
   TrackInfo._() : super();
@@ -676,6 +681,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     TrackSource? source,
     $core.Iterable<VideoLayer>? layers,
     $core.String? mimeType,
+    $core.String? mid,
   }) {
     final _result = create();
     if (sid != null) {
@@ -710,6 +716,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     }
     if (mimeType != null) {
       _result.mimeType = mimeType;
+    }
+    if (mid != null) {
+      _result.mid = mid;
     }
     return _result;
   }
@@ -861,6 +870,18 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool hasMimeType() => $_has(10);
   @$pb.TagNumber(11)
   void clearMimeType() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.String get mid => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set mid($core.String v) {
+    $_setString(11, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasMid() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearMid() => clearField(12);
 }
 
 class VideoLayer extends $pb.GeneratedMessage {
@@ -900,6 +921,12 @@ class VideoLayer extends $pb.GeneratedMessage {
             ? ''
             : 'bitrate',
         $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'ssrc',
+        $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   VideoLayer._() : super();
@@ -908,6 +935,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? width,
     $core.int? height,
     $core.int? bitrate,
+    $core.int? ssrc,
   }) {
     final _result = create();
     if (quality != null) {
@@ -921,6 +949,9 @@ class VideoLayer extends $pb.GeneratedMessage {
     }
     if (bitrate != null) {
       _result.bitrate = bitrate;
+    }
+    if (ssrc != null) {
+      _result.ssrc = ssrc;
     }
     return _result;
   }
@@ -997,6 +1028,18 @@ class VideoLayer extends $pb.GeneratedMessage {
   $core.bool hasBitrate() => $_has(3);
   @$pb.TagNumber(4)
   void clearBitrate() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get ssrc => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set ssrc($core.int v) {
+    $_setUnsignedInt32(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasSsrc() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSsrc() => clearField(5);
 }
 
 enum DataPacket_Value { user, speaker, notSet }
@@ -1474,4 +1517,222 @@ class ParticipantTracks extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.List<$core.String> get trackSids => $_getList(1);
+}
+
+class ClientInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClientInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..e<ClientInfo_SDK>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sdk',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: ClientInfo_SDK.UNKNOWN,
+        valueOf: ClientInfo_SDK.valueOf,
+        enumValues: ClientInfo_SDK.values)
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version')
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'protocol',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'os')
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'osVersion')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'deviceModel')
+    ..aOS(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'browser')
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'browserVersion')
+    ..hasRequiredFields = false;
+
+  ClientInfo._() : super();
+  factory ClientInfo({
+    ClientInfo_SDK? sdk,
+    $core.String? version,
+    $core.int? protocol,
+    $core.String? os,
+    $core.String? osVersion,
+    $core.String? deviceModel,
+    $core.String? browser,
+    $core.String? browserVersion,
+  }) {
+    final _result = create();
+    if (sdk != null) {
+      _result.sdk = sdk;
+    }
+    if (version != null) {
+      _result.version = version;
+    }
+    if (protocol != null) {
+      _result.protocol = protocol;
+    }
+    if (os != null) {
+      _result.os = os;
+    }
+    if (osVersion != null) {
+      _result.osVersion = osVersion;
+    }
+    if (deviceModel != null) {
+      _result.deviceModel = deviceModel;
+    }
+    if (browser != null) {
+      _result.browser = browser;
+    }
+    if (browserVersion != null) {
+      _result.browserVersion = browserVersion;
+    }
+    return _result;
+  }
+  factory ClientInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ClientInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ClientInfo clone() => ClientInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ClientInfo copyWith(void Function(ClientInfo) updates) =>
+      super.copyWith((message) => updates(message as ClientInfo))
+          as ClientInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ClientInfo create() => ClientInfo._();
+  ClientInfo createEmptyInstance() => create();
+  static $pb.PbList<ClientInfo> createRepeated() => $pb.PbList<ClientInfo>();
+  @$core.pragma('dart2js:noInline')
+  static ClientInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
+  static ClientInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ClientInfo_SDK get sdk => $_getN(0);
+  @$pb.TagNumber(1)
+  set sdk(ClientInfo_SDK v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasSdk() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSdk() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get version => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasVersion() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVersion() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get protocol => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set protocol($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasProtocol() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearProtocol() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get os => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set os($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasOs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearOs() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get osVersion => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set osVersion($core.String v) {
+    $_setString(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasOsVersion() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearOsVersion() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get deviceModel => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set deviceModel($core.String v) {
+    $_setString(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasDeviceModel() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearDeviceModel() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get browser => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set browser($core.String v) {
+    $_setString(6, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasBrowser() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearBrowser() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get browserVersion => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set browserVersion($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasBrowserVersion() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearBrowserVersion() => clearField(8);
 }
