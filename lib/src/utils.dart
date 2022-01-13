@@ -38,7 +38,9 @@ class Utils {
         final info = await _deviceInfoPlugin.macOsInfo;
         return lk_models.ClientInfo(
           os: 'macOS',
+          // TODO: This returns Darwin version instead of macOS version
           osVersion: info.osRelease,
+          // Confirmed
           deviceModel: info.model,
         );
       case PlatformType.android:
@@ -52,8 +54,11 @@ class Utils {
         final info = await _deviceInfoPlugin.iosInfo;
         return lk_models.ClientInfo(
           os: 'iOS',
+          // Confirmed
           osVersion: info.systemVersion,
-          deviceModel: info.model,
+          // Simulator will return `x86_64` etc.
+          // TODO: Match format with Swift SDK
+          deviceModel: info.utsname.machine,
         );
       case PlatformType.linux:
         final info = await _deviceInfoPlugin.linuxInfo;
