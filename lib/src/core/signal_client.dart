@@ -45,6 +45,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       connectOptions: connectOptions,
     );
 
+    logger.fine('SignalClient connecting with url: $rtcUri');
+
     try {
       _ws = await LiveKitWebSocket.connect(
         rtcUri,

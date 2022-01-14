@@ -31,30 +31,30 @@ abstract class Result {
 
 @immutable
 abstract class Browser {
-  String get name;
-  String get version;
+  String? get name;
+  String? get version;
 }
 
 @immutable
 abstract class Device {
-  String get model;
-  String get type;
-  String get vendor;
+  String? get model;
+  String? get type;
+  String? get vendor;
 }
 
 @immutable
 abstract class Engine {
-  String get name;
-  String get version;
+  String? get name;
+  String? get version;
 }
 
 @immutable
 abstract class OS {
-  String get name;
-  String get version;
+  String? get name;
+  String? get version;
 }
 
 @immutable
 abstract class CPU {
-  String get architecture;
+  String? get architecture;
 }

@@ -63,12 +63,12 @@ class ResultWeb implements Result {
 @immutable
 class BrowserWeb implements Browser {
   @override
-  external String get name;
+  external String? get name;
   @override
-  external String get version;
+  external String? get version;
   external const factory BrowserWeb({
-    String name,
-    String version,
+    String? name,
+    String? version,
   });
 }
 
@@ -77,15 +77,15 @@ class BrowserWeb implements Browser {
 @immutable
 class DeviceWeb implements Device {
   @override
-  external String get model;
+  external String? get model;
   @override
-  external String get type;
+  external String? get type;
   @override
-  external String get vendor;
+  external String? get vendor;
   external const factory DeviceWeb({
-    String model,
-    String type,
-    String vendor,
+    String? model,
+    String? type,
+    String? vendor,
   });
 }
 
@@ -94,12 +94,12 @@ class DeviceWeb implements Device {
 @immutable
 class EngineWeb implements Engine {
   @override
-  external String get name;
+  external String? get name;
   @override
-  external String get version;
+  external String? get version;
   external const factory EngineWeb({
-    String name,
-    String version,
+    String? name,
+    String? version,
   });
 }
 
@@ -108,12 +108,12 @@ class EngineWeb implements Engine {
 @immutable
 class OSWeb implements OS {
   @override
-  external String get name;
+  external String? get name;
   @override
-  external String get version;
+  external String? get version;
   external const factory OSWeb({
-    String name,
-    String version,
+    String? name,
+    String? version,
   });
 }
 
@@ -122,8 +122,8 @@ class OSWeb implements OS {
 @immutable
 class CPUWeb implements CPU {
   @override
-  external String get architecture;
+  external String? get architecture;
   external const factory CPUWeb({
-    String architecture,
+    String? architecture,
   });
 }
