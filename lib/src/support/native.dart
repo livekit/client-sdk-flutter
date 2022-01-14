@@ -24,9 +24,10 @@ class Native {
     }
   }
 
-  /// Returns OS's version as a string for iOS/macOS
+  /// Returns OS's version as a string
+  /// Currently only for iOS, macOS
   @internal
-  static Future<String?> appleOSVersionString() async {
+  static Future<String?> osVersionString() async {
     try {
       return await channel.invokeMethod<String>(
         'osVersionString',

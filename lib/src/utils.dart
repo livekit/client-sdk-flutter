@@ -40,7 +40,7 @@ class Utils {
 
         /// [MacOsDeviceInfo.osRelease] returns Darwin version instead of macOS version
         /// So call native code to get os version
-        String? osVersionString = await Native.appleOSVersionString();
+        String? osVersionString = await Native.osVersionString();
 
         return lk_models.ClientInfo(
           os: 'macOS',
