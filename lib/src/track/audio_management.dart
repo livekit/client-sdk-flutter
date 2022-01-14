@@ -1,6 +1,7 @@
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
+import '../support/native.dart';
 import '../support/native_audio.dart';
 import '../support/platform.dart';
 import 'local/audio.dart';
@@ -83,7 +84,7 @@ mixin AudioManagementMixin on AudioTrack {
         logger.fine(
             '[$runtimeType] configuring for ${audioTrackState} using ${config}...');
         try {
-          await configureNativeAudio(config);
+          await Native.configureAudio(config);
         } catch (error) {
           logger.warning('[$runtimeType] Failed to configure ${error}');
         }

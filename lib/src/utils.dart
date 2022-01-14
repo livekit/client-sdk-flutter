@@ -6,6 +6,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
+import './support/native.dart';
 import 'extensions.dart';
 import 'livekit.dart';
 import 'logger.dart';
@@ -39,15 +40,7 @@ class Utils {
 
         /// [MacOsDeviceInfo.osRelease] returns Darwin version instead of macOS version
         /// So call native code to get os version
-        String? osVersionString;
-        try {
-          osVersionString = await LiveKitClient.channel.invokeMethod<String>(
-            'osVersionString',
-            <String, dynamic>{},
-          );
-        } catch (error) {
-          logger.warning('osVersionString did throw error: ${error}');
-        }
+        String? osVersionString = await Native.appleOSVersionString();
 
         return lk_models.ClientInfo(
           os: 'macOS',
