@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -30,48 +29,46 @@ class Utils {
   static Future<lk_models.ClientInfo?> _clientInfo() async {
     switch (lkPlatform()) {
       case PlatformType.web:
-        if (!kIsWeb) {
-          throw UnsupportedError('Compiled without web support');
-        } else {
-          final info = await _deviceInfoPlugin.webBrowserInfo;
-          String? os;
-          String? osVersion;
-          String? browser;
-          String? browserVersion;
+        final info = await _deviceInfoPlugin.webBrowserInfo;
+        String? os;
+        String? osVersion;
+        String? browser;
+        String? browserVersion;
 
-          String? deviceModel;
-          try {
-            final parser = ua.UAParser.create(info.userAgent);
-            final result = parser.getResult();
-            os = result.os.name;
-            osVersion = result.os.version;
-            browser = result.browser.name;
-            browserVersion = result.browser.version;
-            deviceModel = [
-              result.device.vendor,
-              result.device.model,
-            ].whereNotNull().join(' ');
-          } catch (error) {
-            logger.warning('Failed to call UAParser method with error: $error '
-                'Please make sure to add '
-                '<script defer src="https://unpkg.com/ua-parser-js@1.0.2/src/ua-parser.js"></script> '
-                'before the </head> tag.');
-          }
-
-          return lk_models.ClientInfo(
-            os: os,
-            osVersion: osVersion,
-            browser: browser,
-            browserVersion: browserVersion,
-            deviceModel: deviceModel,
-          );
+        String? deviceModel;
+        try {
+          final parser = ua.UAParser.create(info.userAgent);
+          final result = parser.getResult();
+          os = result.os.name;
+          osVersion = result.os.version;
+          browser = result.browser.name;
+          browserVersion = result.browser.version;
+          deviceModel = [
+            result.device.vendor,
+            result.device.model,
+          ].whereNotNull().join(' ');
+        } catch (error) {
+          logger.warning('Failed to call UAParser method with error: $error '
+              'Please make sure to add '
+              '<script defer src="https://unpkg.com/ua-parser-js@1.0.2/src/ua-parser.js"></script> '
+              'before the </head> tag.');
         }
+
+        return lk_models.ClientInfo(
+          os: os,
+          osVersion: osVersion,
+          browser: browser,
+          browserVersion: browserVersion,
+          deviceModel: deviceModel,
+        );
+
       case PlatformType.windows:
         return lk_models.ClientInfo(
           os: 'windows',
 
           /// [WindowsDeviceInfo] does not provide details...
         );
+
       case PlatformType.macOS:
         final info = await _deviceInfoPlugin.macOsInfo;
 
@@ -85,6 +82,7 @@ class Utils {
           // Confirmed
           deviceModel: info.model,
         );
+
       case PlatformType.android:
         final info = await _deviceInfoPlugin.androidInfo;
         return lk_models.ClientInfo(
@@ -92,6 +90,7 @@ class Utils {
           osVersion: info.version.release,
           deviceModel: info.model,
         );
+
       case PlatformType.iOS:
         final info = await _deviceInfoPlugin.iosInfo;
         String? model = info.utsname.machine;
@@ -104,6 +103,7 @@ class Utils {
           osVersion: info.systemVersion,
           deviceModel: model,
         );
+
       case PlatformType.linux:
         final info = await _deviceInfoPlugin.linuxInfo;
         return lk_models.ClientInfo(
@@ -111,6 +111,7 @@ class Utils {
           osVersion: info.versionId,
           deviceModel: info.machineId,
         );
+
       default:
       // case PlatformType.fuchsia:
     }
