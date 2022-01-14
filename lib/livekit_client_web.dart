@@ -1,14 +1,13 @@
 import 'dart:async';
-
-import 'package:flutter/services.dart';
-
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-
 // In order to *not* need this ignore, consider extracting the "web" version
 // of your plugin as a separate package, instead of inlining it in the same
 // package as the core of your plugin.
-// ignore: avoid_web_libraries_in_flutter
-// import 'dart:html' as html show window;
+
+// ignore: unused_import
+import 'dart:html' as html show document, ScriptElement;
+
+import 'package:flutter/services.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 /// A web implementation of the Livekit plugin.
 class LiveKitWebPlugin {
@@ -21,6 +20,13 @@ class LiveKitWebPlugin {
 
     final pluginInstance = LiveKitWebPlugin();
     channel.setMethodCallHandler(pluginInstance.handleMethodCall);
+
+    // Unofficial method load js as flutter assets (unreliable)
+    // html.document.head!.append(html.ScriptElement()
+    //   ..src = 'assets/packages/livekit_client/assets/ua-parser.min.js'
+    //   ..type = 'application/javascript'
+    //   ..defer = true
+    //   );
   }
 
   /// Handles method calls over the MethodChannel of this plugin.

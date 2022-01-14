@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -12,6 +13,7 @@ import 'livekit.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
+import 'support/uaparser.dart' as ua;
 import 'track/options.dart';
 import 'types.dart';
 
@@ -27,13 +29,48 @@ class Utils {
 
   static Future<lk_models.ClientInfo?> _clientInfo() async {
     switch (lkPlatform()) {
-      // case PlatformType.web:
-      //   final info = await _deviceInfoPlugin.webBrowserInfo;
-      //
+      case PlatformType.web:
+        if (!kIsWeb) {
+          throw UnsupportedError('Compiled without web support');
+        } else {
+          final info = await _deviceInfoPlugin.webBrowserInfo;
+          String? os;
+          String? osVersion;
+          String? browser;
+          String? browserVersion;
+
+          String? deviceModel;
+          try {
+            final parser = ua.UAParser.create(info.userAgent);
+            final result = parser.getResult();
+            os = result.os.name;
+            osVersion = result.os.version;
+            browser = result.browser.name;
+            browserVersion = result.browser.version;
+            deviceModel = [
+              result.device.vendor,
+              result.device.model,
+            ].whereNotNull().join(' ');
+          } catch (error) {
+            logger.warning('Failed to call UAParser method with error: $error '
+                'Please make sure to add '
+                '<script defer src="https://unpkg.com/ua-parser-js@1.0.2/src/ua-parser.js"></script> '
+                'before the </head> tag.');
+          }
+
+          return lk_models.ClientInfo(
+            os: os,
+            osVersion: osVersion,
+            browser: browser,
+            browserVersion: browserVersion,
+            deviceModel: deviceModel,
+          );
+        }
       case PlatformType.windows:
         return lk_models.ClientInfo(
           os: 'windows',
-          // details not available...
+
+          /// [WindowsDeviceInfo] does not provide details...
         );
       case PlatformType.macOS:
         final info = await _deviceInfoPlugin.macOsInfo;
@@ -125,6 +162,9 @@ class Utils {
           if (clientInfo.hasOsVersion()) 'os_version': clientInfo.osVersion,
           if (clientInfo.hasDeviceModel())
             'device_model': clientInfo.deviceModel,
+          if (clientInfo.hasBrowser()) 'browser': clientInfo.browser,
+          if (clientInfo.hasBrowserVersion())
+            'browser_version': clientInfo.browserVersion,
         },
       },
     );
