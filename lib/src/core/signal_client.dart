@@ -51,7 +51,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     );
 
     try {
-      _updateConnectionState(ConnectionState.connecting);
+      _updateConnectionState(reconnect
+          ? ConnectionState.reconnecting
+          : ConnectionState.connecting);
       // Clean up existing socket
       await _cleanUp();
       // Attempt to connect

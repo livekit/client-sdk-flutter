@@ -19,6 +19,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../types.dart';
+import '../utils.dart';
 import 'room.dart';
 import 'signal_client.dart';
 import 'transport.dart';
@@ -267,9 +268,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       throw ConnectException('could not reconnect without url and token');
     }
 
-    _updateConnectionState(ConnectionState.reconnecting);
-
-    try {
+    Future<void> sequence() async {
+      //
       await signalClient.connect(
         url!,
         token!,
@@ -304,14 +304,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           onTimeout: () => throw ConnectException(),
         );
       }
+    }
 
-      logger.fine('Reconnect: success');
+    try {
+      _updateConnectionState(ConnectionState.reconnecting);
+      await Utils.retry<void>(
+        (_, __) => sequence(),
+        tries: 5,
+      );
       _updateConnectionState(ConnectionState.connected);
+    
     } catch (error) {
-      logger.fine('Reconnect: error ${error}');
-      // Pass up all exceptions
+      //
       _updateConnectionState(ConnectionState.disconnected);
-      rethrow;
     }
   }
 
@@ -510,13 +515,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _onDisconnected(DisconnectReason reason) async {
-    logger.info('onDisconnected reason: ${reason.name}');
+    logger
+        .info('onDisconnected state:${_connectionState} reason:${reason.name}');
     if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('[$objectId] Already disconnected $reason');
+      logger.fine('[$objectId] Already disconnected... $reason');
+      return;
+    }
+    if (_connectionState == ConnectionState.reconnecting) {
+      logger.fine('[$objectId] Already reconnecting...');
       return;
     }
 
-    // logger.fine('[$objectId] Disconnected $reason');
+    logger.fine('[$runtimeType] Should attempt reconnect sequence...');
+
+    await reconnect();
 
     // if (_reconnectAttempts >= _maxReconnectAttempts) {
     //   logger.info('[$objectId] Could not connect '

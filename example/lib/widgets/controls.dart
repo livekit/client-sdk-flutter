@@ -149,6 +149,15 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
   }
 
+  void _onTapSimulateScenario() async {
+    final result = await context.showSimulateScenarioDialog();
+    if (result != null) {
+      await widget.room.simulateScenario(
+        nodeFailure: result == SimulateScenarioResult.nodeFailure,
+      );
+    }
+  }
+
   void _onTapSendData() async {
     final result = await context.showSendDataDialog();
     if (result == true) {
@@ -237,6 +246,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: _onTapUpdateSubscribePermission,
             icon: const Icon(EvaIcons.settings2),
             tooltip: 'Subscribe permission',
+          ),
+          IconButton(
+            onPressed: _onTapSimulateScenario,
+            icon: const Icon(EvaIcons.alertTriangle),
+            tooltip: 'Simulate scenario',
           ),
         ],
       ),
