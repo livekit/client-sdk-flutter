@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
@@ -470,7 +469,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   /// To be used for internal testing purposes only.
-  @internal
   Future<void> simulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,

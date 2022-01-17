@@ -27,7 +27,6 @@ import 'transport.dart';
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
-  static const _maxReconnectAttempts = 5;
 
   // Reference to the Room
   final Room room;
@@ -313,7 +312,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         tries: 5,
       );
       _updateConnectionState(ConnectionState.connected);
-    
     } catch (error) {
       //
       _updateConnectionState(ConnectionState.disconnected);
