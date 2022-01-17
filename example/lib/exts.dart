@@ -174,4 +174,5 @@ enum SimulateScenarioResult {
   nodeFailure,
   migration,
   serverLeave,
+  clear,
 }

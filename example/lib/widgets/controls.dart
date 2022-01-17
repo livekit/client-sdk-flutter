@@ -152,8 +152,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   void _onTapSimulateScenario() async {
     final result = await context.showSimulateScenarioDialog();
     if (result != null) {
+      print('${result}');
       await widget.room.simulateScenario(
-        nodeFailure: result == SimulateScenarioResult.nodeFailure,
+        nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
+        migration: result == SimulateScenarioResult.migration ? true : null,
+        serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,
       );
     }
   }
