@@ -80,18 +80,24 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
 //
 
 @internal
-class SignalConnectedEvent with SignalEvent, InternalEvent {
+// Received a JoinResponse from the server.
+class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
   final lk_rtc.JoinResponse response;
-  const SignalConnectedEvent({
+  const SignalJoinResponseEvent({
     required this.response,
   });
 }
 
 @internal
-class SignalCloseEvent with SignalEvent, InternalEvent {
-  final CloseReason? reason;
-  const SignalCloseEvent({
-    this.reason,
+class SignalConnectionStateUpdatedEvent
+    with SignalEvent, EngineEvent, InternalEvent {
+  final ConnectionState connectionState;
+  final bool didReconnect;
+  final DisconnectReason? disconnectReason;
+  const SignalConnectionStateUpdatedEvent({
+    required this.connectionState,
+    required this.didReconnect,
+    this.disconnectReason,
   });
 }
 

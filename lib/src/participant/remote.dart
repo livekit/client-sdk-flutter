@@ -216,4 +216,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     await pub.dispose();
   }
+
+  @internal
+  lk_models.ParticipantTracks participantTracks() =>
+      lk_models.ParticipantTracks(
+        participantSid: sid,
+        trackSids: trackPublications.values.map((e) => e.sid),
+      );
 }

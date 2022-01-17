@@ -42,6 +42,7 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v3: '3',
         ProtocolVersion.v4: '4',
         ProtocolVersion.v5: '5',
+        ProtocolVersion.v6: '6',
       }[this]!;
 }
 
@@ -82,7 +83,7 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
 // not so neat to directly expose protobuf types so we
 // define our own types (and convert methods)
 extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
-  lk_rtc.SessionDescription toSDKType() {
+  lk_rtc.SessionDescription toPBType() {
     return lk_rtc.SessionDescription(type: type, sdp: sdp);
   }
 }
