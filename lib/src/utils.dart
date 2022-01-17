@@ -12,7 +12,6 @@ import 'livekit.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
-import 'support/uaparser.dart' as ua;
 import 'track/options.dart';
 import 'types.dart';
 
@@ -29,38 +28,37 @@ class Utils {
   static Future<lk_models.ClientInfo?> _clientInfo() async {
     switch (lkPlatform()) {
       case PlatformType.web:
-        final info = await _deviceInfoPlugin.webBrowserInfo;
-        String? os;
-        String? osVersion;
-        String? browser;
-        String? browserVersion;
+        // final info = await _deviceInfoPlugin.webBrowserInfo;
+        // String? os;
+        // String? osVersion;
+        // String? browser;
+        // String? browserVersion;
+        // String? deviceModel;
+        // try {
+        //   final parser = ua.UAParser.create(info.userAgent);
+        //   final result = parser.getResult();
+        //   os = result.os.name;
+        //   osVersion = result.os.version;
+        //   browser = result.browser.name;
+        //   browserVersion = result.browser.version;
+        //   deviceModel = [
+        //     result.device.vendor,
+        //     result.device.model,
+        //   ].whereNotNull().join(' ');
+        // } catch (error) {
+        //   logger.warning('Failed to call UAParser method with error: $error '
+        //       'Please make sure to add '
+        //       '<script defer src="https://unpkg.com/ua-parser-js@1.0.2/src/ua-parser.js"></script> '
+        //       'before the </head> tag.');
+        // }
 
-        String? deviceModel;
-        try {
-          final parser = ua.UAParser.create(info.userAgent);
-          final result = parser.getResult();
-          os = result.os.name;
-          osVersion = result.os.version;
-          browser = result.browser.name;
-          browserVersion = result.browser.version;
-          deviceModel = [
-            result.device.vendor,
-            result.device.model,
-          ].whereNotNull().join(' ');
-        } catch (error) {
-          logger.warning('Failed to call UAParser method with error: $error '
-              'Please make sure to add '
-              '<script defer src="https://unpkg.com/ua-parser-js@1.0.2/src/ua-parser.js"></script> '
-              'before the </head> tag.');
-        }
-
-        return lk_models.ClientInfo(
-          os: os,
-          osVersion: osVersion,
-          browser: browser,
-          browserVersion: browserVersion,
-          deviceModel: deviceModel,
-        );
+        // return lk_models.ClientInfo(
+        //   os: os,
+        //   osVersion: osVersion,
+        //   browser: browser,
+        //   browserVersion: browserVersion,
+        //   deviceModel: deviceModel,
+        // );
 
       case PlatformType.windows:
         return lk_models.ClientInfo(
