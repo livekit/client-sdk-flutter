@@ -19,17 +19,17 @@ mixin _Disposer {
 
   Future<bool> _dispose() async {
     if (!_isDisposed) {
-      logger.fine('[${objectId}] dispose()');
+      logger.finer('[${objectId}] dispose()');
       _isDisposed = true;
       if (_disposeFuncs.isNotEmpty) {
-        logger.fine(
+        logger.finer(
             '[$objectId] running ${_disposeFuncs.length} dispose funcs...');
         // call dispose funcs in reverse order
         for (final _func in _disposeFuncs.reversed) {
           await _func();
         }
         _disposeFuncs.clear();
-        logger.fine('[$objectId] dispose complete.');
+        logger.finer('[$objectId] dispose complete.');
       }
       return true;
     } else {

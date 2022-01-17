@@ -79,7 +79,7 @@ abstract class EventsListenable<T> extends Disposable {
   Future<void> cancelAll() async {
     if (_listeners.isNotEmpty) {
       // Stop listening to all events
-      logger.fine('${objectId} cancelling ${_listeners.length} listeners(s)');
+      logger.finer('${objectId} cancelling ${_listeners.length} listeners(s)');
       for (final listener in _listeners) {
         await listener.cancel();
       }
