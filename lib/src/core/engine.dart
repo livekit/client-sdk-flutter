@@ -309,6 +309,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _updateConnectionState(ConnectionState.reconnecting);
       await Utils.retry<void>(
         (_, __) => sequence(),
+        retryCondition: (_, __) => _connectionState == ConnectionState.reconnecting,
         tries: 5,
       );
       _updateConnectionState(ConnectionState.connected);
