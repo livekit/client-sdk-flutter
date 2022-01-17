@@ -15,8 +15,46 @@ extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
+typedef RetryFuture<T> = Future<T> Function(
+  int remainingTries,
+  List<Object> errors,
+);
+typedef RetryCondition = bool Function(
+  int remainingTries,
+  List<Object> errors,
+);
+
 // Collection of state-less static methods
 class Utils {
+  /// Returns a [Future] that will retry [future] while it throws
+  /// for a maximum  of [tries] times with [delay] in between.
+  /// If all the attempts throws, the future will complete
+  /// with a [List] of the thrown objects.
+  static Future<T> retry<T>(
+    RetryFuture<T> future, {
+
+    /// number of total tries (first try + retries)
+    int tries = 1,
+    Duration delay = const Duration(seconds: 1),
+    RetryCondition? retryCondition,
+  }) async {
+    List<Object> errors = [];
+    while (tries-- > 0) {
+      try {
+        return await future(tries, errors);
+      } catch (error) {
+        logger.fine('[Retry] Caught error ${error}...');
+        errors.add(error);
+        if (!(retryCondition?.call(tries, errors) ?? true)) break;
+      }
+      if (tries > 0) {
+        logger.fine('[Retry] Waiting ${delay}...');
+        await Future<dynamic>.delayed(delay);
+      }
+    }
+    throw errors;
+  }
+
   static Uri buildUri(
     String uriString, {
     required String token,
