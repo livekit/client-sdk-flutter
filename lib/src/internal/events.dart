@@ -100,6 +100,10 @@ class SignalConnectionStateUpdatedEvent
     required this.didReconnect,
     this.disconnectReason,
   });
+  @override
+  String toString() => '$runtimeType(state: ${connectionState.name}, '
+      'didReconnect: ${didReconnect}, '
+      'disconnectReason: ${disconnectReason})';
 }
 
 @internal

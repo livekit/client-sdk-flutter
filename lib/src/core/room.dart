@@ -126,7 +126,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineDisconnectedEvent>((event) => _handleClose())
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) _sendSyncState();
+      if (event.didReconnect) {
+        logger.fine('Sending syncState');
+        _sendSyncState();
+      }
     })
     ..on<SignalJoinResponseEvent>((event) {
       sid = event.response.room.sid;
