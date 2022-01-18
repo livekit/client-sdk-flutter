@@ -115,8 +115,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('Waiting for engine to connect...');
 
       // wait until engine is connected
-      await events.waitFor<EngineIceStateUpdatedEvent>(
-        filter: (event) => event.isPrimary && event.iceState.isConnected(),
+      await events.waitFor<EnginePeerStateUpdatedEvent>(
+        filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: Timeouts.connection,
         onTimeout: () => throw ConnectException(),
       );
@@ -217,19 +217,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
 
-      if (publisher?.pc.iceConnectionState?.isConnected() != true) {
+      if (publisher?.pc.connectionState?.isConnected() != true) {
         logger.fine('Publisher is not connected...');
 
         // start negotiation
-        if (publisher?.pc.iceConnectionState !=
-            rtc.RTCIceConnectionState.RTCIceConnectionStateChecking) {
+        if (publisher?.pc.connectionState !=
+            rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           await negotiate();
         }
 
         logger.fine('Waiting for publisher to ice-connect...');
-        await events.waitFor<EnginePublisherIceStateUpdatedEvent>(
-          filter: (event) => event.iceState.isConnected(),
-          duration: Timeouts.iceConnection,
+        await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+          filter: (event) => event.state.isConnected(),
+          duration: Timeouts.peerConnection,
         );
       }
 
@@ -289,16 +289,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ));
       }
 
-      final iceConnected =
-          primary?.pc.iceConnectionState?.isConnected() ?? false;
+      final iceConnected = primary?.pc.connectionState?.isConnected() ?? false;
 
       logger.fine('Reconnect: iceConnected: $iceConnected');
 
       if (!iceConnected) {
         logger.fine('Reconnect: Waiting for primary to connect...');
 
-        await events.waitFor<EngineIceStateUpdatedEvent>(
-          filter: (event) => event.isPrimary && event.iceState.isConnected(),
+        await events.waitFor<EnginePeerStateUpdatedEvent>(
+          filter: (event) => event.isPrimary && event.state.isConnected(),
           duration: Timeouts.iceRestart,
           onTimeout: () => throw ConnectException(),
         );
@@ -362,19 +361,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
-    subscriber?.pc.onIceConnectionState =
-        (state) => events.emit(EngineSubscriberIceStateUpdatedEvent(
-              iceState: state,
+    subscriber?.pc.onConnectionState =
+        (state) => events.emit(EngineSubscriberPeerStateUpdatedEvent(
+              state: state,
               isPrimary: _subscriberPrimary,
             ));
 
-    publisher?.pc.onIceConnectionState =
-        (state) => events.emit(EnginePublisherIceStateUpdatedEvent(
+    publisher?.pc.onConnectionState =
+        (state) => events.emit(EnginePublisherPeerStateUpdatedEvent(
               state: state,
               isPrimary: !_subscriberPrimary,
             ));
 
-    events.on<EngineIceStateUpdatedEvent>((event) {
+    events.on<EnginePeerStateUpdatedEvent>((event) {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
@@ -382,8 +381,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       //     rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
       //   _updateConnectionState(ConnectionState.connected);
       // } else
-      if (event.iceState ==
-          rtc.RTCIceConnectionState.RTCIceConnectionStateFailed) {
+      if (event.state ==
+          rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
         // trigger reconnect sequence
         _onDisconnected(DisconnectReason.peerConnection);
       }

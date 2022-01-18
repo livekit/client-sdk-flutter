@@ -10,42 +10,43 @@ import '../types.dart';
 abstract class InternalEvent implements LiveKitEvent {}
 
 @internal
-abstract class EngineIceStateUpdatedEvent with EngineEvent, InternalEvent {
-  final rtc.RTCIceConnectionState iceState;
+abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
+  final rtc.RTCPeerConnectionState state;
   final bool isPrimary;
-  const EngineIceStateUpdatedEvent({
-    required this.iceState,
+  const EnginePeerStateUpdatedEvent({
+    required this.state,
     required this.isPrimary,
   });
 }
 
 @internal
-class EngineSubscriberIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EngineSubscriberIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState iceState,
+class EngineSubscriberPeerStateUpdatedEvent
+    extends EnginePeerStateUpdatedEvent {
+  const EngineSubscriberPeerStateUpdatedEvent({
+    required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          iceState: iceState,
+          state: state,
           isPrimary: isPrimary,
         );
 
   @override
   String toString() =>
-      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
-class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EnginePublisherIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState state,
+class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
+  const EnginePublisherPeerStateUpdatedEvent({
+    required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          iceState: state,
+          state: state,
           isPrimary: isPrimary,
         );
   @override
   String toString() =>
-      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal

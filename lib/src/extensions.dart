@@ -66,10 +66,10 @@ extension RTCIceCandidateExt on rtc.RTCIceCandidate {
   String toJson() => json.encode(toMap());
 }
 
-extension RTCIceConnectionStateExt on rtc.RTCIceConnectionState {
+extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
   bool isConnected() => [
-        rtc.RTCIceConnectionState.RTCIceConnectionStateConnected,
-        rtc.RTCIceConnectionState.RTCIceConnectionStateCompleted,
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected,
+        // rtc.RTCPeerConnectionState.RTCPeerConnectionStateCompleted,
       ].contains(this);
 }
 
