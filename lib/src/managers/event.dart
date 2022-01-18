@@ -135,7 +135,11 @@ abstract class EventsListenable<T> extends Disposable {
     final completer = Completer<E>();
 
     final _cancelFunc = on<E>(
-      (event) => completer.complete(event),
+      (event) {
+        if (!completer.isCompleted) {
+          completer.complete(event);
+        }
+      },
       filter: filter,
     );
 
