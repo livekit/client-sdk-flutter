@@ -67,10 +67,8 @@ extension RTCIceCandidateExt on rtc.RTCIceCandidate {
 }
 
 extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
-  bool isConnected() => [
-        rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected,
-        // rtc.RTCPeerConnectionState.RTCPeerConnectionStateCompleted,
-      ].contains(this);
+  bool isConnected() =>
+      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {

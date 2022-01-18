@@ -307,10 +307,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       _updateConnectionState(ConnectionState.reconnecting);
       await Utils.retry<void>(
-        (_, __) => sequence(),
+        (tries, errors) {
+          logger.fine('Retrying connect sequence remaining ${tries} tries...');
+          return sequence();
+        },
         retryCondition: (_, __) =>
             _connectionState == ConnectionState.reconnecting,
-        tries: 5,
+        tries: 10,
+        delay: const Duration(seconds: 3),
       );
       _updateConnectionState(ConnectionState.connected);
     } catch (error) {
@@ -675,7 +679,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) => events.emit(event))
     ..on<SignalLeaveEvent>((event) async {
       if (_connectionState == ConnectionState.reconnecting) {
-        logger.warning('Received leave signal while engine is reconnecting.');
+        logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
+        return;
       }
       await close();
       events.emit(const EngineDisconnectedEvent());
