@@ -83,7 +83,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
 
   lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() =>
       lk_rtc.TrackPublishedResponse(
-        cid: sid,
+        cid: track?.mediaStreamTrack.id,
         track: latestInfo,
       );
 }
