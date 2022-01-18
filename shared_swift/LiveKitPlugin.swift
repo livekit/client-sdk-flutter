@@ -140,6 +140,22 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         #endif
     }
 
+    private static let processInfo = ProcessInfo()
+
+    /// Returns os version as a string.
+    /// format: `12.1`, `15.3.1`, `15.0.1`
+    private static func osVersionString() -> String {
+        let osVersion = processInfo.operatingSystemVersion
+        var versions = [osVersion.majorVersion]
+        if osVersion.minorVersion != 0 || osVersion.patchVersion != 0 {
+            versions.append(osVersion.minorVersion)
+        }
+        if osVersion.patchVersion != 0 {
+            versions.append(osVersion.patchVersion)
+        }
+        return versions.map({ String($0) }).joined(separator: ".")
+    }
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
 
         guard let args = call.arguments as? [String: Any?] else {
@@ -151,6 +167,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "configureNativeAudio":
             handleConfigureNativeAudio(args: args, result: result)
+        case "osVersionString":
+            result(LiveKitPlugin.osVersionString())
         default:
             print("[LiveKit] method not found: ", call.method)
             result(FlutterMethodNotImplemented)

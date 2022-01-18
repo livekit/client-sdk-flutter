@@ -8,5 +8,6 @@ PlatformType lkPlatformImplementation() {
   if (Platform.isMacOS) return PlatformType.macOS;
   if (Platform.isLinux) return PlatformType.linux;
   if (Platform.isIOS) return PlatformType.iOS;
-  return PlatformType.android;
+  if (Platform.isAndroid) return PlatformType.android;
+  throw UnsupportedError('Unknown Platform');
 }

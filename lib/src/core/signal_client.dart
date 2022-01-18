@@ -43,12 +43,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     ConnectOptions? connectOptions,
     bool reconnect = false,
   }) async {
-    final rtcUri = Utils.buildUri(
+    final rtcUri = await Utils.buildUri(
       uriString,
       token: token,
       connectOptions: connectOptions,
       reconnect: reconnect,
     );
+
+    logger.fine('SignalClient connecting with url: $rtcUri');
 
     try {
       _updateConnectionState(reconnect
@@ -74,7 +76,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         if (reconnect) rethrow;
 
         // Re-build same uri for validate mode
-        final validateUri = Utils.buildUri(
+        final validateUri = await Utils.buildUri(
           uriString,
           token: token,
           connectOptions: connectOptions,
