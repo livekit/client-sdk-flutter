@@ -39,11 +39,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     String token, {
     ConnectOptions? connectOptions,
   }) async {
-    final rtcUri = Utils.buildUri(
+    final rtcUri = await Utils.buildUri(
       uriString,
       token: token,
       connectOptions: connectOptions,
     );
+
+    logger.fine('SignalClient connecting with url: $rtcUri');
 
     try {
       _ws = await LiveKitWebSocket.connect(
@@ -56,7 +58,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       );
     } catch (socketError) {
       // Re-build same uri for validate mode
-      final validateUri = Utils.buildUri(
+      final validateUri = await Utils.buildUri(
         uriString,
         token: token,
         connectOptions: connectOptions,
@@ -90,7 +92,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     await _ws?.dispose();
     _ws = null;
 
-    final rtcUri = Utils.buildUri(
+    final rtcUri = await Utils.buildUri(
       uriString,
       token: token,
       reconnect: true,
