@@ -35,7 +35,7 @@ typedef RetryCondition = bool Function(
 class Utils {
   /// Returns a [Future] that will retry [future] while it throws
   /// for a maximum  of [tries] times with [delay] in between.
-  /// If all the attempts throws, the future will throw a [List] of the 
+  /// If all the attempts throws, the future will throw a [List] of the
   /// thrown objects by the [future].
   static Future<T> retry<T>(
     RetryFuture<T> future, {
