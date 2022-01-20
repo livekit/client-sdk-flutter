@@ -8,7 +8,7 @@ void main() {
       'throw all and throw error list',
       () => expect(
         Utils.retry<void>(
-          (remainingTries, __) => throw 'error-${remainingTries}',
+          (triesLeft, _) => throw 'error-${triesLeft}',
           tries: 3,
           delay: Duration.zero,
         ),
@@ -23,11 +23,14 @@ void main() {
       'throw once and return result',
       () => expectLater(
         Utils.retry<String>(
-          (remainingTries, __) async {
-            // should be never 0 because returning on 1
-            expect(remainingTries != 0, true);
-            if (remainingTries == 1) return 'result-${remainingTries}';
-            throw 'error${remainingTries}';
+          (triesLeft, _) async {
+            expect(
+              triesLeft,
+              isNot(0),
+              reason: 'should be never 0 because returning on 1',
+            );
+            if (triesLeft == 1) return 'result-${triesLeft}';
+            throw 'error${triesLeft}';
           },
           tries: 3,
           delay: Duration.zero,

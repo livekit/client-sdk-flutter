@@ -23,11 +23,11 @@ extension UriExt on Uri {
 }
 
 typedef RetryFuture<T> = Future<T> Function(
-  int remainingTries,
+  int triesLeft,
   List<Object> errors,
 );
 typedef RetryCondition = bool Function(
-  int remainingTries,
+  int triesLeft,
   List<Object> errors,
 );
 
