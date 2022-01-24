@@ -313,7 +313,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         },
         retryCondition: (_, __) =>
             _connectionState == ConnectionState.reconnecting,
-        tries: 10,
+        tries: 3,
         delay: const Duration(seconds: 3),
       );
       _updateConnectionState(ConnectionState.connected);
@@ -381,10 +381,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // only listen to primary ice events
       if (!event.isPrimary) return;
 
-      // if (event.iceState ==
-      //     rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-      //   _updateConnectionState(ConnectionState.connected);
-      // } else
       if (event.state ==
           rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
         // trigger reconnect sequence
@@ -532,30 +528,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('[$runtimeType] Should attempt reconnect sequence...');
 
     await reconnect();
-
-    // if (_reconnectAttempts >= _maxReconnectAttempts) {
-    //   logger.info('[$objectId] Could not connect '
-    //       'after ${_reconnectAttempts} attempts, giving up');
-    //   await close();
-    //   events.emit(const EngineDisconnectedEvent());
-    //   return;
-    // }
-
-    // final delay =
-    //     Duration(milliseconds: (_reconnectAttempts * _reconnectAttempts) * 300);
-
-    // // if this instance is disposed, we probably don't want to continue any more
-    // // so the whole block will be canceled from being executed
-    // await delays.waitFor(delay, ifNotCancelled: () async {
-    //   try {
-    //     await reconnect();
-    //     _reconnectAttempts = 0;
-    //   } catch (_) {
-    //     // doesn't need to be awaited
-    //     // ignore: unawaited_futures
-    //     _onDisconnected(reason);
-    //   }
-    // });
   }
 
   void _updateConnectionState(ConnectionState newValue) {
