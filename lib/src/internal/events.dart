@@ -10,42 +10,43 @@ import '../types.dart';
 abstract class InternalEvent implements LiveKitEvent {}
 
 @internal
-abstract class EngineIceStateUpdatedEvent with EngineEvent, InternalEvent {
-  final rtc.RTCIceConnectionState iceState;
+abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
+  final rtc.RTCPeerConnectionState state;
   final bool isPrimary;
-  const EngineIceStateUpdatedEvent({
-    required this.iceState,
+  const EnginePeerStateUpdatedEvent({
+    required this.state,
     required this.isPrimary,
   });
 }
 
 @internal
-class EngineSubscriberIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EngineSubscriberIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState iceState,
+class EngineSubscriberPeerStateUpdatedEvent
+    extends EnginePeerStateUpdatedEvent {
+  const EngineSubscriberPeerStateUpdatedEvent({
+    required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          iceState: iceState,
+          state: state,
           isPrimary: isPrimary,
         );
 
   @override
   String toString() =>
-      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
-class EnginePublisherIceStateUpdatedEvent extends EngineIceStateUpdatedEvent {
-  const EnginePublisherIceStateUpdatedEvent({
-    required rtc.RTCIceConnectionState state,
+class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
+  const EnginePublisherPeerStateUpdatedEvent({
+    required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          iceState: state,
+          state: state,
           isPrimary: isPrimary,
         );
   @override
   String toString() =>
-      '${runtimeType}(state: ${iceState}, isPrimary: ${isPrimary})';
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -80,19 +81,29 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
 //
 
 @internal
-class SignalConnectedEvent with SignalEvent, InternalEvent {
+// Received a JoinResponse from the server.
+class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
   final lk_rtc.JoinResponse response;
-  const SignalConnectedEvent({
+  const SignalJoinResponseEvent({
     required this.response,
   });
 }
 
 @internal
-class SignalCloseEvent with SignalEvent, InternalEvent {
-  final CloseReason? reason;
-  const SignalCloseEvent({
-    this.reason,
+class SignalConnectionStateUpdatedEvent
+    with SignalEvent, EngineEvent, InternalEvent {
+  final ConnectionState connectionState;
+  final bool didReconnect;
+  final DisconnectReason? disconnectReason;
+  const SignalConnectionStateUpdatedEvent({
+    required this.connectionState,
+    required this.didReconnect,
+    this.disconnectReason,
   });
+  @override
+  String toString() => '$runtimeType(state: ${connectionState.name}, '
+      'didReconnect: ${didReconnect}, '
+      'disconnectReason: ${disconnectReason})';
 }
 
 @internal

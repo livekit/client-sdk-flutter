@@ -48,6 +48,9 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   bool get subscribed => track != null;
 
+  @internal
+  lk_models.TrackInfo? latestInfo;
+
   TrackPublication({
     required lk_models.TrackInfo info,
   })  : sid = info.sid,
@@ -69,6 +72,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     if (info.type == lk_models.TrackType.VIDEO) {
       _dimensions = VideoDimensions(info.width, info.height);
     }
+    latestInfo = info;
   }
 
   // Equality operators

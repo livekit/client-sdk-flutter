@@ -154,4 +154,25 @@ extension LKExampleExt on BuildContext {
           ],
         ),
       );
+
+  Future<SimulateScenarioResult?> showSimulateScenarioDialog() =>
+      showDialog<SimulateScenarioResult>(
+        context: this,
+        builder: (ctx) => SimpleDialog(
+          title: const Text('Simulate Scenario'),
+          children: SimulateScenarioResult.values
+              .map((e) => SimpleDialogOption(
+                    child: Text(e.name),
+                    onPressed: () => Navigator.pop(ctx, e),
+                  ))
+              .toList(),
+        ),
+      );
+}
+
+enum SimulateScenarioResult {
+  nodeFailure,
+  migration,
+  serverLeave,
+  clear,
 }

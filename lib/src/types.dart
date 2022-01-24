@@ -11,16 +11,18 @@ typedef CancelListenFunc = Function();
 /// Usually it's not recommended to change this.
 enum ProtocolVersion {
   v2,
-  v3,
+  v3, // Subscriber as primary
   v4,
   v5,
+  v6, // Session migration
 }
 
 /// Connection state type used throughout the SDK.
 enum ConnectionState {
   disconnected,
-  connected,
+  connecting,
   reconnecting,
+  connected,
 }
 
 /// Connection quality between the [Participant] and server.
@@ -58,9 +60,10 @@ enum StreamState {
   active,
 }
 
-enum CloseReason {
-  network,
-  // ...
+enum DisconnectReason {
+  user,
+  peerConnection,
+  signal,
 }
 
 /// The reason why a track failed to publish.

@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:platform_detect/platform_detect.dart' as pd;
+import 'package:web_browser_detect/web_browser_detect.dart' as bd;
 
 import './proto/livekit_models.pb.dart' as lk_models;
 import './support/native.dart';
@@ -21,18 +22,57 @@ extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
+typedef RetryFuture<T> = Future<T> Function(
+  int triesLeft,
+  List<Object> errors,
+);
+typedef RetryCondition = bool Function(
+  int triesLeft,
+  List<Object> errors,
+);
+
 // Collection of state-less static methods
 class Utils {
+  /// Returns a [Future] that will retry [future] while it throws
+  /// for a maximum  of [tries] times with [delay] in between.
+  /// If all the attempts throws, the future will throw a [List] of the
+  /// thrown objects by the [future].
+  static Future<T> retry<T>(
+    RetryFuture<T> future, {
+
+    /// number of total tries (first try + retries)
+    int tries = 1,
+    Duration delay = const Duration(seconds: 1),
+    RetryCondition? retryCondition,
+  }) async {
+    List<Object> errors = [];
+    while (tries-- > 0) {
+      try {
+        return await future(tries, errors);
+      } catch (error) {
+        logger.fine('[Retry] Caught error ${error}...');
+        errors.add(error);
+        if (!(retryCondition?.call(tries, errors) ?? true)) break;
+      }
+      if (tries > 0) {
+        logger.fine('[Retry] Waiting ${delay}...');
+        await Future<dynamic>.delayed(delay);
+      }
+    }
+    throw errors;
+  }
+
   // DeviceInfoPlugin caches internally
   static final _deviceInfoPlugin = DeviceInfoPlugin();
 
   static Future<lk_models.ClientInfo?> _clientInfo() async {
     switch (lkPlatform()) {
       case PlatformType.web:
+        final browser = bd.Browser();
         return lk_models.ClientInfo(
-          os: pd.operatingSystem.name.toLowerCase(),
-          browser: pd.browser.name.toLowerCase(),
-          browserVersion: pd.browser.version.canonicalizedVersion,
+          os: defaultTargetPlatform.name,
+          browser: browser.browserAgent.name,
+          browserVersion: browser.version,
         );
       case PlatformType.windows:
         return lk_models.ClientInfo(

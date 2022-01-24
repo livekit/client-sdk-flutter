@@ -2,9 +2,8 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 
-import '../constants.dart';
+import '../core/signal_client.dart';
 import '../events.dart';
-import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
@@ -18,7 +17,6 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../track/track.dart';
 import '../types.dart';
-import '../core/signal_client.dart';
 import 'engine.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -106,38 +104,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
 
-    final joinResponse = await engine.connect(
+    return engine.connect(
       url,
       token,
     );
-
-    sid = joinResponse.room.sid;
-    name = joinResponse.room.name;
-    _serverVersion = joinResponse.serverVersion;
-
-    logger.fine(
-        'Connected to LiveKit server, version: ${joinResponse.serverVersion}');
-
-    localParticipant = LocalParticipant(
-      room: this,
-      info: joinResponse.participant,
-    );
-
-    for (final info in joinResponse.otherParticipants) {
-      logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
-          'tracks:${info.tracks.map((e) => e.sid)}');
-      _getOrCreateRemoteParticipant(info.sid, info);
-    }
-
-    logger.fine('Waiting to engine connect...');
-
-    // wait until engine is connected
-    await _engineListener.waitFor<EngineConnectedEvent>(
-      duration: Timeouts.connection,
-      onTimeout: () => throw ConnectException(),
-    );
-
-    logger.fine('Room Connect completed');
   }
 
   void _setUpListeners() => _engineListener
@@ -154,6 +124,34 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       events.emit(const RoomReconnectingEvent());
     })
     ..on<EngineDisconnectedEvent>((event) => _handleClose())
+    ..on<SignalConnectionStateUpdatedEvent>((event) {
+      // during reconnection, need to send sync state upon signal connection.
+      if (event.didReconnect) {
+        logger.fine('Sending syncState');
+        _sendSyncState();
+      }
+    })
+    ..on<SignalJoinResponseEvent>((event) {
+      sid = event.response.room.sid;
+      name = event.response.room.name;
+      _serverVersion = event.response.serverVersion;
+
+      logger.fine('[Engine] Received JoinResponse, '
+          'serverVersion: ${event.response.serverVersion}');
+
+      localParticipant = LocalParticipant(
+        room: this,
+        info: event.response.participant,
+      );
+
+      for (final info in event.response.otherParticipants) {
+        logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}');
+        _getOrCreateRemoteParticipant(info.sid, info);
+      }
+
+      logger.fine('Room Connect completed');
+    })
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
     ..on<EngineActiveSpeakersUpdateEvent>(
@@ -458,5 +456,33 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await participant.unpublishAllTracks(notify: true);
 
     events.emit(ParticipantDisconnectedEvent(participant: participant));
+  }
+
+  Future<void> _sendSyncState() async {
+    final connectOptions = this.connectOptions ?? const ConnectOptions();
+    final sendUnSub = connectOptions.autoSubscribe;
+    engine.sendSyncState(
+      subscription: lk_rtc.UpdateSubscription(
+        subscribe: !sendUnSub,
+        participantTracks:
+            participants.values.map((e) => e.participantTracks()),
+      ),
+      publishTracks: localParticipant?.publishedTracksInfo(),
+    );
+  }
+
+  /// To be used for internal testing purposes only.
+  Future<void> simulateScenario({
+    int? speakerUpdate,
+    bool? nodeFailure,
+    bool? migration,
+    bool? serverLeave,
+  }) async {
+    engine.signalClient.sendSimulateScenario(
+      speakerUpdate: speakerUpdate,
+      nodeFailure: nodeFailure,
+      migration: migration,
+      serverLeave: serverLeave,
+    );
   }
 }

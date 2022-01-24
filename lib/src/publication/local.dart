@@ -80,4 +80,10 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
       logger.fine('Update publishing layers: nothing to change');
     }
   }
+
+  lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() =>
+      lk_rtc.TrackPublishedResponse(
+        cid: track?.mediaStreamTrack.id,
+        track: latestInfo,
+      );
 }

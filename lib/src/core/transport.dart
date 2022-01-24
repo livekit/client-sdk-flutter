@@ -31,7 +31,7 @@ class PCTransport extends Disposable {
       // Ensure callbacks won't fire any more
       pc.onRenegotiationNeeded = null;
       pc.onIceCandidate = null;
-      pc.onIceConnectionState = null;
+      pc.onConnectionState = null;
       pc.onTrack = null;
 
       // Remove all senders

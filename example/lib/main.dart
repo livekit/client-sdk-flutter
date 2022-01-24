@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
-
 import 'pages/connect.dart';
 
-void main() {
+void main() async {
   final format = DateFormat('HH:mm:ss');
   // configure logs for debugging
   Logger.root.level = Level.FINE;
