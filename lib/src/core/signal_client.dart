@@ -329,7 +329,7 @@ extension SignalClientRequests on SignalClient {
     required Iterable<lk_rtc.TrackPermission> trackPermissions,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
-        subscriptionPermissions: lk_rtc.UpdateSubscriptionPermissions(
+        subscriptionPermission: lk_rtc.SubscriptionPermission(
           allParticipants: allParticipants,
           trackPermissions: trackPermissions,
         ),
