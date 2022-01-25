@@ -232,9 +232,9 @@ class SignalSubscriptionPermissionUpdateEvent
 }
 
 @internal
-class SignalTokenUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalTokenUpdatedEvent with SignalEvent, EngineEvent, InternalEvent {
   final String token;
-  const SignalTokenUpdateEvent({
+  const SignalTokenUpdatedEvent({
     required this.token,
   });
 }

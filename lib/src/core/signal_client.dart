@@ -207,7 +207,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.refreshToken:
-        events.emit(SignalTokenUpdateEvent(token: msg.refreshToken));
+        events.emit(SignalTokenUpdatedEvent(token: msg.refreshToken));
         break;
       default:
         logger.warning('skipping unsupported signal message');

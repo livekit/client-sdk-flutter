@@ -649,7 +649,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalSubscribedQualityUpdatedEvent>((event) => events.emit(event))
     // relay to Room
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) => events.emit(event))
-    ..on<SignalTokenUpdateEvent>((event) {
+    ..on<SignalTokenUpdatedEvent>((event) {
       logger.fine('Server refreshed the token');
       token = event.token;
     })
