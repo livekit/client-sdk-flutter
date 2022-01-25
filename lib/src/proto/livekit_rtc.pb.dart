@@ -26,7 +26,7 @@ enum SignalRequest_Message {
   trackSetting,
   leave,
   updateLayers,
-  subscriptionPermissions,
+  subscriptionPermission,
   syncState,
   simulate,
   notSet
@@ -44,7 +44,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     7: SignalRequest_Message.trackSetting,
     8: SignalRequest_Message.leave,
     10: SignalRequest_Message.updateLayers,
-    11: SignalRequest_Message.subscriptionPermissions,
+    11: SignalRequest_Message.subscriptionPermission,
     12: SignalRequest_Message.syncState,
     13: SignalRequest_Message.simulate,
     0: SignalRequest_Message.notSet
@@ -113,12 +113,12 @@ class SignalRequest extends $pb.GeneratedMessage {
             ? ''
             : 'updateLayers',
         subBuilder: UpdateVideoLayers.create)
-    ..aOM<UpdateSubscriptionPermissions>(
+    ..aOM<SubscriptionPermission>(
         11,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
-            : 'subscriptionPermissions',
-        subBuilder: UpdateSubscriptionPermissions.create)
+            : 'subscriptionPermission',
+        subBuilder: SubscriptionPermission.create)
     ..aOM<SyncState>(
         12,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -144,7 +144,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     UpdateTrackSettings? trackSetting,
     LeaveRequest? leave,
     UpdateVideoLayers? updateLayers,
-    UpdateSubscriptionPermissions? subscriptionPermissions,
+    SubscriptionPermission? subscriptionPermission,
     SyncState? syncState,
     SimulateScenario? simulate,
   }) {
@@ -176,8 +176,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     if (updateLayers != null) {
       _result.updateLayers = updateLayers;
     }
-    if (subscriptionPermissions != null) {
-      _result.subscriptionPermissions = subscriptionPermissions;
+    if (subscriptionPermission != null) {
+      _result.subscriptionPermission = subscriptionPermission;
     }
     if (syncState != null) {
       _result.syncState = syncState;
@@ -345,18 +345,18 @@ class SignalRequest extends $pb.GeneratedMessage {
   UpdateVideoLayers ensureUpdateLayers() => $_ensure(8);
 
   @$pb.TagNumber(11)
-  UpdateSubscriptionPermissions get subscriptionPermissions => $_getN(9);
+  SubscriptionPermission get subscriptionPermission => $_getN(9);
   @$pb.TagNumber(11)
-  set subscriptionPermissions(UpdateSubscriptionPermissions v) {
+  set subscriptionPermission(SubscriptionPermission v) {
     setField(11, v);
   }
 
   @$pb.TagNumber(11)
-  $core.bool hasSubscriptionPermissions() => $_has(9);
+  $core.bool hasSubscriptionPermission() => $_has(9);
   @$pb.TagNumber(11)
-  void clearSubscriptionPermissions() => clearField(11);
+  void clearSubscriptionPermission() => clearField(11);
   @$pb.TagNumber(11)
-  UpdateSubscriptionPermissions ensureSubscriptionPermissions() => $_ensure(9);
+  SubscriptionPermission ensureSubscriptionPermission() => $_ensure(9);
 
   @$pb.TagNumber(12)
   SyncState get syncState => $_getN(10);
@@ -402,6 +402,7 @@ enum SignalResponse_Message {
   streamStateUpdate,
   subscribedQualityUpdate,
   subscriptionPermissionUpdate,
+  refreshToken,
   notSet
 }
 
@@ -422,6 +423,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     13: SignalResponse_Message.streamStateUpdate,
     14: SignalResponse_Message.subscribedQualityUpdate,
     15: SignalResponse_Message.subscriptionPermissionUpdate,
+    16: SignalResponse_Message.refreshToken,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -433,7 +435,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -518,6 +520,11 @@ class SignalResponse extends $pb.GeneratedMessage {
             ? ''
             : 'subscriptionPermissionUpdate',
         subBuilder: SubscriptionPermissionUpdate.create)
+    ..aOS(
+        16,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'refreshToken')
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -536,6 +543,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     StreamStateUpdate? streamStateUpdate,
     SubscribedQualityUpdate? subscribedQualityUpdate,
     SubscriptionPermissionUpdate? subscriptionPermissionUpdate,
+    $core.String? refreshToken,
   }) {
     final _result = create();
     if (join != null) {
@@ -579,6 +587,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (subscriptionPermissionUpdate != null) {
       _result.subscriptionPermissionUpdate = subscriptionPermissionUpdate;
+    }
+    if (refreshToken != null) {
+      _result.refreshToken = refreshToken;
     }
     return _result;
   }
@@ -809,6 +820,18 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SubscriptionPermissionUpdate ensureSubscriptionPermissionUpdate() =>
       $_ensure(13);
+
+  @$pb.TagNumber(16)
+  $core.String get refreshToken => $_getSZ(14);
+  @$pb.TagNumber(16)
+  set refreshToken($core.String v) {
+    $_setString(14, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasRefreshToken() => $_has(14);
+  @$pb.TagNumber(16)
+  void clearRefreshToken() => clearField(16);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -2899,11 +2922,11 @@ class TrackPermission extends $pb.GeneratedMessage {
   $core.List<$core.String> get trackSids => $_getList(2);
 }
 
-class UpdateSubscriptionPermissions extends $pb.GeneratedMessage {
+class SubscriptionPermission extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
           ? ''
-          : 'UpdateSubscriptionPermissions',
+          : 'SubscriptionPermission',
       package: const $pb.PackageName(
           const $core.bool.fromEnvironment('protobuf.omit_message_names')
               ? ''
@@ -2923,8 +2946,8 @@ class UpdateSubscriptionPermissions extends $pb.GeneratedMessage {
         subBuilder: TrackPermission.create)
     ..hasRequiredFields = false;
 
-  UpdateSubscriptionPermissions._() : super();
-  factory UpdateSubscriptionPermissions({
+  SubscriptionPermission._() : super();
+  factory SubscriptionPermission({
     $core.bool? allParticipants,
     $core.Iterable<TrackPermission>? trackPermissions,
   }) {
@@ -2937,36 +2960,34 @@ class UpdateSubscriptionPermissions extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory UpdateSubscriptionPermissions.fromBuffer($core.List<$core.int> i,
+  factory SubscriptionPermission.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory UpdateSubscriptionPermissions.fromJson($core.String i,
+  factory SubscriptionPermission.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  UpdateSubscriptionPermissions clone() =>
-      UpdateSubscriptionPermissions()..mergeFromMessage(this);
+  SubscriptionPermission clone() =>
+      SubscriptionPermission()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  UpdateSubscriptionPermissions copyWith(
-          void Function(UpdateSubscriptionPermissions) updates) =>
-      super.copyWith(
-              (message) => updates(message as UpdateSubscriptionPermissions))
-          as UpdateSubscriptionPermissions; // ignore: deprecated_member_use
+  SubscriptionPermission copyWith(
+          void Function(SubscriptionPermission) updates) =>
+      super.copyWith((message) => updates(message as SubscriptionPermission))
+          as SubscriptionPermission; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static UpdateSubscriptionPermissions create() =>
-      UpdateSubscriptionPermissions._();
-  UpdateSubscriptionPermissions createEmptyInstance() => create();
-  static $pb.PbList<UpdateSubscriptionPermissions> createRepeated() =>
-      $pb.PbList<UpdateSubscriptionPermissions>();
+  static SubscriptionPermission create() => SubscriptionPermission._();
+  SubscriptionPermission createEmptyInstance() => create();
+  static $pb.PbList<SubscriptionPermission> createRepeated() =>
+      $pb.PbList<SubscriptionPermission>();
   @$core.pragma('dart2js:noInline')
-  static UpdateSubscriptionPermissions getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<UpdateSubscriptionPermissions>(create);
-  static UpdateSubscriptionPermissions? _defaultInstance;
+  static SubscriptionPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscriptionPermission>(create);
+  static SubscriptionPermission? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.bool get allParticipants => $_getBF(0);
