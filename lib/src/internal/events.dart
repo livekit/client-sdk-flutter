@@ -231,6 +231,14 @@ class SignalSubscriptionPermissionUpdateEvent
   });
 }
 
+@internal
+class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
+  final String token;
+  const SignalTokenUpdatedEvent({
+    required this.token,
+  });
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
