@@ -230,10 +230,12 @@ class Utils {
         return;
       }
       final size = dimensions.max();
+      final encodingSize = e.dimensions.max();
       final rid = videoRids[i];
+
       result.add(e.encoding.toRTCRtpEncoding(
         rid: rid,
-        scaleResolutionDownBy: size / e.dimensions.height,
+        scaleResolutionDownBy: size / encodingSize,
       ));
     });
     return result;
