@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:collection/collection.dart';
 
 import '../core/signal_client.dart';
@@ -461,11 +459,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   Future<void> _sendSyncState() async {
     final connectOptions = this.connectOptions ?? const ConnectOptions();
     final sendUnSub = connectOptions.autoSubscribe;
+    final participantTracks =
+        participants.values.map((e) => e.participantTracks());
     engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
+        participantTracks: participantTracks,
+        // Deprecated
+        trackSids: participantTracks.map((e) => e.trackSids).flattened,
         subscribe: !sendUnSub,
-        participantTracks:
-            participants.values.map((e) => e.participantTracks()),
       ),
       publishTracks: localParticipant?.publishedTracksInfo(),
     );
