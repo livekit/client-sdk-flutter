@@ -265,8 +265,13 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   void _sendUpdateSubscription({required bool subscribed}) {
     logger.fine('Sending update subscription... ${sid} ${subscribed}');
-    final subscription = lk_rtc.UpdateSubscription(
+    final participantTrack = lk_models.ParticipantTracks(
+      participantSid: participant.sid,
       trackSids: [sid],
+    );
+    final subscription = lk_rtc.UpdateSubscription(
+      participantTracks: [participantTrack],
+      trackSids: [sid], // Deprecated
       subscribe: subscribed,
     );
     participant.room.engine.signalClient.sendUpdateSubscription(subscription);
