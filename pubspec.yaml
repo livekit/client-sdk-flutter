@@ -25,7 +25,6 @@ dependencies:
   flutter_webrtc: ^0.8.1
   dart_webrtc: ^1.0.3
   device_info_plus: ^3.2.1
-  web_browser_detect: ^2.0.2
 
 dev_dependencies:
   flutter_test:

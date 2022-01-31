@@ -5,7 +5,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:web_browser_detect/web_browser_detect.dart' as bd;
 
 import './proto/livekit_models.pb.dart' as lk_models;
 import './support/native.dart';
@@ -68,11 +67,8 @@ class Utils {
   static Future<lk_models.ClientInfo?> _clientInfo() async {
     switch (lkPlatform()) {
       case PlatformType.web:
-        final browser = bd.Browser();
         return lk_models.ClientInfo(
           os: defaultTargetPlatform.name,
-          browser: browser.browserAgent.name,
-          browserVersion: browser.version,
         );
       case PlatformType.windows:
         return lk_models.ClientInfo(
