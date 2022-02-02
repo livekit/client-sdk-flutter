@@ -220,19 +220,19 @@ class RemoteTrackPublication<T extends RemoteTrack>
   set videoQuality(lk_models.VideoQuality newValue) {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
-    _sendUpdateTrackSettings();
+    sendUpdateTrackSettings();
   }
 
   Future<void> enable() async {
     if (_enabled) return;
     _enabled = true;
-    _sendUpdateTrackSettings();
+    sendUpdateTrackSettings();
   }
 
   Future<void> disable() async {
     if (!_enabled) return;
     _enabled = false;
-    _sendUpdateTrackSettings();
+    sendUpdateTrackSettings();
   }
 
   Future<void> subscribe() async {
@@ -277,7 +277,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
     participant.room.engine.signalClient.sendUpdateSubscription(subscription);
   }
 
-  void _sendUpdateTrackSettings() {
+  @internal
+  void sendUpdateTrackSettings() {
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
       disabled: !_enabled,
