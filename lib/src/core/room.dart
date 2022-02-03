@@ -116,6 +116,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineReconnectedEvent>((event) async {
       _connectionState = ConnectionState.connected;
       events.emit(const RoomReconnectedEvent());
+      await _handlePostReconnect(false);
     })
     ..on<EngineReconnectingEvent>((event) async {
       _connectionState = ConnectionState.reconnecting;
@@ -470,6 +471,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       ),
       publishTracks: localParticipant?.publishedTracksInfo(),
     );
+  }
+
+  Future<void> _handlePostReconnect(bool isFullReconnect) async {
+    if (isFullReconnect) {
+      // TODO republish tracks on full reconnect
+    } else {
+      for (var participant in participants.values) {
+        for (var pub in participant.trackPublications.values) {
+          if (pub.subscribed) {
+            pub.sendUpdateTrackSettings();
+          }
+        }
+      }
+    }
   }
 
   /// To be used for internal testing purposes only.
