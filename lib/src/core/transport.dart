@@ -163,5 +163,6 @@ class PCTransport extends Disposable {
     } catch (_) {
       logger.warning('pc.getRemoteDescription failed with error: $_');
     }
+    return null;
   }
 }

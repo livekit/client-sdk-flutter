@@ -36,5 +36,6 @@ class Native {
     } catch (error) {
       logger.warning('appleOSVersionString did throw error: ${error}');
     }
+    return null;
   }
 }

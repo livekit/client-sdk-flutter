@@ -128,6 +128,7 @@ class Utils {
       default:
       // case PlatformType.fuchsia:
     }
+    return null;
   }
 
   @internal

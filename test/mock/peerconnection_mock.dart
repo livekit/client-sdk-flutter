@@ -1,5 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/core/transport.dart';
 
 import 'datachannel_mock.dart';
 
@@ -95,7 +94,14 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  RTCIceGatheringState? get iceGatheringState => _iceGatheringState;
+  RTCIceGatheringState get iceGatheringState => _iceGatheringState;
+
+  set iceGatheringState(RTCIceGatheringState newState) {
+    if (newState != _iceGatheringState) {
+      _iceGatheringState = newState;
+      onIceGatheringState?.call(newState);
+    }
+  }
 
   @override
   Future<void> addCandidate(RTCIceCandidate candidate) async {}
@@ -215,7 +221,7 @@ class MockPeerConnection extends RTCPeerConnection {
     throw UnimplementedError();
   }
 
-  static PeerConnectionCreate create = (Map<String, dynamic> configuration,
+  static Future<RTCPeerConnection> create(Map<String, dynamic> configuration,
           [Map<String, dynamic>? constraints]) async =>
       MockPeerConnection();
 }

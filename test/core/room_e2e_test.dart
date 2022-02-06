@@ -28,7 +28,7 @@ void main() {
       await container.connectRoom();
       expect(room.connectionState, ConnectionState.connected);
       expect(room.localParticipant?.sid, joinResponse.join.participant.sid);
-    }, skip: "todo");
+    }, skip: 'todo');
   });
 
   group('room updates', () {
@@ -87,7 +87,7 @@ void main() {
     test('room update', () async {
       ws.onData(roomUpdateResponse.writeToBuffer());
       // TODO: room update event and handling
-    }, skip: "todo");
+    }, skip: 'todo');
 
     test('connection quality', () async {
       expect(
@@ -104,7 +104,6 @@ void main() {
       await room.events.waitFor<ParticipantConnectedEvent>(
           duration: const Duration(seconds: 1));
 
-      room.createListener().listen((p0) => print(p0));
       expect(
         room.events.streamCtrl.stream,
         emits(

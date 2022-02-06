@@ -1,5 +1,4 @@
 import 'package:livekit_client/src/support/websocket.dart';
-import 'package:protobuf/protobuf.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
   @override

@@ -31,7 +31,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   final SignalClient signalClient;
 
-  PeerConnectionCreate _peerConnectionCreate;
+  final PeerConnectionCreate _peerConnectionCreate;
+
   @internal
   PCTransport? publisher;
 

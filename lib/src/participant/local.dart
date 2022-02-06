@@ -305,6 +305,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         return await publishVideoTrack(track);
       }
     }
+    return null;
   }
 
   /// Control who can subscribe to LocalParticipant's published tracks.
