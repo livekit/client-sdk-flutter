@@ -155,6 +155,7 @@ class SignalConnectionQualityUpdateEvent
 class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
   final String cid;
   final lk_models.TrackInfo track;
+
   const SignalLocalTrackPublishedEvent({
     required this.cid,
     required this.track,
@@ -162,10 +163,18 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
+class SignalRoomUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
+  final lk_models.Room room;
+
+  const SignalRoomUpdateEvent({required this.room});
+}
+
+@internal
 // Speaker update received through websocket
 // relayed by Engine
 class SignalSpeakersChangedEvent with SignalEvent, EngineEvent, InternalEvent {
   final List<lk_models.SpeakerInfo> speakers;
+
   const SignalSpeakersChangedEvent({
     required this.speakers,
   });
