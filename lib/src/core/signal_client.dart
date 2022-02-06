@@ -22,10 +22,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   // Connection state of the socket conection.
   ConnectionState _connectionState = ConnectionState.disconnected;
 
+  final WebSocketConnector _wsConnector;
   LiveKitWebSocket? _ws;
 
   @internal
-  SignalClient() {
+  SignalClient(WebSocketConnector wsConnector) : _wsConnector = wsConnector {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
     });
@@ -59,7 +60,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Clean up existing socket
       await _cleanUp();
       // Attempt to connect
-      _ws = await LiveKitWebSocket.connect(
+      _ws = await _wsConnector(
         rtcUri,
         WebSocketEventHandlers(
           onData: _onSocketData,
@@ -161,8 +162,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(
-            participants: msg.update.participants));
+        events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -171,8 +171,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.speakersChanged:
-        events.emit(
-            SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        break;
+      case lk_rtc.SignalResponse_Message.roomUpdate:
+        // TODO
         break;
       case lk_rtc.SignalResponse_Message.connectionQuality:
         events.emit(SignalConnectionQualityUpdateEvent(
@@ -209,8 +211,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.refreshToken:
         events.emit(SignalTokenUpdatedEvent(token: msg.refreshToken));
         break;
-      default:
-        logger.warning('skipping unsupported signal message');
+      case lk_rtc.SignalResponse_Message.notSet:
+        logger.info('signal message not set');
+        break;
     }
   }
 

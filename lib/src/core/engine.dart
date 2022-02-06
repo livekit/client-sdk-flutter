@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/support/websocket.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -28,11 +29,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
 
-  // Reference to the Room
-  final Room room;
-
   final SignalClient signalClient;
 
+  PeerConnectionCreate _peerConnectionCreate;
   @internal
   PCTransport? publisher;
 
@@ -60,6 +59,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // remember url and token for reconnect
   String? url;
   String? token;
+  ConnectOptions? connectOptions;
 
   bool _subscriberPrimary = false;
 
@@ -71,9 +71,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final delays = CancelableDelayManager();
 
   Engine({
-    required this.room,
     SignalClient? signalClient,
-  }) : signalClient = signalClient ?? SignalClient() {
+    PeerConnectionCreate? peerConnectionCreate,
+  })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
+        _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
@@ -92,9 +93,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> connect(
     String url,
     String token,
+    ConnectOptions? connectOptions,
   ) async {
     this.url = url;
     this.token = token;
+    this.connectOptions = connectOptions ?? const ConnectOptions();
 
     _updateConnectionState(ConnectionState.connecting);
 
@@ -103,7 +106,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await signalClient.connect(
         url,
         token,
-        connectOptions: room.connectOptions,
+        connectOptions: this.connectOptions,
       );
 
       // wait for join response
@@ -272,7 +275,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await signalClient.connect(
         url!,
         token!,
-        connectOptions: room.connectOptions,
+        connectOptions: connectOptions,
         reconnect: true,
       );
 
@@ -331,19 +334,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
-    final connectOptions = room.connectOptions ?? const ConnectOptions();
-    final serverIceServers =
-        _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
+    final connectOptions = this.connectOptions ?? const ConnectOptions();
+    final serverIceServers = _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
 
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
     if (serverIceServers.isNotEmpty) {
       // use server provided iceServers if exists
-      rtcConfiguration = connectOptions.rtcConfiguration
-          .copyWith(iceServers: serverIceServers);
+      rtcConfiguration = connectOptions.rtcConfiguration.copyWith(iceServers: serverIceServers);
     }
 
-    publisher = await PCTransport.create(rtcConfiguration);
-    subscriber = await PCTransport.create(rtcConfiguration);
+    publisher = await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+    subscriber = await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
