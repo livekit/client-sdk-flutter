@@ -162,7 +162,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.update:
-        events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
+        events.emit(SignalParticipantUpdateEvent(
+            participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
         events.emit(SignalLocalTrackPublishedEvent(
@@ -171,7 +172,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.speakersChanged:
-        events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
+        events.emit(
+            SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
         break;
       case lk_rtc.SignalResponse_Message.roomUpdate:
         // TODO

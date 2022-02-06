@@ -41,13 +41,15 @@ void main() {
       );
       ws.onData(participantJoinResponse.writeToBuffer());
 
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
       expect(room.participants.length, 1);
     });
 
     test('participant disconnect', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       ws.onData(participantDisconnectResponse.writeToBuffer());
       expect(
@@ -60,13 +62,15 @@ void main() {
         ]),
       );
 
-      await room.events.waitFor<ParticipantDisconnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantDisconnectedEvent>(
+          duration: const Duration(seconds: 1));
       expect(room.participants.length, 0);
     });
 
     test('participant metadata changed', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       ws.onData(participantMetadataChangedResponse.writeToBuffer());
       expect(
@@ -74,7 +78,8 @@ void main() {
         emits(
           predicate<ParticipantMetadataUpdatedEvent>((event) =>
               event.participant.metadata ==
-              participantMetadataChangedResponse.update.participants[0].metadata),
+              participantMetadataChangedResponse
+                  .update.participants[0].metadata),
         ),
       );
     });
@@ -96,7 +101,8 @@ void main() {
 
     test('active speakers changed', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       room.createListener().listen((p0) => print(p0));
       expect(
@@ -112,8 +118,8 @@ void main() {
     test('leave', () async {
       expect(
           room.events.streamCtrl.stream,
-          emits(predicate<RoomDisconnectedEvent>(
-              (event) => room.connectionState == ConnectionState.disconnected)));
+          emits(predicate<RoomDisconnectedEvent>((event) =>
+              room.connectionState == ConnectionState.disconnected)));
       ws.onData(leaveResponse.writeToBuffer());
     });
   });

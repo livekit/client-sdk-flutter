@@ -74,7 +74,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
-        _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection {
+        _peerConnectionCreate =
+            peerConnectionCreate ?? rtc.createPeerConnection {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
@@ -335,16 +336,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
     final connectOptions = this.connectOptions ?? const ConnectOptions();
-    final serverIceServers = _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
+    final serverIceServers =
+        _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
 
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
     if (serverIceServers.isNotEmpty) {
       // use server provided iceServers if exists
-      rtcConfiguration = connectOptions.rtcConfiguration.copyWith(iceServers: serverIceServers);
+      rtcConfiguration = connectOptions.rtcConfiguration
+          .copyWith(iceServers: serverIceServers);
     }
 
-    publisher = await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
-    subscriber = await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+    publisher =
+        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+    subscriber =
+        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
