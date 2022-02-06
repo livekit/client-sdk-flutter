@@ -30,6 +30,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.4
+  mockito: ^5.0.17
   import_sorter: ^4.6.0
 
 flutter:

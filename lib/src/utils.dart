@@ -65,6 +65,11 @@ class Utils {
   static final _deviceInfoPlugin = DeviceInfoPlugin();
 
   static Future<lk_models.ClientInfo?> _clientInfo() async {
+    if (lkPlatformIsTest()) {
+      return lk_models.ClientInfo(
+        os: 'test',
+      );
+    }
     switch (lkPlatform()) {
       case PlatformType.web:
         return lk_models.ClientInfo(
@@ -123,6 +128,7 @@ class Utils {
       default:
       // case PlatformType.fuchsia:
     }
+    return null;
   }
 
   @internal

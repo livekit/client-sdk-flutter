@@ -62,16 +62,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
 
-  late final engine = Engine(room: this);
+  final Engine engine;
 
   // suppport for multiple event listeners
-  late final _engineListener = engine.createListener();
+  late final EventsListener<EngineEvent> _engineListener;
 
-  Room({
-    this.connectOptions,
-    this.roomOptions,
-  }) {
-    //
+  Room({this.connectOptions, this.roomOptions, Engine? engine})
+      : engine = engine ?? Engine() {
+    _engineListener = this.engine.createListener();
     _setUpListeners();
 
     // Any event emitted will trigger ChangeNotifier
@@ -88,7 +86,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // dispose all listeners for RTCEngine
       await _engineListener.dispose();
       // dispose the engine
-      await engine.dispose();
+      await this.engine.dispose();
     });
   }
 
@@ -102,10 +100,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
 
-    return engine.connect(
-      url,
-      token,
-    );
+    return engine.connect(url, token, this.connectOptions);
   }
 
   void _setUpListeners() => _engineListener

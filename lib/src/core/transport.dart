@@ -11,6 +11,9 @@ import '../types.dart';
 import '../utils.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+typedef PeerConnectionCreate = Future<rtc.RTCPeerConnection> Function(
+    Map<String, dynamic> configuration,
+    [Map<String, dynamic> constraints]);
 
 /// a wrapper around PeerConnection
 class PCTransport extends Disposable {
@@ -55,10 +58,11 @@ class PCTransport extends Disposable {
     });
   }
 
-  static Future<PCTransport> create([RTCConfiguration? rtcConfig]) async {
+  static Future<PCTransport> create(PeerConnectionCreate peerConnectionCreate,
+      [RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
-    final _ = await rtc.createPeerConnection(rtcConfig.toMap());
+    final _ = await peerConnectionCreate(rtcConfig.toMap());
     return PCTransport._(_);
   }
 
@@ -159,5 +163,6 @@ class PCTransport extends Disposable {
     } catch (_) {
       logger.warning('pc.getRemoteDescription failed with error: $_');
     }
+    return null;
   }
 }

@@ -158,6 +158,7 @@ class _LocalParticipantWidgetState
         _visible) {
       return firstVideoPublication?.track;
     }
+    return null;
   }
 }
 
@@ -180,6 +181,7 @@ class _RemoteParticipantWidgetState
         return trackPublication.track;
       }
     }
+    return null;
   }
 
   @override

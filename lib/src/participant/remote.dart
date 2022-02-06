@@ -65,6 +65,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   RemoteTrackPublication? getTrackPublication(String sid) {
     final pub = trackPublications[sid];
     if (pub is RemoteTrackPublication) return pub;
+    return null;
   }
 
   /// for internal use
