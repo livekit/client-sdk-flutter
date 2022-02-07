@@ -84,10 +84,15 @@ void main() {
       );
     });
 
-    test('room update', () async {
+    test('room metadata update', () async {
+      expect(
+        room.events.streamCtrl.stream,
+        emits(predicate<RoomMetadataChangedEvent>((event) =>
+            event.metadata == roomUpdateResponse.roomUpdate.room.metadata &&
+            room.metadata == event.metadata)),
+      );
       ws.onData(roomUpdateResponse.writeToBuffer());
-      // TODO: room update event and handling
-    }, skip: 'todo');
+    });
 
     test('connection quality', () async {
       expect(

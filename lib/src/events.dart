@@ -56,11 +56,25 @@ class RoomDisconnectedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// Room metadata has changed.
+/// Emitted by [Room].
+class RoomMetadataChangedEvent with RoomEvent {
+  final String? metadata;
+
+  const RoomMetadataChangedEvent({
+    required this.metadata,
+  });
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 /// When a new [RemoteParticipant] joins *after* the current participant has connected
 /// It will not fire for participants that are already in the room
 /// Emitted by [Room].
 class ParticipantConnectedEvent with RoomEvent {
   final RemoteParticipant participant;
+
   const ParticipantConnectedEvent({
     required this.participant,
   });

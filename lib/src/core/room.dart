@@ -52,6 +52,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   /// sid of the room
   String? sid;
 
+  /// metadata of the room
+  String? metadata;
+
   /// Server version
   String? get serverVersion => _serverVersion;
   String? _serverVersion;
@@ -201,6 +204,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
+    })
+    ..on<SignalRoomUpdateEvent>((event) async {
+      metadata = event.room.metadata;
+      events.emit(RoomMetadataChangedEvent(metadata: event.room.metadata));
     })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
