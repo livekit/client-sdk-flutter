@@ -17,6 +17,7 @@
         android:label="LiveKit Example"
         android:icon="@mipmap/livekit_ic_launcher">
     <activity
+            android:exported="true"
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
