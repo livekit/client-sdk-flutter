@@ -65,7 +65,7 @@ class Utils {
   static final _deviceInfoPlugin = DeviceInfoPlugin();
 
   static Future<lk_models.ClientInfo?> _clientInfo() async {
-    if (lkPlatformIsTest()) {
+    if (!kIsWeb && lkPlatformIsTest()) {
       return lk_models.ClientInfo(
         os: 'test',
       );
