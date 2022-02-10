@@ -224,4 +224,8 @@ class MockPeerConnection extends RTCPeerConnection {
   static Future<RTCPeerConnection> create(Map<String, dynamic> configuration,
           [Map<String, dynamic>? constraints]) async =>
       MockPeerConnection();
+
+  @override
+  // TODO: implement restartIce
+  Future<void> restartIce() => throw UnimplementedError();
 }
