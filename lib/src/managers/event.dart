@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:meta/meta.dart';
 import 'package:synchronized/synchronized.dart' as sync;
@@ -22,6 +23,9 @@ class EventsEmitter<T> extends EventsListenable<T> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
 
+  bool _queueMode = false;
+  final _queue = Queue<T>();
+
   EventsEmitter({
     bool listenSynchronized = false,
   }) : super(synchronized: listenSynchronized) {
@@ -33,13 +37,38 @@ class EventsEmitter<T> extends EventsListenable<T> {
 
   @internal
   void emit(T event) {
-    // do nothing if already closed
+    // check if streamCtrl is already closed
     if (streamCtrl.isClosed) {
       logger.warning('failed to emit event ${event} on a disposed emitter');
       return;
     }
+    // queue mode
+    if (_queueMode) {
+      _queue.add(event);
+      return;
+    }
     // emit the event
     streamCtrl.add(event);
+  }
+
+  @internal
+  void updateQueueMode(bool newValue, {bool emitQueued = true}) {
+    if (_queueMode == newValue) return;
+    _queueMode = newValue;
+    if (!_queueMode && emitQueued) _emitQueued();
+  }
+
+  void _emitQueued() {
+    // check if streamCtrl is already closed
+    if (streamCtrl.isClosed) {
+      logger.warning('failed to emit event on a disposed emitter');
+      return;
+    }
+    while (_queue.isNotEmpty) {
+      final event = _queue.removeFirst();
+      // emit the event
+      streamCtrl.add(event);
+    }
   }
 }
 
