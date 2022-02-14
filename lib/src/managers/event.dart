@@ -29,6 +29,7 @@ class EventsEmitter<T> extends EventsListenable<T> {
   EventsEmitter({
     bool listenSynchronized = false,
   }) : super(synchronized: listenSynchronized) {
+    // clean up
     onDispose(() async => await streamCtrl.close());
   }
 
@@ -37,8 +38,8 @@ class EventsEmitter<T> extends EventsListenable<T> {
 
   @internal
   void emit(T event) {
-    // check if streamCtrl is already closed
-    if (streamCtrl.isClosed) {
+    // check if already disposed
+    if (isDisposed) {
       logger.warning('failed to emit event ${event} on a disposed emitter');
       return;
     }
@@ -52,18 +53,19 @@ class EventsEmitter<T> extends EventsListenable<T> {
   }
 
   @internal
-  void updateQueueMode(bool newValue, {bool emitQueued = true}) {
-    if (_queueMode == newValue) return;
-    _queueMode = newValue;
-    if (!_queueMode && emitQueued) _emitQueued();
-  }
-
-  void _emitQueued() {
-    // check if streamCtrl is already closed
-    if (streamCtrl.isClosed) {
-      logger.warning('failed to emit event on a disposed emitter');
+  void updateQueueMode(bool newValue, {bool shouldEmitQueued = true}) {
+    // check if already disposed
+    if (isDisposed) {
+      logger.warning('already disposed ');
       return;
     }
+    if (_queueMode == newValue) return;
+    _queueMode = newValue;
+    if (!_queueMode && shouldEmitQueued) emitQueued();
+  }
+
+  @internal
+  void emitQueued() {
     while (_queue.isNotEmpty) {
       final event = _queue.removeFirst();
       // emit the event
