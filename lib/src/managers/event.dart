@@ -56,7 +56,7 @@ class EventsEmitter<T> extends EventsListenable<T> {
   void updateQueueMode(bool newValue, {bool shouldEmitQueued = true}) {
     // check if already disposed
     if (isDisposed) {
-      logger.warning('already disposed ');
+      logger.warning('failed to update queueMode on a disposed emitter');
       return;
     }
     if (_queueMode == newValue) return;
