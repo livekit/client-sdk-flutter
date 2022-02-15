@@ -159,6 +159,9 @@ class VideoDimensions {
   /// Returns the larger value
   int max() => math.max(width, height);
 
+  /// Returns the smaller value
+  int min() => math.min(width, height);
+
   VideoDimensions copyWith({
     int? width,
     int? height,

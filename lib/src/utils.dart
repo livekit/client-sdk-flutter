@@ -231,16 +231,40 @@ class Utils {
       if (i >= videoRids.length) {
         return;
       }
-      final size = dimensions.max();
-      final encodingSize = e.dimensions.max();
       final rid = videoRids[i];
 
       result.add(e.encoding.toRTCRtpEncoding(
         rid: rid,
-        scaleResolutionDownBy: size / encodingSize,
+        scaleResolutionDownBy: findEvenScaleDownBy(dimensions, e.dimensions),
       ));
     });
     return result;
+  }
+
+  @internal
+  static double findEvenScaleDownBy(
+    VideoDimensions sourceDimensions,
+    VideoDimensions targetDimensions,
+  ) {
+    bool isEven(int v) => v % 2 == 0;
+
+    final sourceSize = sourceDimensions.max();
+    final targetSize = targetDimensions.max();
+
+    for (int i = 0; i <= 30; i++) {
+      final scaleDownBy = sourceSize.toDouble() / (targetSize + i);
+      // Internally, WebRTC casts directly to int without rounding.
+      // https://github.com/webrtc-sdk/webrtc/blob/8c7139f8e6fa19ddf2c91510c177a19746e1ded3/media/engine/webrtc_video_engine.cc#L3676
+      final scaledWidth = sourceDimensions.width ~/ scaleDownBy;
+      final scaledHeight = sourceDimensions.height ~/ scaleDownBy;
+
+      if (isEven(scaledWidth) && isEven(scaledHeight)) {
+        return scaleDownBy;
+      }
+    }
+
+    // couldn't find an even scale, just return original scale and hope it works.
+    return sourceSize / targetSize;
   }
 
   @internal
