@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.5.7
+
+* New track subscription permissions API.
+* Improvements to reconnect logic.
+* Room metadata update event.
+
 ## 0.5.6
 
 * Using WebRTC version M93.

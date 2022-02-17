@@ -50,7 +50,7 @@ SPEC CHECKSUMS:
   Libyuv: 5f79ced0ee66e60a612ca97de1e6ccacd187a437
   livekit_client: 2b0426725d1efc2890fd1a30ba635f6f8845adf0
   path_provider_ios: 7d7ce634493af4477d156294792024ec3485acd5
-  shared_preferences_ios: aef470a42dc4675a1cdd50e3158b42e3d1232b32
+  shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
   WebRTC-SDK: 166b0e161d93d4b961f410bf7966a634f42aa17d
 
 PODFILE CHECKSUM: 82aed1035f46bfa5b522f0d0dbf4730f17ec65ff
