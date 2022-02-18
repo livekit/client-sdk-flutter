@@ -413,6 +413,12 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'name')
+    ..a<$core.int>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version',
+        $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -426,6 +432,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.bool? hidden,
     $core.bool? recorder,
     $core.String? name,
+    $core.int? version,
   }) {
     final _result = create();
     if (sid != null) {
@@ -454,6 +461,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (name != null) {
       _result.name = name;
+    }
+    if (version != null) {
+      _result.version = version;
     }
     return _result;
   }
@@ -582,6 +592,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasName() => $_has(8);
   @$pb.TagNumber(9)
   void clearName() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get version => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set version($core.int v) {
+    $_setUnsignedInt32(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasVersion() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearVersion() => clearField(10);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
@@ -1574,6 +1596,11 @@ class ClientInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'browserVersion')
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'address')
     ..hasRequiredFields = false;
 
   ClientInfo._() : super();
@@ -1586,6 +1613,7 @@ class ClientInfo extends $pb.GeneratedMessage {
     $core.String? deviceModel,
     $core.String? browser,
     $core.String? browserVersion,
+    $core.String? address,
   }) {
     final _result = create();
     if (sdk != null) {
@@ -1611,6 +1639,9 @@ class ClientInfo extends $pb.GeneratedMessage {
     }
     if (browserVersion != null) {
       _result.browserVersion = browserVersion;
+    }
+    if (address != null) {
+      _result.address = address;
     }
     return _result;
   }
@@ -1735,4 +1766,16 @@ class ClientInfo extends $pb.GeneratedMessage {
   $core.bool hasBrowserVersion() => $_has(7);
   @$pb.TagNumber(8)
   void clearBrowserVersion() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get address => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set address($core.String v) {
+    $_setString(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasAddress() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearAddress() => clearField(9);
 }
