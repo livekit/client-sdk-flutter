@@ -113,6 +113,194 @@ extension VideoEncodingExt on VideoEncoding {
 }
 
 class VideoParameters {
+  // 16:9 Presets
+  static const presetH90_169 = VideoParameters(
+    dimensions: VideoDimensions.h90_169,
+    encoding: VideoEncoding(
+      maxBitrate: 60 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+  static const presetH180_169 = VideoParameters(
+    dimensions: VideoDimensions.h180_169,
+    encoding: VideoEncoding(
+      maxBitrate: 120 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetH216_169 = VideoParameters(
+    dimensions: VideoDimensions.h216_169,
+    encoding: VideoEncoding(
+      maxBitrate: 180 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetH360_169 = VideoParameters(
+    dimensions: VideoDimensions.h360_169,
+    encoding: VideoEncoding(
+      maxBitrate: 300 * 1000,
+      maxFramerate: 20,
+    ),
+  );
+
+  static const presetH540_169 = VideoParameters(
+    dimensions: VideoDimensions.h540_169,
+    encoding: VideoEncoding(
+      maxBitrate: 600 * 1000,
+      maxFramerate: 25,
+    ),
+  );
+
+  static const presetH1080_169 = VideoParameters(
+    dimensions: VideoDimensions.h1080_169,
+    encoding: VideoEncoding(
+      maxBitrate: 3 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const presetH1440_169 = VideoParameters(
+    dimensions: VideoDimensions.h1440_169,
+    encoding: VideoEncoding(
+      maxBitrate: 5 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const presetH2160_169 = VideoParameters(
+    dimensions: VideoDimensions.h2160_169,
+    encoding: VideoEncoding(
+      maxBitrate: 8 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const presetH720_169 = VideoParameters(
+    dimensions: VideoDimensions.h540_169,
+    encoding: VideoEncoding(
+      maxBitrate: 2 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  // 4:3 presets
+
+  static const presetH120_43 = VideoParameters(
+    dimensions: VideoDimensions.h120_43,
+    encoding: VideoEncoding(
+      maxBitrate: 80 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetH180_43 = VideoParameters(
+    dimensions: VideoDimensions.h180_43,
+    encoding: VideoEncoding(
+      maxBitrate: 100 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetH240_43 = VideoParameters(
+    dimensions: VideoDimensions.h240_43,
+    encoding: VideoEncoding(
+      maxBitrate: 150 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetH360_43 = VideoParameters(
+    dimensions: VideoDimensions.h360_43,
+    encoding: VideoEncoding(
+      maxBitrate: 225 * 1000,
+      maxFramerate: 20,
+    ),
+  );
+
+  static const presetH480_43 = VideoParameters(
+    dimensions: VideoDimensions.h480_43,
+    encoding: VideoEncoding(
+      maxBitrate: 300 * 1000,
+      maxFramerate: 20,
+    ),
+  );
+
+  static const presetH540_43 = VideoParameters(
+    dimensions: VideoDimensions.h540_43,
+    encoding: VideoEncoding(
+      maxBitrate: 450 * 1000,
+      maxFramerate: 25,
+    ),
+  );
+
+  static const presetH720_43 = VideoParameters(
+    dimensions: VideoDimensions.h720_43,
+    encoding: VideoEncoding(
+      maxBitrate: 1 * 500 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const presetH1080_43 = VideoParameters(
+    dimensions: VideoDimensions.h1080_43,
+    encoding: VideoEncoding(
+      maxBitrate: 2 * 500 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const presetH1440_43 = VideoParameters(
+    dimensions: VideoDimensions.h1440_43,
+    encoding: VideoEncoding(
+      maxBitrate: 3 * 500 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  // Screen share
+
+  static const presetScreenShareH360FPS3 = VideoParameters(
+    dimensions: VideoDimensions.h360_169,
+    encoding: VideoEncoding(
+      maxBitrate: 200 * 1000,
+      maxFramerate: 3,
+    ),
+  );
+
+  static const presetScreenShareH720FPS5 = VideoParameters(
+    dimensions: VideoDimensions.h720_169,
+    encoding: VideoEncoding(
+      maxBitrate: 400 * 1000,
+      maxFramerate: 5,
+    ),
+  );
+
+  static const presetScreenShareH720FPS15 = VideoParameters(
+    dimensions: VideoDimensions.h720_169,
+    encoding: VideoEncoding(
+      maxBitrate: 1 * 1000 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetScreenShareH1080FPS15 = VideoParameters(
+    dimensions: VideoDimensions.h1080_169,
+    encoding: VideoEncoding(
+      maxBitrate: 1 * 500 * 1000,
+      maxFramerate: 15,
+    ),
+  );
+
+  static const presetScreenShareH1080FPS30 = VideoParameters(
+    dimensions: VideoDimensions.h1080_169,
+    encoding: VideoEncoding(
+      maxBitrate: 3 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
   final String? description;
   final VideoDimensions dimensions;
   final VideoEncoding encoding;
@@ -122,10 +310,6 @@ class VideoParameters {
     required this.dimensions,
     required this.encoding,
   });
-
-  //
-  // TODO: Make sure the resolutions are correct
-  //
 
   static const presetQVGA169 = VideoParameters(
     description: 'QVGA(320x180) 16:9',
@@ -263,27 +447,35 @@ class VideoParameters {
   );
 
   static final List<VideoParameters> presets169 = [
-    presetQVGA169,
-    presetVGA169,
-    presetQHD169,
-    presetHD169,
-    presetFHD169,
+    presetH90_169,
+    presetH180_169,
+    presetH216_169,
+    presetH360_169,
+    presetH540_169,
+    presetH720_169,
+    presetH1080_169,
+    presetH1440_169,
+    presetH2160_169,
   ];
 
   static final List<VideoParameters> presets43 = [
-    presetQVGA43,
-    presetVGA43,
-    presetQHD43,
-    presetHD43,
-    presetFHD43,
+    presetH120_43,
+    presetH180_43,
+    presetH240_43,
+    presetH360_43,
+    presetH480_43,
+    presetH540_43,
+    presetH720_43,
+    presetH1080_43,
+    presetH1440_43,
   ];
 
   static final List<VideoParameters> presetsScreenShare = [
-    presetScreenShareVGA,
-    presetScreenShareHD5,
-    presetScreenShareHD15,
-    presetScreenShareFHD15,
-    presetScreenShareFHD30,
+    presetScreenShareH360FPS3,
+    presetScreenShareH720FPS5,
+    presetScreenShareH720FPS15,
+    presetScreenShareH1080FPS15,
+    presetScreenShareH1080FPS30,
   ];
 
   //
