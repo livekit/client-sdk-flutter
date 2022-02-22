@@ -153,6 +153,14 @@ class VideoParameters {
     ),
   );
 
+  static const presetH720_169 = VideoParameters(
+    dimensions: VideoDimensions.h720_169,
+    encoding: VideoEncoding(
+      maxBitrate: 2 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
   static const presetH1080_169 = VideoParameters(
     dimensions: VideoDimensions.h1080_169,
     encoding: VideoEncoding(
@@ -173,14 +181,6 @@ class VideoParameters {
     dimensions: VideoDimensions.h2160_169,
     encoding: VideoEncoding(
       maxBitrate: 8 * 1000 * 1000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static const presetH720_169 = VideoParameters(
-    dimensions: VideoDimensions.h540_169,
-    encoding: VideoEncoding(
-      maxBitrate: 2 * 1000 * 1000,
       maxFramerate: 30,
     ),
   );
