@@ -8,7 +8,7 @@ import 'publication/local.dart';
 import 'publication/remote.dart';
 import 'publication/track_publication.dart';
 import 'track/track.dart';
-import 'types.dart';
+import 'types/other.dart';
 
 /// Base type for all LiveKit events.
 mixin LiveKitEvent {}

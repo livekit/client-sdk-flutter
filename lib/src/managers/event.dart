@@ -8,7 +8,7 @@ import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../support/disposable.dart';
-import '../types.dart';
+import '../types/other.dart';
 
 mixin EventsEmittable<T> {
   final events = EventsEmitter<T>();

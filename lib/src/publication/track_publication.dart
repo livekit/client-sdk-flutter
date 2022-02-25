@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -7,10 +8,10 @@ import '../logger.dart';
 import '../participant/participant.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
-import '../track/track.dart';
 import '../track/local/local.dart';
-import '../types.dart';
-import '../core/signal_client.dart';
+import '../track/track.dart';
+import '../types/other.dart';
+import '../types/video_dimensions.dart';
 
 /// Represents a track that's published to the server. This class contains
 /// metadata associated with tracks.
