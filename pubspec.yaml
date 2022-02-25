@@ -35,6 +35,8 @@ dev_dependencies:
 
 import_sorter:
   comments: false
+  ignored_files: # Optional, defaults to []
+    - \/lib\/src\/proto\/*
 
 flutter:
   plugin:
