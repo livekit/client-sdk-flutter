@@ -15,6 +15,19 @@ class VideoEncoding {
   @override
   String toString() =>
       '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
+
+  // ----------------------------------------------------------------------
+  // equality
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideoEncoding &&
+          maxFramerate == other.maxFramerate &&
+          maxBitrate == other.maxBitrate;
+
+  @override
+  int get hashCode => Object.hash(maxFramerate, maxBitrate);
 }
 
 /// Convenience extension for [VideoEncoding].

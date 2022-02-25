@@ -24,6 +24,19 @@ class VideoDimensions {
         width ?? this.width,
         height ?? this.height,
       );
+
+  // ----------------------------------------------------------------------
+  // equality
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideoDimensions &&
+          width == other.width &&
+          height == other.height;
+
+  @override
+  int get hashCode => Object.hash(width, height);
 }
 
 extension VideoDimensionsHelpers on VideoDimensions {
