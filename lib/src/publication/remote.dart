@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -16,7 +17,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../track/local/local.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
-import '../types.dart';
+import '../types/other.dart';
 import '../utils.dart';
 import 'track_publication.dart';
 

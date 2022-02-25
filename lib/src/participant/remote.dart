@@ -12,7 +12,7 @@ import '../publication/remote.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
-import '../types.dart';
+import '../types/other.dart';
 import 'participant.dart';
 
 /// Represents other participant in the [Room].

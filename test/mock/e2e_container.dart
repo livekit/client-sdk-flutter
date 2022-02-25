@@ -1,7 +1,6 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/core/signal_client.dart';
-
 import '../core/signal_client_test.dart';
 import 'peerconnection_mock.dart';
 import 'websocket_mock.dart';

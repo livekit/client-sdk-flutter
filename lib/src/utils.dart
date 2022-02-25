@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -14,7 +15,10 @@ import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
 import 'track/options.dart';
-import 'types.dart';
+import 'types/other.dart';
+import 'types/video_dimensions.dart';
+import 'types/video_encoding.dart';
+import 'types/video_parameters.dart';
 
 extension UriExt on Uri {
   @internal

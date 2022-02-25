@@ -23,6 +23,6 @@ export 'src/track/remote/audio.dart';
 export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';
 export 'src/track/track.dart';
-export 'src/types.dart';
+export 'src/types/other.dart';
 export 'src/utils.dart';
 export 'src/widget/video_track_renderer.dart';
