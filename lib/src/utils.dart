@@ -193,15 +193,15 @@ class Utils {
     required bool isScreenShare,
     required VideoDimensions dimensions,
   }) {
-    if (isScreenShare) return VideoParameters.presetsScreenShare;
+    if (isScreenShare) return VideoParametersPresets.allScreenShare;
 
     final double aspect = dimensions.width > dimensions.height
         ? dimensions.width / dimensions.height
         : dimensions.height / dimensions.width;
     if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) {
-      return VideoParameters.presets169;
+      return VideoParametersPresets.all169;
     }
-    return VideoParameters.presets43;
+    return VideoParametersPresets.all43;
   }
 
   static VideoEncoding _findAppropriateEncoding({
