@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 
 /// A type that represents video encoding information.
 @immutable
-class VideoEncoding {
+class VideoEncoding implements Comparable<VideoEncoding> {
   final int maxFramerate;
   final int maxBitrate;
 
@@ -28,6 +28,21 @@ class VideoEncoding {
 
   @override
   int get hashCode => Object.hash(maxFramerate, maxBitrate);
+
+  // ----------------------------------------------------------------------
+  // Comparable
+
+  @override
+  int compareTo(VideoEncoding other) {
+    // compare bitrates
+    final result = maxBitrate.compareTo(other.maxBitrate);
+    // if bitrates are the same, compare by fps
+    if (result == 0) {
+      return maxFramerate.compareTo(other.maxFramerate);
+    }
+
+    return result;
+  }
 }
 
 /// Convenience extension for [VideoEncoding].

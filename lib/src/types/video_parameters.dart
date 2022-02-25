@@ -4,7 +4,7 @@ import 'video_dimensions.dart';
 import 'video_encoding.dart';
 
 @immutable
-class VideoParameters {
+class VideoParameters implements Comparable<VideoParameters> {
   final String? description;
   final VideoDimensions dimensions;
   final VideoEncoding encoding;
@@ -29,6 +29,21 @@ class VideoParameters {
   @override
   int get hashCode => Object.hash(description, dimensions, encoding);
 
+  // ----------------------------------------------------------------------
+  // Comparable
+
+  @override
+  int compareTo(VideoParameters other) {
+    // compare by dimension's area
+    final result = dimensions.area().compareTo(other.dimensions.area());
+    // if dimensions have equal area, compare by encoding
+    if (result == 0) {
+      return encoding.compareTo(other.encoding);
+    }
+
+    return result;
+  }
+
   //
   // TODO: Return constraints that will work for all platforms (Web & Mobile)
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
@@ -38,14 +53,6 @@ class VideoParameters {
         'height': dimensions.height,
         'frameRate': encoding.maxFramerate,
       };
-
-  // Comparable
-  // @override
-  // int compareTo(VideoParameters other) {
-  //   if (this.dimensions.area() == other.dimensions.area()) {
-  //     return encoding.compare
-  //   }
-  // }
 }
 
 extension VideoParametersPresets on VideoParameters {
