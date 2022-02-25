@@ -33,6 +33,9 @@ dev_dependencies:
   mockito: ^5.0.17
   import_sorter: ^4.6.0
 
+import_sorter:
+  comments: false
+
 flutter:
   plugin:
     platforms:
