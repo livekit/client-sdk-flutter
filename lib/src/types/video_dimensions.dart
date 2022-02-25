@@ -40,6 +40,12 @@ class VideoDimensions {
 }
 
 extension VideoDimensionsHelpers on VideoDimensions {
+  // aspect ratios
+  static const aspect169 = 16.0 / 9.0;
+  static const aspect43 = 4.0 / 3.0;
+
+  double aspect() => width > height ? width / height : height / width;
+
   /// Returns the larger value
   int max() => math.max(width, height);
 
