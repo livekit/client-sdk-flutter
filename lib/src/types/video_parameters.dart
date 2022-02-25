@@ -15,6 +15,20 @@ class VideoParameters {
     required this.encoding,
   });
 
+  // ----------------------------------------------------------------------
+  // equality
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideoParameters &&
+          description == other.description &&
+          dimensions == other.dimensions &&
+          encoding == other.encoding;
+
+  @override
+  int get hashCode => Object.hash(description, dimensions, encoding);
+
   //
   // TODO: Return constraints that will work for all platforms (Web & Mobile)
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
