@@ -7,7 +7,7 @@ import '../extensions.dart';
 import '../internal/types.dart';
 import '../logger.dart';
 import '../support/disposable.dart';
-import '../types.dart';
+import '../types/other.dart';
 import '../utils.dart';
 
 typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);

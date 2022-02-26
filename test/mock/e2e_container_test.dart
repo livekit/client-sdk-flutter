@@ -1,7 +1,8 @@
 @Timeout(Duration(seconds: 5))
-import 'package:flutter_test/flutter_test.dart';
-import 'package:livekit_client/livekit_client.dart';
 
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:livekit_client/livekit_client.dart';
 import '../core/signal_client_test.dart';
 import '../mock/e2e_container.dart';
 

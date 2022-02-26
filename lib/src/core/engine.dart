@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/support/websocket.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -19,7 +19,9 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
-import '../types.dart';
+import '../support/websocket.dart';
+import '../types/other.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'room.dart';
 import 'signal_client.dart';

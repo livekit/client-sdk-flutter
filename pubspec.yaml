@@ -37,6 +37,11 @@ dev_dependencies:
   mockito: ^5.0.17
   import_sorter: ^4.6.0
 
+import_sorter:
+  comments: false
+  ignored_files: # Ignore proto files
+    - \/lib\/src\/proto\/*
+
 flutter:
   plugin:
     platforms:

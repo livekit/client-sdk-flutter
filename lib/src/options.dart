@@ -4,7 +4,8 @@ import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
 import 'track/track.dart';
-import 'types.dart';
+import 'types/other.dart';
+import 'types/video_encoding.dart';
 
 /// Options used when connecting to the server.
 class ConnectOptions {

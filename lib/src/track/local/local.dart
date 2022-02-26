@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -8,7 +9,7 @@ import '../../logger.dart';
 import '../../participant/remote.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../support/platform.dart';
-import '../../types.dart';
+import '../../types/other.dart';
 import '../options.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
