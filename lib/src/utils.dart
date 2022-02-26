@@ -285,7 +285,7 @@ class Utils {
 
       result.add(e.encoding.toRTCRtpEncoding(
         rid: rid,
-        scaleResolutionDownBy: size / e.dimensions.min(),
+        scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
       ));
     });
     return result;
