@@ -24,8 +24,8 @@ dependencies:
   protobuf: ^2.0.1
   flutter_webrtc:
     git:
-      url: https://github.com/davidliu/flutter-webrtc
-      ref: m97_update
+      url: https://github.com/flutter-webrtc/flutter-webrtc
+      ref: master
 
   dart_webrtc: ^1.0.3
   device_info_plus: ^3.2.1
