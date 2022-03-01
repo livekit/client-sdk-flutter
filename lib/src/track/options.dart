@@ -23,7 +23,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   const CameraCaptureOptions({
     this.cameraPosition = CameraPosition.front,
-    VideoParameters params = VideoParametersPresets.h720_169,
+    VideoParameters params = VideoParametersPresets.h540_169,
   }) : super(params: params);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
@@ -51,7 +51,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
   const ScreenShareCaptureOptions({
-    VideoParameters params = VideoParametersPresets.h720_169,
+    VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
   }) : super(params: params);
 
   ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
@@ -71,7 +71,7 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   final VideoParameters params;
 
   const VideoCaptureOptions({
-    this.params = VideoParametersPresets.h720_169,
+    this.params = VideoParametersPresets.h540_169,
   });
 
   @override

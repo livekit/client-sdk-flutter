@@ -56,6 +56,18 @@ class VideoParameters implements Comparable<VideoParameters> {
 }
 
 extension VideoParametersPresets on VideoParameters {
+  // 16:9 default
+  static final List<VideoParameters> defaultSimulcast169 = [
+    h180_169,
+    h360_169,
+  ];
+
+  // 4:3 default
+  static final List<VideoParameters> defaultSimulcast43 = [
+    h180_43,
+    h360_43,
+  ];
+
   // all 16:9 presets
   static final List<VideoParameters> all169 = [
     h90_169,

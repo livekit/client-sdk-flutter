@@ -6,6 +6,7 @@ import 'track/options.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/video_encoding.dart';
+import 'types/video_parameters.dart';
 
 /// Options used when connecting to the server.
 class ConnectOptions {
@@ -88,9 +89,15 @@ class VideoPublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
+  final List<VideoParameters> videoSimulcastLayers;
+
+  final List<VideoParameters> screenShareSimulcastLayers;
+
   const VideoPublishOptions({
     this.videoEncoding,
     this.simulcast = true,
+    this.videoSimulcastLayers = const [],
+    this.screenShareSimulcastLayers = const [],
   });
 
   @override
