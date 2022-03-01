@@ -218,7 +218,12 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
+  @Deprecated('use setVideoQuality() instead')
   set videoQuality(lk_models.VideoQuality newValue) {
+    setVideoQuality(newValue);
+  }
+
+  Future<void> setVideoQuality(lk_models.VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
     sendUpdateTrackSettings();
