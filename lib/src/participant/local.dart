@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -15,7 +16,8 @@ import '../publication/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
-import '../types.dart';
+import '../types/other.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'participant.dart';
 

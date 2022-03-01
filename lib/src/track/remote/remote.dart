@@ -1,7 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../proto/livekit_models.pb.dart' as lk_models;
-import '../../types.dart';
+import '../../types/other.dart';
 import '../track.dart';
 
 abstract class RemoteTrack extends Track {

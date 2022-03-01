@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -16,7 +17,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../track/local/local.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
-import '../types.dart';
+import '../types/other.dart';
 import '../utils.dart';
 import 'track_publication.dart';
 
@@ -217,7 +218,12 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
+  @Deprecated('use setVideoQuality() instead')
   set videoQuality(lk_models.VideoQuality newValue) {
+    setVideoQuality(newValue);
+  }
+
+  Future<void> setVideoQuality(lk_models.VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
     sendUpdateTrackSettings();

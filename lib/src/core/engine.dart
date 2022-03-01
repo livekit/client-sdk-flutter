@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/support/websocket.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -19,7 +19,9 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
-import '../types.dart';
+import '../support/websocket.dart';
+import '../types/other.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'room.dart';
 import 'signal_client.dart';
@@ -205,14 +207,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet,
   ) async {
     //
-    rtc.RTCDataChannel? publisherDataChannel(Reliability reliability) =>
-        reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
-
-    rtc.RTCDataChannelState publisherDataChannelState(
-            Reliability reliability) =>
-        publisherDataChannel(reliability)?.state ??
-        rtc.RTCDataChannelState.RTCDataChannelClosed;
-
     final reliability = packet.kind.toSDKType();
 
     // construct the data channel message
@@ -239,7 +233,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (publisherDataChannelState(packet.kind.toSDKType()) !=
+      if (_publisherDataChannelState(packet.kind.toSDKType()) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
@@ -250,7 +244,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = publisherDataChannel(reliability);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -676,4 +670,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               sid: event.sid,
               muted: event.muted,
             )));
+}
+
+extension EnginePrivateMethods on Engine {
+  // publisher data channel for the reliability
+  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
+      reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
+
+  // state of the publisher data channel
+  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
+      _publisherDataChannel(reliability)?.state ??
+      rtc.RTCDataChannelState.RTCDataChannelClosed;
 }

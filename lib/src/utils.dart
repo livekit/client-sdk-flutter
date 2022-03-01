@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -13,8 +15,9 @@ import 'livekit.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
-import 'track/options.dart';
-import 'types.dart';
+import 'types/video_dimensions.dart';
+import 'types/video_encoding.dart';
+import 'types/video_parameters.dart';
 
 extension UriExt on Uri {
   @internal
@@ -32,6 +35,9 @@ typedef RetryCondition = bool Function(
 
 // Collection of state-less static methods
 class Utils {
+  // order of rids
+  static final videoRids = ['q', 'h', 'f'];
+
   /// Returns a [Future] that will retry [future] while it throws
   /// for a maximum  of [tries] times with [delay] in between.
   /// If all the attempts throws, the future will throw a [List] of the
@@ -189,15 +195,60 @@ class Utils {
     required bool isScreenShare,
     required VideoDimensions dimensions,
   }) {
-    if (isScreenShare) return VideoParameters.presetsScreenShare;
-
-    final double aspect = dimensions.width > dimensions.height
-        ? dimensions.width / dimensions.height
-        : dimensions.height / dimensions.width;
-    if ((aspect - 16.0 / 9.0).abs() < (aspect - 4.0 / 3.0).abs()) {
-      return VideoParameters.presets169;
+    if (isScreenShare) {
+      return VideoParametersPresets.allScreenShare;
     }
-    return VideoParameters.presets43;
+
+    final a = dimensions.aspect();
+    if ((a - VideoDimensionsHelpers.aspect169).abs() <
+        (a - VideoDimensionsHelpers.aspect43).abs()) {
+      return VideoParametersPresets.all169;
+    }
+
+    return VideoParametersPresets.all43;
+  }
+
+  static List<VideoParameters> _computeDefaultScreenShareSimulcastParams({
+    required VideoParameters original,
+  }) {
+    final layers = [
+      rtc.RTCRtpEncoding(scaleResolutionDownBy: 2, maxFramerate: 3)
+    ];
+    return layers.map((e) {
+      final scale = e.scaleResolutionDownBy ?? 1;
+      final fps = e.maxFramerate ?? 3;
+
+      return VideoParameters(
+        dimensions: VideoDimensions((original.dimensions.width / scale).floor(),
+            (original.dimensions.height / scale).floor()),
+        encoding: VideoEncoding(
+          maxBitrate: math.max(
+            150 * 1000,
+            (original.encoding.maxBitrate /
+                    (math.pow(scale, 2) *
+                        (original.encoding.maxFramerate / fps)))
+                .floor(),
+          ),
+          maxFramerate: fps,
+        ),
+      );
+    }).toList();
+  }
+
+  static List<VideoParameters> _computeDefaultSimulcastParams({
+    required bool isScreenShare,
+    required VideoParameters original,
+  }) {
+    if (isScreenShare) {
+      return _computeDefaultScreenShareSimulcastParams(original: original);
+    }
+    final a = original.dimensions.aspect();
+    if ((a - VideoDimensionsHelpers.aspect169).abs() <
+        (a - VideoDimensionsHelpers.aspect43).abs()) {
+      return VideoParametersPresets.defaultSimulcast169;
+    }
+
+    return VideoParametersPresets.defaultSimulcast43;
   }
 
   static VideoEncoding _findAppropriateEncoding({
@@ -219,8 +270,6 @@ class Utils {
     return result;
   }
 
-  static final videoRids = ['q', 'h', 'f'];
-
   @internal
   static List<rtc.RTCRtpEncoding> encodingsFromPresets(
     VideoDimensions dimensions, {
@@ -231,16 +280,41 @@ class Utils {
       if (i >= videoRids.length) {
         return;
       }
-      final size = dimensions.max();
-      final encodingSize = e.dimensions.max();
+      final size = dimensions.min();
       final rid = videoRids[i];
 
       result.add(e.encoding.toRTCRtpEncoding(
         rid: rid,
-        scaleResolutionDownBy: size / encodingSize,
+        scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
       ));
     });
     return result;
+  }
+
+  @internal
+  static double findEvenScaleDownBy(
+    VideoDimensions sourceDimensions,
+    VideoDimensions targetDimensions,
+  ) {
+    bool isEven(int v) => v % 2 == 0;
+
+    final sourceSize = sourceDimensions.max();
+    final targetSize = targetDimensions.max();
+
+    for (int i = 0; i <= 30; i++) {
+      final scaleDownBy = sourceSize.toDouble() / (targetSize + i);
+      // Internally, WebRTC casts directly to int without rounding.
+      // https://github.com/webrtc-sdk/webrtc/blob/8c7139f8e6fa19ddf2c91510c177a19746e1ded3/media/engine/webrtc_video_engine.cc#L3676
+      final scaledWidth = sourceDimensions.width ~/ scaleDownBy;
+      final scaledHeight = sourceDimensions.height ~/ scaleDownBy;
+
+      if (isEven(scaledWidth) && isEven(scaledHeight)) {
+        return scaleDownBy;
+      }
+    }
+
+    // couldn't find an even scale, just return original scale and hope it works.
+    return sourceSize / targetSize;
   }
 
   @internal
@@ -253,12 +327,10 @@ class Utils {
 
     VideoEncoding? videoEncoding = options.videoEncoding;
 
-    final useSimulcast = !isScreenShare && options.simulcast;
-
-    if ((videoEncoding == null && !useSimulcast) || dimensions == null) {
+    if ((videoEncoding == null && !options.simulcast) || dimensions == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
-      return null;
+      return [rtc.RTCRtpEncoding()];
     }
 
     final presets = _presetsForDimensions(
@@ -273,34 +345,48 @@ class Utils {
         dimensions: dimensions,
         presets: presets,
       );
+
       logger.fine('using video encoding', videoEncoding);
     }
 
-    // Not simulcast
-    if (!useSimulcast) return [videoEncoding.toRTCRtpEncoding()];
-
-    final VideoParameters lowPreset = presets.first;
-    VideoParameters? midPreset;
-    if (presets.length > 1) {
-      midPreset = presets[1];
+    if (!options.simulcast) {
+      // not using simulcast
+      return [videoEncoding.toRTCRtpEncoding()];
     }
+
     final original = VideoParameters(
       dimensions: dimensions,
       encoding: videoEncoding,
     );
 
+    final userParams = isScreenShare
+        ? options.screenShareSimulcastLayers
+        : options.videoSimulcastLayers;
+
+    final params = (userParams.isNotEmpty
+            ? userParams
+            : _computeDefaultSimulcastParams(
+                isScreenShare: isScreenShare, original: original))
+        .sorted();
+
+    final VideoParameters lowPreset = params.first;
+    VideoParameters? midPreset;
+    if (params.length > 1) {
+      midPreset = params[1];
+    }
+
     final size = dimensions.max();
-    List<VideoParameters> computedPresets = [original];
+    List<VideoParameters> computedParams = [original];
 
     if (size >= 960 && midPreset != null) {
-      computedPresets = [lowPreset, midPreset, original];
-    } else if (size >= 500) {
-      computedPresets = [lowPreset, original];
+      computedParams = [lowPreset, midPreset, original];
+    } else if (size >= 480) {
+      computedParams = [lowPreset, original];
     }
 
     return encodingsFromPresets(
       dimensions,
-      presets: computedPresets,
+      presets: computedParams,
     );
   }
 

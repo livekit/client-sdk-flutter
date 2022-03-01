@@ -1,9 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-import 'extensions.dart';
-import 'participant/participant.dart';
+import '../extensions.dart';
+import '../participant/participant.dart';
 
 typedef CancelListenFunc = Function();
 
@@ -140,33 +138,6 @@ class RTCIceServer {
         if (username?.isNotEmpty ?? false) 'username': username,
         if (credential?.isNotEmpty ?? false) 'credential': credential,
       };
-}
-
-/// A simple class that represents dimensions of video.
-@immutable
-class VideoDimensions {
-  final int width;
-  final int height;
-
-  const VideoDimensions(
-    this.width,
-    this.height,
-  );
-
-  @override
-  String toString() => '${runtimeType}(${width}x${height})';
-
-  /// Returns the larger value
-  int max() => math.max(width, height);
-
-  VideoDimensions copyWith({
-    int? width,
-    int? height,
-  }) =>
-      VideoDimensions(
-        width ?? this.width,
-        height ?? this.height,
-      );
 }
 
 @immutable

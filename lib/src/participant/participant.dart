@@ -11,7 +11,7 @@ import '../publication/track_publication.dart';
 import '../support/disposable.dart';
 import '../track/local/local.dart';
 import '../track/track.dart';
-import '../types.dart';
+import '../types/other.dart';
 import 'local.dart';
 import 'remote.dart';
 

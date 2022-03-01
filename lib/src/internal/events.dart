@@ -5,7 +5,7 @@ import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../track/track.dart';
-import '../types.dart';
+import '../types/other.dart';
 
 abstract class InternalEvent implements LiveKitEvent {}
 

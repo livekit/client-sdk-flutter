@@ -429,12 +429,20 @@ const JoinResponse$json = const {
       '5': 9,
       '10': 'alternativeUrl'
     },
+    const {
+      '1': 'client_configuration',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientConfiguration',
+      '10': 'clientConfiguration'
+    },
   ],
 };
 
 /// Descriptor for `JoinResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode(
-    'CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5EicKD2FsdGVybmF0aXZlX3VybBgHIAEoCVIOYWx0ZXJuYXRpdmVVcmw=');
+    'CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5EicKD2FsdGVybmF0aXZlX3VybBgHIAEoCVIOYWx0ZXJuYXRpdmVVcmwSTwoUY2xpZW50X2NvbmZpZ3VyYXRpb24YCCABKAsyHC5saXZla2l0LkNsaWVudENvbmZpZ3VyYXRpb25SE2NsaWVudENvbmZpZ3VyYXRpb24=');
 @$core.Deprecated('Use trackPublishedResponseDescriptor instead')
 const TrackPublishedResponse$json = const {
   '1': 'TrackPublishedResponse',
@@ -827,12 +835,32 @@ const SyncState$json = const {
       '6': '.livekit.TrackPublishedResponse',
       '10': 'publishTracks'
     },
+    const {
+      '1': 'data_channels',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.DataChannelInfo',
+      '10': 'dataChannels'
+    },
   ],
 };
 
 /// Descriptor for `SyncState`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List syncStateDescriptor = $convert.base64Decode(
-    'CglTeW5jU3RhdGUSMwoGYW5zd2VyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25SBmFuc3dlchI/CgxzdWJzY3JpcHRpb24YAiABKAsyGy5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblIMc3Vic2NyaXB0aW9uEkYKDnB1Ymxpc2hfdHJhY2tzGAMgAygLMh8ubGl2ZWtpdC5UcmFja1B1Ymxpc2hlZFJlc3BvbnNlUg1wdWJsaXNoVHJhY2tz');
+    'CglTeW5jU3RhdGUSMwoGYW5zd2VyGAEgASgLMhsubGl2ZWtpdC5TZXNzaW9uRGVzY3JpcHRpb25SBmFuc3dlchI/CgxzdWJzY3JpcHRpb24YAiABKAsyGy5saXZla2l0LlVwZGF0ZVN1YnNjcmlwdGlvblIMc3Vic2NyaXB0aW9uEkYKDnB1Ymxpc2hfdHJhY2tzGAMgAygLMh8ubGl2ZWtpdC5UcmFja1B1Ymxpc2hlZFJlc3BvbnNlUg1wdWJsaXNoVHJhY2tzEj0KDWRhdGFfY2hhbm5lbHMYBCADKAsyGC5saXZla2l0LkRhdGFDaGFubmVsSW5mb1IMZGF0YUNoYW5uZWxz');
+@$core.Deprecated('Use dataChannelInfoDescriptor instead')
+const DataChannelInfo$json = const {
+  '1': 'DataChannelInfo',
+  '2': const [
+    const {'1': 'label', '3': 1, '4': 1, '5': 9, '10': 'label'},
+    const {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
+  ],
+};
+
+/// Descriptor for `DataChannelInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataChannelInfoDescriptor = $convert.base64Decode(
+    'Cg9EYXRhQ2hhbm5lbEluZm8SFAoFbGFiZWwYASABKAlSBWxhYmVsEg4KAmlkGAIgASgNUgJpZA==');
 @$core.Deprecated('Use simulateScenarioDescriptor instead')
 const SimulateScenario$json = const {
   '1': 'SimulateScenario',

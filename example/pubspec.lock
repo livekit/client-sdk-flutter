@@ -63,7 +63,7 @@ packages:
       name: device_info_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.2"
   device_info_plus_linux:
     dependency: transitive
     description:
@@ -105,7 +105,7 @@ packages:
       name: eva_icons_flutter
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.2"
+    version: "3.1.0"
   fake_async:
     dependency: transitive
     description:
@@ -173,9 +173,11 @@ packages:
   flutter_webrtc:
     dependency: transitive
     description:
-      name: flutter_webrtc
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: m97_update
+      resolved-ref: f0e18464b716332545073e7b370541ee731b58f9
+      url: "https://github.com/davidliu/flutter-webrtc"
+    source: git
     version: "0.8.2"
   google_fonts:
     dependency: "direct main"
@@ -225,7 +227,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.5.6"
+    version: "0.5.7"
   logging:
     dependency: "direct main"
     description:
@@ -288,7 +290,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.8"
+    version: "2.0.9"
   path_provider_android:
     dependency: transitive
     description:
@@ -393,7 +395,7 @@ packages:
       name: shared_preferences_ios
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.10"
+    version: "2.1.0"
   shared_preferences_linux:
     dependency: transitive
     description:
@@ -496,7 +498,7 @@ packages:
       name: uuid
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.5"
+    version: "3.0.6"
   vector_math:
     dependency: transitive
     description:
@@ -517,7 +519,7 @@ packages:
       name: win32
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.11"
+    version: "2.4.1"
   xdg_directories:
     dependency: transitive
     description:
