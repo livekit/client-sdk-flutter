@@ -174,9 +174,9 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: m97_update
-      resolved-ref: f0e18464b716332545073e7b370541ee731b58f9
-      url: "https://github.com/davidliu/flutter-webrtc"
+      ref: master
+      resolved-ref: "95be5f0090c07d9836daea71a689e0dd3a74c11a"
+      url: "https://github.com/flutter-webrtc/flutter-webrtc"
     source: git
     version: "0.8.2"
   google_fonts:
