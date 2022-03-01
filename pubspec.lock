@@ -133,7 +133,7 @@ packages:
       name: device_info_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.2"
+    version: "3.2.1"
   device_info_plus_linux:
     dependency: transitive
     description:
@@ -222,11 +222,9 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      path: "."
-      ref: m97_update
-      resolved-ref: f0e18464b716332545073e7b370541ee731b58f9
-      url: "https://github.com/davidliu/flutter-webrtc"
-    source: git
+      name: flutter_webrtc
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.8.2"
   glob:
     dependency: transitive
@@ -304,7 +302,7 @@ packages:
       name: mockito
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.1.0"
+    version: "5.0.17"
   package_config:
     dependency: transitive
     description:
@@ -325,7 +323,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.9"
+    version: "2.0.8"
   path_provider_android:
     dependency: transitive
     description:
@@ -484,7 +482,7 @@ packages:
       name: uuid
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.6"
+    version: "3.0.5"
   vector_math:
     dependency: transitive
     description:
@@ -512,7 +510,7 @@ packages:
       name: win32
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.1"
+    version: "2.3.11"
   xdg_directories:
     dependency: transitive
     description:
