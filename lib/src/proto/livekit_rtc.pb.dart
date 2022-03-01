@@ -1304,6 +1304,12 @@ class JoinResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'alternativeUrl')
+    ..aOM<$0.ClientConfiguration>(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'clientConfiguration',
+        subBuilder: $0.ClientConfiguration.create)
     ..hasRequiredFields = false;
 
   JoinResponse._() : super();
@@ -1315,6 +1321,7 @@ class JoinResponse extends $pb.GeneratedMessage {
     $core.Iterable<ICEServer>? iceServers,
     $core.bool? subscriberPrimary,
     $core.String? alternativeUrl,
+    $0.ClientConfiguration? clientConfiguration,
   }) {
     final _result = create();
     if (room != null) {
@@ -1337,6 +1344,9 @@ class JoinResponse extends $pb.GeneratedMessage {
     }
     if (alternativeUrl != null) {
       _result.alternativeUrl = alternativeUrl;
+    }
+    if (clientConfiguration != null) {
+      _result.clientConfiguration = clientConfiguration;
     }
     return _result;
   }
@@ -1436,6 +1446,20 @@ class JoinResponse extends $pb.GeneratedMessage {
   $core.bool hasAlternativeUrl() => $_has(6);
   @$pb.TagNumber(7)
   void clearAlternativeUrl() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $0.ClientConfiguration get clientConfiguration => $_getN(7);
+  @$pb.TagNumber(8)
+  set clientConfiguration($0.ClientConfiguration v) {
+    setField(8, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasClientConfiguration() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearClientConfiguration() => clearField(8);
+  @$pb.TagNumber(8)
+  $0.ClientConfiguration ensureClientConfiguration() => $_ensure(7);
 }
 
 class TrackPublishedResponse extends $pb.GeneratedMessage {
@@ -3147,6 +3171,13 @@ class SyncState extends $pb.GeneratedMessage {
             : 'publishTracks',
         $pb.PbFieldType.PM,
         subBuilder: TrackPublishedResponse.create)
+    ..pc<DataChannelInfo>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'dataChannels',
+        $pb.PbFieldType.PM,
+        subBuilder: DataChannelInfo.create)
     ..hasRequiredFields = false;
 
   SyncState._() : super();
@@ -3154,6 +3185,7 @@ class SyncState extends $pb.GeneratedMessage {
     SessionDescription? answer,
     UpdateSubscription? subscription,
     $core.Iterable<TrackPublishedResponse>? publishTracks,
+    $core.Iterable<DataChannelInfo>? dataChannels,
   }) {
     final _result = create();
     if (answer != null) {
@@ -3164,6 +3196,9 @@ class SyncState extends $pb.GeneratedMessage {
     }
     if (publishTracks != null) {
       _result.publishTracks.addAll(publishTracks);
+    }
+    if (dataChannels != null) {
+      _result.dataChannels.addAll(dataChannels);
     }
     return _result;
   }
@@ -3223,6 +3258,98 @@ class SyncState extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<TrackPublishedResponse> get publishTracks => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.List<DataChannelInfo> get dataChannels => $_getList(3);
+}
+
+class DataChannelInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DataChannelInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'label')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'id',
+        $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  DataChannelInfo._() : super();
+  factory DataChannelInfo({
+    $core.String? label,
+    $core.int? id,
+  }) {
+    final _result = create();
+    if (label != null) {
+      _result.label = label;
+    }
+    if (id != null) {
+      _result.id = id;
+    }
+    return _result;
+  }
+  factory DataChannelInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataChannelInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  DataChannelInfo clone() => DataChannelInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  DataChannelInfo copyWith(void Function(DataChannelInfo) updates) =>
+      super.copyWith((message) => updates(message as DataChannelInfo))
+          as DataChannelInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static DataChannelInfo create() => DataChannelInfo._();
+  DataChannelInfo createEmptyInstance() => create();
+  static $pb.PbList<DataChannelInfo> createRepeated() =>
+      $pb.PbList<DataChannelInfo>();
+  @$core.pragma('dart2js:noInline')
+  static DataChannelInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataChannelInfo>(create);
+  static DataChannelInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get label => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set label($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasLabel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLabel() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get id => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set id($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearId() => clearField(2);
 }
 
 enum SimulateScenario_Scenario {

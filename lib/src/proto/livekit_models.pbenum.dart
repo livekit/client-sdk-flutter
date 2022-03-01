@@ -147,6 +147,36 @@ class ConnectionQuality extends $pb.ProtobufEnum {
   const ConnectionQuality._($core.int v, $core.String n) : super(v, n);
 }
 
+class ClientConfigSetting extends $pb.ProtobufEnum {
+  static const ClientConfigSetting UNSET = ClientConfigSetting._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'UNSET');
+  static const ClientConfigSetting DISABLED = ClientConfigSetting._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DISABLED');
+  static const ClientConfigSetting ENABLED = ClientConfigSetting._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'ENABLED');
+
+  static const $core.List<ClientConfigSetting> values = <ClientConfigSetting>[
+    UNSET,
+    DISABLED,
+    ENABLED,
+  ];
+
+  static final $core.Map<$core.int, ClientConfigSetting> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ClientConfigSetting? valueOf($core.int value) => _byValue[value];
+
+  const ClientConfigSetting._($core.int v, $core.String n) : super(v, n);
+}
+
 class ParticipantInfo_State extends $pb.ProtobufEnum {
   static const ParticipantInfo_State JOINING = ParticipantInfo_State._(
       0,

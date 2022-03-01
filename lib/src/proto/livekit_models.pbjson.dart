@@ -64,6 +64,19 @@ const ConnectionQuality$json = const {
 /// Descriptor for `ConnectionQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List connectionQualityDescriptor = $convert.base64Decode(
     'ChFDb25uZWN0aW9uUXVhbGl0eRIICgRQT09SEAASCAoER09PRBABEg0KCUVYQ0VMTEVOVBAC');
+@$core.Deprecated('Use clientConfigSettingDescriptor instead')
+const ClientConfigSetting$json = const {
+  '1': 'ClientConfigSetting',
+  '2': const [
+    const {'1': 'UNSET', '2': 0},
+    const {'1': 'DISABLED', '2': 1},
+    const {'1': 'ENABLED', '2': 2},
+  ],
+};
+
+/// Descriptor for `ClientConfigSetting`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List clientConfigSettingDescriptor = $convert.base64Decode(
+    'ChNDbGllbnRDb25maWdTZXR0aW5nEgkKBVVOU0VUEAASDAoIRElTQUJMRUQQARILCgdFTkFCTEVEEAI=');
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = const {
   '1': 'Room',
@@ -402,3 +415,55 @@ const ClientInfo_SDK$json = const {
 /// Descriptor for `ClientInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List clientInfoDescriptor = $convert.base64Decode(
     'CgpDbGllbnRJbmZvEikKA3NkaxgBIAEoDjIXLmxpdmVraXQuQ2xpZW50SW5mby5TREtSA3NkaxIYCgd2ZXJzaW9uGAIgASgJUgd2ZXJzaW9uEhoKCHByb3RvY29sGAMgASgFUghwcm90b2NvbBIOCgJvcxgEIAEoCVICb3MSHQoKb3NfdmVyc2lvbhgFIAEoCVIJb3NWZXJzaW9uEiEKDGRldmljZV9tb2RlbBgGIAEoCVILZGV2aWNlTW9kZWwSGAoHYnJvd3NlchgHIAEoCVIHYnJvd3NlchInCg9icm93c2VyX3ZlcnNpb24YCCABKAlSDmJyb3dzZXJWZXJzaW9uEhgKB2FkZHJlc3MYCSABKAlSB2FkZHJlc3MiUgoDU0RLEgsKB1VOS05PV04QABIGCgJKUxABEgkKBVNXSUZUEAISCwoHQU5EUk9JRBADEgsKB0ZMVVRURVIQBBIGCgJHTxAFEgkKBVVOSVRZEAY=');
+@$core.Deprecated('Use clientConfigurationDescriptor instead')
+const ClientConfiguration$json = const {
+  '1': 'ClientConfiguration',
+  '2': const [
+    const {
+      '1': 'video',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.VideoConfiguration',
+      '10': 'video'
+    },
+    const {
+      '1': 'screen',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.VideoConfiguration',
+      '10': 'screen'
+    },
+    const {
+      '1': 'resume_connection',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ClientConfigSetting',
+      '10': 'resumeConnection'
+    },
+  ],
+};
+
+/// Descriptor for `ClientConfiguration`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List clientConfigurationDescriptor = $convert.base64Decode(
+    'ChNDbGllbnRDb25maWd1cmF0aW9uEjEKBXZpZGVvGAEgASgLMhsubGl2ZWtpdC5WaWRlb0NvbmZpZ3VyYXRpb25SBXZpZGVvEjMKBnNjcmVlbhgCIAEoCzIbLmxpdmVraXQuVmlkZW9Db25maWd1cmF0aW9uUgZzY3JlZW4SSQoRcmVzdW1lX2Nvbm5lY3Rpb24YAyABKA4yHC5saXZla2l0LkNsaWVudENvbmZpZ1NldHRpbmdSEHJlc3VtZUNvbm5lY3Rpb24=');
+@$core.Deprecated('Use videoConfigurationDescriptor instead')
+const VideoConfiguration$json = const {
+  '1': 'VideoConfiguration',
+  '2': const [
+    const {
+      '1': 'hardware_encoder',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ClientConfigSetting',
+      '10': 'hardwareEncoder'
+    },
+  ],
+};
+
+/// Descriptor for `VideoConfiguration`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List videoConfigurationDescriptor = $convert.base64Decode(
+    'ChJWaWRlb0NvbmZpZ3VyYXRpb24SRwoQaGFyZHdhcmVfZW5jb2RlchgBIAEoDjIcLmxpdmVraXQuQ2xpZW50Q29uZmlnU2V0dGluZ1IPaGFyZHdhcmVFbmNvZGVy');

@@ -1779,3 +1779,193 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   void clearAddress() => clearField(9);
 }
+
+class ClientConfiguration extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClientConfiguration',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<VideoConfiguration>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'video',
+        subBuilder: VideoConfiguration.create)
+    ..aOM<VideoConfiguration>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'screen',
+        subBuilder: VideoConfiguration.create)
+    ..e<ClientConfigSetting>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'resumeConnection',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: ClientConfigSetting.UNSET,
+        valueOf: ClientConfigSetting.valueOf,
+        enumValues: ClientConfigSetting.values)
+    ..hasRequiredFields = false;
+
+  ClientConfiguration._() : super();
+  factory ClientConfiguration({
+    VideoConfiguration? video,
+    VideoConfiguration? screen,
+    ClientConfigSetting? resumeConnection,
+  }) {
+    final _result = create();
+    if (video != null) {
+      _result.video = video;
+    }
+    if (screen != null) {
+      _result.screen = screen;
+    }
+    if (resumeConnection != null) {
+      _result.resumeConnection = resumeConnection;
+    }
+    return _result;
+  }
+  factory ClientConfiguration.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ClientConfiguration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ClientConfiguration clone() => ClientConfiguration()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ClientConfiguration copyWith(void Function(ClientConfiguration) updates) =>
+      super.copyWith((message) => updates(message as ClientConfiguration))
+          as ClientConfiguration; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ClientConfiguration create() => ClientConfiguration._();
+  ClientConfiguration createEmptyInstance() => create();
+  static $pb.PbList<ClientConfiguration> createRepeated() =>
+      $pb.PbList<ClientConfiguration>();
+  @$core.pragma('dart2js:noInline')
+  static ClientConfiguration getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
+  static ClientConfiguration? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  VideoConfiguration get video => $_getN(0);
+  @$pb.TagNumber(1)
+  set video(VideoConfiguration v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasVideo() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearVideo() => clearField(1);
+  @$pb.TagNumber(1)
+  VideoConfiguration ensureVideo() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  VideoConfiguration get screen => $_getN(1);
+  @$pb.TagNumber(2)
+  set screen(VideoConfiguration v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasScreen() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearScreen() => clearField(2);
+  @$pb.TagNumber(2)
+  VideoConfiguration ensureScreen() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  ClientConfigSetting get resumeConnection => $_getN(2);
+  @$pb.TagNumber(3)
+  set resumeConnection(ClientConfigSetting v) {
+    setField(3, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasResumeConnection() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearResumeConnection() => clearField(3);
+}
+
+class VideoConfiguration extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'VideoConfiguration',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..e<ClientConfigSetting>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hardwareEncoder',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: ClientConfigSetting.UNSET,
+        valueOf: ClientConfigSetting.valueOf,
+        enumValues: ClientConfigSetting.values)
+    ..hasRequiredFields = false;
+
+  VideoConfiguration._() : super();
+  factory VideoConfiguration({
+    ClientConfigSetting? hardwareEncoder,
+  }) {
+    final _result = create();
+    if (hardwareEncoder != null) {
+      _result.hardwareEncoder = hardwareEncoder;
+    }
+    return _result;
+  }
+  factory VideoConfiguration.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VideoConfiguration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  VideoConfiguration clone() => VideoConfiguration()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  VideoConfiguration copyWith(void Function(VideoConfiguration) updates) =>
+      super.copyWith((message) => updates(message as VideoConfiguration))
+          as VideoConfiguration; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static VideoConfiguration create() => VideoConfiguration._();
+  VideoConfiguration createEmptyInstance() => create();
+  static $pb.PbList<VideoConfiguration> createRepeated() =>
+      $pb.PbList<VideoConfiguration>();
+  @$core.pragma('dart2js:noInline')
+  static VideoConfiguration getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
+  static VideoConfiguration? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ClientConfigSetting get hardwareEncoder => $_getN(0);
+  @$pb.TagNumber(1)
+  set hardwareEncoder(ClientConfigSetting v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasHardwareEncoder() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHardwareEncoder() => clearField(1);
+}
