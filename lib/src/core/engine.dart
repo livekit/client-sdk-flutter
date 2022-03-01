@@ -565,6 +565,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       answer: answer,
       subscription: subscription,
       publishTracks: publishTracks,
+      dataChannelInfo: dataChannelInfo(),
     );
   }
 
@@ -681,4 +682,12 @@ extension EnginePrivateMethods on Engine {
   rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
       _publisherDataChannel(reliability)?.state ??
       rtc.RTCDataChannelState.RTCDataChannelClosed;
+}
+
+extension EngineInternalMethods on Engine {
+  @internal
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].whereNotNull().map((e) => e.toLKInfoType()).toList();
 }
