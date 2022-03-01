@@ -545,12 +545,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_connectionState == ConnectionState.connected) {
       if (didReconnect) {
         events.emit(const EngineReconnectedEvent());
+        // send queued requests if engine re-connected
+        signalClient.sendQueuedRequests();
       } else {
         events.emit(const EngineConnectedEvent());
       }
     } else if (_connectionState == ConnectionState.reconnecting) {
       events.emit(const EngineReconnectingEvent());
     } else if (_connectionState == ConnectionState.disconnected) {
+      signalClient.cleanUp();
       events.emit(const EngineDisconnectedEvent());
     }
   }
