@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
@@ -26,6 +27,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   final WebSocketConnector _wsConnector;
   LiveKitWebSocket? _ws;
 
+  final _queue = Queue<lk_rtc.SignalRequest>();
+
   @internal
   SignalClient(WebSocketConnector wsConnector) : _wsConnector = wsConnector {
     events.listen((event) {
@@ -34,7 +37,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     onDispose(() async {
       await events.dispose();
-      await _cleanUp();
+      await cleanUp();
     });
   }
 
@@ -59,7 +62,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           ? ConnectionState.reconnecting
           : ConnectionState.connecting);
       // Clean up existing socket
-      await _cleanUp();
+      await cleanUp();
       // Attempt to connect
       _ws = await _wsConnector(
         rtcUri,
@@ -103,26 +106,41 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
   }
 
-  Future<void> _cleanUp() async {
+  @internal
+  Future<void> cleanUp() async {
     await _ws?.dispose();
     _ws = null;
+    _queue.clear();
   }
 
   @internal
   Future<void> disconnect() async {
     logger.fine('SignalClient disconnect');
-    await _cleanUp();
+    await cleanUp();
   }
 
-  void _sendRequest(lk_rtc.SignalRequest req) {
-    if (_ws == null || isDisposed) {
-      logger.warning(
-          '[$objectId] Could not send message, not connected or already disposed');
+  void _sendRequest(
+    lk_rtc.SignalRequest req, {
+    bool enqueueIfReconnecting = true,
+  }) {
+    if (isDisposed) {
+      logger.warning('[$objectId] Could not send message, already disposed');
       return;
     }
 
-    final buf = req.writeToBuffer();
-    _ws?.send(buf);
+    if (_connectionState == ConnectionState.reconnecting &&
+        req._canQueue() &&
+        enqueueIfReconnecting) {
+      _queue.add(req);
+      return;
+    }
+
+    if (_ws == null) {
+      logger.warning('[$objectId] Could not send message, socket is null');
+      return;
+    }
+
+    _ws?.send(req.writeToBuffer());
   }
 
   void _updateConnectionState(ConnectionState newValue) {
@@ -378,4 +396,35 @@ extension SignalClientRequests on SignalClient {
           serverLeave: serverLeave,
         ),
       ));
+}
+
+// private methods
+extension on lk_rtc.SignalRequest {
+  // returns if this request can be queued
+  bool _canQueue() => ![
+        // list of types that cannot be queued
+        lk_rtc.SignalRequest_Message.syncState,
+        lk_rtc.SignalRequest_Message.trickle,
+        lk_rtc.SignalRequest_Message.offer,
+        lk_rtc.SignalRequest_Message.answer,
+        lk_rtc.SignalRequest_Message.simulate
+      ].contains(whichMessage());
+}
+
+// internal methods
+
+extension SignalClientInternalMethods on SignalClient {
+  @internal
+  void sendQueuedRequests() {
+    // queue is empty
+    if (_queue.isEmpty) return;
+    // send requests
+    for (final request in _queue) {
+      _sendRequest(request, enqueueIfReconnecting: false);
+    }
+    _queue.clear();
+  }
+
+  @internal
+  void clearQueue() => _queue.clear();
 }
