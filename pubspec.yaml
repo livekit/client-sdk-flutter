@@ -22,11 +22,7 @@ dependencies:
   uuid: ^3.0.4
   synchronized: ^3.0.0
   protobuf: ^2.0.1
-  flutter_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc
-      ref: master
-
+  flutter_webrtc: ^0.8.3
   dart_webrtc: ^1.0.3
   device_info_plus: ^3.2.1
 
