@@ -207,14 +207,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet,
   ) async {
     //
-    rtc.RTCDataChannel? publisherDataChannel(Reliability reliability) =>
-        reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
-
-    rtc.RTCDataChannelState publisherDataChannelState(
-            Reliability reliability) =>
-        publisherDataChannel(reliability)?.state ??
-        rtc.RTCDataChannelState.RTCDataChannelClosed;
-
     final reliability = packet.kind.toSDKType();
 
     // construct the data channel message
@@ -241,7 +233,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (publisherDataChannelState(packet.kind.toSDKType()) !=
+      if (_publisherDataChannelState(packet.kind.toSDKType()) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
@@ -252,7 +244,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = publisherDataChannel(reliability);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -678,4 +670,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               sid: event.sid,
               muted: event.muted,
             )));
+}
+
+extension EnginePrivateMethods on Engine {
+  // publisher data channel for the reliability
+  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
+      reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
+
+  // state of the publisher data channel
+  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
+      _publisherDataChannel(reliability)?.state ??
+      rtc.RTCDataChannelState.RTCDataChannelClosed;
 }
