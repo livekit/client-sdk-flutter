@@ -19,20 +19,34 @@ extension CameraPositionExt on CameraPosition {
 
 /// Options used when creating a [LocalVideoTrack] that captures the camera.
 class CameraCaptureOptions extends VideoCaptureOptions {
+  /// The deviceId of the capture device to use.
+  /// Available deviceIds can be obtained through `flutter_webrtc`:
+  /// <pre>
+  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+  ///
+  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
+  /// </pre>
+  final String? deviceId;
   final CameraPosition cameraPosition;
 
   const CameraCaptureOptions({
+    this.deviceId,
     this.cameraPosition = CameraPosition.front,
     VideoParameters params = VideoParametersPresets.h540_169,
   }) : super(params: params);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
-      : cameraPosition = CameraPosition.front,
+      : deviceId = null,
+        cameraPosition = CameraPosition.front,
         super(params: captureOptions.params);
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         ...super.toMediaConstraintsMap(),
+        'optional': [
+          {'sourceId': deviceId}
+        ],
+        'deviceId': deviceId,
         'facingMode':
             cameraPosition == CameraPosition.front ? 'user' : 'environment',
       };
@@ -81,6 +95,15 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 
 /// Options used when creating a [LocalAudioTrack].
 class AudioCaptureOptions extends LocalTrackOptions {
+  /// The deviceId of the capture device to use.
+  /// Available deviceIds can be obtained through `flutter_webrtc`:
+  /// <pre>
+  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+  ///
+  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
+  /// </pre>
+  final String? deviceId;
+
   /// Attempt to use noiseSuppression option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/noiseSuppression
   /// Defaults to true.
@@ -105,6 +128,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
   final bool typingNoiseDetection;
 
   const AudioCaptureOptions({
+    this.deviceId,
     this.noiseSuppression = true,
     this.echoCancellation = true,
     this.autoGainControl = true,
@@ -113,8 +137,11 @@ class AudioCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
+  Map<String, dynamic> toMediaConstraintsMap() =>
+      <String, dynamic>{
+        'deviceId': deviceId,
         'optional': <Map<String, dynamic>>[
+          <String, dynamic>{'sourceId': deviceId},
           <String, dynamic>{'echoCancellation': echoCancellation},
           <String, dynamic>{'googDAEchoCancellation': echoCancellation},
           <String, dynamic>{'googEchoCancellation': echoCancellation},
