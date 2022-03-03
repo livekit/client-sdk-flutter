@@ -101,19 +101,18 @@ On Windows [VS 2019](https://visualstudio.microsoft.com/thank-you-downloading-vi
 ### Connecting to a room, publish video & audio
 
 ```dart
-var options = ConnectOptions(
-  autoSubscribe: false,
-  optimizeVideo: true,
-  defaultVideoPublishOptions: VideoPublishOptions(
-    simulcast: true,
-  ),
+final roomOptions = RoomOptions(
+  adaptiveStream: true,
+  dynacast: true,
+  // ... your room options 
 )
-var room = await LiveKitClient.connect(url, token, options: options);
+
+final room = await LiveKitClient.connect(url, token, roomOptions: roomOptions);
 try {
   // video will fail when running in ios simulator
   await room.localParticipant.setCameraEnabled(true);
-} catch (e) {
-  print('could not publish video: $e');
+} catch (error) {
+  print('Could not publish video, error: $error');
 }
 
 await room.localParticipant.setMicrophoneEnabled(true);
@@ -286,9 +285,6 @@ class _VideoViewState extends State<VideoView> {
     setState(() {
       if (subscribedVideos.length > 0) {
         var videoPub = subscribedVideos.first;
-        if (videoPub is RemoteTrackPublication) {
-          videoPub.videoQuality = widget.quality;
-        }
         // when muted, show placeholder
         if (!videoPub.muted) {
           this.videoPub = videoPub;
