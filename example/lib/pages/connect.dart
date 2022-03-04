@@ -79,6 +79,8 @@ class _ConnectPageState extends State<ConnectPage> {
         _uriCtrl.text,
         _tokenCtrl.text,
         roomOptions: RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),
