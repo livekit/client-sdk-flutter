@@ -143,25 +143,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     _ws?.send(req.writeToBuffer());
   }
 
-  void _updateConnectionState(ConnectionState newValue) {
-    if (_connectionState == newValue) return;
-
-    logger.fine('SignalClient ConnectionState '
-        '${_connectionState.name} -> ${newValue.name}');
-
-    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
-        newValue == ConnectionState.connected;
-
-    final oldState = _connectionState;
-    _connectionState = newValue;
-
-    events.emit(SignalConnectionStateUpdatedEvent(
-      newState: _connectionState,
-      oldState: oldState,
-      didReconnect: didReconnect,
-    ));
-  }
-
   Future<void> _onSocketData(dynamic message) async {
     if (message is! List<int>) return;
     final msg = lk_rtc.SignalResponse.fromBuffer(message);
@@ -413,8 +394,28 @@ extension on lk_rtc.SignalRequest {
       ].contains(whichMessage());
 }
 
-// internal methods
+extension SignalClientPrivateMethods on SignalClient {
+  void _updateConnectionState(ConnectionState newValue) {
+    if (_connectionState == newValue) return;
 
+    logger.fine('SignalClient ConnectionState '
+        '${_connectionState.name} -> ${newValue.name}');
+
+    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
+        newValue == ConnectionState.connected;
+
+    final oldState = _connectionState;
+    _connectionState = newValue;
+
+    events.emit(SignalConnectionStateUpdatedEvent(
+      newState: _connectionState,
+      oldState: oldState,
+      didReconnect: didReconnect,
+    ));
+  }
+}
+
+// internal methods
 extension SignalClientInternalMethods on SignalClient {
   @internal
   void sendQueuedRequests() {

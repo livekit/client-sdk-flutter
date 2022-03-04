@@ -35,8 +35,8 @@ void main() {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.newState == ConnectionState.reconnecting),
+            predicate<SignalConnectionStateUpdatedEvent>(
+                (event) => event.newState == ConnectionState.reconnecting),
             predicate<SignalConnectionStateUpdatedEvent>((event) =>
                 event.newState == ConnectionState.connected &&
                 event.didReconnect == true),

@@ -116,20 +116,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpListeners() => _engineListener
-    ..on<EngineConnectedEvent>((event) async {
-      // _connectionState = ConnectionState.connected;
+    ..on<EngineConnectionStateUpdatedEvent>((event) async {
+      if (event.didReconnect) {
+        events.emit(const RoomReconnectedEvent());
+        await _handlePostReconnect(false);
+      } else if (event.newState == ConnectionState.reconnecting) {
+        events.emit(const RoomReconnectingEvent());
+      } else if (event.newState == ConnectionState.disconnected) {
+        await _cleanUp();
+        events.emit(const RoomDisconnectedEvent());
+      }
+      // always notify ChangeNotifier
       notifyListeners();
-    })
-    ..on<EngineReconnectedEvent>((event) async {
-      events.emit(const RoomReconnectedEvent());
-      await _handlePostReconnect(false);
-    })
-    ..on<EngineReconnectingEvent>((event) async {
-      events.emit(const RoomReconnectingEvent());
-    })
-    ..on<EngineDisconnectedEvent>((event) async {
-      await _handleClose();
-      events.emit(const RoomDisconnectedEvent());
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
@@ -255,7 +253,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     if (connectionState != ConnectionState.disconnected) {
       engine.signalClient.sendLeave();
     }
-    await _handleClose();
+    await _cleanUp();
   }
 
   Future<void> reconnect() async {
@@ -287,29 +285,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _participants[sid] = participant;
 
     return participant;
-  }
-
-  // there should be no problem calling this method multiple times
-  Future<void> _handleClose() async {
-    logger.fine('[$objectId] _handleClose()');
-    if (connectionState == ConnectionState.disconnected) {
-      logger.warning('[$objectId]: close() already disconnected');
-    }
-
-    // clean up RemoteParticipants
-    for (final _ in _participants.values.toList()) {
-      // RemoteParticipant is responsible for disposing resources
-      await _.dispose();
-    }
-    _participants.clear();
-
-    // clean up LocalParticipant
-    await localParticipant?.unpublishAllTracks();
-
-    // clean up engine
-    await engine.close();
-
-    _activeSpeakers.clear();
   }
 
   Future<void> _onParticipantUpdateEvent(
@@ -508,5 +483,30 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       migration: migration,
       serverLeave: serverLeave,
     );
+  }
+}
+
+extension RoomPrivateMethods on Room {
+  // resets internal state to a re-usable state
+  Future<void> _cleanUp() async {
+    logger.fine('[$objectId] _handleClose()');
+    if (connectionState == ConnectionState.disconnected) {
+      logger.warning('[$objectId]: close() already disconnected');
+    }
+
+    // clean up RemoteParticipants
+    for (final _ in _participants.values.toList()) {
+      // RemoteParticipant is responsible for disposing resources
+      await _.dispose();
+    }
+    _participants.clear();
+
+    // clean up LocalParticipant
+    await localParticipant?.unpublishAllTracks();
+
+    // clean up engine
+    await engine.close();
+
+    _activeSpeakers.clear();
   }
 }

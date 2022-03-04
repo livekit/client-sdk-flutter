@@ -125,6 +125,22 @@ class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
 }
 
 @internal
+class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
+    with EngineEvent {
+  const EngineConnectionStateUpdatedEvent({
+    required ConnectionState newState,
+    required ConnectionState oldState,
+    required bool didReconnect,
+    DisconnectReason? disconnectReason,
+  }) : super(
+          newState: newState,
+          oldState: oldState,
+          didReconnect: didReconnect,
+          disconnectReason: disconnectReason,
+        );
+}
+
+@internal
 class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
   const SignalOfferEvent({
@@ -269,26 +285,6 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
-
-@internal
-class EngineConnectedEvent with EngineEvent, InternalEvent {
-  const EngineConnectedEvent();
-}
-
-@internal
-class EngineDisconnectedEvent with EngineEvent, InternalEvent {
-  const EngineDisconnectedEvent();
-}
-
-@internal
-class EngineReconnectingEvent with EngineEvent, InternalEvent {
-  const EngineReconnectingEvent();
-}
-
-@internal
-class EngineReconnectedEvent with EngineEvent, InternalEvent {
-  const EngineReconnectedEvent();
-}
 
 @internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {

@@ -84,7 +84,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
     }
 
-    _setUpListeners();
+    _setUpEngineListeners();
+    _setUpSignalListeners();
 
     onDispose(() async {
       await events.dispose();
@@ -531,33 +532,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await reconnect();
   }
 
-  void _updateConnectionState(ConnectionState newValue) {
-    if (_connectionState == newValue) return;
-
-    logger.fine('Engine ConnectionState '
-        '${_connectionState.name} -> ${newValue.name}');
-
-    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
-        newValue == ConnectionState.connected;
-    // update internal value
-    _connectionState = newValue;
-    // emit event
-    if (_connectionState == ConnectionState.connected) {
-      if (didReconnect) {
-        events.emit(const EngineReconnectedEvent());
-        // send queued requests if engine re-connected
-        signalClient.sendQueuedRequests();
-      } else {
-        events.emit(const EngineConnectedEvent());
-      }
-    } else if (_connectionState == ConnectionState.reconnecting) {
-      events.emit(const EngineReconnectingEvent());
-    } else if (_connectionState == ConnectionState.disconnected) {
-      signalClient.cleanUp();
-      events.emit(const EngineDisconnectedEvent());
-    }
-  }
-
   @internal
   void sendSyncState({
     required lk_rtc.UpdateSubscription subscription,
@@ -571,7 +545,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     );
   }
 
-  void _setUpListeners() => _signalListener
+  void _setUpEngineListeners() =>
+      events.on<EngineConnectionStateUpdatedEvent>((event) async {
+        if (event.didReconnect) {
+          // send queued requests if engine re-connected
+          signalClient.sendQueuedRequests();
+        }
+      });
+
+  void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
@@ -666,13 +648,33 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       await close();
-      events.emit(const EngineDisconnectedEvent());
     })
     ..on<SignalMuteTrackEvent>(
         (event) => events.emit(EngineRemoteMuteChangedEvent(
               sid: event.sid,
               muted: event.muted,
             )));
+}
+
+extension EngineInternalMethods on Engine {
+  void _updateConnectionState(ConnectionState newValue) {
+    if (_connectionState == newValue) return;
+
+    logger.fine('Engine ConnectionState '
+        '${_connectionState.name} -> ${newValue.name}');
+
+    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
+        newValue == ConnectionState.connected;
+    // update internal value
+    final oldState = _connectionState;
+    _connectionState = newValue;
+
+    events.emit(EngineConnectionStateUpdatedEvent(
+      newState: _connectionState,
+      oldState: oldState,
+      didReconnect: didReconnect,
+    ));
+  }
 }
 
 extension EnginePrivateMethods on Engine {
