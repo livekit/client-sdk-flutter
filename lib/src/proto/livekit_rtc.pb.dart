@@ -1310,6 +1310,11 @@ class JoinResponse extends $pb.GeneratedMessage {
             ? ''
             : 'clientConfiguration',
         subBuilder: $0.ClientConfiguration.create)
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'serverRegion')
     ..hasRequiredFields = false;
 
   JoinResponse._() : super();
@@ -1322,6 +1327,7 @@ class JoinResponse extends $pb.GeneratedMessage {
     $core.bool? subscriberPrimary,
     $core.String? alternativeUrl,
     $0.ClientConfiguration? clientConfiguration,
+    $core.String? serverRegion,
   }) {
     final _result = create();
     if (room != null) {
@@ -1347,6 +1353,9 @@ class JoinResponse extends $pb.GeneratedMessage {
     }
     if (clientConfiguration != null) {
       _result.clientConfiguration = clientConfiguration;
+    }
+    if (serverRegion != null) {
+      _result.serverRegion = serverRegion;
     }
     return _result;
   }
@@ -1460,6 +1469,18 @@ class JoinResponse extends $pb.GeneratedMessage {
   void clearClientConfiguration() => clearField(8);
   @$pb.TagNumber(8)
   $0.ClientConfiguration ensureClientConfiguration() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  $core.String get serverRegion => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set serverRegion($core.String v) {
+    $_setString(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasServerRegion() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearServerRegion() => clearField(9);
 }
 
 class TrackPublishedResponse extends $pb.GeneratedMessage {

@@ -437,12 +437,13 @@ const JoinResponse$json = const {
       '6': '.livekit.ClientConfiguration',
       '10': 'clientConfiguration'
     },
+    const {'1': 'server_region', '3': 9, '4': 1, '5': 9, '10': 'serverRegion'},
   ],
 };
 
 /// Descriptor for `JoinResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode(
-    'CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5EicKD2FsdGVybmF0aXZlX3VybBgHIAEoCVIOYWx0ZXJuYXRpdmVVcmwSTwoUY2xpZW50X2NvbmZpZ3VyYXRpb24YCCABKAsyHC5saXZla2l0LkNsaWVudENvbmZpZ3VyYXRpb25SE2NsaWVudENvbmZpZ3VyYXRpb24=');
+    'CgxKb2luUmVzcG9uc2USIQoEcm9vbRgBIAEoCzINLmxpdmVraXQuUm9vbVIEcm9vbRI6CgtwYXJ0aWNpcGFudBgCIAEoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYAyADKAsyGC5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHMSJQoOc2VydmVyX3ZlcnNpb24YBCABKAlSDXNlcnZlclZlcnNpb24SMwoLaWNlX3NlcnZlcnMYBSADKAsyEi5saXZla2l0LklDRVNlcnZlclIKaWNlU2VydmVycxItChJzdWJzY3JpYmVyX3ByaW1hcnkYBiABKAhSEXN1YnNjcmliZXJQcmltYXJ5EicKD2FsdGVybmF0aXZlX3VybBgHIAEoCVIOYWx0ZXJuYXRpdmVVcmwSTwoUY2xpZW50X2NvbmZpZ3VyYXRpb24YCCABKAsyHC5saXZla2l0LkNsaWVudENvbmZpZ3VyYXRpb25SE2NsaWVudENvbmZpZ3VyYXRpb24SIwoNc2VydmVyX3JlZ2lvbhgJIAEoCVIMc2VydmVyUmVnaW9u');
 @$core.Deprecated('Use trackPublishedResponseDescriptor instead')
 const TrackPublishedResponse$json = const {
   '1': 'TrackPublishedResponse',
