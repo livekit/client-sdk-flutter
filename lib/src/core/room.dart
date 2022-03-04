@@ -59,6 +59,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get serverVersion => _serverVersion;
   String? _serverVersion;
 
+  /// Server region
+  String? get serverRegion => _serverRegion;
+  String? _serverRegion;
+
   List<Participant> _activeSpeakers = [];
 
   /// a list of participants that are actively speaking, including local participant.
@@ -132,6 +136,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       sid = event.response.room.sid;
       name = event.response.room.name;
       _serverVersion = event.response.serverVersion;
+      _serverRegion = event.response.serverRegion;
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
