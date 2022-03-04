@@ -592,7 +592,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(event);
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
-      if (event.connectionState == ConnectionState.disconnected) {
+      if (event.newState == ConnectionState.disconnected) {
         await _onDisconnected(DisconnectReason.signal);
       }
       // Relay to Room

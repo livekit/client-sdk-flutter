@@ -152,10 +152,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     bool didReconnect = _connectionState == ConnectionState.reconnecting &&
         newValue == ConnectionState.connected;
 
+    final oldState = _connectionState;
     _connectionState = newValue;
 
     events.emit(SignalConnectionStateUpdatedEvent(
-      connectionState: _connectionState,
+      newState: _connectionState,
+      oldState: oldState,
       didReconnect: didReconnect,
     ));
   }
