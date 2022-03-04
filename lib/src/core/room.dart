@@ -27,10 +27,8 @@ import 'engine.dart';
 /// * active speakers are different
 /// {@category Room}
 class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
-  // Room is only instantiated if connected, so defaults to connected.
   /// connection state of the room
-  ConnectionState get connectionState => _connectionState;
-  ConnectionState _connectionState = ConnectionState.connected;
+  ConnectionState get connectionState => engine.connectionState;
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -119,19 +117,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpListeners() => _engineListener
     ..on<EngineConnectedEvent>((event) async {
-      _connectionState = ConnectionState.connected;
+      // _connectionState = ConnectionState.connected;
       notifyListeners();
     })
     ..on<EngineReconnectedEvent>((event) async {
-      _connectionState = ConnectionState.connected;
       events.emit(const RoomReconnectedEvent());
       await _handlePostReconnect(false);
     })
     ..on<EngineReconnectingEvent>((event) async {
-      _connectionState = ConnectionState.reconnecting;
       events.emit(const RoomReconnectingEvent());
     })
-    ..on<EngineDisconnectedEvent>((event) => _handleClose())
+    ..on<EngineDisconnectedEvent>((event) async {
+      await _handleClose();
+      events.emit(const RoomDisconnectedEvent());
+    })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
       if (event.didReconnect) {
@@ -253,7 +252,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    if (_connectionState != ConnectionState.disconnected) {
+    if (connectionState != ConnectionState.disconnected) {
       engine.signalClient.sendLeave();
     }
     await _handleClose();
@@ -293,7 +292,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // there should be no problem calling this method multiple times
   Future<void> _handleClose() async {
     logger.fine('[$objectId] _handleClose()');
-    if (_connectionState == ConnectionState.disconnected) {
+    if (connectionState == ConnectionState.disconnected) {
       logger.warning('[$objectId]: close() already disconnected');
     }
 
@@ -311,12 +310,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await engine.close();
 
     _activeSpeakers.clear();
-
-    // only notify if was not disconnected
-    if (_connectionState != ConnectionState.disconnected) {
-      _connectionState = ConnectionState.disconnected;
-      events.emit(const RoomDisconnectedEvent());
-    }
   }
 
   Future<void> _onParticipantUpdateEvent(
