@@ -28,32 +28,30 @@ import 'engine.dart';
 /// {@category Room}
 class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // Room is only instantiated if connected, so defaults to connected.
-  ConnectionState _connectionState = ConnectionState.connected;
-
   /// connection state of the room
   ConnectionState get connectionState => _connectionState;
-
-  final _participants = <String, RemoteParticipant>{};
+  ConnectionState _connectionState = ConnectionState.connected;
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
       UnmodifiableMapView(_participants);
-
-  ConnectOptions? connectOptions;
-
-  RoomOptions? roomOptions;
+  final _participants = <String, RemoteParticipant>{};
 
   /// the current participant
-  LocalParticipant? localParticipant;
+  LocalParticipant? get localParticipant => _localParticipant;
+  LocalParticipant? _localParticipant;
 
   /// name of the room
-  String? name;
+  String? get name => _name;
+  String? _name;
 
   /// sid of the room
-  String? sid;
+  String? get sid => _sid;
+  String? _sid;
 
   /// metadata of the room
-  String? metadata;
+  String? get metadata => _metadata;
+  String? _metadata;
 
   /// Server version
   String? get serverVersion => _serverVersion;
@@ -63,19 +61,28 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
 
-  List<Participant> _activeSpeakers = [];
-
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
+  List<Participant> _activeSpeakers = [];
+
+  ConnectOptions? get connectOptions => _connectOptions;
+  ConnectOptions? _connectOptions;
+
+  RoomOptions? get roomOptions => _roomOptions;
+  RoomOptions? _roomOptions;
 
   final Engine engine;
-
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
 
-  Room({this.connectOptions, this.roomOptions, Engine? engine})
-      : engine = engine ?? Engine() {
+  Room({
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
+    Engine? engine,
+  })  : _connectOptions = connectOptions,
+        _roomOptions = roomOptions,
+        engine = engine ?? Engine() {
     _engineListener = this.engine.createListener();
     _setUpListeners();
 
@@ -104,8 +111,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     RoomOptions? roomOptions,
   }) async {
     // update options if provided
-    this.connectOptions = connectOptions ?? this.connectOptions;
-    this.roomOptions = roomOptions ?? this.roomOptions;
+    _connectOptions = connectOptions ?? _connectOptions;
+    _roomOptions = roomOptions ?? this.roomOptions;
 
     return engine.connect(url, token, this.connectOptions);
   }
@@ -133,15 +140,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     })
     ..on<SignalJoinResponseEvent>((event) {
-      sid = event.response.room.sid;
-      name = event.response.room.name;
+      _sid = event.response.room.sid;
+      _name = event.response.room.name;
+      _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      localParticipant = LocalParticipant(
+      _localParticipant = LocalParticipant(
         room: this,
         info: event.response.participant,
       );
@@ -211,7 +219,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await publication.updateSubscriptionAllowed(event.allowed);
     })
     ..on<SignalRoomUpdateEvent>((event) async {
-      metadata = event.room.metadata;
+      _metadata = event.room.metadata;
       events.emit(RoomMetadataChangedEvent(metadata: event.room.metadata));
     })
     ..on<EngineTrackAddedEvent>((event) async {
