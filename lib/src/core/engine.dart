@@ -88,9 +88,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _setUpSignalListeners();
 
     onDispose(() async {
+      await cleanUp();
       await events.dispose();
       await delays.dispose();
-      await close();
       await _signalListener.dispose();
     });
   }
@@ -137,27 +137,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  /// Close connection between the server.
-  Future<void> close() async {
-    logger.fine('${runtimeType}.close()');
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.warning('${runtimeType}.close() already disconnected');
-    }
-    // _statsTimer.cancel();
+  // resets internal state to a re-usable state
+  Future<void> cleanUp() async {
+    logger.fine('[${objectId}] cleanUp()');
+
     // cancel all ongoing delays
     await delays.cancelAll();
 
-    // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
     publisher = null;
 
     await subscriber?.dispose();
     subscriber = null;
 
-    await signalClient.disconnect();
+    await signalClient.cleanUp();
 
     _updateConnectionState(ConnectionState.disconnected);
-    // notifyListeners();
   }
 
   @internal
@@ -647,7 +642,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             '[Signal] Received Leave while engine is reconnecting, ignoring...');
         return;
       }
-      await close();
+      await cleanUp();
     })
     ..on<SignalMuteTrackEvent>(
         (event) => events.emit(EngineRemoteMuteChangedEvent(

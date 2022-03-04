@@ -36,8 +36,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     });
 
     onDispose(() async {
-      await events.dispose();
       await cleanUp();
+      await events.dispose();
     });
   }
 
@@ -106,17 +106,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
   }
 
+  // resets internal state to a re-usable state
   @internal
   Future<void> cleanUp() async {
+    logger.fine('[${objectId}] cleanUp()');
+
     await _ws?.dispose();
     _ws = null;
     _queue.clear();
-  }
-
-  @internal
-  Future<void> disconnect() async {
-    logger.fine('SignalClient disconnect');
-    await cleanUp();
   }
 
   void _sendRequest(

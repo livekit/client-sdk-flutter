@@ -91,6 +91,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
     onDispose(() async {
+      // clean up routine
+      await _cleanUp();
       // dispose events
       await events.dispose();
       // dispose local participant
@@ -489,24 +491,28 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
   Future<void> _cleanUp() async {
-    logger.fine('[$objectId] _handleClose()');
-    if (connectionState == ConnectionState.disconnected) {
-      logger.warning('[$objectId]: close() already disconnected');
-    }
+    logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
-    for (final _ in _participants.values.toList()) {
+    for (final participant in _participants.values) {
       // RemoteParticipant is responsible for disposing resources
-      await _.dispose();
+      await participant.dispose();
     }
     _participants.clear();
 
     // clean up LocalParticipant
     await localParticipant?.unpublishAllTracks();
 
-    // clean up engine
-    await engine.close();
-
     _activeSpeakers.clear();
+
+    // clean up engine
+    await engine.cleanUp();
+
+    // reset params
+    _name = null;
+    _sid = null;
+    _metadata = null;
+    _serverVersion = null;
+    _serverRegion = null;
   }
 }
