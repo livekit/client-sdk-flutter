@@ -13,7 +13,6 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../internal/types.dart';
 import '../logger.dart';
-import '../managers/delay.dart';
 import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -71,8 +70,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   late final _signalListener = signalClient.createListener(synchronized: true);
 
-  final delays = CancelableDelayManager();
-
   Engine({
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
@@ -90,7 +87,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     onDispose(() async {
       await cleanUp();
       await events.dispose();
-      await delays.dispose();
       await _signalListener.dispose();
     });
   }
@@ -140,9 +136,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // resets internal state to a re-usable state
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
-
-    // cancel all ongoing delays
-    await delays.cancelAll();
 
     await publisher?.dispose();
     publisher = null;
