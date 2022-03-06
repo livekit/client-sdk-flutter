@@ -471,21 +471,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     }
   }
-
-  /// To be used for internal testing purposes only.
-  Future<void> simulateScenario({
-    int? speakerUpdate,
-    bool? nodeFailure,
-    bool? migration,
-    bool? serverLeave,
-  }) async {
-    engine.signalClient.sendSimulateScenario(
-      speakerUpdate: speakerUpdate,
-      nodeFailure: nodeFailure,
-      migration: migration,
-      serverLeave: serverLeave,
-    );
-  }
 }
 
 extension RoomPrivateMethods on Room {
@@ -514,5 +499,22 @@ extension RoomPrivateMethods on Room {
     _metadata = null;
     _serverVersion = null;
     _serverRegion = null;
+  }
+}
+
+extension RoomDebugMethods on Room {
+  /// To be used for internal testing purposes only.
+  Future<void> sendSimulateScenario({
+    int? speakerUpdate,
+    bool? nodeFailure,
+    bool? migration,
+    bool? serverLeave,
+  }) async {
+    engine.signalClient.sendSimulateScenario(
+      speakerUpdate: speakerUpdate,
+      nodeFailure: nodeFailure,
+      migration: migration,
+      serverLeave: serverLeave,
+    );
   }
 }
