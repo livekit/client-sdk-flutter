@@ -35,13 +35,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final PeerConnectionCreate _peerConnectionCreate;
 
   @internal
-  PCTransport? publisher;
+  Transport? publisher;
 
   @internal
-  PCTransport? subscriber;
+  Transport? subscriber;
 
   @internal
-  PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
+  Transport? get primary => _subscriberPrimary ? subscriber : publisher;
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDCPub;
@@ -330,10 +330,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           .copyWith(iceServers: serverIceServers);
     }
 
-    publisher =
-        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+    publisher = await Transport.create(_peerConnectionCreate, rtcConfiguration);
     subscriber =
-        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+        await Transport.create(_peerConnectionCreate, rtcConfiguration);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');

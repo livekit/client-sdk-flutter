@@ -69,7 +69,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         WebSocketEventHandlers(
           onData: _onSocketData,
           onDispose: _onSocketDispose,
-          onError: _handleError,
+          onError: _onSocketError,
         ),
       );
       // Successful connection
@@ -218,7 +218,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
   }
 
-  void _handleError(dynamic error) {
+  void _onSocketError(dynamic error) {
     logger.warning('received websocket error $error');
   }
 
