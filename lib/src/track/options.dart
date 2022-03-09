@@ -137,8 +137,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() =>
-      <String, dynamic>{
+  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         'deviceId': deviceId,
         'optional': <Map<String, dynamic>>[
           <String, dynamic>{'sourceId': deviceId},
