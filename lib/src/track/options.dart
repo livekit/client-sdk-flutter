@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';
@@ -41,15 +43,23 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         super(params: captureOptions.params);
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        ...super.toMediaConstraintsMap(),
-        'optional': [
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = <String, dynamic>{
+      ...super.toMediaConstraintsMap(),
+      'facingMode':
+          cameraPosition == CameraPosition.front ? 'user' : 'environment',
+    };
+    if (deviceId != null) {
+      if (kIsWeb) {
+        constraints['deviceId'] = deviceId;
+      } else {
+        constraints['optional'] = [
           {'sourceId': deviceId}
-        ],
-        'deviceId': deviceId,
-        'facingMode':
-            cameraPosition == CameraPosition.front ? 'user' : 'environment',
-      };
+        ];
+      }
+    }
+    return constraints;
+  }
 
   // Returns new options with updated properties
   CameraCaptureOptions copyWith({
@@ -75,6 +85,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
 /// Base class for track options.
 abstract class LocalTrackOptions {
   const LocalTrackOptions();
+
   // All subclasses must be able to report constraints
   Map<String, dynamic> toMediaConstraintsMap();
 }
@@ -137,20 +148,31 @@ class AudioCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'deviceId': deviceId,
-        'optional': <Map<String, dynamic>>[
-          <String, dynamic>{'sourceId': deviceId},
-          <String, dynamic>{'echoCancellation': echoCancellation},
-          <String, dynamic>{'googDAEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation2': echoCancellation},
-          <String, dynamic>{'noiseSuppression': noiseSuppression},
-          <String, dynamic>{'googNoiseSuppression': noiseSuppression},
-          <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
-          <String, dynamic>{'googAutoGainControl': autoGainControl},
-          <String, dynamic>{'googHighpassFilter': highPassFilter},
-          <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
-        ],
-      };
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = <String, dynamic>{
+      'optional': <Map<String, dynamic>>[
+        <String, dynamic>{'echoCancellation': echoCancellation},
+        <String, dynamic>{'googDAEchoCancellation': echoCancellation},
+        <String, dynamic>{'googEchoCancellation': echoCancellation},
+        <String, dynamic>{'googEchoCancellation2': echoCancellation},
+        <String, dynamic>{'noiseSuppression': noiseSuppression},
+        <String, dynamic>{'googNoiseSuppression': noiseSuppression},
+        <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
+        <String, dynamic>{'googAutoGainControl': autoGainControl},
+        <String, dynamic>{'googHighpassFilter': highPassFilter},
+        <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+      ],
+    };
+
+    if (deviceId != null) {
+      if (kIsWeb) {
+        constraints['deviceId'] = deviceId;
+      } else {
+        constraints['optional']
+            .cast<Map<String, dynamic>>()
+            .add(<String, dynamic>{'sourceId': deviceId});
+      }
+    }
+    return constraints;
+  }
 }
