@@ -153,7 +153,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     final result = await context.showSimulateScenarioDialog();
     if (result != null) {
       print('${result}');
-      await widget.room.simulateScenario(
+      await widget.room.sendSimulateScenario(
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,

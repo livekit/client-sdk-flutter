@@ -25,9 +25,9 @@ void main() {
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
             predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.connectionState == ConnectionState.connecting),
+                (event) => event.newState == ConnectionState.connecting),
             predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.connectionState == ConnectionState.connected),
+                (event) => event.newState == ConnectionState.connected),
           ]));
       await client.connect(exampleUri, token);
     });
@@ -35,10 +35,10 @@ void main() {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
+            predicate<SignalConnectionStateUpdatedEvent>(
+                (event) => event.newState == ConnectionState.reconnecting),
             predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.connectionState == ConnectionState.reconnecting),
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.connectionState == ConnectionState.connected &&
+                event.newState == ConnectionState.connected &&
                 event.didReconnect == true),
           ]));
       await client.connect(exampleUri, token, reconnect: true);

@@ -89,21 +89,55 @@ class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
   });
 }
 
+/// Base class for a ConnectionStateUpdated event
 @internal
-class SignalConnectionStateUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
-  final ConnectionState connectionState;
+abstract class ConnectionStateUpdatedEvent with EngineEvent, InternalEvent {
+  final ConnectionState newState;
+  final ConnectionState oldState;
   final bool didReconnect;
   final DisconnectReason? disconnectReason;
-  const SignalConnectionStateUpdatedEvent({
-    required this.connectionState,
+  const ConnectionStateUpdatedEvent({
+    required this.newState,
+    required this.oldState,
     required this.didReconnect,
     this.disconnectReason,
   });
   @override
-  String toString() => '$runtimeType(state: ${connectionState.name}, '
+  String toString() => '$runtimeType(newState: ${newState.name}, '
       'didReconnect: ${didReconnect}, '
       'disconnectReason: ${disconnectReason})';
+}
+
+@internal
+class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
+    with SignalEvent {
+  const SignalConnectionStateUpdatedEvent({
+    required ConnectionState newState,
+    required ConnectionState oldState,
+    required bool didReconnect,
+    DisconnectReason? disconnectReason,
+  }) : super(
+          newState: newState,
+          oldState: oldState,
+          didReconnect: didReconnect,
+          disconnectReason: disconnectReason,
+        );
+}
+
+@internal
+class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
+    with EngineEvent {
+  const EngineConnectionStateUpdatedEvent({
+    required ConnectionState newState,
+    required ConnectionState oldState,
+    required bool didReconnect,
+    DisconnectReason? disconnectReason,
+  }) : super(
+          newState: newState,
+          oldState: oldState,
+          didReconnect: didReconnect,
+          disconnectReason: disconnectReason,
+        );
 }
 
 @internal
@@ -251,26 +285,6 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
-
-@internal
-class EngineConnectedEvent with EngineEvent, InternalEvent {
-  const EngineConnectedEvent();
-}
-
-@internal
-class EngineDisconnectedEvent with EngineEvent, InternalEvent {
-  const EngineDisconnectedEvent();
-}
-
-@internal
-class EngineReconnectingEvent with EngineEvent, InternalEvent {
-  const EngineReconnectingEvent();
-}
-
-@internal
-class EngineReconnectedEvent with EngineEvent, InternalEvent {
-  const EngineReconnectedEvent();
-}
 
 @internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {
