@@ -2,9 +2,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class MockDataChannel extends RTCDataChannel {
   final String? _label;
+  final int _id;
   RTCDataChannelState? _state = RTCDataChannelState.RTCDataChannelOpen;
 
-  MockDataChannel(this._label);
+  MockDataChannel(this._id, this._label);
 
   @override
   String? get label => _label;
@@ -20,4 +21,11 @@ class MockDataChannel extends RTCDataChannel {
     _state = RTCDataChannelState.RTCDataChannelClosing;
     _state = RTCDataChannelState.RTCDataChannelClosed;
   }
+
+  @override
+  // TODO: implement bufferedAmount
+  int? get bufferedAmount => throw UnimplementedError();
+
+  @override
+  int? get id => _id;
 }
