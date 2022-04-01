@@ -644,7 +644,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             )));
 }
 
-extension EngineInternalMethods on Engine {
+extension EnginePrivateMethods on Engine {
+  // publisher data channel for the reliability
+  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
+      reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
+
+  // state of the publisher data channel
+  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
+      _publisherDataChannel(reliability)?.state ??
+      rtc.RTCDataChannelState.RTCDataChannelClosed;
+
   void _updateConnectionState(ConnectionState newValue) {
     if (_connectionState == newValue) return;
 
@@ -663,17 +672,6 @@ extension EngineInternalMethods on Engine {
       didReconnect: didReconnect,
     ));
   }
-}
-
-extension EnginePrivateMethods on Engine {
-  // publisher data channel for the reliability
-  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
-      reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
-
-  // state of the publisher data channel
-  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
-      _publisherDataChannel(reliability)?.state ??
-      rtc.RTCDataChannelState.RTCDataChannelClosed;
 }
 
 extension EngineInternalMethods on Engine {
