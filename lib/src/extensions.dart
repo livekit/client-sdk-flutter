@@ -55,7 +55,7 @@ extension ReliabilityExt on Reliability {
 
 extension RTCDataChannelExt on rtc.RTCDataChannel {
   lk_rtc.DataChannelInfo toLKInfoType() => lk_rtc.DataChannelInfo(
-        // id: , // not implemented in flutter_webrtc
+        id: id,
         label: label,
       );
 }
