@@ -559,14 +559,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // Relay to Room
-      events.emit(event);
+      events.emit(EngineJoinResponseEvent(response: event.response));
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
         await _onDisconnected(DisconnectReason.signal);
       }
-      // Relay to Room
-      events.emit(event);
     })
     ..on<SignalOfferEvent>((event) async {
       if (subscriber == null) {
@@ -611,20 +609,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await publisher!.addIceCandidate(event.candidate);
       }
     })
-    // relay to Room
-    ..on<SignalParticipantUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSpeakersChangedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalConnectionQualityUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalStreamStateUpdatedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSubscribedQualityUpdatedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSubscriptionPermissionUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalRoomUpdateEvent>((event) => events.emit(event))
     ..on<SignalTokenUpdatedEvent>((event) {
       logger.fine('Server refreshed the token');
       token = event.token;
@@ -636,12 +620,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       await cleanUp();
-    })
-    ..on<SignalMuteTrackEvent>(
-        (event) => events.emit(EngineRemoteMuteChangedEvent(
-              sid: event.sid,
-              muted: event.muted,
-            )));
+    });
 }
 
 extension EnginePrivateMethods on Engine {

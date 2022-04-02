@@ -73,6 +73,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
+  //
+  late final EventsListener<SignalEvent> _signalListener;
 
   Room({
     ConnectOptions? connectOptions,
@@ -82,7 +84,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         _roomOptions = roomOptions,
         engine = engine ?? Engine() {
     _engineListener = this.engine.createListener();
-    _setUpListeners();
+    _setUpEngineListeners();
+
+    _signalListener = this.engine.signalClient.createListener();
+    _setUpSignalListeners();
 
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
@@ -97,7 +102,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await events.dispose();
       // dispose local participant
       await localParticipant?.dispose();
-      // dispose all listeners for RTCEngine
+      // dispose all listeners for SignalClient
+      await _signalListener.dispose();
+      // dispose all listeners for Engine
       await _engineListener.dispose();
       // dispose the engine
       await this.engine.dispose();
@@ -117,69 +124,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return engine.connect(url, token, this.connectOptions);
   }
 
-  void _setUpListeners() => _engineListener
-    ..on<EngineConnectionStateUpdatedEvent>((event) async {
-      if (event.didReconnect) {
-        events.emit(const RoomReconnectedEvent());
-        await _handlePostReconnect(false);
-      } else if (event.newState == ConnectionState.reconnecting) {
-        events.emit(const RoomReconnectingEvent());
-      } else if (event.newState == ConnectionState.disconnected) {
-        await _cleanUp();
-        events.emit(const RoomDisconnectedEvent());
-      }
-      // always notify ChangeNotifier
-      notifyListeners();
-    })
-    ..on<SignalConnectionStateUpdatedEvent>((event) {
-      // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) {
-        logger.fine('Sending syncState');
-        _sendSyncState();
-      }
-    })
-    ..on<SignalJoinResponseEvent>((event) {
-      _sid = event.response.room.sid;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
-      _serverVersion = event.response.serverVersion;
-      _serverRegion = event.response.serverRegion;
-
-      logger.fine('[Engine] Received JoinResponse, '
-          'serverVersion: ${event.response.serverVersion}');
-
-      _localParticipant = LocalParticipant(
-        room: this,
-        info: event.response.participant,
-      );
-
-      for (final info in event.response.otherParticipants) {
-        logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
-            'tracks:${info.tracks.map((e) => e.sid)}');
-        _getOrCreateRemoteParticipant(info.sid, info);
-      }
-
-      logger.fine('Room Connect completed');
-    })
+  void _setUpSignalListeners() => _signalListener
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
-    ..on<EngineActiveSpeakersUpdateEvent>(
-        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<SignalSpeakersChangedEvent>(
         (event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>(
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>(
         (event) => _onSignalStreamStateUpdateEvent(event.updates))
-    ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
-    ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final publication = localParticipant?.trackPublications[event.sid];
-      if (event.muted) {
-        await publication?.mute();
-      } else {
-        await publication?.unmute();
-      }
-    })
     ..on<SignalSubscribedQualityUpdatedEvent>((event) {
       // Signal for Dynacast
       final options = roomOptions ?? const RoomOptions();
@@ -221,6 +174,62 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.room.metadata;
       events.emit(RoomMetadataChangedEvent(metadata: event.room.metadata));
     })
+    ..on<SignalConnectionStateUpdatedEvent>((event) {
+      // during reconnection, need to send sync state upon signal connection.
+      if (event.didReconnect) {
+        logger.fine('Sending syncState');
+        _sendSyncState();
+      }
+    })
+    ..on<SignalRemoteMuteTrackEvent>((event) async {
+      final publication = localParticipant?.trackPublications[event.sid];
+      if (event.muted) {
+        await publication?.mute();
+      } else {
+        await publication?.unmute();
+      }
+    });
+
+  void _setUpEngineListeners() => _engineListener
+    ..on<EngineConnectionStateUpdatedEvent>((event) async {
+      if (event.didReconnect) {
+        events.emit(const RoomReconnectedEvent());
+        await _handlePostReconnect(false);
+      } else if (event.newState == ConnectionState.reconnecting) {
+        events.emit(const RoomReconnectingEvent());
+      } else if (event.newState == ConnectionState.disconnected) {
+        await _cleanUp();
+        events.emit(const RoomDisconnectedEvent());
+      }
+      // always notify ChangeNotifier
+      notifyListeners();
+    })
+    ..on<EngineJoinResponseEvent>((event) {
+      _sid = event.response.room.sid;
+      _name = event.response.room.name;
+      _metadata = event.response.room.metadata;
+      _serverVersion = event.response.serverVersion;
+      _serverRegion = event.response.serverRegion;
+
+      logger.fine('[Engine] Received JoinResponse, '
+          'serverVersion: ${event.response.serverVersion}');
+
+      _localParticipant = LocalParticipant(
+        room: this,
+        info: event.response.participant,
+      );
+
+      for (final info in event.response.otherParticipants) {
+        logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}');
+        _getOrCreateRemoteParticipant(info.sid, info);
+      }
+
+      logger.fine('Room Connect completed');
+    })
+    ..on<EngineActiveSpeakersUpdateEvent>(
+        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
+    ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
