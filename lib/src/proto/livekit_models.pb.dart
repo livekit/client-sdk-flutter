@@ -10,6 +10,8 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'google/protobuf/timestamp.pb.dart' as $0;
+
 import 'livekit_models.pbenum.dart';
 
 export 'livekit_models.pbenum.dart';
@@ -352,6 +354,159 @@ class Codec extends $pb.GeneratedMessage {
   void clearFmtpLine() => clearField(2);
 }
 
+class ParticipantPermission extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ParticipantPermission',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOB(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canSubscribe')
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublish')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublishData')
+    ..aOB(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hidden')
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'recorder')
+    ..hasRequiredFields = false;
+
+  ParticipantPermission._() : super();
+  factory ParticipantPermission({
+    $core.bool? canSubscribe,
+    $core.bool? canPublish,
+    $core.bool? canPublishData,
+    $core.bool? hidden,
+    $core.bool? recorder,
+  }) {
+    final _result = create();
+    if (canSubscribe != null) {
+      _result.canSubscribe = canSubscribe;
+    }
+    if (canPublish != null) {
+      _result.canPublish = canPublish;
+    }
+    if (canPublishData != null) {
+      _result.canPublishData = canPublishData;
+    }
+    if (hidden != null) {
+      _result.hidden = hidden;
+    }
+    if (recorder != null) {
+      _result.recorder = recorder;
+    }
+    return _result;
+  }
+  factory ParticipantPermission.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ParticipantPermission.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ParticipantPermission clone() =>
+      ParticipantPermission()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ParticipantPermission copyWith(
+          void Function(ParticipantPermission) updates) =>
+      super.copyWith((message) => updates(message as ParticipantPermission))
+          as ParticipantPermission; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ParticipantPermission create() => ParticipantPermission._();
+  ParticipantPermission createEmptyInstance() => create();
+  static $pb.PbList<ParticipantPermission> createRepeated() =>
+      $pb.PbList<ParticipantPermission>();
+  @$core.pragma('dart2js:noInline')
+  static ParticipantPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
+  static ParticipantPermission? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get canSubscribe => $_getBF(0);
+  @$pb.TagNumber(1)
+  set canSubscribe($core.bool v) {
+    $_setBool(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasCanSubscribe() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCanSubscribe() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get canPublish => $_getBF(1);
+  @$pb.TagNumber(2)
+  set canPublish($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasCanPublish() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCanPublish() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get canPublishData => $_getBF(2);
+  @$pb.TagNumber(3)
+  set canPublishData($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasCanPublishData() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCanPublishData() => clearField(3);
+
+  @$pb.TagNumber(7)
+  $core.bool get hidden => $_getBF(3);
+  @$pb.TagNumber(7)
+  set hidden($core.bool v) {
+    $_setBool(3, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasHidden() => $_has(3);
+  @$pb.TagNumber(7)
+  void clearHidden() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get recorder => $_getBF(4);
+  @$pb.TagNumber(8)
+  set recorder($core.bool v) {
+    $_setBool(4, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasRecorder() => $_has(4);
+  @$pb.TagNumber(8)
+  void clearRecorder() => clearField(8);
+}
+
 class ParticipantInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -398,16 +553,6 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'joinedAt')
-    ..aOB(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'hidden')
-    ..aOB(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'recorder')
     ..aOS(
         9,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -419,6 +564,17 @@ class ParticipantInfo extends $pb.GeneratedMessage {
             ? ''
             : 'version',
         $pb.PbFieldType.OU3)
+    ..aOM<ParticipantPermission>(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'permission',
+        subBuilder: ParticipantPermission.create)
+    ..aOS(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'region')
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -429,10 +585,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.Iterable<TrackInfo>? tracks,
     $core.String? metadata,
     $fixnum.Int64? joinedAt,
-    $core.bool? hidden,
-    $core.bool? recorder,
     $core.String? name,
     $core.int? version,
+    ParticipantPermission? permission,
+    $core.String? region,
   }) {
     final _result = create();
     if (sid != null) {
@@ -453,17 +609,17 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (joinedAt != null) {
       _result.joinedAt = joinedAt;
     }
-    if (hidden != null) {
-      _result.hidden = hidden;
-    }
-    if (recorder != null) {
-      _result.recorder = recorder;
-    }
     if (name != null) {
       _result.name = name;
     }
     if (version != null) {
       _result.version = version;
+    }
+    if (permission != null) {
+      _result.permission = permission;
+    }
+    if (region != null) {
+      _result.region = region;
     }
     return _result;
   }
@@ -557,53 +713,55 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearJoinedAt() => clearField(6);
 
-  @$pb.TagNumber(7)
-  $core.bool get hidden => $_getBF(6);
-  @$pb.TagNumber(7)
-  set hidden($core.bool v) {
-    $_setBool(6, v);
-  }
-
-  @$pb.TagNumber(7)
-  $core.bool hasHidden() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearHidden() => clearField(7);
-
-  @$pb.TagNumber(8)
-  $core.bool get recorder => $_getBF(7);
-  @$pb.TagNumber(8)
-  set recorder($core.bool v) {
-    $_setBool(7, v);
-  }
-
-  @$pb.TagNumber(8)
-  $core.bool hasRecorder() => $_has(7);
-  @$pb.TagNumber(8)
-  void clearRecorder() => clearField(8);
-
   @$pb.TagNumber(9)
-  $core.String get name => $_getSZ(8);
+  $core.String get name => $_getSZ(6);
   @$pb.TagNumber(9)
   set name($core.String v) {
-    $_setString(8, v);
+    $_setString(6, v);
   }
 
   @$pb.TagNumber(9)
-  $core.bool hasName() => $_has(8);
+  $core.bool hasName() => $_has(6);
   @$pb.TagNumber(9)
   void clearName() => clearField(9);
 
   @$pb.TagNumber(10)
-  $core.int get version => $_getIZ(9);
+  $core.int get version => $_getIZ(7);
   @$pb.TagNumber(10)
   set version($core.int v) {
-    $_setUnsignedInt32(9, v);
+    $_setUnsignedInt32(7, v);
   }
 
   @$pb.TagNumber(10)
-  $core.bool hasVersion() => $_has(9);
+  $core.bool hasVersion() => $_has(7);
   @$pb.TagNumber(10)
   void clearVersion() => clearField(10);
+
+  @$pb.TagNumber(11)
+  ParticipantPermission get permission => $_getN(8);
+  @$pb.TagNumber(11)
+  set permission(ParticipantPermission v) {
+    setField(11, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasPermission() => $_has(8);
+  @$pb.TagNumber(11)
+  void clearPermission() => clearField(11);
+  @$pb.TagNumber(11)
+  ParticipantPermission ensurePermission() => $_ensure(8);
+
+  @$pb.TagNumber(12)
+  $core.String get region => $_getSZ(9);
+  @$pb.TagNumber(12)
+  set region($core.String v) {
+    $_setString(9, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasRegion() => $_has(9);
+  @$pb.TagNumber(12)
+  void clearRegion() => clearField(12);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
@@ -1968,4 +2126,850 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   $core.bool hasHardwareEncoder() => $_has(0);
   @$pb.TagNumber(1)
   void clearHardwareEncoder() => clearField(1);
+}
+
+class RTPStats extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'RTPStats',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<$0.Timestamp>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'startTime',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'endTime',
+        subBuilder: $0.Timestamp.create)
+    ..a<$core.double>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'duration',
+        $pb.PbFieldType.OD)
+    ..a<$core.int>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packets',
+        $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetRate',
+        $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytes',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrate',
+        $pb.PbFieldType.OD)
+    ..a<$core.int>(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsLost',
+        $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetLossRate',
+        $pb.PbFieldType.OD)
+    ..a<$core.double>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetLossPercentage',
+        $pb.PbFieldType.OF)
+    ..a<$core.int>(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsDuplicate',
+        $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetDuplicateRate',
+        $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytesDuplicate',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrateDuplicate',
+        $pb.PbFieldType.OD)
+    ..a<$core.int>(
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsPadding',
+        $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        16,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetPaddingRate',
+        $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(
+        17,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytesPadding',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(
+        18,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitratePadding',
+        $pb.PbFieldType.OD)
+    ..a<$core.int>(
+        19,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsOutOfOrder',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        20,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'frames',
+        $pb.PbFieldType.OU3)
+    ..a<$core.double>(
+        21,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'frameRate',
+        $pb.PbFieldType.OD)
+    ..a<$core.double>(
+        22,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'jitterCurrent',
+        $pb.PbFieldType.OD)
+    ..a<$core.double>(
+        23,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'jitterMax',
+        $pb.PbFieldType.OD)
+    ..m<$core.int, $core.int>(
+        24,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'gapHistogram',
+        entryClassName: 'RTPStats.GapHistogramEntry',
+        keyFieldType: $pb.PbFieldType.O3,
+        valueFieldType: $pb.PbFieldType.OU3,
+        packageName: const $pb.PackageName('livekit'))
+    ..a<$core.int>(
+        25,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nacks',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        26,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackMisses',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        27,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'plis',
+        $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(
+        28,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastPli',
+        subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(
+        29,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'firs',
+        $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(
+        30,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastFir',
+        subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(
+        31,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'rttCurrent',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        32,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'rttMax',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        33,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'keyFrames',
+        $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(
+        34,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastKeyFrame',
+        subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(
+        35,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layerLockPlis',
+        $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(
+        36,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastLayerLockPli',
+        subBuilder: $0.Timestamp.create)
+    ..hasRequiredFields = false;
+
+  RTPStats._() : super();
+  factory RTPStats({
+    $0.Timestamp? startTime,
+    $0.Timestamp? endTime,
+    $core.double? duration,
+    $core.int? packets,
+    $core.double? packetRate,
+    $fixnum.Int64? bytes,
+    $core.double? bitrate,
+    $core.int? packetsLost,
+    $core.double? packetLossRate,
+    $core.double? packetLossPercentage,
+    $core.int? packetsDuplicate,
+    $core.double? packetDuplicateRate,
+    $fixnum.Int64? bytesDuplicate,
+    $core.double? bitrateDuplicate,
+    $core.int? packetsPadding,
+    $core.double? packetPaddingRate,
+    $fixnum.Int64? bytesPadding,
+    $core.double? bitratePadding,
+    $core.int? packetsOutOfOrder,
+    $core.int? frames,
+    $core.double? frameRate,
+    $core.double? jitterCurrent,
+    $core.double? jitterMax,
+    $core.Map<$core.int, $core.int>? gapHistogram,
+    $core.int? nacks,
+    $core.int? nackMisses,
+    $core.int? plis,
+    $0.Timestamp? lastPli,
+    $core.int? firs,
+    $0.Timestamp? lastFir,
+    $core.int? rttCurrent,
+    $core.int? rttMax,
+    $core.int? keyFrames,
+    $0.Timestamp? lastKeyFrame,
+    $core.int? layerLockPlis,
+    $0.Timestamp? lastLayerLockPli,
+  }) {
+    final _result = create();
+    if (startTime != null) {
+      _result.startTime = startTime;
+    }
+    if (endTime != null) {
+      _result.endTime = endTime;
+    }
+    if (duration != null) {
+      _result.duration = duration;
+    }
+    if (packets != null) {
+      _result.packets = packets;
+    }
+    if (packetRate != null) {
+      _result.packetRate = packetRate;
+    }
+    if (bytes != null) {
+      _result.bytes = bytes;
+    }
+    if (bitrate != null) {
+      _result.bitrate = bitrate;
+    }
+    if (packetsLost != null) {
+      _result.packetsLost = packetsLost;
+    }
+    if (packetLossRate != null) {
+      _result.packetLossRate = packetLossRate;
+    }
+    if (packetLossPercentage != null) {
+      _result.packetLossPercentage = packetLossPercentage;
+    }
+    if (packetsDuplicate != null) {
+      _result.packetsDuplicate = packetsDuplicate;
+    }
+    if (packetDuplicateRate != null) {
+      _result.packetDuplicateRate = packetDuplicateRate;
+    }
+    if (bytesDuplicate != null) {
+      _result.bytesDuplicate = bytesDuplicate;
+    }
+    if (bitrateDuplicate != null) {
+      _result.bitrateDuplicate = bitrateDuplicate;
+    }
+    if (packetsPadding != null) {
+      _result.packetsPadding = packetsPadding;
+    }
+    if (packetPaddingRate != null) {
+      _result.packetPaddingRate = packetPaddingRate;
+    }
+    if (bytesPadding != null) {
+      _result.bytesPadding = bytesPadding;
+    }
+    if (bitratePadding != null) {
+      _result.bitratePadding = bitratePadding;
+    }
+    if (packetsOutOfOrder != null) {
+      _result.packetsOutOfOrder = packetsOutOfOrder;
+    }
+    if (frames != null) {
+      _result.frames = frames;
+    }
+    if (frameRate != null) {
+      _result.frameRate = frameRate;
+    }
+    if (jitterCurrent != null) {
+      _result.jitterCurrent = jitterCurrent;
+    }
+    if (jitterMax != null) {
+      _result.jitterMax = jitterMax;
+    }
+    if (gapHistogram != null) {
+      _result.gapHistogram.addAll(gapHistogram);
+    }
+    if (nacks != null) {
+      _result.nacks = nacks;
+    }
+    if (nackMisses != null) {
+      _result.nackMisses = nackMisses;
+    }
+    if (plis != null) {
+      _result.plis = plis;
+    }
+    if (lastPli != null) {
+      _result.lastPli = lastPli;
+    }
+    if (firs != null) {
+      _result.firs = firs;
+    }
+    if (lastFir != null) {
+      _result.lastFir = lastFir;
+    }
+    if (rttCurrent != null) {
+      _result.rttCurrent = rttCurrent;
+    }
+    if (rttMax != null) {
+      _result.rttMax = rttMax;
+    }
+    if (keyFrames != null) {
+      _result.keyFrames = keyFrames;
+    }
+    if (lastKeyFrame != null) {
+      _result.lastKeyFrame = lastKeyFrame;
+    }
+    if (layerLockPlis != null) {
+      _result.layerLockPlis = layerLockPlis;
+    }
+    if (lastLayerLockPli != null) {
+      _result.lastLayerLockPli = lastLayerLockPli;
+    }
+    return _result;
+  }
+  factory RTPStats.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPStats.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  RTPStats clone() => RTPStats()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  RTPStats copyWith(void Function(RTPStats) updates) =>
+      super.copyWith((message) => updates(message as RTPStats))
+          as RTPStats; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static RTPStats create() => RTPStats._();
+  RTPStats createEmptyInstance() => create();
+  static $pb.PbList<RTPStats> createRepeated() => $pb.PbList<RTPStats>();
+  @$core.pragma('dart2js:noInline')
+  static RTPStats getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPStats>(create);
+  static RTPStats? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.Timestamp get startTime => $_getN(0);
+  @$pb.TagNumber(1)
+  set startTime($0.Timestamp v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasStartTime() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStartTime() => clearField(1);
+  @$pb.TagNumber(1)
+  $0.Timestamp ensureStartTime() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $0.Timestamp get endTime => $_getN(1);
+  @$pb.TagNumber(2)
+  set endTime($0.Timestamp v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasEndTime() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEndTime() => clearField(2);
+  @$pb.TagNumber(2)
+  $0.Timestamp ensureEndTime() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.double get duration => $_getN(2);
+  @$pb.TagNumber(3)
+  set duration($core.double v) {
+    $_setDouble(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasDuration() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDuration() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get packets => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set packets($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasPackets() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPackets() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get packetRate => $_getN(4);
+  @$pb.TagNumber(5)
+  set packetRate($core.double v) {
+    $_setDouble(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasPacketRate() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPacketRate() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $fixnum.Int64 get bytes => $_getI64(5);
+  @$pb.TagNumber(6)
+  set bytes($fixnum.Int64 v) {
+    $_setInt64(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasBytes() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearBytes() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.double get bitrate => $_getN(6);
+  @$pb.TagNumber(7)
+  set bitrate($core.double v) {
+    $_setDouble(6, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasBitrate() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearBitrate() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get packetsLost => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set packetsLost($core.int v) {
+    $_setUnsignedInt32(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasPacketsLost() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearPacketsLost() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.double get packetLossRate => $_getN(8);
+  @$pb.TagNumber(9)
+  set packetLossRate($core.double v) {
+    $_setDouble(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasPacketLossRate() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearPacketLossRate() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.double get packetLossPercentage => $_getN(9);
+  @$pb.TagNumber(10)
+  set packetLossPercentage($core.double v) {
+    $_setFloat(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasPacketLossPercentage() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearPacketLossPercentage() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get packetsDuplicate => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set packetsDuplicate($core.int v) {
+    $_setUnsignedInt32(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasPacketsDuplicate() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearPacketsDuplicate() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.double get packetDuplicateRate => $_getN(11);
+  @$pb.TagNumber(12)
+  set packetDuplicateRate($core.double v) {
+    $_setDouble(11, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasPacketDuplicateRate() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPacketDuplicateRate() => clearField(12);
+
+  @$pb.TagNumber(13)
+  $fixnum.Int64 get bytesDuplicate => $_getI64(12);
+  @$pb.TagNumber(13)
+  set bytesDuplicate($fixnum.Int64 v) {
+    $_setInt64(12, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasBytesDuplicate() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearBytesDuplicate() => clearField(13);
+
+  @$pb.TagNumber(14)
+  $core.double get bitrateDuplicate => $_getN(13);
+  @$pb.TagNumber(14)
+  set bitrateDuplicate($core.double v) {
+    $_setDouble(13, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasBitrateDuplicate() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearBitrateDuplicate() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get packetsPadding => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set packetsPadding($core.int v) {
+    $_setUnsignedInt32(14, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasPacketsPadding() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearPacketsPadding() => clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.double get packetPaddingRate => $_getN(15);
+  @$pb.TagNumber(16)
+  set packetPaddingRate($core.double v) {
+    $_setDouble(15, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasPacketPaddingRate() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearPacketPaddingRate() => clearField(16);
+
+  @$pb.TagNumber(17)
+  $fixnum.Int64 get bytesPadding => $_getI64(16);
+  @$pb.TagNumber(17)
+  set bytesPadding($fixnum.Int64 v) {
+    $_setInt64(16, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasBytesPadding() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearBytesPadding() => clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.double get bitratePadding => $_getN(17);
+  @$pb.TagNumber(18)
+  set bitratePadding($core.double v) {
+    $_setDouble(17, v);
+  }
+
+  @$pb.TagNumber(18)
+  $core.bool hasBitratePadding() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearBitratePadding() => clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.int get packetsOutOfOrder => $_getIZ(18);
+  @$pb.TagNumber(19)
+  set packetsOutOfOrder($core.int v) {
+    $_setUnsignedInt32(18, v);
+  }
+
+  @$pb.TagNumber(19)
+  $core.bool hasPacketsOutOfOrder() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearPacketsOutOfOrder() => clearField(19);
+
+  @$pb.TagNumber(20)
+  $core.int get frames => $_getIZ(19);
+  @$pb.TagNumber(20)
+  set frames($core.int v) {
+    $_setUnsignedInt32(19, v);
+  }
+
+  @$pb.TagNumber(20)
+  $core.bool hasFrames() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearFrames() => clearField(20);
+
+  @$pb.TagNumber(21)
+  $core.double get frameRate => $_getN(20);
+  @$pb.TagNumber(21)
+  set frameRate($core.double v) {
+    $_setDouble(20, v);
+  }
+
+  @$pb.TagNumber(21)
+  $core.bool hasFrameRate() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearFrameRate() => clearField(21);
+
+  @$pb.TagNumber(22)
+  $core.double get jitterCurrent => $_getN(21);
+  @$pb.TagNumber(22)
+  set jitterCurrent($core.double v) {
+    $_setDouble(21, v);
+  }
+
+  @$pb.TagNumber(22)
+  $core.bool hasJitterCurrent() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearJitterCurrent() => clearField(22);
+
+  @$pb.TagNumber(23)
+  $core.double get jitterMax => $_getN(22);
+  @$pb.TagNumber(23)
+  set jitterMax($core.double v) {
+    $_setDouble(22, v);
+  }
+
+  @$pb.TagNumber(23)
+  $core.bool hasJitterMax() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearJitterMax() => clearField(23);
+
+  @$pb.TagNumber(24)
+  $core.Map<$core.int, $core.int> get gapHistogram => $_getMap(23);
+
+  @$pb.TagNumber(25)
+  $core.int get nacks => $_getIZ(24);
+  @$pb.TagNumber(25)
+  set nacks($core.int v) {
+    $_setUnsignedInt32(24, v);
+  }
+
+  @$pb.TagNumber(25)
+  $core.bool hasNacks() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearNacks() => clearField(25);
+
+  @$pb.TagNumber(26)
+  $core.int get nackMisses => $_getIZ(25);
+  @$pb.TagNumber(26)
+  set nackMisses($core.int v) {
+    $_setUnsignedInt32(25, v);
+  }
+
+  @$pb.TagNumber(26)
+  $core.bool hasNackMisses() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearNackMisses() => clearField(26);
+
+  @$pb.TagNumber(27)
+  $core.int get plis => $_getIZ(26);
+  @$pb.TagNumber(27)
+  set plis($core.int v) {
+    $_setUnsignedInt32(26, v);
+  }
+
+  @$pb.TagNumber(27)
+  $core.bool hasPlis() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearPlis() => clearField(27);
+
+  @$pb.TagNumber(28)
+  $0.Timestamp get lastPli => $_getN(27);
+  @$pb.TagNumber(28)
+  set lastPli($0.Timestamp v) {
+    setField(28, v);
+  }
+
+  @$pb.TagNumber(28)
+  $core.bool hasLastPli() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearLastPli() => clearField(28);
+  @$pb.TagNumber(28)
+  $0.Timestamp ensureLastPli() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  $core.int get firs => $_getIZ(28);
+  @$pb.TagNumber(29)
+  set firs($core.int v) {
+    $_setUnsignedInt32(28, v);
+  }
+
+  @$pb.TagNumber(29)
+  $core.bool hasFirs() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearFirs() => clearField(29);
+
+  @$pb.TagNumber(30)
+  $0.Timestamp get lastFir => $_getN(29);
+  @$pb.TagNumber(30)
+  set lastFir($0.Timestamp v) {
+    setField(30, v);
+  }
+
+  @$pb.TagNumber(30)
+  $core.bool hasLastFir() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearLastFir() => clearField(30);
+  @$pb.TagNumber(30)
+  $0.Timestamp ensureLastFir() => $_ensure(29);
+
+  @$pb.TagNumber(31)
+  $core.int get rttCurrent => $_getIZ(30);
+  @$pb.TagNumber(31)
+  set rttCurrent($core.int v) {
+    $_setUnsignedInt32(30, v);
+  }
+
+  @$pb.TagNumber(31)
+  $core.bool hasRttCurrent() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearRttCurrent() => clearField(31);
+
+  @$pb.TagNumber(32)
+  $core.int get rttMax => $_getIZ(31);
+  @$pb.TagNumber(32)
+  set rttMax($core.int v) {
+    $_setUnsignedInt32(31, v);
+  }
+
+  @$pb.TagNumber(32)
+  $core.bool hasRttMax() => $_has(31);
+  @$pb.TagNumber(32)
+  void clearRttMax() => clearField(32);
+
+  @$pb.TagNumber(33)
+  $core.int get keyFrames => $_getIZ(32);
+  @$pb.TagNumber(33)
+  set keyFrames($core.int v) {
+    $_setUnsignedInt32(32, v);
+  }
+
+  @$pb.TagNumber(33)
+  $core.bool hasKeyFrames() => $_has(32);
+  @$pb.TagNumber(33)
+  void clearKeyFrames() => clearField(33);
+
+  @$pb.TagNumber(34)
+  $0.Timestamp get lastKeyFrame => $_getN(33);
+  @$pb.TagNumber(34)
+  set lastKeyFrame($0.Timestamp v) {
+    setField(34, v);
+  }
+
+  @$pb.TagNumber(34)
+  $core.bool hasLastKeyFrame() => $_has(33);
+  @$pb.TagNumber(34)
+  void clearLastKeyFrame() => clearField(34);
+  @$pb.TagNumber(34)
+  $0.Timestamp ensureLastKeyFrame() => $_ensure(33);
+
+  @$pb.TagNumber(35)
+  $core.int get layerLockPlis => $_getIZ(34);
+  @$pb.TagNumber(35)
+  set layerLockPlis($core.int v) {
+    $_setUnsignedInt32(34, v);
+  }
+
+  @$pb.TagNumber(35)
+  $core.bool hasLayerLockPlis() => $_has(34);
+  @$pb.TagNumber(35)
+  void clearLayerLockPlis() => clearField(35);
+
+  @$pb.TagNumber(36)
+  $0.Timestamp get lastLayerLockPli => $_getN(35);
+  @$pb.TagNumber(36)
+  set lastLayerLockPli($0.Timestamp v) {
+    setField(36, v);
+  }
+
+  @$pb.TagNumber(36)
+  $core.bool hasLastLayerLockPli() => $_has(35);
+  @$pb.TagNumber(36)
+  void clearLastLayerLockPli() => clearField(36);
+  @$pb.TagNumber(36)
+  $0.Timestamp ensureLastLayerLockPli() => $_ensure(35);
 }

@@ -292,6 +292,15 @@ const SignalResponse$json = const {
       '9': 0,
       '10': 'refreshToken'
     },
+    const {
+      '1': 'track_unpublished',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackUnpublishedResponse',
+      '9': 0,
+      '10': 'trackUnpublished'
+    },
   ],
   '8': const [
     const {'1': 'message'},
@@ -300,7 +309,7 @@ const SignalResponse$json = const {
 
 /// Descriptor for `SignalResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
-    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZRJeChlzdWJzY3JpYmVkX3F1YWxpdHlfdXBkYXRlGA4gASgLMiAubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZRJtCh5zdWJzY3JpcHRpb25fcGVybWlzc2lvbl91cGRhdGUYDyABKAsyJS5saXZla2l0LlN1YnNjcmlwdGlvblBlcm1pc3Npb25VcGRhdGVIAFIcc3Vic2NyaXB0aW9uUGVybWlzc2lvblVwZGF0ZRIlCg1yZWZyZXNoX3Rva2VuGBAgASgJSABSDHJlZnJlc2hUb2tlbkIJCgdtZXNzYWdl');
+    'Cg5TaWduYWxSZXNwb25zZRIrCgRqb2luGAEgASgLMhUubGl2ZWtpdC5Kb2luUmVzcG9uc2VIAFIEam9pbhI1CgZhbnN3ZXIYAiABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgZhbnN3ZXISMwoFb2ZmZXIYAyABKAsyGy5saXZla2l0LlNlc3Npb25EZXNjcmlwdGlvbkgAUgVvZmZlchIzCgd0cmlja2xlGAQgASgLMhcubGl2ZWtpdC5Ucmlja2xlUmVxdWVzdEgAUgd0cmlja2xlEjQKBnVwZGF0ZRgFIAEoCzIaLmxpdmVraXQuUGFydGljaXBhbnRVcGRhdGVIAFIGdXBkYXRlEkoKD3RyYWNrX3B1Ymxpc2hlZBgGIAEoCzIfLmxpdmVraXQuVHJhY2tQdWJsaXNoZWRSZXNwb25zZUgAUg50cmFja1B1Ymxpc2hlZBItCgVsZWF2ZRgIIAEoCzIVLmxpdmVraXQuTGVhdmVSZXF1ZXN0SABSBWxlYXZlEi8KBG11dGUYCSABKAsyGS5saXZla2l0Lk11dGVUcmFja1JlcXVlc3RIAFIEbXV0ZRJFChBzcGVha2Vyc19jaGFuZ2VkGAogASgLMhgubGl2ZWtpdC5TcGVha2Vyc0NoYW5nZWRIAFIPc3BlYWtlcnNDaGFuZ2VkEjYKC3Jvb21fdXBkYXRlGAsgASgLMhMubGl2ZWtpdC5Sb29tVXBkYXRlSABSCnJvb21VcGRhdGUSUQoSY29ubmVjdGlvbl9xdWFsaXR5GAwgASgLMiAubGl2ZWtpdC5Db25uZWN0aW9uUXVhbGl0eVVwZGF0ZUgAUhFjb25uZWN0aW9uUXVhbGl0eRJMChNzdHJlYW1fc3RhdGVfdXBkYXRlGA0gASgLMhoubGl2ZWtpdC5TdHJlYW1TdGF0ZVVwZGF0ZUgAUhFzdHJlYW1TdGF0ZVVwZGF0ZRJeChlzdWJzY3JpYmVkX3F1YWxpdHlfdXBkYXRlGA4gASgLMiAubGl2ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZRJtCh5zdWJzY3JpcHRpb25fcGVybWlzc2lvbl91cGRhdGUYDyABKAsyJS5saXZla2l0LlN1YnNjcmlwdGlvblBlcm1pc3Npb25VcGRhdGVIAFIcc3Vic2NyaXB0aW9uUGVybWlzc2lvblVwZGF0ZRIlCg1yZWZyZXNoX3Rva2VuGBAgASgJSABSDHJlZnJlc2hUb2tlbhJQChF0cmFja191bnB1Ymxpc2hlZBgRIAEoCzIhLmxpdmVraXQuVHJhY2tVbnB1Ymxpc2hlZFJlc3BvbnNlSABSEHRyYWNrVW5wdWJsaXNoZWRCCQoHbWVzc2FnZQ==');
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = const {
   '1': 'AddTrackRequest',
@@ -464,6 +473,18 @@ const TrackPublishedResponse$json = const {
 final $typed_data.Uint8List trackPublishedResponseDescriptor =
     $convert.base64Decode(
         'ChZUcmFja1B1Ymxpc2hlZFJlc3BvbnNlEhAKA2NpZBgBIAEoCVIDY2lkEigKBXRyYWNrGAIgASgLMhIubGl2ZWtpdC5UcmFja0luZm9SBXRyYWNr');
+@$core.Deprecated('Use trackUnpublishedResponseDescriptor instead')
+const TrackUnpublishedResponse$json = const {
+  '1': 'TrackUnpublishedResponse',
+  '2': const [
+    const {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
+  ],
+};
+
+/// Descriptor for `TrackUnpublishedResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List trackUnpublishedResponseDescriptor =
+    $convert.base64Decode(
+        'ChhUcmFja1VucHVibGlzaGVkUmVzcG9uc2USGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZA==');
 @$core.Deprecated('Use sessionDescriptionDescriptor instead')
 const SessionDescription$json = const {
   '1': 'SessionDescription',

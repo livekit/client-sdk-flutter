@@ -5,7 +5,6 @@ import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../exts.dart';
-import '../theme.dart';
 import 'room.dart';
 
 class ConnectPage extends StatefulWidget {

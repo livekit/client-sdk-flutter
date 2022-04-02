@@ -403,6 +403,7 @@ enum SignalResponse_Message {
   subscribedQualityUpdate,
   subscriptionPermissionUpdate,
   refreshToken,
+  trackUnpublished,
   notSet
 }
 
@@ -424,6 +425,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     14: SignalResponse_Message.subscribedQualityUpdate,
     15: SignalResponse_Message.subscriptionPermissionUpdate,
     16: SignalResponse_Message.refreshToken,
+    17: SignalResponse_Message.trackUnpublished,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -435,7 +437,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -525,6 +527,12 @@ class SignalResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'refreshToken')
+    ..aOM<TrackUnpublishedResponse>(
+        17,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackUnpublished',
+        subBuilder: TrackUnpublishedResponse.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -544,6 +552,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     SubscribedQualityUpdate? subscribedQualityUpdate,
     SubscriptionPermissionUpdate? subscriptionPermissionUpdate,
     $core.String? refreshToken,
+    TrackUnpublishedResponse? trackUnpublished,
   }) {
     final _result = create();
     if (join != null) {
@@ -590,6 +599,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (refreshToken != null) {
       _result.refreshToken = refreshToken;
+    }
+    if (trackUnpublished != null) {
+      _result.trackUnpublished = trackUnpublished;
     }
     return _result;
   }
@@ -832,6 +844,20 @@ class SignalResponse extends $pb.GeneratedMessage {
   $core.bool hasRefreshToken() => $_has(14);
   @$pb.TagNumber(16)
   void clearRefreshToken() => clearField(16);
+
+  @$pb.TagNumber(17)
+  TrackUnpublishedResponse get trackUnpublished => $_getN(15);
+  @$pb.TagNumber(17)
+  set trackUnpublished(TrackUnpublishedResponse v) {
+    setField(17, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasTrackUnpublished() => $_has(15);
+  @$pb.TagNumber(17)
+  void clearTrackUnpublished() => clearField(17);
+  @$pb.TagNumber(17)
+  TrackUnpublishedResponse ensureTrackUnpublished() => $_ensure(15);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -1574,6 +1600,75 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
   void clearTrack() => clearField(2);
   @$pb.TagNumber(2)
   $0.TrackInfo ensureTrack() => $_ensure(1);
+}
+
+class TrackUnpublishedResponse extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TrackUnpublishedResponse',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..hasRequiredFields = false;
+
+  TrackUnpublishedResponse._() : super();
+  factory TrackUnpublishedResponse({
+    $core.String? trackSid,
+  }) {
+    final _result = create();
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    return _result;
+  }
+  factory TrackUnpublishedResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TrackUnpublishedResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TrackUnpublishedResponse clone() =>
+      TrackUnpublishedResponse()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TrackUnpublishedResponse copyWith(
+          void Function(TrackUnpublishedResponse) updates) =>
+      super.copyWith((message) => updates(message as TrackUnpublishedResponse))
+          as TrackUnpublishedResponse; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static TrackUnpublishedResponse create() => TrackUnpublishedResponse._();
+  TrackUnpublishedResponse createEmptyInstance() => create();
+  static $pb.PbList<TrackUnpublishedResponse> createRepeated() =>
+      $pb.PbList<TrackUnpublishedResponse>();
+  @$core.pragma('dart2js:noInline')
+  static TrackUnpublishedResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackUnpublishedResponse>(create);
+  static TrackUnpublishedResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
 }
 
 class SessionDescription extends $pb.GeneratedMessage {
