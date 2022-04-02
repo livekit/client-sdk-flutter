@@ -215,6 +215,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.notSet:
         logger.info('signal message not set');
         break;
+      default:
+        logger.warning('received unknown signal message');
     }
   }
 
