@@ -57,15 +57,20 @@ class LiveKitTheme {
           checkColor: MaterialStateProperty.all(Colors.white),
           fillColor: MaterialStateProperty.all(accentColor),
         ),
-        // switchTheme: SwitchThemeData(
-        //   trackColor: MaterialStateProperty.resolveWith((states) {
-        //     print('states: $states');
-        //     if (states.contains(MaterialState.disabled)) {
-        //       return Colors.red;
-        //     }
-        //     return accentColor;
-        //   }),
-        // ),
+        switchTheme: SwitchThemeData(
+          trackColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return accentColor;
+            }
+            return accentColor.withOpacity(0.3);
+          }),
+          thumbColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return Colors.white;
+            }
+            return Colors.white.withOpacity(0.3);
+          }),
+        ),
         dialogTheme: DialogTheme(
           backgroundColor: cardColor,
           shape: RoundedRectangleBorder(

@@ -23,10 +23,14 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyUri = 'uri';
   static const _storeKeyToken = 'token';
   static const _storeKeySimulcast = 'simulcast';
+  static const _storeKeyAdaptiveStream = 'adaptive-stream';
+  static const _storeKeyDynacast = 'dynacast';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
   bool _simulcast = true;
+  bool _adaptiveStream = true;
+  bool _dynacast = true;
   bool _busy = false;
 
   @override
@@ -49,6 +53,8 @@ class _ConnectPageState extends State<ConnectPage> {
     _tokenCtrl.text = prefs.getString(_storeKeyToken) ?? '';
     setState(() {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
+      _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
+      _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
     });
   }
 
@@ -58,6 +64,8 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
     await prefs.setString(_storeKeyToken, _tokenCtrl.text);
     await prefs.setBool(_storeKeySimulcast, _simulcast);
+    await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
+    await prefs.setBool(_storeKeyDynacast, _dynacast);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -79,8 +87,8 @@ class _ConnectPageState extends State<ConnectPage> {
         _uriCtrl.text,
         _tokenCtrl.text,
         roomOptions: RoomOptions(
-          adaptiveStream: true,
-          dynacast: true,
+          adaptiveStream: _adaptiveStream,
+          dynacast: _dynacast,
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),
@@ -105,6 +113,20 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _simulcast == value) return;
     setState(() {
       _simulcast = value;
+    });
+  }
+
+  void _setAdaptiveStream(bool? value) async {
+    if (value == null || _adaptiveStream == value) return;
+    setState(() {
+      _adaptiveStream = value;
+    });
+  }
+
+  void _setDynacast(bool? value) async {
+    if (value == null || _dynacast == value) return;
+    setState(() {
+      _dynacast = value;
     });
   }
 
@@ -144,7 +166,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 50),
+                    padding: const EdgeInsets.only(bottom: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -152,10 +174,32 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _simulcast,
                           onChanged: (value) => _setSimulcast(value),
-                          inactiveTrackColor: Colors.white.withOpacity(.2),
-                          activeTrackColor: LKColors.lkBlue,
-                          inactiveThumbColor: Colors.white.withOpacity(.5),
-                          activeColor: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Adaptive Stream'),
+                        Switch(
+                          value: _adaptiveStream,
+                          onChanged: (value) => _setAdaptiveStream(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Dynacast'),
+                        Switch(
+                          value: _dynacast,
+                          onChanged: (value) => _setDynacast(value),
                         ),
                       ],
                     ),
