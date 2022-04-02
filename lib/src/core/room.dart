@@ -125,6 +125,29 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
+    ..on<SignalJoinResponseEvent>((event) {
+      _sid = event.response.room.sid;
+      _name = event.response.room.name;
+      _metadata = event.response.room.metadata;
+      _serverVersion = event.response.serverVersion;
+      _serverRegion = event.response.serverRegion;
+
+      logger.fine('[Engine] Received JoinResponse, '
+          'serverVersion: ${event.response.serverVersion}');
+
+      _localParticipant = LocalParticipant(
+        room: this,
+        info: event.response.participant,
+      );
+
+      for (final info in event.response.otherParticipants) {
+        logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}');
+        _getOrCreateRemoteParticipant(info.sid, info);
+      }
+
+      logger.fine('Room Connect completed');
+    })
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
     ..on<SignalSpeakersChangedEvent>(
@@ -203,29 +226,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       // always notify ChangeNotifier
       notifyListeners();
-    })
-    ..on<EngineJoinResponseEvent>((event) {
-      _sid = event.response.room.sid;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
-      _serverVersion = event.response.serverVersion;
-      _serverRegion = event.response.serverRegion;
-
-      logger.fine('[Engine] Received JoinResponse, '
-          'serverVersion: ${event.response.serverVersion}');
-
-      _localParticipant = LocalParticipant(
-        room: this,
-        info: event.response.participant,
-      );
-
-      for (final info in event.response.otherParticipants) {
-        logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
-            'tracks:${info.tracks.map((e) => e.sid)}');
-        _getOrCreateRemoteParticipant(info.sid, info);
-      }
-
-      logger.fine('Room Connect completed');
     })
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))

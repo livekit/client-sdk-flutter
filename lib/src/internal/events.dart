@@ -282,15 +282,6 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
 // ----------------------------------------------------------------------
 
 @internal
-// Received a JoinResponse from the server.
-class EngineJoinResponseEvent with EngineEvent, InternalEvent {
-  final lk_rtc.JoinResponse response;
-  const EngineJoinResponseEvent({
-    required this.response,
-  });
-}
-
-@internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream stream;

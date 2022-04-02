@@ -557,9 +557,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         // for subscriberPrimary, we negotiate when necessary (lazy)
         await negotiate();
       }
-
-      // Relay to Room
-      events.emit(EngineJoinResponseEvent(response: event.response));
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
