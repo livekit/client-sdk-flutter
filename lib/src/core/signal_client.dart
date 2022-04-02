@@ -352,12 +352,14 @@ extension SignalClientRequests on SignalClient {
     required lk_rtc.SessionDescription? answer,
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
+    required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
           subscription: subscription,
           publishTracks: publishTracks,
+          dataChannels: dataChannelInfo,
         ),
       ));
 

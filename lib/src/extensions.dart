@@ -53,6 +53,13 @@ extension ReliabilityExt on Reliability {
       }[this]!;
 }
 
+extension RTCDataChannelExt on rtc.RTCDataChannel {
+  lk_rtc.DataChannelInfo toLKInfoType() => lk_rtc.DataChannelInfo(
+        id: id,
+        label: label,
+      );
+}
+
 extension RTCIceCandidateExt on rtc.RTCIceCandidate {
   static rtc.RTCIceCandidate fromJson(String jsonString) {
     final map = json.decode(jsonString) as Map<String, dynamic>;
