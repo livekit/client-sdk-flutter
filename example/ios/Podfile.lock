@@ -7,7 +7,7 @@ PODS:
     - Libyuv (= 1703)
     - WebRTC-SDK (= 97.4692.02)
   - Libyuv (1703)
-  - livekit_client (0.5.7):
+  - livekit_client (0.5.8):
     - Flutter
     - WebRTC-SDK (~> 97.4692)
   - path_provider_ios (0.0.1):
@@ -48,11 +48,11 @@ SPEC CHECKSUMS:
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_webrtc: 3fd57d5bd9b6ce85d12d37f6f68d97be3b80509f
   Libyuv: 5f79ced0ee66e60a612ca97de1e6ccacd187a437
-  livekit_client: e8e7356f5efe910ffd7b1519343ad83c65d30a2a
-  path_provider_ios: 7d7ce634493af4477d156294792024ec3485acd5
+  livekit_client: 68df5f0ed045accdd5b14be7e68e4caedc0167a7
+  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
   shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
   WebRTC-SDK: dda4e50186f9eed672dc6bcf4faafb30c6ce48e3
 
 PODFILE CHECKSUM: 82aed1035f46bfa5b522f0d0dbf4730f17ec65ff
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.11.3
