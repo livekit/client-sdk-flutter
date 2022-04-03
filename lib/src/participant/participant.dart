@@ -12,6 +12,7 @@ import '../support/disposable.dart';
 import '../track/local/local.dart';
 import '../track/track.dart';
 import '../types/other.dart';
+import '../types/participant_permissions.dart';
 import 'local.dart';
 import 'remote.dart';
 
@@ -58,6 +59,9 @@ abstract class Participant<T extends TrackPublication>
 
   /// Connection quality between the [Participant] and the server.
   ConnectionQuality _connectionQuality = ConnectionQuality.unknown;
+
+  ParticipantPermissions _permissions = const ParticipantPermissions();
+  ParticipantPermissions get permissions => _permissions;
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -161,6 +165,14 @@ abstract class Participant<T extends TrackPublication>
       _setMetadata(info.metadata);
     }
     _participantInfo = info;
+    setPermissions(info.permission.toLKType());
+  }
+
+  @internal
+  bool setPermissions(ParticipantPermissions newValue) {
+    if (_permissions == newValue) return false;
+    _permissions = newValue;
+    return true;
   }
 
   /// for internal use

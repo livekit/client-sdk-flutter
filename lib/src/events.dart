@@ -9,6 +9,7 @@ import 'publication/remote.dart';
 import 'publication/track_publication.dart';
 import 'track/track.dart';
 import 'types/other.dart';
+import 'types/participant_permissions.dart';
 
 /// Base type for all LiveKit events.
 mixin LiveKitEvent {}
@@ -359,4 +360,20 @@ class TrackSubscriptionPermissionChangedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, '
       'state: ${state})';
+}
+
+/// The [ParticipantPermissions] updated for the [Participant].
+/// Currently, only for [LocalParticipant].
+/// Emitted by [Room] and [LocalParticipant].
+class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final ParticipantPermissions permissions;
+  const ParticipantPermissionsUpdatedEvent({
+    required this.participant,
+    required this.permissions,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, permissions: ${permissions})';
 }

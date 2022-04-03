@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -17,6 +16,7 @@ import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../types/other.dart';
+import '../types/participant_permissions.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'participant.dart';
@@ -339,4 +339,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   @internal
   Iterable<lk_rtc.TrackPublishedResponse> publishedTracksInfo() =>
       trackPublications.values.map((e) => e.toPBTrackPublishedResponse());
+
+  @internal
+  @override
+  bool setPermissions(ParticipantPermissions newValue) {
+    final didUpdate = super.setPermissions(newValue);
+    if (didUpdate) {
+      // notify
+      [events, room.events].emit(ParticipantPermissionsUpdatedEvent(
+        participant: this,
+        permissions: newValue,
+      ));
+    }
+    return didUpdate;
+  }
 }

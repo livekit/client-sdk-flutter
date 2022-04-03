@@ -196,10 +196,10 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 
 @internal
 class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
-  final String sid;
+  final String trackSid;
 
   const SignalTrackUnpublishedEvent({
-    required this.sid,
+    required this.trackSid,
   });
 }
 

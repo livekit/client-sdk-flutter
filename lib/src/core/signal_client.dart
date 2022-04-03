@@ -172,7 +172,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         break;
       case lk_rtc.SignalResponse_Message.trackUnpublished:
         events.emit(SignalTrackUnpublishedEvent(
-          sid: msg.trackUnpublished.trackSid,
+          trackSid: msg.trackUnpublished.trackSid,
         ));
         break;
       case lk_rtc.SignalResponse_Message.speakersChanged:
