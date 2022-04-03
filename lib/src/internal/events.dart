@@ -195,6 +195,15 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
+class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
+  final String sid;
+
+  const SignalTrackUnpublishedEvent({
+    required this.sid,
+  });
+}
+
+@internal
 class SignalRoomUpdateEvent with SignalEvent, InternalEvent {
   final lk_models.Room room;
 

@@ -24,7 +24,7 @@ class ConnectOptions {
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
-    this.protocolVersion = ProtocolVersion.v6,
+    this.protocolVersion = ProtocolVersion.v7,
   });
 }
 
