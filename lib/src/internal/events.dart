@@ -82,7 +82,7 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
 
 @internal
 // Received a JoinResponse from the server.
-class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalJoinResponseEvent with SignalEvent, InternalEvent {
   final lk_rtc.JoinResponse response;
   const SignalJoinResponseEvent({
     required this.response,
@@ -91,7 +91,7 @@ class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
 
 /// Base class for a ConnectionStateUpdated event
 @internal
-abstract class ConnectionStateUpdatedEvent with EngineEvent, InternalEvent {
+abstract class ConnectionStateUpdatedEvent with InternalEvent {
   final ConnectionState newState;
   final ConnectionState oldState;
   final bool didReconnect;
@@ -168,8 +168,7 @@ class SignalTrickleEvent with SignalEvent, InternalEvent {
 
 @internal
 // relayed by Engine
-class SignalParticipantUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalParticipantUpdateEvent with SignalEvent, InternalEvent {
   final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
     required this.participants,
@@ -177,8 +176,7 @@ class SignalParticipantUpdateEvent
 }
 
 @internal
-class SignalConnectionQualityUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalConnectionQualityUpdateEvent with SignalEvent, InternalEvent {
   final List<lk_rtc.ConnectionQualityInfo> updates;
   const SignalConnectionQualityUpdateEvent({
     required this.updates,
@@ -197,7 +195,7 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
-class SignalRoomUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalRoomUpdateEvent with SignalEvent, InternalEvent {
   final lk_models.Room room;
 
   const SignalRoomUpdateEvent({required this.room});
@@ -206,7 +204,7 @@ class SignalRoomUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
 @internal
 // Speaker update received through websocket
 // relayed by Engine
-class SignalSpeakersChangedEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalSpeakersChangedEvent with SignalEvent, InternalEvent {
   final List<lk_models.SpeakerInfo> speakers;
 
   const SignalSpeakersChangedEvent({
@@ -232,18 +230,17 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
 }
 
 @internal
-class SignalMuteTrackEvent with SignalEvent, InternalEvent {
+class SignalRemoteMuteTrackEvent with SignalEvent, InternalEvent {
   final String sid;
   final bool muted;
-  const SignalMuteTrackEvent({
+  const SignalRemoteMuteTrackEvent({
     required this.sid,
     required this.muted,
   });
 }
 
 @internal
-class SignalStreamStateUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalStreamStateUpdatedEvent with SignalEvent, InternalEvent {
   final List<lk_rtc.StreamStateInfo> updates;
   const SignalStreamStateUpdatedEvent({
     required this.updates,
@@ -251,8 +248,7 @@ class SignalStreamStateUpdatedEvent
 }
 
 @internal
-class SignalSubscribedQualityUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalSubscribedQualityUpdatedEvent with SignalEvent, InternalEvent {
   final String trackSid;
   final List<lk_rtc.SubscribedQuality> updates;
   const SignalSubscribedQualityUpdatedEvent({
@@ -262,8 +258,7 @@ class SignalSubscribedQualityUpdatedEvent
 }
 
 @internal
-class SignalSubscriptionPermissionUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalSubscriptionPermissionUpdateEvent with SignalEvent, InternalEvent {
   final String participantSid;
   final String trackSid;
   final bool allowed;
@@ -305,16 +300,6 @@ class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
   const EngineDataPacketReceivedEvent({
     required this.packet,
     required this.kind,
-  });
-}
-
-@internal
-class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
-  final String sid;
-  final bool muted;
-  const EngineRemoteMuteChangedEvent({
-    required this.sid,
-    required this.muted,
   });
 }
 
