@@ -2,6 +2,7 @@
 
 ## 0.5.8
 
+* Support for protocol 7, remote unpublish.
 * Fixes simulcast issues with Android devices.
 * Adds ability to select capture device by id.
 * `serverRegion` property on Room.
