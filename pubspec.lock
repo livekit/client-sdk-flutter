@@ -114,7 +114,7 @@ packages:
     source: hosted
     version: "2.2.2"
   dart_webrtc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dart_webrtc
       url: "https://pub.dartlang.org"

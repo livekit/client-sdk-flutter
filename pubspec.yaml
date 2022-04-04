@@ -23,6 +23,7 @@ dependencies:
   synchronized: ^3.0.0
   protobuf: ^2.0.1
   flutter_webrtc: ^0.8.5
+  dart_webrtc: ^1.0.5
   device_info_plus: ^3.2.1
 
 dev_dependencies:
