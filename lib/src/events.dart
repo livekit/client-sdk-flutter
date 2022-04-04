@@ -368,9 +368,11 @@ class TrackSubscriptionPermissionChangedEvent with RoomEvent, ParticipantEvent {
 class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final ParticipantPermissions permissions;
+  final ParticipantPermissions oldPermissions;
   const ParticipantPermissionsUpdatedEvent({
     required this.participant,
     required this.permissions,
+    required this.oldPermissions,
   });
 
   @override
