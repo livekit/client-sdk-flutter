@@ -211,6 +211,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else {
         await publication?.unmute();
       }
+    })
+    ..on<SignalTrackUnpublishedEvent>((event) async {
+      // unpublish local track
+      await localParticipant?.unpublishTrack(event.trackSid);
     });
 
   void _setUpEngineListeners() => _engineListener
