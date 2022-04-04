@@ -169,8 +169,9 @@ abstract class Participant<T extends TrackPublication>
   }
 
   @internal
-  ParticipantPermissions setPermissions(ParticipantPermissions newValue) {
-    if (_permissions == newValue) return _permissions;
+  // returns oldValue (if updated)
+  ParticipantPermissions? setPermissions(ParticipantPermissions newValue) {
+    if (_permissions == newValue) return null;
     final oldValue = _permissions;
     _permissions = newValue;
     return oldValue;

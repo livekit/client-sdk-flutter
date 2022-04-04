@@ -342,9 +342,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   @internal
   @override
-  ParticipantPermissions setPermissions(ParticipantPermissions newValue) {
+  ParticipantPermissions? setPermissions(ParticipantPermissions newValue) {
     final oldValue = super.setPermissions(newValue);
-    if (oldValue != newValue) {
+    if (oldValue != null) {
       // notify
       [events, room.events].emit(ParticipantPermissionsUpdatedEvent(
         participant: this,
