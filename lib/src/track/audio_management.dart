@@ -74,7 +74,7 @@ mixin AudioManagementMixin on AudioTrack {
       logger.fine('[$runtimeType] didUpdateSate: $audioTrackState');
 
       NativeAudioConfiguration? config;
-      if (!lkPlatformIs(PlatformType.iOS)) {
+      if (lkPlatformIs(PlatformType.iOS)) {
         // Only iOS for now...
         config = await nativeAudioConfigurationForAudioTrackState
             .call(audioTrackState);
