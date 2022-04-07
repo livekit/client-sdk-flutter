@@ -176,7 +176,7 @@ abstract class LocalTrack extends Track {
 
   @internal
   @mustCallSuper
-  Future<bool> publish() async {
+  Future<bool> onPublish() async {
     if (_published) {
       // already published
       return false;
@@ -190,7 +190,7 @@ abstract class LocalTrack extends Track {
 
   @internal
   @mustCallSuper
-  Future<bool> unpublish() async {
+  Future<bool> onUnpublish() async {
     if (!_published) {
       // already unpublished
       return false;

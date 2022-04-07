@@ -28,29 +28,29 @@ int _remoteTrackCount = 0;
 
 mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {
   @override
-  Future<bool> publish() async {
-    final didPublish = await super.publish();
-    if (didPublish) {
+  Future<bool> onPublish() async {
+    final didUpdate = await super.onPublish();
+    if (didUpdate) {
       // update counter
       await _trackCounterLock.synchronized(() async {
         _localTrackCount++;
         await _onAudioTrackCountDidChange();
       });
     }
-    return didPublish;
+    return didUpdate;
   }
 
   @override
-  Future<bool> unpublish() async {
-    final didUnpublish = await super.unpublish();
-    if (didUnpublish) {
+  Future<bool> onUnpublish() async {
+    final didUpdate = await super.onUnpublish();
+    if (didUpdate) {
       // update counter
       await _trackCounterLock.synchronized(() async {
         _localTrackCount--;
         await _onAudioTrackCountDidChange();
       });
     }
-    return didUnpublish;
+    return didUpdate;
   }
 }
 mixin RemoteAudioManagementMixin on RemoteTrack, AudioTrack {
