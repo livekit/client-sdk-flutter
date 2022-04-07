@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.5.9
+
+* Fix: iOS audio issue which prevents `AVAudioSessionCategory` to switch correctly.
+
 ## 0.5.8
 
 * Support for protocol 7, remote unpublish.
