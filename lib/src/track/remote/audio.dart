@@ -10,7 +10,7 @@ import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
     as audio;
 
 class RemoteAudioTrack extends RemoteTrack
-    with AudioTrack, AudioManagementMixin {
+    with AudioTrack, RemoteAudioManagementMixin {
   //
   RemoteAudioTrack(
     String name,
