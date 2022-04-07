@@ -18,7 +18,7 @@ typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
     AudioTrackState state);
 
 // it's possible to set custom function here to customize audio session configuration
-ConfigureNativeAudioFunc nativeAudioConfigurationForAudioTrackState =
+ConfigureNativeAudioFunc onConfigureNativeAudio =
     defaultNativeAudioConfigurationFunc;
 
 final _trackCounterLock = sync.Lock();
@@ -94,8 +94,7 @@ Future<void> _onAudioTrackCountDidChange() async {
     NativeAudioConfiguration? config;
     if (lkPlatformIs(PlatformType.iOS)) {
       // Only iOS for now...
-      config = await nativeAudioConfigurationForAudioTrackState
-          .call(_audioTrackState);
+      config = await onConfigureNativeAudio.call(_audioTrackState);
     }
 
     if (config != null) {
