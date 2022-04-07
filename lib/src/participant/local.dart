@@ -81,6 +81,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
     addTrackPublication(pub);
 
+    // did publish
+    await track.publish();
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -175,6 +178,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
     addTrackPublication(pub);
 
+    // did publish
+    await track.publish();
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -215,6 +221,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await room.engine.negotiate();
         }
       }
+
+      // did unpublish
+      await track.unpublish();
     }
 
     if (notify) {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
+import '../../extensions.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -45,6 +45,9 @@ mixin AudioTrack on Track {}
 abstract class LocalTrack extends Track {
   /// Options used for this track
   abstract LocalTrackOptions currentOptions;
+
+  bool _published = false;
+  bool get isPublished => _published;
 
   LocalTrack(
     String name,
@@ -169,5 +172,33 @@ abstract class LocalTrack extends Track {
 
     // mark as started
     await start();
+  }
+
+  @internal
+  @mustCallSuper
+  Future<bool> publish() async {
+    if (_published) {
+      // already published
+      return false;
+    }
+
+    logger.fine('$objectId.publish()');
+
+    _published = true;
+    return true;
+  }
+
+  @internal
+  @mustCallSuper
+  Future<bool> unpublish() async {
+    if (!_published) {
+      // already unpublished
+      return false;
+    }
+
+    logger.fine('$objectId.unpublish()');
+
+    _published = false;
+    return true;
   }
 }

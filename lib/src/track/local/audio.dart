@@ -8,7 +8,8 @@ import '../audio_management.dart';
 import '../options.dart';
 import 'local.dart';
 
-class LocalAudioTrack extends LocalTrack with AudioTrack, AudioManagementMixin {
+class LocalAudioTrack extends LocalTrack
+    with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
   covariant AudioCaptureOptions currentOptions;
