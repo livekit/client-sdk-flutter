@@ -367,11 +367,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             ));
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
-      // only listen to primary ice events
-      if (!event.isPrimary) return;
+      //
+      final isPrimaryOrPublisher = event.isPrimary ||
+          (_hasPublished && event is EnginePublisherPeerStateUpdatedEvent);
 
-      if (event.state ==
-          rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+      if (isPrimaryOrPublisher && event.state.isDisconnectedOrFailed()) {
         // trigger reconnect sequence
         _onDisconnected(DisconnectReason.peerConnection);
       }

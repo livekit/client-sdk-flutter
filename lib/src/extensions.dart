@@ -77,6 +77,11 @@ extension RTCIceCandidateExt on rtc.RTCIceCandidate {
 extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
   bool isConnected() =>
       this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+
+  bool isDisconnectedOrFailed() => [
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
+      ].contains(this);
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
