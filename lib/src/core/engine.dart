@@ -139,6 +139,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     await publisher?.dispose();
     publisher = null;
+    _hasPublished = false;
 
     await subscriber?.dispose();
     subscriber = null;
