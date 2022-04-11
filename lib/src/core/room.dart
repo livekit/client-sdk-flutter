@@ -121,7 +121,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _connectOptions = connectOptions ?? _connectOptions;
     _roomOptions = roomOptions ?? this.roomOptions;
 
-    return engine.connect(url, token, this.connectOptions);
+    await engine.connect(url, token, this.connectOptions);
   }
 
   void _setUpSignalListeners() => _signalListener
