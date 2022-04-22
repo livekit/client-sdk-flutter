@@ -15,7 +15,11 @@ class E2EContainer {
     wsConnector = MockWebSocketConnector();
     client = SignalClient(wsConnector.connect);
     engine = Engine(
-        signalClient: client, peerConnectionCreate: MockPeerConnection.create);
+      signalClient: client,
+      peerConnectionCreate: MockPeerConnection.create,
+      connectOptions: const ConnectOptions(),
+      roomOptions: const RoomOptions(),
+    );
     room = Room(engine: engine);
   }
 

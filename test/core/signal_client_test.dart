@@ -12,6 +12,9 @@ import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
 
 void main() {
+  const connectOptions = ConnectOptions();
+  const roomOptions = RoomOptions();
+
   late SignalClient client;
   late MockWebSocketConnector connector;
   setUp(() async {
@@ -29,7 +32,12 @@ void main() {
             predicate<SignalConnectionStateUpdatedEvent>(
                 (event) => event.newState == ConnectionState.connected),
           ]));
-      await client.connect(exampleUri, token);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
     });
     test('reconnect', () async {
       expect(
@@ -41,13 +49,24 @@ void main() {
                 event.newState == ConnectionState.connected &&
                 event.didReconnect == true),
           ]));
-      await client.connect(exampleUri, token, reconnect: true);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: true,
+      );
     });
   });
 
   group('messaging', () {
     test('join', () async {
-      await client.connect(exampleUri, token);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
       expect(client.events.streamCtrl.stream,
           emits(isA<SignalJoinResponseEvent>()));
       connector.handlers?.onData!(joinResponse.writeToBuffer());

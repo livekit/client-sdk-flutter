@@ -10,7 +10,6 @@ import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../options.dart';
 import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -187,7 +186,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       _cancelPendingTrackSettingsUpdateRequest?.call();
       _visibilityTimer?.cancel();
 
-      final roomOptions = participant.room.roomOptions ?? const RoomOptions();
+      final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
