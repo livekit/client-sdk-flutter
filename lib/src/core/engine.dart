@@ -103,6 +103,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     this.url = url;
     this.token = token;
+    // update new options (if exists)
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
 
