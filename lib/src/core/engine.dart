@@ -61,7 +61,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // remember url and token for reconnect
   String? url;
   String? token;
-  ConnectOptions? connectOptions;
+
+  ConnectOptions connectOptions;
+  RoomOptions roomOptions;
 
   bool _subscriberPrimary = false;
 
@@ -71,6 +73,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   late final _signalListener = signalClient.createListener(synchronized: true);
 
   Engine({
+    required this.connectOptions,
+    required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
@@ -93,12 +97,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> connect(
     String url,
-    String token,
+    String token, {
     ConnectOptions? connectOptions,
-  ) async {
+    RoomOptions? roomOptions,
+  }) async {
     this.url = url;
     this.token = token;
-    this.connectOptions = connectOptions ?? const ConnectOptions();
+    // update new options (if exists)
+    this.connectOptions = connectOptions ?? this.connectOptions;
+    this.roomOptions = roomOptions ?? this.roomOptions;
 
     _updateConnectionState(ConnectionState.connecting);
 
@@ -108,6 +115,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         url,
         token,
         connectOptions: this.connectOptions,
+        roomOptions: this.roomOptions,
       );
 
       // wait for join response
@@ -262,6 +270,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         url!,
         token!,
         connectOptions: connectOptions,
+        roomOptions: roomOptions,
         reconnect: true,
       );
 
@@ -320,7 +329,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
-    final connectOptions = this.connectOptions ?? const ConnectOptions();
     final serverIceServers =
         _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
 

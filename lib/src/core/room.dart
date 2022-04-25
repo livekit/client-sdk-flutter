@@ -27,8 +27,11 @@ import 'engine.dart';
 /// * active speakers are different
 /// {@category Room}
 class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
+  // expose engine's params
   /// connection state of the room
   ConnectionState get connectionState => engine.connectionState;
+  ConnectOptions get connectOptions => engine.connectOptions;
+  RoomOptions get roomOptions => engine.roomOptions;
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
@@ -64,12 +67,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
 
-  ConnectOptions? get connectOptions => _connectOptions;
-  ConnectOptions? _connectOptions;
-
-  RoomOptions? get roomOptions => _roomOptions;
-  RoomOptions? _roomOptions;
-
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
@@ -77,12 +74,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late final EventsListener<SignalEvent> _signalListener;
 
   Room({
-    ConnectOptions? connectOptions,
-    RoomOptions? roomOptions,
+    ConnectOptions connectOptions = const ConnectOptions(),
+    RoomOptions roomOptions = const RoomOptions(),
     Engine? engine,
-  })  : _connectOptions = connectOptions,
-        _roomOptions = roomOptions,
-        engine = engine ?? Engine() {
+  }) : engine = engine ??
+            Engine(
+              connectOptions: connectOptions,
+              roomOptions: roomOptions,
+            ) {
+    //
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
 
@@ -116,13 +116,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String token, {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
-  }) async {
-    // update options if provided
-    _connectOptions = connectOptions ?? _connectOptions;
-    _roomOptions = roomOptions ?? this.roomOptions;
-
-    return engine.connect(url, token, this.connectOptions);
-  }
+  }) =>
+      engine.connect(
+        url,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {
@@ -157,10 +157,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<SignalStreamStateUpdatedEvent>(
         (event) => _onSignalStreamStateUpdateEvent(event.updates))
     ..on<SignalSubscribedQualityUpdatedEvent>((event) {
-      // Signal for Dynacast
-      final options = roomOptions ?? const RoomOptions();
       // Dynacast is off or is unsupported
-      if (!options.dynacast || _serverVersion == '0.15.1') {
+      if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
         logger.fine('Received subscribed quality update'
             ' but Dynacast is off or server version is not supported.');
         return;
@@ -456,7 +454,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> _sendSyncState() async {
-    final connectOptions = this.connectOptions ?? const ConnectOptions();
     final sendUnSub = connectOptions.autoSubscribe;
     final participantTracks =
         participants.values.map((e) => e.participantTracks());

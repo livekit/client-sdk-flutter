@@ -141,13 +141,12 @@ class Utils {
   static Future<Uri> buildUri(
     String uriString, {
     required String token,
-    ConnectOptions? connectOptions,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
     bool reconnect = false,
     bool validate = false,
     bool forceSecure = false,
   }) async {
-    connectOptions ??= const ConnectOptions();
-
     final Uri uri = Uri.parse(uriString);
 
     final useSecure = uri.isSecureScheme || forceSecure;
@@ -173,6 +172,7 @@ class Utils {
       queryParameters: <String, String>{
         'access_token': token,
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
+        'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',

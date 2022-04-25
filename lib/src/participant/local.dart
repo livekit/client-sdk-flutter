@@ -50,14 +50,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // Use defaultPublishOptions if options is null
     publishOptions =
-        publishOptions ?? room.roomOptions?.defaultAudioPublishOptions;
+        publishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
       source: track.source.toPBType(),
-      dtx: publishOptions?.dtx,
+      dtx: publishOptions.dtx,
     );
 
     await track.start();
@@ -105,7 +105,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // Use defaultPublishOptions if options is null
     publishOptions =
-        publishOptions ?? room.roomOptions?.defaultVideoPublishOptions;
+        publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
@@ -202,8 +202,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final track = pub.track;
     if (track != null) {
-      final roomOptions = room.roomOptions ?? const RoomOptions();
-      if (roomOptions.stopLocalTrackOnUnpublish) {
+      if (room.roomOptions.stopLocalTrackOnUnpublish) {
         await track.stop();
       }
 
@@ -304,15 +303,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     } else if (enabled) {
       if (source == TrackSource.camera) {
         final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions?.defaultCameraCaptureOptions);
+            room.roomOptions.defaultCameraCaptureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create(
-            room.roomOptions?.defaultAudioCaptureOptions);
+            room.roomOptions.defaultAudioCaptureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         final track = await LocalVideoTrack.createScreenShareTrack(
-            room.roomOptions?.defaultScreenShareCaptureOptions);
+            room.roomOptions.defaultScreenShareCaptureOptions);
         return await publishVideoTrack(track);
       }
     }

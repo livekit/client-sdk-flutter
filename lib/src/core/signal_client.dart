@@ -45,13 +45,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   Future<void> connect(
     String uriString,
     String token, {
-    ConnectOptions? connectOptions,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
     bool reconnect = false,
   }) async {
     final rtcUri = await Utils.buildUri(
       uriString,
       token: token,
       connectOptions: connectOptions,
+      roomOptions: roomOptions,
       reconnect: reconnect,
     );
 
@@ -85,6 +87,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           uriString,
           token: token,
           connectOptions: connectOptions,
+          roomOptions: roomOptions,
           validate: true,
           forceSecure: rtcUri.isSecureScheme,
         );

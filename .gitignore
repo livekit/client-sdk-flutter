@@ -80,3 +80,6 @@ build/
 
 # Windows
 _build
+
+# FVM
+.fvm/
