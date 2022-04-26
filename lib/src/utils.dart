@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
-
 import 'package:collection/collection.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -152,17 +151,13 @@ class Utils {
     final useSecure = uri.isSecureScheme || forceSecure;
     final httpScheme = useSecure ? 'https' : 'http';
     final wsScheme = useSecure ? 'wss' : 'ws';
-    final lastSegment = validate ? 'validate' : 'rtc';
+    final lastSegments = validate ? ['rtc', 'validate'] : ['rtc'];
 
     final pathSegments = List<String>.from(uri.pathSegments);
 
     // strip path segment used for LiveKit if already exists
     pathSegments.removeWhere((e) => e.isEmpty);
-    if (pathSegments.isNotEmpty &&
-        ['rtc', 'validate'].contains(uri.pathSegments.last)) {
-      pathSegments.removeLast();
-    }
-    pathSegments.add(lastSegment);
+    pathSegments.addAll(lastSegments);
 
     final clientInfo = await _clientInfo();
 
