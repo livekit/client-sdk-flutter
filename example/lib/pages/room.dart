@@ -32,7 +32,8 @@ class _RoomPageState extends State<RoomPage> {
     widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
     _sortParticipants();
-    WidgetsBinding.instance?.addPostFrameCallback((_) => _askPublish());
+    WidgetsBindingCompatible.instance
+        ?.addPostFrameCallback((_) => _askPublish());
   }
 
   @override
@@ -48,7 +49,7 @@ class _RoomPageState extends State<RoomPage> {
 
   void _setUpListeners() => _listener
     ..on<RoomDisconnectedEvent>((_) async {
-      WidgetsBinding.instance
+      WidgetsBindingCompatible.instance
           ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
     })
     ..on<DataReceivedEvent>((event) {

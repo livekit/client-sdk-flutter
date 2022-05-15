@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'events.dart';
@@ -159,4 +160,9 @@ extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
         allTracks: allTracksAllowed,
         trackSids: allowedTrackSids,
       );
+}
+
+extension WidgetsBindingCompatible on WidgetsBinding {
+  // always return optional type for compatibility with flutter v2 and v3
+  static WidgetsBinding? get instance => WidgetsBinding.instance;
 }

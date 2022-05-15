@@ -29,3 +29,4 @@ export 'src/types/video_dimensions.dart';
 export 'src/types/video_encoding.dart';
 export 'src/types/video_parameters.dart';
 export 'src/widget/video_track_renderer.dart';
+export 'src/extensions.dart' show WidgetsBindingCompatible;

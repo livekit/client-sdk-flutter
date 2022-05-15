@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
+import '../extensions.dart';
 import '../internal/events.dart';
 import '../managers/event.dart';
 import '../track/local/local.dart';
@@ -83,7 +83,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           key: _internalKey,
           builder: (ctx) {
             // let it render before notifying build
-            WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+            WidgetsBindingCompatible.instance
+                ?.addPostFrameCallback((timeStamp) {
               widget.track.onVideoViewBuild?.call(_internalKey);
             });
             return rtc.RTCVideoView(
