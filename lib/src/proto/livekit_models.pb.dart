@@ -575,6 +575,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'region')
+    ..aOB(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isPublisher')
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -589,6 +594,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.int? version,
     ParticipantPermission? permission,
     $core.String? region,
+    $core.bool? isPublisher,
   }) {
     final _result = create();
     if (sid != null) {
@@ -620,6 +626,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (region != null) {
       _result.region = region;
+    }
+    if (isPublisher != null) {
+      _result.isPublisher = isPublisher;
     }
     return _result;
   }
@@ -762,6 +771,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasRegion() => $_has(9);
   @$pb.TagNumber(12)
   void clearRegion() => clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.bool get isPublisher => $_getBF(10);
+  @$pb.TagNumber(13)
+  set isPublisher($core.bool v) {
+    $_setBool(10, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasIsPublisher() => $_has(10);
+  @$pb.TagNumber(13)
+  void clearIsPublisher() => clearField(13);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
@@ -2360,6 +2381,18 @@ class RTPStats extends $pb.GeneratedMessage {
             ? ''
             : 'lastLayerLockPli',
         subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(
+        37,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackAcks',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        38,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackRepeated',
+        $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   RTPStats._() : super();
@@ -2400,6 +2433,8 @@ class RTPStats extends $pb.GeneratedMessage {
     $0.Timestamp? lastKeyFrame,
     $core.int? layerLockPlis,
     $0.Timestamp? lastLayerLockPli,
+    $core.int? nackAcks,
+    $core.int? nackRepeated,
   }) {
     final _result = create();
     if (startTime != null) {
@@ -2509,6 +2544,12 @@ class RTPStats extends $pb.GeneratedMessage {
     }
     if (lastLayerLockPli != null) {
       _result.lastLayerLockPli = lastLayerLockPli;
+    }
+    if (nackAcks != null) {
+      _result.nackAcks = nackAcks;
+    }
+    if (nackRepeated != null) {
+      _result.nackRepeated = nackRepeated;
     }
     return _result;
   }
@@ -2972,4 +3013,28 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearLastLayerLockPli() => clearField(36);
   @$pb.TagNumber(36)
   $0.Timestamp ensureLastLayerLockPli() => $_ensure(35);
+
+  @$pb.TagNumber(37)
+  $core.int get nackAcks => $_getIZ(36);
+  @$pb.TagNumber(37)
+  set nackAcks($core.int v) {
+    $_setUnsignedInt32(36, v);
+  }
+
+  @$pb.TagNumber(37)
+  $core.bool hasNackAcks() => $_has(36);
+  @$pb.TagNumber(37)
+  void clearNackAcks() => clearField(37);
+
+  @$pb.TagNumber(38)
+  $core.int get nackRepeated => $_getIZ(37);
+  @$pb.TagNumber(38)
+  set nackRepeated($core.int v) {
+    $_setUnsignedInt32(37, v);
+  }
+
+  @$pb.TagNumber(38)
+  $core.bool hasNackRepeated() => $_has(37);
+  @$pb.TagNumber(38)
+  void clearNackRepeated() => clearField(38);
 }

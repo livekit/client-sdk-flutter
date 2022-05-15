@@ -2987,6 +2987,11 @@ class TrackPermission extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'trackSids')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantIdentity')
     ..hasRequiredFields = false;
 
   TrackPermission._() : super();
@@ -2994,6 +2999,7 @@ class TrackPermission extends $pb.GeneratedMessage {
     $core.String? participantSid,
     $core.bool? allTracks,
     $core.Iterable<$core.String>? trackSids,
+    $core.String? participantIdentity,
   }) {
     final _result = create();
     if (participantSid != null) {
@@ -3004,6 +3010,9 @@ class TrackPermission extends $pb.GeneratedMessage {
     }
     if (trackSids != null) {
       _result.trackSids.addAll(trackSids);
+    }
+    if (participantIdentity != null) {
+      _result.participantIdentity = participantIdentity;
     }
     return _result;
   }
@@ -3060,6 +3069,18 @@ class TrackPermission extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get trackSids => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.String get participantIdentity => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set participantIdentity($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasParticipantIdentity() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearParticipantIdentity() => clearField(4);
 }
 
 class SubscriptionPermission extends $pb.GeneratedMessage {
@@ -3400,12 +3421,22 @@ class DataChannelInfo extends $pb.GeneratedMessage {
             ? ''
             : 'id',
         $pb.PbFieldType.OU3)
+    ..e<SignalTarget>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'target',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: SignalTarget.PUBLISHER,
+        valueOf: SignalTarget.valueOf,
+        enumValues: SignalTarget.values)
     ..hasRequiredFields = false;
 
   DataChannelInfo._() : super();
   factory DataChannelInfo({
     $core.String? label,
     $core.int? id,
+    SignalTarget? target,
   }) {
     final _result = create();
     if (label != null) {
@@ -3413,6 +3444,9 @@ class DataChannelInfo extends $pb.GeneratedMessage {
     }
     if (id != null) {
       _result.id = id;
+    }
+    if (target != null) {
+      _result.target = target;
     }
     return _result;
   }
@@ -3466,6 +3500,18 @@ class DataChannelInfo extends $pb.GeneratedMessage {
   $core.bool hasId() => $_has(1);
   @$pb.TagNumber(2)
   void clearId() => clearField(2);
+
+  @$pb.TagNumber(3)
+  SignalTarget get target => $_getN(2);
+  @$pb.TagNumber(3)
+  set target(SignalTarget v) {
+    setField(3, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasTarget() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTarget() => clearField(3);
 }
 
 enum SimulateScenario_Scenario {

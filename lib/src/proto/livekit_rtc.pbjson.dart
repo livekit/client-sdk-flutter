@@ -777,12 +777,19 @@ const TrackPermission$json = const {
     },
     const {'1': 'all_tracks', '3': 2, '4': 1, '5': 8, '10': 'allTracks'},
     const {'1': 'track_sids', '3': 3, '4': 3, '5': 9, '10': 'trackSids'},
+    const {
+      '1': 'participant_identity',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
   ],
 };
 
 /// Descriptor for `TrackPermission`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackPermissionDescriptor = $convert.base64Decode(
-    'Cg9UcmFja1Blcm1pc3Npb24SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBIdCgphbGxfdHJhY2tzGAIgASgIUglhbGxUcmFja3MSHQoKdHJhY2tfc2lkcxgDIAMoCVIJdHJhY2tTaWRz');
+    'Cg9UcmFja1Blcm1pc3Npb24SJwoPcGFydGljaXBhbnRfc2lkGAEgASgJUg5wYXJ0aWNpcGFudFNpZBIdCgphbGxfdHJhY2tzGAIgASgIUglhbGxUcmFja3MSHQoKdHJhY2tfc2lkcxgDIAMoCVIJdHJhY2tTaWRzEjEKFHBhcnRpY2lwYW50X2lkZW50aXR5GAQgASgJUhNwYXJ0aWNpcGFudElkZW50aXR5');
 @$core.Deprecated('Use subscriptionPermissionDescriptor instead')
 const SubscriptionPermission$json = const {
   '1': 'SubscriptionPermission',
@@ -877,12 +884,20 @@ const DataChannelInfo$json = const {
   '2': const [
     const {'1': 'label', '3': 1, '4': 1, '5': 9, '10': 'label'},
     const {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
+    const {
+      '1': 'target',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SignalTarget',
+      '10': 'target'
+    },
   ],
 };
 
 /// Descriptor for `DataChannelInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List dataChannelInfoDescriptor = $convert.base64Decode(
-    'Cg9EYXRhQ2hhbm5lbEluZm8SFAoFbGFiZWwYASABKAlSBWxhYmVsEg4KAmlkGAIgASgNUgJpZA==');
+    'Cg9EYXRhQ2hhbm5lbEluZm8SFAoFbGFiZWwYASABKAlSBWxhYmVsEg4KAmlkGAIgASgNUgJpZBItCgZ0YXJnZXQYAyABKA4yFS5saXZla2l0LlNpZ25hbFRhcmdldFIGdGFyZ2V0');
 @$core.Deprecated('Use simulateScenarioDescriptor instead')
 const SimulateScenario$json = const {
   '1': 'SimulateScenario',
