@@ -120,17 +120,17 @@ abstract class EventsListenable<T> extends Disposable {
   // listens to all events, guaranteed to be cancelled on dispose
   CancelListenFunc listen(FutureOr<void> Function(T) onEvent) {
     //
-    FutureOr<void> Function(T) _func = onEvent;
+    FutureOr<void> Function(T) func = onEvent;
     if (synchronized) {
       // ensure `onEvent` will trigger one by one (waits for previous `onEvent` to complete)
-      _func = (event) async {
+      func = (event) async {
         await _syncLock.synchronized(() async {
           await onEvent(event);
         });
       };
     }
 
-    final listener = emitter.streamCtrl.stream.listen(_func);
+    final listener = emitter.streamCtrl.stream.listen(func);
     _listeners.add(listener);
 
     // make a cancel func to cancel listening and remove from list in 1 call
@@ -165,7 +165,7 @@ abstract class EventsListenable<T> extends Disposable {
   }) async {
     final completer = Completer<E>();
 
-    final _cancelFunc = on<E>(
+    final cancelFunc = on<E>(
       (event) {
         if (!completer.isCompleted) {
           completer.complete(event);
@@ -183,7 +183,7 @@ abstract class EventsListenable<T> extends Disposable {
       // do not catch exceptions and pass it up
     } finally {
       // always clean-up listener
-      await _cancelFunc.call();
+      await cancelFunc.call();
     }
   }
 }

@@ -62,8 +62,8 @@ class Transport extends Disposable {
       [RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
-    final _ = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(_);
+    final pc = await peerConnectionCreate(rtcConfig.toMap());
+    return Transport._(pc);
   }
 
   late final negotiate = Utils.createDebounceFunc(
