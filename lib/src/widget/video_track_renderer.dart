@@ -65,9 +65,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     await _listener?.dispose();
     _listener = widget.track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
-        if (mounted) {
-          _renderer.srcObject = event.stream;
-        }
+        if (!mounted) return;
+        _renderer.srcObject = event.stream;
+      })
+      ..on<LocalTrackOptionsUpdatedEvent>((event) {
+        if (!mounted) return;
+        // force recompute of mirror mode
+        setState(() {});
       });
   }
 
