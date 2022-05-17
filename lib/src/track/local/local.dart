@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
 import '../../extensions.dart';
+import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -172,6 +173,12 @@ abstract class LocalTrack extends Track {
 
     // mark as started
     await start();
+
+    // notify so VideoView can re-compute mirror mode if necessary
+    events.emit(LocalTrackOptionsUpdatedEvent(
+      track: this,
+      options: currentOptions,
+    ));
   }
 
   @internal

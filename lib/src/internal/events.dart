@@ -4,6 +4,8 @@ import 'package:meta/meta.dart';
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../track/local/local.dart';
+import '../track/options.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 
@@ -56,6 +58,16 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
   const TrackStreamUpdatedEvent({
     required this.track,
     required this.stream,
+  });
+}
+
+@internal
+class LocalTrackOptionsUpdatedEvent with TrackEvent, InternalEvent {
+  final LocalTrack track;
+  final LocalTrackOptions options;
+  const LocalTrackOptionsUpdatedEvent({
+    required this.track,
+    required this.options,
   });
 }
 

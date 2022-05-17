@@ -7,15 +7,24 @@ import '../internal/events.dart';
 import '../managers/event.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
+import '../track/options.dart';
+
+enum VideoViewMirrorMode {
+  auto,
+  off,
+  mirror,
+}
 
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final rtc.RTCVideoViewObjectFit fit;
+  final VideoViewMirrorMode mirrorMode;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+    this.mirrorMode = VideoViewMirrorMode.auto,
     Key? key,
   }) : super(key: key);
 
@@ -56,9 +65,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     await _listener?.dispose();
     _listener = widget.track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
-        if (mounted) {
-          _renderer.srcObject = event.stream;
-        }
+        if (!mounted) return;
+        _renderer.srcObject = event.stream;
+      })
+      ..on<LocalTrackOptionsUpdatedEvent>((event) {
+        if (!mounted) return;
+        // force recompute of mirror mode
+        setState(() {});
       });
   }
 
@@ -89,10 +102,28 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
             });
             return rtc.RTCVideoView(
               _renderer,
-              mirror: widget.track is LocalVideoTrack,
+              mirror: _shouldMirror(),
               filterQuality: FilterQuality.medium,
               objectFit: widget.fit,
             );
           },
         );
+
+  bool _shouldMirror() {
+    // on
+    if (widget.mirrorMode == VideoViewMirrorMode.mirror) return true;
+    // auto
+    if (widget.mirrorMode == VideoViewMirrorMode.auto) {
+      final track = widget.track;
+      if (track is LocalVideoTrack) {
+        final options = track.currentOptions;
+        if (options is CameraCaptureOptions) {
+          // mirror if front camera
+          return options.cameraPosition == CameraPosition.front;
+        }
+      }
+    }
+    // default to false
+    return false;
+  }
 }
