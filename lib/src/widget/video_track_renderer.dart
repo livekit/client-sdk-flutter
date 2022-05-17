@@ -110,20 +110,20 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         );
 
   bool _shouldMirror() {
-    // off
-    if (widget.mirrorMode == VideoViewMirrorMode.off) return false;
     // on
     if (widget.mirrorMode == VideoViewMirrorMode.mirror) return true;
     // auto
-    final track = widget.track;
-    if (track is LocalVideoTrack) {
-      final options = track.currentOptions;
-      if (options is CameraCaptureOptions) {
-        // mirror if front camera
-        return options.cameraPosition == CameraPosition.front;
+    if (widget.mirrorMode == VideoViewMirrorMode.auto) {
+      final track = widget.track;
+      if (track is LocalVideoTrack) {
+        final options = track.currentOptions;
+        if (options is CameraCaptureOptions) {
+          // mirror if front camera
+          return options.cameraPosition == CameraPosition.front;
+        }
       }
     }
-
+    // default to false
     return false;
   }
 }
