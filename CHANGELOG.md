@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.0.0
+
+* Ready for Flutter 3.
+* `mirrorMode` for `VideoTrackRenderer`.
+* Fix url building logic for validation more.
+* Changed `AVAudioSessionCategory` switch timing to publish / unpublish.
+* Support for Bluetooth on Android 11.
+
 ## 0.5.9
 
 * Fix: iOS audio issue which prevents `AVAudioSessionCategory` to switch correctly.
