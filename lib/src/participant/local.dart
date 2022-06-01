@@ -64,6 +64,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
+      sendEncodings: [
+        if (publishOptions.audioBitrate > 0)
+          rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
+      ],
     );
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
     track.transceiver = await room.engine.publisher?.pc.addTransceiver(
