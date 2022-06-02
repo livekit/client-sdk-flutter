@@ -48,12 +48,12 @@ class _ConnectPageState extends State<ConnectPage> {
   // Read saved URL and Token
   Future<void> _readPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-
-    _uriCtrl.text = String.fromEnvironment('URL',
-        defaultValue: prefs.getString(_storeKeyUri) ?? '');
-    _tokenCtrl.text = String.fromEnvironment('TOKEN',
-        defaultValue: prefs.getString(_storeKeyToken) ?? '');
-
+    _uriCtrl.text = const bool.hasEnvironment('URL')
+        ? const String.fromEnvironment('URL')
+        : prefs.getString(_storeKeyUri) ?? '';
+    _tokenCtrl.text = const bool.hasEnvironment('TOKEN')
+        ? const String.fromEnvironment('TOKEN')
+        : prefs.getString(_storeKeyToken) ?? '';
     setState(() {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
