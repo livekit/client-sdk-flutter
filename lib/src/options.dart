@@ -105,6 +105,12 @@ class VideoPublishOptions {
       '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }
 
+class AudioPreset {
+  static const telephone = 12000;
+  static const speech = 20000;
+  static const music = 32000;
+}
+
 /// Options used when publishing audio.
 class AudioPublishOptions {
   /// Whether to enable DTX (Discontinuous Transmission) or not.
@@ -112,8 +118,12 @@ class AudioPublishOptions {
   /// Defaults to true.
   final bool dtx;
 
+  /// max audio bitrate
+  final int audioBitrate;
+
   const AudioPublishOptions({
     this.dtx = true,
+    this.audioBitrate = AudioPreset.speech,
   });
 
   @override
