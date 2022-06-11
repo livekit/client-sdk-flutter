@@ -322,6 +322,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return null;
   }
 
+  bool _allParticipantsAllowed = true;
+  List<ParticipantTrackPermission> _participantTrackPermissions = [];
+
   /// Control who can subscribe to LocalParticipant's published tracks.
   ///
   /// By default, all participants can subscribe. This allows fine-grained control over
@@ -342,11 +345,22 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   void setTrackSubscriptionPermissions({
     required bool allParticipantsAllowed,
     List<ParticipantTrackPermission> trackPermissions = const [],
-  }) =>
-      room.engine.signalClient.sendUpdateSubscriptionPermissions(
-        allParticipants: allParticipantsAllowed,
-        trackPermissions: trackPermissions.map((e) => e.toPBType()).toList(),
-      );
+  }) {
+    _allParticipantsAllowed = allParticipantsAllowed;
+    _participantTrackPermissions = trackPermissions;
+    sendTrackSubscriptionPermissions();
+  }
+
+  void sendTrackSubscriptionPermissions() {
+    if (room.engine.connectionState != ConnectionState.connected) {
+      return;
+    }
+    room.engine.signalClient.sendUpdateSubscriptionPermissions(
+      allParticipants: _allParticipantsAllowed,
+      trackPermissions:
+          _participantTrackPermissions.map((e) => e.toPBType()).toList(),
+    );
+  }
 
   @internal
   Iterable<lk_rtc.TrackPublishedResponse> publishedTracksInfo() =>
