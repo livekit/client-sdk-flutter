@@ -218,6 +218,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _setUpEngineListeners() => _engineListener
     ..on<EngineConnectionStateUpdatedEvent>((event) async {
       if (event.didReconnect) {
+        // re-send tracks permissions
+        localParticipant?.sendTrackSubscriptionPermissions();
         events.emit(const RoomReconnectedEvent());
         await _handlePostReconnect(false);
       } else if (event.newState == ConnectionState.reconnecting) {
