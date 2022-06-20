@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.0.1
+
+* Re-send tracks permissions after reconnected.
+* Add audioBitrate option for publishAudioTrack.
+* Bump version for flutter_webrtc (up to 0.8.9).
+* Fix: SIGTERM / Crash on connection (Windows) #121
+* Fix: Microphone not published on windows build #64
+
 ## 1.0.0
 
 * Ready for Flutter 3.
