@@ -36,10 +36,16 @@ void main() {
     test('participant join', () async {
       expect(
         room.events.streamCtrl.stream,
-        emits(predicate<ParticipantConnectedEvent>(
-          (event) => event.participant.sid == remoteParticipantData.sid,
-        )),
+        emitsInOrder(<Matcher>[
+          predicate<TrackPublishedEvent>(
+            (event) => event.participant.sid == remoteParticipantData.sid,
+          ),
+          predicate<ParticipantConnectedEvent>(
+            (event) => event.participant.sid == remoteParticipantData.sid,
+          )
+        ]),
       );
+
       ws.onData(participantJoinResponse.writeToBuffer());
 
       await room.events.waitFor<ParticipantConnectedEvent>(
