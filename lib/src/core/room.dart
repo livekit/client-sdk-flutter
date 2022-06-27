@@ -279,6 +279,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       String sid, lk_models.ParticipantInfo? info) {
     RemoteParticipant? participant = _participants[sid];
     if (participant != null) {
+      if (info != null) {
+        participant.updateFromInfo(info);
+      }
       return participant;
     }
 
