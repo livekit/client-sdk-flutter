@@ -122,6 +122,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     await track.start();
     await pub.updateTrack(track);
+    await pub.updateSubscriptionAllowed(true);
     addTrackPublication(pub);
 
     [events, room.events].emit(TrackSubscribedEvent(
