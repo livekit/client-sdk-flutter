@@ -411,13 +411,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         final track = event.track;
         final receiver = event.receiver;
         events.on<EngineConnectionStateUpdatedEvent>((event) async {
-          if (event.newState == ConnectionState.connected) {
+          Timer(const Duration(milliseconds: 10), () {
             events.emit(EngineTrackAddedEvent(
               track: track,
               stream: stream,
               receiver: receiver,
             ));
-          }
+          });
         });
         return;
       }
