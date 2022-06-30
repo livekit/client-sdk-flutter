@@ -13,6 +13,8 @@ import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../track/local/audio.dart';
+import '../track/local/video.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 import 'engine.dart';
@@ -114,8 +116,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   Future<void> connect(
     String url,
     String token, {
-    bool? camera,
-    bool? microphone,
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
@@ -147,8 +147,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null) {
         var options = engine.fastConnectOptions!;
-        var audio = options.microphone;
 
+        var audio = options.microphone;
         if (audio.enabled != null && audio.enabled == true) {
           _localParticipant!.setMicrophoneEnabled(true);
         } else if (audio.track != null) {
