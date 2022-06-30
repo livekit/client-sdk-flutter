@@ -64,6 +64,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   ConnectOptions connectOptions;
   RoomOptions roomOptions;
+  FastConnectOptions? fastConnectOptions;
 
   bool _subscriberPrimary = false;
 
@@ -100,12 +101,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     String token, {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
   }) async {
     this.url = url;
     this.token = token;
     // update new options (if exists)
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
+    this.fastConnectOptions = fastConnectOptions;
 
     _updateConnectionState(ConnectionState.connecting);
 

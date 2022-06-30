@@ -8,6 +8,23 @@ import 'types/other.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
 
+class TrackOption<E extends Object, T extends Object> {
+  final E? enabled;
+  final T? track;
+  const TrackOption({this.enabled, this.track});
+}
+
+class FastConnectOptions {
+  FastConnectOptions({
+    this.microphone = const TrackOption(enabled: false),
+    this.camera = const TrackOption(enabled: false),
+    this.screen = const TrackOption(enabled: false),
+  });
+  final TrackOption<bool, LocalTrack> microphone;
+  final TrackOption<bool, LocalTrack> camera;
+  final TrackOption<bool, LocalTrack> screen;
+}
+
 /// Options used when connecting to the server.
 class ConnectOptions {
   /// Auto-subscribe to existing and new [RemoteTrackPublication]s after
