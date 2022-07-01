@@ -168,13 +168,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
             participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
-        emitWhenConnected(SignalLocalTrackPublishedEvent(
+        events.emit(SignalLocalTrackPublishedEvent(
           cid: msg.trackPublished.cid,
           track: msg.trackPublished.track,
         ));
         break;
       case lk_rtc.SignalResponse_Message.trackUnpublished:
-        emitWhenConnected(SignalTrackUnpublishedEvent(
+        events.emit(SignalTrackUnpublishedEvent(
           trackSid: msg.trackUnpublished.trackSid,
         ));
         break;
@@ -186,7 +186,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalRoomUpdateEvent(room: msg.roomUpdate.room));
         break;
       case lk_rtc.SignalResponse_Message.connectionQuality:
-        emitWhenConnected(SignalConnectionQualityUpdateEvent(
+        events.emit(SignalConnectionQualityUpdateEvent(
           updates: msg.connectionQuality.updates,
         ));
         break;
@@ -194,7 +194,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
         break;
       case lk_rtc.SignalResponse_Message.mute:
-        emitWhenConnected(SignalRemoteMuteTrackEvent(
+        events.emit(SignalRemoteMuteTrackEvent(
           sid: msg.mute.sid,
           muted: msg.mute.muted,
         ));
@@ -211,7 +211,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
-        emitWhenConnected(SignalSubscriptionPermissionUpdateEvent(
+        events.emit(SignalSubscriptionPermissionUpdateEvent(
           participantSid: msg.subscriptionPermissionUpdate.participantSid,
           trackSid: msg.subscriptionPermissionUpdate.trackSid,
           allowed: msg.subscriptionPermissionUpdate.allowed,
@@ -238,13 +238,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     if (_connectionState != ConnectionState.reconnecting) {
       logger.fine('SignalClient did disconnect ${_connectionState}');
       _updateConnectionState(ConnectionState.disconnected);
-    }
-  }
-
-  @internal
-  void emitWhenConnected(SignalEvent event) {
-    if (_connectionState == ConnectionState.connected) {
-      events.emit(event);
     }
   }
 }

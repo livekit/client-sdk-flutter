@@ -172,7 +172,9 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
         participant: this,
         publication: pub,
       );
-      [events, room.events].emit(event);
+      if (room.connectionState == ConnectionState.connected) {
+        [events, room.events].emit(event);
+      }
     }
 
     // unpublish any track that is not in the info
