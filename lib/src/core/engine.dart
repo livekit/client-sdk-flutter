@@ -406,6 +406,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('[WebRTC] stream.onRemoveTrack');
       };
 
+      if (connectionState == ConnectionState.reconnecting ||
+          connectionState == ConnectionState.connecting) {
+        final track = event.track;
+        final receiver = event.receiver;
+        events.on<EngineConnectionStateUpdatedEvent>((event) async {
+          Timer(const Duration(milliseconds: 10), () {
+            events.emit(EngineTrackAddedEvent(
+              track: track,
+              stream: stream,
+              receiver: receiver,
+            ));
+          });
+        });
+        return;
+      }
+
+      if (connectionState == ConnectionState.disconnected) {
+        logger.warning('skipping incoming track after Room disconnected');
+        return;
+      }
+
       events.emit(EngineTrackAddedEvent(
         track: event.track,
         stream: stream,

@@ -138,7 +138,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @internal
   Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
-    final hadInfo = hasInfo;
     super.updateFromInfo(info);
 
     // figuring out deltas between tracks
@@ -168,13 +167,13 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
-    // notify listeners when it's not a new participant
-    if (hadInfo) {
-      for (final pub in newPubs) {
-        final event = TrackPublishedEvent(
-          participant: this,
-          publication: pub,
-        );
+    // always emit events for new publications, Room will not forward them unless it's ready
+    for (final pub in newPubs) {
+      final event = TrackPublishedEvent(
+        participant: this,
+        publication: pub,
+      );
+      if (room.connectionState == ConnectionState.connected) {
         [events, room.events].emit(event);
       }
     }
