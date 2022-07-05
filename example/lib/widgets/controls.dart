@@ -6,6 +6,8 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/widgets/screen_select_dialog.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../exts.dart';
 
@@ -86,8 +88,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _enableScreenShare() async {
-    await participant.setScreenShareEnabled(true);
-
     if (Platform.isAndroid) {
       // Android specific
       try {
@@ -105,6 +105,26 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         print('could not publish video: $e');
       }
     }
+
+    if (Platform.isMacOS || Platform.isWindows) {
+      try {
+        final source = await showDialog<DesktopCapturerSource>(
+          context: context,
+          builder: (context) => ScreenSelectDialog(),
+        );
+        if (source == null) {
+          print('cancelled screenshare');
+          return;
+        }
+        print('DesktopCapturerSource: ${source.id}');
+        var track = await LocalVideoTrack.createScreenShareTrack();
+        await participant.publishVideoTrack(track);
+      } catch (e) {
+        print('could not publish video: $e');
+      }
+      return;
+    }
+    await participant.setScreenShareEnabled(true);
   }
 
   void _disableScreenShare() async {
