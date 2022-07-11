@@ -45,6 +45,7 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v5: '5',
         ProtocolVersion.v6: '6',
         ProtocolVersion.v7: '7',
+        ProtocolVersion.v8: '8',
       }[this]!;
 }
 

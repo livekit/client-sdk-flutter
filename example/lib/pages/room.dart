@@ -11,9 +11,11 @@ import '../widgets/participant.dart';
 class RoomPage extends StatefulWidget {
   //
   final Room room;
+  final EventsListener<RoomEvent> listener;
 
   const RoomPage(
-    this.room, {
+    this.room,
+    this.listener, {
     Key? key,
   }) : super(key: key);
 
@@ -24,16 +26,19 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   //
   List<Participant> participants = [];
-  late final EventsListener<RoomEvent> _listener = widget.room.createListener();
-
+  EventsListener<RoomEvent> get _listener => widget.listener;
+  bool get fastConnection => widget.room.engine.fastConnectOptions != null;
   @override
   void initState() {
     super.initState();
     widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
     _sortParticipants();
-    WidgetsBindingCompatible.instance
-        ?.addPostFrameCallback((_) => _askPublish());
+    WidgetsBindingCompatible.instance?.addPostFrameCallback((_) {
+      if (!fastConnection) {
+        _askPublish();
+      }
+    });
   }
 
   @override

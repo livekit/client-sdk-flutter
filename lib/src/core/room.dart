@@ -14,6 +14,8 @@ import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../track/local/audio.dart';
+import '../track/local/video.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 import 'engine.dart';
@@ -117,12 +119,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String token, {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
   }) =>
       engine.connect(
         url,
         token,
         connectOptions: connectOptions,
         roomOptions: roomOptions,
+        fastConnectOptions: fastConnectOptions,
       );
 
   void _setUpSignalListeners() => _signalListener
@@ -140,6 +144,32 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         room: this,
         info: event.response.participant,
       );
+
+      if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
+          engine.fastConnectOptions != null) {
+        var options = engine.fastConnectOptions!;
+
+        var audio = options.microphone;
+        if (audio.enabled != null && audio.enabled == true) {
+          _localParticipant!.setMicrophoneEnabled(true);
+        } else if (audio.track != null) {
+          _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack);
+        }
+
+        var video = options.camera;
+        if (video.enabled != null && video.enabled == true) {
+          _localParticipant!.setCameraEnabled(true);
+        } else if (video.track != null) {
+          _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack);
+        }
+
+        var screen = options.screen;
+        if (screen.enabled != null && screen.enabled == true) {
+          _localParticipant!.setScreenShareEnabled(true);
+        } else if (screen.track != null) {
+          _localParticipant!.publishVideoTrack(screen.track as LocalVideoTrack);
+        }
+      }
 
       for (final info in event.response.otherParticipants) {
         logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '

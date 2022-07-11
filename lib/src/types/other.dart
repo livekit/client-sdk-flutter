@@ -14,6 +14,7 @@ enum ProtocolVersion {
   v5,
   v6, // Session migration
   v7, // Remote unpublish
+  v8,
 }
 
 /// Connection state type used throughout the SDK.
