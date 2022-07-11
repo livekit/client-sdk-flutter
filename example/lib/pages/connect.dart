@@ -90,12 +90,13 @@ class _ConnectPageState extends State<ConnectPage> {
         _uriCtrl.text,
         _tokenCtrl.text,
         roomOptions: RoomOptions(
-          adaptiveStream: _adaptiveStream,
-          dynacast: _dynacast,
-          defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: _simulcast,
-          ),
-        ),
+            adaptiveStream: _adaptiveStream,
+            dynacast: _dynacast,
+            defaultVideoPublishOptions: VideoPublishOptions(
+              simulcast: _simulcast,
+            ),
+            defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
+                useiOSBroadcastExtension: true)),
       );
 
       await Navigator.push<void>(
