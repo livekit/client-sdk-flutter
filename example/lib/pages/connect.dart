@@ -112,7 +112,6 @@ class _ConnectPageState extends State<ConnectPage> {
             ? FastConnectOptions(
                 microphone: const TrackOption(enabled: true),
                 camera: const TrackOption(enabled: true),
-                //screen: const TrackOption(enabled: false),
               )
             : null,
       );
