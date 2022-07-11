@@ -15,16 +15,23 @@ class LiveKitClient {
   static Future<Room> connect(
     String url,
     String token, {
-    ConnectOptions? connectOptions =
-        const ConnectOptions(protocolVersion: ProtocolVersion.v7),
+    ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
   }) async {
     final room = Room();
+    ConnectOptions copyOptions = ConnectOptions(
+      autoSubscribe:
+          connectOptions != null ? connectOptions.autoSubscribe : true,
+      rtcConfiguration: connectOptions != null
+          ? connectOptions.rtcConfiguration
+          : const RTCConfiguration(),
+      protocolVersion: ProtocolVersion.v7,
+    );
     try {
       await room.connect(
         url,
         token,
-        connectOptions: connectOptions,
+        connectOptions: copyOptions,
         roomOptions: roomOptions,
       );
       return room;
