@@ -1,3 +1,5 @@
+import 'package:livekit_client/src/types/other.dart';
+
 import 'core/room.dart';
 import 'options.dart';
 
@@ -14,7 +16,8 @@ class LiveKitClient {
   static Future<Room> connect(
     String url,
     String token, {
-    ConnectOptions? connectOptions,
+    ConnectOptions? connectOptions =
+        const ConnectOptions(protocolVersion: ProtocolVersion.v7),
     RoomOptions? roomOptions,
   }) async {
     final room = Room();
