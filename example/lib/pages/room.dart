@@ -26,14 +26,19 @@ class _RoomPageState extends State<RoomPage> {
   List<Participant> participants = [];
   late final EventsListener<RoomEvent> _listener = widget.room.createListener();
 
+  bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+
   @override
   void initState() {
     super.initState();
     widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
     _sortParticipants();
-    WidgetsBindingCompatible.instance
-        ?.addPostFrameCallback((_) => _askPublish());
+    WidgetsBindingCompatible.instance?.addPostFrameCallback((_) {
+      if (!fastConnection) {
+        _askPublish();
+      }
+    });
   }
 
   @override

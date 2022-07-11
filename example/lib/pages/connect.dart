@@ -24,6 +24,7 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeySimulcast = 'simulcast';
   static const _storeKeyAdaptiveStream = 'adaptive-stream';
   static const _storeKeyDynacast = 'dynacast';
+  static const _storeKeyFastConnect = 'fast-connect';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -31,6 +32,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _adaptiveStream = true;
   bool _dynacast = true;
   bool _busy = false;
+  bool _fastConnect = false;
 
   @override
   void initState() {
@@ -58,6 +60,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
+      _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
     });
   }
 
@@ -69,6 +72,7 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeySimulcast, _simulcast);
     await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
     await prefs.setBool(_storeKeyDynacast, _dynacast);
+    await prefs.setBool(_storeKeyFastConnect, _fastConnect);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -86,17 +90,21 @@ class _ConnectPageState extends State<ConnectPage> {
 
       // Try to connect to a room
       // This will throw an Exception if it fails for any reason.
-      final room = await LiveKitClient.connect(
-        _uriCtrl.text,
-        _tokenCtrl.text,
-        roomOptions: RoomOptions(
-          adaptiveStream: _adaptiveStream,
-          dynacast: _dynacast,
-          defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: _simulcast,
+      final room = Room();
+      await room.connect(_uriCtrl.text, _tokenCtrl.text,
+          roomOptions: RoomOptions(
+            adaptiveStream: _adaptiveStream,
+            dynacast: _dynacast,
+            defaultVideoPublishOptions: VideoPublishOptions(
+              simulcast: _simulcast,
+            ),
           ),
-        ),
-      );
+          fastConnectOptions: _fastConnect
+              ? FastConnectOptions(
+                  microphone: const TrackOption(enabled: true),
+                  camera: const TrackOption(enabled: true),
+                )
+              : null);
 
       await Navigator.push<void>(
         ctx,
@@ -130,6 +138,13 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _dynacast == value) return;
     setState(() {
       _dynacast = value;
+    });
+  }
+
+  void _setFastConnect(bool? value) async {
+    if (value == null || _fastConnect == value) return;
+    setState(() {
+      _fastConnect = value;
     });
   }
 
@@ -190,6 +205,19 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _adaptiveStream,
                           onChanged: (value) => _setAdaptiveStream(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Fast Connect'),
+                        Switch(
+                          value: _fastConnect,
+                          onChanged: (value) => _setFastConnect(value),
                         ),
                       ],
                     ),
