@@ -88,9 +88,14 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      // Try to connect to a room
-      // This will throw an Exception if it fails for any reason.
+      //create new room
       final room = Room();
+
+      // Create a Listener before connecting
+      final listener = room.createListener();
+
+      // Try to connect to the room
+      // This will throw an Exception if it fails for any reason.
       await room.connect(_uriCtrl.text, _tokenCtrl.text,
           roomOptions: RoomOptions(
             adaptiveStream: _adaptiveStream,
@@ -108,7 +113,7 @@ class _ConnectPageState extends State<ConnectPage> {
 
       await Navigator.push<void>(
         ctx,
-        MaterialPageRoute(builder: (_) => RoomPage(room)),
+        MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
       );
     } catch (error) {
       print('Could not connect $error');
