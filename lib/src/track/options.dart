@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../track/local/audio.dart';
@@ -74,12 +76,26 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
+  final bool useiOSBroadcastExtension;
+
   const ScreenShareCaptureOptions({
+    this.useiOSBroadcastExtension = false,
     VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
   }) : super(params: params);
 
-  ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
+  ScreenShareCaptureOptions.from(
+      {this.useiOSBroadcastExtension = false,
+      required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
+
+  @override
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = super.toMediaConstraintsMap();
+    if (useiOSBroadcastExtension && Platform.isIOS) {
+      constraints['deviceId'] = 'broadcast';
+    }
+    return constraints;
+  }
 }
 
 /// Base class for track options.

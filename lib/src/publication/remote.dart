@@ -69,7 +69,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _streamState = streamState;
     [
       participant.events,
-      participant.room.events,
     ].emit(TrackStreamStateUpdatedEvent(
       participant: participant,
       publication: this,
@@ -304,7 +303,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
     // emit events
     [
       participant.events,
-      participant.room.events,
     ].emit(TrackSubscriptionPermissionChangedEvent(
       participant: participant,
       publication: this,

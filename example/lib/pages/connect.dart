@@ -96,21 +96,26 @@ class _ConnectPageState extends State<ConnectPage> {
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
-      await room.connect(_uriCtrl.text, _tokenCtrl.text,
-          roomOptions: RoomOptions(
-            adaptiveStream: _adaptiveStream,
-            dynacast: _dynacast,
-            defaultVideoPublishOptions: VideoPublishOptions(
-              simulcast: _simulcast,
-            ),
+      await room.connect(
+        _uriCtrl.text,
+        _tokenCtrl.text,
+        roomOptions: RoomOptions(
+          adaptiveStream: _adaptiveStream,
+          dynacast: _dynacast,
+          defaultVideoPublishOptions: VideoPublishOptions(
+            simulcast: _simulcast,
           ),
-          fastConnectOptions: _fastConnect
-              ? FastConnectOptions(
-                  microphone: const TrackOption(enabled: true),
-                  camera: const TrackOption(enabled: true),
-                )
-              : null);
-
+          defaultScreenShareCaptureOptions:
+              const ScreenShareCaptureOptions(useiOSBroadcastExtension: true),
+        ),
+        fastConnectOptions: _fastConnect
+            ? FastConnectOptions(
+                microphone: const TrackOption(enabled: true),
+                camera: const TrackOption(enabled: true),
+                //screen: const TrackOption(enabled: false),
+              )
+            : null,
+      );
       await Navigator.push<void>(
         ctx,
         MaterialPageRoute(builder: (_) => RoomPage(room, listener)),

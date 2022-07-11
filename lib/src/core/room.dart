@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
@@ -220,10 +221,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
+      emitWhenConnected(TrackSubscriptionPermissionChangedEvent(
+        participant: participant,
+        publication: publication,
+        state: publication.subscriptionState,
+      ));
     })
     ..on<SignalRoomUpdateEvent>((event) async {
       _metadata = event.room.metadata;
-      events.emit(RoomMetadataChangedEvent(metadata: event.room.metadata));
+      emitWhenConnected(
+          RoomMetadataChangedEvent(metadata: event.room.metadata));
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
@@ -309,6 +316,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       String sid, lk_models.ParticipantInfo? info) {
     RemoteParticipant? participant = _participants[sid];
     if (participant != null) {
+      if (info != null) {
+        participant.updateFromInfo(info);
+      }
       return participant;
     }
 
@@ -353,7 +363,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (isNew) {
         hasChanged = true;
-        events.emit(ParticipantConnectedEvent(participant: participant));
+        // fire connected event
+        emitWhenConnected(ParticipantConnectedEvent(participant: participant));
       } else {
         await participant.updateFromInfo(info);
       }
@@ -387,7 +398,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final activeSpeakers = lastSpeakers.values.toList();
     activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
     _activeSpeakers = activeSpeakers;
-    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   // from data channel
@@ -421,7 +432,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     _activeSpeakers = activeSpeakers;
-    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onSignalConnectionQualityUpdateEvent(
@@ -452,6 +463,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (trackPublication == null) continue;
       // update the stream state
       await trackPublication.updateStreamState(update.state.toLKType());
+      emitWhenConnected(TrackStreamStateUpdatedEvent(
+        participant: participant,
+        publication: trackPublication,
+        streamState: update.state.toLKType(),
+      ));
     }
   }
 
@@ -482,7 +498,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     await participant.unpublishAllTracks(notify: true);
 
-    events.emit(ParticipantDisconnectedEvent(participant: participant));
+    emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
   }
 
   Future<void> _sendSyncState() async {
@@ -541,6 +557,13 @@ extension RoomPrivateMethods on Room {
     _metadata = null;
     _serverVersion = null;
     _serverRegion = null;
+  }
+
+  @internal
+  void emitWhenConnected(RoomEvent event) {
+    if (connectionState == ConnectionState.connected) {
+      events.emit(event);
+    }
   }
 }
 
