@@ -1,7 +1,6 @@
-import 'package:livekit_client/src/types/other.dart';
-
 import 'core/room.dart';
 import 'options.dart';
+import 'types/other.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}
