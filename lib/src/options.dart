@@ -20,9 +20,9 @@ class FastConnectOptions {
     this.camera = const TrackOption(enabled: false),
     this.screen = const TrackOption(enabled: false),
   });
-  final TrackOption<bool, LocalTrack> microphone;
-  final TrackOption<bool, LocalTrack> camera;
-  final TrackOption<bool, LocalTrack> screen;
+  final TrackOption<bool, LocalAudioTrack> microphone;
+  final TrackOption<bool, LocalVideoTrack> camera;
+  final TrackOption<bool, LocalVideoTrack> screen;
 }
 
 /// Options used when connecting to the server.
