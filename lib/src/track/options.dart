@@ -77,14 +77,20 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
   final bool useiOSBroadcastExtension;
+  final String? sourceId;
+  final double? frameRate;
 
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
+    this.sourceId,
+    this.frameRate = 30.0,
     VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
   }) : super(params: params);
 
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
+      this.sourceId,
+      this.frameRate = 30.0,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
 
@@ -93,6 +99,14 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     var constraints = super.toMediaConstraintsMap();
     if (useiOSBroadcastExtension && Platform.isIOS) {
       constraints['deviceId'] = 'broadcast';
+    }
+    if (Platform.isWindows || Platform.isMacOS) {
+      if (sourceId != null) {
+        constraints['deviceId'] = {'exact': sourceId};
+      }
+      if (frameRate != 0.0) {
+        constraints['mandatory'] = {'frameRate': frameRate};
+      }
     }
     return constraints;
   }

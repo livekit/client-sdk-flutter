@@ -117,7 +117,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           return;
         }
         print('DesktopCapturerSource: ${source.id}');
-        var track = await LocalVideoTrack.createScreenShareTrack();
+        var track = await LocalVideoTrack.createScreenShareTrack(
+          ScreenShareCaptureOptions(
+            sourceId: source.id,
+            frameRate: 15.0,
+          ),
+        );
         await participant.publishVideoTrack(track);
       } catch (e) {
         print('could not publish video: $e');
