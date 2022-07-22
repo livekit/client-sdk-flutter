@@ -215,10 +215,12 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      name: flutter_webrtc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.8.10"
+      path: "."
+      ref: "feat/screen-capture-event-listener-for-win"
+      resolved-ref: "1ccc47184c4060af2ca932cc8d26d42bb27b59e6"
+      url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
+    source: git
+    version: "0.8.12"
   glob:
     dependency: transitive
     description:
