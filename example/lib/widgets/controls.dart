@@ -88,7 +88,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _enableScreenShare() async {
-    if (Platform.isAndroid) {
+    if (WebRTC.platformIsAndroid) {
       // Android specific
       try {
         // Required for android screenshare.
@@ -106,7 +106,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       }
     }
 
-    if (Platform.isMacOS || Platform.isWindows) {
+    if (WebRTC.platformIsMacOS || WebRTC.platformIsWindows) {
       try {
         final source = await showDialog<DesktopCapturerSource>(
           context: context,
