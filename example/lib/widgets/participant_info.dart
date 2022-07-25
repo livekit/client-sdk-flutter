@@ -2,6 +2,12 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
+class ParticipantTrack {
+  ParticipantTrack({required this.participant, required this.track});
+  VideoTrack? track;
+  Participant participant;
+}
+
 class ParticipantInfoWidget extends StatelessWidget {
   //
   final String? title;

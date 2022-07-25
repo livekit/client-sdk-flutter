@@ -6,7 +6,6 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_example/widgets/screen_select_dialog.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../exts.dart';
@@ -88,25 +87,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _enableScreenShare() async {
-    if (WebRTC.platformIsAndroid) {
-      // Android specific
-      try {
-        // Required for android screenshare.
-        const androidConfig = FlutterBackgroundAndroidConfig(
-          notificationTitle: 'Screen Sharing',
-          notificationText: 'LiveKit Example is sharing the screen.',
-          notificationImportance: AndroidNotificationImportance.Default,
-          notificationIcon:
-              AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
-        );
-        await FlutterBackground.initialize(androidConfig: androidConfig);
-        await FlutterBackground.enableBackgroundExecution();
-      } catch (e) {
-        print('could not publish video: $e');
-      }
-    }
-
-    if (WebRTC.platformIsMacOS || WebRTC.platformIsWindows) {
+    if (WebRTC.platformIsDesktop) {
       try {
         final source = await showDialog<DesktopCapturerSource>(
           context: context,
@@ -128,6 +109,23 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         print('could not publish video: $e');
       }
       return;
+    }
+    if (WebRTC.platformIsAndroid) {
+      // Android specific
+      try {
+        // Required for android screenshare.
+        const androidConfig = FlutterBackgroundAndroidConfig(
+          notificationTitle: 'Screen Sharing',
+          notificationText: 'LiveKit Example is sharing the screen.',
+          notificationImportance: AndroidNotificationImportance.Default,
+          notificationIcon:
+              AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
+        );
+        await FlutterBackground.initialize(androidConfig: androidConfig);
+        await FlutterBackground.enableBackgroundExecution();
+      } catch (e) {
+        print('could not publish video: $e');
+      }
     }
     await participant.setScreenShareEnabled(true);
   }

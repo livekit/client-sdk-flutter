@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
+import '../logger.dart';
 
 // ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
@@ -9,55 +11,56 @@ class ScreenSelectDialog extends Dialog {
     Future.delayed(const Duration(milliseconds: 100), () {
       _getSources();
     });
-    _subscriptions.add(desktopCapturer.onAdded.stream.listen((source) {
+    _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
     }));
 
-    _subscriptions.add(desktopCapturer.onRemoved.stream.listen((source) {
+    _subscriptions.add(rtc.desktopCapturer.onRemoved.stream.listen((source) {
       _sources.remove(source.id);
       _stateSetter?.call(() {});
     }));
 
-    _subscriptions.add(desktopCapturer.onNameChanged.stream.listen((source) {
+    _subscriptions
+        .add(rtc.desktopCapturer.onNameChanged.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
     }));
 
     _subscriptions
-        .add(desktopCapturer.onThumbnailChanged.stream.listen((source) {
+        .add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
     }));
   }
-  final Map<String, DesktopCapturerSource> _sources = {};
-  SourceType _sourceType = SourceType.Screen;
-  DesktopCapturerSource? _selectedSource;
-  final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
+  final Map<String, rtc.DesktopCapturerSource> _sources = {};
+  rtc.SourceType _sourceType = rtc.SourceType.Screen;
+  rtc.DesktopCapturerSource? _selectedSource;
+  final List<StreamSubscription<rtc.DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
   Timer? _timer;
 
-  void _ok(BuildContext context) async {
+  void _ok(BuildContext context) {
     _timer?.cancel();
     for (var item in _subscriptions) {
-      await item.cancel();
+      item.cancel();
     }
-    Navigator.pop<DesktopCapturerSource>(context, _selectedSource);
+    Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
-  void _cancel(BuildContext context) async {
+  void _cancel(BuildContext context) {
     _timer?.cancel();
     for (var item in _subscriptions) {
-      await item.cancel();
+      item.cancel();
     }
-    Navigator.pop<DesktopCapturerSource>(context, null);
+    Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
     try {
-      var sources = await desktopCapturer.getSources(types: [_sourceType]);
+      var sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
       for (var item in sources) {
-        print('name: ${item.name}, id: ${item.id}, type: ${item.type}');
+        logger.info('name: ${item.name}, id: ${item.id}, type: ${item.type}');
       }
       _stateSetter?.call(() {
         for (var item in sources) {
@@ -66,11 +69,11 @@ class ScreenSelectDialog extends Dialog {
       });
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
-        desktopCapturer.updateSources(types: [_sourceType]);
+        rtc.desktopCapturer.updateSources(types: [_sourceType]);
       });
       return;
     } catch (e) {
-      print(e.toString());
+      logger.warning(e.toString());
     }
   }
 
@@ -125,8 +128,8 @@ class ScreenSelectDialog extends Dialog {
                                 onTap: (value) => Future.delayed(
                                         const Duration(milliseconds: 300), () {
                                       _sourceType = value == 0
-                                          ? SourceType.Screen
-                                          : SourceType.Window;
+                                          ? rtc.SourceType.Screen
+                                          : rtc.SourceType.Window;
                                       _getSources();
                                     }),
                                 tabs: const [
@@ -155,7 +158,7 @@ class ScreenSelectDialog extends Dialog {
                                     children: _sources.entries
                                         .where((element) =>
                                             element.value.type ==
-                                            SourceType.Screen)
+                                            rtc.SourceType.Screen)
                                         .map((e) => Column(
                                               children: [
                                                 Expanded(
@@ -172,7 +175,7 @@ class ScreenSelectDialog extends Dialog {
                                                       : null,
                                                   child: InkWell(
                                                     onTap: () {
-                                                      print(
+                                                      logger.info(
                                                           'Selected screen id => ${e.value.id}');
                                                       setState(() {
                                                         _selectedSource =
@@ -218,7 +221,7 @@ class ScreenSelectDialog extends Dialog {
                                     children: _sources.entries
                                         .where((element) =>
                                             element.value.type ==
-                                            SourceType.Window)
+                                            rtc.SourceType.Window)
                                         .map((e) => Column(
                                               children: [
                                                 Expanded(
@@ -235,7 +238,7 @@ class ScreenSelectDialog extends Dialog {
                                                       : null,
                                                   child: InkWell(
                                                     onTap: () {
-                                                      print(
+                                                      logger.info(
                                                           'Selected window id => ${e.value.id}');
                                                       setState(() {
                                                         _selectedSource =

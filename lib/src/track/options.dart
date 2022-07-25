@@ -101,7 +101,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     if (useiOSBroadcastExtension && WebRTC.platformIsIOS) {
       constraints['deviceId'] = 'broadcast';
     }
-    if (WebRTC.platformIsWindows || WebRTC.platformIsMacOS) {
+    if (WebRTC.platformIsDesktop) {
       if (sourceId != null) {
         constraints['deviceId'] = {'exact': sourceId};
       }

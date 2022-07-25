@@ -10,17 +10,21 @@ import 'participant_info.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
-  static ParticipantWidget widgetFor(Participant participant) {
-    if (participant is LocalParticipant) {
-      return LocalParticipantWidget(participant);
-    } else if (participant is RemoteParticipant) {
-      return RemoteParticipantWidget(participant);
+  static ParticipantWidget widgetFor(
+      ParticipantTrack participantTrack, VideoTrack? videoTrack) {
+    if (participantTrack.participant is LocalParticipant) {
+      return LocalParticipantWidget(
+          participantTrack.participant as LocalParticipant, videoTrack);
+    } else if (participantTrack.participant is RemoteParticipant) {
+      return RemoteParticipantWidget(
+          participantTrack.participant as RemoteParticipant, videoTrack);
     }
     throw UnimplementedError('Unknown participant type');
   }
 
   // Must be implemented by child class
   abstract final Participant participant;
+  abstract final VideoTrack? videoTrack;
   final VideoQuality quality;
 
   const ParticipantWidget({
@@ -32,9 +36,12 @@ abstract class ParticipantWidget extends StatefulWidget {
 class LocalParticipantWidget extends ParticipantWidget {
   @override
   final LocalParticipant participant;
+  @override
+  final VideoTrack? videoTrack;
 
   const LocalParticipantWidget(
-    this.participant, {
+    this.participant,
+    this.videoTrack, {
     Key? key,
   }) : super(key: key);
 
@@ -45,9 +52,12 @@ class LocalParticipantWidget extends ParticipantWidget {
 class RemoteParticipantWidget extends ParticipantWidget {
   @override
   final RemoteParticipant participant;
+  @override
+  final VideoTrack? videoTrack;
 
   const RemoteParticipantWidget(
-    this.participant, {
+    this.participant,
+    this.videoTrack, {
     Key? key,
   }) : super(key: key);
 
@@ -152,14 +162,7 @@ class _LocalParticipantWidgetState
       widget.participant.audioTracks.firstOrNull;
 
   @override
-  VideoTrack? get activeVideoTrack {
-    if (firstVideoPublication?.subscribed == true &&
-        firstVideoPublication?.muted == false &&
-        _visible) {
-      return firstVideoPublication?.track;
-    }
-    return null;
-  }
+  VideoTrack? get activeVideoTrack => widget.videoTrack;
 }
 
 class _RemoteParticipantWidgetState
@@ -173,16 +176,7 @@ class _RemoteParticipantWidgetState
       widget.participant.audioTracks.firstOrNull;
 
   @override
-  VideoTrack? get activeVideoTrack {
-    for (final trackPublication in widget.participant.videoTracks) {
-      print(
-          'video track ${trackPublication.sid} subscribed ${trackPublication.subscribed} muted ${trackPublication.muted}');
-      if (trackPublication.subscribed && !trackPublication.muted && _visible) {
-        return trackPublication.track;
-      }
-    }
-    return null;
-  }
+  VideoTrack? get activeVideoTrack => widget.videoTrack;
 
   @override
   List<Widget> extraWidgets() => [
