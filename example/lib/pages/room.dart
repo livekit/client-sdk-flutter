@@ -93,15 +93,27 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void _sortParticipants() {
-    List<ParticipantTrack> participantTracks = [];
+    List<ParticipantTrack> userMediaTracks = [];
+    List<ParticipantTrack> screenTracks = [];
     for (var participant in widget.room.participants.values) {
       for (var t in participant.videoTracks) {
-        participantTracks
-            .add(ParticipantTrack(participant: participant, track: t.track));
+        if (t.isScreenShare) {
+          screenTracks.add(ParticipantTrack(
+            participant: participant,
+            videoTrack: t.track,
+            isScreenShare: true,
+          ));
+        } else {
+          userMediaTracks.add(ParticipantTrack(
+            participant: participant,
+            videoTrack: t.track,
+            isScreenShare: false,
+          ));
+        }
       }
     }
     // sort speakers for the grid
-    participantTracks.sort((a, b) {
+    userMediaTracks.sort((a, b) {
       // loudest speaker first
       if (a.participant.isSpeaking && b.participant.isSpeaking) {
         if (a.participant.audioLevel > b.participant.audioLevel) {
@@ -132,12 +144,23 @@ class _RoomPageState extends State<RoomPage> {
     final localParticipantTracks = widget.room.localParticipant?.videoTracks;
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
-        participantTracks.add(ParticipantTrack(
-            participant: widget.room.localParticipant!, track: t.track));
+        if (t.isScreenShare) {
+          screenTracks.add(ParticipantTrack(
+            participant: widget.room.localParticipant!,
+            videoTrack: t.track,
+            isScreenShare: true,
+          ));
+        } else {
+          userMediaTracks.add(ParticipantTrack(
+            participant: widget.room.localParticipant!,
+            videoTrack: t.track,
+            isScreenShare: false,
+          ));
+        }
       }
     }
     setState(() {
-      this.participantTracks = participantTracks;
+      this.participantTracks = [...screenTracks, ...userMediaTracks];
     });
   }
 
@@ -147,8 +170,7 @@ class _RoomPageState extends State<RoomPage> {
           children: [
             Expanded(
                 child: participantTracks.isNotEmpty
-                    ? ParticipantWidget.widgetFor(
-                        participantTracks.first, participantTracks.first.track)
+                    ? ParticipantWidget.widgetFor(participantTracks.first)
                     : Container()),
             SizedBox(
               height: 100,
@@ -158,9 +180,8 @@ class _RoomPageState extends State<RoomPage> {
                 itemBuilder: (BuildContext context, int index) => SizedBox(
                   width: 100,
                   height: 100,
-                  child: ParticipantWidget.widgetFor(
-                      participantTracks[index + 1],
-                      participantTracks[index + 1].track),
+                  child:
+                      ParticipantWidget.widgetFor(participantTracks[index + 1]),
                 ),
               ),
             ),
