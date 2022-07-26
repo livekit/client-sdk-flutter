@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -77,22 +78,36 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
   final bool useiOSBroadcastExtension;
+  final String? sourceId;
+  final double? frameRate;
 
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
+    this.sourceId,
+    this.frameRate = 30.0,
     VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
   }) : super(params: params);
 
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
+      this.sourceId,
+      this.frameRate = 30.0,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = super.toMediaConstraintsMap();
-    if (useiOSBroadcastExtension && Platform.isIOS) {
+    if (useiOSBroadcastExtension && WebRTC.platformIsIOS) {
       constraints['deviceId'] = 'broadcast';
+    }
+    if (WebRTC.platformIsDesktop) {
+      if (sourceId != null) {
+        constraints['deviceId'] = {'exact': sourceId};
+      }
+      if (frameRate != 0.0) {
+        constraints['mandatory'] = {'frameRate': frameRate};
+      }
     }
     return constraints;
   }
