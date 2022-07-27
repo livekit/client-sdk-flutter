@@ -160,7 +160,7 @@ class _RoomPageState extends State<RoomPage> {
       }
     }
     setState(() {
-      this.participantTracks = [...screenTracks, ...userMediaTracks];
+      participantTracks = [...screenTracks, ...userMediaTracks];
     });
   }
 
