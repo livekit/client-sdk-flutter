@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.1.0
+
+* Set subscription to allowed when subscribed.
+* Handle combined participant update.
+* Downgrade version settings to support flutter 2.8.0+.
+* Fix: camera release.
+* Feat: iOS screen share.
+* Feat: Screen sharing for desktop.
+* Feat: protocol v8.
+
 ## 1.0.1
 
 * Re-send tracks permissions after reconnected.
