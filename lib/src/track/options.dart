@@ -22,26 +22,22 @@ extension CameraPositionExt on CameraPosition {
 
 /// Options used when creating a [LocalVideoTrack] that captures the camera.
 class CameraCaptureOptions extends VideoCaptureOptions {
-  /// The deviceId of the capture device to use.
-  /// Available deviceIds can be obtained through `flutter_webrtc`:
-  /// <pre>
-  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-  ///
-  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
-  /// </pre>
-  final String? deviceId;
   final CameraPosition cameraPosition;
 
   const CameraCaptureOptions({
-    this.deviceId,
     this.cameraPosition = CameraPosition.front,
+    String? deviceId,
+    double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.h540_169,
-  }) : super(params: params);
+  }) : super(params: params, deviceId: deviceId, maxFrameRate: maxFrameRate);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
-      : deviceId = null,
-        cameraPosition = CameraPosition.front,
-        super(params: captureOptions.params);
+      : cameraPosition = CameraPosition.front,
+        super(
+          params: captureOptions.params,
+          deviceId: captureOptions.deviceId,
+          maxFrameRate: captureOptions.maxFrameRate,
+        );
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
@@ -59,6 +55,9 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         ];
       }
     }
+    if (maxFrameRate != null) {
+      constraints['frameRate'] = {'max': maxFrameRate};
+    }
     return constraints;
   }
 
@@ -66,30 +65,29 @@ class CameraCaptureOptions extends VideoCaptureOptions {
   CameraCaptureOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
+    String? deviceId,
+    double? maxFrameRate,
   }) =>
       CameraCaptureOptions(
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
+        deviceId: deviceId ?? this.deviceId,
+        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
       );
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
   final bool useiOSBroadcastExtension;
-  final String? sourceId;
-  final double? frameRate;
-
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
-    this.sourceId,
-    this.frameRate = 30.0,
+    String? sourceId,
+    double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
-  }) : super(params: params);
+  }) : super(params: params, deviceId: sourceId, maxFrameRate: maxFrameRate);
 
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
-      this.sourceId,
-      this.frameRate = 30.0,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
 
@@ -100,11 +98,11 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
       constraints['deviceId'] = 'broadcast';
     }
     if (WebRTC.platformIsDesktop) {
-      if (sourceId != null) {
-        constraints['deviceId'] = {'exact': sourceId};
+      if (deviceId != null) {
+        constraints['deviceId'] = {'exact': deviceId};
       }
-      if (frameRate != 0.0) {
-        constraints['mandatory'] = {'frameRate': frameRate};
+      if (maxFrameRate != 0.0) {
+        constraints['mandatory'] = {'frameRate': maxFrameRate};
       }
     }
     return constraints;
@@ -124,8 +122,24 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   // final LocalVideoTrackType type;
   final VideoParameters params;
 
+  /// The deviceId of the capture device to use.
+  /// Available deviceIds can be obtained through `flutter_webrtc`:
+  /// <pre>
+  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+  ///
+  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
+  /// // or
+  /// List<DesktopCapturerSource> desktopSources = await rtc.desktopCapturer.getSources(types: [rtc.SourceType.Screen, rtc.SourceType.Window]);
+  /// </pre>
+  final String? deviceId;
+
+  // Limit the maximum frameRate of the capture device.
+  final double? maxFrameRate;
+
   const VideoCaptureOptions({
     this.params = VideoParametersPresets.h540_169,
+    this.deviceId,
+    this.maxFrameRate,
   });
 
   @override

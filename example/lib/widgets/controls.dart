@@ -101,7 +101,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         var track = await LocalVideoTrack.createScreenShareTrack(
           ScreenShareCaptureOptions(
             sourceId: source.id,
-            frameRate: 15.0,
+            maxFrameRate: 15.0,
           ),
         );
         await participant.publishVideoTrack(track);
