@@ -35,7 +35,6 @@ We built a multi-user conferencing app as an example in the [example/](example/)
 Include this package to your `pubspec.yaml`
 
 ```yaml
-
 ---
 dependencies:
   livekit_client: <version>
@@ -123,9 +122,13 @@ await room.localParticipant.setMicrophoneEnabled(true);
 
 ### Screen sharing
 
+Screen sharing is supported across all platforms. You can enable it with:
+
 ```dart
 room.localParticipant.setScreenShareEnabled(true);
 ```
+
+#### Android
 
 On Android, you would have to define a foreground service in your AndroidManifest.xml.
 
@@ -141,6 +144,11 @@ On Android, you would have to define a foreground service in your AndroidManifes
   </application>
 </manifest>
 ```
+
+#### iOS
+
+On iOS, a broadcast extension is needed in order to capture screen content from
+other apps. See [setup guide](https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup) for instructions.
 
 ### Advanced track manipulation
 
