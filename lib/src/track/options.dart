@@ -78,6 +78,9 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
+  /// iOS only flag: Use Broadcast Extension for screen share capturing.
+  /// See instructions on how to setup your Broadcast Extension here:
+  /// https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup
   final bool useiOSBroadcastExtension;
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
