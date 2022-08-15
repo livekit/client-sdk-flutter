@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.static_framework    = true
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'WebRTC-SDK', '~> 104.5112.02'
+  s.dependency 'WebRTC-SDK', '~> 104.5112.03'
 end

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 class ThumbnailWidget extends StatefulWidget {
   const ThumbnailWidget(
@@ -11,9 +11,9 @@ class ThumbnailWidget extends StatefulWidget {
       required this.selected,
       required this.onTap})
       : super(key: key);
-  final DesktopCapturerSource source;
+  final rtc.DesktopCapturerSource source;
   final bool selected;
-  final Function(DesktopCapturerSource) onTap;
+  final Function(rtc.DesktopCapturerSource) onTap;
 
   @override
   ThumbnailWidgetState createState() => ThumbnailWidgetState();
@@ -86,25 +86,25 @@ class ScreenSelectDialog extends Dialog {
     Future.delayed(const Duration(milliseconds: 100), () {
       _getSources();
     });
-    _subscriptions.add(desktopCapturer.onAdded.stream.listen((source) {
+    _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
     }));
 
-    _subscriptions.add(desktopCapturer.onRemoved.stream.listen((source) {
+    _subscriptions.add(rtc.desktopCapturer.onRemoved.stream.listen((source) {
       _sources.remove(source.id);
       _stateSetter?.call(() {});
     }));
 
     _subscriptions
-        .add(desktopCapturer.onThumbnailChanged.stream.listen((source) {
+        .add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
       _stateSetter?.call(() {});
     }));
   }
-  final Map<String, DesktopCapturerSource> _sources = {};
-  SourceType _sourceType = SourceType.Screen;
-  DesktopCapturerSource? _selectedSource;
-  final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
+  final Map<String, rtc.DesktopCapturerSource> _sources = {};
+  rtc.SourceType _sourceType = rtc.SourceType.Screen;
+  rtc.DesktopCapturerSource? _selectedSource;
+  final List<StreamSubscription<rtc.DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
   Timer? _timer;
 
@@ -113,7 +113,7 @@ class ScreenSelectDialog extends Dialog {
     for (var element in _subscriptions) {
       element.cancel();
     }
-    Navigator.pop<DesktopCapturerSource>(context, _selectedSource);
+    Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
   void _cancel(BuildContext context) {
@@ -121,12 +121,12 @@ class ScreenSelectDialog extends Dialog {
     for (var element in _subscriptions) {
       element.cancel();
     }
-    Navigator.pop<DesktopCapturerSource>(context, null);
+    Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
     try {
-      var sources = await desktopCapturer.getSources(types: [_sourceType]);
+      var sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
       for (var element in sources) {
         if (kDebugMode) {
           print(
@@ -135,7 +135,7 @@ class ScreenSelectDialog extends Dialog {
       }
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-        desktopCapturer.updateSources(types: [_sourceType]);
+        rtc.desktopCapturer.updateSources(types: [_sourceType]);
       });
       _sources.clear();
       for (var element in sources) {
@@ -201,8 +201,8 @@ class ScreenSelectDialog extends Dialog {
                                 onTap: (value) => Future.delayed(
                                         const Duration(milliseconds: 300), () {
                                       _sourceType = value == 0
-                                          ? SourceType.Screen
-                                          : SourceType.Window;
+                                          ? rtc.SourceType.Screen
+                                          : rtc.SourceType.Window;
                                       _getSources();
                                     }),
                                 tabs: const [
@@ -231,7 +231,7 @@ class ScreenSelectDialog extends Dialog {
                                     children: _sources.entries
                                         .where((element) =>
                                             element.value.type ==
-                                            SourceType.Screen)
+                                            rtc.SourceType.Screen)
                                         .map((e) => ThumbnailWidget(
                                               onTap: (source) {
                                                 setState(() {
@@ -252,7 +252,7 @@ class ScreenSelectDialog extends Dialog {
                                     children: _sources.entries
                                         .where((element) =>
                                             element.value.type ==
-                                            SourceType.Window)
+                                            rtc.SourceType.Window)
                                         .map((e) => ThumbnailWidget(
                                               onTap: (source) {
                                                 setState(() {
