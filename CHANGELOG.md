@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.0-hotfix
+
+* Align the version in .podspec with the package version (fix compilation errors under ios/mac).
+
 ## 1.1.0
 
 * Set subscription to allowed when subscribed.
