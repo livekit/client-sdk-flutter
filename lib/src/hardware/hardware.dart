@@ -28,7 +28,9 @@ class Hardware {
   }
 
   static Future<void> selectAudioOutput(MediaDevice device) async {
-    // TODO(duan): implement
+    await rtc.navigator.mediaDevices.selectAudioOutput(rtc.AudioOutputOptions(
+      deviceId: device.deviceId,
+    ));
   }
 
   static Future<void> selectAudioInput(MediaDevice device) async {
@@ -52,7 +54,7 @@ class Hardware {
     }
     return rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
       'audio': false,
-      'viddeo': device != null ? constraints : true,
+      'video': device != null ? constraints : true,
     });
   }
 
