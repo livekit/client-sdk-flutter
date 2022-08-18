@@ -22,7 +22,7 @@ dependencies:
   uuid: ^3.0.6
   synchronized: ^3.0.0
   protobuf: ^2.0.1
-  flutter_webrtc: ^0.9.2
+  flutter_webrtc: ^0.9.3
   dart_webrtc: ^1.0.7
   device_info_plus: ^3.2.3
 
