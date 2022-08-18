@@ -5,7 +5,7 @@ PODS:
     - FlutterMacOS
     - WebRTC-SDK (= 104.5112.03)
   - FlutterMacOS (1.0.0)
-  - livekit_client (1.0.0):
+  - livekit_client (1.1.0):
     - FlutterMacOS
     - WebRTC-SDK (~> 104.5112.03)
   - path_provider_macos (0.0.1):

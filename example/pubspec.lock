@@ -225,7 +225,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.1.0-hotifx"
   logging:
     dependency: "direct main"
     description:
