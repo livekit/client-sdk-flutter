@@ -129,7 +129,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
             // Video
             InkWell(
               onTap: () => setState(() => _visible = !_visible),
-              child: activeVideoTrack != null
+              child: activeVideoTrack != null && !activeVideoTrack!.muted
                   ? VideoTrackRenderer(
                       activeVideoTrack!,
                       fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
