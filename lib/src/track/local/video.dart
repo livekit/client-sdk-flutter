@@ -81,4 +81,16 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       options.copyWith(cameraPosition: position),
     );
   }
+
+  Future<void> switchCamera(String deviceId) async {
+    final options = currentOptions;
+    if (options is! CameraCaptureOptions) {
+      logger.warning('Not a camera track');
+      return;
+    }
+
+    await restartTrack(
+      options.copyWith(deviceId: deviceId),
+    );
+  }
 }

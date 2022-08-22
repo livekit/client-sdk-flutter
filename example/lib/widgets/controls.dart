@@ -29,10 +29,17 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   //
   CameraPosition position = CameraPosition.front;
 
+  List<MediaDevice>? _audioInputs;
+  List<MediaDevice>? _audioOutputs;
+  List<MediaDevice>? _videoInputs;
+
+  MediaDevice? _selectedVideoInput;
+
   @override
   void initState() {
     super.initState();
     participant.addListener(_onChange);
+    _loadDevices();
   }
 
   @override
@@ -42,6 +49,14 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   LocalParticipant get participant => widget.participant;
+
+  void _loadDevices() async {
+    _audioInputs = await Hardware.instance.audioInputs();
+    _audioOutputs = await Hardware.instance.audioOutputs();
+    _videoInputs = await Hardware.instance.videoInputs();
+    _selectedVideoInput = _videoInputs?.first;
+    setState(() {});
+  }
 
   void _onChange() {
     // trigger refresh
@@ -67,6 +82,30 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _enableVideo() async {
     await participant.setCameraEnabled(true);
+  }
+
+  void _selectAudioOutput(MediaDevice device) async {
+    await Hardware.instance.selectAudioOutput(device);
+    setState(() {});
+  }
+
+  void _selectAudioInput(MediaDevice device) async {
+    await Hardware.instance.selectAudioInput(device);
+    setState(() {});
+  }
+
+  void _selectVideoInput(MediaDevice device) async {
+    final track = participant.videoTracks.firstOrNull?.track;
+    if (track == null) return;
+    if (_selectedVideoInput?.deviceId != device.deviceId) {
+      await track.switchCamera(device.deviceId);
+      _selectedVideoInput = device;
+      setState(() {});
+    }
+  }
+
+  void _setSpeakerphoneOn(bool on) async {
+    await Hardware.instance.setSpeakerphoneOn(on);
   }
 
   void _toggleCamera() async {
@@ -211,10 +250,44 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             tooltip: 'Unpublish all',
           ),
           if (participant.isMicrophoneEnabled())
-            IconButton(
-              onPressed: _disableAudio,
-              icon: const Icon(EvaIcons.mic),
-              tooltip: 'mute audio',
+            PopupMenuButton<MediaDevice>(
+              icon: const Icon(Icons.settings_voice),
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<MediaDevice>(
+                    value: null,
+                    child: const ListTile(
+                      leading: Icon(
+                        EvaIcons.micOff,
+                        color: Colors.white,
+                      ),
+                      title: Text('Mute Microphone'),
+                    ),
+                    onTap: _disableAudio,
+                  ),
+                  if (_audioInputs != null)
+                    ..._audioInputs!.map((device) {
+                      return PopupMenuItem<MediaDevice>(
+                        value: device,
+                        child: ListTile(
+                          leading: (device.deviceId ==
+                                  Hardware
+                                      .instance.selectedAudioInput?.deviceId)
+                              ? const Icon(
+                                  EvaIcons.checkmarkSquare,
+                                  color: Colors.white,
+                                )
+                              : const Icon(
+                                  EvaIcons.square,
+                                  color: Colors.white,
+                                ),
+                          title: Text(device.label),
+                        ),
+                        onTap: () => _selectAudioInput(device),
+                      );
+                    }).toList()
+                ];
+              },
             )
           else
             IconButton(
@@ -222,12 +295,88 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               icon: const Icon(EvaIcons.micOff),
               tooltip: 'un-mute audio',
             ),
+          PopupMenuButton<MediaDevice>(
+            icon: const Icon(Icons.volume_up),
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<MediaDevice>(
+                  value: null,
+                  child: const ListTile(
+                    leading: Icon(
+                      EvaIcons.speaker,
+                      color: Colors.white,
+                    ),
+                    title: Text('set loud speaker'),
+                  ),
+                  onTap: () => _setSpeakerphoneOn(true),
+                ),
+                if (_audioOutputs != null)
+                  ..._audioOutputs!.map((device) {
+                    return PopupMenuItem<MediaDevice>(
+                      value: device,
+                      child: ListTile(
+                        leading: (device.deviceId ==
+                                Hardware.instance.selectedAudioOutput?.deviceId)
+                            ? const Icon(
+                                EvaIcons.checkmarkSquare,
+                                color: Colors.white,
+                              )
+                            : const Icon(
+                                EvaIcons.square,
+                                color: Colors.white,
+                              ),
+                        title: Text(device.label),
+                      ),
+                      onTap: () => _selectAudioOutput(device),
+                    );
+                  }).toList()
+              ];
+            },
+          ),
           if (participant.isCameraEnabled())
+            PopupMenuButton<MediaDevice>(
+              icon: const Icon(EvaIcons.video),
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<MediaDevice>(
+                    value: null,
+                    child: const ListTile(
+                      leading: Icon(
+                        EvaIcons.videoOff,
+                        color: Colors.white,
+                      ),
+                      title: Text('Disable Video'),
+                    ),
+                    onTap: _disableVideo,
+                  ),
+                  if (_videoInputs != null)
+                    ..._videoInputs!.map((device) {
+                      return PopupMenuItem<MediaDevice>(
+                        value: device,
+                        child: ListTile(
+                          leading:
+                              (device.deviceId == _selectedVideoInput?.deviceId)
+                                  ? const Icon(
+                                      EvaIcons.checkmarkSquare,
+                                      color: Colors.white,
+                                    )
+                                  : const Icon(
+                                      EvaIcons.square,
+                                      color: Colors.white,
+                                    ),
+                          title: Text(device.label),
+                        ),
+                        onTap: () => _selectVideoInput(device),
+                      );
+                    }).toList()
+                ];
+              },
+            ) /*
             IconButton(
               onPressed: _disableVideo,
               icon: const Icon(EvaIcons.video),
               tooltip: 'mute video',
-            )
+            )*/
           else
             IconButton(
               onPressed: _enableVideo,

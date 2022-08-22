@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 class MediaDevice {
@@ -13,35 +15,80 @@ class MediaDevice {
   }
 }
 
-// Help create a hardware setup dialog, or switch audio and video devices during a call
 class Hardware {
-  static Future<List<dynamic>> audioInputs() async {
-    return enumerateDevices('audioinput');
+  Hardware._internal() {
+    rtc.navigator.mediaDevices.ondevicechange = _onDeviceChange;
+    enumerateDevices().then((devices) {
+      selectedAudioInput ??=
+          devices.where((element) => element.kind == 'audioinput').first;
+      selectedAudioOutput ??=
+          devices.where((element) => element.kind == 'audiooutput').first;
+      selectedVideoInput ??=
+          devices.where((element) => element.kind == 'videoinput').first;
+    });
   }
 
-  static Future<List<dynamic>> audioOutputs() async {
-    return enumerateDevices('audiooutput');
+  static final Hardware instance = Hardware._internal();
+
+  final StreamController<List<MediaDevice>> onDeviceChange =
+      StreamController.broadcast();
+
+  MediaDevice? selectedAudioInput;
+
+  MediaDevice? selectedAudioOutput;
+
+  MediaDevice? selectedVideoInput;
+
+  Future<List<MediaDevice>> enumerateDevices({String? type}) async {
+    var infos = await rtc.navigator.mediaDevices.enumerateDevices();
+    var devices =
+        infos.map((e) => MediaDevice(e.deviceId, e.label, e.kind!)).toList();
+    if (type != null && type.isNotEmpty) {
+      devices = devices.where((d) => d.kind == type).toList();
+    }
+    return devices;
   }
 
-  static Future<List<dynamic>> videoInputs() async {
-    return enumerateDevices('videoinput');
+  Future<List<MediaDevice>> audioInputs() async {
+    return enumerateDevices(type: 'audioinput');
   }
 
-  static Future<void> selectAudioOutput(MediaDevice device) async {
-    await rtc.navigator.mediaDevices.selectAudioOutput(rtc.AudioOutputOptions(
-      deviceId: device.deviceId,
-    ));
+  Future<List<MediaDevice>> audioOutputs() async {
+    return enumerateDevices(type: 'audiooutput');
   }
 
-  static Future<void> selectAudioInput(MediaDevice device) async {
-    await rtc.navigator.mediaDevices
-        .selectAudioOutput(rtc.AudioOutputOptions(deviceId: device.deviceId));
+  Future<List<MediaDevice>> videoInputs() async {
+    return enumerateDevices(type: 'videoinput');
   }
 
-  static Future<rtc.MediaStream> openCamera(
-      {MediaDevice? device, bool front = true}) async {
+  Future<void> selectAudioOutput(MediaDevice device) async {
+    if (rtc.WebRTC.platformIsWeb) {
+      throw UnimplementedError('selectAudioOutput not support on web');
+    }
+    selectedAudioOutput = device;
+    await rtc.Helper.selectAudioOutput(device.deviceId);
+  }
+
+  Future<void> selectAudioInput(MediaDevice device) async {
+    if (rtc.WebRTC.platformIsWeb || rtc.WebRTC.platformIsIOS) {
+      throw UnimplementedError(
+          'selectAudioInput is only supported on Android/Windows/macOS');
+    }
+    selectedAudioInput = device;
+    await rtc.Helper.selectAudioInput(device.deviceId);
+  }
+
+  Future<void> setSpeakerphoneOn(bool enable) async {
+    if (!rtc.WebRTC.platformIsAndroid || !rtc.WebRTC.platformIsIOS) {
+      throw UnimplementedError('setSpeakerphoneOn only support on iOS/Android');
+    }
+    await rtc.Helper.setSpeakerphoneOn(enable);
+  }
+
+  Future<rtc.MediaStream> openCamera(
+      {MediaDevice? device, bool? facingMode}) async {
     var constraints = <String, dynamic>{
-      'facingMode': front ? 'user' : 'environment',
+      if (facingMode != null) 'facingMode': facingMode ? 'user' : 'environment',
     };
     if (device != null) {
       if (rtc.WebRTC.platformIsWeb) {
@@ -52,17 +99,21 @@ class Hardware {
         ];
       }
     }
+    selectedVideoInput = device;
     return rtc.navigator.mediaDevices.getUserMedia(<String, dynamic>{
       'audio': false,
       'video': device != null ? constraints : true,
     });
   }
 
-  static Future<List<MediaDevice>> enumerateDevices(String type) async {
-    var devices = await rtc.navigator.mediaDevices.enumerateDevices();
-    return devices
-        .where((d) => d.kind == type)
-        .map((e) => MediaDevice(e.deviceId, e.label, e.kind!))
-        .toList();
+  dynamic _onDeviceChange(dynamic _) async {
+    var devices = await enumerateDevices();
+    selectedAudioInput ??=
+        devices.where((element) => element.kind == 'audioinput').first;
+    selectedAudioOutput ??=
+        devices.where((element) => element.kind == 'audiooutput').first;
+    selectedVideoInput ??=
+        devices.where((element) => element.kind == 'videoinput').first;
+    onDeviceChange.add(devices);
   }
 }
