@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -32,28 +33,34 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   List<MediaDevice>? _audioInputs;
   List<MediaDevice>? _audioOutputs;
   List<MediaDevice>? _videoInputs;
-
   MediaDevice? _selectedVideoInput;
+
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
     super.initState();
     participant.addListener(_onChange);
-    _loadDevices();
+    _subscription = Hardware.instance.onDeviceChange.stream
+        .listen((List<MediaDevice> devices) {
+      _loadDevices(devices);
+    });
+    Hardware.instance.enumerateDevices().then(_loadDevices);
   }
 
   @override
   void dispose() {
+    _subscription?.cancel();
     participant.removeListener(_onChange);
     super.dispose();
   }
 
   LocalParticipant get participant => widget.participant;
 
-  void _loadDevices() async {
-    _audioInputs = await Hardware.instance.audioInputs();
-    _audioOutputs = await Hardware.instance.audioOutputs();
-    _videoInputs = await Hardware.instance.videoInputs();
+  void _loadDevices(List<MediaDevice> devices) async {
+    _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
+    _audioOutputs = devices.where((d) => d.kind == 'audiooutput').toList();
+    _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
     _selectedVideoInput = _videoInputs?.first;
     setState(() {});
   }
