@@ -299,16 +299,15 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             icon: const Icon(Icons.volume_up),
             itemBuilder: (BuildContext context) {
               return [
-                PopupMenuItem<MediaDevice>(
+                const PopupMenuItem<MediaDevice>(
                   value: null,
-                  child: const ListTile(
+                  child: ListTile(
                     leading: Icon(
                       EvaIcons.speaker,
                       color: Colors.white,
                     ),
-                    title: Text('set loud speaker'),
+                    title: Text('Select Audio Output'),
                   ),
-                  onTap: () => _setSpeakerphoneOn(true),
                 ),
                 if (_audioOutputs != null)
                   ..._audioOutputs!.map((device) {
@@ -345,7 +344,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         EvaIcons.videoOff,
                         color: Colors.white,
                       ),
-                      title: Text('Disable Video'),
+                      title: Text('Disable Camera'),
                     ),
                     onTap: _disableVideo,
                   ),
