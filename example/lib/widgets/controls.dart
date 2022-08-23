@@ -370,12 +370,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                     }).toList()
                 ];
               },
-            ) /*
-            IconButton(
-              onPressed: _disableVideo,
-              icon: const Icon(EvaIcons.video),
-              tooltip: 'mute video',
-            )*/
+            )
           else
             IconButton(
               onPressed: _enableVideo,
