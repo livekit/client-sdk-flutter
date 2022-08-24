@@ -3,6 +3,7 @@
 ## 1.1.1
 
 * Add hardware api for camera and audio input/output selection.
+* Fixed UI stuck when get thumbnails on screen sharing. (#149)
 
 ## 1.1.0-hotfix
 
