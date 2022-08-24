@@ -4,6 +4,7 @@ library livekit_client;
 export 'src/core/room.dart';
 export 'src/events.dart';
 export 'src/exceptions.dart';
+export 'src/hardware/hardware.dart';
 export 'src/livekit.dart';
 export 'src/managers/event.dart';
 export 'src/options.dart';

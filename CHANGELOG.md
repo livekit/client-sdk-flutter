@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.1
+
+* Add hardware api for camera and audio input/output selection.
+
 ## 1.1.0-hotfix
 
 * Align the version in .podspec with the package version (fix compilation errors under ios/mac).
