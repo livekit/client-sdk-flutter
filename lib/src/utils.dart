@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -160,6 +161,7 @@ class Utils {
     pathSegments.addAll(lastSegments);
 
     final clientInfo = await _clientInfo();
+    final networkType = await getNetworkType();
 
     return uri.replace(
       scheme: validate ? httpScheme : wsScheme,
@@ -172,6 +174,7 @@ class Utils {
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
+        'network': networkType,
         // client info
         if (clientInfo != null) ...{
           if (clientInfo.hasOs()) 'os': clientInfo.os,
@@ -284,6 +287,34 @@ class Utils {
       ));
     });
     return result;
+  }
+
+  @internal
+  static FutureOr<String> getNetworkType() async {
+    if (lkPlatformIsTest()) {
+      return 'wifi';
+    }
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    // wifi, wired, cellular, vpn, empty if not known
+    String networkType = 'empty';
+    switch (connectivityResult) {
+      case ConnectivityResult.mobile:
+        networkType = 'cellular';
+        break;
+      case ConnectivityResult.wifi:
+        networkType = 'wifi';
+        break;
+      case ConnectivityResult.bluetooth:
+        networkType = 'bluetooth';
+        break;
+      case ConnectivityResult.ethernet:
+        networkType = 'wired';
+        break;
+      case ConnectivityResult.none:
+        networkType = 'empty';
+        break;
+    }
+    return networkType;
   }
 
   @internal
