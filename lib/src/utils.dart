@@ -295,10 +295,11 @@ class Utils {
       return 'wifi';
     }
     var connectivityResult = await (Connectivity().checkConnectivity());
-    String networkType = 'unknown';
+    // wifi, wired, cellular, vpn, empty if not known
+    String networkType = 'empty';
     switch (connectivityResult) {
       case ConnectivityResult.mobile:
-        networkType = 'mobile';
+        networkType = 'cellular';
         break;
       case ConnectivityResult.wifi:
         networkType = 'wifi';
@@ -307,10 +308,10 @@ class Utils {
         networkType = 'bluetooth';
         break;
       case ConnectivityResult.ethernet:
-        networkType = 'ethernet';
+        networkType = 'wired';
         break;
       case ConnectivityResult.none:
-        networkType = 'none';
+        networkType = 'empty';
         break;
     }
     return networkType;
