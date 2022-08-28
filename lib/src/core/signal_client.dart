@@ -258,6 +258,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }
 
   void _sendPing() {
+    _resetPingTimeout();
     _sendRequest(lk_rtc.SignalRequest()
       ..ping = DateTime.now().millisecondsSinceEpoch as Int64);
   }
