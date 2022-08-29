@@ -177,6 +177,66 @@ class ClientConfigSetting extends $pb.ProtobufEnum {
   const ClientConfigSetting._($core.int v, $core.String n) : super(v, n);
 }
 
+class DisconnectReason extends $pb.ProtobufEnum {
+  static const DisconnectReason UNKNOWN_REASON = DisconnectReason._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'UNKNOWN_REASON');
+  static const DisconnectReason CLIENT_INITIATED = DisconnectReason._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'CLIENT_INITIATED');
+  static const DisconnectReason DUPLICATE_IDENTITY = DisconnectReason._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DUPLICATE_IDENTITY');
+  static const DisconnectReason SERVER_SHUTDOWN = DisconnectReason._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'SERVER_SHUTDOWN');
+  static const DisconnectReason PARTICIPANT_REMOVED = DisconnectReason._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'PARTICIPANT_REMOVED');
+  static const DisconnectReason ROOM_DELETED = DisconnectReason._(
+      5,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'ROOM_DELETED');
+  static const DisconnectReason STATE_MISMATCH = DisconnectReason._(
+      6,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'STATE_MISMATCH');
+  static const DisconnectReason JOIN_FAILURE = DisconnectReason._(
+      7,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'JOIN_FAILURE');
+
+  static const $core.List<DisconnectReason> values = <DisconnectReason>[
+    UNKNOWN_REASON,
+    CLIENT_INITIATED,
+    DUPLICATE_IDENTITY,
+    SERVER_SHUTDOWN,
+    PARTICIPANT_REMOVED,
+    ROOM_DELETED,
+    STATE_MISMATCH,
+    JOIN_FAILURE,
+  ];
+
+  static final $core.Map<$core.int, DisconnectReason> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static DisconnectReason? valueOf($core.int value) => _byValue[value];
+
+  const DisconnectReason._($core.int v, $core.String n) : super(v, n);
+}
+
 class ParticipantInfo_State extends $pb.ProtobufEnum {
   static const ParticipantInfo_State JOINING = ParticipantInfo_State._(
       0,
@@ -236,6 +296,30 @@ class DataPacket_Kind extends $pb.ProtobufEnum {
   static DataPacket_Kind? valueOf($core.int value) => _byValue[value];
 
   const DataPacket_Kind._($core.int v, $core.String n) : super(v, n);
+}
+
+class ServerInfo_Edition extends $pb.ProtobufEnum {
+  static const ServerInfo_Edition Standard = ServerInfo_Edition._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'Standard');
+  static const ServerInfo_Edition Cloud = ServerInfo_Edition._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'Cloud');
+
+  static const $core.List<ServerInfo_Edition> values = <ServerInfo_Edition>[
+    Standard,
+    Cloud,
+  ];
+
+  static final $core.Map<$core.int, ServerInfo_Edition> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ServerInfo_Edition? valueOf($core.int value) => _byValue[value];
+
+  const ServerInfo_Edition._($core.int v, $core.String n) : super(v, n);
 }
 
 class ClientInfo_SDK extends $pb.ProtobufEnum {
