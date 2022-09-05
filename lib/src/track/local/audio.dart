@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
@@ -15,7 +16,8 @@ class LocalAudioTrack extends LocalTrack
   covariant AudioCaptureOptions currentOptions;
 
   // private constructor
-  LocalAudioTrack._(
+  @internal
+  LocalAudioTrack(
     String name,
     TrackSource source,
     rtc.MediaStream stream,
@@ -36,7 +38,7 @@ class LocalAudioTrack extends LocalTrack
     options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
-    return LocalAudioTrack._(
+    return LocalAudioTrack(
       '',
       TrackSource.microphone,
       stream,

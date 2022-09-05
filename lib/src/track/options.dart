@@ -82,8 +82,11 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   /// See instructions on how to setup your Broadcast Extension here:
   /// https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup
   final bool useiOSBroadcastExtension;
+  final bool captureScreenAudio;
+
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
+    this.captureScreenAudio = false,
     String? sourceId,
     double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
@@ -91,6 +94,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
 
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
+      this.captureScreenAudio = false,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
 

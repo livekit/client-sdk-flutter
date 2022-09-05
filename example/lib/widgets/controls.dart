@@ -169,7 +169,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         print('could not publish video: $e');
       }
     }
-    await participant.setScreenShareEnabled(true);
+    await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
 
   void _disableScreenShare() async {
