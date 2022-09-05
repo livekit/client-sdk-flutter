@@ -65,10 +65,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     );
   }
 
-  /// Creates a LocalTracks from the display.
+  /// Creates a LocalTracks(audio/video) from the display.
   ///
-  /// Note: Android requires a foreground service to be started prior to
-  /// creating a screen track. Refer to the example app for an implementation.
+  /// The current API is mainly used to capture audio when chrome captures tab,
+  /// but in the future it can also be used for flutter native to open audio
+  /// capture device when capturing screen
   static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
     ScreenShareCaptureOptions? options,
   ]) async {
