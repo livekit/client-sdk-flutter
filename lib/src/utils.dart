@@ -291,7 +291,7 @@ class Utils {
 
   @internal
   static FutureOr<String> getNetworkType() async {
-    if (lkPlatformIsTest()) {
+    if (!kIsWeb && lkPlatformIsTest()) {
       return 'wifi';
     }
     var connectivityResult = await (Connectivity().checkConnectivity());
