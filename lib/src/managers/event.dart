@@ -134,14 +134,13 @@ abstract class EventsListenable<T> extends Disposable {
     _listeners.add(listener);
 
     // make a cancel func to cancel listening and remove from list in 1 call
-    // ignore: no_leading_underscores_for_local_identifiers
-    Future<void> _cancelFunc() async {
+    cancelFunc() async {
       await listener.cancel();
       _listeners.remove(listener);
       logger.fine('${objectId} event was cancelled by func');
     }
 
-    return _cancelFunc;
+    return cancelFunc;
   }
 
   // convenience method to listen & filter a specific event type
