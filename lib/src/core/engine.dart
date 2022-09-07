@@ -43,6 +43,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Transport? get primary => _subscriberPrimary ? subscriber : publisher;
 
+  rtc.RTCDataChannel? get dataChannel => _subscriberPrimary
+      ? _reliableDCSub ?? _lossyDCSub
+      : _reliableDCPub ?? _lossyDCPub;
+
   // data channels for packets
   rtc.RTCDataChannel? _reliableDCPub;
   rtc.RTCDataChannel? _lossyDCPub;
@@ -109,6 +113,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
     this.fastConnectOptions = fastConnectOptions;
+
+    if (connectionState == ConnectionState.connected) {
+      logger.fine('already connected');
+      return;
+    }
 
     _updateConnectionState(ConnectionState.connecting);
 
