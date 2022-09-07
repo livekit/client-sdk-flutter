@@ -289,6 +289,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           event.track,
           event.stream,
           trackSid,
+          receiver: event.receiver,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.severe('addSubscribedMediaTrack() throwed ${event}');
