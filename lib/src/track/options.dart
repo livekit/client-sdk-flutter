@@ -199,8 +199,12 @@ class AudioCaptureOptions extends LocalTrackOptions {
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
-    var constraints = <String, dynamic>{
-      'optional': <Map<String, dynamic>>[
+    var constraints = <String, dynamic>{};
+
+    /// in we platform it's not possible to provide optional and mandatory parameters.
+    /// deviceId is a mandatory parameter
+    if (!kIsWeb || (kIsWeb && deviceId == null)) {
+      constraints['optional'] = <Map<String, dynamic>>[
         <String, dynamic>{'echoCancellation': echoCancellation},
         <String, dynamic>{'googDAEchoCancellation': echoCancellation},
         <String, dynamic>{'googEchoCancellation': echoCancellation},
@@ -211,8 +215,8 @@ class AudioCaptureOptions extends LocalTrackOptions {
         <String, dynamic>{'googAutoGainControl': autoGainControl},
         <String, dynamic>{'googHighpassFilter': highPassFilter},
         <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
-      ],
-    };
+      ];
+    }
 
     if (deviceId != null) {
       if (kIsWeb) {
