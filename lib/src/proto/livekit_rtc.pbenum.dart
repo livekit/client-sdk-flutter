@@ -56,3 +56,33 @@ class StreamState extends $pb.ProtobufEnum {
 
   const StreamState._($core.int v, $core.String n) : super(v, n);
 }
+
+class CandidateProtocol extends $pb.ProtobufEnum {
+  static const CandidateProtocol UDP = CandidateProtocol._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'UDP');
+  static const CandidateProtocol TCP = CandidateProtocol._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'TCP');
+  static const CandidateProtocol TLS = CandidateProtocol._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'TLS');
+
+  static const $core.List<CandidateProtocol> values = <CandidateProtocol>[
+    UDP,
+    TCP,
+    TLS,
+  ];
+
+  static final $core.Map<$core.int, CandidateProtocol> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static CandidateProtocol? valueOf($core.int value) => _byValue[value];
+
+  const CandidateProtocol._($core.int v, $core.String n) : super(v, n);
+}

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -28,6 +29,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
+  Duration? _pingTimeoutDuration;
+  Timer? _pingTimeoutTimer;
+
+  Duration? _pingIntervalDuration;
+  Timer? _pingIntervalTimer;
 
   @internal
   SignalClient(WebSocketConnector wsConnector) : _wsConnector = wsConnector {
@@ -149,6 +155,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     switch (msg.whichMessage()) {
       case lk_rtc.SignalResponse_Message.join:
+        if (msg.join.pingTimeout > 0) {
+          _pingTimeoutDuration = Duration(seconds: msg.join.pingTimeout);
+          _pingIntervalDuration = Duration(seconds: msg.join.pingInterval);
+          logger.info(
+              'ping config timeout: ${msg.join.pingTimeout}, interval: ${msg.join.pingInterval} ');
+          _startPingInterval();
+        }
         events.emit(SignalJoinResponseEvent(response: msg.join));
         break;
       case lk_rtc.SignalResponse_Message.answer:
@@ -223,6 +236,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.notSet:
         logger.info('signal message not set');
         break;
+      case lk_rtc.SignalResponse_Message.pong:
+        _resetPingTimeout();
+        break;
       default:
         logger.warning('received unknown signal message');
     }
@@ -239,6 +255,47 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       logger.fine('SignalClient did disconnect ${_connectionState}');
       _updateConnectionState(ConnectionState.disconnected);
     }
+  }
+
+  void _sendPing() {
+    _sendRequest(lk_rtc.SignalRequest()
+      ..ping = DateTime.now().millisecondsSinceEpoch as Int64);
+  }
+
+  void _startPingInterval() {
+    _clearPingInterval();
+    _resetPingTimeout();
+
+    if (_pingIntervalDuration == null) {
+      logger.warning('ping timeout duration not set');
+      return;
+    }
+
+    _pingIntervalTimer ??=
+        Timer.periodic(_pingIntervalDuration!, (_) => _sendPing);
+  }
+
+  void _clearPingInterval() {
+    _clearPingTimeout();
+    _pingIntervalTimer?.cancel();
+    _pingIntervalTimer = null;
+  }
+
+  void _resetPingTimeout() {
+    _clearPingTimeout();
+    if (_pingTimeoutDuration == null) {
+      logger.warning('ping timeout duration not set');
+      return;
+    }
+    _pingTimeoutTimer ??= Timer(_pingTimeoutDuration!, () {
+      logger.warning('ping timeout');
+      _onSocketDispose();
+    });
+  }
+
+  void _clearPingTimeout() {
+    _pingTimeoutTimer?.cancel();
+    _pingTimeoutTimer = null;
   }
 }
 
@@ -414,6 +471,16 @@ extension SignalClientPrivateMethods on SignalClient {
         newValue == ConnectionState.connected;
 
     final oldState = _connectionState;
+
+    if (newValue == ConnectionState.connected &&
+        oldState == ConnectionState.reconnecting) {
+      // restart ping interval as it's cleared for reconnection
+      _startPingInterval();
+    } else if (newValue == ConnectionState.reconnecting) {
+      // clear ping interval and restart it once reconnected
+      _clearPingInterval();
+    }
+
     _connectionState = newValue;
 
     events.emit(SignalConnectionStateUpdatedEvent(

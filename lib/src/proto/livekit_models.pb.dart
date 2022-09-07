@@ -785,6 +785,129 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   void clearIsPublisher() => clearField(13);
 }
 
+class SimulcastCodecInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SimulcastCodecInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mimeType')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mid')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'cid')
+    ..pc<VideoLayer>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
+        $pb.PbFieldType.PM,
+        subBuilder: VideoLayer.create)
+    ..hasRequiredFields = false;
+
+  SimulcastCodecInfo._() : super();
+  factory SimulcastCodecInfo({
+    $core.String? mimeType,
+    $core.String? mid,
+    $core.String? cid,
+    $core.Iterable<VideoLayer>? layers,
+  }) {
+    final _result = create();
+    if (mimeType != null) {
+      _result.mimeType = mimeType;
+    }
+    if (mid != null) {
+      _result.mid = mid;
+    }
+    if (cid != null) {
+      _result.cid = cid;
+    }
+    if (layers != null) {
+      _result.layers.addAll(layers);
+    }
+    return _result;
+  }
+  factory SimulcastCodecInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SimulcastCodecInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SimulcastCodecInfo clone() => SimulcastCodecInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SimulcastCodecInfo copyWith(void Function(SimulcastCodecInfo) updates) =>
+      super.copyWith((message) => updates(message as SimulcastCodecInfo))
+          as SimulcastCodecInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SimulcastCodecInfo create() => SimulcastCodecInfo._();
+  SimulcastCodecInfo createEmptyInstance() => create();
+  static $pb.PbList<SimulcastCodecInfo> createRepeated() =>
+      $pb.PbList<SimulcastCodecInfo>();
+  @$core.pragma('dart2js:noInline')
+  static SimulcastCodecInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
+  static SimulcastCodecInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get mimeType => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set mimeType($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasMimeType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMimeType() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get mid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set mid($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasMid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMid() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get cid => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set cid($core.String v) {
+    $_setString(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasCid() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCid() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.List<VideoLayer> get layers => $_getList(3);
+}
+
 class TrackInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -867,6 +990,13 @@ class TrackInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'mid')
+    ..pc<SimulcastCodecInfo>(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codecs',
+        $pb.PbFieldType.PM,
+        subBuilder: SimulcastCodecInfo.create)
     ..hasRequiredFields = false;
 
   TrackInfo._() : super();
@@ -883,6 +1013,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.Iterable<VideoLayer>? layers,
     $core.String? mimeType,
     $core.String? mid,
+    $core.Iterable<SimulcastCodecInfo>? codecs,
   }) {
     final _result = create();
     if (sid != null) {
@@ -920,6 +1051,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     }
     if (mid != null) {
       _result.mid = mid;
+    }
+    if (codecs != null) {
+      _result.codecs.addAll(codecs);
     }
     return _result;
   }
@@ -1083,6 +1217,9 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool hasMid() => $_has(11);
   @$pb.TagNumber(12)
   void clearMid() => clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.List<SimulcastCodecInfo> get codecs => $_getList(12);
 }
 
 class VideoLayer extends $pb.GeneratedMessage {
@@ -1720,6 +1857,182 @@ class ParticipantTracks extends $pb.GeneratedMessage {
   $core.List<$core.String> get trackSids => $_getList(1);
 }
 
+class ServerInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ServerInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..e<ServerInfo_Edition>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'edition',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: ServerInfo_Edition.Standard,
+        valueOf: ServerInfo_Edition.valueOf,
+        enumValues: ServerInfo_Edition.values)
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version')
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'protocol',
+        $pb.PbFieldType.O3)
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'region')
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nodeId')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'debugInfo')
+    ..hasRequiredFields = false;
+
+  ServerInfo._() : super();
+  factory ServerInfo({
+    ServerInfo_Edition? edition,
+    $core.String? version,
+    $core.int? protocol,
+    $core.String? region,
+    $core.String? nodeId,
+    $core.String? debugInfo,
+  }) {
+    final _result = create();
+    if (edition != null) {
+      _result.edition = edition;
+    }
+    if (version != null) {
+      _result.version = version;
+    }
+    if (protocol != null) {
+      _result.protocol = protocol;
+    }
+    if (region != null) {
+      _result.region = region;
+    }
+    if (nodeId != null) {
+      _result.nodeId = nodeId;
+    }
+    if (debugInfo != null) {
+      _result.debugInfo = debugInfo;
+    }
+    return _result;
+  }
+  factory ServerInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ServerInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ServerInfo clone() => ServerInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ServerInfo copyWith(void Function(ServerInfo) updates) =>
+      super.copyWith((message) => updates(message as ServerInfo))
+          as ServerInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ServerInfo create() => ServerInfo._();
+  ServerInfo createEmptyInstance() => create();
+  static $pb.PbList<ServerInfo> createRepeated() => $pb.PbList<ServerInfo>();
+  @$core.pragma('dart2js:noInline')
+  static ServerInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
+  static ServerInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ServerInfo_Edition get edition => $_getN(0);
+  @$pb.TagNumber(1)
+  set edition(ServerInfo_Edition v) {
+    setField(1, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasEdition() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEdition() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get version => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasVersion() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearVersion() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get protocol => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set protocol($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasProtocol() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearProtocol() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get region => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set region($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasRegion() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRegion() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get nodeId => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set nodeId($core.String v) {
+    $_setString(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasNodeId() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearNodeId() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get debugInfo => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set debugInfo($core.String v) {
+    $_setString(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasDebugInfo() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearDebugInfo() => clearField(6);
+}
+
 class ClientInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -1780,6 +2093,11 @@ class ClientInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'address')
+    ..aOS(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'network')
     ..hasRequiredFields = false;
 
   ClientInfo._() : super();
@@ -1793,6 +2111,7 @@ class ClientInfo extends $pb.GeneratedMessage {
     $core.String? browser,
     $core.String? browserVersion,
     $core.String? address,
+    $core.String? network,
   }) {
     final _result = create();
     if (sdk != null) {
@@ -1821,6 +2140,9 @@ class ClientInfo extends $pb.GeneratedMessage {
     }
     if (address != null) {
       _result.address = address;
+    }
+    if (network != null) {
+      _result.network = network;
     }
     return _result;
   }
@@ -1957,6 +2279,18 @@ class ClientInfo extends $pb.GeneratedMessage {
   $core.bool hasAddress() => $_has(8);
   @$pb.TagNumber(9)
   void clearAddress() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.String get network => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set network($core.String v) {
+    $_setString(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasNetwork() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearNetwork() => clearField(10);
 }
 
 class ClientConfiguration extends $pb.GeneratedMessage {
@@ -1990,6 +2324,21 @@ class ClientConfiguration extends $pb.GeneratedMessage {
         defaultOrMaker: ClientConfigSetting.UNSET,
         valueOf: ClientConfigSetting.valueOf,
         enumValues: ClientConfigSetting.values)
+    ..aOM<DisabledCodecs>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disabledCodecs',
+        subBuilder: DisabledCodecs.create)
+    ..e<ClientConfigSetting>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'forceRelay',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: ClientConfigSetting.UNSET,
+        valueOf: ClientConfigSetting.valueOf,
+        enumValues: ClientConfigSetting.values)
     ..hasRequiredFields = false;
 
   ClientConfiguration._() : super();
@@ -1997,6 +2346,8 @@ class ClientConfiguration extends $pb.GeneratedMessage {
     VideoConfiguration? video,
     VideoConfiguration? screen,
     ClientConfigSetting? resumeConnection,
+    DisabledCodecs? disabledCodecs,
+    ClientConfigSetting? forceRelay,
   }) {
     final _result = create();
     if (video != null) {
@@ -2007,6 +2358,12 @@ class ClientConfiguration extends $pb.GeneratedMessage {
     }
     if (resumeConnection != null) {
       _result.resumeConnection = resumeConnection;
+    }
+    if (disabledCodecs != null) {
+      _result.disabledCodecs = disabledCodecs;
+    }
+    if (forceRelay != null) {
+      _result.forceRelay = forceRelay;
     }
     return _result;
   }
@@ -2076,6 +2433,32 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   $core.bool hasResumeConnection() => $_has(2);
   @$pb.TagNumber(3)
   void clearResumeConnection() => clearField(3);
+
+  @$pb.TagNumber(4)
+  DisabledCodecs get disabledCodecs => $_getN(3);
+  @$pb.TagNumber(4)
+  set disabledCodecs(DisabledCodecs v) {
+    setField(4, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasDisabledCodecs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDisabledCodecs() => clearField(4);
+  @$pb.TagNumber(4)
+  DisabledCodecs ensureDisabledCodecs() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  ClientConfigSetting get forceRelay => $_getN(4);
+  @$pb.TagNumber(5)
+  set forceRelay(ClientConfigSetting v) {
+    setField(5, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasForceRelay() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearForceRelay() => clearField(5);
 }
 
 class VideoConfiguration extends $pb.GeneratedMessage {
@@ -2147,6 +2530,66 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   $core.bool hasHardwareEncoder() => $_has(0);
   @$pb.TagNumber(1)
   void clearHardwareEncoder() => clearField(1);
+}
+
+class DisabledCodecs extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DisabledCodecs',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<Codec>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codecs',
+        $pb.PbFieldType.PM,
+        subBuilder: Codec.create)
+    ..hasRequiredFields = false;
+
+  DisabledCodecs._() : super();
+  factory DisabledCodecs({
+    $core.Iterable<Codec>? codecs,
+  }) {
+    final _result = create();
+    if (codecs != null) {
+      _result.codecs.addAll(codecs);
+    }
+    return _result;
+  }
+  factory DisabledCodecs.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DisabledCodecs.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  DisabledCodecs clone() => DisabledCodecs()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  DisabledCodecs copyWith(void Function(DisabledCodecs) updates) =>
+      super.copyWith((message) => updates(message as DisabledCodecs))
+          as DisabledCodecs; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static DisabledCodecs create() => DisabledCodecs._();
+  DisabledCodecs createEmptyInstance() => create();
+  static $pb.PbList<DisabledCodecs> createRepeated() =>
+      $pb.PbList<DisabledCodecs>();
+  @$core.pragma('dart2js:noInline')
+  static DisabledCodecs getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
+  static DisabledCodecs? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<Codec> get codecs => $_getList(0);
 }
 
 class RTPStats extends $pb.GeneratedMessage {
@@ -2393,6 +2836,27 @@ class RTPStats extends $pb.GeneratedMessage {
             ? ''
             : 'nackRepeated',
         $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(
+        39,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytes',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        40,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytesDuplicate',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        41,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytesPadding',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   RTPStats._() : super();
@@ -2435,6 +2899,9 @@ class RTPStats extends $pb.GeneratedMessage {
     $0.Timestamp? lastLayerLockPli,
     $core.int? nackAcks,
     $core.int? nackRepeated,
+    $fixnum.Int64? headerBytes,
+    $fixnum.Int64? headerBytesDuplicate,
+    $fixnum.Int64? headerBytesPadding,
   }) {
     final _result = create();
     if (startTime != null) {
@@ -2550,6 +3017,15 @@ class RTPStats extends $pb.GeneratedMessage {
     }
     if (nackRepeated != null) {
       _result.nackRepeated = nackRepeated;
+    }
+    if (headerBytes != null) {
+      _result.headerBytes = headerBytes;
+    }
+    if (headerBytesDuplicate != null) {
+      _result.headerBytesDuplicate = headerBytesDuplicate;
+    }
+    if (headerBytesPadding != null) {
+      _result.headerBytesPadding = headerBytesPadding;
     }
     return _result;
   }
@@ -3037,4 +3513,129 @@ class RTPStats extends $pb.GeneratedMessage {
   $core.bool hasNackRepeated() => $_has(37);
   @$pb.TagNumber(38)
   void clearNackRepeated() => clearField(38);
+
+  @$pb.TagNumber(39)
+  $fixnum.Int64 get headerBytes => $_getI64(38);
+  @$pb.TagNumber(39)
+  set headerBytes($fixnum.Int64 v) {
+    $_setInt64(38, v);
+  }
+
+  @$pb.TagNumber(39)
+  $core.bool hasHeaderBytes() => $_has(38);
+  @$pb.TagNumber(39)
+  void clearHeaderBytes() => clearField(39);
+
+  @$pb.TagNumber(40)
+  $fixnum.Int64 get headerBytesDuplicate => $_getI64(39);
+  @$pb.TagNumber(40)
+  set headerBytesDuplicate($fixnum.Int64 v) {
+    $_setInt64(39, v);
+  }
+
+  @$pb.TagNumber(40)
+  $core.bool hasHeaderBytesDuplicate() => $_has(39);
+  @$pb.TagNumber(40)
+  void clearHeaderBytesDuplicate() => clearField(40);
+
+  @$pb.TagNumber(41)
+  $fixnum.Int64 get headerBytesPadding => $_getI64(40);
+  @$pb.TagNumber(41)
+  set headerBytesPadding($fixnum.Int64 v) {
+    $_setInt64(40, v);
+  }
+
+  @$pb.TagNumber(41)
+  $core.bool hasHeaderBytesPadding() => $_has(40);
+  @$pb.TagNumber(41)
+  void clearHeaderBytesPadding() => clearField(41);
+}
+
+class TimedVersion extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TimedVersion',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aInt64(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'unixMicro')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'ticks',
+        $pb.PbFieldType.O3)
+    ..hasRequiredFields = false;
+
+  TimedVersion._() : super();
+  factory TimedVersion({
+    $fixnum.Int64? unixMicro,
+    $core.int? ticks,
+  }) {
+    final _result = create();
+    if (unixMicro != null) {
+      _result.unixMicro = unixMicro;
+    }
+    if (ticks != null) {
+      _result.ticks = ticks;
+    }
+    return _result;
+  }
+  factory TimedVersion.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TimedVersion.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TimedVersion clone() => TimedVersion()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TimedVersion copyWith(void Function(TimedVersion) updates) =>
+      super.copyWith((message) => updates(message as TimedVersion))
+          as TimedVersion; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static TimedVersion create() => TimedVersion._();
+  TimedVersion createEmptyInstance() => create();
+  static $pb.PbList<TimedVersion> createRepeated() =>
+      $pb.PbList<TimedVersion>();
+  @$core.pragma('dart2js:noInline')
+  static TimedVersion getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
+  static TimedVersion? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get unixMicro => $_getI64(0);
+  @$pb.TagNumber(1)
+  set unixMicro($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasUnixMicro() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUnixMicro() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get ticks => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set ticks($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasTicks() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTicks() => clearField(2);
 }
