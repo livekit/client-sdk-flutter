@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.1-hotfix
+
+* Fix compilation error caused by webrtc-interface version jumping.
+
 ## 1.1.1
 
 * Add hardware api for camera and audio input/output selection.
