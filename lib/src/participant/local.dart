@@ -15,6 +15,7 @@ import '../publication/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
+import '../track/options.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/video_dimensions.dart';
@@ -283,14 +284,17 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
-  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.screenShareVideo, enabled);
+  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
+      {bool? captureScreenAudio}) async {
+    return setSourceEnabled(TrackSource.screenShareVideo, enabled,
+        captureScreenAudio: captureScreenAudio);
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
   Future<LocalTrackPublication?> setSourceEnabled(
-      TrackSource source, bool enabled) async {
+      TrackSource source, bool enabled,
+      {bool? captureScreenAudio}) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
@@ -314,6 +318,25 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             room.roomOptions.defaultAudioCaptureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
+        /// When capturing chrome table audio, we can't capture audio/video
+        /// track separately, it has to be returned once in getDisplayMedia,
+        /// so we publish it twice here, but only return videoTrack to user.
+        if (captureScreenAudio != null) {
+          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
+              ScreenShareCaptureOptions(
+                  captureScreenAudio: captureScreenAudio));
+          LocalTrackPublication<LocalVideoTrack>? publication;
+          for (final track in tracks) {
+            if (track is LocalVideoTrack) {
+              publication = await publishVideoTrack(track);
+            } else if (track is LocalAudioTrack) {
+              await publishAudioTrack(track);
+            }
+          }
+
+          /// just return the video track publication
+          return publication;
+        }
         final track = await LocalVideoTrack.createScreenShareTrack(
             room.roomOptions.defaultScreenShareCaptureOptions);
         return await publishVideoTrack(track);

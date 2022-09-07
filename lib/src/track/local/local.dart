@@ -119,7 +119,9 @@ abstract class LocalTrack extends Track {
     final constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
-          : false,
+          : options is ScreenShareCaptureOptions
+              ? (options).captureScreenAudio
+              : false,
       'video': options is VideoCaptureOptions
           ? options.toMediaConstraintsMap()
           : false,

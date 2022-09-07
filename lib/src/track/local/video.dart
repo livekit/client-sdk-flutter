@@ -5,6 +5,7 @@ import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../options.dart';
 import '../track.dart';
+import 'audio.dart';
 import 'local.dart';
 
 /// A video track from the local device. Use static methods in this class to create
@@ -62,6 +63,39 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       stream.getVideoTracks().first,
       options,
     );
+  }
+
+  /// Creates a LocalTracks(audio/video) from the display.
+  ///
+  /// The current API is mainly used to capture audio when chrome captures tab,
+  /// but in the future it can also be used for flutter native to open audio
+  /// capture device when capturing screen
+  static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
+    ScreenShareCaptureOptions? options,
+  ]) async {
+    options ??= const ScreenShareCaptureOptions(captureScreenAudio: true);
+
+    final stream = await LocalTrack.createStream(options);
+
+    List<LocalTrack> tracks = [
+      LocalVideoTrack._(
+        Track.screenShareName,
+        TrackSource.screenShareVideo,
+        stream,
+        stream.getVideoTracks().first,
+        options,
+      )
+    ];
+
+    if (stream.getAudioTracks().isNotEmpty) {
+      tracks.add(LocalAudioTrack(
+          Track.screenShareName,
+          TrackSource.screenShareAudio,
+          stream,
+          stream.getAudioTracks().first,
+          const AudioCaptureOptions()));
+    }
+    return tracks;
   }
 }
 

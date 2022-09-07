@@ -83,3 +83,6 @@ _build
 
 # FVM
 .fvm/
+
+# flutter web
+lib/generated_plugin_registrant.dart
