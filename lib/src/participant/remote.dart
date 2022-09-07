@@ -74,8 +74,9 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
-    String trackSid,
-  ) async {
+    String trackSid, {
+    rtc.RTCRtpReceiver? receiver,
+  }) async {
     logger.fine('addSubscribedMediaTrack()');
 
     // If publication doesn't exist yet...
@@ -112,10 +113,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final RemoteTrack track;
     if (pub.kind == lk_models.TrackType.VIDEO) {
       // video track
-      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack);
+      track = RemoteVideoTrack(pub.name, pub.source, stream, mediaTrack,
+          receiver: receiver);
     } else if (pub.kind == lk_models.TrackType.AUDIO) {
       // audio track
-      track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack);
+      track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack,
+          receiver: receiver);
     } else {
       throw UnexpectedStateException('Unknown track type');
     }

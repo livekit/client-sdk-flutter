@@ -45,13 +45,11 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
-  Track(
-    this.name,
-    this.kind,
-    this.source,
-    this._mediaStream,
-    this._mediaStreamTrack,
-  ) {
+  rtc.RTCRtpReceiver? receiver;
+
+  Track(this.name, this.kind, this.source, this._mediaStream,
+      this._mediaStreamTrack,
+      {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.fine('[TrackEvent] $event, will notifyListeners()');
