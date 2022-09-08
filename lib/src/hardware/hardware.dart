@@ -79,10 +79,11 @@ class Hardware {
   }
 
   Future<void> setSpeakerphoneOn(bool enable) async {
-    if (!rtc.WebRTC.platformIsAndroid || !rtc.WebRTC.platformIsIOS) {
+    if (rtc.WebRTC.platformIsMobile) {
+      await rtc.Helper.setSpeakerphoneOn(enable);
+    } else {
       throw UnimplementedError('setSpeakerphoneOn only support on iOS/Android');
     }
-    await rtc.Helper.setSpeakerphoneOn(enable);
   }
 
   Future<rtc.MediaStream> openCamera(
