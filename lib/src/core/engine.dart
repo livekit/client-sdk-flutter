@@ -333,7 +333,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _configurePeerConnections() async {
+  Future<void> _configurePeerConnections({bool? forceRelay}) async {
     if (publisher != null || subscriber != null) {
       logger.warning('Already configured');
       return;
@@ -349,6 +349,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // use server provided iceServers if exists
       rtcConfiguration = connectOptions.rtcConfiguration
           .copyWith(iceServers: serverIceServers);
+    }
+
+    if (forceRelay != null && forceRelay) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+          iceTransportPolicy: RTCIceTransportPolicy.relay);
     }
 
     publisher = await Transport.create(_peerConnectionCreate, rtcConfiguration);
@@ -593,7 +598,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'serverVersion: ${event.response.serverVersion}, '
           'iceServers: ${event.response.iceServers}');
 
-      await _configurePeerConnections();
+      await _configurePeerConnections(
+          forceRelay: event.response.clientConfiguration.forceRelay ==
+              lk_models.ClientConfigSetting.ENABLED);
 
       if (!_subscriberPrimary) {
         // for subscriberPrimary, we negotiate when necessary (lazy)
