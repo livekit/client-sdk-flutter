@@ -146,6 +146,7 @@ class Utils {
     bool reconnect = false,
     bool validate = false,
     bool forceSecure = false,
+    String? sid,
   }) async {
     final Uri uri = Uri.parse(uriString);
 
@@ -171,6 +172,7 @@ class Utils {
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
+        if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,

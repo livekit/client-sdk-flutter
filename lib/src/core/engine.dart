@@ -71,6 +71,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   FastConnectOptions? fastConnectOptions;
 
   bool _subscriberPrimary = false;
+  String? _participantSid;
 
   // server-provided ice servers
   List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
@@ -284,6 +285,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         connectOptions: connectOptions,
         roomOptions: roomOptions,
         reconnect: true,
+        sid: _participantSid,
       );
 
       if (publisher == null || subscriber == null) {
@@ -588,6 +590,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
       _serverProvidedIceServers = event.response.iceServers;
+      _participantSid = event.response.participant.sid;
 
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '

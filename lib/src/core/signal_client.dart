@@ -54,6 +54,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
     bool reconnect = false,
+    String? sid,
   }) async {
     final rtcUri = await Utils.buildUri(
       uriString,
@@ -61,6 +62,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       reconnect: reconnect,
+      sid: sid,
     );
 
     logger.fine('SignalClient connecting with url: $rtcUri');
