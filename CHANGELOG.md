@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.1.2
+
+* feat: Support for capturing audio for chrome tab.
+* Expose dataChannel for e2e testing.
+* Expose RTPReceiver for getting track statistics.
+* fix: Do not set mandatory & optional parameters, when used in web (#164)
+* fix: fix setSpeakerphoneOn, close #167.
+
 ## 1.1.1-hotfix
 
 * Fix compilation error caused by webrtc-interface version jumping.
