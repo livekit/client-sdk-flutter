@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.3
+
+* Add sid for reconnecting. (#168)
+* Add force relay config. (#169)
+* Bump flutter_webrtc version to 0.9.7.
+
 ## 1.1.2
 
 * feat: Support for capturing audio for chrome tab.
