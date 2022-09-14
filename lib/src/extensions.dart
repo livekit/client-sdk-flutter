@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'events.dart';
 import 'managers/event.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
-import 'types.dart';
+import 'types/other.dart';
 
 extension DataPacketKindExt on lk_models.DataPacket_Kind {
   Reliability toSDKType() => {
@@ -43,6 +44,8 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v4: '4',
         ProtocolVersion.v5: '5',
         ProtocolVersion.v6: '6',
+        ProtocolVersion.v7: '7',
+        ProtocolVersion.v8: '8',
       }[this]!;
 }
 
@@ -51,6 +54,13 @@ extension ReliabilityExt on Reliability {
         Reliability.reliable: lk_models.DataPacket_Kind.RELIABLE,
         Reliability.lossy: lk_models.DataPacket_Kind.LOSSY,
       }[this]!;
+}
+
+extension RTCDataChannelExt on rtc.RTCDataChannel {
+  lk_rtc.DataChannelInfo toLKInfoType() => lk_rtc.DataChannelInfo(
+        id: id,
+        label: label,
+      );
 }
 
 extension RTCIceCandidateExt on rtc.RTCIceCandidate {
@@ -69,6 +79,11 @@ extension RTCIceCandidateExt on rtc.RTCIceCandidate {
 extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
   bool isConnected() =>
       this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+
+  bool isDisconnectedOrFailed() => [
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
+      ].contains(this);
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
@@ -146,4 +161,9 @@ extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
         allTracks: allTracksAllowed,
         trackSids: allowedTrackSids,
       );
+}
+
+extension WidgetsBindingCompatible on WidgetsBinding {
+  // always return optional type for compatibility with flutter v2 and v3
+  static WidgetsBinding? get instance => WidgetsBinding.instance;
 }

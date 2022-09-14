@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:meta/meta.dart';
 import 'package:synchronized/synchronized.dart' as sync;
@@ -7,7 +8,7 @@ import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../support/disposable.dart';
-import '../types.dart';
+import '../types/other.dart';
 
 mixin EventsEmittable<T> {
   final events = EventsEmitter<T>();
@@ -22,9 +23,13 @@ class EventsEmitter<T> extends EventsListenable<T> {
   // suppport for multiple event listeners
   final streamCtrl = StreamController<T>.broadcast(sync: false);
 
+  bool _queueMode = false;
+  final _queue = Queue<T>();
+
   EventsEmitter({
     bool listenSynchronized = false,
   }) : super(synchronized: listenSynchronized) {
+    // clean up
     onDispose(() async => await streamCtrl.close());
   }
 
@@ -33,13 +38,39 @@ class EventsEmitter<T> extends EventsListenable<T> {
 
   @internal
   void emit(T event) {
-    // do nothing if already closed
-    if (streamCtrl.isClosed) {
+    // check if already disposed
+    if (isDisposed) {
       logger.warning('failed to emit event ${event} on a disposed emitter');
+      return;
+    }
+    // queue mode
+    if (_queueMode) {
+      _queue.add(event);
       return;
     }
     // emit the event
     streamCtrl.add(event);
+  }
+
+  @internal
+  void updateQueueMode(bool newValue, {bool shouldEmitQueued = true}) {
+    // check if already disposed
+    if (isDisposed) {
+      logger.warning('failed to update queueMode on a disposed emitter');
+      return;
+    }
+    if (_queueMode == newValue) return;
+    _queueMode = newValue;
+    if (!_queueMode && shouldEmitQueued) emitQueued();
+  }
+
+  @internal
+  void emitQueued() {
+    while (_queue.isNotEmpty) {
+      final event = _queue.removeFirst();
+      // emit the event
+      streamCtrl.add(event);
+    }
   }
 }
 
@@ -89,27 +120,27 @@ abstract class EventsListenable<T> extends Disposable {
   // listens to all events, guaranteed to be cancelled on dispose
   CancelListenFunc listen(FutureOr<void> Function(T) onEvent) {
     //
-    FutureOr<void> Function(T) _func = onEvent;
+    FutureOr<void> Function(T) func = onEvent;
     if (synchronized) {
       // ensure `onEvent` will trigger one by one (waits for previous `onEvent` to complete)
-      _func = (event) async {
+      func = (event) async {
         await _syncLock.synchronized(() async {
           await onEvent(event);
         });
       };
     }
 
-    final listener = emitter.streamCtrl.stream.listen(_func);
+    final listener = emitter.streamCtrl.stream.listen(func);
     _listeners.add(listener);
 
     // make a cancel func to cancel listening and remove from list in 1 call
-    _cancelFunc() async {
+    cancelFunc() async {
       await listener.cancel();
       _listeners.remove(listener);
       logger.fine('${objectId} event was cancelled by func');
     }
 
-    return _cancelFunc;
+    return cancelFunc;
   }
 
   // convenience method to listen & filter a specific event type
@@ -134,7 +165,7 @@ abstract class EventsListenable<T> extends Disposable {
   }) async {
     final completer = Completer<E>();
 
-    final _cancelFunc = on<E>(
+    final cancelFunc = on<E>(
       (event) {
         if (!completer.isCompleted) {
           completer.complete(event);
@@ -152,7 +183,7 @@ abstract class EventsListenable<T> extends Disposable {
       // do not catch exceptions and pass it up
     } finally {
       // always clean-up listener
-      await _cancelFunc.call();
+      await cancelFunc.call();
     }
   }
 }

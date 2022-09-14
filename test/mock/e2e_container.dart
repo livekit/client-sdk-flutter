@@ -1,7 +1,6 @@
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/core/signal_client.dart';
-
 import '../core/signal_client_test.dart';
 import 'peerconnection_mock.dart';
 import 'websocket_mock.dart';
@@ -16,7 +15,11 @@ class E2EContainer {
     wsConnector = MockWebSocketConnector();
     client = SignalClient(wsConnector.connect);
     engine = Engine(
-        signalClient: client, peerConnectionCreate: MockPeerConnection.create);
+      signalClient: client,
+      peerConnectionCreate: MockPeerConnection.create,
+      connectOptions: const ConnectOptions(),
+      roomOptions: const RoomOptions(),
+    );
     room = Room(engine: engine);
   }
 

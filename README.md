@@ -14,18 +14,17 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 
 | Feature | Subscribe/Publish | Simulcast | Background audio | Screen sharing |
 | :-----: | :---------------: | :-------: | :--------------: | :------------: |
-|   Web   |         🟢         |     🟢     |        🟢         |       🟢        |
-|   iOS   |         🟢         |     🟢     |        🟢         |       🔴        |
-| Android |         🟢         |     🟢     |        🟢         |       🟢        |
-|   Mac   |         🟢         |     🟢     |        🟢         |       🔴        |
-| Windows |         🟡         |     🟡     |        🟡         |       🔴        |
+|   Web   |        🟢         |    🟢     |        🟢        |       🟢       |
+|   iOS   |        🟢         |    🟢     |        🟢        |       🟢       |
+| Android |        🟢         |    🟢     |        🟢        |       🟢       |
+|   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |
+| Windows |        🟢         |    🟢     |        🟢        |       🟢       |
 
 🟢 = Available
 
 🟡 = Coming soon (Work in progress)
 
 🔴 = Not currently available (Possibly in the future)
-
 
 ## Example app
 
@@ -36,7 +35,7 @@ We built a multi-user conferencing app as an example in the [example/](example/)
 Include this package to your `pubspec.yaml`
 
 ```yaml
-...
+---
 dependencies:
   livekit_client: <version>
 ```
@@ -80,6 +79,9 @@ We require a set of permissions that need to be declared in your `AppManifest.xm
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   ...
 </manifest>
 ```
@@ -101,19 +103,18 @@ On Windows [VS 2019](https://visualstudio.microsoft.com/thank-you-downloading-vi
 ### Connecting to a room, publish video & audio
 
 ```dart
-var options = ConnectOptions(
-  autoSubscribe: false,
-  optimizeVideo: true,
-  defaultVideoPublishOptions: VideoPublishOptions(
-    simulcast: true,
-  ),
+final roomOptions = RoomOptions(
+  adaptiveStream: true,
+  dynacast: true,
+  // ... your room options
 )
-var room = await LiveKitClient.connect(url, token, options: options);
+
+final room = await LiveKitClient.connect(url, token, roomOptions: roomOptions);
 try {
   // video will fail when running in ios simulator
   await room.localParticipant.setCameraEnabled(true);
-} catch (e) {
-  print('could not publish video: $e');
+} catch (error) {
+  print('Could not publish video, error: $error');
 }
 
 await room.localParticipant.setMicrophoneEnabled(true);
@@ -121,9 +122,13 @@ await room.localParticipant.setMicrophoneEnabled(true);
 
 ### Screen sharing
 
+Screen sharing is supported across all platforms. You can enable it with:
+
 ```dart
 room.localParticipant.setScreenShareEnabled(true);
 ```
+
+#### Android
 
 On Android, you would have to define a foreground service in your AndroidManifest.xml.
 
@@ -139,6 +144,11 @@ On Android, you would have to define a foreground service in your AndroidManifes
   </application>
 </manifest>
 ```
+
+#### iOS
+
+On iOS, a broadcast extension is needed in order to capture screen content from
+other apps. See [setup guide](https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup) for instructions.
 
 ### Advanced track manipulation
 
@@ -178,8 +188,8 @@ Audio tracks are played automatically as long as you are subscribed to them.
 
 LiveKit client makes it simple to build declarative UI that reacts to state changes. It notifies changes in two ways
 
-* `ChangeNotifier` - generic notification of changes. This is useful when you are building reactive UI and only care about changes that may impact rendering.
-* `EventsListener<Event>` - listener pattern to listen to specific events (see [events.dart](https://github.com/livekit/client-sdk-flutter/blob/main/lib/src/events.dart)).
+- `ChangeNotifier` - generic notification of changes. This is useful when you are building reactive UI and only care about changes that may impact rendering.
+- `EventsListener<Event>` - listener pattern to listen to specific events (see [events.dart](https://github.com/livekit/client-sdk-flutter/blob/main/lib/src/events.dart)).
 
 This example will show you how to use both to react to room events.
 
@@ -286,9 +296,6 @@ class _VideoViewState extends State<VideoView> {
     setState(() {
       if (subscribedVideos.length > 0) {
         var videoPub = subscribedVideos.first;
-        if (videoPub is RemoteTrackPublication) {
-          videoPub.videoQuality = widget.quality;
-        }
         // when muted, show placeholder
         if (!videoPub.muted) {
           this.videoPub = videoPub;

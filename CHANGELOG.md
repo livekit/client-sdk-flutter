@@ -1,5 +1,77 @@
 # CHANGELOG
 
+## 1.1.3
+
+* Add sid for reconnecting. (#168)
+* Add force relay config. (#169)
+* Bump flutter_webrtc version to 0.9.7.
+
+## 1.1.2
+
+* feat: Support for capturing audio for chrome tab.
+* Expose dataChannel for e2e testing.
+* Expose RTPReceiver for getting track statistics.
+* fix: Do not set mandatory & optional parameters, when used in web (#164)
+* fix: fix setSpeakerphoneOn, close #167.
+
+## 1.1.1-hotfix
+
+* Fix compilation error caused by webrtc-interface version jumping.
+
+## 1.1.1
+
+* Add hardware api for camera and audio input/output selection.
+* Fixed UI stuck when get thumbnails on screen sharing. (#149)
+
+## 1.1.0-hotfix
+
+* Align the version in .podspec with the package version (fix compilation errors under ios/mac).
+
+## 1.1.0
+
+* Set subscription to allowed when subscribed.
+* Handle combined participant update.
+* Downgrade version settings to support flutter 2.8.0+.
+* Fix: camera release.
+* Feat: iOS screen share.
+* Feat: Screen sharing for desktop.
+* Feat: protocol v8.
+
+## 1.0.1
+
+* Re-send tracks permissions after reconnected.
+* Add audioBitrate option for publishAudioTrack.
+* Bump version for flutter_webrtc (up to 0.8.9).
+* Fix: SIGTERM / Crash on connection (Windows) #121
+* Fix: Microphone not published on windows build #64
+
+## 1.0.0
+
+* Ready for Flutter 3.
+* `mirrorMode` for `VideoTrackRenderer`.
+* Fix url building logic for validation mode.
+* Changed `AVAudioSessionCategory` switch timing to publish / unpublish.
+* Support for Bluetooth on Android 11.
+
+## 0.5.9
+
+* Fix: iOS audio issue which prevents `AVAudioSessionCategory` to switch correctly.
+
+## 0.5.8
+
+* Support for protocol 7, remote unpublish.
+* Fixes simulcast issues with Android devices.
+* Adds ability to select capture device by id.
+* `serverRegion` property on Room.
+* Minor optimizations.
+
+## 0.5.7
+
+* Using WebRTC version M97.
+* New track subscription permissions API.
+* Improvements to reconnect logic.
+* Room metadata update event.
+
 ## 0.5.6
 
 * Using WebRTC version M93.

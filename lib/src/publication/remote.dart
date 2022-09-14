@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../options.dart';
 import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../track/local/local.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
-import '../types.dart';
+import '../types/other.dart';
 import '../utils.dart';
 import 'track_publication.dart';
 
@@ -69,7 +69,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
     _streamState = streamState;
     [
       participant.events,
-      participant.room.events,
     ].emit(TrackStreamStateUpdatedEvent(
       participant: participant,
       publication: this,
@@ -186,7 +185,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
       _cancelPendingTrackSettingsUpdateRequest?.call();
       _visibilityTimer?.cancel();
 
-      final roomOptions = participant.room.roomOptions ?? const RoomOptions();
+      final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
@@ -217,7 +216,12 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
+  @Deprecated('use setVideoQuality() instead')
   set videoQuality(lk_models.VideoQuality newValue) {
+    setVideoQuality(newValue);
+  }
+
+  Future<void> setVideoQuality(lk_models.VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
     sendUpdateTrackSettings();
@@ -299,7 +303,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
     // emit events
     [
       participant.events,
-      participant.room.events,
     ].emit(TrackSubscriptionPermissionChangedEvent(
       participant: participant,
       publication: this,

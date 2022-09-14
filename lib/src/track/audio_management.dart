@@ -4,8 +4,8 @@ import '../logger.dart';
 import '../support/native.dart';
 import '../support/native_audio.dart';
 import '../support/platform.dart';
-import 'local/audio.dart';
 import 'local/local.dart';
+import 'remote/remote.dart';
 
 enum AudioTrackState {
   none,
@@ -17,29 +17,51 @@ enum AudioTrackState {
 typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
     AudioTrackState state);
 
-mixin AudioManagementMixin on AudioTrack {
-  // it's possible to set custom function here to customize audio session configuration
-  static ConfigureNativeAudioFunc nativeAudioConfigurationForAudioTrackState =
-      defaultNativeAudioConfigurationFunc;
+// it's possible to set custom function here to customize audio session configuration
+ConfigureNativeAudioFunc onConfigureNativeAudio =
+    defaultNativeAudioConfigurationFunc;
 
-  static final _trackCounterLock = sync.Lock();
-  static AudioTrackState audioTrackState = AudioTrackState.none;
-  static int _localTrackCount = 0;
-  static int _remoteTrackCount = 0;
+final _trackCounterLock = sync.Lock();
+AudioTrackState _audioTrackState = AudioTrackState.none;
+int _localTrackCount = 0;
+int _remoteTrackCount = 0;
 
+mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {
+  @override
+  Future<bool> onPublish() async {
+    final didUpdate = await super.onPublish();
+    if (didUpdate) {
+      // update counter
+      await _trackCounterLock.synchronized(() async {
+        _localTrackCount++;
+        await _onAudioTrackCountDidChange();
+      });
+    }
+    return didUpdate;
+  }
+
+  @override
+  Future<bool> onUnpublish() async {
+    final didUpdate = await super.onUnpublish();
+    if (didUpdate) {
+      // update counter
+      await _trackCounterLock.synchronized(() async {
+        _localTrackCount--;
+        await _onAudioTrackCountDidChange();
+      });
+    }
+    return didUpdate;
+  }
+}
+mixin RemoteAudioManagementMixin on RemoteTrack, AudioTrack {
   /// Start playing audio track. On web platform, create an audio element and
   /// start playback
   @override
   Future<bool> start() async {
     final didStart = await super.start();
     if (didStart) {
-      // update counter
       await _trackCounterLock.synchronized(() async {
-        if (this is LocalAudioTrack) {
-          _localTrackCount++;
-        } else if (this is! LocalAudioTrack) {
-          _remoteTrackCount++;
-        }
+        _remoteTrackCount++;
         await _onAudioTrackCountDidChange();
       });
     }
@@ -50,59 +72,52 @@ mixin AudioManagementMixin on AudioTrack {
   Future<bool> stop() async {
     final didStop = await super.stop();
     if (didStop) {
-      // update counter
       await _trackCounterLock.synchronized(() async {
-        if (this is LocalAudioTrack) {
-          _localTrackCount--;
-        } else if (this is! LocalAudioTrack) {
-          _remoteTrackCount--;
-        }
+        _remoteTrackCount--;
         await _onAudioTrackCountDidChange();
       });
     }
     return didStop;
   }
+}
 
-  Future<void> _onAudioTrackCountDidChange() async {
-    logger.fine('[$runtimeType] onAudioTrackCountDidChange: '
-        'local: $_localTrackCount, remote: $_remoteTrackCount');
+Future<void> _onAudioTrackCountDidChange() async {
+  logger.fine('onAudioTrackCountDidChange: '
+      'local: $_localTrackCount, remote: $_remoteTrackCount');
 
-    final newState = _computeAudioTrackState();
+  final newState = _computeAudioTrackState();
 
-    if (audioTrackState != newState) {
-      audioTrackState = newState;
-      logger.fine('[$runtimeType] didUpdateSate: $audioTrackState');
+  if (_audioTrackState != newState) {
+    _audioTrackState = newState;
+    logger.fine('didUpdateSate: $_audioTrackState');
 
-      NativeAudioConfiguration? config;
-      if (!lkPlatformIs(PlatformType.iOS)) {
-        // Only iOS for now...
-        config = await nativeAudioConfigurationForAudioTrackState
-            .call(audioTrackState);
-      }
+    NativeAudioConfiguration? config;
+    if (lkPlatformIs(PlatformType.iOS)) {
+      // Only iOS for now...
+      config = await onConfigureNativeAudio.call(_audioTrackState);
+    }
 
-      if (config != null) {
-        logger.fine(
-            '[$runtimeType] configuring for ${audioTrackState} using ${config}...');
-        try {
-          await Native.configureAudio(config);
-        } catch (error) {
-          logger.warning('[$runtimeType] Failed to configure ${error}');
-        }
+    if (config != null) {
+      logger.fine('configuring for ${_audioTrackState} using ${config}...');
+      try {
+        await Native.configureAudio(config);
+      } catch (error) {
+        logger.warning('failed to configure ${error}');
       }
     }
   }
+}
 
-  static AudioTrackState _computeAudioTrackState() {
-    if (_localTrackCount > 0 && _remoteTrackCount == 0) {
-      return AudioTrackState.localOnly;
-    } else if (_localTrackCount == 0 && _remoteTrackCount > 0) {
-      return AudioTrackState.remoteOnly;
-    } else if (_localTrackCount > 0 && _remoteTrackCount > 0) {
-      return AudioTrackState.localAndRemote;
-    }
-    // Default
-    return AudioTrackState.none;
+AudioTrackState _computeAudioTrackState() {
+  if (_localTrackCount > 0 && _remoteTrackCount == 0) {
+    return AudioTrackState.localOnly;
+  } else if (_localTrackCount == 0 && _remoteTrackCount > 0) {
+    return AudioTrackState.remoteOnly;
+  } else if (_localTrackCount > 0 && _remoteTrackCount > 0) {
+    return AudioTrackState.localAndRemote;
   }
+  // Default
+  return AudioTrackState.none;
 }
 
 Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(

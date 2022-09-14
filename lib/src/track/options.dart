@@ -1,8 +1,9 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
-import '../types.dart';
+import '../types/video_parameters.dart';
 
 /// A type that represents front or back of the camera.
 enum CameraPosition {
@@ -25,44 +26,100 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   const CameraCaptureOptions({
     this.cameraPosition = CameraPosition.front,
-    VideoParameters params = VideoParameters.presetQHD169,
-  }) : super(params: params);
+    String? deviceId,
+    double? maxFrameRate,
+    VideoParameters params = VideoParametersPresets.h540_169,
+  }) : super(params: params, deviceId: deviceId, maxFrameRate: maxFrameRate);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
       : cameraPosition = CameraPosition.front,
-        super(params: captureOptions.params);
+        super(
+          params: captureOptions.params,
+          deviceId: captureOptions.deviceId,
+          maxFrameRate: captureOptions.maxFrameRate,
+        );
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        ...super.toMediaConstraintsMap(),
-        'facingMode':
-            cameraPosition == CameraPosition.front ? 'user' : 'environment',
-      };
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = <String, dynamic>{
+      ...super.toMediaConstraintsMap(),
+      'facingMode':
+          cameraPosition == CameraPosition.front ? 'user' : 'environment',
+    };
+    if (deviceId != null) {
+      if (kIsWeb) {
+        constraints['deviceId'] = deviceId;
+      } else {
+        constraints['optional'] = [
+          {'sourceId': deviceId}
+        ];
+      }
+    }
+    if (maxFrameRate != null) {
+      constraints['frameRate'] = {'max': maxFrameRate};
+    }
+    return constraints;
+  }
 
   // Returns new options with updated properties
   CameraCaptureOptions copyWith({
     VideoParameters? params,
     CameraPosition? cameraPosition,
+    String? deviceId,
+    double? maxFrameRate,
   }) =>
       CameraCaptureOptions(
         params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
+        deviceId: deviceId ?? this.deviceId,
+        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
       );
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
 class ScreenShareCaptureOptions extends VideoCaptureOptions {
-  const ScreenShareCaptureOptions({
-    VideoParameters params = VideoParameters.presetHD169,
-  }) : super(params: params);
+  /// iOS only flag: Use Broadcast Extension for screen share capturing.
+  /// See instructions on how to setup your Broadcast Extension here:
+  /// https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup
+  final bool useiOSBroadcastExtension;
+  final bool captureScreenAudio;
 
-  ScreenShareCaptureOptions.from({required VideoCaptureOptions captureOptions})
+  const ScreenShareCaptureOptions({
+    this.useiOSBroadcastExtension = false,
+    this.captureScreenAudio = false,
+    String? sourceId,
+    double? maxFrameRate,
+    VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
+  }) : super(params: params, deviceId: sourceId, maxFrameRate: maxFrameRate);
+
+  ScreenShareCaptureOptions.from(
+      {this.useiOSBroadcastExtension = false,
+      this.captureScreenAudio = false,
+      required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
+
+  @override
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = super.toMediaConstraintsMap();
+    if (useiOSBroadcastExtension && WebRTC.platformIsIOS) {
+      constraints['deviceId'] = 'broadcast';
+    }
+    if (WebRTC.platformIsDesktop) {
+      if (deviceId != null) {
+        constraints['deviceId'] = {'exact': deviceId};
+      }
+      if (maxFrameRate != 0.0) {
+        constraints['mandatory'] = {'frameRate': maxFrameRate};
+      }
+    }
+    return constraints;
+  }
 }
 
 /// Base class for track options.
 abstract class LocalTrackOptions {
   const LocalTrackOptions();
+
   // All subclasses must be able to report constraints
   Map<String, dynamic> toMediaConstraintsMap();
 }
@@ -72,8 +129,24 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   // final LocalVideoTrackType type;
   final VideoParameters params;
 
+  /// The deviceId of the capture device to use.
+  /// Available deviceIds can be obtained through `flutter_webrtc`:
+  /// <pre>
+  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+  ///
+  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
+  /// // or
+  /// List<DesktopCapturerSource> desktopSources = await rtc.desktopCapturer.getSources(types: [rtc.SourceType.Screen, rtc.SourceType.Window]);
+  /// </pre>
+  final String? deviceId;
+
+  // Limit the maximum frameRate of the capture device.
+  final double? maxFrameRate;
+
   const VideoCaptureOptions({
-    this.params = VideoParameters.presetQHD169,
+    this.params = VideoParametersPresets.h540_169,
+    this.deviceId,
+    this.maxFrameRate,
   });
 
   @override
@@ -81,224 +154,17 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
       params.toMediaConstraintsMap();
 }
 
-/// A type that represents video encoding information.
-class VideoEncoding {
-  final int maxFramerate;
-  final int maxBitrate;
-
-  const VideoEncoding({
-    required this.maxFramerate,
-    required this.maxBitrate,
-  });
-
-  @override
-  String toString() =>
-      '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
-}
-
-/// Convenience extension for [VideoEncoding].
-extension VideoEncodingExt on VideoEncoding {
-  rtc.RTCRtpEncoding toRTCRtpEncoding({
-    String? rid,
-    double? scaleResolutionDownBy = 1.0,
-    int? numTemporalLayers,
-  }) =>
-      rtc.RTCRtpEncoding(
-        rid: rid,
-        scaleResolutionDownBy: scaleResolutionDownBy,
-        maxFramerate: maxFramerate,
-        maxBitrate: maxBitrate,
-        numTemporalLayers: numTemporalLayers,
-      );
-}
-
-class VideoParameters {
-  final String? description;
-  final VideoDimensions dimensions;
-  final VideoEncoding encoding;
-
-  const VideoParameters({
-    this.description,
-    required this.dimensions,
-    required this.encoding,
-  });
-
-  //
-  // TODO: Make sure the resolutions are correct
-  //
-
-  static const presetQVGA169 = VideoParameters(
-    description: 'QVGA(320x180) 16:9',
-    dimensions: VideoDimensions(320, 180),
-    encoding: VideoEncoding(
-      maxBitrate: 120000,
-      maxFramerate: 10,
-    ),
-  );
-
-  static const presetVGA169 = VideoParameters(
-    description: 'VGA(640x360) 16:9',
-    dimensions: VideoDimensions(640, 360),
-    encoding: VideoEncoding(
-      maxBitrate: 300000,
-      maxFramerate: 20,
-    ),
-  );
-
-  static const presetQHD169 = VideoParameters(
-    description: 'QHD(960x540) 16:9',
-    dimensions: VideoDimensions(960, 540),
-    encoding: VideoEncoding(
-      maxBitrate: 600000,
-      maxFramerate: 25,
-    ),
-  );
-
-  static const presetHD169 = VideoParameters(
-    description: 'HD(1280x720) 16:9',
-    dimensions: VideoDimensions(1280, 720),
-    encoding: VideoEncoding(
-      maxBitrate: 2000000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static const presetFHD169 = VideoParameters(
-    description: 'FHD(1920x1080) 16:9',
-    dimensions: VideoDimensions(1920, 1080),
-    encoding: VideoEncoding(
-      maxBitrate: 3000000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static const presetQVGA43 = VideoParameters(
-    description: 'QVGA(240x180) 4:3',
-    dimensions: VideoDimensions(240, 180),
-    encoding: VideoEncoding(
-      maxBitrate: 90000,
-      maxFramerate: 10,
-    ),
-  );
-
-  static const presetVGA43 = VideoParameters(
-    description: 'VGA(480x360) 4:3',
-    dimensions: VideoDimensions(480, 360),
-    encoding: VideoEncoding(
-      maxBitrate: 225000,
-      maxFramerate: 20,
-    ),
-  );
-
-  static const presetQHD43 = VideoParameters(
-    description: 'QHD(720x540) 4:3',
-    dimensions: VideoDimensions(720, 540),
-    encoding: VideoEncoding(
-      maxBitrate: 450000,
-      maxFramerate: 25,
-    ),
-  );
-
-  static const presetHD43 = VideoParameters(
-    description: 'HD(960x720) 4:3',
-    dimensions: VideoDimensions(960, 720),
-    encoding: VideoEncoding(
-      maxBitrate: 1500000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static const presetFHD43 = VideoParameters(
-    description: 'FHD(1440x1080) 4:3',
-    dimensions: VideoDimensions(1440, 1080),
-    encoding: VideoEncoding(
-      maxBitrate: 2800000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static const presetScreenShareVGA = VideoParameters(
-    description: 'ScreenShareVGA(640x360)',
-    dimensions: VideoDimensions(640, 360),
-    encoding: VideoEncoding(
-      maxBitrate: 200000,
-      maxFramerate: 3,
-    ),
-  );
-
-  static const presetScreenShareHD5 = VideoParameters(
-    description: 'ScreenShareHD5(1280x720)',
-    dimensions: VideoDimensions(1280, 720),
-    encoding: VideoEncoding(
-      maxBitrate: 400000,
-      maxFramerate: 5,
-    ),
-  );
-
-  static const presetScreenShareHD15 = VideoParameters(
-    description: 'ScreenShareHD15(1280x720)',
-    dimensions: VideoDimensions(1280, 720),
-    encoding: VideoEncoding(
-      maxBitrate: 1000000,
-      maxFramerate: 15,
-    ),
-  );
-
-  static const presetScreenShareFHD15 = VideoParameters(
-    description: 'ScreenShareFHD15(1920x1080)',
-    dimensions: VideoDimensions(1920, 1080),
-    encoding: VideoEncoding(
-      maxBitrate: 1500000,
-      maxFramerate: 15,
-    ),
-  );
-
-  static const presetScreenShareFHD30 = VideoParameters(
-    description: 'ScreenShareFHD30(1920x1080)',
-    dimensions: VideoDimensions(1920, 1080),
-    encoding: VideoEncoding(
-      maxBitrate: 3000000,
-      maxFramerate: 30,
-    ),
-  );
-
-  static final List<VideoParameters> presets169 = [
-    presetQVGA169,
-    presetVGA169,
-    presetQHD169,
-    presetHD169,
-    presetFHD169,
-  ];
-
-  static final List<VideoParameters> presets43 = [
-    presetQVGA43,
-    presetVGA43,
-    presetQHD43,
-    presetHD43,
-    presetFHD43,
-  ];
-
-  static final List<VideoParameters> presetsScreenShare = [
-    presetScreenShareVGA,
-    presetScreenShareHD5,
-    presetScreenShareHD15,
-    presetScreenShareFHD15,
-    presetScreenShareFHD30,
-  ];
-
-  //
-  // TODO: Return constraints that will work for all platforms (Web & Mobile)
-  // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-  //
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'width': dimensions.width,
-        'height': dimensions.height,
-        'frameRate': encoding.maxFramerate,
-      };
-}
-
 /// Options used when creating a [LocalAudioTrack].
 class AudioCaptureOptions extends LocalTrackOptions {
+  /// The deviceId of the capture device to use.
+  /// Available deviceIds can be obtained through `flutter_webrtc`:
+  /// <pre>
+  /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+  ///
+  /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
+  /// </pre>
+  final String? deviceId;
+
   /// Attempt to use noiseSuppression option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/noiseSuppression
   /// Defaults to true.
@@ -323,6 +189,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
   final bool typingNoiseDetection;
 
   const AudioCaptureOptions({
+    this.deviceId,
     this.noiseSuppression = true,
     this.echoCancellation = true,
     this.autoGainControl = true,
@@ -331,18 +198,35 @@ class AudioCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'optional': <Map<String, dynamic>>[
-          <String, dynamic>{'echoCancellation': echoCancellation},
-          <String, dynamic>{'googDAEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation2': echoCancellation},
-          <String, dynamic>{'noiseSuppression': noiseSuppression},
-          <String, dynamic>{'googNoiseSuppression': noiseSuppression},
-          <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
-          <String, dynamic>{'googAutoGainControl': autoGainControl},
-          <String, dynamic>{'googHighpassFilter': highPassFilter},
-          <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
-        ],
-      };
+  Map<String, dynamic> toMediaConstraintsMap() {
+    var constraints = <String, dynamic>{};
+
+    /// in we platform it's not possible to provide optional and mandatory parameters.
+    /// deviceId is a mandatory parameter
+    if (!kIsWeb || (kIsWeb && deviceId == null)) {
+      constraints['optional'] = <Map<String, dynamic>>[
+        <String, dynamic>{'echoCancellation': echoCancellation},
+        <String, dynamic>{'googDAEchoCancellation': echoCancellation},
+        <String, dynamic>{'googEchoCancellation': echoCancellation},
+        <String, dynamic>{'googEchoCancellation2': echoCancellation},
+        <String, dynamic>{'noiseSuppression': noiseSuppression},
+        <String, dynamic>{'googNoiseSuppression': noiseSuppression},
+        <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
+        <String, dynamic>{'googAutoGainControl': autoGainControl},
+        <String, dynamic>{'googHighpassFilter': highPassFilter},
+        <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+      ];
+    }
+
+    if (deviceId != null) {
+      if (kIsWeb) {
+        constraints['deviceId'] = deviceId;
+      } else {
+        constraints['optional']
+            .cast<Map<String, dynamic>>()
+            .add(<String, dynamic>{'sourceId': deviceId});
+      }
+    }
+    return constraints;
+  }
 }

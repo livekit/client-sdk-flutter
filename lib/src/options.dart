@@ -4,7 +4,26 @@ import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
 import 'track/track.dart';
-import 'types.dart';
+import 'types/other.dart';
+import 'types/video_encoding.dart';
+import 'types/video_parameters.dart';
+
+class TrackOption<E extends Object, T extends Object> {
+  final E? enabled;
+  final T? track;
+  const TrackOption({this.enabled, this.track});
+}
+
+class FastConnectOptions {
+  FastConnectOptions({
+    this.microphone = const TrackOption(enabled: false),
+    this.camera = const TrackOption(enabled: false),
+    this.screen = const TrackOption(enabled: false),
+  });
+  final TrackOption<bool, LocalAudioTrack> microphone;
+  final TrackOption<bool, LocalVideoTrack> camera;
+  final TrackOption<bool, LocalVideoTrack> screen;
+}
 
 /// Options used when connecting to the server.
 class ConnectOptions {
@@ -22,7 +41,7 @@ class ConnectOptions {
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
-    this.protocolVersion = ProtocolVersion.v6,
+    this.protocolVersion = ProtocolVersion.v8,
   });
 }
 
@@ -87,14 +106,26 @@ class VideoPublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
+  final List<VideoParameters> videoSimulcastLayers;
+
+  final List<VideoParameters> screenShareSimulcastLayers;
+
   const VideoPublishOptions({
     this.videoEncoding,
     this.simulcast = true,
+    this.videoSimulcastLayers = const [],
+    this.screenShareSimulcastLayers = const [],
   });
 
   @override
   String toString() =>
       '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
+}
+
+class AudioPreset {
+  static const telephone = 12000;
+  static const speech = 20000;
+  static const music = 32000;
 }
 
 /// Options used when publishing audio.
@@ -104,8 +135,12 @@ class AudioPublishOptions {
   /// Defaults to true.
   final bool dtx;
 
+  /// max audio bitrate
+  final int audioBitrate;
+
   const AudioPublishOptions({
     this.dtx = true,
+    this.audioBitrate = AudioPreset.speech,
   });
 
   @override

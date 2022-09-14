@@ -2,9 +2,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
-import '../../types.dart';
+import '../../types/other.dart';
 import '../options.dart';
 import '../track.dart';
+import 'audio.dart';
 import 'local.dart';
 
 /// A video track from the local device. Use static methods in this class to create
@@ -63,6 +64,39 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       options,
     );
   }
+
+  /// Creates a LocalTracks(audio/video) from the display.
+  ///
+  /// The current API is mainly used to capture audio when chrome captures tab,
+  /// but in the future it can also be used for flutter native to open audio
+  /// capture device when capturing screen
+  static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
+    ScreenShareCaptureOptions? options,
+  ]) async {
+    options ??= const ScreenShareCaptureOptions(captureScreenAudio: true);
+
+    final stream = await LocalTrack.createStream(options);
+
+    List<LocalTrack> tracks = [
+      LocalVideoTrack._(
+        Track.screenShareName,
+        TrackSource.screenShareVideo,
+        stream,
+        stream.getVideoTracks().first,
+        options,
+      )
+    ];
+
+    if (stream.getAudioTracks().isNotEmpty) {
+      tracks.add(LocalAudioTrack(
+          Track.screenShareName,
+          TrackSource.screenShareAudio,
+          stream,
+          stream.getAudioTracks().first,
+          const AudioCaptureOptions()));
+    }
+    return tracks;
+  }
 }
 
 //
@@ -79,6 +113,18 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     await restartTrack(
       options.copyWith(cameraPosition: position),
+    );
+  }
+
+  Future<void> switchCamera(String deviceId) async {
+    final options = currentOptions;
+    if (options is! CameraCaptureOptions) {
+      logger.warning('Not a camera track');
+      return;
+    }
+
+    await restartTrack(
+      options.copyWith(deviceId: deviceId),
     );
   }
 }

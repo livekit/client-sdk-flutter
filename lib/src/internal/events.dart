@@ -4,8 +4,10 @@ import 'package:meta/meta.dart';
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../track/local/local.dart';
+import '../track/options.dart';
 import '../track/track.dart';
-import '../types.dart';
+import '../types/other.dart';
 
 abstract class InternalEvent implements LiveKitEvent {}
 
@@ -59,6 +61,16 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
   });
 }
 
+@internal
+class LocalTrackOptionsUpdatedEvent with TrackEvent, InternalEvent {
+  final LocalTrack track;
+  final LocalTrackOptions options;
+  const LocalTrackOptionsUpdatedEvent({
+    required this.track,
+    required this.options,
+  });
+}
+
 // Used to notify muted state from Track to TrackPublication.
 @internal
 class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
@@ -82,28 +94,62 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
 
 @internal
 // Received a JoinResponse from the server.
-class SignalJoinResponseEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalJoinResponseEvent with SignalEvent, InternalEvent {
   final lk_rtc.JoinResponse response;
   const SignalJoinResponseEvent({
     required this.response,
   });
 }
 
+/// Base class for a ConnectionStateUpdated event
 @internal
-class SignalConnectionStateUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
-  final ConnectionState connectionState;
+abstract class ConnectionStateUpdatedEvent with InternalEvent {
+  final ConnectionState newState;
+  final ConnectionState oldState;
   final bool didReconnect;
   final DisconnectReason? disconnectReason;
-  const SignalConnectionStateUpdatedEvent({
-    required this.connectionState,
+  const ConnectionStateUpdatedEvent({
+    required this.newState,
+    required this.oldState,
     required this.didReconnect,
     this.disconnectReason,
   });
   @override
-  String toString() => '$runtimeType(state: ${connectionState.name}, '
+  String toString() => '$runtimeType(newState: ${newState.name}, '
       'didReconnect: ${didReconnect}, '
       'disconnectReason: ${disconnectReason})';
+}
+
+@internal
+class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
+    with SignalEvent {
+  const SignalConnectionStateUpdatedEvent({
+    required ConnectionState newState,
+    required ConnectionState oldState,
+    required bool didReconnect,
+    DisconnectReason? disconnectReason,
+  }) : super(
+          newState: newState,
+          oldState: oldState,
+          didReconnect: didReconnect,
+          disconnectReason: disconnectReason,
+        );
+}
+
+@internal
+class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
+    with EngineEvent {
+  const EngineConnectionStateUpdatedEvent({
+    required ConnectionState newState,
+    required ConnectionState oldState,
+    required bool didReconnect,
+    DisconnectReason? disconnectReason,
+  }) : super(
+          newState: newState,
+          oldState: oldState,
+          didReconnect: didReconnect,
+          disconnectReason: disconnectReason,
+        );
 }
 
 @internal
@@ -134,8 +180,7 @@ class SignalTrickleEvent with SignalEvent, InternalEvent {
 
 @internal
 // relayed by Engine
-class SignalParticipantUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalParticipantUpdateEvent with SignalEvent, InternalEvent {
   final List<lk_models.ParticipantInfo> participants;
   const SignalParticipantUpdateEvent({
     required this.participants,
@@ -143,8 +188,7 @@ class SignalParticipantUpdateEvent
 }
 
 @internal
-class SignalConnectionQualityUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalConnectionQualityUpdateEvent with SignalEvent, InternalEvent {
   final List<lk_rtc.ConnectionQualityInfo> updates;
   const SignalConnectionQualityUpdateEvent({
     required this.updates,
@@ -163,7 +207,16 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
-class SignalRoomUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
+  final String trackSid;
+
+  const SignalTrackUnpublishedEvent({
+    required this.trackSid,
+  });
+}
+
+@internal
+class SignalRoomUpdateEvent with SignalEvent, InternalEvent {
   final lk_models.Room room;
 
   const SignalRoomUpdateEvent({required this.room});
@@ -172,7 +225,7 @@ class SignalRoomUpdateEvent with SignalEvent, EngineEvent, InternalEvent {
 @internal
 // Speaker update received through websocket
 // relayed by Engine
-class SignalSpeakersChangedEvent with SignalEvent, EngineEvent, InternalEvent {
+class SignalSpeakersChangedEvent with SignalEvent, InternalEvent {
   final List<lk_models.SpeakerInfo> speakers;
 
   const SignalSpeakersChangedEvent({
@@ -198,18 +251,17 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
 }
 
 @internal
-class SignalMuteTrackEvent with SignalEvent, InternalEvent {
+class SignalRemoteMuteTrackEvent with SignalEvent, InternalEvent {
   final String sid;
   final bool muted;
-  const SignalMuteTrackEvent({
+  const SignalRemoteMuteTrackEvent({
     required this.sid,
     required this.muted,
   });
 }
 
 @internal
-class SignalStreamStateUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalStreamStateUpdatedEvent with SignalEvent, InternalEvent {
   final List<lk_rtc.StreamStateInfo> updates;
   const SignalStreamStateUpdatedEvent({
     required this.updates,
@@ -217,8 +269,7 @@ class SignalStreamStateUpdatedEvent
 }
 
 @internal
-class SignalSubscribedQualityUpdatedEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalSubscribedQualityUpdatedEvent with SignalEvent, InternalEvent {
   final String trackSid;
   final List<lk_rtc.SubscribedQuality> updates;
   const SignalSubscribedQualityUpdatedEvent({
@@ -228,8 +279,7 @@ class SignalSubscribedQualityUpdatedEvent
 }
 
 @internal
-class SignalSubscriptionPermissionUpdateEvent
-    with SignalEvent, EngineEvent, InternalEvent {
+class SignalSubscriptionPermissionUpdateEvent with SignalEvent, InternalEvent {
   final String participantSid;
   final String trackSid;
   final bool allowed;
@@ -253,26 +303,6 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
 // ----------------------------------------------------------------------
 
 @internal
-class EngineConnectedEvent with EngineEvent, InternalEvent {
-  const EngineConnectedEvent();
-}
-
-@internal
-class EngineDisconnectedEvent with EngineEvent, InternalEvent {
-  const EngineDisconnectedEvent();
-}
-
-@internal
-class EngineReconnectingEvent with EngineEvent, InternalEvent {
-  const EngineReconnectingEvent();
-}
-
-@internal
-class EngineReconnectedEvent with EngineEvent, InternalEvent {
-  const EngineReconnectedEvent();
-}
-
-@internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {
   final rtc.MediaStreamTrack track;
   final rtc.MediaStream stream;
@@ -291,16 +321,6 @@ class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
   const EngineDataPacketReceivedEvent({
     required this.packet,
     required this.kind,
-  });
-}
-
-@internal
-class EngineRemoteMuteChangedEvent with EngineEvent, InternalEvent {
-  final String sid;
-  final bool muted;
-  const EngineRemoteMuteChangedEvent({
-    required this.sid,
-    required this.muted,
   });
 }
 

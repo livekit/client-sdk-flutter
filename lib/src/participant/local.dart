@@ -15,7 +15,10 @@ import '../publication/local.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
-import '../types.dart';
+import '../track/options.dart';
+import '../types/other.dart';
+import '../types/participant_permissions.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'participant.dart';
 
@@ -48,20 +51,24 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // Use defaultPublishOptions if options is null
     publishOptions =
-        publishOptions ?? room.roomOptions?.defaultAudioPublishOptions;
+        publishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: track.name,
       kind: track.kind,
       source: track.source.toPBType(),
-      dtx: publishOptions?.dtx,
+      dtx: publishOptions.dtx,
     );
 
     await track.start();
 
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
+      sendEncodings: [
+        if (publishOptions.audioBitrate > 0)
+          rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
+      ],
     );
     // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
     track.transceiver = await room.engine.publisher?.pc.addTransceiver(
@@ -78,6 +85,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       track: track,
     );
     addTrackPublication(pub);
+
+    // did publish
+    await track.onPublish();
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -100,7 +110,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // Use defaultPublishOptions if options is null
     publishOptions =
-        publishOptions ?? room.roomOptions?.defaultVideoPublishOptions;
+        publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
@@ -173,6 +183,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
     addTrackPublication(pub);
 
+    // did publish
+    await track.onPublish();
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -194,8 +207,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final track = pub.track;
     if (track != null) {
-      final roomOptions = room.roomOptions ?? const RoomOptions();
-      if (roomOptions.stopLocalTrackOnUnpublish) {
+      if (room.roomOptions.stopLocalTrackOnUnpublish) {
         await track.stop();
       }
 
@@ -213,6 +225,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await room.engine.negotiate();
         }
       }
+
+      // did unpublish
+      await track.onUnpublish();
     }
 
     if (notify) {
@@ -269,14 +284,17 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
-  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.screenShareVideo, enabled);
+  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
+      {bool? captureScreenAudio}) async {
+    return setSourceEnabled(TrackSource.screenShareVideo, enabled,
+        captureScreenAudio: captureScreenAudio);
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
   Future<LocalTrackPublication?> setSourceEnabled(
-      TrackSource source, bool enabled) async {
+      TrackSource source, bool enabled,
+      {bool? captureScreenAudio}) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
@@ -293,20 +311,42 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     } else if (enabled) {
       if (source == TrackSource.camera) {
         final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions?.defaultCameraCaptureOptions);
+            room.roomOptions.defaultCameraCaptureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final track = await LocalAudioTrack.create(
-            room.roomOptions?.defaultAudioCaptureOptions);
+            room.roomOptions.defaultAudioCaptureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
+        /// When capturing chrome table audio, we can't capture audio/video
+        /// track separately, it has to be returned once in getDisplayMedia,
+        /// so we publish it twice here, but only return videoTrack to user.
+        if (captureScreenAudio != null) {
+          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
+              ScreenShareCaptureOptions(
+                  captureScreenAudio: captureScreenAudio));
+          LocalTrackPublication<LocalVideoTrack>? publication;
+          for (final track in tracks) {
+            if (track is LocalVideoTrack) {
+              publication = await publishVideoTrack(track);
+            } else if (track is LocalAudioTrack) {
+              await publishAudioTrack(track);
+            }
+          }
+
+          /// just return the video track publication
+          return publication;
+        }
         final track = await LocalVideoTrack.createScreenShareTrack(
-            room.roomOptions?.defaultScreenShareCaptureOptions);
+            room.roomOptions.defaultScreenShareCaptureOptions);
         return await publishVideoTrack(track);
       }
     }
     return null;
   }
+
+  bool _allParticipantsAllowed = true;
+  List<ParticipantTrackPermission> _participantTrackPermissions = [];
 
   /// Control who can subscribe to LocalParticipant's published tracks.
   ///
@@ -328,13 +368,39 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   void setTrackSubscriptionPermissions({
     required bool allParticipantsAllowed,
     List<ParticipantTrackPermission> trackPermissions = const [],
-  }) =>
-      room.engine.signalClient.sendUpdateSubscriptionPermissions(
-        allParticipants: allParticipantsAllowed,
-        trackPermissions: trackPermissions.map((e) => e.toPBType()).toList(),
-      );
+  }) {
+    _allParticipantsAllowed = allParticipantsAllowed;
+    _participantTrackPermissions = trackPermissions;
+    sendTrackSubscriptionPermissions();
+  }
+
+  void sendTrackSubscriptionPermissions() {
+    if (room.engine.connectionState != ConnectionState.connected) {
+      return;
+    }
+    room.engine.signalClient.sendUpdateSubscriptionPermissions(
+      allParticipants: _allParticipantsAllowed,
+      trackPermissions:
+          _participantTrackPermissions.map((e) => e.toPBType()).toList(),
+    );
+  }
 
   @internal
   Iterable<lk_rtc.TrackPublishedResponse> publishedTracksInfo() =>
       trackPublications.values.map((e) => e.toPBTrackPublishedResponse());
+
+  @internal
+  @override
+  ParticipantPermissions? setPermissions(ParticipantPermissions newValue) {
+    final oldValue = super.setPermissions(newValue);
+    if (oldValue != null) {
+      // notify
+      [events, room.events].emit(ParticipantPermissionsUpdatedEvent(
+        participant: this,
+        permissions: newValue,
+        oldPermissions: oldValue,
+      ));
+    }
+    return oldValue;
+  }
 }

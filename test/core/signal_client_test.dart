@@ -1,16 +1,20 @@
 @Timeout(Duration(seconds: 5))
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:protobuf/protobuf.dart';
+
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/core/signal_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
-import 'package:protobuf/protobuf.dart';
-
 import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
 
 void main() {
+  const connectOptions = ConnectOptions();
+  const roomOptions = RoomOptions();
+
   late SignalClient client;
   late MockWebSocketConnector connector;
   setUp(() async {
@@ -24,29 +28,45 @@ void main() {
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
             predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.connectionState == ConnectionState.connecting),
+                (event) => event.newState == ConnectionState.connecting),
             predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.connectionState == ConnectionState.connected),
+                (event) => event.newState == ConnectionState.connected),
           ]));
-      await client.connect(exampleUri, token);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
     });
     test('reconnect', () async {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
+            predicate<SignalConnectionStateUpdatedEvent>(
+                (event) => event.newState == ConnectionState.reconnecting),
             predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.connectionState == ConnectionState.reconnecting),
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.connectionState == ConnectionState.connected &&
+                event.newState == ConnectionState.connected &&
                 event.didReconnect == true),
           ]));
-      await client.connect(exampleUri, token, reconnect: true);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: true,
+      );
     });
   });
 
   group('messaging', () {
     test('join', () async {
-      await client.connect(exampleUri, token);
+      await client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
       expect(client.events.streamCtrl.stream,
           emits(isA<SignalJoinResponseEvent>()));
       connector.handlers?.onData!(joinResponse.writeToBuffer());

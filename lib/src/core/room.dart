@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
@@ -13,8 +14,10 @@ import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../track/local/audio.dart';
+import '../track/local/video.dart';
 import '../track/track.dart';
-import '../types.dart';
+import '../types/other.dart';
 import 'engine.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a
@@ -27,53 +30,67 @@ import 'engine.dart';
 /// * active speakers are different
 /// {@category Room}
 class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
-  // Room is only instantiated if connected, so defaults to connected.
-  ConnectionState _connectionState = ConnectionState.connected;
-
+  // expose engine's params
   /// connection state of the room
-  ConnectionState get connectionState => _connectionState;
-
-  final _participants = <String, RemoteParticipant>{};
+  ConnectionState get connectionState => engine.connectionState;
+  ConnectOptions get connectOptions => engine.connectOptions;
+  RoomOptions get roomOptions => engine.roomOptions;
 
   /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
       UnmodifiableMapView(_participants);
-
-  ConnectOptions? connectOptions;
-
-  RoomOptions? roomOptions;
+  final _participants = <String, RemoteParticipant>{};
 
   /// the current participant
-  LocalParticipant? localParticipant;
+  LocalParticipant? get localParticipant => _localParticipant;
+  LocalParticipant? _localParticipant;
 
   /// name of the room
-  String? name;
+  String? get name => _name;
+  String? _name;
 
   /// sid of the room
-  String? sid;
+  String? get sid => _sid;
+  String? _sid;
 
   /// metadata of the room
-  String? metadata;
+  String? get metadata => _metadata;
+  String? _metadata;
 
   /// Server version
   String? get serverVersion => _serverVersion;
   String? _serverVersion;
 
-  List<Participant> _activeSpeakers = [];
+  /// Server region
+  String? get serverRegion => _serverRegion;
+  String? _serverRegion;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
+  List<Participant> _activeSpeakers = [];
 
   final Engine engine;
-
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
+  //
+  late final EventsListener<SignalEvent> _signalListener;
 
-  Room({this.connectOptions, this.roomOptions, Engine? engine})
-      : engine = engine ?? Engine() {
+  Room({
+    ConnectOptions connectOptions = const ConnectOptions(),
+    RoomOptions roomOptions = const RoomOptions(),
+    Engine? engine,
+  }) : engine = engine ??
+            Engine(
+              connectOptions: connectOptions,
+              roomOptions: roomOptions,
+            ) {
+    //
     _engineListener = this.engine.createListener();
-    _setUpListeners();
+    _setUpEngineListeners();
+
+    _signalListener = this.engine.signalClient.createListener();
+    _setUpSignalListeners();
 
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
@@ -82,11 +99,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
     onDispose(() async {
+      // clean up routine
+      await _cleanUp();
       // dispose events
       await events.dispose();
       // dispose local participant
       await localParticipant?.dispose();
-      // dispose all listeners for RTCEngine
+      // dispose all listeners for SignalClient
+      await _signalListener.dispose();
+      // dispose all listeners for Engine
       await _engineListener.dispose();
       // dispose the engine
       await this.engine.dispose();
@@ -98,48 +119,57 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String token, {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
-  }) async {
-    // update options if provided
-    this.connectOptions = connectOptions ?? this.connectOptions;
-    this.roomOptions = roomOptions ?? this.roomOptions;
+    FastConnectOptions? fastConnectOptions,
+  }) =>
+      engine.connect(
+        url,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        fastConnectOptions: fastConnectOptions,
+      );
 
-    return engine.connect(url, token, this.connectOptions);
-  }
-
-  void _setUpListeners() => _engineListener
-    ..on<EngineConnectedEvent>((event) async {
-      _connectionState = ConnectionState.connected;
-      notifyListeners();
-    })
-    ..on<EngineReconnectedEvent>((event) async {
-      _connectionState = ConnectionState.connected;
-      events.emit(const RoomReconnectedEvent());
-      await _handlePostReconnect(false);
-    })
-    ..on<EngineReconnectingEvent>((event) async {
-      _connectionState = ConnectionState.reconnecting;
-      events.emit(const RoomReconnectingEvent());
-    })
-    ..on<EngineDisconnectedEvent>((event) => _handleClose())
-    ..on<SignalConnectionStateUpdatedEvent>((event) {
-      // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) {
-        logger.fine('Sending syncState');
-        _sendSyncState();
-      }
-    })
+  void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {
-      sid = event.response.room.sid;
-      name = event.response.room.name;
+      _sid = event.response.room.sid;
+      _name = event.response.room.name;
+      _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
+      _serverRegion = event.response.serverRegion;
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      localParticipant = LocalParticipant(
+      _localParticipant = LocalParticipant(
         room: this,
         info: event.response.participant,
       );
+
+      if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
+          engine.fastConnectOptions != null) {
+        var options = engine.fastConnectOptions!;
+
+        var audio = options.microphone;
+        if (audio.enabled != null && audio.enabled == true) {
+          _localParticipant!.setMicrophoneEnabled(true);
+        } else if (audio.track != null) {
+          _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack);
+        }
+
+        var video = options.camera;
+        if (video.enabled != null && video.enabled == true) {
+          _localParticipant!.setCameraEnabled(true);
+        } else if (video.track != null) {
+          _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack);
+        }
+
+        var screen = options.screen;
+        if (screen.enabled != null && screen.enabled == true) {
+          _localParticipant!.setScreenShareEnabled(true);
+        } else if (screen.track != null) {
+          _localParticipant!.publishVideoTrack(screen.track as LocalVideoTrack);
+        }
+      }
 
       for (final info in event.response.otherParticipants) {
         logger.fine('Creating RemoteParticipant: ${info.sid}(${info.identity}) '
@@ -151,28 +181,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
-    ..on<EngineActiveSpeakersUpdateEvent>(
-        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<SignalSpeakersChangedEvent>(
         (event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>(
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>(
         (event) => _onSignalStreamStateUpdateEvent(event.updates))
-    ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
-    ..on<EngineRemoteMuteChangedEvent>((event) async {
-      final publication = localParticipant?.trackPublications[event.sid];
-      if (event.muted) {
-        await publication?.mute();
-      } else {
-        await publication?.unmute();
-      }
-    })
     ..on<SignalSubscribedQualityUpdatedEvent>((event) {
-      // Signal for Dynacast
-      final options = roomOptions ?? const RoomOptions();
       // Dynacast is off or is unsupported
-      if (!options.dynacast || _serverVersion == '0.15.1') {
+      if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
         logger.fine('Received subscribed quality update'
             ' but Dynacast is off or server version is not supported.');
         return;
@@ -204,11 +221,56 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
+      emitWhenConnected(TrackSubscriptionPermissionChangedEvent(
+        participant: participant,
+        publication: publication,
+        state: publication.subscriptionState,
+      ));
     })
     ..on<SignalRoomUpdateEvent>((event) async {
-      metadata = event.room.metadata;
-      events.emit(RoomMetadataChangedEvent(metadata: event.room.metadata));
+      _metadata = event.room.metadata;
+      emitWhenConnected(
+          RoomMetadataChangedEvent(metadata: event.room.metadata));
     })
+    ..on<SignalConnectionStateUpdatedEvent>((event) {
+      // during reconnection, need to send sync state upon signal connection.
+      if (event.didReconnect) {
+        logger.fine('Sending syncState');
+        _sendSyncState();
+      }
+    })
+    ..on<SignalRemoteMuteTrackEvent>((event) async {
+      final publication = localParticipant?.trackPublications[event.sid];
+      if (event.muted) {
+        await publication?.mute();
+      } else {
+        await publication?.unmute();
+      }
+    })
+    ..on<SignalTrackUnpublishedEvent>((event) async {
+      // unpublish local track
+      await localParticipant?.unpublishTrack(event.trackSid);
+    });
+
+  void _setUpEngineListeners() => _engineListener
+    ..on<EngineConnectionStateUpdatedEvent>((event) async {
+      if (event.didReconnect) {
+        // re-send tracks permissions
+        localParticipant?.sendTrackSubscriptionPermissions();
+        events.emit(const RoomReconnectedEvent());
+        await _handlePostReconnect(false);
+      } else if (event.newState == ConnectionState.reconnecting) {
+        events.emit(const RoomReconnectingEvent());
+      } else if (event.newState == ConnectionState.disconnected) {
+        await _cleanUp();
+        events.emit(const RoomDisconnectedEvent());
+      }
+      // always notify ChangeNotifier
+      notifyListeners();
+    })
+    ..on<EngineActiveSpeakersUpdateEvent>(
+        (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
+    ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
@@ -227,6 +289,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           event.track,
           event.stream,
           trackSid,
+          receiver: event.receiver,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.severe('addSubscribedMediaTrack() throwed ${event}');
@@ -240,10 +303,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    if (_connectionState != ConnectionState.disconnected) {
+    if (connectionState != ConnectionState.disconnected) {
       engine.signalClient.sendLeave();
     }
-    await _handleClose();
+    await _cleanUp();
   }
 
   Future<void> reconnect() async {
@@ -254,6 +317,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       String sid, lk_models.ParticipantInfo? info) {
     RemoteParticipant? participant = _participants[sid];
     if (participant != null) {
+      if (info != null) {
+        participant.updateFromInfo(info);
+      }
       return participant;
     }
 
@@ -277,35 +343,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return participant;
   }
 
-  // there should be no problem calling this method multiple times
-  Future<void> _handleClose() async {
-    logger.fine('[$objectId] _handleClose()');
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.warning('[$objectId]: close() already disconnected');
-    }
-
-    // clean up RemoteParticipants
-    for (final _ in _participants.values.toList()) {
-      // RemoteParticipant is responsible for disposing resources
-      await _.dispose();
-    }
-    _participants.clear();
-
-    // clean up LocalParticipant
-    await localParticipant?.unpublishAllTracks();
-
-    // clean up engine
-    await engine.close();
-
-    _activeSpeakers.clear();
-
-    // only notify if was not disconnected
-    if (_connectionState != ConnectionState.disconnected) {
-      _connectionState = ConnectionState.disconnected;
-      events.emit(const RoomDisconnectedEvent());
-    }
-  }
-
   Future<void> _onParticipantUpdateEvent(
       List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
@@ -327,7 +364,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (isNew) {
         hasChanged = true;
-        events.emit(ParticipantConnectedEvent(participant: participant));
+        // fire connected event
+        emitWhenConnected(ParticipantConnectedEvent(participant: participant));
       } else {
         await participant.updateFromInfo(info);
       }
@@ -361,7 +399,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final activeSpeakers = lastSpeakers.values.toList();
     activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
     _activeSpeakers = activeSpeakers;
-    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   // from data channel
@@ -395,7 +433,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     _activeSpeakers = activeSpeakers;
-    events.emit(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onSignalConnectionQualityUpdateEvent(
@@ -426,6 +464,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (trackPublication == null) continue;
       // update the stream state
       await trackPublication.updateStreamState(update.state.toLKType());
+      emitWhenConnected(TrackStreamStateUpdatedEvent(
+        participant: participant,
+        publication: trackPublication,
+        streamState: update.state.toLKType(),
+      ));
     }
   }
 
@@ -456,11 +499,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     await participant.unpublishAllTracks(notify: true);
 
-    events.emit(ParticipantDisconnectedEvent(participant: participant));
+    emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
   }
 
   Future<void> _sendSyncState() async {
-    final connectOptions = this.connectOptions ?? const ConnectOptions();
     final sendUnSub = connectOptions.autoSubscribe;
     final participantTracks =
         participants.values.map((e) => e.participantTracks());
@@ -488,9 +530,47 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     }
   }
+}
 
+extension RoomPrivateMethods on Room {
+  // resets internal state to a re-usable state
+  Future<void> _cleanUp() async {
+    logger.fine('[${objectId}] cleanUp()');
+
+    // clean up RemoteParticipants
+    for (final participant in _participants.values) {
+      // RemoteParticipant is responsible for disposing resources
+      await participant.dispose();
+    }
+    _participants.clear();
+
+    // clean up LocalParticipant
+    await localParticipant?.unpublishAllTracks();
+
+    _activeSpeakers.clear();
+
+    // clean up engine
+    await engine.cleanUp();
+
+    // reset params
+    _name = null;
+    _sid = null;
+    _metadata = null;
+    _serverVersion = null;
+    _serverRegion = null;
+  }
+
+  @internal
+  void emitWhenConnected(RoomEvent event) {
+    if (connectionState == ConnectionState.connected) {
+      events.emit(event);
+    }
+  }
+}
+
+extension RoomDebugMethods on Room {
   /// To be used for internal testing purposes only.
-  Future<void> simulateScenario({
+  Future<void> sendSimulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,
     bool? migration,

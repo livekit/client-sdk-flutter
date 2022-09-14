@@ -5,17 +5,17 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.15.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
   intl: ^0.17.0
-  flutter_background: 1.1.0
+  flutter_background: ^1.1.0
   provider: ^6.0.1
   logging: ^1.0.1
-  shared_preferences: ^2.0.11
+  shared_preferences: ^2.0.7
 
   google_fonts: ^2.1.0
   eva_icons_flutter: ^3.0.0

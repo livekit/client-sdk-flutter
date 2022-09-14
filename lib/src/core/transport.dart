@@ -7,25 +7,25 @@ import '../extensions.dart';
 import '../internal/types.dart';
 import '../logger.dart';
 import '../support/disposable.dart';
-import '../types.dart';
+import '../types/other.dart';
 import '../utils.dart';
 
-typedef PCTransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 typedef PeerConnectionCreate = Future<rtc.RTCPeerConnection> Function(
     Map<String, dynamic> configuration,
     [Map<String, dynamic> constraints]);
 
 /// a wrapper around PeerConnection
-class PCTransport extends Disposable {
+class Transport extends Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
   bool renegotiate = false;
-  PCTransportOnOffer? onOffer;
+  TransportOnOffer? onOffer;
   Function? _cancelDebounce;
 
   // private constructor
-  PCTransport._(this.pc) {
+  Transport._(this.pc) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -58,12 +58,12 @@ class PCTransport extends Disposable {
     });
   }
 
-  static Future<PCTransport> create(PeerConnectionCreate peerConnectionCreate,
+  static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
       [RTCConfiguration? rtcConfig]) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
-    final _ = await peerConnectionCreate(rtcConfig.toMap());
-    return PCTransport._(_);
+    final pc = await peerConnectionCreate(rtcConfig.toMap());
+    return Transport._(pc);
   }
 
   late final negotiate = Utils.createDebounceFunc(

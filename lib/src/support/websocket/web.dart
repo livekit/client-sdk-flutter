@@ -30,8 +30,8 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      dynamic _data = _.data is ByteBuffer ? _.data.asUint8List() : _.data;
-      options?.onData?.call(_data);
+      dynamic data = _.data is ByteBuffer ? _.data.asUint8List() : _.data;
+      options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {
       await _messageSubscription.cancel();

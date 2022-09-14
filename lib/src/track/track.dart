@@ -9,7 +9,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
-import '../types.dart';
+import '../types/other.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
@@ -45,13 +45,11 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
-  Track(
-    this.name,
-    this.kind,
-    this.source,
-    this._mediaStream,
-    this._mediaStreamTrack,
-  ) {
+  rtc.RTCRtpReceiver? receiver;
+
+  Track(this.name, this.kind, this.source, this._mediaStream,
+      this._mediaStreamTrack,
+      {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.fine('[TrackEvent] $event, will notifyListeners()');

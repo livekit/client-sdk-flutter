@@ -7,11 +7,12 @@
 
 import 'dart:core' as $core;
 
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'livekit_models.pb.dart' as $0;
+import 'livekit_models.pb.dart' as $1;
 
-import 'livekit_models.pbenum.dart' as $0;
+import 'livekit_models.pbenum.dart' as $1;
 import 'livekit_rtc.pbenum.dart';
 
 export 'livekit_rtc.pbenum.dart';
@@ -29,6 +30,7 @@ enum SignalRequest_Message {
   subscriptionPermission,
   syncState,
   simulate,
+  ping,
   notSet
 }
 
@@ -47,6 +49,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     11: SignalRequest_Message.subscriptionPermission,
     12: SignalRequest_Message.syncState,
     13: SignalRequest_Message.simulate,
+    14: SignalRequest_Message.ping,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -58,7 +61,7 @@ class SignalRequest extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14])
     ..aOM<SessionDescription>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -131,6 +134,11 @@ class SignalRequest extends $pb.GeneratedMessage {
             ? ''
             : 'simulate',
         subBuilder: SimulateScenario.create)
+    ..aInt64(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'ping')
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -147,6 +155,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     SubscriptionPermission? subscriptionPermission,
     SyncState? syncState,
     SimulateScenario? simulate,
+    $fixnum.Int64? ping,
   }) {
     final _result = create();
     if (offer != null) {
@@ -184,6 +193,9 @@ class SignalRequest extends $pb.GeneratedMessage {
     }
     if (simulate != null) {
       _result.simulate = simulate;
+    }
+    if (ping != null) {
+      _result.ping = ping;
     }
     return _result;
   }
@@ -385,6 +397,18 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearSimulate() => clearField(13);
   @$pb.TagNumber(13)
   SimulateScenario ensureSimulate() => $_ensure(11);
+
+  @$pb.TagNumber(14)
+  $fixnum.Int64 get ping => $_getI64(12);
+  @$pb.TagNumber(14)
+  set ping($fixnum.Int64 v) {
+    $_setInt64(12, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasPing() => $_has(12);
+  @$pb.TagNumber(14)
+  void clearPing() => clearField(14);
 }
 
 enum SignalResponse_Message {
@@ -403,6 +427,8 @@ enum SignalResponse_Message {
   subscribedQualityUpdate,
   subscriptionPermissionUpdate,
   refreshToken,
+  trackUnpublished,
+  pong,
   notSet
 }
 
@@ -424,6 +450,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     14: SignalResponse_Message.subscribedQualityUpdate,
     15: SignalResponse_Message.subscriptionPermissionUpdate,
     16: SignalResponse_Message.refreshToken,
+    17: SignalResponse_Message.trackUnpublished,
+    18: SignalResponse_Message.pong,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -435,7 +463,7 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -525,6 +553,17 @@ class SignalResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'refreshToken')
+    ..aOM<TrackUnpublishedResponse>(
+        17,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackUnpublished',
+        subBuilder: TrackUnpublishedResponse.create)
+    ..aInt64(
+        18,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'pong')
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -544,6 +583,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     SubscribedQualityUpdate? subscribedQualityUpdate,
     SubscriptionPermissionUpdate? subscriptionPermissionUpdate,
     $core.String? refreshToken,
+    TrackUnpublishedResponse? trackUnpublished,
+    $fixnum.Int64? pong,
   }) {
     final _result = create();
     if (join != null) {
@@ -590,6 +631,12 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (refreshToken != null) {
       _result.refreshToken = refreshToken;
+    }
+    if (trackUnpublished != null) {
+      _result.trackUnpublished = trackUnpublished;
+    }
+    if (pong != null) {
+      _result.pong = pong;
     }
     return _result;
   }
@@ -832,6 +879,141 @@ class SignalResponse extends $pb.GeneratedMessage {
   $core.bool hasRefreshToken() => $_has(14);
   @$pb.TagNumber(16)
   void clearRefreshToken() => clearField(16);
+
+  @$pb.TagNumber(17)
+  TrackUnpublishedResponse get trackUnpublished => $_getN(15);
+  @$pb.TagNumber(17)
+  set trackUnpublished(TrackUnpublishedResponse v) {
+    setField(17, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasTrackUnpublished() => $_has(15);
+  @$pb.TagNumber(17)
+  void clearTrackUnpublished() => clearField(17);
+  @$pb.TagNumber(17)
+  TrackUnpublishedResponse ensureTrackUnpublished() => $_ensure(15);
+
+  @$pb.TagNumber(18)
+  $fixnum.Int64 get pong => $_getI64(16);
+  @$pb.TagNumber(18)
+  set pong($fixnum.Int64 v) {
+    $_setInt64(16, v);
+  }
+
+  @$pb.TagNumber(18)
+  $core.bool hasPong() => $_has(16);
+  @$pb.TagNumber(18)
+  void clearPong() => clearField(18);
+}
+
+class SimulcastCodec extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SimulcastCodec',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codec')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'cid')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'enableSimulcastLayers')
+    ..hasRequiredFields = false;
+
+  SimulcastCodec._() : super();
+  factory SimulcastCodec({
+    $core.String? codec,
+    $core.String? cid,
+    $core.bool? enableSimulcastLayers,
+  }) {
+    final _result = create();
+    if (codec != null) {
+      _result.codec = codec;
+    }
+    if (cid != null) {
+      _result.cid = cid;
+    }
+    if (enableSimulcastLayers != null) {
+      _result.enableSimulcastLayers = enableSimulcastLayers;
+    }
+    return _result;
+  }
+  factory SimulcastCodec.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SimulcastCodec.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SimulcastCodec clone() => SimulcastCodec()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SimulcastCodec copyWith(void Function(SimulcastCodec) updates) =>
+      super.copyWith((message) => updates(message as SimulcastCodec))
+          as SimulcastCodec; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SimulcastCodec create() => SimulcastCodec._();
+  SimulcastCodec createEmptyInstance() => create();
+  static $pb.PbList<SimulcastCodec> createRepeated() =>
+      $pb.PbList<SimulcastCodec>();
+  @$core.pragma('dart2js:noInline')
+  static SimulcastCodec getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulcastCodec>(create);
+  static SimulcastCodec? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get codec => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set codec($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasCodec() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCodec() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get cid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set cid($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasCid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCid() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get enableSimulcastLayers => $_getBF(2);
+  @$pb.TagNumber(3)
+  set enableSimulcastLayers($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasEnableSimulcastLayers() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEnableSimulcastLayers() => clearField(3);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -854,15 +1036,15 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'name')
-    ..e<$0.TrackType>(
+    ..e<$1.TrackType>(
         3,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'type',
         $pb.PbFieldType.OE,
-        defaultOrMaker: $0.TrackType.AUDIO,
-        valueOf: $0.TrackType.valueOf,
-        enumValues: $0.TrackType.values)
+        defaultOrMaker: $1.TrackType.AUDIO,
+        valueOf: $1.TrackType.valueOf,
+        enumValues: $1.TrackType.values)
     ..a<$core.int>(
         4,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -885,35 +1067,49 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'disableDtx')
-    ..e<$0.TrackSource>(
+    ..e<$1.TrackSource>(
         8,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'source',
         $pb.PbFieldType.OE,
-        defaultOrMaker: $0.TrackSource.UNKNOWN,
-        valueOf: $0.TrackSource.valueOf,
-        enumValues: $0.TrackSource.values)
-    ..pc<$0.VideoLayer>(
+        defaultOrMaker: $1.TrackSource.UNKNOWN,
+        valueOf: $1.TrackSource.valueOf,
+        enumValues: $1.TrackSource.values)
+    ..pc<$1.VideoLayer>(
         9,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'layers',
         $pb.PbFieldType.PM,
-        subBuilder: $0.VideoLayer.create)
+        subBuilder: $1.VideoLayer.create)
+    ..pc<SimulcastCodec>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'simulcastCodecs',
+        $pb.PbFieldType.PM,
+        subBuilder: SimulcastCodec.create)
+    ..aOS(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sid')
     ..hasRequiredFields = false;
 
   AddTrackRequest._() : super();
   factory AddTrackRequest({
     $core.String? cid,
     $core.String? name,
-    $0.TrackType? type,
+    $1.TrackType? type,
     $core.int? width,
     $core.int? height,
     $core.bool? muted,
     $core.bool? disableDtx,
-    $0.TrackSource? source,
-    $core.Iterable<$0.VideoLayer>? layers,
+    $1.TrackSource? source,
+    $core.Iterable<$1.VideoLayer>? layers,
+    $core.Iterable<SimulcastCodec>? simulcastCodecs,
+    $core.String? sid,
   }) {
     final _result = create();
     if (cid != null) {
@@ -942,6 +1138,12 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     }
     if (layers != null) {
       _result.layers.addAll(layers);
+    }
+    if (simulcastCodecs != null) {
+      _result.simulcastCodecs.addAll(simulcastCodecs);
+    }
+    if (sid != null) {
+      _result.sid = sid;
     }
     return _result;
   }
@@ -997,9 +1199,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   void clearName() => clearField(2);
 
   @$pb.TagNumber(3)
-  $0.TrackType get type => $_getN(2);
+  $1.TrackType get type => $_getN(2);
   @$pb.TagNumber(3)
-  set type($0.TrackType v) {
+  set type($1.TrackType v) {
     setField(3, v);
   }
 
@@ -1057,9 +1259,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   void clearDisableDtx() => clearField(7);
 
   @$pb.TagNumber(8)
-  $0.TrackSource get source => $_getN(7);
+  $1.TrackSource get source => $_getN(7);
   @$pb.TagNumber(8)
-  set source($0.TrackSource v) {
+  set source($1.TrackSource v) {
     setField(8, v);
   }
 
@@ -1069,7 +1271,22 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   void clearSource() => clearField(8);
 
   @$pb.TagNumber(9)
-  $core.List<$0.VideoLayer> get layers => $_getList(8);
+  $core.List<$1.VideoLayer> get layers => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.List<SimulcastCodec> get simulcastCodecs => $_getList(9);
+
+  @$pb.TagNumber(11)
+  $core.String get sid => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set sid($core.String v) {
+    $_setString(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasSid() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearSid() => clearField(11);
 }
 
 class TrickleRequest extends $pb.GeneratedMessage {
@@ -1263,25 +1480,25 @@ class JoinResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..aOM<$0.Room>(
+    ..aOM<$1.Room>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'room',
-        subBuilder: $0.Room.create)
-    ..aOM<$0.ParticipantInfo>(
+        subBuilder: $1.Room.create)
+    ..aOM<$1.ParticipantInfo>(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'participant',
-        subBuilder: $0.ParticipantInfo.create)
-    ..pc<$0.ParticipantInfo>(
+        subBuilder: $1.ParticipantInfo.create)
+    ..pc<$1.ParticipantInfo>(
         3,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'otherParticipants',
         $pb.PbFieldType.PM,
-        subBuilder: $0.ParticipantInfo.create)
+        subBuilder: $1.ParticipantInfo.create)
     ..aOS(
         4,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -1304,17 +1521,51 @@ class JoinResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'alternativeUrl')
+    ..aOM<$1.ClientConfiguration>(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'clientConfiguration',
+        subBuilder: $1.ClientConfiguration.create)
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'serverRegion')
+    ..a<$core.int>(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'pingTimeout',
+        $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'pingInterval',
+        $pb.PbFieldType.O3)
+    ..aOM<$1.ServerInfo>(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'serverInfo',
+        subBuilder: $1.ServerInfo.create)
     ..hasRequiredFields = false;
 
   JoinResponse._() : super();
   factory JoinResponse({
-    $0.Room? room,
-    $0.ParticipantInfo? participant,
-    $core.Iterable<$0.ParticipantInfo>? otherParticipants,
+    $1.Room? room,
+    $1.ParticipantInfo? participant,
+    $core.Iterable<$1.ParticipantInfo>? otherParticipants,
     $core.String? serverVersion,
     $core.Iterable<ICEServer>? iceServers,
     $core.bool? subscriberPrimary,
     $core.String? alternativeUrl,
+    $1.ClientConfiguration? clientConfiguration,
+    $core.String? serverRegion,
+    $core.int? pingTimeout,
+    $core.int? pingInterval,
+    $1.ServerInfo? serverInfo,
   }) {
     final _result = create();
     if (room != null) {
@@ -1337,6 +1588,21 @@ class JoinResponse extends $pb.GeneratedMessage {
     }
     if (alternativeUrl != null) {
       _result.alternativeUrl = alternativeUrl;
+    }
+    if (clientConfiguration != null) {
+      _result.clientConfiguration = clientConfiguration;
+    }
+    if (serverRegion != null) {
+      _result.serverRegion = serverRegion;
+    }
+    if (pingTimeout != null) {
+      _result.pingTimeout = pingTimeout;
+    }
+    if (pingInterval != null) {
+      _result.pingInterval = pingInterval;
+    }
+    if (serverInfo != null) {
+      _result.serverInfo = serverInfo;
     }
     return _result;
   }
@@ -1368,9 +1634,9 @@ class JoinResponse extends $pb.GeneratedMessage {
   static JoinResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.Room get room => $_getN(0);
+  $1.Room get room => $_getN(0);
   @$pb.TagNumber(1)
-  set room($0.Room v) {
+  set room($1.Room v) {
     setField(1, v);
   }
 
@@ -1379,12 +1645,12 @@ class JoinResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearRoom() => clearField(1);
   @$pb.TagNumber(1)
-  $0.Room ensureRoom() => $_ensure(0);
+  $1.Room ensureRoom() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $0.ParticipantInfo get participant => $_getN(1);
+  $1.ParticipantInfo get participant => $_getN(1);
   @$pb.TagNumber(2)
-  set participant($0.ParticipantInfo v) {
+  set participant($1.ParticipantInfo v) {
     setField(2, v);
   }
 
@@ -1393,10 +1659,10 @@ class JoinResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearParticipant() => clearField(2);
   @$pb.TagNumber(2)
-  $0.ParticipantInfo ensureParticipant() => $_ensure(1);
+  $1.ParticipantInfo ensureParticipant() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.List<$0.ParticipantInfo> get otherParticipants => $_getList(2);
+  $core.List<$1.ParticipantInfo> get otherParticipants => $_getList(2);
 
   @$pb.TagNumber(4)
   $core.String get serverVersion => $_getSZ(3);
@@ -1436,6 +1702,70 @@ class JoinResponse extends $pb.GeneratedMessage {
   $core.bool hasAlternativeUrl() => $_has(6);
   @$pb.TagNumber(7)
   void clearAlternativeUrl() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $1.ClientConfiguration get clientConfiguration => $_getN(7);
+  @$pb.TagNumber(8)
+  set clientConfiguration($1.ClientConfiguration v) {
+    setField(8, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasClientConfiguration() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearClientConfiguration() => clearField(8);
+  @$pb.TagNumber(8)
+  $1.ClientConfiguration ensureClientConfiguration() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  $core.String get serverRegion => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set serverRegion($core.String v) {
+    $_setString(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasServerRegion() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearServerRegion() => clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get pingTimeout => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set pingTimeout($core.int v) {
+    $_setSignedInt32(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasPingTimeout() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearPingTimeout() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get pingInterval => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set pingInterval($core.int v) {
+    $_setSignedInt32(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasPingInterval() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearPingInterval() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $1.ServerInfo get serverInfo => $_getN(11);
+  @$pb.TagNumber(12)
+  set serverInfo($1.ServerInfo v) {
+    setField(12, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasServerInfo() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearServerInfo() => clearField(12);
+  @$pb.TagNumber(12)
+  $1.ServerInfo ensureServerInfo() => $_ensure(11);
 }
 
 class TrackPublishedResponse extends $pb.GeneratedMessage {
@@ -1453,18 +1783,18 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'cid')
-    ..aOM<$0.TrackInfo>(
+    ..aOM<$1.TrackInfo>(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'track',
-        subBuilder: $0.TrackInfo.create)
+        subBuilder: $1.TrackInfo.create)
     ..hasRequiredFields = false;
 
   TrackPublishedResponse._() : super();
   factory TrackPublishedResponse({
     $core.String? cid,
-    $0.TrackInfo? track,
+    $1.TrackInfo? track,
   }) {
     final _result = create();
     if (cid != null) {
@@ -1517,9 +1847,9 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
   void clearCid() => clearField(1);
 
   @$pb.TagNumber(2)
-  $0.TrackInfo get track => $_getN(1);
+  $1.TrackInfo get track => $_getN(1);
   @$pb.TagNumber(2)
-  set track($0.TrackInfo v) {
+  set track($1.TrackInfo v) {
     setField(2, v);
   }
 
@@ -1528,7 +1858,76 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearTrack() => clearField(2);
   @$pb.TagNumber(2)
-  $0.TrackInfo ensureTrack() => $_ensure(1);
+  $1.TrackInfo ensureTrack() => $_ensure(1);
+}
+
+class TrackUnpublishedResponse extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TrackUnpublishedResponse',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSid')
+    ..hasRequiredFields = false;
+
+  TrackUnpublishedResponse._() : super();
+  factory TrackUnpublishedResponse({
+    $core.String? trackSid,
+  }) {
+    final _result = create();
+    if (trackSid != null) {
+      _result.trackSid = trackSid;
+    }
+    return _result;
+  }
+  factory TrackUnpublishedResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TrackUnpublishedResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TrackUnpublishedResponse clone() =>
+      TrackUnpublishedResponse()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TrackUnpublishedResponse copyWith(
+          void Function(TrackUnpublishedResponse) updates) =>
+      super.copyWith((message) => updates(message as TrackUnpublishedResponse))
+          as TrackUnpublishedResponse; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static TrackUnpublishedResponse create() => TrackUnpublishedResponse._();
+  TrackUnpublishedResponse createEmptyInstance() => create();
+  static $pb.PbList<TrackUnpublishedResponse> createRepeated() =>
+      $pb.PbList<TrackUnpublishedResponse>();
+  @$core.pragma('dart2js:noInline')
+  static TrackUnpublishedResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackUnpublishedResponse>(create);
+  static TrackUnpublishedResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
 }
 
 class SessionDescription extends $pb.GeneratedMessage {
@@ -1629,18 +2028,18 @@ class ParticipantUpdate extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..pc<$0.ParticipantInfo>(
+    ..pc<$1.ParticipantInfo>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'participants',
         $pb.PbFieldType.PM,
-        subBuilder: $0.ParticipantInfo.create)
+        subBuilder: $1.ParticipantInfo.create)
     ..hasRequiredFields = false;
 
   ParticipantUpdate._() : super();
   factory ParticipantUpdate({
-    $core.Iterable<$0.ParticipantInfo>? participants,
+    $core.Iterable<$1.ParticipantInfo>? participants,
   }) {
     final _result = create();
     if (participants != null) {
@@ -1676,7 +2075,7 @@ class ParticipantUpdate extends $pb.GeneratedMessage {
   static ParticipantUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$0.ParticipantInfo> get participants => $_getList(0);
+  $core.List<$1.ParticipantInfo> get participants => $_getList(0);
 }
 
 class UpdateSubscription extends $pb.GeneratedMessage {
@@ -1699,20 +2098,20 @@ class UpdateSubscription extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'subscribe')
-    ..pc<$0.ParticipantTracks>(
+    ..pc<$1.ParticipantTracks>(
         3,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'participantTracks',
         $pb.PbFieldType.PM,
-        subBuilder: $0.ParticipantTracks.create)
+        subBuilder: $1.ParticipantTracks.create)
     ..hasRequiredFields = false;
 
   UpdateSubscription._() : super();
   factory UpdateSubscription({
     $core.Iterable<$core.String>? trackSids,
     $core.bool? subscribe,
-    $core.Iterable<$0.ParticipantTracks>? participantTracks,
+    $core.Iterable<$1.ParticipantTracks>? participantTracks,
   }) {
     final _result = create();
     if (trackSids != null) {
@@ -1769,7 +2168,7 @@ class UpdateSubscription extends $pb.GeneratedMessage {
   void clearSubscribe() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.List<$0.ParticipantTracks> get participantTracks => $_getList(2);
+  $core.List<$1.ParticipantTracks> get participantTracks => $_getList(2);
 }
 
 class UpdateTrackSettings extends $pb.GeneratedMessage {
@@ -1792,15 +2191,15 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'disabled')
-    ..e<$0.VideoQuality>(
+    ..e<$1.VideoQuality>(
         4,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'quality',
         $pb.PbFieldType.OE,
-        defaultOrMaker: $0.VideoQuality.LOW,
-        valueOf: $0.VideoQuality.valueOf,
-        enumValues: $0.VideoQuality.values)
+        defaultOrMaker: $1.VideoQuality.LOW,
+        valueOf: $1.VideoQuality.valueOf,
+        enumValues: $1.VideoQuality.values)
     ..a<$core.int>(
         5,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -1819,7 +2218,7 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   factory UpdateTrackSettings({
     $core.Iterable<$core.String>? trackSids,
     $core.bool? disabled,
-    $0.VideoQuality? quality,
+    $1.VideoQuality? quality,
     $core.int? width,
     $core.int? height,
   }) {
@@ -1884,9 +2283,9 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   void clearDisabled() => clearField(3);
 
   @$pb.TagNumber(4)
-  $0.VideoQuality get quality => $_getN(2);
+  $1.VideoQuality get quality => $_getN(2);
   @$pb.TagNumber(4)
-  set quality($0.VideoQuality v) {
+  set quality($1.VideoQuality v) {
     setField(4, v);
   }
 
@@ -1935,15 +2334,28 @@ class LeaveRequest extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'canReconnect')
+    ..e<$1.DisconnectReason>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'reason',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: $1.DisconnectReason.UNKNOWN_REASON,
+        valueOf: $1.DisconnectReason.valueOf,
+        enumValues: $1.DisconnectReason.values)
     ..hasRequiredFields = false;
 
   LeaveRequest._() : super();
   factory LeaveRequest({
     $core.bool? canReconnect,
+    $1.DisconnectReason? reason,
   }) {
     final _result = create();
     if (canReconnect != null) {
       _result.canReconnect = canReconnect;
+    }
+    if (reason != null) {
+      _result.reason = reason;
     }
     return _result;
   }
@@ -1985,6 +2397,18 @@ class LeaveRequest extends $pb.GeneratedMessage {
   $core.bool hasCanReconnect() => $_has(0);
   @$pb.TagNumber(1)
   void clearCanReconnect() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $1.DisconnectReason get reason => $_getN(1);
+  @$pb.TagNumber(2)
+  set reason($1.DisconnectReason v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasReason() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReason() => clearField(2);
 }
 
 class UpdateVideoLayers extends $pb.GeneratedMessage {
@@ -2002,19 +2426,19 @@ class UpdateVideoLayers extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'trackSid')
-    ..pc<$0.VideoLayer>(
+    ..pc<$1.VideoLayer>(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'layers',
         $pb.PbFieldType.PM,
-        subBuilder: $0.VideoLayer.create)
+        subBuilder: $1.VideoLayer.create)
     ..hasRequiredFields = false;
 
   UpdateVideoLayers._() : super();
   factory UpdateVideoLayers({
     $core.String? trackSid,
-    $core.Iterable<$0.VideoLayer>? layers,
+    $core.Iterable<$1.VideoLayer>? layers,
   }) {
     final _result = create();
     if (trackSid != null) {
@@ -2065,7 +2489,7 @@ class UpdateVideoLayers extends $pb.GeneratedMessage {
   void clearTrackSid() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$0.VideoLayer> get layers => $_getList(1);
+  $core.List<$1.VideoLayer> get layers => $_getList(1);
 }
 
 class ICEServer extends $pb.GeneratedMessage {
@@ -2177,18 +2601,18 @@ class SpeakersChanged extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..pc<$0.SpeakerInfo>(
+    ..pc<$1.SpeakerInfo>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'speakers',
         $pb.PbFieldType.PM,
-        subBuilder: $0.SpeakerInfo.create)
+        subBuilder: $1.SpeakerInfo.create)
     ..hasRequiredFields = false;
 
   SpeakersChanged._() : super();
   factory SpeakersChanged({
-    $core.Iterable<$0.SpeakerInfo>? speakers,
+    $core.Iterable<$1.SpeakerInfo>? speakers,
   }) {
     final _result = create();
     if (speakers != null) {
@@ -2224,7 +2648,7 @@ class SpeakersChanged extends $pb.GeneratedMessage {
   static SpeakersChanged? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$0.SpeakerInfo> get speakers => $_getList(0);
+  $core.List<$1.SpeakerInfo> get speakers => $_getList(0);
 }
 
 class RoomUpdate extends $pb.GeneratedMessage {
@@ -2237,17 +2661,17 @@ class RoomUpdate extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..aOM<$0.Room>(
+    ..aOM<$1.Room>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'room',
-        subBuilder: $0.Room.create)
+        subBuilder: $1.Room.create)
     ..hasRequiredFields = false;
 
   RoomUpdate._() : super();
   factory RoomUpdate({
-    $0.Room? room,
+    $1.Room? room,
   }) {
     final _result = create();
     if (room != null) {
@@ -2282,9 +2706,9 @@ class RoomUpdate extends $pb.GeneratedMessage {
   static RoomUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.Room get room => $_getN(0);
+  $1.Room get room => $_getN(0);
   @$pb.TagNumber(1)
-  set room($0.Room v) {
+  set room($1.Room v) {
     setField(1, v);
   }
 
@@ -2293,7 +2717,7 @@ class RoomUpdate extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearRoom() => clearField(1);
   @$pb.TagNumber(1)
-  $0.Room ensureRoom() => $_ensure(0);
+  $1.Room ensureRoom() => $_ensure(0);
 }
 
 class ConnectionQualityInfo extends $pb.GeneratedMessage {
@@ -2311,15 +2735,15 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'participantSid')
-    ..e<$0.ConnectionQuality>(
+    ..e<$1.ConnectionQuality>(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'quality',
         $pb.PbFieldType.OE,
-        defaultOrMaker: $0.ConnectionQuality.POOR,
-        valueOf: $0.ConnectionQuality.valueOf,
-        enumValues: $0.ConnectionQuality.values)
+        defaultOrMaker: $1.ConnectionQuality.POOR,
+        valueOf: $1.ConnectionQuality.valueOf,
+        enumValues: $1.ConnectionQuality.values)
     ..a<$core.double>(
         3,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -2331,7 +2755,7 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
   ConnectionQualityInfo._() : super();
   factory ConnectionQualityInfo({
     $core.String? participantSid,
-    $0.ConnectionQuality? quality,
+    $1.ConnectionQuality? quality,
     $core.double? score,
   }) {
     final _result = create();
@@ -2388,9 +2812,9 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
   void clearParticipantSid() => clearField(1);
 
   @$pb.TagNumber(2)
-  $0.ConnectionQuality get quality => $_getN(1);
+  $1.ConnectionQuality get quality => $_getN(1);
   @$pb.TagNumber(2)
-  set quality($0.ConnectionQuality v) {
+  set quality($1.ConnectionQuality v) {
     setField(2, v);
   }
 
@@ -2657,15 +3081,15 @@ class SubscribedQuality extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..e<$0.VideoQuality>(
+    ..e<$1.VideoQuality>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'quality',
         $pb.PbFieldType.OE,
-        defaultOrMaker: $0.VideoQuality.LOW,
-        valueOf: $0.VideoQuality.valueOf,
-        enumValues: $0.VideoQuality.values)
+        defaultOrMaker: $1.VideoQuality.LOW,
+        valueOf: $1.VideoQuality.valueOf,
+        enumValues: $1.VideoQuality.values)
     ..aOB(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -2675,7 +3099,7 @@ class SubscribedQuality extends $pb.GeneratedMessage {
 
   SubscribedQuality._() : super();
   factory SubscribedQuality({
-    $0.VideoQuality? quality,
+    $1.VideoQuality? quality,
     $core.bool? enabled,
   }) {
     final _result = create();
@@ -2715,9 +3139,9 @@ class SubscribedQuality extends $pb.GeneratedMessage {
   static SubscribedQuality? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.VideoQuality get quality => $_getN(0);
+  $1.VideoQuality get quality => $_getN(0);
   @$pb.TagNumber(1)
-  set quality($0.VideoQuality v) {
+  set quality($1.VideoQuality v) {
     setField(1, v);
   }
 
@@ -2737,6 +3161,87 @@ class SubscribedQuality extends $pb.GeneratedMessage {
   $core.bool hasEnabled() => $_has(1);
   @$pb.TagNumber(2)
   void clearEnabled() => clearField(2);
+}
+
+class SubscribedCodec extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SubscribedCodec',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codec')
+    ..pc<SubscribedQuality>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'qualities',
+        $pb.PbFieldType.PM,
+        subBuilder: SubscribedQuality.create)
+    ..hasRequiredFields = false;
+
+  SubscribedCodec._() : super();
+  factory SubscribedCodec({
+    $core.String? codec,
+    $core.Iterable<SubscribedQuality>? qualities,
+  }) {
+    final _result = create();
+    if (codec != null) {
+      _result.codec = codec;
+    }
+    if (qualities != null) {
+      _result.qualities.addAll(qualities);
+    }
+    return _result;
+  }
+  factory SubscribedCodec.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SubscribedCodec.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SubscribedCodec clone() => SubscribedCodec()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SubscribedCodec copyWith(void Function(SubscribedCodec) updates) =>
+      super.copyWith((message) => updates(message as SubscribedCodec))
+          as SubscribedCodec; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SubscribedCodec create() => SubscribedCodec._();
+  SubscribedCodec createEmptyInstance() => create();
+  static $pb.PbList<SubscribedCodec> createRepeated() =>
+      $pb.PbList<SubscribedCodec>();
+  @$core.pragma('dart2js:noInline')
+  static SubscribedCodec getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedCodec>(create);
+  static SubscribedCodec? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get codec => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set codec($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasCodec() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCodec() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<SubscribedQuality> get qualities => $_getList(1);
 }
 
 class SubscribedQualityUpdate extends $pb.GeneratedMessage {
@@ -2761,12 +3266,20 @@ class SubscribedQualityUpdate extends $pb.GeneratedMessage {
             : 'subscribedQualities',
         $pb.PbFieldType.PM,
         subBuilder: SubscribedQuality.create)
+    ..pc<SubscribedCodec>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'subscribedCodecs',
+        $pb.PbFieldType.PM,
+        subBuilder: SubscribedCodec.create)
     ..hasRequiredFields = false;
 
   SubscribedQualityUpdate._() : super();
   factory SubscribedQualityUpdate({
     $core.String? trackSid,
     $core.Iterable<SubscribedQuality>? subscribedQualities,
+    $core.Iterable<SubscribedCodec>? subscribedCodecs,
   }) {
     final _result = create();
     if (trackSid != null) {
@@ -2774,6 +3287,9 @@ class SubscribedQualityUpdate extends $pb.GeneratedMessage {
     }
     if (subscribedQualities != null) {
       _result.subscribedQualities.addAll(subscribedQualities);
+    }
+    if (subscribedCodecs != null) {
+      _result.subscribedCodecs.addAll(subscribedCodecs);
     }
     return _result;
   }
@@ -2820,6 +3336,9 @@ class SubscribedQualityUpdate extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.List<SubscribedQuality> get subscribedQualities => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.List<SubscribedCodec> get subscribedCodecs => $_getList(2);
 }
 
 class TrackPermission extends $pb.GeneratedMessage {
@@ -2847,6 +3366,11 @@ class TrackPermission extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'trackSids')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantIdentity')
     ..hasRequiredFields = false;
 
   TrackPermission._() : super();
@@ -2854,6 +3378,7 @@ class TrackPermission extends $pb.GeneratedMessage {
     $core.String? participantSid,
     $core.bool? allTracks,
     $core.Iterable<$core.String>? trackSids,
+    $core.String? participantIdentity,
   }) {
     final _result = create();
     if (participantSid != null) {
@@ -2864,6 +3389,9 @@ class TrackPermission extends $pb.GeneratedMessage {
     }
     if (trackSids != null) {
       _result.trackSids.addAll(trackSids);
+    }
+    if (participantIdentity != null) {
+      _result.participantIdentity = participantIdentity;
     }
     return _result;
   }
@@ -2920,6 +3448,18 @@ class TrackPermission extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get trackSids => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.String get participantIdentity => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set participantIdentity($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasParticipantIdentity() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearParticipantIdentity() => clearField(4);
 }
 
 class SubscriptionPermission extends $pb.GeneratedMessage {
@@ -3147,6 +3687,13 @@ class SyncState extends $pb.GeneratedMessage {
             : 'publishTracks',
         $pb.PbFieldType.PM,
         subBuilder: TrackPublishedResponse.create)
+    ..pc<DataChannelInfo>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'dataChannels',
+        $pb.PbFieldType.PM,
+        subBuilder: DataChannelInfo.create)
     ..hasRequiredFields = false;
 
   SyncState._() : super();
@@ -3154,6 +3701,7 @@ class SyncState extends $pb.GeneratedMessage {
     SessionDescription? answer,
     UpdateSubscription? subscription,
     $core.Iterable<TrackPublishedResponse>? publishTracks,
+    $core.Iterable<DataChannelInfo>? dataChannels,
   }) {
     final _result = create();
     if (answer != null) {
@@ -3164,6 +3712,9 @@ class SyncState extends $pb.GeneratedMessage {
     }
     if (publishTracks != null) {
       _result.publishTracks.addAll(publishTracks);
+    }
+    if (dataChannels != null) {
+      _result.dataChannels.addAll(dataChannels);
     }
     return _result;
   }
@@ -3223,6 +3774,123 @@ class SyncState extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<TrackPublishedResponse> get publishTracks => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.List<DataChannelInfo> get dataChannels => $_getList(3);
+}
+
+class DataChannelInfo extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DataChannelInfo',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'label')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'id',
+        $pb.PbFieldType.OU3)
+    ..e<SignalTarget>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'target',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: SignalTarget.PUBLISHER,
+        valueOf: SignalTarget.valueOf,
+        enumValues: SignalTarget.values)
+    ..hasRequiredFields = false;
+
+  DataChannelInfo._() : super();
+  factory DataChannelInfo({
+    $core.String? label,
+    $core.int? id,
+    SignalTarget? target,
+  }) {
+    final _result = create();
+    if (label != null) {
+      _result.label = label;
+    }
+    if (id != null) {
+      _result.id = id;
+    }
+    if (target != null) {
+      _result.target = target;
+    }
+    return _result;
+  }
+  factory DataChannelInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataChannelInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  DataChannelInfo clone() => DataChannelInfo()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  DataChannelInfo copyWith(void Function(DataChannelInfo) updates) =>
+      super.copyWith((message) => updates(message as DataChannelInfo))
+          as DataChannelInfo; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static DataChannelInfo create() => DataChannelInfo._();
+  DataChannelInfo createEmptyInstance() => create();
+  static $pb.PbList<DataChannelInfo> createRepeated() =>
+      $pb.PbList<DataChannelInfo>();
+  @$core.pragma('dart2js:noInline')
+  static DataChannelInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataChannelInfo>(create);
+  static DataChannelInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get label => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set label($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasLabel() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLabel() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get id => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set id($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearId() => clearField(2);
+
+  @$pb.TagNumber(3)
+  SignalTarget get target => $_getN(2);
+  @$pb.TagNumber(3)
+  set target(SignalTarget v) {
+    setField(3, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasTarget() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTarget() => clearField(3);
 }
 
 enum SimulateScenario_Scenario {
@@ -3230,6 +3898,7 @@ enum SimulateScenario_Scenario {
   nodeFailure,
   migration,
   serverLeave,
+  switchCandidateProtocol,
   notSet
 }
 
@@ -3240,6 +3909,7 @@ class SimulateScenario extends $pb.GeneratedMessage {
     2: SimulateScenario_Scenario.nodeFailure,
     3: SimulateScenario_Scenario.migration,
     4: SimulateScenario_Scenario.serverLeave,
+    5: SimulateScenario_Scenario.switchCandidateProtocol,
     0: SimulateScenario_Scenario.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -3251,7 +3921,7 @@ class SimulateScenario extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4])
+    ..oo(0, [1, 2, 3, 4, 5])
     ..a<$core.int>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -3273,6 +3943,15 @@ class SimulateScenario extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'serverLeave')
+    ..e<CandidateProtocol>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'switchCandidateProtocol',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: CandidateProtocol.UDP,
+        valueOf: CandidateProtocol.valueOf,
+        enumValues: CandidateProtocol.values)
     ..hasRequiredFields = false;
 
   SimulateScenario._() : super();
@@ -3281,6 +3960,7 @@ class SimulateScenario extends $pb.GeneratedMessage {
     $core.bool? nodeFailure,
     $core.bool? migration,
     $core.bool? serverLeave,
+    CandidateProtocol? switchCandidateProtocol,
   }) {
     final _result = create();
     if (speakerUpdate != null) {
@@ -3294,6 +3974,9 @@ class SimulateScenario extends $pb.GeneratedMessage {
     }
     if (serverLeave != null) {
       _result.serverLeave = serverLeave;
+    }
+    if (switchCandidateProtocol != null) {
+      _result.switchCandidateProtocol = switchCandidateProtocol;
     }
     return _result;
   }
@@ -3375,4 +4058,16 @@ class SimulateScenario extends $pb.GeneratedMessage {
   $core.bool hasServerLeave() => $_has(3);
   @$pb.TagNumber(4)
   void clearServerLeave() => clearField(4);
+
+  @$pb.TagNumber(5)
+  CandidateProtocol get switchCandidateProtocol => $_getN(4);
+  @$pb.TagNumber(5)
+  set switchCandidateProtocol(CandidateProtocol v) {
+    setField(5, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasSwitchCandidateProtocol() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSwitchCandidateProtocol() => clearField(5);
 }

@@ -4,11 +4,13 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
+import '../../extensions.dart';
+import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../support/platform.dart';
-import '../../types.dart';
+import '../../types/other.dart';
 import '../options.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
@@ -44,6 +46,9 @@ mixin AudioTrack on Track {}
 abstract class LocalTrack extends Track {
   /// Options used for this track
   abstract LocalTrackOptions currentOptions;
+
+  bool _published = false;
+  bool get isPublished => _published;
 
   LocalTrack(
     String name,
@@ -114,7 +119,9 @@ abstract class LocalTrack extends Track {
     final constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
-          : false,
+          : options is ScreenShareCaptureOptions
+              ? (options).captureScreenAudio
+              : false,
       'video': options is VideoCaptureOptions
           ? options.toMediaConstraintsMap()
           : false,
@@ -168,5 +175,39 @@ abstract class LocalTrack extends Track {
 
     // mark as started
     await start();
+
+    // notify so VideoView can re-compute mirror mode if necessary
+    events.emit(LocalTrackOptionsUpdatedEvent(
+      track: this,
+      options: currentOptions,
+    ));
+  }
+
+  @internal
+  @mustCallSuper
+  Future<bool> onPublish() async {
+    if (_published) {
+      // already published
+      return false;
+    }
+
+    logger.fine('$objectId.publish()');
+
+    _published = true;
+    return true;
+  }
+
+  @internal
+  @mustCallSuper
+  Future<bool> onUnpublish() async {
+    if (!_published) {
+      // already unpublished
+      return false;
+    }
+
+    logger.fine('$objectId.unpublish()');
+
+    _published = false;
+    return true;
   }
 }

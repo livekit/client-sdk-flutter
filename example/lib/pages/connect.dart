@@ -5,7 +5,6 @@ import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../exts.dart';
-import '../theme.dart';
 import 'room.dart';
 
 class ConnectPage extends StatefulWidget {
@@ -23,11 +22,17 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyUri = 'uri';
   static const _storeKeyToken = 'token';
   static const _storeKeySimulcast = 'simulcast';
+  static const _storeKeyAdaptiveStream = 'adaptive-stream';
+  static const _storeKeyDynacast = 'dynacast';
+  static const _storeKeyFastConnect = 'fast-connect';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
   bool _simulcast = true;
+  bool _adaptiveStream = true;
+  bool _dynacast = true;
   bool _busy = false;
+  bool _fastConnect = false;
 
   @override
   void initState() {
@@ -45,10 +50,17 @@ class _ConnectPageState extends State<ConnectPage> {
   // Read saved URL and Token
   Future<void> _readPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _uriCtrl.text = prefs.getString(_storeKeyUri) ?? '';
-    _tokenCtrl.text = prefs.getString(_storeKeyToken) ?? '';
+    _uriCtrl.text = const bool.hasEnvironment('URL')
+        ? const String.fromEnvironment('URL')
+        : prefs.getString(_storeKeyUri) ?? '';
+    _tokenCtrl.text = const bool.hasEnvironment('TOKEN')
+        ? const String.fromEnvironment('TOKEN')
+        : prefs.getString(_storeKeyToken) ?? '';
     setState(() {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
+      _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
+      _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
+      _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
     });
   }
 
@@ -58,6 +70,9 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
     await prefs.setString(_storeKeyToken, _tokenCtrl.text);
     await prefs.setBool(_storeKeySimulcast, _simulcast);
+    await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
+    await prefs.setBool(_storeKeyDynacast, _dynacast);
+    await prefs.setBool(_storeKeyFastConnect, _fastConnect);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -73,21 +88,36 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      // Try to connect to a room
+      //create new room
+      final room = Room();
+
+      // Create a Listener before connecting
+      final listener = room.createListener();
+
+      // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
-      final room = await LiveKitClient.connect(
+      await room.connect(
         _uriCtrl.text,
         _tokenCtrl.text,
         roomOptions: RoomOptions(
+          adaptiveStream: _adaptiveStream,
+          dynacast: _dynacast,
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),
+          defaultScreenShareCaptureOptions:
+              const ScreenShareCaptureOptions(useiOSBroadcastExtension: true),
         ),
+        fastConnectOptions: _fastConnect
+            ? FastConnectOptions(
+                microphone: const TrackOption(enabled: true),
+                camera: const TrackOption(enabled: true),
+              )
+            : null,
       );
-
       await Navigator.push<void>(
         ctx,
-        MaterialPageRoute(builder: (_) => RoomPage(room)),
+        MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
       );
     } catch (error) {
       print('Could not connect $error');
@@ -103,6 +133,27 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _simulcast == value) return;
     setState(() {
       _simulcast = value;
+    });
+  }
+
+  void _setAdaptiveStream(bool? value) async {
+    if (value == null || _adaptiveStream == value) return;
+    setState(() {
+      _adaptiveStream = value;
+    });
+  }
+
+  void _setDynacast(bool? value) async {
+    if (value == null || _dynacast == value) return;
+    setState(() {
+      _dynacast = value;
+    });
+  }
+
+  void _setFastConnect(bool? value) async {
+    if (value == null || _fastConnect == value) return;
+    setState(() {
+      _fastConnect = value;
     });
   }
 
@@ -142,7 +193,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 50),
+                    padding: const EdgeInsets.only(bottom: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -150,10 +201,45 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _simulcast,
                           onChanged: (value) => _setSimulcast(value),
-                          inactiveTrackColor: Colors.white.withOpacity(.2),
-                          activeTrackColor: LKColors.lkBlue,
-                          inactiveThumbColor: Colors.white.withOpacity(.5),
-                          activeColor: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Adaptive Stream'),
+                        Switch(
+                          value: _adaptiveStream,
+                          onChanged: (value) => _setAdaptiveStream(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Fast Connect'),
+                        Switch(
+                          value: _fastConnect,
+                          onChanged: (value) => _setFastConnect(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Dynacast'),
+                        Switch(
+                          value: _dynacast,
+                          onChanged: (value) => _setDynacast(value),
                         ),
                       ],
                     ),

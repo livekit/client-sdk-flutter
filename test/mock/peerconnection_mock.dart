@@ -172,7 +172,7 @@ class MockPeerConnection extends RTCPeerConnection {
   @override
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
-    return MockDataChannel(label);
+    return MockDataChannel(dataChannelDict.id, label);
   }
 
   @override

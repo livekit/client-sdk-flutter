@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/support/websocket.dart';
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
@@ -13,13 +13,14 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../internal/types.dart';
 import '../logger.dart';
-import '../managers/delay.dart';
 import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
-import '../types.dart';
+import '../support/websocket.dart';
+import '../types/other.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'room.dart';
 import 'signal_client.dart';
@@ -34,13 +35,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final PeerConnectionCreate _peerConnectionCreate;
 
   @internal
-  PCTransport? publisher;
+  Transport? publisher;
 
   @internal
-  PCTransport? subscriber;
+  Transport? subscriber;
 
   @internal
-  PCTransport? get primary => _subscriberPrimary ? subscriber : publisher;
+  Transport? get primary => _subscriberPrimary ? subscriber : publisher;
+
+  rtc.RTCDataChannel? get dataChannel => _subscriberPrimary
+      ? _reliableDCSub ?? _lossyDCSub
+      : _reliableDCPub ?? _lossyDCPub;
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDCPub;
@@ -60,18 +65,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // remember url and token for reconnect
   String? url;
   String? token;
-  ConnectOptions? connectOptions;
+
+  ConnectOptions connectOptions;
+  RoomOptions roomOptions;
+  FastConnectOptions? fastConnectOptions;
 
   bool _subscriberPrimary = false;
+  String? _participantSid;
 
   // server-provided ice servers
   List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
 
   late final _signalListener = signalClient.createListener(synchronized: true);
 
-  final delays = CancelableDelayManager();
-
   Engine({
+    required this.connectOptions,
+    required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
@@ -82,24 +91,34 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
     }
 
-    _setUpListeners();
+    _setUpEngineListeners();
+    _setUpSignalListeners();
 
     onDispose(() async {
+      await cleanUp();
       await events.dispose();
-      await delays.dispose();
-      await close();
       await _signalListener.dispose();
     });
   }
 
   Future<void> connect(
     String url,
-    String token,
+    String token, {
     ConnectOptions? connectOptions,
-  ) async {
+    RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
+  }) async {
     this.url = url;
     this.token = token;
-    this.connectOptions = connectOptions ?? const ConnectOptions();
+    // update new options (if exists)
+    this.connectOptions = connectOptions ?? this.connectOptions;
+    this.roomOptions = roomOptions ?? this.roomOptions;
+    this.fastConnectOptions = fastConnectOptions;
+
+    if (connectionState == ConnectionState.connected) {
+      logger.fine('already connected');
+      return;
+    }
 
     _updateConnectionState(ConnectionState.connecting);
 
@@ -109,6 +128,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         url,
         token,
         connectOptions: this.connectOptions,
+        roomOptions: this.roomOptions,
       );
 
       // wait for join response
@@ -134,27 +154,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  /// Close connection between the server.
-  Future<void> close() async {
-    logger.fine('${runtimeType}.close()');
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.warning('${runtimeType}.close() already disconnected');
-    }
-    // _statsTimer.cancel();
-    // cancel all ongoing delays
-    await delays.cancelAll();
+  // resets internal state to a re-usable state
+  Future<void> cleanUp() async {
+    logger.fine('[${objectId}] cleanUp()');
 
-    // PCTransport is responsible for disposing RTCPeerConnection
     await publisher?.dispose();
     publisher = null;
+    _hasPublished = false;
 
     await subscriber?.dispose();
     subscriber = null;
 
-    await signalClient.disconnect();
+    await signalClient.cleanUp();
 
     _updateConnectionState(ConnectionState.disconnected);
-    // notifyListeners();
   }
 
   @internal
@@ -205,14 +218,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet,
   ) async {
     //
-    rtc.RTCDataChannel? publisherDataChannel(Reliability reliability) =>
-        reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
-
-    rtc.RTCDataChannelState publisherDataChannelState(
-            Reliability reliability) =>
-        publisherDataChannel(reliability)?.state ??
-        rtc.RTCDataChannelState.RTCDataChannelClosed;
-
     final reliability = packet.kind.toSDKType();
 
     // construct the data channel message
@@ -239,7 +244,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (publisherDataChannelState(packet.kind.toSDKType()) !=
+      if (_publisherDataChannelState(packet.kind.toSDKType()) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
@@ -250,7 +255,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = publisherDataChannel(reliability);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -278,7 +283,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         url!,
         token!,
         connectOptions: connectOptions,
+        roomOptions: roomOptions,
         reconnect: true,
+        sid: _participantSid,
       );
 
       if (publisher == null || subscriber == null) {
@@ -328,7 +335,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _configurePeerConnections() async {
+  Future<void> _configurePeerConnections({bool? forceRelay}) async {
     if (publisher != null || subscriber != null) {
       logger.warning('Already configured');
       return;
@@ -336,7 +343,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // RTCConfiguration? config;
     // use server-provided iceServers if not provided by user
-    final connectOptions = this.connectOptions ?? const ConnectOptions();
     final serverIceServers =
         _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
 
@@ -347,10 +353,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           .copyWith(iceServers: serverIceServers);
     }
 
-    publisher =
-        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+    if (forceRelay != null && forceRelay) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+          iceTransportPolicy: RTCIceTransportPolicy.relay);
+    }
+
+    publisher = await Transport.create(_peerConnectionCreate, rtcConfiguration);
     subscriber =
-        await PCTransport.create(_peerConnectionCreate, rtcConfiguration);
+        await Transport.create(_peerConnectionCreate, rtcConfiguration);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
@@ -385,11 +395,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             ));
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
-      // only listen to primary ice events
-      if (!event.isPrimary) return;
+      //
+      final isPrimaryOrPublisher = event.isPrimary ||
+          (_hasPublished && event is EnginePublisherPeerStateUpdatedEvent);
 
-      if (event.state ==
-          rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+      if (isPrimaryOrPublisher && event.state.isDisconnectedOrFailed()) {
         // trigger reconnect sequence
         _onDisconnected(DisconnectReason.peerConnection);
       }
@@ -414,6 +424,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       stream.onRemoveTrack = (_) {
         logger.fine('[WebRTC] stream.onRemoveTrack');
       };
+
+      if (connectionState == ConnectionState.reconnecting ||
+          connectionState == ConnectionState.connecting) {
+        final track = event.track;
+        final receiver = event.receiver;
+        events.on<EngineConnectionStateUpdatedEvent>((event) async {
+          Timer(const Duration(milliseconds: 10), () {
+            events.emit(EngineTrackAddedEvent(
+              track: track,
+              stream: stream,
+              receiver: receiver,
+            ));
+          });
+        });
+        return;
+      }
+
+      if (connectionState == ConnectionState.disconnected) {
+        logger.warning('skipping incoming track after Room disconnected');
+        return;
+      }
 
       events.emit(EngineTrackAddedEvent(
         track: event.track,
@@ -537,30 +568,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await reconnect();
   }
 
-  void _updateConnectionState(ConnectionState newValue) {
-    if (_connectionState == newValue) return;
-
-    logger.fine('Engine ConnectionState '
-        '${_connectionState.name} -> ${newValue.name}');
-
-    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
-        newValue == ConnectionState.connected;
-    // update internal value
-    _connectionState = newValue;
-    // emit event
-    if (_connectionState == ConnectionState.connected) {
-      if (didReconnect) {
-        events.emit(const EngineReconnectedEvent());
-      } else {
-        events.emit(const EngineConnectedEvent());
-      }
-    } else if (_connectionState == ConnectionState.reconnecting) {
-      events.emit(const EngineReconnectingEvent());
-    } else if (_connectionState == ConnectionState.disconnected) {
-      events.emit(const EngineDisconnectedEvent());
-    }
-  }
-
   @internal
   void sendSyncState({
     required lk_rtc.UpdateSubscription subscription,
@@ -571,35 +578,42 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       answer: answer,
       subscription: subscription,
       publishTracks: publishTracks,
+      dataChannelInfo: dataChannelInfo(),
     );
   }
 
-  void _setUpListeners() => _signalListener
+  void _setUpEngineListeners() =>
+      events.on<EngineConnectionStateUpdatedEvent>((event) async {
+        if (event.didReconnect) {
+          // send queued requests if engine re-connected
+          signalClient.sendQueuedRequests();
+        }
+      });
+
+  void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
       _serverProvidedIceServers = event.response.iceServers;
+      _participantSid = event.response.participant.sid;
 
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '
           'iceServers: ${event.response.iceServers}');
 
-      await _configurePeerConnections();
+      await _configurePeerConnections(
+          forceRelay: event.response.clientConfiguration.forceRelay ==
+              lk_models.ClientConfigSetting.ENABLED);
 
       if (!_subscriberPrimary) {
         // for subscriberPrimary, we negotiate when necessary (lazy)
         await negotiate();
       }
-
-      // Relay to Room
-      events.emit(event);
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
-      if (event.connectionState == ConnectionState.disconnected) {
+      if (event.newState == ConnectionState.disconnected) {
         await _onDisconnected(DisconnectReason.signal);
       }
-      // Relay to Room
-      events.emit(event);
     })
     ..on<SignalOfferEvent>((event) async {
       if (subscriber == null) {
@@ -644,20 +658,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await publisher!.addIceCandidate(event.candidate);
       }
     })
-    // relay to Room
-    ..on<SignalParticipantUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSpeakersChangedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalConnectionQualityUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalStreamStateUpdatedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSubscribedQualityUpdatedEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalSubscriptionPermissionUpdateEvent>((event) => events.emit(event))
-    // relay to Room
-    ..on<SignalRoomUpdateEvent>((event) => events.emit(event))
     ..on<SignalTokenUpdatedEvent>((event) {
       logger.fine('Server refreshed the token');
       token = event.token;
@@ -668,12 +668,44 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             '[Signal] Received Leave while engine is reconnecting, ignoring...');
         return;
       }
-      await close();
-      events.emit(const EngineDisconnectedEvent());
-    })
-    ..on<SignalMuteTrackEvent>(
-        (event) => events.emit(EngineRemoteMuteChangedEvent(
-              sid: event.sid,
-              muted: event.muted,
-            )));
+      await cleanUp();
+    });
+}
+
+extension EnginePrivateMethods on Engine {
+  // publisher data channel for the reliability
+  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
+      reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
+
+  // state of the publisher data channel
+  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
+      _publisherDataChannel(reliability)?.state ??
+      rtc.RTCDataChannelState.RTCDataChannelClosed;
+
+  void _updateConnectionState(ConnectionState newValue) {
+    if (_connectionState == newValue) return;
+
+    logger.fine('Engine ConnectionState '
+        '${_connectionState.name} -> ${newValue.name}');
+
+    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
+        newValue == ConnectionState.connected;
+    // update internal value
+    final oldState = _connectionState;
+    _connectionState = newValue;
+
+    events.emit(EngineConnectionStateUpdatedEvent(
+      newState: _connectionState,
+      oldState: oldState,
+      didReconnect: didReconnect,
+    ));
+  }
+}
+
+extension EngineInternalMethods on Engine {
+  @internal
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].whereNotNull().map((e) => e.toLKInfoType()).toList();
 }
