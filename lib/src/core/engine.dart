@@ -88,7 +88,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             peerConnectionCreate ?? rtc.createPeerConnection {
     if (kDebugMode) {
       // log all EngineEvents
-      events.listen((event) => logger.fine('[EngineEvent] $objectId ${event}'));
+      events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
     }
 
     _setUpEngineListeners();
@@ -156,7 +156,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   // resets internal state to a re-usable state
   Future<void> cleanUp() async {
-    logger.fine('[${objectId}] cleanUp()');
+    logger.fine('[$objectId] cleanUp()');
 
     await publisher?.dispose();
     publisher = null;

@@ -261,7 +261,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   void _sendPing() {
     _sendRequest(lk_rtc.SignalRequest()
-      ..ping = DateTime.now().millisecondsSinceEpoch as Int64);
+      ..ping = Int64(DateTime.now().millisecondsSinceEpoch));
   }
 
   void _startPingInterval() {
@@ -274,7 +274,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
 
     _pingIntervalTimer ??=
-        Timer.periodic(_pingIntervalDuration!, (_) => _sendPing);
+        Timer.periodic(_pingIntervalDuration!, (_) => _sendPing());
   }
 
   void _clearPingInterval() {
