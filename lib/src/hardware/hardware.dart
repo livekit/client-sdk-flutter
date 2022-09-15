@@ -3,11 +3,25 @@ import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 class MediaDevice {
-  MediaDevice(this.deviceId, this.label, this.kind);
+  const MediaDevice(this.deviceId, this.label, this.kind);
 
   final String deviceId;
   final String label;
   final String kind;
+
+  @override
+  bool operator ==(covariant MediaDevice other) {
+    if (identical(this, other)) return true;
+
+    return other.deviceId == deviceId &&
+        other.kind == kind &&
+        other.label == label;
+  }
+
+  @override
+  int get hashCode {
+    return deviceId.hashCode ^ kind.hashCode ^ label.hashCode;
+  }
 
   @override
   String toString() {
