@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.4
+
+* Fixed timestamp type error in ping/pong.
+
 ## 1.1.3
 
 * Add sid for reconnecting. (#168)
