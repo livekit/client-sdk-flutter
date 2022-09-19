@@ -68,10 +68,9 @@ Your `Info.plist` should have the following entries.
 
 #### Notes
 
-Since [xcode 14](https://developer.apple.com/news/upcoming-requirements/?id=06062022a) no longer supports 32bit builds, and our latest version is based on libwebrtc m104+, the iOS framework no longer supports 32bit builds ,
-Therefore, we strongly recommend upgrading to flutter 3.3.0+. if you are using flutter 3.0.0 or below, there is a high chance that your flutter app cannot be compiled correctly due to the lack of i386 and armv7 framework [#132](https://github.com/livekit/client-sdk-flutter/issues/132) [#172](https://github.com/livekit/client-sdk-flutter/issues/172).
+Since [xcode 14](https://developer.apple.com/news/upcoming-requirements/?id=06062022a) no longer supports 32bit builds, and our latest version is based on libwebrtc m104+ the iOS framework no longer supports 32bit builds, we strongly recommend upgrading to flutter 3.3.0+. if you are using flutter 3.0.0 or below, there is a high chance that your flutter app cannot be compiled correctly due to the missing i386 and arm 32bit framework [#132](https://github.com/livekit/client-sdk-flutter/issues/132) [#172](https://github.com/livekit/client-sdk-flutter/issues/172).
 
-You can try to modify your ios/Podfile
+You can try to modify your `{projects_dir}/ios/Podfile` to fix this issue.
 
 ```ruby
 post_install do |installer|
