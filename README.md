@@ -66,6 +66,27 @@ Your `Info.plist` should have the following entries.
   </array>
 ```
 
+#### Notes
+
+Since [xcode 14](https://developer.apple.com/news/upcoming-requirements/?id=06062022a) no longer supports 32bit builds, and our latest version is based on libwebrtc m104+ the iOS framework no longer supports 32bit builds, we strongly recommend upgrading to flutter 3.3.0+. if you are using flutter 3.0.0 or below, there is a high chance that your flutter app cannot be compiled correctly due to the missing i386 and arm 32bit framework [#132](https://github.com/livekit/client-sdk-flutter/issues/132) [#172](https://github.com/livekit/client-sdk-flutter/issues/172).
+
+You can try to modify your `{projects_dir}/ios/Podfile` to fix this issue.
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+
+      # Workaround for https://github.com/flutter/flutter/issues/64502
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES' # <= this line
+
+    end
+  end
+end
+```
+
 ### Android
 
 We require a set of permissions that need to be declared in your `AppManifest.xml`. These are required by Flutter WebRTC, which we depend on.
