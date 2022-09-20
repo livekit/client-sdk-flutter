@@ -438,6 +438,7 @@ extension SignalClientRequests on SignalClient {
     bool? nodeFailure,
     bool? migration,
     bool? serverLeave,
+    bool? switchCandidate,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
         simulate: lk_rtc.SimulateScenario(
@@ -445,6 +446,9 @@ extension SignalClientRequests on SignalClient {
           nodeFailure: nodeFailure,
           migration: migration,
           serverLeave: serverLeave,
+          switchCandidateProtocol: (switchCandidate != null && switchCandidate)
+              ? lk_rtc.CandidateProtocol.TCP
+              : null,
         ),
       ));
 }

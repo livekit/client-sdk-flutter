@@ -222,6 +222,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,
+        switchCandidate:
+            result == SimulateScenarioResult.switchCandidate ? true : null,
       );
     }
   }

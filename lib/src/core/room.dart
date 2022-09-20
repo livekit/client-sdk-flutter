@@ -575,12 +575,14 @@ extension RoomDebugMethods on Room {
     bool? nodeFailure,
     bool? migration,
     bool? serverLeave,
+    bool? switchCandidate,
   }) async {
     engine.signalClient.sendSimulateScenario(
       speakerUpdate: speakerUpdate,
       nodeFailure: nodeFailure,
       migration: migration,
       serverLeave: serverLeave,
+      switchCandidate: switchCandidate,
     );
   }
 }
