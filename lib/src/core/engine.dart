@@ -73,6 +73,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   bool _subscriberPrimary = false;
   String? _participantSid;
 
+  String? _connectedServerAddress;
+  String? get connectedServerAddress => _connectedServerAddress;
+
   // server-provided ice servers
   List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
 
@@ -367,9 +370,45 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
+    publisher?.pc.onIceConnectionState =
+        (rtc.RTCIceConnectionState state) async {
+      logger.fine('publisher iceConnectionState: $state');
+      if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+        try {
+          var remoteAddress = await getConnectedAddress(publisher!.pc);
+          logger.fine('Connected address: $remoteAddress');
+          if (_connectedServerAddress == null ||
+              _connectedServerAddress != remoteAddress) {
+            _connectedServerAddress = remoteAddress;
+          }
+        } catch (e) {
+          logger.warning(
+              'could not get connected server address ${e.toString()}');
+        }
+      }
+    };
+
     subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('subscriber onIceCandidate');
       signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
+    };
+
+    subscriber?.pc.onIceConnectionState =
+        (rtc.RTCIceConnectionState state) async {
+      logger.fine('subscriber iceConnectionState: $state');
+      if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+        try {
+          var remoteAddress = await getConnectedAddress(subscriber!.pc);
+          logger.fine('Connected address: $remoteAddress');
+          if (_connectedServerAddress == null ||
+              _connectedServerAddress != remoteAddress) {
+            _connectedServerAddress = remoteAddress;
+          }
+        } catch (e) {
+          logger.warning(
+              'could not get connected server address ${e.toString()}');
+        }
+      }
     };
 
     publisher?.onOffer = (offer) {
@@ -708,4 +747,60 @@ extension EngineInternalMethods on Engine {
         _reliableDCPub,
         _lossyDCPub
       ].whereNotNull().map((e) => e.toLKInfoType()).toList();
+}
+
+Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {
+  var selectedCandidatePairId = '';
+  final candidatePairs = <String, rtc.StatsReport>{};
+  // id -> candidate ip
+  final candidates = <String, String>{};
+  final List<rtc.StatsReport> stats = await pc.getStats();
+  for (var v in stats) {
+    switch (v.type) {
+      case 'transport':
+      case 'googComponent':
+        selectedCandidatePairId = v.values['selectedCandidatePairId'] as String;
+        break;
+      case 'candidate-pair':
+      case 'googCandidatePair':
+        if (selectedCandidatePairId == '') {
+          if ((v.values['selected'] != null && v.values['selected'] == true)) {
+            selectedCandidatePairId = v.id;
+          } else if ((v.values['googActiveConnection'] != null &&
+              v.values['googActiveConnection'] == true)) {
+            selectedCandidatePairId = v.id;
+          }
+        }
+        candidatePairs[v.id] = v;
+        break;
+      case 'remote-candidate':
+      case 'remotecandidate':
+        var address = '';
+        var port = 0;
+        if (v.values['address'] != null) {
+          address = v.values['address'] as String;
+        } else if (v.values['ipAddress'] != null) {
+          address = v.values['ipAddress'] as String;
+        }
+        if (v.values['port'] != null) {
+          port = v.values['port'] as int;
+        } else if (v.values['portNumber'] != null) {
+          port = num.tryParse('${v.values['portNumber']}') as int;
+        }
+        candidates[v.id] = '$address:$port';
+        break;
+      default:
+    }
+  }
+
+  if (selectedCandidatePairId == '') {
+    return null;
+  }
+
+  final report = candidatePairs[selectedCandidatePairId];
+  if (report == null) {
+    return null;
+  }
+  final selectedID = report.values['remoteCandidateId'] as String;
+  return candidates[selectedID];
 }
