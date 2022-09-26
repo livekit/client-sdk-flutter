@@ -374,17 +374,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         (rtc.RTCIceConnectionState state) async {
       logger.fine('publisher iceConnectionState: $state');
       if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-        try {
-          var remoteAddress = await getConnectedAddress(publisher!.pc);
-          logger.fine('Connected address: $remoteAddress');
-          if (_connectedServerAddress == null ||
-              _connectedServerAddress != remoteAddress) {
-            _connectedServerAddress = remoteAddress;
-          }
-        } catch (e) {
-          logger.warning(
-              'could not get connected server address ${e.toString()}');
-        }
+        await _handleGettingConnectedServerAddress(publisher!.pc);
       }
     };
 
@@ -397,17 +387,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         (rtc.RTCIceConnectionState state) async {
       logger.fine('subscriber iceConnectionState: $state');
       if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-        try {
-          var remoteAddress = await getConnectedAddress(subscriber!.pc);
-          logger.fine('Connected address: $remoteAddress');
-          if (_connectedServerAddress == null ||
-              _connectedServerAddress != remoteAddress) {
-            _connectedServerAddress = remoteAddress;
-          }
-        } catch (e) {
-          logger.warning(
-              'could not get connected server address ${e.toString()}');
-        }
+        await _handleGettingConnectedServerAddress(subscriber!.pc);
       }
     };
 
@@ -565,6 +545,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       default:
         logger.warning('Unknown DC label: ${dc.label}');
         break;
+    }
+  }
+
+  Future<void> _handleGettingConnectedServerAddress(
+      rtc.RTCPeerConnection pc) async {
+    try {
+      var remoteAddress = await getConnectedAddress(publisher!.pc);
+      logger.fine('Connected address: $remoteAddress');
+      if (_connectedServerAddress == null ||
+          _connectedServerAddress != remoteAddress) {
+        _connectedServerAddress = remoteAddress;
+      }
+    } catch (e) {
+      logger.warning('could not get connected server address ${e.toString()}');
     }
   }
 
