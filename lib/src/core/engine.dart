@@ -758,10 +758,10 @@ Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {
       case 'candidate-pair':
       case 'googCandidatePair':
         if (selectedCandidatePairId == '') {
-          if ((v.values['selected'] != null && v.values['selected'] == true)) {
+          if (v.values['selected'] != null && v.values['selected'] == true) {
             selectedCandidatePairId = v.id;
-          } else if ((v.values['googActiveConnection'] != null &&
-              v.values['googActiveConnection'] == true)) {
+          } else if (v.values['googActiveConnection'] != null &&
+              v.values['googActiveConnection'] == true) {
             selectedCandidatePairId = v.id;
           }
         }
