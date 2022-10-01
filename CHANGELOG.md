@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.1.5
+
+* Make MediaDevice data class.
+* Add simulate for candidate protocol switch.
+* Fix VideoTrackRenderer for local has been blacked when toggle video status #166
+
 ## 1.1.4
 
 * Fixed timestamp type error in ping/pong.
