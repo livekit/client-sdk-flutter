@@ -752,34 +752,24 @@ Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {
   for (var v in stats) {
     switch (v.type) {
       case 'transport':
-      case 'googComponent':
         selectedCandidatePairId = v.values['selectedCandidatePairId'] as String;
         break;
       case 'candidate-pair':
-      case 'googCandidatePair':
         if (selectedCandidatePairId == '') {
           if (v.values['selected'] != null && v.values['selected'] == true) {
-            selectedCandidatePairId = v.id;
-          } else if (v.values['googActiveConnection'] != null &&
-              v.values['googActiveConnection'] == true) {
             selectedCandidatePairId = v.id;
           }
         }
         candidatePairs[v.id] = v;
         break;
       case 'remote-candidate':
-      case 'remotecandidate':
         var address = '';
         var port = 0;
         if (v.values['address'] != null) {
           address = v.values['address'] as String;
-        } else if (v.values['ipAddress'] != null) {
-          address = v.values['ipAddress'] as String;
         }
         if (v.values['port'] != null) {
           port = v.values['port'] as int;
-        } else if (v.values['portNumber'] != null) {
-          port = num.tryParse('${v.values['portNumber']}') as int;
         }
         candidates[v.id] = '$address:$port';
         break;
