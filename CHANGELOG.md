@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.6
+
+* Supports getting the connected remote address.
+
 ## 1.1.5
 
 * Make MediaDevice data class.
