@@ -96,13 +96,6 @@ platform :ios, '12.1'
 
 You may need to delete `Podfile.lock` and re-run `pod install` after updating deployment target.
 
-3. Run pod install again
-
-```bash
-cd ios
-arch -x86_64 pod install --repo-update
-```
-
 ### Android
 
 We require a set of permissions that need to be declared in your `AppManifest.xml`. These are required by Flutter WebRTC, which we depend on.
