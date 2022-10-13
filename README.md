@@ -87,6 +87,23 @@ post_install do |installer|
 end
 ```
 
+When you use M1 Macs, you may encounter pod install failling when adding or upgrading `livekit_client`, you can use the steps below to fix it.
+
+1. Set the ios version on `Podfile` to `12.1`
+
+```xml
+platform :ios, '12.1'
+```
+
+2. Delete `Podfile.lock`
+
+3. Run pod install again
+
+```bash
+cd ios
+arch -x86_64 pod install --repo-update
+```
+
 ### Android
 
 We require a set of permissions that need to be declared in your `AppManifest.xml`. These are required by Flutter WebRTC, which we depend on.
