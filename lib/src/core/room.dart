@@ -151,23 +151,32 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
         var audio = options.microphone;
         if (audio.enabled != null && audio.enabled == true) {
-          _localParticipant!.setMicrophoneEnabled(true);
-        } else if (audio.track != null) {
-          _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack);
+          if (audio.track != null) {
+            _localParticipant!
+                .publishAudioTrack(audio.track as LocalAudioTrack);
+          } else {
+            _localParticipant!.setMicrophoneEnabled(true);
+          }
         }
 
         var video = options.camera;
         if (video.enabled != null && video.enabled == true) {
-          _localParticipant!.setCameraEnabled(true);
-        } else if (video.track != null) {
-          _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack);
+          if (video.track != null) {
+            _localParticipant!
+                .publishVideoTrack(video.track as LocalVideoTrack);
+          } else {
+            _localParticipant!.setCameraEnabled(true);
+          }
         }
 
         var screen = options.screen;
         if (screen.enabled != null && screen.enabled == true) {
-          _localParticipant!.setScreenShareEnabled(true);
-        } else if (screen.track != null) {
-          _localParticipant!.publishVideoTrack(screen.track as LocalVideoTrack);
+          if (screen.track != null) {
+            _localParticipant!
+                .publishVideoTrack(screen.track as LocalVideoTrack);
+          } else {
+            _localParticipant!.setScreenShareEnabled(true);
+          }
         }
       }
 
