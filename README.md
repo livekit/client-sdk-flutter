@@ -87,7 +87,7 @@ post_install do |installer|
 end
 ```
 
-When you use M1 Macs, you may get pod install failling when adding or upgrading `livekit_client`, you can use the steps below to fix it.
+For iOS, the minimum supported deployment target is `12.1`. You will need to add the following to your Podfile.
 
 1. Set the ios version on `Podfile` to `12.1`
 
