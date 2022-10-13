@@ -91,7 +91,6 @@ For iOS, the minimum supported deployment target is `12.1`. You will need to add
 
 1. Set the ios version on `Podfile` to `12.1`
 
-```xml
 platform :ios, '12.1'
 ```
 
