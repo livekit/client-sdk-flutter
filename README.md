@@ -93,7 +93,8 @@ For iOS, the minimum supported deployment target is `12.1`. You will need to add
 platform :ios, '12.1'
 ```
 
-2. Delete `Podfile.lock`
+
+You may need to delete `Podfile.lock` and re-run `pod install` after updating deployment target.
 
 3. Run pod install again
 
