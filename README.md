@@ -87,6 +87,14 @@ post_install do |installer|
 end
 ```
 
+For iOS, the minimum supported deployment target is `12.1`. You will need to add the following to your Podfile.
+
+```ruby
+platform :ios, '12.1'
+```
+
+You may need to delete `Podfile.lock` and re-run `pod install` after updating deployment target.
+
 ### Android
 
 We require a set of permissions that need to be declared in your `AppManifest.xml`. These are required by Flutter WebRTC, which we depend on.
