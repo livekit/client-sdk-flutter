@@ -125,6 +125,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     await _ws?.dispose();
     _ws = null;
     _queue.clear();
+    _clearPingInterval();
   }
 
   void _sendRequest(
