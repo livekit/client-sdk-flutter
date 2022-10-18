@@ -1,7 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
-import '../constants.dart';
 import '../core/room.dart';
 import '../events.dart';
 import '../exceptions.dart';
@@ -88,7 +87,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       final event = await events.waitFor<TrackPublishedEvent>(
         filter: (event) =>
             event.participant == this && event.publication.sid == trackSid,
-        duration: Timeouts.publish,
+        duration: room.connectOptions.timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
           participant: this,
           sid: trackSid,

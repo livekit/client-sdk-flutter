@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/options.dart';
 
-import '../constants.dart';
 import '../extensions.dart';
 import '../internal/types.dart';
 import '../logger.dart';
@@ -23,9 +23,10 @@ class Transport extends Disposable {
   bool renegotiate = false;
   TransportOnOffer? onOffer;
   Function? _cancelDebounce;
+  ConnectOptions connectOptions;
 
   // private constructor
-  Transport._(this.pc) {
+  Transport._(this.pc, this.connectOptions) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -59,17 +60,18 @@ class Transport extends Disposable {
   }
 
   static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
-      [RTCConfiguration? rtcConfig]) async {
+      {RTCConfiguration? rtcConfig,
+      required ConnectOptions connectOptions}) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(pc);
+    return Transport._(pc, connectOptions);
   }
 
   late final negotiate = Utils.createDebounceFunc(
     (void _) => createAndSendOffer(),
     cancelFunc: (f) => _cancelDebounce = f,
-    wait: Timeouts.debounce,
+    wait: connectOptions.timeouts.debounce,
   );
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
