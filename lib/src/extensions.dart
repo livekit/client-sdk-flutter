@@ -24,7 +24,7 @@ extension ICEServerExt on lk_rtc.ICEServer {
   RTCIceServer toSDKType() => RTCIceServer(
         urls: urls,
         username: username.isNotEmpty ? username : null,
-        credential: credential.isNotEmpty ? username : null,
+        credential: credential.isNotEmpty ? credential : null,
       );
 }
 
