@@ -6,7 +6,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
-import '../constants.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -136,7 +135,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       // wait for join response
       await _signalListener.waitFor<SignalJoinResponseEvent>(
-        duration: Timeouts.connection,
+        duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException(),
       );
 
@@ -145,7 +144,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // wait until engine is connected
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
-        duration: Timeouts.connection,
+        duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException(),
       );
 
@@ -199,7 +198,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // wait for response, or timeout
     final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
       filter: (event) => event.cid == cid,
-      duration: Timeouts.publish,
+      duration: connectOptions.timeouts.publish,
       onTimeout: () => throw TrackPublishException(),
     );
 
@@ -242,7 +241,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Waiting for publisher to ice-connect...');
         await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
           filter: (event) => event.state.isConnected(),
-          duration: Timeouts.peerConnection,
+          duration: connectOptions.timeouts.peerConnection,
         );
       }
 
@@ -252,7 +251,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
           filter: (event) => event.type == reliability,
-          duration: Timeouts.connection,
+          duration: connectOptions.timeouts.connection,
         );
       }
     }
@@ -313,7 +312,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
         await events.waitFor<EnginePeerStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.state.isConnected(),
-          duration: Timeouts.iceRestart,
+          duration: connectOptions.timeouts.iceRestart,
           onTimeout: () => throw ConnectException(),
         );
       }
@@ -361,9 +360,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           iceTransportPolicy: RTCIceTransportPolicy.relay);
     }
 
-    publisher = await Transport.create(_peerConnectionCreate, rtcConfiguration);
-    subscriber =
-        await Transport.create(_peerConnectionCreate, rtcConfiguration);
+    publisher = await Transport.create(_peerConnectionCreate,
+        rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    subscriber = await Transport.create(_peerConnectionCreate,
+        rtcConfig: rtcConfiguration, connectOptions: connectOptions);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');

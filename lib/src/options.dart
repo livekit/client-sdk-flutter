@@ -1,3 +1,4 @@
+import 'constants.dart';
 import 'core/room.dart';
 import 'publication/remote.dart';
 import 'track/local/audio.dart';
@@ -38,10 +39,13 @@ class ConnectOptions {
   /// The protocol version to be used. Usually this doesn't need to be modified.
   final ProtocolVersion protocolVersion;
 
+  final Timeouts timeouts;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v8,
+    this.timeouts = Timeouts.defaultTimeouts,
   });
 }
 
