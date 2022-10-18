@@ -19,3 +19,4 @@ assignees: ''
 * **Plugin version**:
 * **Flutter target OS**: <!--  Android/iOS/Windows/Mac/Web [real device/simulator] -->
 * **Flutter target OS version**:
+* **Flutter console log**: <!-- optional -->
