@@ -349,7 +349,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
-    // use server-provided iceServers if not provided by user
+    // prefer iceServers provided by the server to improve connection
+    // reliability, so force replacement if iceServers are provided
+    // by the server.
     if (serverProvidedIceServers.isNotEmpty) {
       rtcConfiguration = connectOptions.rtcConfiguration
           .copyWith(iceServers: serverProvidedIceServers);
