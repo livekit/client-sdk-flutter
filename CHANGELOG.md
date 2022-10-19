@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 1.1.7
+
+* Fixed ice config issues. (#192).
+* Make timeouts configurable.
+* Fixed Hardware.setSpeakerphoneOn() not working on iOS.
+* Fixed track not being correctly passed to localParticipant in FastConnectOptions,
+  causing the camera to apply twice and not be released.
+* Clean up pingIntervalTimer when closing SignalClient.
+
 ## 1.1.6
 
 * Supports getting the connected remote address.
