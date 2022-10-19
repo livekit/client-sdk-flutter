@@ -349,29 +349,31 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
-    // prefer iceServers provided by the server to improve connection
-    // reliability, so force replacement if iceServers are provided
-    // by the server.
-    if (serverProvidedIceServers.isNotEmpty) {
+    // The server provided iceServers are only used if
+    // the client's iceServers are not set.
+    if (rtcConfiguration.iceServers == null &&
+        serverProvidedIceServers.isNotEmpty) {
       rtcConfiguration = connectOptions.rtcConfiguration
           .copyWith(iceServers: serverProvidedIceServers);
     }
 
     // set forceRelay
-    switch (forceRelay) {
-      case lk_models.ClientConfigSetting.ENABLED:
-        rtcConfiguration = rtcConfiguration.copyWith(
-          iceTransportPolicy: RTCIceTransportPolicy.relay,
-        );
-        break;
-      case lk_models.ClientConfigSetting.DISABLED:
-        rtcConfiguration = rtcConfiguration.copyWith(
-          iceTransportPolicy: RTCIceTransportPolicy.all,
-        );
-        break;
-      case lk_models.ClientConfigSetting.UNSET:
-        // do nothing
-        break;
+    if (rtcConfiguration.iceTransportPolicy == null) {
+      switch (forceRelay) {
+        case lk_models.ClientConfigSetting.ENABLED:
+          rtcConfiguration = rtcConfiguration.copyWith(
+            iceTransportPolicy: RTCIceTransportPolicy.relay,
+          );
+          break;
+        case lk_models.ClientConfigSetting.DISABLED:
+          rtcConfiguration = rtcConfiguration.copyWith(
+            iceTransportPolicy: RTCIceTransportPolicy.all,
+          );
+          break;
+        case lk_models.ClientConfigSetting.UNSET:
+          // do nothing
+          break;
+      }
     }
 
     publisher = await Transport.create(_peerConnectionCreate, rtcConfiguration);
