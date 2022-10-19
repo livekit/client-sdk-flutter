@@ -76,7 +76,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? get connectedServerAddress => _connectedServerAddress;
 
   // server-provided ice servers
-  List<lk_rtc.ICEServer> _serverProvidedIceServers = [];
+  List<RTCIceServer> _serverProvidedIceServers = [];
 
   late final _signalListener = signalClient.createListener(synchronized: true);
 
@@ -337,27 +337,42 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _configurePeerConnections({bool? forceRelay}) async {
+  Future<void> _configurePeerConnections(
+      {required lk_models.ClientConfigSetting forceRelay,
+      required List<RTCIceServer> serverProvidedIceServers}) async {
     if (publisher != null || subscriber != null) {
       logger.warning('Already configured');
       return;
     }
 
     // RTCConfiguration? config;
-    // use server-provided iceServers if not provided by user
-    final serverIceServers =
-        _serverProvidedIceServers.map((e) => e.toSDKType()).toList();
-
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
-    if (serverIceServers.isNotEmpty) {
-      // use server provided iceServers if exists
+
+    // The server provided iceServers are only used if
+    // the client's iceServers are not set.
+    if (rtcConfiguration.iceServers == null &&
+        serverProvidedIceServers.isNotEmpty) {
       rtcConfiguration = connectOptions.rtcConfiguration
-          .copyWith(iceServers: serverIceServers);
+          .copyWith(iceServers: serverProvidedIceServers);
     }
 
-    if (forceRelay != null && forceRelay) {
-      rtcConfiguration = rtcConfiguration.copyWith(
-          iceTransportPolicy: RTCIceTransportPolicy.relay);
+    // set forceRelay
+    if (rtcConfiguration.iceTransportPolicy == null) {
+      switch (forceRelay) {
+        case lk_models.ClientConfigSetting.ENABLED:
+          rtcConfiguration = rtcConfiguration.copyWith(
+            iceTransportPolicy: RTCIceTransportPolicy.relay,
+          );
+          break;
+        case lk_models.ClientConfigSetting.DISABLED:
+          rtcConfiguration = rtcConfiguration.copyWith(
+            iceTransportPolicy: RTCIceTransportPolicy.all,
+          );
+          break;
+        case lk_models.ClientConfigSetting.UNSET:
+          // do nothing
+          break;
+      }
     }
 
     publisher = await Transport.create(_peerConnectionCreate,
@@ -627,16 +642,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
-      _serverProvidedIceServers = event.response.iceServers;
       _participantSid = event.response.participant.sid;
+      var iceServersFromServer =
+          event.response.iceServers.map((e) => e.toSDKType()).toList();
+
+      if (iceServersFromServer.isNotEmpty) {
+        _serverProvidedIceServers = iceServersFromServer;
+      }
 
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '
-          'iceServers: ${event.response.iceServers}');
+          'iceServers: ${event.response.iceServers}, '
+          'forceRelay: $event.response.clientConfiguration.forceRelay');
 
       await _configurePeerConnections(
-          forceRelay: event.response.clientConfiguration.forceRelay ==
-              lk_models.ClientConfigSetting.ENABLED);
+          forceRelay: event.response.clientConfiguration.forceRelay,
+          serverProvidedIceServers: _serverProvidedIceServers);
 
       if (!_subscriberPrimary) {
         // for subscriberPrimary, we negotiate when necessary (lazy)
