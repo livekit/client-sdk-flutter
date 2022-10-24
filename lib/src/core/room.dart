@@ -267,7 +267,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         // re-send tracks permissions
         localParticipant?.sendTrackSubscriptionPermissions();
         events.emit(const RoomReconnectedEvent());
-        await _handlePostReconnect(false);
+        await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
@@ -528,13 +528,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   Future<void> _handlePostReconnect(bool isFullReconnect) async {
     if (isFullReconnect) {
-      // TODO republish tracks on full reconnect
-    } else {
-      for (var participant in participants.values) {
-        for (var pub in participant.trackPublications.values) {
-          if (pub.subscribed) {
-            pub.sendUpdateTrackSettings();
-          }
+      await localParticipant?.rePublishAllTracks();
+    }
+    for (var participant in participants.values) {
+      for (var pub in participant.trackPublications.values) {
+        if (pub.subscribed) {
+          pub.sendUpdateTrackSettings();
         }
       }
     }
@@ -585,13 +584,17 @@ extension RoomDebugMethods on Room {
     bool? migration,
     bool? serverLeave,
     bool? switchCandidate,
+    bool? signalReconnect,
   }) async {
+    if (signalReconnect != null && signalReconnect) {
+      await engine.signalClient.cleanUp();
+      return;
+    }
     engine.signalClient.sendSimulateScenario(
-      speakerUpdate: speakerUpdate,
-      nodeFailure: nodeFailure,
-      migration: migration,
-      serverLeave: serverLeave,
-      switchCandidate: switchCandidate,
-    );
+        speakerUpdate: speakerUpdate,
+        nodeFailure: nodeFailure,
+        migration: migration,
+        serverLeave: serverLeave,
+        switchCandidate: switchCandidate);
   }
 }

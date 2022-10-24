@@ -196,7 +196,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
   @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
+  Future<void> unpublishTrack(String trackSid,
+      {bool notify = true, bool? stopOnUnpublish}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -205,9 +206,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
     await pub.dispose();
 
+    stopOnUnpublish ??= room.roomOptions.stopLocalTrackOnUnpublish;
+
     final track = pub.track;
     if (track != null) {
-      if (room.roomOptions.stopLocalTrackOnUnpublish) {
+      if (stopOnUnpublish) {
         await track.stop();
       }
 
@@ -238,6 +241,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     await pub.dispose();
+  }
+
+  Future<void> rePublishAllTracks({bool notify = true}) async {
+    final tracks = trackPublications.values.toList();
+    for (LocalTrackPublication track in tracks) {
+      await unpublishTrack(track.sid, notify: notify, stopOnUnpublish: false);
+    }
+    for (LocalTrackPublication track in tracks) {
+      if (track.track is LocalAudioTrack) {
+        await publishAudioTrack(track.track as LocalAudioTrack);
+      } else if (track.track is LocalVideoTrack) {
+        await publishVideoTrack(track.track as LocalVideoTrack);
+      }
+    }
   }
 
   /// Publish a new data payload to the room.

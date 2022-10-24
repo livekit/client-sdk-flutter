@@ -61,6 +61,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
 
+  bool _fullReconnect = false;
+
   // remember url and token for reconnect
   String? url;
   String? token;
@@ -600,6 +602,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _onDisconnected(DisconnectReason reason) async {
+    _fullReconnect = reason == DisconnectReason.signal ||
+        reason == DisconnectReason.peerConnection;
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
     if (_connectionState == ConnectionState.disconnected) {
@@ -717,6 +721,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       token = event.token;
     })
     ..on<SignalLeaveEvent>((event) async {
+      _fullReconnect = event.canReconnect;
+
       if (_connectionState == ConnectionState.reconnecting) {
         logger.warning(
             '[Signal] Received Leave while engine is reconnecting, ignoring...');
@@ -752,6 +758,7 @@ extension EnginePrivateMethods on Engine {
       newState: _connectionState,
       oldState: oldState,
       didReconnect: didReconnect,
+      fullReconnect: _fullReconnect,
     ));
   }
 }
