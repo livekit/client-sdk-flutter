@@ -760,6 +760,10 @@ extension EnginePrivateMethods on Engine {
       didReconnect: didReconnect,
       fullReconnect: _fullReconnect,
     ));
+
+    if (newValue == ConnectionState.connected) {
+      _fullReconnect = false;
+    }
   }
 }
 
