@@ -48,6 +48,20 @@ class RoomReconnectedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+class RoomRestartingEvent with RoomEvent {
+  const RoomRestartingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
+class RoomRestartedEvent with RoomEvent {
+  const RoomRestartedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 /// Disconnected from the room
 /// Emitted by [Room].
 class RoomDisconnectedEvent with RoomEvent {

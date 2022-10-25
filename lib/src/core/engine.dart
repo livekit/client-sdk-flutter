@@ -63,6 +63,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool _fullReconnect = false;
 
+  bool get isFullReconnect => _fullReconnect;
+
   // remember url and token for reconnect
   String? url;
   String? token;
@@ -80,7 +82,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
 
-  late final _signalListener = signalClient.createListener(synchronized: true);
+  late EventsListener<SignalEvent> _signalListener =
+      signalClient.createListener(synchronized: true);
 
   Engine({
     required this.connectOptions,
@@ -138,7 +141,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // wait for join response
       await _signalListener.waitFor<SignalJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(),
+        onTimeout: () => throw ConnectException(
+            'Timed out waiting for SignalJoinResponseEvent'),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -147,7 +151,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(),
+        onTimeout: () => throw ConnectException(
+            'Timed out waiting for EnginePeerStateUpdatedEvent'),
       );
 
       _updateConnectionState(ConnectionState.connected);
@@ -602,8 +607,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _onDisconnected(DisconnectReason reason) async {
-    _fullReconnect = reason == DisconnectReason.signal ||
-        reason == DisconnectReason.peerConnection;
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
     if (_connectionState == ConnectionState.disconnected) {
@@ -616,8 +619,48 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     logger.fine('[$runtimeType] Should attempt reconnect sequence...');
+    if (!_fullReconnect) {
+      await reconnect();
+    }
+  }
 
-    await reconnect();
+  Future<void> restartConnection() async {
+    await publisher?.dispose();
+    publisher = null;
+    _hasPublished = false;
+
+    await subscriber?.dispose();
+    subscriber = null;
+
+    _reliableDCSub = null;
+    _reliableDCPub = null;
+    _lossyDCSub = null;
+    _lossyDCPub = null;
+
+    await _signalListener.cancelAll();
+    await _signalListener.dispose();
+    _signalListener = signalClient.createListener(synchronized: true);
+    _setUpSignalListeners();
+
+    await connect(
+      url!,
+      token!,
+      roomOptions: roomOptions,
+      connectOptions: connectOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+
+    if (_subscriberPrimary) {
+      await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
+        filter: (event) => event.type == Reliability.reliable,
+        duration: connectOptions.timeouts.connection,
+      );
+    }
+
+    await events.waitFor<SubscriberDataChannelStateUpdatedEvent>(
+      filter: (event) => event.type == Reliability.reliable,
+      duration: connectOptions.timeouts.connection,
+    );
   }
 
   @internal
@@ -721,14 +764,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       token = event.token;
     })
     ..on<SignalLeaveEvent>((event) async {
-      _fullReconnect = event.canReconnect;
-
       if (_connectionState == ConnectionState.reconnecting) {
         logger.warning(
             '[Signal] Received Leave while engine is reconnecting, ignoring...');
         return;
       }
       await cleanUp();
+      if (!_fullReconnect && event.canReconnect) {
+        _fullReconnect = event.canReconnect;
+        await restartConnection();
+      }
     });
 }
 

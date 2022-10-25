@@ -186,13 +186,16 @@ abstract class Participant<T extends TrackPublication>
   }
 
   // Must be implemented by subclasses.
-  Future<void> unpublishTrack(String trackSid, {bool notify = true});
+  Future<void> unpublishTrack(String trackSid,
+      {bool notify = true, bool? stopOnUnpublish});
 
   /// Convenience method to unpublish all tracks.
-  Future<void> unpublishAllTracks({bool notify = true}) async {
+  Future<void> unpublishAllTracks(
+      {bool notify = true, bool? stopOnUnpublish}) async {
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
-      await unpublishTrack(trackid, notify: notify);
+      await unpublishTrack(trackid,
+          notify: notify, stopOnUnpublish: stopOnUnpublish);
     }
   }
 

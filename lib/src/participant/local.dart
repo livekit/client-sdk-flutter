@@ -248,6 +248,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     for (LocalTrackPublication track in tracks) {
       await unpublishTrack(track.sid, notify: notify, stopOnUnpublish: false);
     }
+    trackPublications.clear();
     for (LocalTrackPublication track in tracks) {
       if (track.track is LocalAudioTrack) {
         await publishAudioTrack(track.track as LocalAudioTrack);

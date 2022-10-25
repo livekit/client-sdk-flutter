@@ -35,6 +35,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   Duration? _pingIntervalDuration;
   Timer? _pingIntervalTimer;
 
+  int get pingCount => _pingCount;
+
+  int _pingCount = 0;
+
   @internal
   SignalClient(WebSocketConnector wsConnector) : _wsConnector = wsConnector {
     events.listen((event) {
@@ -240,6 +244,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         logger.info('signal message not set');
         break;
       case lk_rtc.SignalResponse_Message.pong:
+        _pingCount++;
         _resetPingTimeout();
         break;
       default:
