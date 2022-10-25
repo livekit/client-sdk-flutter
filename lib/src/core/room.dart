@@ -544,8 +544,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
   }
 
-  Future<void> _handlePostReconnect([bool fullReconnect = false]) async {
-    if (fullReconnect) {
+  Future<void> _handlePostReconnect(bool isFullReconnect) async {
+    if (isFullReconnect) {
       await localParticipant?.rePublishAllTracks(notify: false);
     }
     for (var participant in participants.values) {
