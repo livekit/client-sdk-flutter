@@ -16,6 +16,7 @@ import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../reconnect_policy.dart';
 import '../support/disposable.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
@@ -28,6 +29,7 @@ import 'transport.dart';
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
+  static const leaveReconnect = 'leave-reconnect';
 
   final SignalClient signalClient;
 
@@ -65,6 +67,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool get isFullReconnect => _fullReconnect;
 
+  lk_models.ClientConfiguration? _clientConfiguration;
+
   // remember url and token for reconnect
   String? url;
   String? token;
@@ -78,6 +82,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
+
+  bool _isClosed = true;
+  bool get isClosed => _isClosed;
+
+  bool attemptingReconnect = false;
+  bool fullReconnectOnNext = false;
+  int reconnectAttempts = 0;
+  final ReconnectPolicy reconnectPolicy = DefaultReconnectPolicy();
+  Timer? reconnectTimeout;
+  DateTime? reconnectStart;
 
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
@@ -121,6 +135,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
     this.fastConnectOptions = fastConnectOptions;
+
+    _isClosed = false;
 
     if (connectionState == ConnectionState.connected) {
       logger.fine('already connected');
@@ -177,6 +193,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await signalClient.cleanUp();
 
     _updateConnectionState(ConnectionState.disconnected);
+    _isClosed = true;
   }
 
   @internal
@@ -217,9 +234,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (publisher == null) {
       return;
     }
-
     _hasPublished = true;
-    publisher!.negotiate(null);
+    try {
+      publisher!.negotiate(null);
+    } catch (error) {
+      handleDisconnect('negotiation');
+    }
   }
 
   @internal
@@ -607,6 +627,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _onDisconnected(DisconnectReason reason) async {
+    if (!_fullReconnect) {
+      _fullReconnect = _clientConfiguration?.resumeConnection ==
+          lk_models.ClientConfigSetting.DISABLED;
+    }
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
     if (_connectionState == ConnectionState.disconnected) {
@@ -624,7 +648,120 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> restartConnection() async {
+  Future<void> attemptReconnect([bool signalEvents = false]) async {
+    if (_isClosed) {
+      return;
+    }
+    // guard for attempting reconnection multiple times while one attempt is still not finished
+    if (attemptingReconnect) {
+      return;
+    }
+    if (_clientConfiguration?.resumeConnection ==
+            lk_models.ClientConfigSetting.DISABLED ||
+        // signaling state could change to closed due to hardware sleep
+        // those connections cannot be resumed
+        (primary?.pc.signalingState ??
+                rtc.RTCSignalingState.RTCSignalingStateClosed) ==
+            rtc.RTCSignalingState.RTCSignalingStateClosed) {
+      fullReconnectOnNext = true;
+    }
+    try {
+      attemptingReconnect = true;
+      if (fullReconnectOnNext) {
+        await restartConnection(signalEvents);
+      } else {
+        await resumeConnection(signalEvents);
+      }
+      reconnectAttempts = 0;
+      fullReconnectOnNext = false;
+      reconnectTimeout?.cancel();
+    } catch (e) {
+      reconnectAttempts += 1;
+      var reconnectRequired = false;
+      var recoverable = true;
+      var requireSignalEvents = false;
+      if (e is ConnectException) {
+        // unrecoverable
+        recoverable = false;
+      } else if (e is! SignalReconnectError) {
+        // cannot resume
+        reconnectRequired = true;
+      }
+
+      // when we flip from resume to reconnect
+      // we need to fire the right reconnecting events
+      if (reconnectRequired && !fullReconnectOnNext) {
+        fullReconnectOnNext = true;
+        requireSignalEvents = true;
+      }
+
+      if (recoverable) {
+        handleDisconnect('reconnect', requireSignalEvents);
+      } else {
+        logger.severe(
+          'could not recover connection after ${reconnectAttempts} attempts, ${DateTime.now().millisecondsSinceEpoch - reconnectStart!.millisecondsSinceEpoch}ms. giving up',
+        );
+        _updateConnectionState(ConnectionState.disconnected);
+        await cleanUp();
+      }
+    } finally {
+      attemptingReconnect = false;
+    }
+  }
+
+  int? getNextRetryDelay(ReconnectContext context) {
+    try {
+      return reconnectPolicy.nextRetryDelayInMs(context);
+    } catch (e) {
+      logger.warning('encountered error in reconnect policy $e');
+    }
+    // error in user code with provided reconnect policy, stop reconnecting
+    return null;
+  }
+
+  void handleDisconnect(String connection, [bool signalEvents = false]) async {
+    if (_isClosed) {
+      return;
+    }
+
+    logger.finer('${connection} disconnected');
+    if (reconnectAttempts == 0) {
+      // only reset start time on the first try
+      reconnectStart = DateTime.now();
+    }
+
+    disconnect(int duration) {
+      logger.finer(
+          'could not recover connection after ${reconnectAttempts} attempts, ${duration}ms. giving up');
+      _updateConnectionState(ConnectionState.disconnected);
+      cleanUp();
+    }
+
+    final duration = DateTime.now().millisecondsSinceEpoch -
+        reconnectStart!.millisecondsSinceEpoch;
+
+    int? delay = getNextRetryDelay(ReconnectContext(
+      retryCount: reconnectAttempts,
+      elapsedMs: duration,
+    ));
+
+    if (delay == null) {
+      disconnect(duration);
+      return;
+    }
+    if (connection == leaveReconnect) {
+      delay = 0;
+    }
+    logger.finer('reconnecting in ${delay}ms');
+    reconnectTimeout?.cancel();
+    reconnectTimeout = Timer(Duration(milliseconds: delay), () {
+      unawaited(attemptReconnect(signalEvents));
+    });
+  }
+
+  Future<void> resumeConnection([bool signalEvents = false]) async {}
+
+  Future<void> restartConnection([bool signalEvents = false]) async {
     await publisher?.dispose();
     publisher = null;
     _hasPublished = false;
@@ -697,6 +834,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _serverProvidedIceServers = iceServersFromServer;
       }
 
+      _clientConfiguration = event.response.clientConfiguration;
+
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '
           'iceServers: ${event.response.iceServers}, '
@@ -713,6 +852,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
+        handleDisconnect('signal');
         await _onDisconnected(DisconnectReason.signal);
       }
     })
@@ -769,10 +909,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             '[Signal] Received Leave while engine is reconnecting, ignoring...');
         return;
       }
-      await cleanUp();
-      if (!_fullReconnect && event.canReconnect) {
-        _fullReconnect = event.canReconnect;
-        await restartConnection();
+
+      if (event.canReconnect) {
+        fullReconnectOnNext = true;
+        // reconnect immediately instead of waiting for next attempt
+        handleDisconnect(leaveReconnect);
+      } else {
+        _updateConnectionState(ConnectionState.disconnected);
+        await cleanUp();
       }
     });
 }
@@ -805,10 +949,6 @@ extension EnginePrivateMethods on Engine {
       didReconnect: didReconnect,
       fullReconnect: _fullReconnect,
     ));
-
-    if (newValue == ConnectionState.connected) {
-      _fullReconnect = false;
-    }
   }
 }
 

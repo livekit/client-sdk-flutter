@@ -23,6 +23,11 @@ class UnexpectedStateException extends LiveKitException {
       : super._(msg);
 }
 
+/// An exception occured while attempting to connect to the server.
+class SignalReconnectError extends LiveKitException {
+  SignalReconnectError([String msg = 'SignalReconnect Error']) : super._(msg);
+}
+
 /// Failed to create a local track.
 /// Common reasons:
 /// - Required permissions not yet granted to the platform.
