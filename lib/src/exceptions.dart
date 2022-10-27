@@ -28,6 +28,11 @@ class SignalReconnectError extends LiveKitException {
   SignalReconnectError([String msg = 'SignalReconnect Error']) : super._(msg);
 }
 
+/// An exception occured while pe.
+class NegotiationError extends LiveKitException {
+  NegotiationError([String msg = 'Negotiation Error']) : super._(msg);
+}
+
 /// Failed to create a local track.
 /// Common reasons:
 /// - Required permissions not yet granted to the platform.

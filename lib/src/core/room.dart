@@ -140,14 +140,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      if (_localParticipant == null && !engine.isFullReconnect) {
+      if (_localParticipant == null && !engine.fullReconnectOnNext) {
         _localParticipant = LocalParticipant(
           room: this,
           info: event.response.participant,
         );
       }
 
-      if (engine.isFullReconnect && _localParticipant != null) {
+      if (engine.fullReconnectOnNext && _localParticipant != null) {
         _localParticipant!.updateFromInfo(event.response.participant);
       }
 
@@ -284,7 +284,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
-        if (!engine.isFullReconnect) {
+        if (!engine.fullReconnectOnNext) {
           await _cleanUp();
         }
 

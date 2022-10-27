@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/src/options.dart';
 
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/types.dart';
 import '../logger.dart';
@@ -129,7 +130,11 @@ class Transport extends Disposable {
     // actually negotiate
     logger.fine('starting to negotiate');
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
-    await pc.setLocalDescription(offer);
+    try {
+      await pc.setLocalDescription(offer);
+    } catch (e) {
+      throw NegotiationError(e.toString());
+    }
     onOffer?.call(offer);
   }
 

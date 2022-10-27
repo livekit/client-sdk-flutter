@@ -29,8 +29,6 @@ import 'transport.dart';
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
-  static const leaveReconnect = 'leave-reconnect';
-
   final SignalClient signalClient;
 
   final PeerConnectionCreate _peerConnectionCreate;
@@ -62,10 +60,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
-
-  bool _fullReconnect = false;
-
-  bool get isFullReconnect => _fullReconnect;
 
   lk_models.ClientConfiguration? _clientConfiguration;
 
@@ -238,7 +232,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       publisher!.negotiate(null);
     } catch (error) {
-      handleDisconnect('negotiation');
+      if (error is NegotiationError) {
+        fullReconnectOnNext = true;
+      }
+      handleDisconnect(DisconnectReason.negotiation);
     }
   }
 
@@ -462,7 +459,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       if (isPrimaryOrPublisher && event.state.isDisconnectedOrFailed()) {
         // trigger reconnect sequence
-        _onDisconnected(DisconnectReason.peerConnection);
+        handleDisconnect(DisconnectReason.peerConnection);
       }
     });
 
@@ -626,28 +623,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _onDisconnected(DisconnectReason reason) async {
-    if (!_fullReconnect) {
-      _fullReconnect = _clientConfiguration?.resumeConnection ==
-          lk_models.ClientConfigSetting.DISABLED;
-    }
-    logger
-        .info('onDisconnected state:${_connectionState} reason:${reason.name}');
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('[$objectId] Already disconnected... $reason');
-      return;
-    }
-    if (_connectionState == ConnectionState.reconnecting) {
-      logger.fine('[$objectId] Already reconnecting...');
-      return;
-    }
-
-    logger.fine('[$runtimeType] Should attempt reconnect sequence...');
-    if (!_fullReconnect) {
-      await reconnect();
-    }
-  }
-
   Future<void> attemptReconnect([bool signalEvents = false]) async {
     if (_isClosed) {
       return;
@@ -696,7 +671,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       if (recoverable) {
-        handleDisconnect('reconnect', requireSignalEvents);
+        handleDisconnect(DisconnectReason.reconnect, requireSignalEvents);
       } else {
         logger.severe(
           'could not recover connection after ${reconnectAttempts} attempts, ${DateTime.now().millisecondsSinceEpoch - reconnectStart!.millisecondsSinceEpoch}ms. giving up',
@@ -719,12 +694,37 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return null;
   }
 
-  void handleDisconnect(String connection, [bool signalEvents = false]) async {
+  /*
+    Future<void> _onDisconnected(DisconnectReason reason) async {
+    if (!_fullReconnect) {
+      _fullReconnect = _clientConfiguration?.resumeConnection ==
+          lk_models.ClientConfigSetting.DISABLED;
+    }
+    logger
+        .info('onDisconnected state:${_connectionState} reason:${reason.name}');
+    if (_connectionState == ConnectionState.disconnected) {
+      logger.fine('[$objectId] Already disconnected... $reason');
+      return;
+    }
+    if (_connectionState == ConnectionState.reconnecting) {
+      logger.fine('[$objectId] Already reconnecting...');
+      return;
+    }
+
+    logger.fine('[$runtimeType] Should attempt reconnect sequence...');
+    if (!_fullReconnect) {
+      await reconnect();
+    }
+  }
+   */
+
+  void handleDisconnect(DisconnectReason reason,
+      [bool signalEvents = false]) async {
     if (_isClosed) {
       return;
     }
 
-    logger.finer('${connection} disconnected');
+    logger.finer('${reason} disconnected');
     if (reconnectAttempts == 0) {
       // only reset start time on the first try
       reconnectStart = DateTime.now();
@@ -749,7 +749,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       disconnect(duration);
       return;
     }
-    if (connection == leaveReconnect) {
+    if (reason == DisconnectReason.leaveReconnect) {
       delay = 0;
     }
     logger.finer('reconnecting in ${delay}ms');
@@ -852,8 +852,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        handleDisconnect('signal');
-        await _onDisconnected(DisconnectReason.signal);
+        handleDisconnect(DisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -913,7 +912,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (event.canReconnect) {
         fullReconnectOnNext = true;
         // reconnect immediately instead of waiting for next attempt
-        handleDisconnect(leaveReconnect);
+        handleDisconnect(DisconnectReason.leaveReconnect);
       } else {
         _updateConnectionState(ConnectionState.disconnected);
         await cleanUp();
@@ -947,7 +946,7 @@ extension EnginePrivateMethods on Engine {
       newState: _connectionState,
       oldState: oldState,
       didReconnect: didReconnect,
-      fullReconnect: _fullReconnect,
+      fullReconnect: fullReconnectOnNext,
     ));
   }
 }

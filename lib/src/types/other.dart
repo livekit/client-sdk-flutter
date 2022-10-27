@@ -63,7 +63,10 @@ enum StreamState {
 enum DisconnectReason {
   user,
   peerConnection,
+  negotiation,
   signal,
+  reconnect,
+  leaveReconnect,
 }
 
 /// The reason why a track failed to publish.
