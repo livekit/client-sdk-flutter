@@ -28,7 +28,7 @@ class SignalReconnectError extends LiveKitException {
   SignalReconnectError([String msg = 'SignalReconnect Error']) : super._(msg);
 }
 
-/// An exception occured while pe.
+/// Exception thrown when pc negotiation fails.
 class NegotiationError extends LiveKitException {
   NegotiationError([String msg = 'Negotiation Error']) : super._(msg);
 }
