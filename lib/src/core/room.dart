@@ -265,8 +265,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await localParticipant?.unpublishTrack(event.trackSid);
     });
 
-  Function resetListener = () {};
-
   void _setUpEngineListeners() => _engineListener
     ..on<EngineConnectionStateUpdatedEvent>((event) async {
       if (event.didReconnect) {
@@ -282,9 +280,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           await participant.dispose();
         }
         _participants.clear();
+        _activeSpeakers.clear();
+        // reset params
+        _name = null;
+        _sid = null;
+        _metadata = null;
+        _serverVersion = null;
+        _serverRegion = null;
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connected) {
         events.emit(const RoomRestartedEvent());
+        // recreate signal listener.
         await _signalListener.cancelAll();
         await _signalListener.dispose();
         _signalListener = engine.signalClient.createListener();
@@ -293,18 +299,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
-        if (event.fullReconnect) {
-          _activeSpeakers.clear();
-          // reset params
-          _name = null;
-          _sid = null;
-          _metadata = null;
-          _serverVersion = null;
-          _serverRegion = null;
-          return;
+        if (!event.fullReconnect) {
+          await _cleanUp();
+          events.emit(const RoomDisconnectedEvent());
         }
-        await _cleanUp();
-        events.emit(const RoomDisconnectedEvent());
       }
       // always notify ChangeNotifier
       notifyListeners();
@@ -562,6 +560,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   Future<void> _handlePostReconnect(bool isFullReconnect) async {
     if (isFullReconnect) {
+      // re-publish all tracks
       await localParticipant?.rePublishAllTracks(notify: false);
     }
     for (var participant in participants.values) {
