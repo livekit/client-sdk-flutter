@@ -16,7 +16,6 @@ import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
-import '../reconnect_policy.dart';
 import '../support/disposable.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
@@ -558,6 +557,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnectOnNext = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           reason == DisconnectReason.leaveReconnect ||
+          reason == DisconnectReason.negotiationFailed ||
           reason == DisconnectReason.peerConnectionClosed;
     }
 
