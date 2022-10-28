@@ -127,6 +127,10 @@ class Transport extends Disposable {
       }
     }
 
+    if (restartingIce && !rtc.WebRTC.platformIsWeb) {
+      await pc.restartIce();
+    }
+
     // actually negotiate
     logger.fine('starting to negotiate');
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});

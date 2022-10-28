@@ -39,7 +39,7 @@ abstract class Participant<T extends TrackPublication>
   double audioLevel = 0;
 
   /// Server assigned unique id.
-  final String sid;
+  String sid;
 
   /// User-assigned identity.
   String identity;
@@ -160,7 +160,7 @@ abstract class Participant<T extends TrackPublication>
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
     _name = info.name;
-    // participantSid = info.sid;
+    sid = info.sid;
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }

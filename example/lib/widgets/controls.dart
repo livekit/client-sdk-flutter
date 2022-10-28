@@ -219,6 +219,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result != null) {
       print('${result}');
       await widget.room.sendSimulateScenario(
+        signalReconnect: result == SimulateScenarioResult.signalReconnect ? true : null,
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,

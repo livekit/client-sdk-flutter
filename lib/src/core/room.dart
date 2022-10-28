@@ -74,7 +74,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
   //
-  late final EventsListener<SignalEvent> _signalListener;
+  late EventsListener<SignalEvent> _signalListener;
 
   Room({
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -140,14 +140,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      if (_localParticipant == null && !engine.fullReconnectOnNext) {
-        _localParticipant = LocalParticipant(
-          room: this,
-          info: event.response.participant,
-        );
-      }
+      _localParticipant ??= LocalParticipant(
+        room: this,
+        info: event.response.participant,
+      );
 
-      if (engine.fullReconnectOnNext && _localParticipant != null) {
+      if (engine.fullReconnectOnNext) {
         _localParticipant!.updateFromInfo(event.response.participant);
       }
 
@@ -267,27 +265,45 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await localParticipant?.unpublishTrack(event.trackSid);
     });
 
+  Function resetListener = () {};
+
   void _setUpEngineListeners() => _engineListener
     ..on<EngineConnectionStateUpdatedEvent>((event) async {
       if (event.didReconnect) {
         events.emit(const RoomReconnectedEvent());
         // re-send tracks permissions
         localParticipant?.sendTrackSubscriptionPermissions();
-        await _handlePostReconnect(event.fullReconnect);
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connecting) {
         events.emit(const RoomRestartingEvent());
+        // clean up RemoteParticipants
+        for (final participant in _participants.values) {
+          events.emit(ParticipantDisconnectedEvent(participant: participant));
+          await participant.dispose();
+        }
+        _participants.clear();
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connected) {
         events.emit(const RoomRestartedEvent());
+        await _signalListener.cancelAll();
+        await _signalListener.dispose();
+        _signalListener = engine.signalClient.createListener();
+        _setUpSignalListeners();
         await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
-        if (!engine.fullReconnectOnNext) {
-          await _cleanUp();
+        if (event.fullReconnect) {
+          _activeSpeakers.clear();
+          // reset params
+          _name = null;
+          _sid = null;
+          _metadata = null;
+          _serverVersion = null;
+          _serverRegion = null;
+          return;
         }
-
+        await _cleanUp();
         events.emit(const RoomDisconnectedEvent());
       }
       // always notify ChangeNotifier
@@ -337,7 +353,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> reconnect() async {
-    await engine.reconnect();
+    await engine.restartConnection();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(
