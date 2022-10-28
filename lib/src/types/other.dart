@@ -62,8 +62,8 @@ enum StreamState {
 
 enum DisconnectReason {
   user,
-  peerConnection,
-  negotiation,
+  peerConnectionClosed,
+  negotiationFailed,
   signal,
   reconnect,
   leaveReconnect,

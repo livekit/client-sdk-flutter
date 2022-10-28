@@ -353,7 +353,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> reconnect() async {
-    await engine.restartConnection();
+    await engine.resumeConnection(true);
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(

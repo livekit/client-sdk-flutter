@@ -157,7 +157,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
       _updateConnectionState(ConnectionState.disconnected);
-      rethrow;
     }
   }
 
@@ -222,7 +221,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnectOnNext = true;
       }
-      await handleDisconnect(DisconnectReason.negotiation);
+      await handleDisconnect(DisconnectReason.negotiationFailed);
     }
   }
 
@@ -375,18 +374,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       final isPrimaryOrPublisher = event.isPrimary ||
           (_hasPublished && event is EnginePublisherPeerStateUpdatedEvent);
 
-      if (event.state ==
-          rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+      if (isPrimaryOrPublisher &&
+          event.state ==
+              rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
         pcState = event.state;
       }
 
-      if (isPrimaryOrPublisher && event.state.isDisconnectedOrFailed()) {
+      if (isPrimaryOrPublisher &&
+          event.state.isDisconnectedOrFailed() &&
+          pcState ==
+              rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
         // trigger reconnect sequence
-        if (pcState ==
-            rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-          pcState = event.state;
-          handleDisconnect(DisconnectReason.peerConnection);
-        }
+        pcState = event.state;
+        handleDisconnect(DisconnectReason.peerConnectionClosed);
       }
     });
 
@@ -550,8 +550,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> handleDisconnect(DisconnectReason reason,
-      [bool signalEvents = false]) async {
+  Future<void> handleDisconnect(DisconnectReason reason) async {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
@@ -559,12 +558,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnectOnNext = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           reason == DisconnectReason.leaveReconnect ||
-          reason == DisconnectReason.peerConnection;
-    } else {
-      if (_connectionState == ConnectionState.reconnecting) {
-        logger.fine('[$objectId] Already reconnecting...');
-        return;
-      }
+          reason == DisconnectReason.peerConnectionClosed;
+    }
+
+    if (_connectionState == ConnectionState.reconnecting &&
+        !fullReconnectOnNext) {
+      logger.fine('[$objectId] Already reconnecting...');
+      return;
     }
 
     if (_connectionState == ConnectionState.disconnected) {
@@ -576,11 +576,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (fullReconnectOnNext) {
       await restartConnection();
     } else {
-      await resumeConnection();
+      bool reConnectSignal = reason == DisconnectReason.leaveReconnect ||
+          reason == DisconnectReason.peerConnectionClosed ||
+          reason == DisconnectReason.signal;
+      await resumeConnection(reConnectSignal);
     }
   }
 
-  Future<void> resumeConnection([bool signalEvents = false]) async {
+  Future<void> resumeConnection([bool reConnectSignal = false]) async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('Reconnect: Already closed.');
       return;
@@ -591,15 +594,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     Future<void> sequence() async {
-      //
-      await signalClient.connect(
-        url!,
-        token!,
-        connectOptions: connectOptions,
-        roomOptions: roomOptions,
-        reconnect: true,
-        sid: _participantSid,
-      );
+      if (reConnectSignal) {
+        await signalClient.connect(
+          url!,
+          token!,
+          connectOptions: connectOptions,
+          roomOptions: roomOptions,
+          reconnect: true,
+          sid: _participantSid,
+        );
+      }
 
       if (publisher == null || subscriber == null) {
         throw UnexpectedStateException('publisher or subscribers is null');
@@ -660,9 +664,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _reliableDCPub = null;
     _lossyDCSub = null;
     _lossyDCPub = null;
-
     await _signalListener.cancelAll();
-    await _signalListener.dispose();
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
 
@@ -729,7 +731,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        handleDisconnect(DisconnectReason.signal);
+        await handleDisconnect(DisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -783,7 +785,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (event.canReconnect) {
         fullReconnectOnNext = true;
         // reconnect immediately instead of waiting for next attempt
-        handleDisconnect(DisconnectReason.leaveReconnect);
+        _connectionState = ConnectionState.reconnecting;
+        await handleDisconnect(DisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
           logger.warning(
