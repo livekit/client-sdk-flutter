@@ -154,20 +154,35 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (WebRTC.platformIsAndroid) {
       // Android specific
-      try {
+      requestPermission([bool retryTwice = false]) async {
         // Required for android screenshare.
-        const androidConfig = FlutterBackgroundAndroidConfig(
-          notificationTitle: 'Screen Sharing',
-          notificationText: 'LiveKit Example is sharing the screen.',
-          notificationImportance: AndroidNotificationImportance.Default,
-          notificationIcon:
-              AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
-        );
-        await FlutterBackground.initialize(androidConfig: androidConfig);
-        await FlutterBackground.enableBackgroundExecution();
-      } catch (e) {
-        print('could not publish video: $e');
+        try {
+          bool hasPermissions = await FlutterBackground.hasPermissions;
+          if (!retryTwice) {
+            const androidConfig = FlutterBackgroundAndroidConfig(
+              notificationTitle: 'Screen Sharing',
+              notificationText: 'LiveKit Example is sharing the screen.',
+              notificationImportance: AndroidNotificationImportance.Default,
+              notificationIcon: AndroidResource(
+                  name: 'livekit_ic_launcher', defType: 'mipmap'),
+            );
+            hasPermissions = await FlutterBackground.initialize(
+                androidConfig: androidConfig);
+          }
+          if (hasPermissions &&
+              !FlutterBackground.isBackgroundExecutionEnabled) {
+            await FlutterBackground.enableBackgroundExecution();
+          }
+        } catch (e) {
+          if (!retryTwice) {
+            return await Future.delayed(
+                const Duration(seconds: 1), () => requestPermission(true));
+          }
+          print('could not publish video: $e');
+        }
       }
+
+      await requestPermission();
     }
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
