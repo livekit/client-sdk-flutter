@@ -154,7 +154,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (WebRTC.platformIsAndroid) {
       // Android specific
-      requestPermission([bool retryTwice = false]) async {
+      requestBackgroundExecutionPermission([bool retryTwice = false]) async {
         // Required for android screenshare.
         try {
           bool hasPermissions = await FlutterBackground.hasPermissions;
@@ -175,14 +175,14 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           }
         } catch (e) {
           if (!retryTwice) {
-            return await Future.delayed(
-                const Duration(seconds: 1), () => requestPermission(true));
+            return await Future<void>.delayed(const Duration(seconds: 1),
+                () => requestBackgroundExecutionPermission(true));
           }
           print('could not publish video: $e');
         }
       }
 
-      await requestPermission();
+      await requestBackgroundExecutionPermission();
     }
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
