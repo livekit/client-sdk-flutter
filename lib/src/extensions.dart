@@ -80,6 +80,9 @@ extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
   bool isConnected() =>
       this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
 
+  bool isClosed() =>
+      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed;
+
   bool isDisconnectedOrFailed() => [
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,

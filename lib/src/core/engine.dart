@@ -78,9 +78,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool fullReconnect = false;
 
-  rtc.RTCPeerConnectionState pcState =
-      rtc.RTCPeerConnectionState.RTCPeerConnectionStateNew;
-
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
 
@@ -370,22 +367,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             ));
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
-      //
-      final isPrimaryOrPublisher = event.isPrimary ||
-          (_hasPublished && event is EnginePublisherPeerStateUpdatedEvent);
-
-      if (isPrimaryOrPublisher &&
-          event.state ==
-              rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        pcState = event.state;
-      }
-
-      if (isPrimaryOrPublisher &&
-          event.state.isDisconnectedOrFailed() &&
-          pcState ==
-              rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        // trigger reconnect sequence
-        pcState = event.state;
+      if (event.state.isDisconnectedOrFailed()) {
+        handleDisconnect(DisconnectReason.reconnect);
+      } else if (event.state.isClosed()) {
         handleDisconnect(DisconnectReason.peerConnectionClosed);
       }
     });
@@ -584,12 +568,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> resumeConnection() async {
     if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('Reconnect: Already closed.');
+      logger.fine('resumeConnection: Already closed.');
       return;
     }
 
     if (url == null || token == null) {
-      throw ConnectException('could not reconnect without url and token');
+      throw ConnectException(
+          'could not resume connection without url and token');
     }
 
     Future<void> sequence() async {
@@ -609,7 +594,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscriber!.restartingIce = true;
 
       if (_hasPublished) {
-        logger.fine('Reconnect: negotiating publisher...');
+        logger.fine('resumeConnection: negotiating publisher...');
         await publisher!.createAndSendOffer(const RTCOfferOptions(
           iceRestart: true,
         ));
@@ -617,10 +602,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       final iceConnected = primary?.pc.connectionState?.isConnected() ?? false;
 
-      logger.fine('Reconnect: iceConnected: $iceConnected');
+      logger.fine('resumeConnection: iceConnected: $iceConnected');
 
       if (!iceConnected) {
-        logger.fine('Reconnect: Waiting for primary to connect...');
+        logger.fine('resumeConnection: Waiting for primary to connect...');
 
         await events.waitFor<EnginePeerStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.state.isConnected(),
