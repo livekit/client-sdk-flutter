@@ -556,9 +556,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (!fullReconnect) {
       fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
-          reason == DisconnectReason.leaveReconnect ||
-          reason == DisconnectReason.negotiationFailed ||
-          reason == DisconnectReason.peerConnectionClosed;
+          [
+            DisconnectReason.leaveReconnect,
+            DisconnectReason.negotiationFailed,
+            DisconnectReason.peerConnectionClosed
+          ].contains(reason);
     }
 
     if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
@@ -575,9 +577,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (fullReconnect) {
       await restartConnection();
     } else {
-      bool reConnectSignal = reason == DisconnectReason.leaveReconnect ||
-          reason == DisconnectReason.peerConnectionClosed ||
-          reason == DisconnectReason.signal;
+      bool reConnectSignal = [
+        DisconnectReason.leaveReconnect,
+        DisconnectReason.peerConnectionClosed,
+        DisconnectReason.signal
+      ].contains(reason);
       await resumeConnection(reConnectSignal);
     }
   }
