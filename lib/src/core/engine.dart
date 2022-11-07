@@ -156,6 +156,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
       _updateConnectionState(ConnectionState.disconnected);
+      rethrow;
     }
   }
 
