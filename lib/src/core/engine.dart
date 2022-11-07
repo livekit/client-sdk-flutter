@@ -629,7 +629,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
       _updateConnectionState(ConnectionState.connected);
     } catch (error) {
-      //
       _updateConnectionState(ConnectionState.disconnected);
     }
   }
