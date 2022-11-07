@@ -76,7 +76,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
 
-  bool fullReconnectOnNext = false;
+  bool fullReconnect = false;
 
   rtc.RTCPeerConnectionState pcState =
       rtc.RTCPeerConnectionState.RTCPeerConnectionStateNew;
@@ -218,7 +218,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       publisher!.negotiate(null);
     } catch (error) {
       if (error is NegotiationError) {
-        fullReconnectOnNext = true;
+        fullReconnect = true;
       }
       await handleDisconnect(DisconnectReason.negotiationFailed);
     }
@@ -553,16 +553,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
-    if (!fullReconnectOnNext) {
-      fullReconnectOnNext = _clientConfiguration?.resumeConnection ==
+    if (!fullReconnect) {
+      fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           reason == DisconnectReason.leaveReconnect ||
           reason == DisconnectReason.negotiationFailed ||
           reason == DisconnectReason.peerConnectionClosed;
     }
 
-    if (_connectionState == ConnectionState.reconnecting &&
-        !fullReconnectOnNext) {
+    if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
       logger.fine('[$objectId] Already reconnecting...');
       return;
     }
@@ -573,7 +572,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     logger.fine('[$runtimeType] Should attempt reconnect sequence...');
-    if (fullReconnectOnNext) {
+    if (fullReconnect) {
       await restartConnection();
     } else {
       bool reConnectSignal = reason == DisconnectReason.leaveReconnect ||
@@ -676,7 +675,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fastConnectOptions: fastConnectOptions,
     );
 
-    fullReconnectOnNext = false;
+    fullReconnect = false;
   }
 
   @internal
@@ -783,7 +782,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalLeaveEvent>((event) async {
       if (event.canReconnect) {
-        fullReconnectOnNext = true;
+        fullReconnect = true;
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
         await handleDisconnect(DisconnectReason.leaveReconnect);
@@ -825,7 +824,7 @@ extension EnginePrivateMethods on Engine {
       newState: _connectionState,
       oldState: oldState,
       didReconnect: didReconnect,
-      fullReconnect: fullReconnectOnNext,
+      fullReconnect: fullReconnect,
     ));
   }
 }

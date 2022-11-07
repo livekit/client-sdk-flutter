@@ -145,7 +145,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         info: event.response.participant,
       );
 
-      if (engine.fullReconnectOnNext) {
+      if (engine.fullReconnect) {
         _localParticipant!.updateFromInfo(event.response.participant);
       }
 
