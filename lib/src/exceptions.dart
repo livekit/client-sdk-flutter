@@ -23,11 +23,6 @@ class UnexpectedStateException extends LiveKitException {
       : super._(msg);
 }
 
-/// An exception occured while attempting to connect to the server.
-class SignalReconnectError extends LiveKitException {
-  SignalReconnectError([String msg = 'SignalReconnect Error']) : super._(msg);
-}
-
 /// Exception thrown when pc negotiation fails.
 class NegotiationError extends LiveKitException {
   NegotiationError([String msg = 'Negotiation Error']) : super._(msg);
