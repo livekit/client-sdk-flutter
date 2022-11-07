@@ -577,16 +577,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (fullReconnect) {
       await restartConnection();
     } else {
-      bool reConnectSignal = [
-        DisconnectReason.leaveReconnect,
-        DisconnectReason.peerConnectionClosed,
-        DisconnectReason.signal
-      ].contains(reason);
-      await resumeConnection(reConnectSignal);
+      await resumeConnection();
     }
   }
 
-  Future<void> resumeConnection([bool reConnectSignal = false]) async {
+  Future<void> resumeConnection() async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('Reconnect: Already closed.');
       return;
@@ -597,16 +592,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     Future<void> sequence() async {
-      if (reConnectSignal) {
-        await signalClient.connect(
-          url!,
-          token!,
-          connectOptions: connectOptions,
-          roomOptions: roomOptions,
-          reconnect: true,
-          sid: _participantSid,
-        );
-      }
+      await signalClient.connect(
+        url!,
+        token!,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: true,
+        sid: _participantSid,
+      );
 
       if (publisher == null || subscriber == null) {
         throw UnexpectedStateException('publisher or subscribers is null');
