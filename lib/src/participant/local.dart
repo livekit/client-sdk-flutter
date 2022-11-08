@@ -240,6 +240,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await pub.dispose();
   }
 
+  Future<void> rePublishAllTracks() async {
+    final tracks = trackPublications.values.toList();
+    trackPublications.clear();
+    for (LocalTrackPublication track in tracks) {
+      if (track.track is LocalAudioTrack) {
+        await publishAudioTrack(track.track as LocalAudioTrack);
+      } else if (track.track is LocalVideoTrack) {
+        await publishVideoTrack(track.track as LocalVideoTrack);
+      }
+    }
+  }
+
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
   Future<void> publishData(

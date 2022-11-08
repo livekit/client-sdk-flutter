@@ -180,18 +180,18 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
-    // unpublish any track that is not in the info
+    // remove any published track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
     final removeSids =
         trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
-      await unpublishTrack(sid);
+      await removePublishedTrack(sid);
     }
   }
 
-  @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
-    logger.finer('Unpublish track sid: $trackSid, notify: $notify');
+  Future<void> removePublishedTrack(String trackSid,
+      {bool notify = true}) async {
+    logger.finer('removePublishedTrack track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
       logger.warning('Publication not found $trackSid');
@@ -219,6 +219,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     await pub.dispose();
   }
+
+  @Deprecated(
+      '`unpublishTrack` is deprecated, use `removePublishedTrack` instead')
+  @override
+  Future<void> unpublishTrack(String trackSid, {bool notify = true}) =>
+      removePublishedTrack(trackSid, notify: notify);
 
   @internal
   lk_models.ParticipantTracks participantTracks() =>

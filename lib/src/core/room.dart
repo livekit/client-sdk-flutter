@@ -74,7 +74,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
   //
-  late final EventsListener<SignalEvent> _signalListener;
+  late EventsListener<SignalEvent> _signalListener;
 
   Room({
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -140,10 +140,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      _localParticipant = LocalParticipant(
+      _localParticipant ??= LocalParticipant(
         room: this,
         info: event.response.participant,
       );
+
+      if (engine.fullReconnect) {
+        _localParticipant!.updateFromInfo(event.response.participant);
+      }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null) {
@@ -264,19 +268,47 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _setUpEngineListeners() => _engineListener
     ..on<EngineConnectionStateUpdatedEvent>((event) async {
       if (event.didReconnect) {
+        events.emit(const RoomReconnectedEvent());
         // re-send tracks permissions
         localParticipant?.sendTrackSubscriptionPermissions();
-        events.emit(const RoomReconnectedEvent());
-        await _handlePostReconnect(false);
+      } else if (event.fullReconnect &&
+          event.newState == ConnectionState.connecting) {
+        events.emit(const RoomRestartingEvent());
+        // clean up RemoteParticipants
+        for (final participant in _participants.values) {
+          events.emit(ParticipantDisconnectedEvent(participant: participant));
+          await participant.dispose();
+        }
+        _participants.clear();
+        _activeSpeakers.clear();
+        // reset params
+        _name = null;
+        _sid = null;
+        _metadata = null;
+        _serverVersion = null;
+        _serverRegion = null;
+      } else if (event.fullReconnect &&
+          event.newState == ConnectionState.connected) {
+        events.emit(const RoomRestartedEvent());
+        // recreate signal listener.
+        await _signalListener.cancelAll();
+        await _signalListener.dispose();
+        _signalListener = engine.signalClient.createListener();
+        _setUpSignalListeners();
+        await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
-        await _cleanUp();
-        events.emit(const RoomDisconnectedEvent());
+        if (!event.fullReconnect) {
+          await _cleanUp();
+          events.emit(const RoomDisconnectedEvent());
+        }
       }
       // always notify ChangeNotifier
       notifyListeners();
     })
+    ..on<RoomRestartingEvent>((event) {})
+    ..on<RoomRestartedEvent>((event) {})
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
@@ -319,7 +351,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> reconnect() async {
-    await engine.reconnect();
+    await engine.restartConnection();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(
@@ -528,13 +560,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   Future<void> _handlePostReconnect(bool isFullReconnect) async {
     if (isFullReconnect) {
-      // TODO republish tracks on full reconnect
-    } else {
-      for (var participant in participants.values) {
-        for (var pub in participant.trackPublications.values) {
-          if (pub.subscribed) {
-            pub.sendUpdateTrackSettings();
-          }
+      // re-publish all tracks
+      await localParticipant?.rePublishAllTracks();
+    }
+    for (var participant in participants.values) {
+      for (var pub in participant.trackPublications.values) {
+        if (pub.subscribed) {
+          pub.sendUpdateTrackSettings();
         }
       }
     }
@@ -585,13 +617,17 @@ extension RoomDebugMethods on Room {
     bool? migration,
     bool? serverLeave,
     bool? switchCandidate,
+    bool? signalReconnect,
   }) async {
+    if (signalReconnect != null && signalReconnect) {
+      await engine.signalClient.cleanUp();
+      return;
+    }
     engine.signalClient.sendSimulateScenario(
-      speakerUpdate: speakerUpdate,
-      nodeFailure: nodeFailure,
-      migration: migration,
-      serverLeave: serverLeave,
-      switchCandidate: switchCandidate,
-    );
+        speakerUpdate: speakerUpdate,
+        nodeFailure: nodeFailure,
+        migration: migration,
+        serverLeave: serverLeave,
+        switchCandidate: switchCandidate);
   }
 }

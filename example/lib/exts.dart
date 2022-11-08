@@ -171,6 +171,7 @@ extension LKExampleExt on BuildContext {
 }
 
 enum SimulateScenarioResult {
+  signalReconnect,
   nodeFailure,
   migration,
   serverLeave,

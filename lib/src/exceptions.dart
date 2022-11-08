@@ -23,6 +23,11 @@ class UnexpectedStateException extends LiveKitException {
       : super._(msg);
 }
 
+/// Exception thrown when pc negotiation fails.
+class NegotiationError extends LiveKitException {
+  NegotiationError([String msg = 'Negotiation Error']) : super._(msg);
+}
+
 /// Failed to create a local track.
 /// Common reasons:
 /// - Required permissions not yet granted to the platform.

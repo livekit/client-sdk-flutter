@@ -139,10 +139,12 @@ class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
 @internal
 class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
     with EngineEvent {
+  final bool fullReconnect;
   const EngineConnectionStateUpdatedEvent({
     required ConnectionState newState,
     required ConnectionState oldState,
     required bool didReconnect,
+    required this.fullReconnect,
     DisconnectReason? disconnectReason,
   }) : super(
           newState: newState,

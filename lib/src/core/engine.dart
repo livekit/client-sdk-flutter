@@ -28,7 +28,6 @@ import 'transport.dart';
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
-
   final SignalClient signalClient;
 
   final PeerConnectionCreate _peerConnectionCreate;
@@ -61,6 +60,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
 
+  lk_models.ClientConfiguration? _clientConfiguration;
+
   // remember url and token for reconnect
   String? url;
   String? token;
@@ -75,10 +76,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
 
+  bool fullReconnect = false;
+
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
 
-  late final _signalListener = signalClient.createListener(synchronized: true);
+  late EventsListener<SignalEvent> _signalListener =
+      signalClient.createListener(synchronized: true);
 
   Engine({
     required this.connectOptions,
@@ -117,11 +121,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     this.roomOptions = roomOptions ?? this.roomOptions;
     this.fastConnectOptions = fastConnectOptions;
 
-    if (connectionState == ConnectionState.connected) {
-      logger.fine('already connected');
-      return;
-    }
-
     _updateConnectionState(ConnectionState.connecting);
 
     try {
@@ -136,7 +135,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // wait for join response
       await _signalListener.waitFor<SignalJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(),
+        onTimeout: () => throw ConnectException(
+            'Timed out waiting for SignalJoinResponseEvent'),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -145,7 +145,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(),
+        onTimeout: () => throw ConnectException(
+            'Timed out waiting for EnginePeerStateUpdatedEvent'),
       );
 
       _updateConnectionState(ConnectionState.connected);
@@ -210,9 +211,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (publisher == null) {
       return;
     }
-
     _hasPublished = true;
-    publisher!.negotiate(null);
+    try {
+      publisher!.negotiate(null);
+    } catch (error) {
+      if (error is NegotiationError) {
+        fullReconnect = true;
+      }
+      await handleDisconnect(DisconnectReason.negotiationFailed);
+    }
   }
 
   @internal
@@ -266,75 +273,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
-  }
-
-  @internal
-  Future<void> reconnect() async {
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('Reconnect: Already closed.');
-      return;
-    }
-
-    if (url == null || token == null) {
-      throw ConnectException('could not reconnect without url and token');
-    }
-
-    Future<void> sequence() async {
-      //
-      await signalClient.connect(
-        url!,
-        token!,
-        connectOptions: connectOptions,
-        roomOptions: roomOptions,
-        reconnect: true,
-        sid: _participantSid,
-      );
-
-      if (publisher == null || subscriber == null) {
-        throw UnexpectedStateException('publisher or subscribers is null');
-      }
-
-      subscriber!.restartingIce = true;
-
-      if (_hasPublished) {
-        logger.fine('Reconnect: negotiating publisher...');
-        await publisher!.createAndSendOffer(const RTCOfferOptions(
-          iceRestart: true,
-        ));
-      }
-
-      final iceConnected = primary?.pc.connectionState?.isConnected() ?? false;
-
-      logger.fine('Reconnect: iceConnected: $iceConnected');
-
-      if (!iceConnected) {
-        logger.fine('Reconnect: Waiting for primary to connect...');
-
-        await events.waitFor<EnginePeerStateUpdatedEvent>(
-          filter: (event) => event.isPrimary && event.state.isConnected(),
-          duration: connectOptions.timeouts.iceRestart,
-          onTimeout: () => throw ConnectException(),
-        );
-      }
-    }
-
-    try {
-      _updateConnectionState(ConnectionState.reconnecting);
-      await Utils.retry<void>(
-        (tries, errors) {
-          logger.fine('Retrying connect sequence remaining ${tries} tries...');
-          return sequence();
-        },
-        retryCondition: (_, __) =>
-            _connectionState == ConnectionState.reconnecting,
-        tries: 3,
-        delay: const Duration(seconds: 3),
-      );
-      _updateConnectionState(ConnectionState.connected);
-    } catch (error) {
-      //
-      _updateConnectionState(ConnectionState.disconnected);
-    }
   }
 
   Future<void> _configurePeerConnections(
@@ -429,13 +367,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             ));
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
-      //
-      final isPrimaryOrPublisher = event.isPrimary ||
-          (_hasPublished && event is EnginePublisherPeerStateUpdatedEvent);
-
-      if (isPrimaryOrPublisher && event.state.isDisconnectedOrFailed()) {
-        // trigger reconnect sequence
-        _onDisconnected(DisconnectReason.peerConnection);
+      if (event.state.isDisconnectedOrFailed()) {
+        handleDisconnect(DisconnectReason.reconnect);
+      } else if (event.state.isClosed()) {
+        handleDisconnect(DisconnectReason.peerConnectionClosed);
       }
     });
 
@@ -599,21 +534,130 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _onDisconnected(DisconnectReason reason) async {
+  Future<void> handleDisconnect(DisconnectReason reason) async {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
-    if (_connectionState == ConnectionState.disconnected) {
-      logger.fine('[$objectId] Already disconnected... $reason');
-      return;
+
+    if (!fullReconnect) {
+      fullReconnect = _clientConfiguration?.resumeConnection ==
+              lk_models.ClientConfigSetting.DISABLED ||
+          [
+            DisconnectReason.leaveReconnect,
+            DisconnectReason.negotiationFailed,
+            DisconnectReason.peerConnectionClosed
+          ].contains(reason);
     }
-    if (_connectionState == ConnectionState.reconnecting) {
+
+    if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
       logger.fine('[$objectId] Already reconnecting...');
       return;
     }
 
-    logger.fine('[$runtimeType] Should attempt reconnect sequence...');
+    if (_connectionState == ConnectionState.disconnected) {
+      logger.fine('[$objectId] Already disconnected... $reason');
+      return;
+    }
 
-    await reconnect();
+    logger.fine('[$runtimeType] Should attempt reconnect sequence...');
+    if (fullReconnect) {
+      await restartConnection();
+    } else {
+      await resumeConnection();
+    }
+  }
+
+  Future<void> resumeConnection() async {
+    if (_connectionState == ConnectionState.disconnected) {
+      logger.fine('resumeConnection: Already closed.');
+      return;
+    }
+
+    if (url == null || token == null) {
+      throw ConnectException(
+          'could not resume connection without url and token');
+    }
+
+    Future<void> sequence() async {
+      await signalClient.connect(
+        url!,
+        token!,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: true,
+        sid: _participantSid,
+      );
+
+      if (publisher == null || subscriber == null) {
+        throw UnexpectedStateException('publisher or subscribers is null');
+      }
+
+      subscriber!.restartingIce = true;
+
+      if (_hasPublished) {
+        logger.fine('resumeConnection: negotiating publisher...');
+        await publisher!.createAndSendOffer(const RTCOfferOptions(
+          iceRestart: true,
+        ));
+      }
+
+      final iceConnected = primary?.pc.connectionState?.isConnected() ?? false;
+
+      logger.fine('resumeConnection: iceConnected: $iceConnected');
+
+      if (!iceConnected) {
+        logger.fine('resumeConnection: Waiting for primary to connect...');
+
+        await events.waitFor<EnginePeerStateUpdatedEvent>(
+          filter: (event) => event.isPrimary && event.state.isConnected(),
+          duration: connectOptions.timeouts.iceRestart,
+          onTimeout: () => throw ConnectException(),
+        );
+      }
+    }
+
+    try {
+      _updateConnectionState(ConnectionState.reconnecting);
+      await Utils.retry<void>(
+        (tries, errors) {
+          logger.fine('Retrying connect sequence remaining ${tries} tries...');
+          return sequence();
+        },
+        retryCondition: (_, __) =>
+            _connectionState == ConnectionState.reconnecting,
+        tries: 3,
+        delay: const Duration(seconds: 3),
+      );
+      _updateConnectionState(ConnectionState.connected);
+    } catch (error) {
+      _updateConnectionState(ConnectionState.disconnected);
+    }
+  }
+
+  Future<void> restartConnection([bool signalEvents = false]) async {
+    await publisher?.dispose();
+    publisher = null;
+    _hasPublished = false;
+
+    await subscriber?.dispose();
+    subscriber = null;
+
+    _reliableDCSub = null;
+    _reliableDCPub = null;
+    _lossyDCSub = null;
+    _lossyDCPub = null;
+    await _signalListener.cancelAll();
+    _signalListener = signalClient.createListener(synchronized: true);
+    _setUpSignalListeners();
+
+    await connect(
+      url!,
+      token!,
+      roomOptions: roomOptions,
+      connectOptions: connectOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+
+    fullReconnect = false;
   }
 
   @internal
@@ -650,6 +694,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _serverProvidedIceServers = iceServersFromServer;
       }
 
+      _clientConfiguration = event.response.clientConfiguration;
+
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '
           'iceServers: ${event.response.iceServers}, '
@@ -666,7 +712,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        await _onDisconnected(DisconnectReason.signal);
+        await handleDisconnect(DisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -717,12 +763,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       token = event.token;
     })
     ..on<SignalLeaveEvent>((event) async {
-      if (_connectionState == ConnectionState.reconnecting) {
-        logger.warning(
-            '[Signal] Received Leave while engine is reconnecting, ignoring...');
-        return;
+      if (event.canReconnect) {
+        fullReconnect = true;
+        // reconnect immediately instead of waiting for next attempt
+        _connectionState = ConnectionState.reconnecting;
+        await handleDisconnect(DisconnectReason.leaveReconnect);
+      } else {
+        if (_connectionState == ConnectionState.reconnecting) {
+          logger.warning(
+              '[Signal] Received Leave while engine is reconnecting, ignoring...');
+          return;
+        }
+        _updateConnectionState(ConnectionState.disconnected);
+        await cleanUp();
       }
-      await cleanUp();
     });
 }
 
@@ -752,16 +806,19 @@ extension EnginePrivateMethods on Engine {
       newState: _connectionState,
       oldState: oldState,
       didReconnect: didReconnect,
+      fullReconnect: fullReconnect,
     ));
   }
 }
 
 extension EngineInternalMethods on Engine {
   @internal
-  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
-        _reliableDCPub,
-        _lossyDCPub
-      ].whereNotNull().map((e) => e.toLKInfoType()).toList();
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
+      [_reliableDCPub, _lossyDCPub]
+          .whereNotNull()
+          .where((e) => e.id != -1)
+          .map((e) => e.toLKInfoType())
+          .toList();
 }
 
 Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {
