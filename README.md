@@ -179,6 +179,35 @@ On Android, you would have to define a foreground service in your AndroidManifes
 On iOS, a broadcast extension is needed in order to capture screen content from
 other apps. See [setup guide](https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup) for instructions.
 
+
+#### Desktop(Windows/macOS)
+
+On dekstop you can use `ScreenSelectDialog` to select the window or screen you want to share.
+
+
+```dart
+try {
+  final source = await showDialog<DesktopCapturerSource>(
+    context: context,
+    builder: (context) => ScreenSelectDialog(),
+  );
+  if (source == null) {
+    print('cancelled screenshare');
+    return;
+  }
+  print('DesktopCapturerSource: ${source.id}');
+  var track = await LocalVideoTrack.createScreenShareTrack(
+    ScreenShareCaptureOptions(
+      sourceId: source.id,
+      maxFrameRate: 15.0,
+    ),
+  );
+  await room.localParticipant.publishVideoTrack(track);
+  } catch (e) {
+  print('could not publish screen sharing: $e');
+}
+```
+
 ### Advanced track manipulation
 
 The setCameraEnabled/setMicrophoneEnabled helpers are wrappers around the Track API.
