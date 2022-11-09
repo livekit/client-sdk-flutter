@@ -203,7 +203,7 @@ try {
     ),
   );
   await room.localParticipant.publishVideoTrack(track);
-  } catch (e) {
+} catch (e) {
   print('could not publish screen sharing: $e');
 }
 ```
