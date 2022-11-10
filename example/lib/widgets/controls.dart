@@ -154,11 +154,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (WebRTC.platformIsAndroid) {
       // Android specific
-      requestBackgroundPermission([bool retryTwice = false]) async {
+      requestBackgroundPermission([bool isRetry = false]) async {
         // Required for android screenshare.
         try {
           bool hasPermissions = await FlutterBackground.hasPermissions;
-          if (!retryTwice) {
+          if (!isRetry) {
             const androidConfig = FlutterBackgroundAndroidConfig(
               notificationTitle: 'Screen Sharing',
               notificationText: 'LiveKit Example is sharing the screen.',
@@ -174,7 +174,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             await FlutterBackground.enableBackgroundExecution();
           }
         } catch (e) {
-          if (!retryTwice) {
+          if (!isRetry) {
             return await Future<void>.delayed(const Duration(seconds: 1),
                 () => requestBackgroundPermission(true));
           }
