@@ -142,9 +142,14 @@ class AudioPublishOptions {
   /// max audio bitrate
   final int audioBitrate;
 
+  /// Turn off the audio track when muted, to avoid the microphone
+  /// indicator light on.
+  final bool stopMicTrackOnMute;
+
   const AudioPublishOptions({
     this.dtx = true,
     this.audioBitrate = AudioPreset.speech,
+    this.stopMicTrackOnMute = true,
   });
 
   @override
