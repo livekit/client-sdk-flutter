@@ -130,6 +130,9 @@ class AudioPreset {
   static const telephone = 12000;
   static const speech = 20000;
   static const music = 32000;
+  static const musicStereo = 48000;
+  static const musicHighQuality = 64000;
+  static const musicHighQualityStereo = 96000;
 }
 
 /// Options used when publishing audio.
@@ -148,7 +151,7 @@ class AudioPublishOptions {
 
   const AudioPublishOptions({
     this.dtx = true,
-    this.audioBitrate = AudioPreset.speech,
+    this.audioBitrate = AudioPreset.music,
     this.stopMicTrackOnMute = true,
   });
 
