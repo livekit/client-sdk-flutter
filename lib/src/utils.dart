@@ -312,6 +312,10 @@ class Utils {
       case ConnectivityResult.ethernet:
         networkType = 'wired';
         break;
+      case ConnectivityResult.vpn:
+        //TODO: will livekit-server handle vpn types correctly?
+        //  networkType = 'vpn';
+        break;
       case ConnectivityResult.none:
         networkType = 'empty';
         break;

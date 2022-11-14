@@ -23,10 +23,10 @@ dependencies:
   uuid: ^3.0.6
   synchronized: ^3.0.0+3
   protobuf: ^2.1.0
-  flutter_webrtc: 0.9.12
-  dart_webrtc: 1.0.10
+  flutter_webrtc: 0.9.14
+  dart_webrtc: 1.0.11
   device_info_plus: ^6.0.0
-  webrtc_interface: 1.0.9
+  webrtc_interface: 1.0.10
 
 dev_dependencies:
   flutter_test:

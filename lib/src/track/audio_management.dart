@@ -52,6 +52,20 @@ mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {
     }
     return didUpdate;
   }
+
+  Future<void> onTrackStopped() async {
+    await _trackCounterLock.synchronized(() async {
+      _localTrackCount--;
+      await _onAudioTrackCountDidChange();
+    });
+  }
+
+  Future<void> onTrackStarted() async {
+    await _trackCounterLock.synchronized(() async {
+      _localTrackCount++;
+      await _onAudioTrackCountDidChange();
+    });
+  }
 }
 mixin RemoteAudioManagementMixin on RemoteTrack, AudioTrack {
   /// Start playing audio track. On web platform, create an audio element and

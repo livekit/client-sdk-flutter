@@ -70,7 +70,7 @@ packages:
       name: connectivity_plus_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.1"
+    version: "1.2.3"
   connectivity_plus_web:
     dependency: transitive
     description:
@@ -98,7 +98,7 @@ packages:
       name: dart_webrtc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.10"
+    version: "1.0.11"
   dbus:
     dependency: transitive
     description:
@@ -208,7 +208,7 @@ packages:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.5"
+    version: "1.1.6"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -225,7 +225,7 @@ packages:
       name: flutter_webrtc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.12"
+    version: "0.9.14"
   google_fonts:
     dependency: "direct main"
     description:
@@ -351,7 +351,7 @@ packages:
       name: path_provider_android
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.20"
+    version: "2.0.21"
   path_provider_ios:
     dependency: transitive
     description:
@@ -393,7 +393,7 @@ packages:
       name: petitparser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0"
+    version: "5.1.0"
   platform:
     dependency: transitive
     description:
@@ -566,14 +566,14 @@ packages:
       name: webrtc_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.9"
+    version: "1.0.10"
   win32:
     dependency: transitive
     description:
       name: win32
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.1"
   xdg_directories:
     dependency: transitive
     description:
@@ -589,5 +589,5 @@ packages:
     source: hosted
     version: "6.1.0"
 sdks:
-  dart: ">=2.17.0 <3.0.0"
+  dart: ">=2.18.0 <3.0.0"
   flutter: ">=3.0.0"
