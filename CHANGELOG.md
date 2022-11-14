@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.1.8
+
+* Fix resume/full-reconnect.
+* Support stop audio track on mute(turn off the mic indicator).
+
 ## 1.1.7
 
 * Fixed ice config issues. (#192).

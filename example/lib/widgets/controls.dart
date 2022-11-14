@@ -75,6 +75,8 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result == true) await participant.unpublishAllTracks();
   }
 
+  bool get isMuted => participant.isMuted;
+
   void _disableAudio() async {
     await participant.setMicrophoneEnabled(false);
   }
@@ -270,7 +272,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       ),
                       title: Text('Mute Microphone'),
                     ),
-                    onTap: _disableAudio,
+                    onTap: isMuted ? _enableAudio : _disableAudio,
                   ),
                   if (_audioInputs != null)
                     ..._audioInputs!.map((device) {
