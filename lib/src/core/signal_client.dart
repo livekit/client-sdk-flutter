@@ -110,8 +110,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           finalError = ConnectException(validateResponse.body);
         }
       } catch (error) {
-        finalError = ConnectException(
-            'Unable to get socketError reason from validateUri: $error');
+        if (socketError.runtimeType != error.runtimeType) {
+          finalError = error;
+        }
       } finally {
         _updateConnectionState(ConnectionState.disconnected);
         throw finalError;
