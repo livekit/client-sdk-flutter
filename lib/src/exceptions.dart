@@ -4,7 +4,7 @@ abstract class LiveKitException implements Exception {
   const LiveKitException._(this.message);
 
   @override
-  String toString() => 'LiveKit Exception $runtimeType $message';
+  String toString() => 'LiveKit Exception: [$runtimeType] $message';
 }
 
 /// An exception occured while attempting to connect.
