@@ -260,7 +260,7 @@ packages:
       name: flutter_webrtc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.14"
+    version: "0.9.17"
   glob:
     dependency: transitive
     description:

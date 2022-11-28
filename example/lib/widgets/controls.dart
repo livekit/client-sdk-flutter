@@ -171,6 +171,16 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         print('could not publish video: $e');
       }
     }
+    if (WebRTC.platformIsIOS) {
+      var track = await LocalVideoTrack.createScreenShareTrack(
+        const ScreenShareCaptureOptions(
+          useiOSBroadcastExtension: true,
+          maxFrameRate: 15.0,
+        ),
+      );
+      await participant.publishVideoTrack(track);
+      return;
+    }
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
 

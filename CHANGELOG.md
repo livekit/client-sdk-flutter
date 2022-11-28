@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.1.9
+
+* Bump flutter-webrtc to 0.9.17
+* Enable BroadCastExtension for iOS in example.
+
 ## 1.1.8
 
 * Fix resume/full-reconnect.
