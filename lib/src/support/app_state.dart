@@ -9,7 +9,7 @@ class AppStateListener {
       return true;
     });
   }
-  static AppStateListener get instance => AppStateListener._internal();
+  static final AppStateListener instance = AppStateListener._internal();
   final StreamController<String> onWindowShouldClose =
       StreamController.broadcast(sync: true);
 }
