@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:async/async.dart';
 import 'package:collection/collection.dart';
+import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -76,6 +80,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   //
   late EventsListener<SignalEvent> _signalListener;
 
+  late StreamSubscription<String> _appCloseSubscription;
+
   Room({
     ConnectOptions connectOptions = const ConnectOptions(),
     RoomOptions roomOptions = const RoomOptions(),
@@ -88,6 +94,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     //
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
+
+    _appCloseSubscription =
+        AppStateListener.instance.onWindowShouldClose.stream.listen((event) {
+      disconnect();
+    });
 
     _signalListener = this.engine.signalClient.createListener();
     _setUpSignalListeners();
@@ -111,6 +122,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _engineListener.dispose();
       // dispose the engine
       await this.engine.dispose();
+      // dispose the app state listener
+      await _appCloseSubscription.cancel();
     });
   }
 
