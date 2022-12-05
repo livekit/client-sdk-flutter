@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
