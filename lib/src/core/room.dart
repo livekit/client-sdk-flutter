@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
+import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -14,6 +17,7 @@ import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
@@ -76,6 +80,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   //
   late EventsListener<SignalEvent> _signalListener;
 
+  StreamSubscription<String>? _appCloseSubscription;
+
   Room({
     ConnectOptions connectOptions = const ConnectOptions(),
     RoomOptions roomOptions = const RoomOptions(),
@@ -88,6 +94,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     //
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
+
+    if (!lkPlatformIsTest()) {
+      _appCloseSubscription =
+          AppStateListener.instance.onWindowShouldClose.stream.listen((event) {
+        disconnect();
+      });
+    }
 
     _signalListener = this.engine.signalClient.createListener();
     _setUpSignalListeners();
@@ -111,6 +124,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _engineListener.dispose();
       // dispose the engine
       await this.engine.dispose();
+      // dispose the app state listener
+      await _appCloseSubscription?.cancel();
     });
   }
 
