@@ -20,6 +20,7 @@ dependencies:
   google_fonts: ^2.1.0
   eva_icons_flutter: ^3.0.0
   flutter_svg: ^1.0.0
+  flutter_window_close: ^0.2.2
 
   livekit_client:
     path: ../

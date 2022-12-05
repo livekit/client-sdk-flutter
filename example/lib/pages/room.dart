@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import '../exts.dart';
@@ -39,6 +40,27 @@ class _RoomPageState extends State<RoomPage> {
       if (!fastConnection) {
         _askPublish();
       }
+    });
+
+    FlutterWindowClose.setWindowShouldCloseHandler(() async {
+      bool? result = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+                title: const Text('Do you really want to quit?'),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Yes')),
+                  ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('No')),
+                ]);
+          });
+      if (result == true) {
+        await widget.room.disconnect();
+      }
+      return result!;
     });
   }
 
