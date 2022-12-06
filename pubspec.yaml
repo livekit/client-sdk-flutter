@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
   async: ^2.9.0
   collection: ^1.16.0
-  connectivity_plus: ^2.3.9
+  connectivity_plus: ^3.0.2
   fixnum: ^1.0.1
   meta: ^1.8.0
   http: ^0.13.5
@@ -26,7 +26,7 @@ dependencies:
   flutter_webrtc: 0.9.17
   flutter_window_close: ^0.2.2
   dart_webrtc: 1.0.11
-  device_info_plus: ^6.0.0
+  device_info_plus: ^8.0.0
   webrtc_interface: 1.0.10
 
 dev_dependencies:

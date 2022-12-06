@@ -5,8 +5,8 @@
 import FlutterMacOS
 import Foundation
 
-import connectivity_plus_macos
-import device_info_plus_macos
+import connectivity_plus
+import device_info_plus
 import flutter_webrtc
 import flutter_window_close
 import livekit_client
