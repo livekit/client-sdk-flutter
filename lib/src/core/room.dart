@@ -594,7 +594,8 @@ extension RoomPrivateMethods on Room {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
-    for (final participant in _participants.values) {
+    var participants = _participants.values.toList();
+    for (final participant in participants) {
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
