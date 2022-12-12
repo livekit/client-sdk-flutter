@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.11
+
+* Fix: fix connection fails for firefox. (#222, close #221)
+
 ## 1.1.10
 
 * Fix: Disconnect from room before app closes.
