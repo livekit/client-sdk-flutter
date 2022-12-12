@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
@@ -95,7 +96,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
 
-    if (!lkPlatformIsTest()) {
+    if (!kIsWeb && !lkPlatformIsTest()) {
       _appCloseSubscription =
           AppStateListener.instance.onWindowShouldClose.stream.listen((event) {
         disconnect();
