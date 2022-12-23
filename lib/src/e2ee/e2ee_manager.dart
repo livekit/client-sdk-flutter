@@ -10,6 +10,7 @@ class E2EEManager {
   final Map<String, FrameCryptor> _frameCryptors = {};
   final BaseKeyProvider _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
+  bool _enabled = false;
 
   E2EEManager(this._keyProvider);
 
@@ -43,7 +44,7 @@ class E2EEManager {
             algorithm: _algorithm,
             keyManager: _keyProvider.keyManager);
     _frameCryptors[participantId] = frameCryptor;
-    await frameCryptor.setEnabled(true);
+    await frameCryptor.setEnabled(_enabled);
   }
 
   Future<void> _addRtpReceiver(
@@ -55,10 +56,11 @@ class E2EEManager {
             algorithm: _algorithm,
             keyManager: _keyProvider.keyManager);
     _frameCryptors[participantId] = frameCryptor;
-    await frameCryptor.setEnabled(true);
+    await frameCryptor.setEnabled(_enabled);
   }
 
   Future<void> setEnabled(bool enabled) async {
+    _enabled = enabled;
     for (var frameCryptor in _frameCryptors.values) {
       await frameCryptor.setEnabled(enabled);
     }
