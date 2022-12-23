@@ -6,6 +6,7 @@ import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../e2ee/e2ee.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -69,6 +70,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   /// Server region
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
+
+  E2EEManager? _e2eeManager;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -368,6 +371,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   Future<void> reconnect() async {
     await engine.restartConnection();
+  }
+
+  Future<void> setE2EEEnabled(bool enabled) async {
+    if (_e2eeManager != null) {
+      await _e2eeManager!.setEnabled(enabled);
+    } else {
+      throw Exception('e2ee not setup');
+    }
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(
