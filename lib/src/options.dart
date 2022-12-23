@@ -1,5 +1,6 @@
 import 'constants.dart';
 import 'core/room.dart';
+import 'e2ee/options.dart';
 import 'publication/remote.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
@@ -86,6 +87,9 @@ class RoomOptions {
   /// Defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
+  /// Options for end-to-end encryption.
+  final E2EEOptions? e2eeOptions;
+
   const RoomOptions({
     this.defaultCameraCaptureOptions = const CameraCaptureOptions(),
     this.defaultScreenShareCaptureOptions = const ScreenShareCaptureOptions(),
@@ -95,6 +99,7 @@ class RoomOptions {
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
+    this.e2eeOptions,
   });
 }
 

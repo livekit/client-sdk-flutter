@@ -6,7 +6,7 @@ import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
-import '../e2ee/e2ee.dart';
+import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -114,6 +114,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
+
+    if (roomOptions.e2eeOptions != null) {
+      _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
+      _e2eeManager!.setup(this);
+    }
 
     onDispose(() async {
       // clean up routine
