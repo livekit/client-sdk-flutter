@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class KeyInfo {

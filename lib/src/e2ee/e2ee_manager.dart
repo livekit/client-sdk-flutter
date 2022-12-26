@@ -1,7 +1,10 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/livekit_client.dart';
 
+import '../events.dart';
 import '../logger.dart';
+import '../core/room.dart';
+import '../managers/event.dart';
+import 'key_provider.dart';
 import 'utils.dart';
 
 class E2EEManager {
