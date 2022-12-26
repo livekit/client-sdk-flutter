@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -25,14 +26,18 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyAdaptiveStream = 'adaptive-stream';
   static const _storeKeyDynacast = 'dynacast';
   static const _storeKeyFastConnect = 'fast-connect';
+  static const _storeKeyE2EE = 'e2ee';
+  static const _storeKeySharedKey = 'shared-key';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
+  final _sharedKeyCtrl = TextEditingController();
   bool _simulcast = true;
   bool _adaptiveStream = true;
   bool _dynacast = true;
   bool _busy = false;
   bool _fastConnect = false;
+  bool _e2ee = false;
 
   @override
   void initState() {
@@ -56,11 +61,13 @@ class _ConnectPageState extends State<ConnectPage> {
     _tokenCtrl.text = const bool.hasEnvironment('TOKEN')
         ? const String.fromEnvironment('TOKEN')
         : prefs.getString(_storeKeyToken) ?? '';
+    _sharedKeyCtrl.text = prefs.getString(_storeKeySharedKey) ?? '';
     setState(() {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
+      _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
     });
   }
 
@@ -69,10 +76,12 @@ class _ConnectPageState extends State<ConnectPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
     await prefs.setString(_storeKeyToken, _tokenCtrl.text);
+    await prefs.setString(_storeKeySharedKey, _sharedKeyCtrl.text);
     await prefs.setBool(_storeKeySimulcast, _simulcast);
     await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyFastConnect, _fastConnect);
+    await prefs.setBool(_storeKeyE2EE, _e2ee);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -94,6 +103,9 @@ class _ConnectPageState extends State<ConnectPage> {
       // Create a Listener before connecting
       final listener = room.createListener();
 
+      final keyProvider = await BaseKeyProvider.create();
+      final e2eeOptions = E2EEOptions(keyProvider: keyProvider);
+
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
       await room.connect(
@@ -107,6 +119,7 @@ class _ConnectPageState extends State<ConnectPage> {
           ),
           defaultScreenShareCaptureOptions:
               const ScreenShareCaptureOptions(useiOSBroadcastExtension: true),
+          e2eeOptions: e2eeOptions,
         ),
         fastConnectOptions: _fastConnect
             ? FastConnectOptions(
@@ -115,6 +128,10 @@ class _ConnectPageState extends State<ConnectPage> {
               )
             : null,
       );
+
+      await keyProvider.setKey(
+          KeyInfo(participantId: '', key: Uint8List.fromList([]), keyIndex: 0));
+
       await Navigator.push<void>(
         ctx,
         MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
@@ -133,6 +150,13 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _simulcast == value) return;
     setState(() {
       _simulcast = value;
+    });
+  }
+
+  void _setE2EE(bool? value) async {
+    if (value == null || _e2ee == value) return;
+    setState(() {
+      _e2ee = value;
     });
   }
 
@@ -190,6 +214,26 @@ class _ConnectPageState extends State<ConnectPage> {
                     child: LKTextField(
                       label: 'Token',
                       ctrl: _tokenCtrl,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 25),
+                    child: LKTextField(
+                      label: 'Shared Key',
+                      ctrl: _sharedKeyCtrl,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('E2EE'),
+                        Switch(
+                          value: _e2ee,
+                          onChanged: (value) => _setE2EE(value),
+                        ),
+                      ],
                     ),
                   ),
                   Padding(
