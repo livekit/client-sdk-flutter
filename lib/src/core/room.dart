@@ -115,11 +115,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     });
 
-    if (roomOptions.e2eeOptions != null) {
-      _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
-      _e2eeManager!.setup(this);
-    }
-
     onDispose(() async {
       // clean up routine
       await _cleanUp();
@@ -144,14 +139,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
-  }) =>
-      engine.connect(
-        url,
-        token,
-        connectOptions: connectOptions,
-        roomOptions: roomOptions,
-        fastConnectOptions: fastConnectOptions,
-      );
+  }) {
+    if (roomOptions?.e2eeOptions != null) {
+      _e2eeManager = E2EEManager(roomOptions!.e2eeOptions!.keyProvider);
+      _e2eeManager!.setup(this);
+    }
+    return engine.connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+  }
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {

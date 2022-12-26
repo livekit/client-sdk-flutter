@@ -1,6 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/e2ee/key_provider.dart';
 
 import '../logger.dart';
 import 'utils.dart';
@@ -10,8 +9,8 @@ class E2EEManager {
   final Map<String, FrameCryptor> _frameCryptors = {};
   final BaseKeyProvider _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
-  bool _enabled = false;
-
+  bool _enabled = true;
+  EventsListener<RoomEvent>? _listener;
   E2EEManager(this._keyProvider);
 
   Future<void> setup(Room room) async {
@@ -22,17 +21,23 @@ class E2EEManager {
 
     if (_room != room) {
       _room = room;
-      EventsListener<RoomEvent> listener = _room!.createListener();
-      listener
+      _listener = _room!.createListener();
+      _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
           await _addRtpSender(
               event.publication.track!.sender!, event.publication.sid);
         })
-        ..on<LocalTrackUnpublishedEvent>((event) {})
+        ..on<LocalTrackUnpublishedEvent>((event) async {
+          var frameCryptor = _frameCryptors.remove(event.participant.sid);
+          await frameCryptor!.dispose();
+        })
         ..on<TrackSubscribedEvent>((event) async {
           await _addRtpReceiver(event.track.receiver!, event.participant.sid);
         })
-        ..on<TrackUnsubscribedEvent>((event) {});
+        ..on<TrackUnsubscribedEvent>((event) async {
+          var frameCryptor = _frameCryptors.remove(event.participant.sid);
+          await frameCryptor!.dispose();
+        });
     }
   }
 
@@ -45,6 +50,11 @@ class E2EEManager {
             keyManager: _keyProvider.keyManager);
     _frameCryptors[participantId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
+    if (_keyProvider.isSharedKey) {
+      await _keyProvider.keyManager.setKey(
+          participantId: participantId, index: 0, key: _keyProvider.sharedKey);
+      await frameCryptor.setKeyIndex(0);
+    }
   }
 
   Future<void> _addRtpReceiver(
@@ -57,12 +67,24 @@ class E2EEManager {
             keyManager: _keyProvider.keyManager);
     _frameCryptors[participantId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
+    if (_keyProvider.isSharedKey) {
+      await _keyProvider.keyManager.setKey(
+          participantId: participantId, index: 0, key: _keyProvider.sharedKey);
+      await frameCryptor.setKeyIndex(0);
+    }
   }
 
   Future<void> setEnabled(bool enabled) async {
     _enabled = enabled;
-    for (var frameCryptor in _frameCryptors.values) {
-      await frameCryptor.setEnabled(enabled);
+    for (var frameCryptor in _frameCryptors.entries) {
+      await frameCryptor.value.setEnabled(enabled);
+      if (_keyProvider.isSharedKey) {
+        await _keyProvider.keyManager.setKey(
+            participantId: frameCryptor.key,
+            index: 0,
+            key: _keyProvider.sharedKey);
+        await frameCryptor.value.setKeyIndex(0);
+      }
     }
   }
 }

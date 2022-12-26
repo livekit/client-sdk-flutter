@@ -106,6 +106,10 @@ class _ConnectPageState extends State<ConnectPage> {
       final keyProvider = await BaseKeyProvider.create();
       final e2eeOptions = E2EEOptions(keyProvider: keyProvider);
 
+      var sharedKey = _sharedKeyCtrl.text;
+      Uint8List key = Uint8List.fromList(
+          sharedKey.split(',').map((e) => num.tryParse(e) as int).toList());
+
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
       await room.connect(
@@ -129,8 +133,7 @@ class _ConnectPageState extends State<ConnectPage> {
             : null,
       );
 
-      await keyProvider.setKey(
-          KeyInfo(participantId: '', key: Uint8List.fromList([]), keyIndex: 0));
+      await keyProvider.setSharedKey(key);
 
       await Navigator.push<void>(
         ctx,
