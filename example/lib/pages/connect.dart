@@ -61,7 +61,9 @@ class _ConnectPageState extends State<ConnectPage> {
     _tokenCtrl.text = const bool.hasEnvironment('TOKEN')
         ? const String.fromEnvironment('TOKEN')
         : prefs.getString(_storeKeyToken) ?? '';
-    _sharedKeyCtrl.text = prefs.getString(_storeKeySharedKey) ?? '';
+    _sharedKeyCtrl.text = const bool.hasEnvironment('E2EEKEY')
+        ? const String.fromEnvironment('E2EEKEY')
+        : prefs.getString(_storeKeySharedKey) ?? '';
     setState(() {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
@@ -102,13 +104,17 @@ class _ConnectPageState extends State<ConnectPage> {
 
       // Create a Listener before connecting
       final listener = room.createListener();
+      E2EEOptions? e2eeOptions;
+      if (_e2ee) {
+        final keyProvider = await BaseKeyProvider.create();
+        e2eeOptions = E2EEOptions(keyProvider: keyProvider);
 
-      final keyProvider = await BaseKeyProvider.create();
-      final e2eeOptions = E2EEOptions(keyProvider: keyProvider);
+        var sharedKey = _sharedKeyCtrl.text;
+        Uint8List key = Uint8List.fromList(
+            sharedKey.split(',').map((e) => num.tryParse(e) as int).toList());
 
-      var sharedKey = _sharedKeyCtrl.text;
-      Uint8List key = Uint8List.fromList(
-          sharedKey.split(',').map((e) => num.tryParse(e) as int).toList());
+        await keyProvider.setSharedKey(key);
+      }
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
@@ -132,8 +138,6 @@ class _ConnectPageState extends State<ConnectPage> {
               )
             : null,
       );
-
-      await keyProvider.setSharedKey(key);
 
       await Navigator.push<void>(
         ctx,
