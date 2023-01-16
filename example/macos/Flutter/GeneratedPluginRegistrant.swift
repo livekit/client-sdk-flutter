@@ -11,7 +11,7 @@ import flutter_webrtc
 import flutter_window_close
 import livekit_client
 import path_provider_macos
-import shared_preferences_macos
+import shared_preferences_foundation
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
