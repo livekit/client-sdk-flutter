@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 class MediaDevice {
@@ -34,11 +35,11 @@ class Hardware {
     rtc.navigator.mediaDevices.ondevicechange = _onDeviceChange;
     enumerateDevices().then((devices) {
       selectedAudioInput ??=
-          devices.where((element) => element.kind == 'audioinput').first;
+          devices.firstWhereOrNull((element) => element.kind == 'audioinput');
       selectedAudioOutput ??=
-          devices.where((element) => element.kind == 'audiooutput').first;
+          devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??=
-          devices.where((element) => element.kind == 'videoinput').first;
+          devices.firstWhereOrNull((element) => element.kind == 'videoinput');
     });
   }
 
@@ -124,11 +125,11 @@ class Hardware {
   dynamic _onDeviceChange(dynamic _) async {
     var devices = await enumerateDevices();
     selectedAudioInput ??=
-        devices.where((element) => element.kind == 'audioinput').first;
+        devices.firstWhereOrNull((element) => element.kind == 'audioinput');
     selectedAudioOutput ??=
-        devices.where((element) => element.kind == 'audiooutput').first;
+        devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
     selectedVideoInput ??=
-        devices.where((element) => element.kind == 'videoinput').first;
+        devices.firstWhereOrNull((element) => element.kind == 'videoinput');
     onDeviceChange.add(devices);
   }
 }
