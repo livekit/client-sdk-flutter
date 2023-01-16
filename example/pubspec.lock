@@ -166,10 +166,12 @@ packages:
   flutter_webrtc:
     dependency: transitive
     description:
-      path: "../../../flutter-webrtc/flutter-webrtc"
-      relative: true
-    source: path
-    version: "0.9.19"
+      path: "."
+      ref: "webrtc-104.5112.08"
+      resolved-ref: c37eace39bdfa4f20e32386063c2727483b8d0ca
+      url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
+    source: git
+    version: "0.9.20"
   flutter_window_close:
     dependency: transitive
     description:
@@ -225,7 +227,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.12"
+    version: "1.1.13"
   logging:
     dependency: "direct main"
     description:
