@@ -1,11 +1,9 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../events.dart';
-import '../logger.dart';
 import '../core/room.dart';
 import '../managers/event.dart';
 import 'key_provider.dart';
-import 'utils.dart';
 
 class E2EEManager {
   Room? _room;
@@ -17,11 +15,6 @@ class E2EEManager {
   E2EEManager(this._keyProvider);
 
   Future<void> setup(Room room) async {
-    if (!isE2EESupported()) {
-      logger.warning('E2EE is not supported on this platform.');
-      return;
-    }
-
     if (_room != room) {
       _room = room;
       _listener = _room!.createListener();

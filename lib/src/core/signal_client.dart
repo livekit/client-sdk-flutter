@@ -104,7 +104,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           validate: true,
           forceSecure: rtcUri.isSecureScheme,
         );
-
+ 
         final validateResponse = await http.get(validateUri);
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body);

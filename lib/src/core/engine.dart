@@ -313,6 +313,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     }
 
+    if (kIsWeb && roomOptions.e2eeOptions != null) {
+      rtcConfiguration =
+          rtcConfiguration.copyWith(encodedInsertableStreams: true);
+    }
+
     publisher = await Transport.create(_peerConnectionCreate,
         rtcConfig: rtcConfiguration, connectOptions: connectOptions);
     subscriber = await Transport.create(_peerConnectionCreate,
