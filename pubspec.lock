@@ -21,7 +21,7 @@ packages:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.1"
+    version: "2.3.2"
   async:
     dependency: "direct main"
     description:
@@ -202,8 +202,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "webrtc-104.5112.08"
-      resolved-ref: c37eace39bdfa4f20e32386063c2727483b8d0ca
+      ref: main
+      resolved-ref: e7b93ede5ae7f4649b6b2e5783decc70d9afb3ab
       url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
     source: git
     version: "0.9.20"

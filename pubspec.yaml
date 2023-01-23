@@ -26,7 +26,8 @@ dependencies:
   flutter_webrtc:
     git:
       url: https://github.com/flutter-webrtc/flutter-webrtc.git
-      ref: webrtc-104.5112.08
+      ref: main
+    #path: ../../flutter-webrtc/flutter-webrtc/
   flutter_window_close: ^0.2.2
   dart_webrtc: 1.0.12
   device_info_plus: ^8.0.0
