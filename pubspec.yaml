@@ -28,9 +28,9 @@ dependencies:
       url: https://github.com/flutter-webrtc/flutter-webrtc.git
       ref: feat/frame-encryption
   flutter_window_close: ^0.2.2
-  dart_webrtc: 1.0.12
+  dart_webrtc: 1.0.14
   device_info_plus: ^8.0.0
-  webrtc_interface: 1.0.10
+  webrtc_interface: 1.0.11
 
 dev_dependencies:
   flutter_test:

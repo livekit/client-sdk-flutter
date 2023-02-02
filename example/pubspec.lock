@@ -70,7 +70,7 @@ packages:
       name: dart_webrtc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.12"
+    version: "1.0.14"
   dbus:
     dependency: transitive
     description:
@@ -166,10 +166,12 @@ packages:
   flutter_webrtc:
     dependency: transitive
     description:
-      name: flutter_webrtc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.9.19"
+      path: "."
+      ref: "feat/frame-encryption"
+      resolved-ref: "9d628eee81f06aad3422cb45e330e4146743fc94"
+      url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
+    source: git
+    version: "0.9.20"
   flutter_window_close:
     dependency: transitive
     description:
@@ -225,7 +227,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.11"
+    version: "1.1.12"
   logging:
     dependency: "direct main"
     description:
@@ -531,7 +533,7 @@ packages:
       name: webrtc_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.10"
+    version: "1.0.11"
   win32:
     dependency: transitive
     description:
