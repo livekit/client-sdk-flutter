@@ -156,20 +156,35 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (WebRTC.platformIsAndroid) {
       // Android specific
-      try {
+      requestBackgroundPermission([bool isRetry = false]) async {
         // Required for android screenshare.
-        const androidConfig = FlutterBackgroundAndroidConfig(
-          notificationTitle: 'Screen Sharing',
-          notificationText: 'LiveKit Example is sharing the screen.',
-          notificationImportance: AndroidNotificationImportance.Default,
-          notificationIcon:
-              AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
-        );
-        await FlutterBackground.initialize(androidConfig: androidConfig);
-        await FlutterBackground.enableBackgroundExecution();
-      } catch (e) {
-        print('could not publish video: $e');
+        try {
+          bool hasPermissions = await FlutterBackground.hasPermissions;
+          if (!isRetry) {
+            const androidConfig = FlutterBackgroundAndroidConfig(
+              notificationTitle: 'Screen Sharing',
+              notificationText: 'LiveKit Example is sharing the screen.',
+              notificationImportance: AndroidNotificationImportance.Default,
+              notificationIcon: AndroidResource(
+                  name: 'livekit_ic_launcher', defType: 'mipmap'),
+            );
+            hasPermissions = await FlutterBackground.initialize(
+                androidConfig: androidConfig);
+          }
+          if (hasPermissions &&
+              !FlutterBackground.isBackgroundExecutionEnabled) {
+            await FlutterBackground.enableBackgroundExecution();
+          }
+        } catch (e) {
+          if (!isRetry) {
+            return await Future<void>.delayed(const Duration(seconds: 1),
+                () => requestBackgroundPermission(true));
+          }
+          print('could not publish video: $e');
+        }
       }
+
+      await requestBackgroundPermission();
     }
     if (WebRTC.platformIsIOS) {
       var track = await LocalVideoTrack.createScreenShareTrack(

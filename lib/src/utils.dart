@@ -44,7 +44,6 @@ class Utils {
   /// thrown objects by the [future].
   static Future<T> retry<T>(
     RetryFuture<T> future, {
-
     /// number of total tries (first try + retries)
     int tries = 1,
     Duration delay = const Duration(seconds: 1),
