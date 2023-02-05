@@ -22,6 +22,7 @@ class E2EEManager {
         ..on<LocalTrackPublishedEvent>((event) async {
           await _addRtpSender(
               event.publication.track!.sender!, event.publication.sid);
+          event.participant.enabledE2EE = true;
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
           var frameCryptor = _frameCryptors.remove(event.participant.sid);
@@ -29,6 +30,7 @@ class E2EEManager {
         })
         ..on<TrackSubscribedEvent>((event) async {
           await _addRtpReceiver(event.track.receiver!, event.participant.sid);
+          event.participant.enabledE2EE = true;
         })
         ..on<TrackUnsubscribedEvent>((event) async {
           var frameCryptor = _frameCryptors.remove(event.participant.sid);

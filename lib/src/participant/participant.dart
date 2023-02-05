@@ -63,6 +63,16 @@ abstract class Participant<T extends TrackPublication>
   ParticipantPermissions _permissions = const ParticipantPermissions();
   ParticipantPermissions get permissions => _permissions;
 
+  bool? _enabledE2EE;
+  bool get enabledE2EE => _enabledE2EE ?? false;
+
+  set enabledE2EE(bool value) {
+    if (_enabledE2EE == value) {
+      return;
+    }
+    _enabledE2EE = value;
+  }
+
   /// when the participant joined the room
   DateTime get joinedAt {
     final pi = _participantInfo;

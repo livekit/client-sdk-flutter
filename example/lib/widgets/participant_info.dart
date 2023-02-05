@@ -6,10 +6,12 @@ class ParticipantTrack {
   ParticipantTrack(
       {required this.participant,
       required this.videoTrack,
-      required this.isScreenShare});
+      required this.isScreenShare,
+      required this.enabledE2EE});
   VideoTrack? videoTrack;
   Participant participant;
   final bool isScreenShare;
+  final bool enabledE2EE;
 }
 
 class ParticipantInfoWidget extends StatelessWidget {
@@ -18,12 +20,14 @@ class ParticipantInfoWidget extends StatelessWidget {
   final bool audioAvailable;
   final ConnectionQuality connectionQuality;
   final bool isScreenShare;
+  final bool enabledE2EE;
 
   const ParticipantInfoWidget({
     this.title,
     this.audioAvailable = true,
     this.connectionQuality = ConnectionQuality.unknown,
     this.isScreenShare = false,
+    this.enabledE2EE = false,
     Key? key,
   }) : super(key: key);
 
@@ -77,6 +81,14 @@ class ParticipantInfoWidget extends StatelessWidget {
                   size: 16,
                 ),
               ),
+            Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: Icon(
+                enabledE2EE ? EvaIcons.lock : EvaIcons.unlock,
+                color: enabledE2EE ? Colors.green : Colors.red,
+                size: 16,
+              ),
+            ),
           ],
         ),
       );
