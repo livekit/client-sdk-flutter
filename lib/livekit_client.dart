@@ -12,7 +12,6 @@ export 'src/livekit.dart';
 export 'src/managers/event.dart';
 export 'src/options.dart';
 export 'src/participant/local.dart';
-export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/remote.dart';
 export 'src/proto/livekit_models.pb.dart' show TrackType, VideoQuality;
