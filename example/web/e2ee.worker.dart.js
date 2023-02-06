@@ -8770,7 +8770,7 @@
     },
     getUnencryptedBytes$2(frame, codec) {
       var data, naluIndices, t1, t2, _i, index;
-      if (codec != null && codec === "h264") {
+      if (codec != null && codec.toLowerCase() === "h264") {
         data = A.NativeUint8List_NativeUint8List$view(J.get$data$x(frame), 0, null);
         naluIndices = A.findNALUIndices(data);
         for (t1 = naluIndices.length, t2 = data.length, _i = 0; _i < t1; ++_i) {
@@ -8785,7 +8785,7 @@
             case 14:
               break;
             default:
-              return index + 1;
+              return index + 2;
           }
         }
         throw A.wrapException(A.Exception_Exception("Could not find NALU"));
@@ -8843,7 +8843,7 @@
                 sendCount = 0;
               B.NativeByteData_methods._setUint32$3(iv0, 0, t3, false);
               B.NativeByteData_methods._setUint32$3(iv0, 4, t4, false);
-              B.NativeByteData_methods._setUint32$3(iv0, 8, B.JSInt_methods.$mod(sendCount, 65535), false);
+              B.NativeByteData_methods._setUint32$3(iv0, 8, t4 - B.JSInt_methods.$mod(sendCount, 65535), false);
               t2.$indexSet(0, t3, sendCount + 1);
               iv = A.NativeUint8List_NativeUint8List$view(iv0.buffer, 0, null);
               frameTrailer = new DataView(new ArrayBuffer(2));
@@ -9114,7 +9114,7 @@
             cryptor.codec = codec;
           break;
         default:
-          A.print("worker: unknown message kind " + A.S(t1.get$msgType(copy)));
+          A.print("worker: unknown message kind " + A.S(copy));
       }
       t1 = type$.dynamic;
       J.postMessage$1$x(self.self, A.LinkedHashMap_LinkedHashMap$_empty(t1, t1));

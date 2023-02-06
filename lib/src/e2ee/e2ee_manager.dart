@@ -41,6 +41,10 @@ class E2EEManager {
           var frameCryptor = await _addRtpReceiver(
               event.track.receiver!, event.participant.sid);
           event.participant.enabledE2EE = true;
+          if (kIsWeb) {
+            var codec = event.publication.mimeType.split('/')[1];
+            await frameCryptor.updateCodec(codec.toLowerCase());
+          }
           frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
             if (kDebugMode) {
               print(
