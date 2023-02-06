@@ -1,3 +1,4 @@
+import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -173,6 +174,40 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
+
+    {
+      var videoCodec = publishOptions.videoCodec.toLowerCase();
+      var caps = await getRtpSenderCapabilities('video');
+      List<RTCRtpCodecCapability> matched = [];
+      List<RTCRtpCodecCapability> partialMatched = [];
+      List<RTCRtpCodecCapability> unmatched = [];
+      for (var c in caps.codecs!) {
+        var codec = c.mimeType.toLowerCase();
+        if (codec == 'audio/opus') {
+          matched.add(c);
+          continue;
+        }
+
+        var matchesVideoCodec = codec == 'video/$videoCodec';
+        if (!matchesVideoCodec) {
+          unmatched.add(c);
+          continue;
+        }
+        if (publishOptions.videoCodec == 'h264') {
+          if (c.sdpFmtpLine != null &&
+              c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+            matched.add(c);
+          } else {
+            partialMatched.add(c);
+          }
+          continue;
+        }
+        matched.add(c);
+      }
+      matched.addAll([...partialMatched, ...unmatched]);
+      await track.transceiver?.setCodecPreferences(matched);
+      track.codec = videoCodec;
+    }
 
     await room.engine.negotiate();
 

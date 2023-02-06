@@ -105,6 +105,9 @@ class RoomOptions {
 
 /// Options used when publishing video.
 class VideoPublishOptions {
+  /// The video codec to use.
+  final String videoCodec;
+
   /// If provided, this will be used instead of the SDK's suggested encodings.
   /// Usually you don't need to provide this.
   /// Defaults to null.
@@ -120,6 +123,7 @@ class VideoPublishOptions {
   final List<VideoParameters> screenShareSimulcastLayers;
 
   const VideoPublishOptions({
+    this.videoCodec = 'H264',
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
