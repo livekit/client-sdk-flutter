@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../events.dart';
@@ -23,9 +24,11 @@ class E2EEManager {
           var frameCryptor = await _addRtpSender(
               event.publication.track!.sender!, event.publication.sid);
           event.participant.enabledE2EE = true;
-          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
-            print(
-                'Sender::onFrameCryptorStateChanged: $state, participantId: $participantId');
+          frameCryptor.onFrameCryptorStateChanged = (state) {
+            if (kDebugMode) {
+              print(
+                  'Sender::onFrameCryptorStateChanged: $state, participantId:  ${frameCryptor.participantId}');
+            }
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
           };
@@ -38,9 +41,11 @@ class E2EEManager {
           var frameCryptor = await _addRtpReceiver(
               event.track.receiver!, event.participant.sid);
           event.participant.enabledE2EE = true;
-          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
-            print(
-                'Receiver::onFrameCryptorStateChanged: $state, participantId: $participantId');
+          frameCryptor.onFrameCryptorStateChanged = (FrameCryptorState state) {
+            if (kDebugMode) {
+              print(
+                  'Receiver::onFrameCryptorStateChanged: $state, participantId: ${frameCryptor.participantId}');
+            }
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
           };

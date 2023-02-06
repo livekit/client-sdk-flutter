@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:cryptography/cryptography.dart';
 
-const RATCHET_SALT = 'LKFrameEncryptionKey';
-const KEY_LENGTH = 32;
+const defaultRatchetSalt = 'LKFrameEncryptionKey';
+const defaultKeyLength = 32;
 
 class KeyInfo {
   final String participantId;
@@ -43,12 +43,12 @@ class BaseKeyProvider implements KeyProvider {
   Future<Uint8List> _deriveKey(String password) async {
     final algorithm = Hkdf(
       hmac: Hmac(Sha256()),
-      outputLength: KEY_LENGTH,
+      outputLength: defaultKeyLength,
     );
     final secretKey = SecretKey(password.codeUnits);
     final output = await algorithm.deriveKey(
       secretKey: secretKey,
-      nonce: RATCHET_SALT.codeUnits,
+      nonce: defaultRatchetSalt.codeUnits,
     );
     var extractBytes = await output.extractBytes();
     return Uint8List.fromList(extractBytes);
