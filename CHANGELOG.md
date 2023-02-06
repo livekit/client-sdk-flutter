@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 1.1.12
+* Fix: Audio output list is empty in android (#231)
+* Update flutter-webrtc to 0.9.19
+  * As a result of this, the BLUETOOTH_CONNECT permission for Android is no longer needed.
+
+## 1.1.11
+
+* Fix: fix connection fails for firefox. (#222, close #221)
+
+## 1.1.10
+
+* Fix: Disconnect from room before app closes.
+* Fix: Correctly throws final error when connection fails.
+
+## 1.1.9
+
+* Bump flutter-webrtc to 0.9.17
+* Enable BroadCastExtension for iOS in example.
+
 ## 1.1.8
 
 * Fix resume/full-reconnect.

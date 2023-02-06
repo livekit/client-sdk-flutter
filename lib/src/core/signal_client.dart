@@ -90,6 +90,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       _updateConnectionState(ConnectionState.connected);
     } catch (socketError) {
       // Attempt Validation
+      var finalError = socketError;
       try {
         // Skip validation if reconnect mode
         if (reconnect) rethrow;
@@ -106,17 +107,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
         final validateResponse = await http.get(validateUri);
         if (validateResponse.statusCode != 200) {
-          throw ConnectException(validateResponse.body);
+          finalError = ConnectException(validateResponse.body);
         }
-        throw ConnectException();
       } catch (error) {
-        // Pass it up if it's already a `ConnectError`
-        if (error is ConnectException) rethrow;
-        // HTTP doesn't work either
-        throw ConnectException();
+        if (socketError.runtimeType != error.runtimeType) {
+          finalError = error;
+        }
       } finally {
         _updateConnectionState(ConnectionState.disconnected);
-        rethrow;
+        throw finalError;
       }
     }
   }
