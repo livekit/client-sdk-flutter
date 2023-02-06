@@ -152,6 +152,7 @@ class AudioPublishOptions {
 
   /// Turn off the audio track when muted, to avoid the microphone
   /// indicator light on.
+  @Deprecated('Mic indicator will always turn off now when muted.')
   final bool stopMicTrackOnMute;
 
   const AudioPublishOptions({

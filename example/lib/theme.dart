@@ -21,11 +21,6 @@ class LiveKitTheme {
   final accentColor = LKColors.lkBlue;
 
   ThemeData buildThemeData(BuildContext ctx) => ThemeData(
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.blue,
-          backgroundColor: bgColor,
-          accentColor: accentColor,
-        ),
         appBarTheme: AppBarTheme(
           backgroundColor: cardColor,
         ),
@@ -96,6 +91,10 @@ class LiveKitTheme {
           ),
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.white,
+          background: bgColor,
         ),
       );
 }
