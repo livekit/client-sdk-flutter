@@ -21,9 +21,6 @@ class LiveKitTheme {
   final accentColor = LKColors.lkBlue;
 
   ThemeData buildThemeData(BuildContext ctx) => ThemeData(
-        backgroundColor: bgColor,
-        // accentColor: accentColor,
-        // colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         appBarTheme: AppBarTheme(
           backgroundColor: cardColor,
         ),
@@ -35,12 +32,10 @@ class LiveKitTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-            textStyle:
-                MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
+            textStyle: MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
               fontSize: 15,
             )),
-            padding: MaterialStateProperty.all<EdgeInsets>(
-                const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
+            padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
@@ -94,6 +89,10 @@ class LiveKitTheme {
           ),
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.white,
+          background: bgColor,
         ),
       );
 }

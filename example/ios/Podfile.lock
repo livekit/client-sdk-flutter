@@ -7,17 +7,18 @@ PODS:
   - Flutter (1.0.0)
   - flutter_webrtc (0.9.20):
     - Flutter
-    - WebRTC-SDK (= 104.5112.08)
+    - WebRTC-SDK (= 104.5112.09)
   - livekit_client (1.1.13):
     - Flutter
-    - WebRTC-SDK (~> 104.5112.08)
-  - path_provider_ios (0.0.1):
+    - WebRTC-SDK (~> 104.5112.09)
+  - path_provider_foundation (0.0.1):
     - Flutter
+    - FlutterMacOS
   - ReachabilitySwift (5.0.0)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - WebRTC-SDK (104.5112.08)
+  - WebRTC-SDK (104.5112.09)
 
 DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
@@ -25,7 +26,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - livekit_client (from `.symlinks/plugins/livekit_client/ios`)
-  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
 
 SPEC REPOS:
@@ -44,8 +45,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   livekit_client:
     :path: ".symlinks/plugins/livekit_client/ios"
-  path_provider_ios:
-    :path: ".symlinks/plugins/path_provider_ios/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/ios"
 
@@ -53,12 +54,12 @@ SPEC CHECKSUMS:
   connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
   device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
-  flutter_webrtc: 35efa25928636d177aeca7c6c7909f5402cadc5f
-  livekit_client: d5d4f84482a2d05e129a56308e19435176ed8149
-  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+  flutter_webrtc: 15c5fb4ea324f3178ff97c0f02b9467b85977e42
+  livekit_client: 1dc98682de6c70bc5f5467c22cb954e214e17744
+  path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
   shared_preferences_foundation: 297b3ebca31b34ec92be11acd7fb0ba932c822ca
-  WebRTC-SDK: d5816d8135a5a947839db0caa8d8ba0e94d2b1fb
+  WebRTC-SDK: 3fa5c6fa717314fade68bffed85737484a28ad0b
 
 PODFILE CHECKSUM: 82aed1035f46bfa5b522f0d0dbf4730f17ec65ff
 
