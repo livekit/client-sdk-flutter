@@ -24,10 +24,10 @@ class E2EEManager {
           var frameCryptor = await _addRtpSender(
               event.publication.track!.sender!, event.publication.sid);
           event.participant.enabledE2EE = true;
-          frameCryptor.onFrameCryptorStateChanged = (state) {
+          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
             if (kDebugMode) {
               print(
-                  'Sender::onFrameCryptorStateChanged: $state, participantId:  ${frameCryptor.participantId}');
+                  'Sender::onFrameCryptorStateChanged: $state, participantId:  $participantId');
             }
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
@@ -41,10 +41,10 @@ class E2EEManager {
           var frameCryptor = await _addRtpReceiver(
               event.track.receiver!, event.participant.sid);
           event.participant.enabledE2EE = true;
-          frameCryptor.onFrameCryptorStateChanged = (FrameCryptorState state) {
+          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
             if (kDebugMode) {
               print(
-                  'Receiver::onFrameCryptorStateChanged: $state, participantId: ${frameCryptor.participantId}');
+                  'Receiver::onFrameCryptorStateChanged: $state, participantId: $participantId');
             }
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
