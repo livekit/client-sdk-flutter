@@ -1,34 +1,35 @@
 PODS:
-  - connectivity_plus_macos (0.0.1):
+  - connectivity_plus (0.0.1):
     - FlutterMacOS
     - ReachabilitySwift
-  - device_info_plus_macos (0.0.1):
+  - device_info_plus (0.0.1):
     - FlutterMacOS
-  - flutter_webrtc (0.9.13):
+  - flutter_webrtc (0.9.20):
     - FlutterMacOS
-    - WebRTC-SDK (= 104.5112.06)
+    - WebRTC-SDK (= 104.5112.08)
   - flutter_window_close (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
-  - livekit_client (1.1.1):
+  - livekit_client (1.1.13):
     - FlutterMacOS
-    - WebRTC-SDK (~> 104.5112.06)
+    - WebRTC-SDK (~> 104.5112.08)
   - path_provider_macos (0.0.1):
     - FlutterMacOS
   - ReachabilitySwift (5.0.0)
-  - shared_preferences_macos (0.0.1):
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
     - FlutterMacOS
-  - WebRTC-SDK (104.5112.06)
+  - WebRTC-SDK (104.5112.08)
 
 DEPENDENCIES:
-  - connectivity_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos`)
-  - device_info_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus_macos/macos`)
+  - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - flutter_webrtc (from `Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos`)
   - flutter_window_close (from `Flutter/ephemeral/.symlinks/plugins/flutter_window_close/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - livekit_client (from `Flutter/ephemeral/.symlinks/plugins/livekit_client/macos`)
   - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
-  - shared_preferences_macos (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/macos`)
 
 SPEC REPOS:
   trunk:
@@ -36,10 +37,10 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
-  connectivity_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos
-  device_info_plus_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus_macos/macos
+  connectivity_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
   flutter_webrtc:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_webrtc/macos
   flutter_window_close:
@@ -50,20 +51,20 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/livekit_client/macos
   path_provider_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos
-  shared_preferences_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos
+  shared_preferences_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/macos
 
 SPEC CHECKSUMS:
-  connectivity_plus_macos: f6e86fd000e971d361e54b5afcadc8c8fa773308
-  device_info_plus_macos: 1ad388a1ef433505c4038e7dd9605aadd1e2e9c7
-  flutter_webrtc: 4bb537cadddcfb5e5b24c96cbd6ff56f064b8faf
+  connectivity_plus: 18d3c32514c886e046de60e9c13895109866c747
+  device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
+  flutter_webrtc: 4bff42cdf088a852fc352f6ab77cac1327a4068b
   flutter_window_close: ee4a6b81ca6fafe93b7cba48b0a18976e3f48e39
   FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
-  livekit_client: b438747d15f01e3baaefa8036dd2feec5539387e
-  path_provider_macos: 3c0c3b4b0d4a76d2bf989a913c2de869c5641a19
+  livekit_client: be260077832a451da0ec956759d3eeb59469af13
+  path_provider_macos: 05fb0ef0cedf3e5bd179b9e41a638682b37133ea
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
-  shared_preferences_macos: a64dc611287ed6cbe28fd1297898db1336975727
-  WebRTC-SDK: 85ee61404eb5698cf23a69a27008271db07159fc
+  shared_preferences_foundation: 297b3ebca31b34ec92be11acd7fb0ba932c822ca
+  WebRTC-SDK: d5816d8135a5a947839db0caa8d8ba0e94d2b1fb
 
 PODFILE CHECKSUM: 6eac6b3292e5142cfc23bdeb71848a40ec51c14c
 

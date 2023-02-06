@@ -25,7 +25,6 @@ import 'participant.dart';
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
-  bool stopMicTrackOnMute = false;
   @internal
   LocalParticipant({
     required Room room,
@@ -53,8 +52,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions =
         publishOptions ?? room.roomOptions.defaultAudioPublishOptions;
-
-    stopMicTrackOnMute = publishOptions.stopMicTrackOnMute;
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
@@ -313,24 +310,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
-      var track = publication.track;
-      var stopOnMute = stopMicTrackOnMute && track is LocalAudioTrack;
       if (enabled) {
         await publication.unmute();
-        if (stopOnMute) {
-          await track.restartTrack();
-          await track.onTrackStarted();
-        }
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(publication.sid);
         } else {
           await publication.mute();
-          if (stopOnMute) {
-            await track.sender?.setTrack(null);
-            await track.stop();
-            await track.onTrackStopped();
-          }
         }
       }
       return publication;
