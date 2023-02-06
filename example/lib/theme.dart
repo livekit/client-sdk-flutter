@@ -32,10 +32,12 @@ class LiveKitTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-            textStyle: MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
+            textStyle:
+                MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
               fontSize: 15,
             )),
-            padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
+            padding: MaterialStateProperty.all<EdgeInsets>(
+                const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
             shape: MaterialStateProperty.all<OutlinedBorder>(
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
             foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
