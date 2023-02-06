@@ -1,6 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:cryptography/cryptography.dart';
+
+const RATCHET_SALT = 'LKFrameEncryptionKey';
+const KEY_LENGTH = 32;
 
 class KeyInfo {
   final String participantId;
@@ -36,11 +40,39 @@ class BaseKeyProvider implements KeyProvider {
     return BaseKeyProvider(keyManager, sharedKey);
   }
 
-  Future<void> setSharedKey(Uint8List key) async {
-    if (key.length != 32) {
-      throw Exception('Shared key must be 32 bytes');
+  Future<Uint8List> _deriveKey(String password) async {
+    final algorithm = Hkdf(
+      hmac: Hmac(Sha256()),
+      outputLength: KEY_LENGTH,
+    );
+    final secretKey = SecretKey(password.codeUnits);
+    final output = await algorithm.deriveKey(
+      secretKey: secretKey,
+      nonce: RATCHET_SALT.codeUnits,
+    );
+    var extractBytes = await output.extractBytes();
+    return Uint8List.fromList(extractBytes);
+  }
+
+  Future<void> setSharedKey(String key) async {
+    Uint8List keyBytes = await _deriveKey(key);
+    if (keyBytes.length != 32) {
+      throw Exception('keyBytes must be 32 bytes');
     }
-    _sharedKey.setAll(0, key);
+    _sharedKey.setAll(0, keyBytes);
+  }
+
+  Future<void> setKeyForParticipant(String participantId, String key) async {
+    Uint8List keyBytes = await _deriveKey(key);
+    if (keyBytes.length != 32) {
+      throw Exception('keyBytes must be 32 bytes');
+    }
+    KeyInfo keyInfo = KeyInfo(
+      participantId: participantId,
+      keyIndex: 0,
+      key: keyBytes,
+    );
+    await setKey(keyInfo);
   }
 
   @override

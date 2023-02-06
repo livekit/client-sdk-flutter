@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -108,12 +107,8 @@ class _ConnectPageState extends State<ConnectPage> {
       if (_e2ee) {
         final keyProvider = await BaseKeyProvider.create();
         e2eeOptions = E2EEOptions(keyProvider: keyProvider);
-
         var sharedKey = _sharedKeyCtrl.text;
-        Uint8List key = Uint8List.fromList(
-            sharedKey.split(',').map((e) => num.tryParse(e) as int).toList());
-
-        await keyProvider.setSharedKey(key);
+        await keyProvider.setSharedKey(sharedKey);
       }
 
       // Try to connect to the room

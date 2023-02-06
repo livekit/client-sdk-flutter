@@ -20,17 +20,30 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
-          await _addRtpSender(
+          var frameCryptor = await _addRtpSender(
               event.publication.track!.sender!, event.publication.sid);
           event.participant.enabledE2EE = true;
+          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
+            print(
+                'Sender::onFrameCryptorStateChanged: $state, participantId: $participantId');
+            event.participant.enabledE2EE =
+                state == FrameCryptorState.FrameCryptorStateOk;
+          };
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
           var frameCryptor = _frameCryptors.remove(event.participant.sid);
           await frameCryptor!.dispose();
         })
         ..on<TrackSubscribedEvent>((event) async {
-          await _addRtpReceiver(event.track.receiver!, event.participant.sid);
+          var frameCryptor = await _addRtpReceiver(
+              event.track.receiver!, event.participant.sid);
           event.participant.enabledE2EE = true;
+          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
+            print(
+                'Receiver::onFrameCryptorStateChanged: $state, participantId: $participantId');
+            event.participant.enabledE2EE =
+                state == FrameCryptorState.FrameCryptorStateOk;
+          };
         })
         ..on<TrackUnsubscribedEvent>((event) async {
           var frameCryptor = _frameCryptors.remove(event.participant.sid);
@@ -39,7 +52,8 @@ class E2EEManager {
     }
   }
 
-  Future<void> _addRtpSender(RTCRtpSender sender, String participantId) async {
+  Future<FrameCryptor> _addRtpSender(
+      RTCRtpSender sender, String participantId) async {
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpSender(
             participantId: participantId,
@@ -53,9 +67,10 @@ class E2EEManager {
           participantId: participantId, index: 0, key: _keyProvider.sharedKey);
       await frameCryptor.setKeyIndex(0);
     }
+    return frameCryptor;
   }
 
-  Future<void> _addRtpReceiver(
+  Future<FrameCryptor> _addRtpReceiver(
       RTCRtpReceiver receiver, String participantId) async {
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpReceiver(
@@ -70,6 +85,7 @@ class E2EEManager {
           participantId: participantId, index: 0, key: _keyProvider.sharedKey);
       await frameCryptor.setKeyIndex(0);
     }
+    return frameCryptor;
   }
 
   Future<void> setEnabled(bool enabled) async {
