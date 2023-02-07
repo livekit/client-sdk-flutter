@@ -23,16 +23,18 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
+          var trackId = event.publication.sid;
+          var participantId = event.participant.sid;
           var frameCryptor = await _addRtpSender(
-              event.publication.track!.sender!, event.publication.sid);
+              event.publication.track!.sender!, participantId, trackId);
           event.participant.enabledE2EE = true;
           if (kIsWeb && event.publication.track!.codec != null) {
             await frameCryptor.updateCodec(event.publication.track!.codec!);
           }
-          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
+          frameCryptor.onFrameCryptorStateChanged = (trackId, state) {
             if (kDebugMode) {
               print(
-                  'Sender::onFrameCryptorStateChanged: $state, participantId:  $participantId');
+                  'Sender::onFrameCryptorStateChanged: $state, trackId:  $trackId');
             }
             var participant = event.participant;
             [event.participant.events, participant.room.events]
@@ -46,21 +48,24 @@ class E2EEManager {
           };
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
-          var frameCryptor = _frameCryptors.remove(event.participant.sid);
-          await frameCryptor!.dispose();
+          var trackId = event.publication.sid;
+          var frameCryptor = _frameCryptors.remove(trackId);
+          await frameCryptor?.dispose();
         })
         ..on<TrackSubscribedEvent>((event) async {
+          var trackId = event.publication.sid;
+          var participantId = event.participant.sid;
           var frameCryptor = await _addRtpReceiver(
-              event.track.receiver!, event.participant.sid);
+              event.track.receiver!, participantId, trackId);
           event.participant.enabledE2EE = true;
           if (kIsWeb) {
             var codec = event.publication.mimeType.split('/')[1];
             await frameCryptor.updateCodec(codec.toLowerCase());
           }
-          frameCryptor.onFrameCryptorStateChanged = (participantId, state) {
+          frameCryptor.onFrameCryptorStateChanged = (trackId, state) {
             if (kDebugMode) {
               print(
-                  'Receiver::onFrameCryptorStateChanged: $state, participantId: $participantId');
+                  'Receiver::onFrameCryptorStateChanged: $state, trackId: $trackId');
             }
 
             var participant = event.participant;
@@ -76,21 +81,22 @@ class E2EEManager {
           };
         })
         ..on<TrackUnsubscribedEvent>((event) async {
-          var frameCryptor = _frameCryptors.remove(event.participant.sid);
-          await frameCryptor!.dispose();
+          var trackId = event.publication.sid;
+          var frameCryptor = _frameCryptors.remove(trackId);
+          await frameCryptor?.dispose();
         });
     }
   }
 
   Future<FrameCryptor> _addRtpSender(
-      RTCRtpSender sender, String participantId) async {
+      RTCRtpSender sender, String participantId, String trackId) async {
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpSender(
             participantId: participantId,
             sender: sender,
             algorithm: _algorithm,
             keyManager: _keyProvider.keyManager);
-    _frameCryptors[participantId] = frameCryptor;
+    _frameCryptors[trackId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     if (_keyProvider.isSharedKey) {
       await _keyProvider.keyManager.setKey(
@@ -101,14 +107,14 @@ class E2EEManager {
   }
 
   Future<FrameCryptor> _addRtpReceiver(
-      RTCRtpReceiver receiver, String participantId) async {
+      RTCRtpReceiver receiver, String participantId, String trackId) async {
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpReceiver(
             participantId: participantId,
             receiver: receiver,
             algorithm: _algorithm,
             keyManager: _keyProvider.keyManager);
-    _frameCryptors[participantId] = frameCryptor;
+    _frameCryptors[trackId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     if (_keyProvider.isSharedKey) {
       await _keyProvider.keyManager.setKey(
