@@ -1,4 +1,3 @@
-import 'package:dart_webrtc/dart_webrtc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -177,10 +176,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     {
       var videoCodec = publishOptions.videoCodec.toLowerCase();
-      var caps = await getRtpSenderCapabilities('video');
-      List<RTCRtpCodecCapability> matched = [];
-      List<RTCRtpCodecCapability> partialMatched = [];
-      List<RTCRtpCodecCapability> unmatched = [];
+      var caps = await rtc.getRtpSenderCapabilities('video');
+      List<rtc.RTCRtpCodecCapability> matched = [];
+      List<rtc.RTCRtpCodecCapability> partialMatched = [];
+      List<rtc.RTCRtpCodecCapability> unmatched = [];
       for (var c in caps.codecs!) {
         var codec = c.mimeType.toLowerCase();
         if (codec == 'audio/opus') {
