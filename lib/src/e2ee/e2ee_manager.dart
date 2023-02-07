@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/src/e2ee/events.dart';
+import 'package:livekit_client/src/extensions.dart';
 
 import '../events.dart';
 import '../core/room.dart';
@@ -32,6 +34,13 @@ class E2EEManager {
               print(
                   'Sender::onFrameCryptorStateChanged: $state, participantId:  $participantId');
             }
+            var participant = event.participant;
+            [event.participant.events, participant.room.events]
+                .emit(TrackE2EEStateEvent(
+              participant: participant,
+              publication: event.publication,
+              state: _e2eeStateFromFrameCryptoState(state),
+            ));
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
           };
@@ -53,6 +62,15 @@ class E2EEManager {
               print(
                   'Receiver::onFrameCryptorStateChanged: $state, participantId: $participantId');
             }
+
+            var participant = event.participant;
+            [event.participant.events, participant.room.events]
+                .emit(TrackE2EEStateEvent(
+              participant: participant,
+              publication: event.publication,
+              state: _e2eeStateFromFrameCryptoState(state),
+            ));
+
             event.participant.enabledE2EE =
                 state == FrameCryptorState.FrameCryptorStateOk;
           };
@@ -111,6 +129,23 @@ class E2EEManager {
             key: _keyProvider.sharedKey);
         await frameCryptor.value.setKeyIndex(0);
       }
+    }
+  }
+
+  E2EEStateState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
+    switch (state) {
+      case FrameCryptorState.FrameCryptorStateNew:
+        return E2EEStateState.kNew;
+      case FrameCryptorState.FrameCryptorStateOk:
+        return E2EEStateState.kOk;
+      case FrameCryptorState.FrameCryptorStateMissingKey:
+        return E2EEStateState.kMissingKey;
+      case FrameCryptorState.FrameCryptorStateEncryptionFailed:
+        return E2EEStateState.kEncryptionFailed;
+      case FrameCryptorState.FrameCryptorStateDecryptionFailed:
+        return E2EEStateState.kDecryptionFailed;
+      case FrameCryptorState.FrameCryptorStateInternalError:
+        return E2EEStateState.kInternalError;
     }
   }
 }
