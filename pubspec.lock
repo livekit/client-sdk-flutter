@@ -237,7 +237,7 @@ packages:
     description:
       path: "."
       ref: "feat/frame-encryption"
-      resolved-ref: f90143030a5b04c0064004cc305a789352eb8632
+      resolved-ref: abb6aba36434fa3a30ce5c56b6c521acb83b1139
       url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
     source: git
     version: "0.9.20"
@@ -615,5 +615,5 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=2.19.0 <3.0.0"
   flutter: ">=3.0.0"
