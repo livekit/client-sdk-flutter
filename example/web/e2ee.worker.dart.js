@@ -329,7 +329,7 @@
     FixedLengthListMixin: function FixedLengthListMixin() {
     },
     Symbol: function Symbol(t0) {
-      this._name = t0;
+      this.__internal$_name = t0;
     },
     unminifyOrTag(rawClassName) {
       var preserved = init.mangledGlobalNames[rawClassName];
@@ -3914,6 +3914,8 @@
       this._value = t0;
       this.isUtc = t1;
     },
+    _Enum: function _Enum() {
+    },
     Error: function Error() {
     },
     AssertionError: function AssertionError(t0) {
@@ -4515,19 +4517,25 @@
       }
       return result;
     },
-    Cryptor$(participantId, sharedKey, trackId) {
+    Cryptor$(participantId, sharedKey, trackId, worker) {
       var t1 = type$.int;
-      return new A.Cryptor(A.LinkedHashMap_LinkedHashMap$_empty(t1, t1), participantId, trackId);
+      return new A.Cryptor(A.LinkedHashMap_LinkedHashMap$_empty(t1, t1), participantId, trackId, B.CryptorError_0, worker);
     },
-    Cryptor: function Cryptor(t0, t1, t2) {
+    CryptorError: function CryptorError(t0) {
+      this._name = t0;
+    },
+    Cryptor: function Cryptor(t0, t1, t2, t3, t4) {
       var _ = this;
       _.sendCounts = t0;
       _.participantId = t1;
       _.trackId = t2;
       _.codec = null;
-      _.__Cryptor_secretKey_A = _.__Cryptor_kind_A = $;
+      _.__Cryptor_kind_A = $;
+      _.secretKey = null;
       _.keyIndex = 0;
       _.enabled = false;
+      _.lastError = t3;
+      _.worker = t4;
     },
     main() {
       var $async$goto = 0,
@@ -4581,6 +4589,9 @@
       this.participantId = t0;
     },
     main__closure4: function main__closure4(t0) {
+      this.trackId = t0;
+    },
+    main__closure5: function main__closure5(t0) {
       this.trackId = t0;
     },
     printString(string) {
@@ -5435,17 +5446,17 @@
       var hash = this._hashCode;
       if (hash != null)
         return hash;
-      hash = 664597 * J.get$hashCode$(this._name) & 536870911;
+      hash = 664597 * J.get$hashCode$(this.__internal$_name) & 536870911;
       this._hashCode = hash;
       return hash;
     },
     toString$0(_) {
-      return 'Symbol("' + A.S(this._name) + '")';
+      return 'Symbol("' + A.S(this.__internal$_name) + '")';
     },
     $eq(_, other) {
       if (other == null)
         return false;
-      return other instanceof A.Symbol && this._name == other._name;
+      return other instanceof A.Symbol && this.__internal$_name == other.__internal$_name;
     },
     $isSymbol0: 1
   };
@@ -6941,7 +6952,7 @@
       t1 = this.sb;
       t2 = this._box_0;
       t3 = t1._contents += t2.comma;
-      t3 += key._name;
+      t3 += key.__internal$_name;
       t1._contents = t3;
       t1._contents = t3 + ": ";
       t1._contents += A.Error_safeToString(value);
@@ -6969,6 +6980,11 @@
         sec = A.DateTime__twoDigits(A.Primitives_getSeconds(_this)),
         ms = A.DateTime__threeDigits(A.Primitives_getMilliseconds(_this));
       return y + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec + "." + ms + "Z";
+    }
+  };
+  A._Enum.prototype = {
+    toString$0(_) {
+      return this._enumToString$0();
     }
   };
   A.Error.prototype = {
@@ -7069,7 +7085,7 @@
       _this._namedArguments.forEach$1(0, new A.NoSuchMethodError_toString_closure(_box_0, sb));
       receiverText = A.Error_safeToString(_this._core$_receiver);
       actualParameters = sb.toString$0(0);
-      return "NoSuchMethodError: method not found: '" + _this._core$_memberName._name + "'\nReceiver: " + receiverText + "\nArguments: [" + actualParameters + "]";
+      return "NoSuchMethodError: method not found: '" + _this._core$_memberName.__internal$_name + "'\nReceiver: " + receiverText + "\nArguments: [" + actualParameters + "]";
     }
   };
   A.UnsupportedError.prototype = {
@@ -7320,7 +7336,8 @@
     postMessage$1(receiver, message) {
       receiver.postMessage(new A._StructuredCloneDart2Js([], []).walk$1(message));
       return;
-    }
+    },
+    $isDedicatedWorkerGlobalScope: 1
   };
   A.DomException.prototype = {
     toString$0(receiver) {
@@ -8680,6 +8697,11 @@
   A.RTCRtpScriptTransform.prototype = {};
   A.Promise.prototype = {};
   A.AesGcmParams.prototype = {};
+  A.CryptorError.prototype = {
+    _enumToString$0() {
+      return "CryptorError." + this._name;
+    }
+  };
   A.Cryptor.prototype = {
     get$kind(_) {
       var t1 = this.__Cryptor_kind_A;
@@ -8689,7 +8711,7 @@
     setKey$1(key) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$self = this, $async$temp1;
+        $async$self = this;
       var $async$setKey$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -8697,13 +8719,15 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              A.print("set key " + A.S(key));
-              $async$temp1 = type$.CryptoKey;
+              if ($async$self.lastError !== B.CryptorError_1) {
+                A.print("setKey: lastError != CryptorError.kOk, reset state to kNew");
+                $async$self.lastError = B.CryptorError_0;
+              }
               $async$goto = 2;
               return A._asyncAwait(A.cryptoKeyFromAesSecretKey(key, "AES-GCM"), $async$setKey$1);
             case 2:
               // returning from await.
-              $async$self.__Cryptor_secretKey_A = $async$temp1._as($async$result);
+              $async$self.set$secretKey($async$result);
               // implicit return
               return A._asyncReturn(null, $async$completer);
           }
@@ -8719,7 +8743,7 @@
     setupTransform$body$Cryptor(codec, kind, operation, readable, trackId, writable) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$self = this, transformer, e, t1, t2, exception;
+        $async$self = this, transformer, e, t1, t2, t3, exception;
       var $async$setupTransform$6$codec$kind$operation$readable$trackId$writable = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -8735,16 +8759,19 @@
               }
               t1 = operation === "encode" ? $async$self.get$encodeFunction() : $async$self.get$decodeFunction();
               t2 = type$.Future_void_Function_RTCEncodedFrame_TransformStreamDefaultController;
-              t2 = A.LinkedHashMap_LinkedHashMap$_literal(["transform", A.allowInterop(t1, t2)], type$.String, t2);
+              t3 = type$.String;
+              t2 = A.LinkedHashMap_LinkedHashMap$_literal(["transform", A.allowInterop(t1, t2)], t3, t2);
               transformer = new self.TransformStream(A._convertDataTree(t2));
-              A.print("setupTransform pipeThrough");
               try {
                 J.pipeTo$1$x(J.pipeThrough$1$x(readable, transformer), writable);
               } catch (exception) {
                 e = A.unwrapException(exception);
                 A.print("e " + J.toString$0$(e));
+                if ($async$self.lastError !== B.CryptorError_6) {
+                  $async$self.lastError = B.CryptorError_6;
+                  B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "state", "internalError", "error", "Internal error: " + J.toString$0$(e)], t3, type$.nullable_String));
+                }
               }
-              A.print("setupTransform success");
               $async$self.trackId = trackId;
               // implicit return
               return A._asyncReturn(null, $async$completer);
@@ -8809,6 +8836,19 @@
                 $async$goto = 1;
                 break;
               }
+              if ($async$self.secretKey == null) {
+                if ($async$self.lastError !== B.CryptorError_5) {
+                  $async$self.lastError = B.CryptorError_5;
+                  t1 = $async$self.participantId;
+                  t2 = $async$self.trackId;
+                  t3 = $async$self.__Cryptor_kind_A;
+                  t3 === $ && A.throwLateFieldNI("kind");
+                  B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t1, "trackId", t2, "kind", t3, "state", "missingKey", "error", "Missing key for track " + A.S(t2)], type$.String, type$.nullable_String));
+                }
+                // goto return
+                $async$goto = 1;
+                break;
+              }
               $async$handler = 4;
               t2 = $async$self.__Cryptor_kind_A;
               t2 === $ && A.throwLateFieldNI("kind");
@@ -8834,8 +8874,8 @@
               J.setInt8$2$x(frameTrailer, 0, 12);
               J.setInt8$2$x(frameTrailer, 1, $async$self.keyIndex);
               t2 = {name: "AES-GCM", iv: A.jsArrayBufferFrom(iv), additionalData: A.jsArrayBufferFrom(J.sublist$2$x(buffer, 0, headerLength))};
-              t3 = $async$self.__Cryptor_secretKey_A;
-              t3 === $ && A.throwLateFieldNI("secretKey");
+              t3 = $async$self.secretKey;
+              t3.toString;
               $async$goto = 7;
               return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.encrypt(t2, t3, A.jsArrayBufferFrom(J.sublist$2$x(buffer, headerLength, J.get$length$asx(buffer)))), type$.ByteBuffer), $async$encodeFunction$2);
             case 7:
@@ -8849,6 +8889,10 @@
               J.add$1$ax(finalBuffer, A.NativeUint8List_NativeUint8List$view(frameTrailer.buffer, 0, null));
               t1.set$data(frame, A.jsArrayBufferFrom(finalBuffer.toBytes$0()));
               J.enqueue$1$x(controller, frame);
+              if ($async$self.lastError !== B.CryptorError_1) {
+                $async$self.lastError = B.CryptorError_1;
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "trackId", $async$self.trackId, "kind", $async$self.__Cryptor_kind_A, "state", "ok", "error", "encryption ok"], type$.String, type$.nullable_String));
+              }
               $async$handler = 2;
               // goto after finally
               $async$goto = 6;
@@ -8858,7 +8902,14 @@
               $async$handler = 3;
               $async$exception = $async$currentError;
               e = A.unwrapException($async$exception);
-              A.print("encrypt: e " + J.toString$0$(e));
+              if ($async$self.lastError !== B.CryptorError_3) {
+                $async$self.lastError = B.CryptorError_3;
+                t1 = $async$self.participantId;
+                t2 = $async$self.trackId;
+                t3 = $async$self.__Cryptor_kind_A;
+                t3 === $ && A.throwLateFieldNI("kind");
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t1, "trackId", t2, "kind", t3, "state", "encryptError", "error", J.toString$0$(e)], type$.String, type$.nullable_String));
+              }
               // goto after finally
               $async$goto = 6;
               break;
@@ -8903,6 +8954,15 @@
                 $async$goto = 1;
                 break;
               }
+              if ($async$self.secretKey == null)
+                if ($async$self.lastError !== B.CryptorError_5) {
+                  $async$self.lastError = B.CryptorError_5;
+                  t2 = $async$self.participantId;
+                  t3 = $async$self.trackId;
+                  t4 = $async$self.__Cryptor_kind_A;
+                  t4 === $ && A.throwLateFieldNI("kind");
+                  B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t2, "trackId", t3, "kind", t4, "state", "missingKey", "error", "Missing key for track " + A.S(t3)], type$.String, type$.nullable_String));
+                }
               $async$handler = 4;
               t2 = $async$self.__Cryptor_kind_A;
               t2 === $ && A.throwLateFieldNI("kind");
@@ -8921,8 +8981,8 @@
               }
               iv = J.sublist$2$x(buffer, t3 - t4 - 2, J.get$length$asx(buffer) - 2);
               t4 = {name: "AES-GCM", iv: A.jsArrayBufferFrom(iv), additionalData: A.jsArrayBufferFrom(J.sublist$2$x(buffer, 0, headerLength))};
-              t3 = $async$self.__Cryptor_secretKey_A;
-              t3 === $ && A.throwLateFieldNI("secretKey");
+              t3 = $async$self.secretKey;
+              t3.toString;
               t5 = J.get$length$asx(buffer);
               t6 = ivLength;
               if (typeof t6 !== "number") {
@@ -8942,6 +9002,10 @@
               J.add$1$ax(finalBuffer, A.NativeUint8List_NativeUint8List$view(decrypted, 0, null));
               t1.set$data(frame, A.jsArrayBufferFrom(finalBuffer.toBytes$0()));
               J.enqueue$1$x(controller, frame);
+              if ($async$self.lastError !== B.CryptorError_1) {
+                $async$self.lastError = B.CryptorError_1;
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "trackId", $async$self.trackId, "kind", $async$self.__Cryptor_kind_A, "state", "ok", "error", "decryption ok"], type$.String, type$.nullable_String));
+              }
               $async$handler = 2;
               // goto after finally
               $async$goto = 6;
@@ -8951,7 +9015,14 @@
               $async$handler = 3;
               $async$exception = $async$currentError;
               e = A.unwrapException($async$exception);
-              A.print("derypto: e " + J.toString$0$(e));
+              if ($async$self.lastError !== B.CryptorError_2) {
+                $async$self.lastError = B.CryptorError_2;
+                t1 = $async$self.participantId;
+                t2 = $async$self.trackId;
+                t3 = $async$self.__Cryptor_kind_A;
+                t3 === $ && A.throwLateFieldNI("kind");
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t1, "trackId", t2, "kind", t3, "state", "decryptError", "error", J.toString$0$(e)], type$.String, type$.nullable_String));
+              }
               // goto after finally
               $async$goto = 6;
               break;
@@ -8971,6 +9042,9 @@
           }
       });
       return A._asyncStartSync($async$decodeFunction$2, $async$completer);
+    },
+    set$secretKey(secretKey) {
+      this.secretKey = type$.nullable_CryptoKey._as(secretKey);
     },
     get$participantId(receiver) {
       return this.participantId;
@@ -8998,9 +9072,10 @@
       trackId = t2.get$trackId(options);
       codec = t2.get$codec(options);
       msgType = t2.get$msgType(options);
+      t2 = self.self;
       A._asStringQ(participantId);
       A._asStringQ(trackId);
-      cryptor = A.Cryptor$(participantId, $.useSharedKey, trackId);
+      cryptor = A.Cryptor$(participantId, $.useSharedKey, trackId, t2);
       A._asString(msgType);
       t2 = type$.ReadableStream._as(t1.readable);
       t1 = type$.WritableStream._as(t1.writable);
@@ -9013,8 +9088,9 @@
   };
   A.main_closure0.prototype = {
     call$1(e) {
-      var copy, msgType, enabled, participantId, t3, cryptors, _i, kind, trackId, readable, writable, cryptor, key, keyIndex, codec,
+      var copy, msgType, enabled, participantId, t3, t4, cryptors, line, _i, cryptor, kind, exist, trackId, readable, writable, key, keyIndex, c, codec,
         _s13_ = "participantId",
+        _s53_ = "]: lastError != CryptorError.kOk, reset state to kNew",
         _s7_ = "trackId",
         t1 = type$.MessageEvent._as(e).data,
         t2 = new A._AcceptStructuredCloneDart2Js([], []);
@@ -9029,17 +9105,26 @@
         case "enable":
           enabled = A._asBool(t1.$index(copy, "enabled"));
           participantId = A._asString(t1.$index(copy, _s13_));
-          A.print("worker: set enable " + enabled + " for participantId " + participantId);
-          t1 = $.participantCryptors;
-          t2 = A._arrayInstanceType(t1);
-          t3 = t2._eval$1("WhereIterable<1>");
-          cryptors = A.List_List$of(new A.WhereIterable(t1, t2._eval$1("bool(1)")._as(new A.main__closure(participantId)), t3), true, t3._eval$1("Iterable.E"));
-          for (t1 = cryptors.length, _i = 0; _i < t1; ++_i)
-            cryptors[_i].enabled = enabled;
+          t1 = "" + enabled;
+          A.print("worker: set enable " + t1 + " for participantId " + participantId);
+          t2 = $.participantCryptors;
+          t3 = A._arrayInstanceType(t2);
+          t4 = t3._eval$1("WhereIterable<1>");
+          cryptors = A.List_List$of(new A.WhereIterable(t2, t3._eval$1("bool(1)")._as(new A.main__closure(participantId)), t4), true, t4._eval$1("Iterable.E"));
+          for (t2 = cryptors.length, line = "setEnabled[" + t1 + _s53_, _i = 0; _i < t2; ++_i) {
+            cryptor = cryptors[_i];
+            if (cryptor.lastError !== B.CryptorError_1) {
+              A.printString(line);
+              cryptor.lastError = B.CryptorError_0;
+            }
+            cryptor.enabled = enabled;
+          }
+          J.postMessage$1$x(self.self, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorEnabled", "participantId", participantId, "enable", enabled], type$.String, type$.Object));
           break;
         case "decode":
         case "encode":
           kind = t1.$index(copy, "kind");
+          exist = A._asBool(t1.$index(copy, "exist"));
           participantId = A._asString(t1.$index(copy, _s13_));
           trackId = t1.$index(copy, _s7_);
           readable = type$.ReadableStream._as(t1.$index(copy, "readableStream"));
@@ -9047,13 +9132,23 @@
           A.print("worker: got " + A.S(msgType) + ", kind " + A.S(kind) + ", trackId " + A.S(trackId) + ", participantId " + participantId + ", " + B.Type_JSObject_8k0.toString$0(0) + " " + B.Type_JSObject_8k0.toString$0(0) + "}");
           cryptor = A.IterableExtension_firstWhereOrNull($.participantCryptors, new A.main__closure0(trackId), type$.Cryptor);
           if (cryptor == null) {
+            t1 = self.self;
             A._asStringQ(trackId);
-            cryptor = A.Cryptor$(participantId, $.useSharedKey, trackId);
+            cryptor = A.Cryptor$(participantId, $.useSharedKey, trackId, t1);
             B.JSArray_methods.add$1($.participantCryptors, cryptor);
           }
-          A._asString(msgType);
-          A._asString(trackId);
-          cryptor.setupTransform$5$kind$operation$readable$trackId$writable(A._asString(kind), msgType, readable, trackId, writable);
+          if (!exist) {
+            A._asString(msgType);
+            A._asString(trackId);
+            cryptor.setupTransform$5$kind$operation$readable$trackId$writable(A._asString(kind), msgType, readable, trackId, writable);
+          }
+          if (cryptor.lastError !== B.CryptorError_1) {
+            A.print("setParticipantId: lastError != CryptorError.kOk, reset state to kNew");
+            cryptor.lastError = B.CryptorError_0;
+          }
+          cryptor.participantId = participantId;
+          J.postMessage$1$x(self.self, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorSetup", "participantId", participantId, "trackId", trackId, "exist", exist, "operation", msgType], type$.String, type$.dynamic));
+          cryptor.lastError = B.CryptorError_0;
           break;
         case "removeTransform":
           trackId = A._asString(t1.$index(copy, _s7_));
@@ -9089,22 +9184,41 @@
           t2 = A._arrayInstanceType(t1);
           t3 = t2._eval$1("WhereIterable<1>");
           cryptors = A.List_List$of(new A.WhereIterable(t1, t2._eval$1("bool(1)")._as(new A.main__closure3(participantId)), t3), true, t3._eval$1("Iterable.E"));
-          for (t1 = cryptors.length, _i = 0; _i < t1; ++_i)
-            cryptors[_i].keyIndex = A._asInt(keyIndex);
+          for (t1 = cryptors.length, _i = 0; _i < t1; ++_i) {
+            c = cryptors[_i];
+            A._asInt(keyIndex);
+            if (c.lastError !== B.CryptorError_1) {
+              A.printString("setKeyIndex: lastError != CryptorError.kOk, reset state to kNew");
+              c.lastError = B.CryptorError_0;
+            }
+            c.keyIndex = keyIndex;
+          }
           break;
         case "updateCodec":
           codec = A._asString(t1.$index(copy, "codec"));
           trackId = A._asString(t1.$index(copy, _s7_));
           A.print("worker: update codec for trackId " + trackId + ", codec " + codec);
           cryptor = A.IterableExtension_firstWhereOrNull($.participantCryptors, new A.main__closure4(trackId), type$.Cryptor);
-          if (cryptor != null)
+          if (cryptor != null) {
+            if (cryptor.lastError !== B.CryptorError_1) {
+              A.print("updateCodec[" + codec + _s53_);
+              cryptor.lastError = B.CryptorError_0;
+            }
             cryptor.codec = codec;
+          }
+          break;
+        case "dispose":
+          trackId = A._asString(t1.$index(copy, _s7_));
+          A.print("worker: dispose trackId " + trackId);
+          cryptor = A.IterableExtension_firstWhereOrNull($.participantCryptors, new A.main__closure5(trackId), type$.Cryptor);
+          if (cryptor != null) {
+            cryptor.lastError = B.CryptorError_7;
+            J.postMessage$1$x(self.self, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorDispose", "participantId", cryptor.participantId, "trackId", trackId], type$.String, type$.nullable_String));
+          }
           break;
         default:
           A.print("worker: unknown message kind " + A.S(copy));
       }
-      t1 = type$.dynamic;
-      J.postMessage$1$x(self.self, A.LinkedHashMap_LinkedHashMap$_empty(t1, t1));
     },
     $signature: 24
   };
@@ -9146,6 +9260,12 @@
     },
     $signature: 1
   };
+  A.main__closure5.prototype = {
+    call$1(c) {
+      return type$.Cryptor._as(c).trackId === this.trackId;
+    },
+    $signature: 1
+  };
   (function aliases() {
     var _ = J.Interceptor.prototype;
     _.super$Interceptor$toString = _.toString$0;
@@ -9171,7 +9291,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, J.ArrayIterator, A._CopyingBytesBuilder, A.Error, A.SentinelValue, A.Iterable, A.ListIterator, A.Iterator, A.FixedLengthListMixin, A.Symbol, A.MapView, A.ConstantMap, A.JSInvocationMirror, A.Closure, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A._Required, A.MapMixin, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A.StreamSubscription, A.StreamTransformerBase, A._StreamIterator, A._Zone, A._HashMapKeyIterator, A.ListMixin, A._UnmodifiableMapMixin, A._Base64Decoder, A.DateTime, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.Null, A._StringStackTrace, A.StringBuffer, A.CssStyleDeclarationBase, A.EventStreamProvider, A.ImmutableListMixin, A.FixedSizeListIterator, A._StructuredClone, A._AcceptStructuredClone, A.NullRejectionException, A._JSSecureRandom, A.Cryptor]);
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, J.ArrayIterator, A._CopyingBytesBuilder, A.Error, A.SentinelValue, A.Iterable, A.ListIterator, A.Iterator, A.FixedLengthListMixin, A.Symbol, A.MapView, A.ConstantMap, A.JSInvocationMirror, A.Closure, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A._Required, A.MapMixin, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A.StreamSubscription, A.StreamTransformerBase, A._StreamIterator, A._Zone, A._HashMapKeyIterator, A.ListMixin, A._UnmodifiableMapMixin, A._Base64Decoder, A.DateTime, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.Null, A._StringStackTrace, A.StringBuffer, A.CssStyleDeclarationBase, A.EventStreamProvider, A.ImmutableListMixin, A.FixedSizeListIterator, A._StructuredClone, A._AcceptStructuredClone, A.NullRejectionException, A._JSSecureRandom, A.Cryptor]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, A.EventTarget, A.AccessibleNodeList, A.Blob, A.CryptoKey, A.CssTransformComponent, A.CssRule, A._CssStyleDeclaration_JavaScriptObject_CssStyleDeclarationBase, A.CssStyleValue, A.DataTransferItem, A.DataTransferItemList, A.DomException, A._DomRectList_JavaScriptObject_ListMixin, A.DomRectReadOnly, A._DomStringList_JavaScriptObject_ListMixin, A.DomTokenList, A.Event, A._FileList_JavaScriptObject_ListMixin, A.Gamepad, A.History, A._HtmlCollection_JavaScriptObject_ListMixin, A.ImageData, A.Location, A.MediaDeviceInfo, A.MediaList, A._MidiInputMap_JavaScriptObject_MapMixin, A._MidiOutputMap_JavaScriptObject_MapMixin, A.MimeType, A._MimeTypeArray_JavaScriptObject_ListMixin, A._NodeList_JavaScriptObject_ListMixin, A.Plugin, A._PluginArray_JavaScriptObject_ListMixin, A._RtcStatsReport_JavaScriptObject_MapMixin, A.SharedArrayBuffer, A.SpeechGrammar, A._SpeechGrammarList_JavaScriptObject_ListMixin, A.SpeechRecognitionResult, A._Storage_JavaScriptObject_MapMixin, A.StyleSheet, A._TextTrackCueList_JavaScriptObject_ListMixin, A.TimeRanges, A.Touch, A._TouchList_JavaScriptObject_ListMixin, A.TrackDefaultList, A.Url, A.VideoTrack, A.__CssRuleList_JavaScriptObject_ListMixin, A.__GamepadList_JavaScriptObject_ListMixin, A.__NamedNodeMap_JavaScriptObject_ListMixin, A.__SpeechRecognitionResultList_JavaScriptObject_ListMixin, A.__StyleSheetList_JavaScriptObject_ListMixin, A.Length, A._LengthList_JavaScriptObject_ListMixin, A.Number, A._NumberList_JavaScriptObject_ListMixin, A.PointList, A._StringList_JavaScriptObject_ListMixin, A.Transform, A._TransformList_JavaScriptObject_ListMixin, A.AudioBuffer, A._AudioParamMap_JavaScriptObject_MapMixin, A.AudioTrack]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, A.WritableStream, A.ReadableStream, A.TransformStream, A.TransformStreamDefaultController, A.EncodedStreams, A.RTCEncodedFrame, A.RTCEncodedAudioFrame, A.RTCEncodedVideoFrame, A.RTCEncodedFrameMetadata, A.RTCEncodedAudioFrameMetadata, A.RTCEncodedVideoFrameMetadata, A.RTCTransformEvent, A.RTCRtpScriptTransformer, A.RTCRtpScriptTransform, A.Promise, A.AesGcmParams, A.TransformMessage, A.EnableTransformMessage, A.RemoveTransformMessage]);
@@ -9187,7 +9307,7 @@
     _inherit(A.UnmodifiableMapView, A._UnmodifiableMapView_MapView__UnmodifiableMapMixin);
     _inherit(A.ConstantMapView, A.UnmodifiableMapView);
     _inherit(A.ConstantStringMap, A.ConstantMap);
-    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A.Stream_length_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A._EventStreamSubscription_closure, A._convertDataTree__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.main_closure, A.main_closure0, A.main__closure, A.main__closure0, A.main__closure1, A.main__closure2, A.main__closure3, A.main__closure4]);
+    _inheritMany(A.Closure, [A.Closure2Args, A.Closure0Args, A.TearOffClosure, A.initHooks_closure, A.initHooks_closure1, A._AsyncRun__initializeScheduleImmediate_internalCallback, A._AsyncRun__initializeScheduleImmediate_closure, A._awaitOnObject_closure, A._Future__chainForeignFuture_closure, A._Future__propagateToListeners_handleWhenCompleteCallback_closure, A.Stream_length_closure, A._RootZone_bindUnaryCallbackGuarded_closure, A._EventStreamSubscription_closure, A._convertDataTree__convert, A.promiseToFuture_closure, A.promiseToFuture_closure0, A.main_closure, A.main_closure0, A.main__closure, A.main__closure0, A.main__closure1, A.main__closure2, A.main__closure3, A.main__closure4, A.main__closure5]);
     _inheritMany(A.Closure2Args, [A.Primitives_functionNoSuchMethod_closure, A.initHooks_closure0, A._awaitOnObject_closure0, A._wrapJsFunctionForAsync_closure, A._Future__chainForeignFuture_closure0, A.MapBase_mapToString_closure, A.NoSuchMethodError_toString_closure, A.MidiInputMap_keys_closure, A.MidiOutputMap_keys_closure, A.RtcStatsReport_keys_closure, A.Storage_keys_closure, A._StructuredClone_walk_closure, A._StructuredClone_walk_closure0, A._AcceptStructuredClone_walk_closure, A.AudioParamMap_keys_closure]);
     _inherit(A.NullError, A.TypeError);
     _inheritMany(A.TearOffClosure, [A.StaticClosure, A.BoundClosure]);
@@ -9272,6 +9392,7 @@
     _inherit(A.TransformList, A._TransformList_JavaScriptObject_ListMixin_ImmutableListMixin);
     _inherit(A.AudioParamMap, A._AudioParamMap_JavaScriptObject_MapMixin);
     _inherit(A.OfflineAudioContext, A.BaseAudioContext);
+    _inherit(A.CryptorError, A._Enum);
     _mixin(A._NativeTypedArrayOfDouble_NativeTypedArray_ListMixin, A.ListMixin);
     _mixin(A._NativeTypedArrayOfDouble_NativeTypedArray_ListMixin_FixedLengthListMixin, A.FixedLengthListMixin);
     _mixin(A._NativeTypedArrayOfInt_NativeTypedArray_ListMixin, A.ListMixin);
@@ -9422,10 +9543,12 @@
       int: findType("int"),
       legacy_Never: findType("0&*"),
       legacy_Object: findType("Object*"),
+      nullable_CryptoKey: findType("CryptoKey?"),
       nullable_EventTarget: findType("EventTarget?"),
       nullable_Future_Null: findType("Future<Null>?"),
       nullable_Gamepad: findType("Gamepad?"),
       nullable_Object: findType("Object?"),
+      nullable_String: findType("String?"),
       nullable__FutureListener_dynamic_dynamic: findType("_FutureListener<@,@>?"),
       nullable_dynamic_Function_Event: findType("@(Event)?"),
       nullable_void_Function: findType("~()?"),
@@ -9577,6 +9700,13 @@
     B.C__Required = new A._Required();
     B.C__RootZone = new A._RootZone();
     B.C__StringStackTrace = new A._StringStackTrace();
+    B.CryptorError_0 = new A.CryptorError("kNew");
+    B.CryptorError_1 = new A.CryptorError("kOk");
+    B.CryptorError_2 = new A.CryptorError("kDecryptError");
+    B.CryptorError_3 = new A.CryptorError("kEncryptError");
+    B.CryptorError_5 = new A.CryptorError("kMissingKey");
+    B.CryptorError_6 = new A.CryptorError("kInternalError");
+    B.CryptorError_7 = new A.CryptorError("kDisposed");
     B.List_empty = A._setArrayType(makeConstList([]), type$.JSArray_dynamic);
     B.List_empty0 = A._setArrayType(makeConstList([]), A.findType("JSArray<Symbol0>"));
     B.Map_empty = new A.ConstantStringMap(0, {}, B.List_empty0, A.findType("ConstantStringMap<Symbol0,@>"));
