@@ -15,9 +15,11 @@ abstract class InternalEvent implements LiveKitEvent {}
 abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
   final rtc.RTCPeerConnectionState state;
   final bool isPrimary;
+  final bool isPublisher;
   const EnginePeerStateUpdatedEvent({
     required this.state,
     required this.isPrimary,
+    required this.isPublisher,
   });
 }
 
@@ -30,6 +32,7 @@ class EngineSubscriberPeerStateUpdatedEvent
   }) : super(
           state: state,
           isPrimary: isPrimary,
+          isPublisher: false,
         );
 
   @override
@@ -45,6 +48,7 @@ class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
   }) : super(
           state: state,
           isPrimary: isPrimary,
+          isPublisher: true,
         );
   @override
   String toString() =>

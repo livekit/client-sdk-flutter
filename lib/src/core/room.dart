@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
@@ -166,7 +167,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
-          engine.fastConnectOptions != null) {
+          engine.fastConnectOptions != null &&
+          !engine.fullReconnect) {
         var options = engine.fastConnectOptions!;
 
         var audio = options.microphone;
@@ -364,10 +366,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       engine.signalClient.sendLeave();
     }
     await _cleanUp();
-  }
-
-  Future<void> reconnect() async {
-    await engine.restartConnection();
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(

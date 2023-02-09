@@ -60,6 +60,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
 
+  bool _restarting = false;
+
   lk_models.ClientConfiguration? _clientConfiguration;
 
   // remember url and token for reconnect
@@ -566,6 +568,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> resumeConnection() async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('resumeConnection: Already closed.');
@@ -633,7 +636,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> restartConnection([bool signalEvents = false]) async {
+    if (_restarting) {
+      logger.fine('restartConnection: Already restarting...');
+      return;
+    }
+    _restarting = true;
     await publisher?.dispose();
     publisher = null;
     _hasPublished = false;
@@ -657,7 +666,23 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fastConnectOptions: fastConnectOptions,
     );
 
+    bool publisherConnected =
+        publisher?.pc.connectionState?.isConnected() ?? false;
+
+    if (publisher != null && !publisherConnected) {
+      logger.warning('restartConnection: Waiting for publisher to connect...');
+      await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+        filter: (event) => event.isPublisher && event.state.isConnected(),
+        duration: connectOptions.timeouts.iceRestart,
+        onTimeout: () => throw ConnectException(),
+      );
+      publisherConnected =
+          publisher?.pc.connectionState?.isConnected() ?? false;
+      logger
+          .warning('restartConnection: publisher conncted $publisherConnected');
+    }
     fullReconnect = false;
+    _restarting = false;
   }
 
   @internal
