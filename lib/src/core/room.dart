@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
-import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
