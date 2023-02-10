@@ -672,7 +672,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (publisher != null && !publisherConnected) {
       logger.warning('restartConnection: Waiting for publisher to connect...');
       await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
-        filter: (event) => event.isPublisher && event.state.isConnected(),
+        filter: (event) => event.state.isConnected(),
         duration: connectOptions.timeouts.iceRestart,
         onTimeout: () => throw ConnectException(),
       );
