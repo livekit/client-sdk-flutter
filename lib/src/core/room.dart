@@ -264,7 +264,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) {
+      if (event.newState == ConnectionState.reconnecting) {
         logger.fine('Sending syncState');
         _sendSyncState();
       }

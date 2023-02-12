@@ -792,6 +792,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fullReconnect = true;
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
+        _updateConnectionState(ConnectionState.reconnecting);
         await handleDisconnect(DisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
