@@ -1,20 +1,11 @@
 import 'package:collection/collection.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
-import '../core/room.dart';
-import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
-import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
-import '../publication/track_publication.dart';
 import '../support/disposable.dart';
-import '../track/local/local.dart';
-import '../track/track.dart';
-import '../types/other.dart';
-import '../types/participant_permissions.dart';
-import 'local.dart';
-import 'remote.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -63,16 +54,6 @@ abstract class Participant<T extends TrackPublication>
   ParticipantPermissions _permissions = const ParticipantPermissions();
   ParticipantPermissions get permissions => _permissions;
 
-  bool? _enabledE2EE;
-  bool get enabledE2EE => _enabledE2EE ?? false;
-
-  set enabledE2EE(bool value) {
-    if (_enabledE2EE == value) {
-      return;
-    }
-    _enabledE2EE = value;
-  }
-
   /// when the participant joined the room
   DateTime get joinedAt {
     final pi = _participantInfo;
@@ -103,6 +84,8 @@ abstract class Participant<T extends TrackPublication>
 
   // Must be implemented by child class.
   List<T> get audioTracks;
+
+  EncryptionType get encryptionType;
 
   @internal
   bool get hasInfo => _participantInfo != null;

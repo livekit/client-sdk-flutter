@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -185,6 +186,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     // TODO: Check if cid already published
 
+    lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
+    if (roomOptions.e2eeOptions != null) {
+      switch (roomOptions.e2eeOptions!.encryptionType) {
+        case EncryptionType.kNone:
+          encryptionType = lk_models.Encryption_Type.NONE;
+          break;
+        case EncryptionType.kGcm:
+          encryptionType = lk_models.Encryption_Type.GCM;
+          break;
+        case EncryptionType.kCutsom:
+          encryptionType = lk_models.Encryption_Type.CUSTOM;
+          break;
+      }
+    }
+
     // send request to add track
     signalClient.sendAddTrack(
       cid: cid,
@@ -194,6 +210,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       dimensions: dimensions,
       dtx: dtx,
       videoLayers: videoLayers,
+      encryptionType: encryptionType,
     );
 
     // wait for response, or timeout

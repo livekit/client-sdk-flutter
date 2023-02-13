@@ -10,79 +10,49 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class SignalTarget extends $pb.ProtobufEnum {
-  static const SignalTarget PUBLISHER = SignalTarget._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'PUBLISHER');
-  static const SignalTarget SUBSCRIBER = SignalTarget._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'SUBSCRIBER');
+  static const SignalTarget PUBLISHER = SignalTarget._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'PUBLISHER');
+  static const SignalTarget SUBSCRIBER = SignalTarget._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'SUBSCRIBER');
 
-  static const $core.List<SignalTarget> values = <SignalTarget>[
+  static const $core.List<SignalTarget> values = <SignalTarget> [
     PUBLISHER,
     SUBSCRIBER,
   ];
 
-  static final $core.Map<$core.int, SignalTarget> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, SignalTarget> _byValue = $pb.ProtobufEnum.initByValue(values);
   static SignalTarget? valueOf($core.int value) => _byValue[value];
 
   const SignalTarget._($core.int v, $core.String n) : super(v, n);
 }
 
 class StreamState extends $pb.ProtobufEnum {
-  static const StreamState ACTIVE = StreamState._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'ACTIVE');
-  static const StreamState PAUSED = StreamState._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'PAUSED');
+  static const StreamState ACTIVE = StreamState._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'ACTIVE');
+  static const StreamState PAUSED = StreamState._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'PAUSED');
 
-  static const $core.List<StreamState> values = <StreamState>[
+  static const $core.List<StreamState> values = <StreamState> [
     ACTIVE,
     PAUSED,
   ];
 
-  static final $core.Map<$core.int, StreamState> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, StreamState> _byValue = $pb.ProtobufEnum.initByValue(values);
   static StreamState? valueOf($core.int value) => _byValue[value];
 
   const StreamState._($core.int v, $core.String n) : super(v, n);
 }
 
 class CandidateProtocol extends $pb.ProtobufEnum {
-  static const CandidateProtocol UDP = CandidateProtocol._(
-      0,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'UDP');
-  static const CandidateProtocol TCP = CandidateProtocol._(
-      1,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'TCP');
-  static const CandidateProtocol TLS = CandidateProtocol._(
-      2,
-      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
-          ? ''
-          : 'TLS');
+  static const CandidateProtocol UDP = CandidateProtocol._(0, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'UDP');
+  static const CandidateProtocol TCP = CandidateProtocol._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'TCP');
+  static const CandidateProtocol TLS = CandidateProtocol._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'TLS');
 
-  static const $core.List<CandidateProtocol> values = <CandidateProtocol>[
+  static const $core.List<CandidateProtocol> values = <CandidateProtocol> [
     UDP,
     TCP,
     TLS,
   ];
 
-  static final $core.Map<$core.int, CandidateProtocol> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
+  static final $core.Map<$core.int, CandidateProtocol> _byValue = $pb.ProtobufEnum.initByValue(values);
   static CandidateProtocol? valueOf($core.int value) => _byValue[value];
 
   const CandidateProtocol._($core.int v, $core.String n) : super(v, n);
 }
+

@@ -27,7 +27,6 @@ class E2EEManager {
           var participantId = event.participant.sid;
           var frameCryptor = await _addRtpSender(
               event.publication.track!.sender!, participantId, trackId);
-          event.participant.enabledE2EE = true;
           if (kIsWeb && event.publication.track!.codec != null) {
             await frameCryptor.updateCodec(event.publication.track!.codec!);
           }
@@ -43,8 +42,6 @@ class E2EEManager {
               publication: event.publication,
               state: _e2eeStateFromFrameCryptoState(state),
             ));
-            event.participant.enabledE2EE =
-                state == FrameCryptorState.FrameCryptorStateOk;
           };
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
@@ -57,7 +54,6 @@ class E2EEManager {
           var participantId = event.participant.sid;
           var frameCryptor = await _addRtpReceiver(
               event.track.receiver!, participantId, trackId);
-          event.participant.enabledE2EE = true;
           if (kIsWeb) {
             var codec = event.publication.mimeType.split('/')[1];
             await frameCryptor.updateCodec(codec.toLowerCase());
@@ -75,9 +71,6 @@ class E2EEManager {
               publication: event.publication,
               state: _e2eeStateFromFrameCryptoState(state),
             ));
-
-            event.participant.enabledE2EE =
-                state == FrameCryptorState.FrameCryptorStateOk;
           };
         })
         ..on<TrackUnsubscribedEvent>((event) async {

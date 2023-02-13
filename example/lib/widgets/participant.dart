@@ -15,14 +15,12 @@ abstract class ParticipantWidget extends StatefulWidget {
       return LocalParticipantWidget(
           participantTrack.participant as LocalParticipant,
           participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          participantTrack.enabledE2EE);
+          participantTrack.isScreenShare);
     } else if (participantTrack.participant is RemoteParticipant) {
       return RemoteParticipantWidget(
           participantTrack.participant as RemoteParticipant,
           participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          participantTrack.enabledE2EE);
+          participantTrack.isScreenShare);
     }
     throw UnimplementedError('Unknown participant type');
   }
@@ -31,7 +29,6 @@ abstract class ParticipantWidget extends StatefulWidget {
   abstract final Participant participant;
   abstract final VideoTrack? videoTrack;
   abstract final bool isScreenShare;
-  abstract final bool enabledE2EE;
   final VideoQuality quality;
 
   const ParticipantWidget({
@@ -47,14 +44,11 @@ class LocalParticipantWidget extends ParticipantWidget {
   final VideoTrack? videoTrack;
   @override
   final bool isScreenShare;
-  @override
-  final bool enabledE2EE;
 
   const LocalParticipantWidget(
     this.participant,
     this.videoTrack,
-    this.isScreenShare,
-    this.enabledE2EE, {
+    this.isScreenShare, {
     Key? key,
   }) : super(key: key);
 
@@ -69,14 +63,11 @@ class RemoteParticipantWidget extends ParticipantWidget {
   final VideoTrack? videoTrack;
   @override
   final bool isScreenShare;
-  @override
-  final bool enabledE2EE;
 
   const RemoteParticipantWidget(
     this.participant,
     this.videoTrack,
-    this.isScreenShare,
-    this.enabledE2EE, {
+    this.isScreenShare, {
     Key? key,
   }) : super(key: key);
 
@@ -162,7 +153,8 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
                     isScreenShare: widget.isScreenShare,
-                    enabledE2EE: widget.enabledE2EE,
+                    enabledE2EE: widget.participant.encryptionType !=
+                        EncryptionType.kNone,
                   ),
                 ],
               ),

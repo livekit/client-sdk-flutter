@@ -6,12 +6,10 @@ class ParticipantTrack {
   ParticipantTrack(
       {required this.participant,
       required this.videoTrack,
-      required this.isScreenShare,
-      required this.enabledE2EE});
+      required this.isScreenShare});
   VideoTrack? videoTrack;
   Participant participant;
   final bool isScreenShare;
-  final bool enabledE2EE;
 }
 
 class ParticipantInfoWidget extends StatelessWidget {

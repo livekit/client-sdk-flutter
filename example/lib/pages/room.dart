@@ -107,14 +107,12 @@ class _RoomPageState extends State<RoomPage> {
             participant: participant,
             videoTrack: t.track,
             isScreenShare: true,
-            enabledE2EE: participant.enabledE2EE,
           ));
         } else {
           userMediaTracks.add(ParticipantTrack(
             participant: participant,
             videoTrack: t.track,
             isScreenShare: false,
-            enabledE2EE: participant.enabledE2EE,
           ));
         }
       }
@@ -156,14 +154,12 @@ class _RoomPageState extends State<RoomPage> {
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
             isScreenShare: true,
-            enabledE2EE: t.participant.enabledE2EE,
           ));
         } else {
           userMediaTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
             isScreenShare: false,
-            enabledE2EE: t.participant.enabledE2EE,
           ));
         }
       }
