@@ -550,7 +550,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           ].contains(reason);
     }
 
-    if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
+    if (_restarting ||
+        (_connectionState == ConnectionState.reconnecting && !fullReconnect)) {
       logger.fine('[$objectId] Already reconnecting...');
       return;
     }
@@ -645,7 +646,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _restarting = true;
     await publisher?.dispose();
     publisher = null;
-    _hasPublished = false;
 
     await subscriber?.dispose();
     subscriber = null;
@@ -655,6 +655,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _lossyDCSub = null;
     _lossyDCPub = null;
     await _signalListener.cancelAll();
+    await events.cancelAll();
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
 
@@ -666,21 +667,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fastConnectOptions: fastConnectOptions,
     );
 
-    bool publisherConnected =
-        publisher?.pc.connectionState?.isConnected() ?? false;
-
-    if (publisher != null && !publisherConnected) {
-      logger.warning('restartConnection: Waiting for publisher to connect...');
+    if (_hasPublished) {
+      await negotiate();
+      logger.fine('restartConnection: Waiting for publisher to ice-connect...');
       await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
         filter: (event) => event.state.isConnected(),
-        duration: connectOptions.timeouts.iceRestart,
-        onTimeout: () => throw ConnectException(),
+        duration: connectOptions.timeouts.peerConnection,
       );
-      publisherConnected =
-          publisher?.pc.connectionState?.isConnected() ?? false;
-      logger
-          .warning('restartConnection: publisher conncted $publisherConnected');
     }
+
     fullReconnect = false;
     _restarting = false;
   }

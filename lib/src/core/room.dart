@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
@@ -307,11 +308,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connected) {
         events.emit(const RoomRestartedEvent());
-        // recreate signal listener.
-        await _signalListener.cancelAll();
-        await _signalListener.dispose();
-        _signalListener = engine.signalClient.createListener();
-        _setUpSignalListeners();
         await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
