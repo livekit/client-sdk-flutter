@@ -25,9 +25,9 @@ dependencies:
   protobuf: ^2.1.0
   flutter_webrtc: 0.9.22
   flutter_window_close: ^0.2.2
-  dart_webrtc: 1.0.15
   device_info_plus: ^8.0.0
   webrtc_interface: 1.0.11
+  dart_webrtc: 1.0.15
 
 dev_dependencies:
   flutter_test:

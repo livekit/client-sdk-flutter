@@ -124,6 +124,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     }
 
     if (fastSwitch) {
+      currentOptions = options.copyWith(deviceId: deviceId);
       await rtc.Helper.switchCamera(mediaStreamTrack, deviceId, mediaStream);
       return;
     }
