@@ -1,6 +1,15 @@
 # CHANGELOG
 
+## 1.2.0
+
+* Fix: re-publish tracks after re connect
+* Fix the bug for firefox.
+* Fix crash when using virtual camera (OBS) for osx.
+* Fix crash when screen sharing with simulcast on macOS
+* Feat: support fast switch camera for LocalVideoTrack.
+
 ## 1.1.12
+
 * Fix: Audio output list is empty in android (#231)
 * Update flutter-webrtc to 0.9.19
   * As a result of this, the BLUETOOTH_CONNECT permission for Android is no longer needed.
