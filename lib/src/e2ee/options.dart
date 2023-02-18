@@ -3,7 +3,7 @@ import 'key_provider.dart';
 enum EncryptionType {
   kNone,
   kGcm,
-  kCutsom,
+  kCustom,
 }
 
 class E2EEOptions {
