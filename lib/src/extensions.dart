@@ -173,6 +173,6 @@ extension EncryptionTypeExt on lk_models.Encryption_Type {
   EncryptionType toLkType() => {
         lk_models.Encryption_Type.NONE: EncryptionType.kNone,
         lk_models.Encryption_Type.GCM: EncryptionType.kGcm,
-        lk_models.Encryption_Type.CUSTOM: EncryptionType.kCutsom,
+        lk_models.Encryption_Type.CUSTOM: EncryptionType.kCustom,
       }[this]!;
 }

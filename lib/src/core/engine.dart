@@ -195,7 +195,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         case EncryptionType.kGcm:
           encryptionType = lk_models.Encryption_Type.GCM;
           break;
-        case EncryptionType.kCutsom:
+        case EncryptionType.kCustom:
           encryptionType = lk_models.Encryption_Type.CUSTOM;
           break;
       }
