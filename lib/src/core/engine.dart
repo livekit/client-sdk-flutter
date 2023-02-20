@@ -61,6 +61,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
 
+  bool _restarting = false;
+
   lk_models.ClientConfiguration? _clientConfiguration;
 
   // remember url and token for reconnect
@@ -570,7 +572,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           ].contains(reason);
     }
 
-    if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
+    if (_restarting ||
+        (_connectionState == ConnectionState.reconnecting && !fullReconnect)) {
       logger.fine('[$objectId] Already reconnecting...');
       return;
     }
@@ -588,6 +591,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> resumeConnection() async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('resumeConnection: Already closed.');
@@ -655,10 +659,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> restartConnection([bool signalEvents = false]) async {
+    if (_restarting) {
+      logger.fine('restartConnection: Already restarting...');
+      return;
+    }
+    _restarting = true;
     await publisher?.dispose();
     publisher = null;
-    _hasPublished = false;
 
     await subscriber?.dispose();
     subscriber = null;
@@ -668,6 +677,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _lossyDCSub = null;
     _lossyDCPub = null;
     await _signalListener.cancelAll();
+    await events.cancelAll();
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
 
@@ -679,7 +689,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fastConnectOptions: fastConnectOptions,
     );
 
+    if (_hasPublished) {
+      await negotiate();
+      logger.fine('restartConnection: Waiting for publisher to ice-connect...');
+      await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+        filter: (event) => event.state.isConnected(),
+        duration: connectOptions.timeouts.peerConnection,
+      );
+    }
+
     fullReconnect = false;
+    _restarting = false;
   }
 
   @internal
@@ -789,6 +809,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fullReconnect = true;
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
+        _updateConnectionState(ConnectionState.reconnecting);
         await handleDisconnect(DisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {

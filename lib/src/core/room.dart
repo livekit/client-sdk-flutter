@@ -174,7 +174,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
-          engine.fastConnectOptions != null) {
+          engine.fastConnectOptions != null &&
+          !engine.fullReconnect) {
         var options = engine.fastConnectOptions!;
 
         var audio = options.microphone;
@@ -271,7 +272,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) {
+      if (event.newState == ConnectionState.reconnecting) {
         logger.fine('Sending syncState');
         _sendSyncState();
       }
@@ -314,11 +315,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connected) {
         events.emit(const RoomRestartedEvent());
-        // recreate signal listener.
-        await _signalListener.cancelAll();
-        await _signalListener.dispose();
-        _signalListener = engine.signalClient.createListener();
-        _setUpSignalListeners();
         await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
@@ -372,10 +368,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       engine.signalClient.sendLeave();
     }
     await _cleanUp();
-  }
-
-  Future<void> reconnect() async {
-    await engine.restartConnection();
   }
 
   Future<void> setE2EEEnabled(bool enabled) async {

@@ -116,10 +116,16 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     );
   }
 
-  Future<void> switchCamera(String deviceId) async {
+  Future<void> switchCamera(String deviceId, {bool fastSwitch = false}) async {
     final options = currentOptions;
     if (options is! CameraCaptureOptions) {
       logger.warning('Not a camera track');
+      return;
+    }
+
+    if (fastSwitch) {
+      currentOptions = options.copyWith(deviceId: deviceId);
+      await rtc.Helper.switchCamera(mediaStreamTrack, deviceId, mediaStream);
       return;
     }
 

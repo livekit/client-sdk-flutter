@@ -216,18 +216,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result == true) await widget.room.disconnect();
   }
 
-  void _onTapReconnect() async {
-    final result = await context.showReconnectDialog();
-    if (result == true) {
-      try {
-        await widget.room.reconnect();
-        await context.showReconnectSuccessDialog();
-      } catch (error) {
-        await context.showErrorDialog(error);
-      }
-    }
-  }
-
   void _onTapUpdateSubscribePermission() async {
     final result = await context.showSubscribePermissionDialog();
     if (result != null) {
@@ -439,11 +427,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: _onTapSendData,
             icon: const Icon(EvaIcons.paperPlane),
             tooltip: 'send demo data',
-          ),
-          IconButton(
-            onPressed: _onTapReconnect,
-            icon: const Icon(EvaIcons.refresh),
-            tooltip: 're-connect',
           ),
           IconButton(
             onPressed: _onTapUpdateSubscribePermission,
