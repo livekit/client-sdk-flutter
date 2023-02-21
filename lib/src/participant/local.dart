@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 
 import '../core/room.dart';
 import '../core/signal_client.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';

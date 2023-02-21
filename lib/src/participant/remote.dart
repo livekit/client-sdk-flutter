@@ -1,5 +1,4 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/e2ee/options.dart';
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
