@@ -19,6 +19,7 @@ class E2EEManager {
 
   Future<void> setup(Room room) async {
     if (_room != room) {
+      await _cleanUp();
       _room = room;
       _listener = _room!.createListener();
       _listener!
@@ -63,7 +64,6 @@ class E2EEManager {
               print(
                   'Receiver::onFrameCryptorStateChanged: $state, trackId: $trackId');
             }
-
             var participant = event.participant;
             [event.participant.events, participant.room.events]
                 .emit(TrackE2EEStateEvent(
@@ -79,6 +79,16 @@ class E2EEManager {
           await frameCryptor?.dispose();
         });
     }
+  }
+
+  Future<void> _cleanUp() async {
+    await _listener?.cancelAll();
+    await _listener?.dispose();
+    _listener = null;
+    for (var frameCryptor in _frameCryptors.values) {
+      await frameCryptor.dispose();
+    }
+    _frameCryptors.clear();
   }
 
   Future<FrameCryptor> _addRtpSender(
