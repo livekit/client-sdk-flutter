@@ -43,17 +43,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     updateFromInfo(info);
   }
 
-  @override
-  EncryptionType get encryptionType {
-    if (hasAudio) {
-      return audioTracks.first.encryptionType;
-    } else if (hasVideo) {
-      return videoTracks.first.encryptionType;
-    } else {
-      return EncryptionType.kNone;
-    }
-  }
-
   /// A convenience property to get all video tracks.
   @override
   List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>

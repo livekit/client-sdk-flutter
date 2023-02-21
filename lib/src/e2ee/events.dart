@@ -24,7 +24,4 @@ class TrackE2EEStateEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, state: ${state})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }

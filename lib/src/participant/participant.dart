@@ -92,7 +92,15 @@ abstract class Participant<T extends TrackPublication>
   // Must be implemented by child class.
   List<T> get audioTracks;
 
-  EncryptionType get encryptionType;
+  EncryptionType get firstTrackEncryptionType {
+    if (hasAudio) {
+      return audioTracks.first.encryptionType;
+    } else if (hasVideo) {
+      return videoTracks.first.encryptionType;
+    } else {
+      return EncryptionType.kNone;
+    }
+  }
 
   @internal
   bool get hasInfo => _participantInfo != null;
