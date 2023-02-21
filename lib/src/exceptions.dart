@@ -57,3 +57,11 @@ class DataPublishException extends LiveKitException {
 class TimeoutException extends LiveKitException {
   TimeoutException([String msg = 'Timeout']) : super._(msg);
 }
+
+/// An exception for End to End Encryption.
+class LiveKitE2EEException extends LiveKitException {
+  LiveKitE2EEException([String msg = 'E2EE error']) : super._(msg);
+
+  @override
+  String toString() => 'E2EE Exception: [$runtimeType] $message';
+}

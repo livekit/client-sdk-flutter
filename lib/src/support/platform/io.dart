@@ -11,3 +11,13 @@ PlatformType lkPlatformImplementation() {
   if (Platform.isAndroid) return PlatformType.android;
   throw UnsupportedError('Unknown Platform');
 }
+
+bool lkE2EESupportedImplementation() {
+  return [
+    PlatformType.windows,
+    PlatformType.linux,
+    PlatformType.macOS,
+    PlatformType.iOS,
+    PlatformType.android,
+  ].contains(lkPlatformImplementation());
+}

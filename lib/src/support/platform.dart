@@ -9,6 +9,8 @@ PlatformType lkPlatform() => lkPlatformImplementation();
 
 bool lkPlatformIs(PlatformType type) => lkPlatform() == type;
 
+bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
+
 @internal
 bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
 
