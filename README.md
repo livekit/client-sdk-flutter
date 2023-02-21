@@ -12,13 +12,13 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 
 ## Current supported features
 
-| Feature | Subscribe/Publish | Simulcast | Background audio | Screen sharing |
-| :-----: | :---------------: | :-------: | :--------------: | :------------: |
-|   Web   |        🟢         |    🟢     |        🟢        |       🟢       |
-|   iOS   |        🟢         |    🟢     |        🟢        |       🟢       |
-| Android |        🟢         |    🟢     |        🟢        |       🟢       |
-|   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |
-| Windows |        🟢         |    🟢     |        🟢        |       🟢       |
+| Feature | Subscribe/Publish | Simulcast | Background audio | Screen sharing | End to End Encryption |
+| :-----: | :---------------: | :-------: | :--------------: | :------------: | :------------: |
+|   Web   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+|   iOS   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+| Android |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+|   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+| Windows |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
 
 🟢 = Available
 
@@ -205,6 +205,21 @@ try {
 } catch (e) {
   print('could not publish screen sharing: $e');
 }
+```
+
+### End to End Encryption
+
+LiveKit supports end-to-end encryption for audio/video data sent over the network.
+By default, the native platform can support E2EE without any settings, but for flutter web, you need to use the following steps to create `e2ee.worker.dart.js` file.
+
+```bash
+# for example app
+dart compile js .\web\e2ee.worker.dart -o .\example\web\e2ee.worker.dart.js
+# for your project 
+export YOU_PROJECT_DIR=your_project_dir
+git clone https://github.com/livekit/client-sdk-flutter.git
+cd client-sdk-flutter && flutter pub get
+dart compile js .\web\e2ee.worker.dart -o ${YOU_PROJECT_DIR}\web\e2ee.worker.dart.js
 ```
 
 ### Advanced track manipulation
