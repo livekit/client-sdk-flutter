@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:platform_detect/platform_detect.dart';
+import 'package:livekit_client/src/support/platform.dart';
 
 import '../events.dart';
 import '../extensions.dart';
@@ -86,7 +86,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         await _attach();
       })();
     }
-    if (browser.isSafari || browser.isFirefox) {
+
+    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser())) {
       (() async {
         _renderer.srcObject = widget.track.mediaStream;
       })();

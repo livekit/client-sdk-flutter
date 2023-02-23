@@ -11,3 +11,7 @@ PlatformType lkPlatformImplementation() {
   if (Platform.isAndroid) return PlatformType.android;
   throw UnsupportedError('Unknown Platform');
 }
+
+BrowserType lkBrowserImplementation() {
+  return BrowserType.unknown;
+}

@@ -12,6 +12,8 @@ bool lkPlatformIs(PlatformType type) => lkPlatform() == type;
 @internal
 bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
 
+BrowserType lkBrowser() => lkBrowserImplementation();
+
 enum PlatformType {
   web,
   windows,
@@ -20,4 +22,13 @@ enum PlatformType {
   android,
   fuchsia,
   iOS,
+}
+
+enum BrowserType {
+  chrome,
+  firefox,
+  safari,
+  internetExplorer,
+  wkWebView,
+  unknown,
 }
