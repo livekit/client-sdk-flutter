@@ -319,6 +319,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await publication.mute();
         }
       }
+      await publication.track?.applyAudioSettings();
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {

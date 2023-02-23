@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 class MediaDevice {
   const MediaDevice(this.deviceId, this.label, this.kind);
@@ -40,6 +41,8 @@ class Hardware {
           devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??=
           devices.firstWhereOrNull((element) => element.kind == 'videoinput');
+      _lastDevices = devices;
+      speakerOn = true;
     });
   }
 
@@ -53,6 +56,10 @@ class Hardware {
   MediaDevice? selectedAudioOutput;
 
   MediaDevice? selectedVideoInput;
+
+  bool? speakerOn;
+
+  List<MediaDevice>? _lastDevices;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -85,7 +92,7 @@ class Hardware {
   }
 
   Future<void> selectAudioInput(MediaDevice device) async {
-    if (rtc.WebRTC.platformIsWeb || rtc.WebRTC.platformIsIOS) {
+    if (rtc.WebRTC.platformIsWeb) {
       throw UnimplementedError(
           'selectAudioInput is only supported on Android/Windows/macOS');
     }
@@ -95,6 +102,7 @@ class Hardware {
 
   Future<void> setSpeakerphoneOn(bool enable) async {
     if (rtc.WebRTC.platformIsMobile) {
+      speakerOn = enable;
       await rtc.Helper.setSpeakerphoneOn(enable);
     } else {
       throw UnimplementedError('setSpeakerphoneOn only support on iOS/Android');
@@ -131,5 +139,23 @@ class Hardware {
     selectedVideoInput ??=
         devices.firstWhereOrNull((element) => element.kind == 'videoinput');
     onDeviceChange.add(devices);
+    _lastDevices = devices;
+  }
+
+  @internal
+  Future<void> applyAudioSettings() async {
+    var devices = await enumerateDevices();
+    // if devices no changes, reselect audio input/output
+    if (_lastDevices?.equals(devices) == true) {
+      if (selectedAudioInput != null && !rtc.WebRTC.platformIsWeb) {
+        await selectAudioInput(selectedAudioInput!);
+      }
+      if (selectedAudioOutput != null && !rtc.WebRTC.platformIsWeb) {
+        await selectAudioOutput(selectedAudioOutput!);
+      }
+    }
+    if (speakerOn != null && rtc.WebRTC.platformIsMobile) {
+      await setSpeakerphoneOn(speakerOn!);
+    }
   }
 }

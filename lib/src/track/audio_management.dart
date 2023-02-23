@@ -1,3 +1,4 @@
+import 'package:livekit_client/src/hardware/hardware.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
@@ -27,6 +28,12 @@ int _localTrackCount = 0;
 int _remoteTrackCount = 0;
 
 mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {
+  @override
+  Future<void> applyAudioSettings() async {
+    var hardware = Hardware.instance;
+    await hardware.applyAudioSettings();
+  }
+
   @override
   Future<bool> onPublish() async {
     final didUpdate = await super.onPublish();
