@@ -88,6 +88,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+    await track.applyAudioSettings();
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -228,6 +229,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       // did unpublish
       await track.onUnpublish();
+      await track.applyAudioSettings();
     }
 
     if (notify) {
