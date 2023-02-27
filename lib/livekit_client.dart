@@ -7,6 +7,7 @@ export 'src/exceptions.dart';
 export 'src/extensions.dart' show WidgetsBindingCompatible;
 export 'src/hardware/hardware.dart';
 export 'src/livekit.dart';
+export 'src/logger.dart';
 export 'src/managers/event.dart';
 export 'src/options.dart';
 export 'src/participant/local.dart';
