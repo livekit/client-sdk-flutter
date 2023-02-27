@@ -3,6 +3,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
 import '../extensions.dart';
+import '../hardware/hardware.dart';
 import '../internal/events.dart';
 import '../managers/event.dart';
 import '../track/local/local.dart';
@@ -20,11 +21,13 @@ class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
+  final MediaDevice? audioOutput;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
+    this.audioOutput,
     Key? key,
   }) : super(key: key);
 
@@ -67,6 +70,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       ..on<TrackStreamUpdatedEvent>((event) {
         if (!mounted) return;
         _renderer.srcObject = event.stream;
+        if (widget.audioOutput != null) {
+          _renderer.audioOutput(widget.audioOutput!.deviceId);
+        }
       })
       ..on<LocalTrackOptionsUpdatedEvent>((event) {
         if (!mounted) return;
