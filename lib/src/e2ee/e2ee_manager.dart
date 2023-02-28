@@ -141,20 +141,20 @@ class E2EEManager {
     }
   }
 
-  E2EEStateState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
+  E2EEState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
     switch (state) {
       case FrameCryptorState.FrameCryptorStateNew:
-        return E2EEStateState.kNew;
+        return E2EEState.kNew;
       case FrameCryptorState.FrameCryptorStateOk:
-        return E2EEStateState.kOk;
+        return E2EEState.kOk;
       case FrameCryptorState.FrameCryptorStateMissingKey:
-        return E2EEStateState.kMissingKey;
+        return E2EEState.kMissingKey;
       case FrameCryptorState.FrameCryptorStateEncryptionFailed:
-        return E2EEStateState.kEncryptionFailed;
+        return E2EEState.kEncryptionFailed;
       case FrameCryptorState.FrameCryptorStateDecryptionFailed:
-        return E2EEStateState.kDecryptionFailed;
+        return E2EEState.kDecryptionFailed;
       case FrameCryptorState.FrameCryptorStateInternalError:
-        return E2EEStateState.kInternalError;
+        return E2EEState.kInternalError;
     }
   }
 }

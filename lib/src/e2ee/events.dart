@@ -1,6 +1,6 @@
 import '../../livekit_client.dart';
 
-enum E2EEStateState {
+enum E2EEState {
   kNew,
   kOk,
   kMissingKey,
@@ -14,7 +14,7 @@ enum E2EEStateState {
 class TrackE2EEStateEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final TrackPublication publication;
-  final E2EEStateState state;
+  final E2EEState state;
   const TrackE2EEStateEvent({
     required this.participant,
     required this.publication,
