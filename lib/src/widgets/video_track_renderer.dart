@@ -87,10 +87,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       })();
     }
 
-    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser())) {
-      (() async {
-        _renderer.srcObject = widget.track.mediaStream;
-      })();
+    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) &&
+        oldWidget.key != widget.key) {
+      _renderer.srcObject = widget.track.mediaStream;
     }
   }
 
