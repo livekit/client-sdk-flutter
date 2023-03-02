@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/support/platform.dart';
 
 import '../events.dart';
 import '../extensions.dart';
@@ -23,6 +24,12 @@ class VideoTrackRenderer extends StatefulWidget {
   final VideoViewMirrorMode mirrorMode;
   final MediaDevice? audioOutput;
 
+  /// Creates a [VideoTrackRenderer] widget.
+  /// [fit] is used to specify how the video should be resized to fit the view.
+  /// [mirrorMode] is used to specify if the video should be mirrored.
+  /// [audioOutput] is used to specify the audio output device for the track.
+  /// This is only supported on web. for native platforms, use
+  /// [Hardware.selectAudioOutput] to change the audio output device.
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
@@ -70,7 +77,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       ..on<TrackStreamUpdatedEvent>((event) {
         if (!mounted) return;
         _renderer.srcObject = event.stream;
-        if (widget.audioOutput != null) {
+        if (widget.audioOutput != null && lkPlatform() == PlatformType.web) {
           _renderer.audioOutput(widget.audioOutput!.deviceId);
         }
       })
