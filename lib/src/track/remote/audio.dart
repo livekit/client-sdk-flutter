@@ -43,4 +43,8 @@ class RemoteAudioTrack extends RemoteTrack
     }
     return didStop;
   }
+
+  Future<void> setAudioOutput(String deviceId) async {
+    audio.setAudioOutput(getCid(), deviceId);
+  }
 }

@@ -51,3 +51,10 @@ html.DivElement findOrCreateAudioContainer() {
   html.document.body?.append(div);
   return div as html.DivElement;
 }
+
+void setAudioOutput(String id, String deviceId) {
+  final audioElement = html.document.getElementById(audioPrefix + id);
+  if (audioElement is html.AudioElement) {
+    audioElement.setSinkId(deviceId);
+  }
+}
