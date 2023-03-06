@@ -161,16 +161,15 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   ...extraWidgets(
                     widget.isScreenShare,
                   ),
-                  if (lkPlatformIs(PlatformType.web))
-                    ParticipantInfoWidget(
-                      title: widget.participant.name.isNotEmpty
-                          ? '${widget.participant.name} (${widget.participant.identity})'
-                          : widget.participant.identity,
-                      audioAvailable: firstAudioPublication?.muted == false &&
-                          firstAudioPublication?.subscribed == true,
-                      connectionQuality: widget.participant.connectionQuality,
-                      isScreenShare: widget.isScreenShare,
-                    ),
+                  ParticipantInfoWidget(
+                    title: widget.participant.name.isNotEmpty
+                        ? '${widget.participant.name} (${widget.participant.identity})'
+                        : widget.participant.identity,
+                    audioAvailable: firstAudioPublication?.muted == false &&
+                        firstAudioPublication?.subscribed == true,
+                    connectionQuality: widget.participant.connectionQuality,
+                    isScreenShare: widget.isScreenShare,
+                  ),
                 ],
               ),
             ),
@@ -228,12 +227,13 @@ class _RemoteParticipantWidgetState
                 pub: firstAudioPublication!,
                 icon: EvaIcons.volumeUp,
               ),
-            RemoteTrackAudioOutputSelectMenuWidget(
-              audioOutputs: _audioOutputs ?? [],
-              selected: _selectedAudioDevice,
-              onSelected: _onMediaDeviceSelected,
-              icon: EvaIcons.speaker,
-            ),
+            if (lkPlatformIs(PlatformType.web))
+              RemoteTrackAudioOutputSelectMenuWidget(
+                audioOutputs: _audioOutputs ?? [],
+                selected: _selectedAudioDevice,
+                onSelected: _onMediaDeviceSelected,
+                icon: EvaIcons.speaker,
+              ),
           ],
         ),
       ];
