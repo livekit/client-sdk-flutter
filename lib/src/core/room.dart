@@ -42,7 +42,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   ConnectOptions get connectOptions => engine.connectOptions;
   RoomOptions get roomOptions => engine.roomOptions;
 
-  //of SID to RemoteParticipant
+  /// map of SID to RemoteParticipant
   UnmodifiableMapView<String, RemoteParticipant> get participants =>
       UnmodifiableMapView(_participants);
   final _participants = <String, RemoteParticipant>{};
