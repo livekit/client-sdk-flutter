@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';

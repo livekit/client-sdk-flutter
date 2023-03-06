@@ -1,4 +1,3 @@
-import 'package:livekit_client/src/hardware/hardware.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../logger.dart';
