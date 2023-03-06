@@ -116,7 +116,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   // since the updated values are computed properties.
   void _onParticipantChanged() => setState(() {});
 
-  void _onMediaDeviceSelected(MediaDevice device) {
+  void _onSelectAudioOutput(MediaDevice device) {
     var audioTrack = firstAudioPublication?.track as RemoteAudioTrack;
     audioTrack.setAudioOutput(device.deviceId);
     setState(() {
@@ -231,7 +231,7 @@ class _RemoteParticipantWidgetState
               RemoteTrackAudioOutputSelectMenuWidget(
                 audioOutputs: _audioOutputs ?? [],
                 selected: _selectedAudioDevice,
-                onSelected: _onMediaDeviceSelected,
+                onSelected: _onSelectAudioOutput,
                 icon: EvaIcons.speaker,
               ),
           ],
