@@ -317,43 +317,45 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               icon: const Icon(EvaIcons.micOff),
               tooltip: 'un-mute audio',
             ),
-          PopupMenuButton<MediaDevice>(
-            icon: const Icon(Icons.volume_up),
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem<MediaDevice>(
-                  value: null,
-                  child: ListTile(
-                    leading: Icon(
-                      EvaIcons.speaker,
-                      color: Colors.white,
-                    ),
-                    title: Text('Select Audio Output'),
-                  ),
-                ),
-                if (_audioOutputs != null)
-                  ..._audioOutputs!.map((device) {
-                    return PopupMenuItem<MediaDevice>(
-                      value: device,
-                      child: ListTile(
-                        leading: (device.deviceId ==
-                                Hardware.instance.selectedAudioOutput?.deviceId)
-                            ? const Icon(
-                                EvaIcons.checkmarkSquare,
-                                color: Colors.white,
-                              )
-                            : const Icon(
-                                EvaIcons.square,
-                                color: Colors.white,
-                              ),
-                        title: Text(device.label),
+          if (!lkPlatformIs(PlatformType.web))
+            PopupMenuButton<MediaDevice>(
+              icon: const Icon(Icons.volume_up),
+              itemBuilder: (BuildContext context) {
+                return [
+                  const PopupMenuItem<MediaDevice>(
+                    value: null,
+                    child: ListTile(
+                      leading: Icon(
+                        EvaIcons.speaker,
+                        color: Colors.white,
                       ),
-                      onTap: () => _selectAudioOutput(device),
-                    );
-                  }).toList()
-              ];
-            },
-          ),
+                      title: Text('Select Audio Output'),
+                    ),
+                  ),
+                  if (_audioOutputs != null)
+                    ..._audioOutputs!.map((device) {
+                      return PopupMenuItem<MediaDevice>(
+                        value: device,
+                        child: ListTile(
+                          leading: (device.deviceId ==
+                                  Hardware
+                                      .instance.selectedAudioOutput?.deviceId)
+                              ? const Icon(
+                                  EvaIcons.checkmarkSquare,
+                                  color: Colors.white,
+                                )
+                              : const Icon(
+                                  EvaIcons.square,
+                                  color: Colors.white,
+                                ),
+                          title: Text(device.label),
+                        ),
+                        onTap: () => _selectAudioOutput(device),
+                      );
+                    }).toList()
+                ];
+              },
+            ),
           if (participant.isCameraEnabled())
             PopupMenuButton<MediaDevice>(
               icon: const Icon(EvaIcons.video),

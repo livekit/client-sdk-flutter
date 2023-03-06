@@ -17,6 +17,7 @@ export 'src/proto/livekit_models.pb.dart' show TrackType, VideoQuality;
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
+export 'src/support/platform.dart';
 export 'src/track/local/audio.dart';
 export 'src/track/local/local.dart';
 export 'src/track/local/video.dart';
