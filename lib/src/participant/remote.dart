@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
@@ -75,6 +76,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     rtc.MediaStream stream,
     String trackSid, {
     rtc.RTCRtpReceiver? receiver,
+    AudioOutputOptions audioOutputOptions = const AudioOutputOptions(),
   }) async {
     logger.fine('addSubscribedMediaTrack()');
 
@@ -123,6 +125,13 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     await track.start();
+    if (pub.kind == lk_models.TrackType.AUDIO) {
+      if (audioOutputOptions.deviceId != null) {
+        await (track as RemoteAudioTrack)
+            .setAudioOutput(audioOutputOptions.deviceId!);
+      }
+    }
+
     await pub.updateTrack(track);
     await pub.updateSubscriptionAllowed(true);
     addTrackPublication(pub);

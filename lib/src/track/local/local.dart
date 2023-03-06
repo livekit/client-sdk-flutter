@@ -184,11 +184,6 @@ abstract class LocalTrack extends Track {
   }
 
   @internal
-  Future<void> applyAudioSettings() async {
-    logger.fine('$objectId.applyAudioSettings()');
-  }
-
-  @internal
   @mustCallSuper
   Future<bool> onPublish() async {
     if (_published) {

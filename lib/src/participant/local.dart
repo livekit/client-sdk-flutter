@@ -7,6 +7,7 @@ import '../core/signal_client.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
+import '../hardware/hardware.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -88,7 +89,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
-    await track.applyAudioSettings();
+    await room.applyAudioSpeakerSettings();
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -229,7 +230,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       // did unpublish
       await track.onUnpublish();
-      await track.applyAudioSettings();
+      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {
@@ -321,7 +322,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await publication.mute();
         }
       }
-      await publication.track?.applyAudioSettings();
+      await room.applyAudioSpeakerSettings();
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {

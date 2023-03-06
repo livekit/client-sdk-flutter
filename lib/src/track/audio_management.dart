@@ -29,12 +29,6 @@ int _remoteTrackCount = 0;
 
 mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {
   @override
-  Future<void> applyAudioSettings() async {
-    var hardware = Hardware.instance;
-    await hardware.applyAudioSettings();
-  }
-
-  @override
   Future<bool> onPublish() async {
     final didUpdate = await super.onPublish();
     if (didUpdate) {
