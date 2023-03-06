@@ -647,15 +647,18 @@ extension RoomDebugMethods on Room {
 extension RoomHardwareManagementMethods on Room {
   /// Get current audio output device.
   String? get selectedAudioOutputDeviceId =>
-      roomOptions.defaultAudioOutputOptions.deviceId;
+      roomOptions.defaultAudioOutputOptions.deviceId ??
+      Hardware.instance.selectedAudioOutput?.deviceId;
 
   /// Get current audio input device.
   String? get selectedAudioInputDeviceId =>
-      roomOptions.defaultAudioCaptureOptions.deviceId;
+      roomOptions.defaultAudioCaptureOptions.deviceId ??
+      Hardware.instance.selectedAudioInput?.deviceId;
 
   /// Get current video input device.
   String? get selectedVideoInputDeviceId =>
-      roomOptions.defaultCameraCaptureOptions.deviceId;
+      roomOptions.defaultCameraCaptureOptions.deviceId ??
+      Hardware.instance.selectedVideoInput?.deviceId;
 
   /// Get mobile device's speaker status.
   bool? get speakerOn => roomOptions.defaultAudioOutputOptions.speakerOn;
