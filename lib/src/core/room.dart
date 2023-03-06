@@ -668,7 +668,7 @@ extension RoomHardwareManagementMethods on Room {
     if (lkPlatformIs(PlatformType.web)) {
       participants.forEach((_, participant) {
         for (var audioTrack in participant.audioTracks) {
-          audioTrack.track?.setAudioOutput(device.deviceId);
+          audioTrack.track?.setSinkId(device.deviceId);
         }
       });
       Hardware.instance.selectedAudioOutput = device;

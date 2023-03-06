@@ -132,7 +132,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
         lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
         await (track as RemoteAudioTrack)
-            .setAudioOutput(audioOutputOptions.deviceId!);
+            .setSinkId(audioOutputOptions.deviceId!);
       }
     }
 

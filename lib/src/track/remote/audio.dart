@@ -31,7 +31,7 @@ class RemoteAudioTrack extends RemoteTrack
       // web support
       audio.startAudio(getCid(), mediaStreamTrack);
       if (_deviceId != null) {
-        audio.setAudioOutput(getCid(), _deviceId!);
+        audio.setSinkId(getCid(), _deviceId!);
       }
     }
     return didStart;
@@ -47,8 +47,8 @@ class RemoteAudioTrack extends RemoteTrack
     return didStop;
   }
 
-  Future<void> setAudioOutput(String deviceId) async {
-    audio.setAudioOutput(getCid(), deviceId);
+  Future<void> setSinkId(String deviceId) async {
+    audio.setSinkId(getCid(), deviceId);
     _deviceId = deviceId;
   }
 }
