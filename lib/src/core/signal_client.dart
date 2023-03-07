@@ -210,7 +210,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.leave:
-        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
+        events.emit(SignalLeaveEvent(
+            canReconnect: msg.leave.canReconnect, reason: msg.leave.reason));
         break;
       case lk_rtc.SignalResponse_Message.mute:
         events.emit(SignalRemoteMuteTrackEvent(

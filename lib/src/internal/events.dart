@@ -247,8 +247,10 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
 @internal
 class SignalLeaveEvent with SignalEvent, InternalEvent {
   final bool canReconnect;
+  final lk_models.DisconnectReason reason;
   const SignalLeaveEvent({
     required this.canReconnect,
+    required this.reason,
   });
 }
 

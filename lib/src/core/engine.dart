@@ -18,6 +18,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../support/websocket.dart';
+import '../types/internal.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
@@ -220,7 +221,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnect = true;
       }
-      await handleDisconnect(DisconnectReason.negotiationFailed);
+      await handleDisconnect(ClientDisconnectReason.negotiationFailed);
     }
   }
 
@@ -370,9 +371,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
       if (event.state.isDisconnectedOrFailed()) {
-        handleDisconnect(DisconnectReason.reconnect);
+        handleDisconnect(ClientDisconnectReason.reconnect);
       } else if (event.state.isClosed()) {
-        handleDisconnect(DisconnectReason.peerConnectionClosed);
+        handleDisconnect(ClientDisconnectReason.peerConnectionClosed);
       }
     });
 
@@ -536,7 +537,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> handleDisconnect(DisconnectReason reason) async {
+  Future<void> handleDisconnect(ClientDisconnectReason reason) async {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
@@ -544,9 +545,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           [
-            DisconnectReason.leaveReconnect,
-            DisconnectReason.negotiationFailed,
-            DisconnectReason.peerConnectionClosed
+            ClientDisconnectReason.leaveReconnect,
+            ClientDisconnectReason.negotiationFailed,
+            ClientDisconnectReason.peerConnectionClosed
           ].contains(reason);
     }
 
@@ -732,7 +733,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        await handleDisconnect(DisconnectReason.signal);
+        await handleDisconnect(ClientDisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -788,14 +789,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
         _updateConnectionState(ConnectionState.reconnecting);
-        await handleDisconnect(DisconnectReason.leaveReconnect);
+        await handleDisconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
           logger.warning(
               '[Signal] Received Leave while engine is reconnecting, ignoring...');
           return;
         }
-        _updateConnectionState(ConnectionState.disconnected);
+        _updateConnectionState(ConnectionState.disconnected,
+            reason: event.reason.toSDKType());
         await cleanUp();
       }
     });
@@ -811,7 +813,8 @@ extension EnginePrivateMethods on Engine {
       _publisherDataChannel(reliability)?.state ??
       rtc.RTCDataChannelState.RTCDataChannelClosed;
 
-  void _updateConnectionState(ConnectionState newValue) {
+  void _updateConnectionState(ConnectionState newValue,
+      {DisconnectReason? reason}) {
     if (_connectionState == newValue) return;
 
     logger.fine('Engine ConnectionState '
@@ -828,6 +831,7 @@ extension EnginePrivateMethods on Engine {
       oldState: oldState,
       didReconnect: didReconnect,
       fullReconnect: fullReconnect,
+      disconnectReason: reason,
     ));
   }
 }
