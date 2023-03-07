@@ -11,7 +11,7 @@ import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
 
 class RemoteAudioTrack extends RemoteTrack
     with AudioTrack, RemoteAudioManagementMixin {
-  //
+  String? _deviceId;
   RemoteAudioTrack(String name, TrackSource source, rtc.MediaStream stream,
       rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
@@ -30,6 +30,9 @@ class RemoteAudioTrack extends RemoteTrack
     if (didStart) {
       // web support
       audio.startAudio(getCid(), mediaStreamTrack);
+      if (_deviceId != null) {
+        audio.setSinkId(getCid(), _deviceId!);
+      }
     }
     return didStart;
   }
@@ -44,7 +47,8 @@ class RemoteAudioTrack extends RemoteTrack
     return didStop;
   }
 
-  Future<void> setAudioOutput(String deviceId) async {
-    audio.setAudioOutput(getCid(), deviceId);
+  Future<void> setSinkId(String deviceId) async {
+    audio.setSinkId(getCid(), deviceId);
+    _deviceId = deviceId;
   }
 }

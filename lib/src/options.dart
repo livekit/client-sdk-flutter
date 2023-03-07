@@ -67,6 +67,8 @@ class RoomOptions {
   /// Default options used when publishing a [LocalAudioTrack].
   final AudioPublishOptions defaultAudioPublishOptions;
 
+  final AudioOutputOptions defaultAudioOutputOptions;
+
   /// AdaptiveStream lets LiveKit automatically manage quality of subscribed
   /// video tracks to optimize for bandwidth and CPU.
   /// When attached video elements are visible, it'll choose an appropriate
@@ -92,10 +94,42 @@ class RoomOptions {
     this.defaultAudioCaptureOptions = const AudioCaptureOptions(),
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
+    this.defaultAudioOutputOptions = const AudioOutputOptions(),
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
   });
+
+  RoomOptions copyWith({
+    CameraCaptureOptions? defaultCameraCaptureOptions,
+    ScreenShareCaptureOptions? defaultScreenShareCaptureOptions,
+    AudioCaptureOptions? defaultAudioCaptureOptions,
+    VideoPublishOptions? defaultVideoPublishOptions,
+    AudioPublishOptions? defaultAudioPublishOptions,
+    AudioOutputOptions? defaultAudioOutputOptions,
+    bool? adaptiveStream,
+    bool? dynacast,
+    bool? stopLocalTrackOnUnpublish,
+  }) {
+    return RoomOptions(
+      defaultCameraCaptureOptions:
+          defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
+      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions ??
+          this.defaultScreenShareCaptureOptions,
+      defaultAudioCaptureOptions:
+          defaultAudioCaptureOptions ?? this.defaultAudioCaptureOptions,
+      defaultVideoPublishOptions:
+          defaultVideoPublishOptions ?? this.defaultVideoPublishOptions,
+      defaultAudioPublishOptions:
+          defaultAudioPublishOptions ?? this.defaultAudioPublishOptions,
+      defaultAudioOutputOptions:
+          defaultAudioOutputOptions ?? this.defaultAudioOutputOptions,
+      adaptiveStream: adaptiveStream ?? this.adaptiveStream,
+      dynacast: dynacast ?? this.dynacast,
+      stopLocalTrackOnUnpublish:
+          stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+    );
+  }
 }
 
 /// Options used when publishing video.

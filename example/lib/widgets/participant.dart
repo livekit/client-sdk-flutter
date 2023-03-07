@@ -82,20 +82,12 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   VideoTrack? get activeVideoTrack;
   TrackPublication? get videoPublication;
   TrackPublication? get firstAudioPublication;
-  List<MediaDevice>? _audioOutputs;
-  MediaDevice? _selectedAudioDevice;
 
   @override
   void initState() {
     super.initState();
     widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
-    Hardware.instance.audioOutputs().then((value) {
-      setState(() {
-        _audioOutputs = value;
-        _selectedAudioDevice = _audioOutputs?.firstOrNull;
-      });
-    });
   }
 
   @override
@@ -115,14 +107,6 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   // Notify Flutter that UI re-build is required, but we don't set anything here
   // since the updated values are computed properties.
   void _onParticipantChanged() => setState(() {});
-
-  void _onSelectAudioOutput(MediaDevice device) {
-    var audioTrack = firstAudioPublication?.track as RemoteAudioTrack;
-    audioTrack.setAudioOutput(device.deviceId);
-    setState(() {
-      _selectedAudioDevice = device;
-    });
-  }
 
   // Widgets to show above the info bar
   List<Widget> extraWidgets(bool isScreenShare) => [];
@@ -146,8 +130,10 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
             InkWell(
               onTap: () => setState(() => _visible = !_visible),
               child: activeVideoTrack != null && !activeVideoTrack!.muted
-                  ? VideoTrackRenderer(activeVideoTrack!,
-                      fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain)
+                  ? VideoTrackRenderer(
+                      activeVideoTrack!,
+                      fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
+                    )
                   : const NoVideoWidget(),
             ),
 
@@ -158,9 +144,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ...extraWidgets(
-                    widget.isScreenShare,
-                  ),
+                  ...extraWidgets(widget.isScreenShare),
                   ParticipantInfoWidget(
                     title: widget.participant.name.isNotEmpty
                         ? '${widget.participant.name} (${widget.participant.identity})'
@@ -227,13 +211,6 @@ class _RemoteParticipantWidgetState
                 pub: firstAudioPublication!,
                 icon: EvaIcons.volumeUp,
               ),
-            if (lkPlatformIs(PlatformType.web))
-              RemoteTrackAudioOutputSelectMenuWidget(
-                audioOutputs: _audioOutputs ?? [],
-                selected: _selectedAudioDevice,
-                onSelected: _onSelectAudioOutput,
-                icon: EvaIcons.speaker,
-              ),
           ],
         ),
       ];
@@ -272,43 +249,6 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
                 child: const Text('Un-subscribe'),
                 value: () => pub.unsubscribe(),
               ),
-          ],
-        ),
-      );
-}
-
-class RemoteTrackAudioOutputSelectMenuWidget extends StatelessWidget {
-  final IconData icon;
-  final List<MediaDevice> audioOutputs;
-  final MediaDevice? selected;
-  final Function(MediaDevice) onSelected;
-  const RemoteTrackAudioOutputSelectMenuWidget({
-    required this.audioOutputs,
-    required this.onSelected,
-    required this.selected,
-    required this.icon,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
-        child: PopupMenuButton<Function>(
-          tooltip: 'Select AudioOutput',
-          icon: Icon(icon),
-          onSelected: (value) => value(),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
-            ...audioOutputs
-                .map((e) => PopupMenuItem(
-                      child: ListTile(
-                        trailing: (e.deviceId == selected?.deviceId)
-                            ? const Icon(Icons.check, color: Colors.white)
-                            : null,
-                        title: Text(e.label),
-                      ),
-                      value: () => onSelected(e),
-                    ))
-                .toList(),
           ],
         ),
       );

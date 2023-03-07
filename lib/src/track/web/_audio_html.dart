@@ -1,5 +1,5 @@
 import 'dart:html' as html;
-
+import 'dart:js_util' as jsutil;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 // ignore: implementation_imports
@@ -52,9 +52,10 @@ html.DivElement findOrCreateAudioContainer() {
   return div as html.DivElement;
 }
 
-void setAudioOutput(String id, String deviceId) {
+void setSinkId(String id, String deviceId) {
   final audioElement = html.document.getElementById(audioPrefix + id);
-  if (audioElement is html.AudioElement) {
+  if (audioElement is html.AudioElement &&
+      jsutil.hasProperty(audioElement, 'setSinkId')) {
     audioElement.setSinkId(deviceId);
   }
 }

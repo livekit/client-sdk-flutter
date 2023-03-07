@@ -8,6 +8,8 @@ import '../extensions.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/remote.dart';
+import '../support/platform.dart';
+import '../track/options.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
@@ -75,6 +77,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     rtc.MediaStream stream,
     String trackSid, {
     rtc.RTCRtpReceiver? receiver,
+    AudioOutputOptions audioOutputOptions = const AudioOutputOptions(),
   }) async {
     logger.fine('addSubscribedMediaTrack()');
 
@@ -123,6 +126,16 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     await track.start();
+
+    /// Apply audio output selection for the web.
+    if (pub.kind == lk_models.TrackType.AUDIO &&
+        lkPlatformIs(PlatformType.web)) {
+      if (audioOutputOptions.deviceId != null) {
+        await (track as RemoteAudioTrack)
+            .setSinkId(audioOutputOptions.deviceId!);
+      }
+    }
+
     await pub.updateTrack(track);
     await pub.updateSubscriptionAllowed(true);
     addTrackPublication(pub);

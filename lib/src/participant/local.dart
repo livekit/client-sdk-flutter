@@ -88,6 +88,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+    await room.applyAudioSpeakerSettings();
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -228,6 +229,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       // did unpublish
       await track.onUnpublish();
+      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {
@@ -319,6 +321,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await publication.mute();
         }
       }
+      await room.applyAudioSpeakerSettings();
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {

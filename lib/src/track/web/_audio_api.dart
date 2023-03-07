@@ -8,6 +8,6 @@ void stopAudio(String id) {
   // do nothing
 }
 
-void setAudioOutput(String id, String deviceId) {
+void setSinkId(String id, String deviceId) {
   // do nothing
 }
