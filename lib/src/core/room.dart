@@ -70,6 +70,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
 
+  bool get isRecording => _isRecording;
+  bool _isRecording = false;
+
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
@@ -152,6 +155,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
+
+      if (_isRecording != event.response.room.activeRecording) {
+        _isRecording = event.response.room.activeRecording;
+        emitWhenConnected(
+            RoomRecordingStatusChanged(activeRecording: _isRecording));
+      }
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
@@ -261,6 +270,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.room.metadata;
       emitWhenConnected(
           RoomMetadataChangedEvent(metadata: event.room.metadata));
+      if (_isRecording != event.room.activeRecording) {
+        _isRecording = event.room.activeRecording;
+        emitWhenConnected(
+            RoomRecordingStatusChanged(activeRecording: _isRecording));
+      }
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.

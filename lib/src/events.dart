@@ -84,6 +84,17 @@ class RoomMetadataChangedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+class RoomRecordingStatusChanged with RoomEvent {
+  final bool activeRecording;
+
+  const RoomRecordingStatusChanged({
+    required this.activeRecording,
+  });
+
+  @override
+  String toString() => '${runtimeType}(activeRecording = $activeRecording)';
+}
+
 /// When a new [RemoteParticipant] joins *after* the current participant has connected
 /// It will not fire for participants that are already in the room
 /// Emitted by [Room].
