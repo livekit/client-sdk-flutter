@@ -65,10 +65,13 @@ class RoomRestartedEvent with RoomEvent {
 /// Disconnected from the room
 /// Emitted by [Room].
 class RoomDisconnectedEvent with RoomEvent {
-  const RoomDisconnectedEvent();
+  DisconnectReason? reason;
+  RoomDisconnectedEvent({
+    this.reason,
+  });
 
   @override
-  String toString() => '${runtimeType}()';
+  String toString() => '${runtimeType}($reason)';
 }
 
 /// Room metadata has changed.

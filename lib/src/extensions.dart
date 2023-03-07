@@ -170,3 +170,21 @@ extension WidgetsBindingCompatible on WidgetsBinding {
   // always return optional type for compatibility with flutter v2 and v3
   static WidgetsBinding? get instance => WidgetsBinding.instance;
 }
+
+extension DisconnectReasonExt on lk_models.DisconnectReason {
+  DisconnectReason toSDKType() => {
+        lk_models.DisconnectReason.UNKNOWN_REASON: DisconnectReason.unknown,
+        lk_models.DisconnectReason.CLIENT_INITIATED:
+            DisconnectReason.clientInitiated,
+        lk_models.DisconnectReason.DUPLICATE_IDENTITY:
+            DisconnectReason.duplicateIdentity,
+        lk_models.DisconnectReason.SERVER_SHUTDOWN:
+            DisconnectReason.serverShutdown,
+        lk_models.DisconnectReason.PARTICIPANT_REMOVED:
+            DisconnectReason.participantRemoved,
+        lk_models.DisconnectReason.ROOM_DELETED: DisconnectReason.roomDeleted,
+        lk_models.DisconnectReason.STATE_MISMATCH:
+            DisconnectReason.stateMismatch,
+        lk_models.DisconnectReason.JOIN_FAILURE: DisconnectReason.joinFailure,
+      }[this]!;
+}

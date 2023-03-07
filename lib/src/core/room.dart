@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -313,7 +314,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.newState == ConnectionState.disconnected) {
         if (!event.fullReconnect) {
           await _cleanUp();
-          events.emit(const RoomDisconnectedEvent());
+          events.emit(RoomDisconnectedEvent(reason: event.disconnectReason));
         }
       }
       // always notify ChangeNotifier
