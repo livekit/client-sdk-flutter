@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 
 @internal
-enum InternalDisconnectReason {
+enum ClientDisconnectReason {
   user,
   peerConnectionClosed,
   negotiationFailed,

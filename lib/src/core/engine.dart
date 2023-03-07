@@ -221,7 +221,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnect = true;
       }
-      await handleDisconnect(InternalDisconnectReason.negotiationFailed);
+      await handleDisconnect(ClientDisconnectReason.negotiationFailed);
     }
   }
 
@@ -371,9 +371,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
       if (event.state.isDisconnectedOrFailed()) {
-        handleDisconnect(InternalDisconnectReason.reconnect);
+        handleDisconnect(ClientDisconnectReason.reconnect);
       } else if (event.state.isClosed()) {
-        handleDisconnect(InternalDisconnectReason.peerConnectionClosed);
+        handleDisconnect(ClientDisconnectReason.peerConnectionClosed);
       }
     });
 
@@ -537,7 +537,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> handleDisconnect(InternalDisconnectReason reason) async {
+  Future<void> handleDisconnect(ClientDisconnectReason reason) async {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
@@ -545,9 +545,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           [
-            InternalDisconnectReason.leaveReconnect,
-            InternalDisconnectReason.negotiationFailed,
-            InternalDisconnectReason.peerConnectionClosed
+            ClientDisconnectReason.leaveReconnect,
+            ClientDisconnectReason.negotiationFailed,
+            ClientDisconnectReason.peerConnectionClosed
           ].contains(reason);
     }
 
@@ -733,7 +733,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        await handleDisconnect(InternalDisconnectReason.signal);
+        await handleDisconnect(ClientDisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -789,7 +789,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
         _updateConnectionState(ConnectionState.reconnecting);
-        await handleDisconnect(InternalDisconnectReason.leaveReconnect);
+        await handleDisconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
           logger.warning(
