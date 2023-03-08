@@ -61,6 +61,9 @@ class _RoomPageState extends State<RoomPage> {
       WidgetsBindingCompatible.instance
           ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
     })
+    ..on<RoomRecordingStatusChanged>((event) {
+      context.showRecordingStatusChangedDialog(event.activeRecording);
+    })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
     ..on<DataReceivedEvent>((event) {
