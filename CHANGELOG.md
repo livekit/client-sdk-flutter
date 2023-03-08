@@ -2,8 +2,8 @@
 
 ## 1.2.1
 
-* Fix: fix memory leak for screen capture.
-* Feat: web/native device consistency management.
+* Fix: fix memory leak for screen capture (macOS).
+* Feat: web/native device consistency management (native/web).
 * Fix: fix renderer issue for Safari/Firefox.
 * Fix: set forceRelay if server response is enabled.
 * Feat: Forward leave reason of disconnected events.
