@@ -84,6 +84,8 @@ class RoomMetadataChangedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// Room recording status has changed.
+/// Emitted by [Room].
 class RoomRecordingStatusChanged with RoomEvent {
   final bool activeRecording;
 
