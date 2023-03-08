@@ -279,7 +279,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _configurePeerConnections(
-      {required lk_models.ClientConfigSetting forceRelay,
+      {required lk_models.ClientConfigSetting serverResponseForceRelay,
       required List<RTCIceServer> serverProvidedIceServers}) async {
     if (publisher != null || subscriber != null) {
       logger.warning('Already configured');
@@ -297,23 +297,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           .copyWith(iceServers: serverProvidedIceServers);
     }
 
-    // set forceRelay
-    if (rtcConfiguration.iceTransportPolicy == null) {
-      switch (forceRelay) {
-        case lk_models.ClientConfigSetting.ENABLED:
-          rtcConfiguration = rtcConfiguration.copyWith(
-            iceTransportPolicy: RTCIceTransportPolicy.relay,
-          );
-          break;
-        case lk_models.ClientConfigSetting.DISABLED:
-          rtcConfiguration = rtcConfiguration.copyWith(
-            iceTransportPolicy: RTCIceTransportPolicy.all,
-          );
-          break;
-        case lk_models.ClientConfigSetting.UNSET:
-          // do nothing
-          break;
-      }
+    // set forceRelay if server response is enabled
+    if (serverResponseForceRelay == lk_models.ClientConfigSetting.ENABLED) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+        iceTransportPolicy: RTCIceTransportPolicy.relay,
+      );
     }
 
     publisher = await Transport.create(_peerConnectionCreate,
@@ -723,7 +711,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
       await _configurePeerConnections(
-          forceRelay: event.response.clientConfiguration.forceRelay,
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
       if (!_subscriberPrimary) {
