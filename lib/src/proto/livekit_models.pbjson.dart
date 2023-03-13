@@ -20,8 +20,8 @@ const AudioCodec$json = const {
 };
 
 /// Descriptor for `AudioCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List audioCodecDescriptor =
-    $convert.base64Decode('CgpBdWRpb0NvZGVjEg4KCkRFRkFVTFRfQUMQABIICgRPUFVTEAESBwoDQUFDEAI=');
+final $typed_data.Uint8List audioCodecDescriptor = $convert.base64Decode(
+    'CgpBdWRpb0NvZGVjEg4KCkRFRkFVTFRfQUMQABIICgRPUFVTEAESBwoDQUFDEAI=');
 @$core.Deprecated('Use videoCodecDescriptor instead')
 const VideoCodec$json = const {
   '1': 'VideoCodec',
@@ -48,8 +48,8 @@ const TrackType$json = const {
 };
 
 /// Descriptor for `TrackType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List trackTypeDescriptor =
-    $convert.base64Decode('CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
+final $typed_data.Uint8List trackTypeDescriptor = $convert.base64Decode(
+    'CglUcmFja1R5cGUSCQoFQVVESU8QABIJCgVWSURFTxABEggKBERBVEEQAg==');
 @$core.Deprecated('Use trackSourceDescriptor instead')
 const TrackSource$json = const {
   '1': 'TrackSource',
@@ -77,8 +77,8 @@ const VideoQuality$json = const {
 };
 
 /// Descriptor for `VideoQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List videoQualityDescriptor = $convert
-    .base64Decode('CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBACEgcKA09GRhAD');
+final $typed_data.Uint8List videoQualityDescriptor = $convert.base64Decode(
+    'CgxWaWRlb1F1YWxpdHkSBwoDTE9XEAASCgoGTUVESVVNEAESCAoESElHSBACEgcKA09GRhAD');
 @$core.Deprecated('Use connectionQualityDescriptor instead')
 const ConnectionQuality$json = const {
   '1': 'ConnectionQuality',
@@ -90,8 +90,8 @@ const ConnectionQuality$json = const {
 };
 
 /// Descriptor for `ConnectionQuality`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List connectionQualityDescriptor = $convert
-    .base64Decode('ChFDb25uZWN0aW9uUXVhbGl0eRIICgRQT09SEAASCAoER09PRBABEg0KCUVYQ0VMTEVOVBAC');
+final $typed_data.Uint8List connectionQualityDescriptor = $convert.base64Decode(
+    'ChFDb25uZWN0aW9uUXVhbGl0eRIICgRQT09SEAASCAoER09PRBABEg0KCUVYQ0VMTEVOVBAC');
 @$core.Deprecated('Use clientConfigSettingDescriptor instead')
 const ClientConfigSetting$json = const {
   '1': 'ClientConfigSetting',
@@ -145,7 +145,13 @@ const Room$json = const {
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
     const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'empty_timeout', '3': 3, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    const {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '10': 'maxParticipants'},
+    const {
+      '1': 'max_participants',
+      '3': 4,
+      '4': 1,
+      '5': 13,
+      '10': 'maxParticipants'
+    },
     const {'1': 'creation_time', '3': 5, '4': 1, '5': 3, '10': 'creationTime'},
     const {'1': 'turn_password', '3': 6, '4': 1, '5': 9, '10': 'turnPassword'},
     const {
@@ -157,8 +163,20 @@ const Room$json = const {
       '10': 'enabledCodecs'
     },
     const {'1': 'metadata', '3': 8, '4': 1, '5': 9, '10': 'metadata'},
-    const {'1': 'num_participants', '3': 9, '4': 1, '5': 13, '10': 'numParticipants'},
-    const {'1': 'active_recording', '3': 10, '4': 1, '5': 8, '10': 'activeRecording'},
+    const {
+      '1': 'num_participants',
+      '3': 9,
+      '4': 1,
+      '5': 13,
+      '10': 'numParticipants'
+    },
+    const {
+      '1': 'active_recording',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'activeRecording'
+    },
   ],
 };
 
@@ -175,15 +193,21 @@ const Codec$json = const {
 };
 
 /// Descriptor for `Codec`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List codecDescriptor = $convert
-    .base64Decode('CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
+final $typed_data.Uint8List codecDescriptor = $convert.base64Decode(
+    'CgVDb2RlYxISCgRtaW1lGAEgASgJUgRtaW1lEhsKCWZtdHBfbGluZRgCIAEoCVIIZm10cExpbmU=');
 @$core.Deprecated('Use participantPermissionDescriptor instead')
 const ParticipantPermission$json = const {
   '1': 'ParticipantPermission',
   '2': const [
     const {'1': 'can_subscribe', '3': 1, '4': 1, '5': 8, '10': 'canSubscribe'},
     const {'1': 'can_publish', '3': 2, '4': 1, '5': 8, '10': 'canPublish'},
-    const {'1': 'can_publish_data', '3': 3, '4': 1, '5': 8, '10': 'canPublishData'},
+    const {
+      '1': 'can_publish_data',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '10': 'canPublishData'
+    },
     const {
       '1': 'can_publish_sources',
       '3': 9,
@@ -194,7 +218,13 @@ const ParticipantPermission$json = const {
     },
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
     const {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
-    const {'1': 'can_update_metadata', '3': 10, '4': 1, '5': 8, '10': 'canUpdateMetadata'},
+    const {
+      '1': 'can_update_metadata',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'canUpdateMetadata'
+    },
   ],
 };
 
@@ -215,7 +245,14 @@ const ParticipantInfo$json = const {
       '6': '.livekit.ParticipantInfo.State',
       '10': 'state'
     },
-    const {'1': 'tracks', '3': 4, '4': 3, '5': 11, '6': '.livekit.TrackInfo', '10': 'tracks'},
+    const {
+      '1': 'tracks',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackInfo',
+      '10': 'tracks'
+    },
     const {'1': 'metadata', '3': 5, '4': 1, '5': 9, '10': 'metadata'},
     const {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     const {'1': 'name', '3': 9, '4': 1, '5': 9, '10': 'name'},
@@ -265,8 +302,8 @@ const Encryption_Type$json = const {
 };
 
 /// Descriptor for `Encryption`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List encryptionDescriptor =
-    $convert.base64Decode('CgpFbmNyeXB0aW9uIiUKBFR5cGUSCAoETk9ORRAAEgcKA0dDTRABEgoKBkNVU1RPTRAC');
+final $typed_data.Uint8List encryptionDescriptor = $convert.base64Decode(
+    'CgpFbmNyeXB0aW9uIiUKBFR5cGUSCAoETk9ORRAAEgcKA0dDTRABEgoKBkNVU1RPTRAC');
 @$core.Deprecated('Use simulcastCodecInfoDescriptor instead')
 const SimulcastCodecInfo$json = const {
   '1': 'SimulcastCodecInfo',
@@ -274,7 +311,14 @@ const SimulcastCodecInfo$json = const {
     const {'1': 'mime_type', '3': 1, '4': 1, '5': 9, '10': 'mimeType'},
     const {'1': 'mid', '3': 2, '4': 1, '5': 9, '10': 'mid'},
     const {'1': 'cid', '3': 3, '4': 1, '5': 9, '10': 'cid'},
-    const {'1': 'layers', '3': 4, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
+    const {
+      '1': 'layers',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
   ],
 };
 
@@ -286,15 +330,36 @@ const TrackInfo$json = const {
   '1': 'TrackInfo',
   '2': const [
     const {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
-    const {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackType', '10': 'type'},
+    const {
+      '1': 'type',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.TrackType',
+      '10': 'type'
+    },
     const {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'muted', '3': 4, '4': 1, '5': 8, '10': 'muted'},
     const {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
     const {'1': 'height', '3': 6, '4': 1, '5': 13, '10': 'height'},
     const {'1': 'simulcast', '3': 7, '4': 1, '5': 8, '10': 'simulcast'},
     const {'1': 'disable_dtx', '3': 8, '4': 1, '5': 8, '10': 'disableDtx'},
-    const {'1': 'source', '3': 9, '4': 1, '5': 14, '6': '.livekit.TrackSource', '10': 'source'},
-    const {'1': 'layers', '3': 10, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
+    const {
+      '1': 'source',
+      '3': 9,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.TrackSource',
+      '10': 'source'
+    },
+    const {
+      '1': 'layers',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
     const {'1': 'mime_type', '3': 11, '4': 1, '5': 9, '10': 'mimeType'},
     const {'1': 'mid', '3': 12, '4': 1, '5': 9, '10': 'mid'},
     const {
@@ -325,7 +390,14 @@ final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
 const VideoLayer$json = const {
   '1': 'VideoLayer',
   '2': const [
-    const {'1': 'quality', '3': 1, '4': 1, '5': 14, '6': '.livekit.VideoQuality', '10': 'quality'},
+    const {
+      '1': 'quality',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'quality'
+    },
     const {'1': 'width', '3': 2, '4': 1, '5': 13, '10': 'width'},
     const {'1': 'height', '3': 3, '4': 1, '5': 13, '10': 'height'},
     const {'1': 'bitrate', '3': 4, '4': 1, '5': 13, '10': 'bitrate'},
@@ -340,8 +412,23 @@ final $typed_data.Uint8List videoLayerDescriptor = $convert.base64Decode(
 const DataPacket$json = const {
   '1': 'DataPacket',
   '2': const [
-    const {'1': 'kind', '3': 1, '4': 1, '5': 14, '6': '.livekit.DataPacket.Kind', '10': 'kind'},
-    const {'1': 'user', '3': 2, '4': 1, '5': 11, '6': '.livekit.UserPacket', '9': 0, '10': 'user'},
+    const {
+      '1': 'kind',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DataPacket.Kind',
+      '10': 'kind'
+    },
+    const {
+      '1': 'user',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UserPacket',
+      '9': 0,
+      '10': 'user'
+    },
     const {
       '1': 'speaker',
       '3': 3,
@@ -374,7 +461,14 @@ final $typed_data.Uint8List dataPacketDescriptor = $convert.base64Decode(
 const ActiveSpeakerUpdate$json = const {
   '1': 'ActiveSpeakerUpdate',
   '2': const [
-    const {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
+    const {
+      '1': 'speakers',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SpeakerInfo',
+      '10': 'speakers'
+    },
   ],
 };
 
@@ -398,10 +492,30 @@ final $typed_data.Uint8List speakerInfoDescriptor = $convert.base64Decode(
 const UserPacket$json = const {
   '1': 'UserPacket',
   '2': const [
-    const {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
     const {'1': 'payload', '3': 2, '4': 1, '5': 12, '10': 'payload'},
-    const {'1': 'destination_sids', '3': 3, '4': 3, '5': 9, '10': 'destinationSids'},
-    const {'1': 'topic', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'topic', '17': true},
+    const {
+      '1': 'destination_sids',
+      '3': 3,
+      '4': 3,
+      '5': 9,
+      '10': 'destinationSids'
+    },
+    const {
+      '1': 'topic',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'topic',
+      '17': true
+    },
   ],
   '8': const [
     const {'1': '_topic'},
@@ -415,7 +529,13 @@ final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
 const ParticipantTracks$json = const {
   '1': 'ParticipantTracks',
   '2': const [
-    const {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
+    const {
+      '1': 'participant_sid',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantSid'
+    },
     const {'1': 'track_sids', '3': 2, '4': 3, '5': 9, '10': 'trackSids'},
   ],
 };
@@ -460,14 +580,27 @@ final $typed_data.Uint8List serverInfoDescriptor = $convert.base64Decode(
 const ClientInfo$json = const {
   '1': 'ClientInfo',
   '2': const [
-    const {'1': 'sdk', '3': 1, '4': 1, '5': 14, '6': '.livekit.ClientInfo.SDK', '10': 'sdk'},
+    const {
+      '1': 'sdk',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ClientInfo.SDK',
+      '10': 'sdk'
+    },
     const {'1': 'version', '3': 2, '4': 1, '5': 9, '10': 'version'},
     const {'1': 'protocol', '3': 3, '4': 1, '5': 5, '10': 'protocol'},
     const {'1': 'os', '3': 4, '4': 1, '5': 9, '10': 'os'},
     const {'1': 'os_version', '3': 5, '4': 1, '5': 9, '10': 'osVersion'},
     const {'1': 'device_model', '3': 6, '4': 1, '5': 9, '10': 'deviceModel'},
     const {'1': 'browser', '3': 7, '4': 1, '5': 9, '10': 'browser'},
-    const {'1': 'browser_version', '3': 8, '4': 1, '5': 9, '10': 'browserVersion'},
+    const {
+      '1': 'browser_version',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'browserVersion'
+    },
     const {'1': 'address', '3': 9, '4': 1, '5': 9, '10': 'address'},
     const {'1': 'network', '3': 10, '4': 1, '5': 9, '10': 'network'},
   ],
@@ -563,13 +696,20 @@ final $typed_data.Uint8List videoConfigurationDescriptor = $convert.base64Decode
 const DisabledCodecs$json = const {
   '1': 'DisabledCodecs',
   '2': const [
-    const {'1': 'codecs', '3': 1, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'codecs'},
+    const {
+      '1': 'codecs',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.Codec',
+      '10': 'codecs'
+    },
   ],
 };
 
 /// Descriptor for `DisabledCodecs`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List disabledCodecsDescriptor = $convert
-    .base64Decode('Cg5EaXNhYmxlZENvZGVjcxImCgZjb2RlY3MYASADKAsyDi5saXZla2l0LkNvZGVjUgZjb2RlY3M=');
+final $typed_data.Uint8List disabledCodecsDescriptor = $convert.base64Decode(
+    'Cg5EaXNhYmxlZENvZGVjcxImCgZjb2RlY3MYASADKAsyDi5saXZla2l0LkNvZGVjUgZjb2RlY3M=');
 @$core.Deprecated('Use rTPStatsDescriptor instead')
 const RTPStats$json = const {
   '1': 'RTPStats',
@@ -597,22 +737,100 @@ const RTPStats$json = const {
     const {'1': 'header_bytes', '3': 39, '4': 1, '5': 4, '10': 'headerBytes'},
     const {'1': 'bitrate', '3': 7, '4': 1, '5': 1, '10': 'bitrate'},
     const {'1': 'packets_lost', '3': 8, '4': 1, '5': 13, '10': 'packetsLost'},
-    const {'1': 'packet_loss_rate', '3': 9, '4': 1, '5': 1, '10': 'packetLossRate'},
-    const {'1': 'packet_loss_percentage', '3': 10, '4': 1, '5': 2, '10': 'packetLossPercentage'},
-    const {'1': 'packets_duplicate', '3': 11, '4': 1, '5': 13, '10': 'packetsDuplicate'},
-    const {'1': 'packet_duplicate_rate', '3': 12, '4': 1, '5': 1, '10': 'packetDuplicateRate'},
-    const {'1': 'bytes_duplicate', '3': 13, '4': 1, '5': 4, '10': 'bytesDuplicate'},
-    const {'1': 'header_bytes_duplicate', '3': 40, '4': 1, '5': 4, '10': 'headerBytesDuplicate'},
-    const {'1': 'bitrate_duplicate', '3': 14, '4': 1, '5': 1, '10': 'bitrateDuplicate'},
-    const {'1': 'packets_padding', '3': 15, '4': 1, '5': 13, '10': 'packetsPadding'},
-    const {'1': 'packet_padding_rate', '3': 16, '4': 1, '5': 1, '10': 'packetPaddingRate'},
+    const {
+      '1': 'packet_loss_rate',
+      '3': 9,
+      '4': 1,
+      '5': 1,
+      '10': 'packetLossRate'
+    },
+    const {
+      '1': 'packet_loss_percentage',
+      '3': 10,
+      '4': 1,
+      '5': 2,
+      '10': 'packetLossPercentage'
+    },
+    const {
+      '1': 'packets_duplicate',
+      '3': 11,
+      '4': 1,
+      '5': 13,
+      '10': 'packetsDuplicate'
+    },
+    const {
+      '1': 'packet_duplicate_rate',
+      '3': 12,
+      '4': 1,
+      '5': 1,
+      '10': 'packetDuplicateRate'
+    },
+    const {
+      '1': 'bytes_duplicate',
+      '3': 13,
+      '4': 1,
+      '5': 4,
+      '10': 'bytesDuplicate'
+    },
+    const {
+      '1': 'header_bytes_duplicate',
+      '3': 40,
+      '4': 1,
+      '5': 4,
+      '10': 'headerBytesDuplicate'
+    },
+    const {
+      '1': 'bitrate_duplicate',
+      '3': 14,
+      '4': 1,
+      '5': 1,
+      '10': 'bitrateDuplicate'
+    },
+    const {
+      '1': 'packets_padding',
+      '3': 15,
+      '4': 1,
+      '5': 13,
+      '10': 'packetsPadding'
+    },
+    const {
+      '1': 'packet_padding_rate',
+      '3': 16,
+      '4': 1,
+      '5': 1,
+      '10': 'packetPaddingRate'
+    },
     const {'1': 'bytes_padding', '3': 17, '4': 1, '5': 4, '10': 'bytesPadding'},
-    const {'1': 'header_bytes_padding', '3': 41, '4': 1, '5': 4, '10': 'headerBytesPadding'},
-    const {'1': 'bitrate_padding', '3': 18, '4': 1, '5': 1, '10': 'bitratePadding'},
-    const {'1': 'packets_out_of_order', '3': 19, '4': 1, '5': 13, '10': 'packetsOutOfOrder'},
+    const {
+      '1': 'header_bytes_padding',
+      '3': 41,
+      '4': 1,
+      '5': 4,
+      '10': 'headerBytesPadding'
+    },
+    const {
+      '1': 'bitrate_padding',
+      '3': 18,
+      '4': 1,
+      '5': 1,
+      '10': 'bitratePadding'
+    },
+    const {
+      '1': 'packets_out_of_order',
+      '3': 19,
+      '4': 1,
+      '5': 13,
+      '10': 'packetsOutOfOrder'
+    },
     const {'1': 'frames', '3': 20, '4': 1, '5': 13, '10': 'frames'},
     const {'1': 'frame_rate', '3': 21, '4': 1, '5': 1, '10': 'frameRate'},
-    const {'1': 'jitter_current', '3': 22, '4': 1, '5': 1, '10': 'jitterCurrent'},
+    const {
+      '1': 'jitter_current',
+      '3': 22,
+      '4': 1,
+      '5': 1,
+      '10': 'jitterCurrent'
+    },
     const {'1': 'jitter_max', '3': 23, '4': 1, '5': 1, '10': 'jitterMax'},
     const {
       '1': 'gap_histogram',
@@ -625,7 +843,13 @@ const RTPStats$json = const {
     const {'1': 'nacks', '3': 25, '4': 1, '5': 13, '10': 'nacks'},
     const {'1': 'nack_acks', '3': 37, '4': 1, '5': 13, '10': 'nackAcks'},
     const {'1': 'nack_misses', '3': 26, '4': 1, '5': 13, '10': 'nackMisses'},
-    const {'1': 'nack_repeated', '3': 38, '4': 1, '5': 13, '10': 'nackRepeated'},
+    const {
+      '1': 'nack_repeated',
+      '3': 38,
+      '4': 1,
+      '5': 13,
+      '10': 'nackRepeated'
+    },
     const {'1': 'plis', '3': 27, '4': 1, '5': 13, '10': 'plis'},
     const {
       '1': 'last_pli',
@@ -655,7 +879,13 @@ const RTPStats$json = const {
       '6': '.google.protobuf.Timestamp',
       '10': 'lastKeyFrame'
     },
-    const {'1': 'layer_lock_plis', '3': 35, '4': 1, '5': 13, '10': 'layerLockPlis'},
+    const {
+      '1': 'layer_lock_plis',
+      '3': 35,
+      '4': 1,
+      '5': 13,
+      '10': 'layerLockPlis'
+    },
     const {
       '1': 'last_layer_lock_pli',
       '3': 36,
