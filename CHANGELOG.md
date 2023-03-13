@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.2.1
+
+* Fix: fix memory leak for screen capture (macOS).
+* Feat: web/native device consistency management (native/web).
+* Fix: fix renderer issue for Safari/Firefox.
+* Fix: set forceRelay if server response is enabled.
+* Feat: Forward leave reason of disconnected events.
+* Feat: expose logger level api.
+* Feat: expose Room recording event.
+
 ## 1.2.0
 
 * Fix: re-publish tracks after re connect

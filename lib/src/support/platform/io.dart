@@ -21,3 +21,7 @@ bool lkE2EESupportedImplementation() {
     PlatformType.android,
   ].contains(lkPlatformImplementation());
 }
+
+BrowserType lkBrowserImplementation() {
+  return BrowserType.unknown;
+}

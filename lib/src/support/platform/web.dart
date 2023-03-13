@@ -1,6 +1,8 @@
 import '../platform.dart';
 import 'dart:js' as js;
 
+import 'package:platform_detect/platform_detect.dart';
+
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
 bool lkE2EESupportedImplementation() {
@@ -14,4 +16,13 @@ bool isScriptTransformSupported() {
 bool isInsertableStreamSupported() {
   return js.context['RTCRtpSender'] != null &&
       js.context['RTCRtpSender']['prototype']['createEncodedStreams'] != null;
+}
+
+BrowserType lkBrowserImplementation() {
+  if (browser.isChrome) return BrowserType.chrome;
+  if (browser.isFirefox) return BrowserType.firefox;
+  if (browser.isSafari) return BrowserType.safari;
+  if (browser.isInternetExplorer) return BrowserType.internetExplorer;
+  if (browser.isWKWebView) return BrowserType.wkWebView;
+  return BrowserType.unknown;
 }

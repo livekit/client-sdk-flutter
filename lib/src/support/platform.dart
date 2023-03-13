@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:meta/meta.dart';
-
 import 'platform/io.dart' if (dart.library.html) 'platform/web.dart';
 
 // Returns the current platform which works for both web and devices.
@@ -14,6 +12,8 @@ bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
 @internal
 bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
 
+BrowserType lkBrowser() => lkBrowserImplementation();
+
 enum PlatformType {
   web,
   windows,
@@ -22,4 +22,13 @@ enum PlatformType {
   android,
   fuchsia,
   iOS,
+}
+
+enum BrowserType {
+  chrome,
+  firefox,
+  safari,
+  internetExplorer,
+  wkWebView,
+  unknown,
 }

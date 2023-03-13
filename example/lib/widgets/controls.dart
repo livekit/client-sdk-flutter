@@ -33,7 +33,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   List<MediaDevice>? _audioInputs;
   List<MediaDevice>? _audioOutputs;
   List<MediaDevice>? _videoInputs;
-  MediaDevice? _selectedVideoInput;
 
   StreamSubscription? _subscription;
 
@@ -61,7 +60,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _audioOutputs = devices.where((d) => d.kind == 'audiooutput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
-    _selectedVideoInput = _videoInputs?.first;
     setState(() {});
   }
 
@@ -94,23 +92,18 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _selectAudioOutput(MediaDevice device) async {
-    await Hardware.instance.selectAudioOutput(device);
+    await widget.room.setAudioOutputDevice(device);
     setState(() {});
   }
 
   void _selectAudioInput(MediaDevice device) async {
-    await Hardware.instance.selectAudioInput(device);
+    await widget.room.setAudioInputDevice(device);
     setState(() {});
   }
 
   void _selectVideoInput(MediaDevice device) async {
-    final track = participant.videoTracks.firstOrNull?.track;
-    if (track == null) return;
-    if (_selectedVideoInput?.deviceId != device.deviceId) {
-      await track.switchCamera(device.deviceId);
-      _selectedVideoInput = device;
-      setState(() {});
-    }
+    await widget.room.setVideoInputDevice(device);
+    setState(() {});
   }
 
   void _toggleCamera() async {
@@ -293,8 +286,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         value: device,
                         child: ListTile(
                           leading: (device.deviceId ==
-                                  Hardware
-                                      .instance.selectedAudioInput?.deviceId)
+                                  widget.room.selectedAudioInputDeviceId)
                               ? const Icon(
                                   EvaIcons.checkmarkSquare,
                                   color: Colors.white,
@@ -337,7 +329,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       value: device,
                       child: ListTile(
                         leading: (device.deviceId ==
-                                Hardware.instance.selectedAudioOutput?.deviceId)
+                                widget.room.selectedAudioOutputDeviceId)
                             ? const Icon(
                                 EvaIcons.checkmarkSquare,
                                 color: Colors.white,
@@ -375,16 +367,16 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       return PopupMenuItem<MediaDevice>(
                         value: device,
                         child: ListTile(
-                          leading:
-                              (device.deviceId == _selectedVideoInput?.deviceId)
-                                  ? const Icon(
-                                      EvaIcons.checkmarkSquare,
-                                      color: Colors.white,
-                                    )
-                                  : const Icon(
-                                      EvaIcons.square,
-                                      color: Colors.white,
-                                    ),
+                          leading: (device.deviceId ==
+                                  widget.room.selectedVideoInputDeviceId)
+                              ? const Icon(
+                                  EvaIcons.checkmarkSquare,
+                                  color: Colors.white,
+                                )
+                              : const Icon(
+                                  EvaIcons.square,
+                                  color: Colors.white,
+                                ),
                           title: Text(device.label),
                         ),
                         onTap: () => _selectVideoInput(device),

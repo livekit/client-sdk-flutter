@@ -229,4 +229,40 @@ class AudioCaptureOptions extends LocalTrackOptions {
     }
     return constraints;
   }
+
+  AudioCaptureOptions copyWith({
+    String? deviceId,
+    bool? noiseSuppression,
+    bool? echoCancellation,
+    bool? autoGainControl,
+    bool? highPassFilter,
+    bool? typingNoiseDetection,
+  }) {
+    return AudioCaptureOptions(
+      deviceId: deviceId ?? this.deviceId,
+      noiseSuppression: noiseSuppression ?? this.noiseSuppression,
+      echoCancellation: echoCancellation ?? this.echoCancellation,
+      autoGainControl: autoGainControl ?? this.autoGainControl,
+      highPassFilter: highPassFilter ?? this.highPassFilter,
+      typingNoiseDetection: typingNoiseDetection ?? this.typingNoiseDetection,
+    );
+  }
+}
+
+class AudioOutputOptions {
+  /// The deviceId of the output device to use.
+  final String? deviceId;
+
+  /// If true, the audio will be played on the speaker.
+  /// for mobile only
+  final bool? speakerOn;
+
+  const AudioOutputOptions({this.deviceId, this.speakerOn});
+
+  AudioOutputOptions copyWith({String? deviceId, bool? speakerOn}) {
+    return AudioOutputOptions(
+      deviceId: deviceId ?? this.deviceId,
+      speakerOn: speakerOn ?? this.speakerOn,
+    );
+  }
 }

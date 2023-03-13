@@ -61,12 +61,14 @@ enum StreamState {
 }
 
 enum DisconnectReason {
-  user,
-  peerConnectionClosed,
-  negotiationFailed,
-  signal,
-  reconnect,
-  leaveReconnect,
+  unknown,
+  clientInitiated,
+  duplicateIdentity,
+  serverShutdown,
+  participantRemoved,
+  roomDeleted,
+  stateMismatch,
+  joinFailure,
 }
 
 /// The reason why a track failed to publish.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/support/platform.dart';
 
 import '../events.dart';
 import '../extensions.dart';
@@ -78,14 +79,17 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    //
     if (widget.track != oldWidget.track) {
       oldWidget.track.removeViewKey(_internalKey);
       _internalKey = widget.track.addViewKey();
-      // TODO: re-attach only if needed
       (() async {
         await _attach();
       })();
+    }
+
+    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) &&
+        oldWidget.key != widget.key) {
+      _renderer.srcObject = widget.track.mediaStream;
     }
   }
 

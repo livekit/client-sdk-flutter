@@ -15,6 +15,16 @@ class LocalAudioTrack extends LocalTrack
   @override
   covariant AudioCaptureOptions currentOptions;
 
+  Future<void> setDeviceId(String deviceId) async {
+    if (currentOptions.deviceId == deviceId) {
+      return;
+    }
+    currentOptions = currentOptions.copyWith(deviceId: deviceId);
+    if (!muted) {
+      await restartTrack();
+    }
+  }
+
   // private constructor
   @internal
   LocalAudioTrack(
