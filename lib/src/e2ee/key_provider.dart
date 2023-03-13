@@ -40,22 +40,25 @@ class BaseKeyProvider implements KeyProvider {
     return BaseKeyProvider(keyManager, sharedKey);
   }
 
-  Future<Uint8List> _deriveKey(String password) async {
-    final algorithm = Hkdf(
-      hmac: Hmac(Sha256()),
-      outputLength: defaultKeyLength,
-    );
+  Future<Uint8List> deriveKeyFromString(String password) async {
     final secretKey = SecretKey(password.codeUnits);
-    final output = await algorithm.deriveKey(
+
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: 100000,
+      bits: 128,
+    );
+
+    final newSecretKey = await pbkdf2.deriveKey(
       secretKey: secretKey,
       nonce: defaultRatchetSalt.codeUnits,
     );
-    var extractBytes = await output.extractBytes();
+    final extractBytes = await newSecretKey.extractBytes();
     return Uint8List.fromList(extractBytes);
   }
 
   Future<void> setSharedKey(String key) async {
-    Uint8List keyBytes = await _deriveKey(key);
+    Uint8List keyBytes = await deriveKeyFromString(key);
     if (keyBytes.length != 32) {
       throw Exception('keyBytes must be 32 bytes');
     }
@@ -63,7 +66,7 @@ class BaseKeyProvider implements KeyProvider {
   }
 
   Future<void> setKeyForParticipant(String participantId, String key) async {
-    Uint8List keyBytes = await _deriveKey(key);
+    Uint8List keyBytes = await deriveKeyFromString(key);
     if (keyBytes.length != 32) {
       throw Exception('keyBytes must be 32 bytes');
     }
