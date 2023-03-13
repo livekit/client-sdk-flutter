@@ -14,26 +14,14 @@ import 'package:protobuf/src/protobuf/mixins/well_known.dart' as $mixin;
 
 class Timestamp extends $pb.GeneratedMessage with $mixin.TimestampMixin {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'Timestamp',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Timestamp',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'google.protobuf'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'google.protobuf'),
       createEmptyInstance: create,
       toProto3Json: $mixin.TimestampMixin.toProto3JsonHelper,
       fromProto3Json: $mixin.TimestampMixin.fromProto3JsonHelper)
-    ..aInt64(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'seconds')
-    ..a<$core.int>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nanos',
+    ..aInt64(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'seconds')
+    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nanos',
         $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
