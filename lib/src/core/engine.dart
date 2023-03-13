@@ -278,14 +278,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await channel.send(message);
   }
 
-  Future<RTCConfiguration?> _configurePeerConnections(
+  Future<RTCConfiguration?> _buildRtcConfiguration(
       {required lk_models.ClientConfigSetting serverResponseForceRelay,
       required List<RTCIceServer> serverProvidedIceServers}) async {
-    if (publisher != null || subscriber != null) {
-      logger.warning('Already configured');
-      return null;
-    }
-
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
@@ -307,7 +302,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return rtcConfiguration;
   }
 
-  Future<void> _makeTransports(RTCConfiguration rtcConfiguration) async {
+  Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
     publisher = await Transport.create(_peerConnectionCreate,
         rtcConfig: rtcConfiguration, connectOptions: connectOptions);
     subscriber = await Transport.create(_peerConnectionCreate,
@@ -714,13 +709,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      var rtcConfiguration = await _configurePeerConnections(
+      var rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
-      if (rtcConfiguration != null) {
-        await _makeTransports(rtcConfiguration);
+      if (rtcConfiguration != null &&
+          (publisher == null && subscriber == null)) {
+        await _createPeerConnections(rtcConfiguration);
       }
 
       if (!_subscriberPrimary) {
@@ -742,7 +738,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      var rtcConfiguration = await _configurePeerConnections(
+      var rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
