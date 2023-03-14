@@ -398,6 +398,11 @@ class ParticipantPermission extends $pb.GeneratedMessage {
         valueOf: TrackSource.valueOf,
         enumValues: TrackSource.values,
         defaultEnumValue: TrackSource.UNKNOWN)
+    ..aOB(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canUpdateMetadata')
     ..hasRequiredFields = false;
 
   ParticipantPermission._() : super();
@@ -408,6 +413,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.bool? hidden,
     $core.bool? recorder,
     $core.Iterable<TrackSource>? canPublishSources,
+    $core.bool? canUpdateMetadata,
   }) {
     final _result = create();
     if (canSubscribe != null) {
@@ -427,6 +433,9 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     }
     if (canPublishSources != null) {
       _result.canPublishSources.addAll(canPublishSources);
+    }
+    if (canUpdateMetadata != null) {
+      _result.canUpdateMetadata = canUpdateMetadata;
     }
     return _result;
   }
@@ -521,6 +530,18 @@ class ParticipantPermission extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(9)
   $core.List<TrackSource> get canPublishSources => $_getList(5);
+
+  @$pb.TagNumber(10)
+  $core.bool get canUpdateMetadata => $_getBF(6);
+  @$pb.TagNumber(10)
+  set canUpdateMetadata($core.bool v) {
+    $_setBool(6, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasCanUpdateMetadata() => $_has(6);
+  @$pb.TagNumber(10)
+  void clearCanUpdateMetadata() => clearField(10);
 }
 
 class ParticipantInfo extends $pb.GeneratedMessage {
@@ -1828,6 +1849,11 @@ class UserPacket extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'destinationSids')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'topic')
     ..hasRequiredFields = false;
 
   UserPacket._() : super();
@@ -1835,6 +1861,7 @@ class UserPacket extends $pb.GeneratedMessage {
     $core.String? participantSid,
     $core.List<$core.int>? payload,
     $core.Iterable<$core.String>? destinationSids,
+    $core.String? topic,
   }) {
     final _result = create();
     if (participantSid != null) {
@@ -1845,6 +1872,9 @@ class UserPacket extends $pb.GeneratedMessage {
     }
     if (destinationSids != null) {
       _result.destinationSids.addAll(destinationSids);
+    }
+    if (topic != null) {
+      _result.topic = topic;
     }
     return _result;
   }
@@ -1900,6 +1930,18 @@ class UserPacket extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.String get topic => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set topic($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasTopic() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearTopic() => clearField(4);
 }
 
 class ParticipantTracks extends $pb.GeneratedMessage {

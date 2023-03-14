@@ -9,6 +9,34 @@ import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use audioCodecDescriptor instead')
+const AudioCodec$json = const {
+  '1': 'AudioCodec',
+  '2': const [
+    const {'1': 'DEFAULT_AC', '2': 0},
+    const {'1': 'OPUS', '2': 1},
+    const {'1': 'AAC', '2': 2},
+  ],
+};
+
+/// Descriptor for `AudioCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List audioCodecDescriptor = $convert.base64Decode(
+    'CgpBdWRpb0NvZGVjEg4KCkRFRkFVTFRfQUMQABIICgRPUFVTEAESBwoDQUFDEAI=');
+@$core.Deprecated('Use videoCodecDescriptor instead')
+const VideoCodec$json = const {
+  '1': 'VideoCodec',
+  '2': const [
+    const {'1': 'DEFAULT_VC', '2': 0},
+    const {'1': 'H264_BASELINE', '2': 1},
+    const {'1': 'H264_MAIN', '2': 2},
+    const {'1': 'H264_HIGH', '2': 3},
+    const {'1': 'VP8', '2': 4},
+  ],
+};
+
+/// Descriptor for `VideoCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List videoCodecDescriptor = $convert.base64Decode(
+    'CgpWaWRlb0NvZGVjEg4KCkRFRkFVTFRfVkMQABIRCg1IMjY0X0JBU0VMSU5FEAESDQoJSDI2NF9NQUlOEAISDQoJSDI2NF9ISUdIEAMSBwoDVlA4EAQ=');
 @$core.Deprecated('Use trackTypeDescriptor instead')
 const TrackType$json = const {
   '1': 'TrackType',
@@ -190,12 +218,19 @@ const ParticipantPermission$json = const {
     },
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
     const {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
+    const {
+      '1': 'can_update_metadata',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'canUpdateMetadata'
+    },
   ],
 };
 
 /// Descriptor for `ParticipantPermission`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantPermissionDescriptor = $convert.base64Decode(
-    'ChVQYXJ0aWNpcGFudFBlcm1pc3Npb24SIwoNY2FuX3N1YnNjcmliZRgBIAEoCFIMY2FuU3Vic2NyaWJlEh8KC2Nhbl9wdWJsaXNoGAIgASgIUgpjYW5QdWJsaXNoEigKEGNhbl9wdWJsaXNoX2RhdGEYAyABKAhSDmNhblB1Ymxpc2hEYXRhEkQKE2Nhbl9wdWJsaXNoX3NvdXJjZXMYCSADKA4yFC5saXZla2l0LlRyYWNrU291cmNlUhFjYW5QdWJsaXNoU291cmNlcxIWCgZoaWRkZW4YByABKAhSBmhpZGRlbhIaCghyZWNvcmRlchgIIAEoCFIIcmVjb3JkZXI=');
+    'ChVQYXJ0aWNpcGFudFBlcm1pc3Npb24SIwoNY2FuX3N1YnNjcmliZRgBIAEoCFIMY2FuU3Vic2NyaWJlEh8KC2Nhbl9wdWJsaXNoGAIgASgIUgpjYW5QdWJsaXNoEigKEGNhbl9wdWJsaXNoX2RhdGEYAyABKAhSDmNhblB1Ymxpc2hEYXRhEkQKE2Nhbl9wdWJsaXNoX3NvdXJjZXMYCSADKA4yFC5saXZla2l0LlRyYWNrU291cmNlUhFjYW5QdWJsaXNoU291cmNlcxIWCgZoaWRkZW4YByABKAhSBmhpZGRlbhIaCghyZWNvcmRlchgIIAEoCFIIcmVjb3JkZXISLgoTY2FuX3VwZGF0ZV9tZXRhZGF0YRgKIAEoCFIRY2FuVXBkYXRlTWV0YWRhdGE=');
 @$core.Deprecated('Use participantInfoDescriptor instead')
 const ParticipantInfo$json = const {
   '1': 'ParticipantInfo',
@@ -472,12 +507,24 @@ const UserPacket$json = const {
       '5': 9,
       '10': 'destinationSids'
     },
+    const {
+      '1': 'topic',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'topic',
+      '17': true
+    },
+  ],
+  '8': const [
+    const {'1': '_topic'},
   ],
 };
 
 /// Descriptor for `UserPacket`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
-    'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHM=');
+    'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHMSGQoFdG9waWMYBCABKAlIAFIFdG9waWOIAQFCCAoGX3RvcGlj');
 @$core.Deprecated('Use participantTracksDescriptor instead')
 const ParticipantTracks$json = const {
   '1': 'ParticipantTracks',

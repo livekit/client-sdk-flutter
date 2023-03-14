@@ -727,13 +727,14 @@ const UpdateParticipantMetadata$json = const {
   '1': 'UpdateParticipantMetadata',
   '2': const [
     const {'1': 'metadata', '3': 1, '4': 1, '5': 9, '10': 'metadata'},
+    const {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
   ],
 };
 
 /// Descriptor for `UpdateParticipantMetadata`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateParticipantMetadataDescriptor =
     $convert.base64Decode(
-        'ChlVcGRhdGVQYXJ0aWNpcGFudE1ldGFkYXRhEhoKCG1ldGFkYXRhGAEgASgJUghtZXRhZGF0YQ==');
+        'ChlVcGRhdGVQYXJ0aWNpcGFudE1ldGFkYXRhEhoKCG1ldGFkYXRhGAEgASgJUghtZXRhZGF0YRISCgRuYW1lGAIgASgJUgRuYW1l');
 @$core.Deprecated('Use iCEServerDescriptor instead')
 const ICEServer$json = const {
   '1': 'ICEServer',

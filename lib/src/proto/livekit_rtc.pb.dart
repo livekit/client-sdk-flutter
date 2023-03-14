@@ -2807,15 +2807,24 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'metadata')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
     ..hasRequiredFields = false;
 
   UpdateParticipantMetadata._() : super();
   factory UpdateParticipantMetadata({
     $core.String? metadata,
+    $core.String? name,
   }) {
     final _result = create();
     if (metadata != null) {
       _result.metadata = metadata;
+    }
+    if (name != null) {
+      _result.name = name;
     }
     return _result;
   }
@@ -2859,6 +2868,18 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
   $core.bool hasMetadata() => $_has(0);
   @$pb.TagNumber(1)
   void clearMetadata() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get name => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set name($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearName() => clearField(2);
 }
 
 class ICEServer extends $pb.GeneratedMessage {

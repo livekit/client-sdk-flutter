@@ -9,6 +9,78 @@
 import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+class AudioCodec extends $pb.ProtobufEnum {
+  static const AudioCodec DEFAULT_AC = AudioCodec._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DEFAULT_AC');
+  static const AudioCodec OPUS = AudioCodec._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'OPUS');
+  static const AudioCodec AAC = AudioCodec._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'AAC');
+
+  static const $core.List<AudioCodec> values = <AudioCodec>[
+    DEFAULT_AC,
+    OPUS,
+    AAC,
+  ];
+
+  static final $core.Map<$core.int, AudioCodec> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static AudioCodec? valueOf($core.int value) => _byValue[value];
+
+  const AudioCodec._($core.int v, $core.String n) : super(v, n);
+}
+
+class VideoCodec extends $pb.ProtobufEnum {
+  static const VideoCodec DEFAULT_VC = VideoCodec._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DEFAULT_VC');
+  static const VideoCodec H264_BASELINE = VideoCodec._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_BASELINE');
+  static const VideoCodec H264_MAIN = VideoCodec._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_MAIN');
+  static const VideoCodec H264_HIGH = VideoCodec._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_HIGH');
+  static const VideoCodec VP8 = VideoCodec._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'VP8');
+
+  static const $core.List<VideoCodec> values = <VideoCodec>[
+    DEFAULT_VC,
+    H264_BASELINE,
+    H264_MAIN,
+    H264_HIGH,
+    VP8,
+  ];
+
+  static final $core.Map<$core.int, VideoCodec> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static VideoCodec? valueOf($core.int value) => _byValue[value];
+
+  const VideoCodec._($core.int v, $core.String n) : super(v, n);
+}
+
 class TrackType extends $pb.ProtobufEnum {
   static const TrackType AUDIO = TrackType._(
       0,
