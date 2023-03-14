@@ -77,11 +77,16 @@ void main() async {
       var codec = options.codec;
       var msgType = options.msgType;
 
-      var cryptor = Cryptor(
-          worker: self,
-          participantId: participantId,
-          trackId: trackId,
-          sharedKey: useSharedKey);
+      var cryptor =
+          participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+
+      if (cryptor == null) {
+        cryptor = Cryptor(
+            worker: self,
+            participantId: participantId,
+            trackId: trackId,
+            sharedKey: useSharedKey);
+      }
 
       cryptor.setupTransform(
           operation: msgType,
