@@ -86,6 +86,7 @@ void main() async {
             participantId: participantId,
             trackId: trackId,
             sharedKey: useSharedKey);
+        participantCryptors.add(cryptor);
       }
 
       cryptor.setupTransform(
@@ -95,8 +96,6 @@ void main() async {
           trackId: trackId,
           kind: kind,
           codec: codec);
-
-      participantCryptors.add(cryptor);
     });
   }
 

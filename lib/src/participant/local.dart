@@ -12,6 +12,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
+import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -175,7 +176,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       init: transceiverInit,
     );
 
-    {
+    if (lkBrowser() != BrowserType.firefox) {
       var videoCodec = publishOptions.videoCodec.toLowerCase();
       var caps = await rtc.getRtpSenderCapabilities('video');
       List<rtc.RTCRtpCodecCapability> matched = [];
