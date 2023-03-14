@@ -18,34 +18,69 @@ export 'livekit_models.pbenum.dart';
 
 class Room extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Room',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Room',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sid')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
     ..a<$core.int>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'emptyTimeout',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'emptyTimeout',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'maxParticipants',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'maxParticipants',
         $pb.PbFieldType.OU3)
-    ..aInt64(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'creationTime')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'turnPassword')
+    ..aInt64(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'creationTime')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'turnPassword')
     ..pc<Codec>(
         7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledCodecs',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'enabledCodecs',
         $pb.PbFieldType.PM,
         subBuilder: Codec.create)
-    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'metadata')
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'metadata')
     ..a<$core.int>(
         9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'numParticipants',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'numParticipants',
         $pb.PbFieldType.OU3)
     ..aOB(
-        10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'activeRecording')
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'activeRecording')
     ..hasRequiredFields = false;
 
   Room._() : super();
@@ -97,7 +132,8 @@ class Room extends $pb.GeneratedMessage {
   factory Room.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Room.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Room.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -115,7 +151,8 @@ class Room extends $pb.GeneratedMessage {
   Room createEmptyInstance() => create();
   static $pb.PbList<Room> createRepeated() => $pb.PbList<Room>();
   @$core.pragma('dart2js:noInline')
-  static Room getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Room>(create);
+  static Room getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Room>(create);
   static Room? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -232,12 +269,24 @@ class Room extends $pb.GeneratedMessage {
 
 class Codec extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Codec',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Codec',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mime')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'fmtpLine')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mime')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'fmtpLine')
     ..hasRequiredFields = false;
 
   Codec._() : super();
@@ -257,7 +306,8 @@ class Codec extends $pb.GeneratedMessage {
   factory Codec.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Codec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Codec.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
@@ -310,22 +360,49 @@ class ParticipantPermission extends $pb.GeneratedMessage {
           ? ''
           : 'ParticipantPermission',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOB(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'canSubscribe')
-    ..aOB(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'canPublish')
-    ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'canPublishData')
-    ..aOB(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hidden')
-    ..aOB(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recorder')
+    ..aOB(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canSubscribe')
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublish')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublishData')
+    ..aOB(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hidden')
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'recorder')
     ..pc<TrackSource>(
         9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'canPublishSources',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublishSources',
         $pb.PbFieldType.KE,
         valueOf: TrackSource.valueOf,
         enumValues: TrackSource.values,
         defaultEnumValue: TrackSource.UNKNOWN)
-    ..aOB(10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'canUpdateMetadata')
+    ..aOB(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canUpdateMetadata')
     ..hasRequiredFields = false;
 
   ParticipantPermission._() : super();
@@ -371,21 +448,24 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ParticipantPermission clone() => ParticipantPermission()..mergeFromMessage(this);
+  ParticipantPermission clone() =>
+      ParticipantPermission()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ParticipantPermission copyWith(void Function(ParticipantPermission) updates) =>
+  ParticipantPermission copyWith(
+          void Function(ParticipantPermission) updates) =>
       super.copyWith((message) => updates(message as ParticipantPermission))
           as ParticipantPermission; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ParticipantPermission create() => ParticipantPermission._();
   ParticipantPermission createEmptyInstance() => create();
-  static $pb.PbList<ParticipantPermission> createRepeated() => $pb.PbList<ParticipantPermission>();
+  static $pb.PbList<ParticipantPermission> createRepeated() =>
+      $pb.PbList<ParticipantPermission>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantPermission getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
+  static ParticipantPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
   static ParticipantPermission? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -466,36 +546,77 @@ class ParticipantPermission extends $pb.GeneratedMessage {
 
 class ParticipantInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ParticipantInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ParticipantInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'identity')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sid')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'identity')
     ..e<ParticipantInfo_State>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'state',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'state',
         $pb.PbFieldType.OE,
         defaultOrMaker: ParticipantInfo_State.JOINING,
         valueOf: ParticipantInfo_State.valueOf,
         enumValues: ParticipantInfo_State.values)
     ..pc<TrackInfo>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'tracks',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'tracks',
         $pb.PbFieldType.PM,
         subBuilder: TrackInfo.create)
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'metadata')
-    ..aInt64(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'joinedAt')
-    ..aOS(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'metadata')
+    ..aInt64(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'joinedAt')
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
     ..a<$core.int>(
         10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'version',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version',
         $pb.PbFieldType.OU3)
     ..aOM<ParticipantPermission>(
-        11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'permission',
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'permission',
         subBuilder: ParticipantPermission.create)
-    ..aOS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'region')
-    ..aOB(13, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'isPublisher')
+    ..aOS(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'region')
+    ..aOB(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'isPublisher')
     ..hasRequiredFields = false;
 
   ParticipantInfo._() : super();
@@ -568,10 +689,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ParticipantInfo create() => ParticipantInfo._();
   ParticipantInfo createEmptyInstance() => create();
-  static $pb.PbList<ParticipantInfo> createRepeated() => $pb.PbList<ParticipantInfo>();
+  static $pb.PbList<ParticipantInfo> createRepeated() =>
+      $pb.PbList<ParticipantInfo>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantInfo>(create);
+  static ParticipantInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantInfo>(create);
   static ParticipantInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -702,9 +824,13 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 
 class Encryption extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Encryption',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Encryption',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
@@ -732,23 +858,41 @@ class Encryption extends $pb.GeneratedMessage {
   Encryption createEmptyInstance() => create();
   static $pb.PbList<Encryption> createRepeated() => $pb.PbList<Encryption>();
   @$core.pragma('dart2js:noInline')
-  static Encryption getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
+  static Encryption getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
   static Encryption? _defaultInstance;
 }
 
 class SimulcastCodecInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SimulcastCodecInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SimulcastCodecInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mimeType')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mid')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'cid')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mimeType')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mid')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'cid')
     ..pc<VideoLayer>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layers',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
         $pb.PbFieldType.PM,
         subBuilder: VideoLayer.create)
     ..hasRequiredFields = false;
@@ -795,10 +939,11 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static SimulcastCodecInfo create() => SimulcastCodecInfo._();
   SimulcastCodecInfo createEmptyInstance() => create();
-  static $pb.PbList<SimulcastCodecInfo> createRepeated() => $pb.PbList<SimulcastCodecInfo>();
+  static $pb.PbList<SimulcastCodecInfo> createRepeated() =>
+      $pb.PbList<SimulcastCodecInfo>();
   @$core.pragma('dart2js:noInline')
-  static SimulcastCodecInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
+  static SimulcastCodecInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
   static SimulcastCodecInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -843,46 +988,108 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
 
 class TrackInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'TrackInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TrackInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
-    ..e<TrackType>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'type',
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sid')
+    ..e<TrackType>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'type',
         $pb.PbFieldType.OE,
-        defaultOrMaker: TrackType.AUDIO, valueOf: TrackType.valueOf, enumValues: TrackType.values)
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
-    ..aOB(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'muted')
-    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width',
+        defaultOrMaker: TrackType.AUDIO,
+        valueOf: TrackType.valueOf,
+        enumValues: TrackType.values)
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
+    ..aOB(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'muted')
+    ..a<$core.int>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'width',
         $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height',
+    ..a<$core.int>(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'height',
         $pb.PbFieldType.OU3)
-    ..aOB(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'simulcast')
-    ..aOB(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'disableDtx')
+    ..aOB(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'simulcast')
+    ..aOB(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disableDtx')
     ..e<TrackSource>(
         9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'source',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'source',
         $pb.PbFieldType.OE,
         defaultOrMaker: TrackSource.UNKNOWN,
         valueOf: TrackSource.valueOf,
         enumValues: TrackSource.values)
     ..pc<VideoLayer>(
         10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layers',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layers',
         $pb.PbFieldType.PM,
         subBuilder: VideoLayer.create)
-    ..aOS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mimeType')
-    ..aOS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mid')
+    ..aOS(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mimeType')
+    ..aOS(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'mid')
     ..pc<SimulcastCodecInfo>(
         13,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'codecs',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codecs',
         $pb.PbFieldType.PM,
         subBuilder: SimulcastCodecInfo.create)
-    ..aOB(14, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'stereo')
-    ..aOB(15, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'disableRed')
+    ..aOB(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'stereo')
+    ..aOB(
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disableRed')
     ..e<Encryption_Type>(
         16,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'encryption',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'encryption',
         $pb.PbFieldType.OE,
         defaultOrMaker: Encryption_Type.NONE,
         valueOf: Encryption_Type.valueOf,
@@ -1162,26 +1369,46 @@ class TrackInfo extends $pb.GeneratedMessage {
 
 class VideoLayer extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'VideoLayer',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'VideoLayer',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..e<VideoQuality>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'quality',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'quality',
         $pb.PbFieldType.OE,
         defaultOrMaker: VideoQuality.LOW,
         valueOf: VideoQuality.valueOf,
         enumValues: VideoQuality.values)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'width',
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'width',
         $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'height',
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'height',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bitrate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrate',
         $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'ssrc',
+    ..a<$core.int>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'ssrc',
         $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
@@ -1233,8 +1460,8 @@ class VideoLayer extends $pb.GeneratedMessage {
   VideoLayer createEmptyInstance() => create();
   static $pb.PbList<VideoLayer> createRepeated() => $pb.PbList<VideoLayer>();
   @$core.pragma('dart2js:noInline')
-  static VideoLayer getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
+  static VideoLayer getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
   static VideoLayer? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1307,23 +1534,35 @@ class DataPacket extends $pb.GeneratedMessage {
     0: DataPacket_Value.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'DataPacket',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DataPacket',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..oo(0, [2, 3])
     ..e<DataPacket_Kind>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'kind',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'kind',
         $pb.PbFieldType.OE,
         defaultOrMaker: DataPacket_Kind.RELIABLE,
         valueOf: DataPacket_Kind.valueOf,
         enumValues: DataPacket_Kind.values)
     ..aOM<UserPacket>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'user',
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'user',
         subBuilder: UserPacket.create)
     ..aOM<ActiveSpeakerUpdate>(
-        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speaker',
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'speaker',
         subBuilder: ActiveSpeakerUpdate.create)
     ..hasRequiredFields = false;
 
@@ -1367,8 +1606,8 @@ class DataPacket extends $pb.GeneratedMessage {
   DataPacket createEmptyInstance() => create();
   static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
   @$core.pragma('dart2js:noInline')
-  static DataPacket getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
+  static DataPacket getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
   static DataPacket? _defaultInstance;
 
   DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
@@ -1417,13 +1656,19 @@ class DataPacket extends $pb.GeneratedMessage {
 
 class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ActiveSpeakerUpdate',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ActiveSpeakerUpdate',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..pc<SpeakerInfo>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'speakers',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'speakers',
         $pb.PbFieldType.PM,
         subBuilder: SpeakerInfo.create)
     ..hasRequiredFields = false;
@@ -1458,10 +1703,11 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
   ActiveSpeakerUpdate createEmptyInstance() => create();
-  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() => $pb.PbList<ActiveSpeakerUpdate>();
+  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() =>
+      $pb.PbList<ActiveSpeakerUpdate>();
   @$core.pragma('dart2js:noInline')
-  static ActiveSpeakerUpdate getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
+  static ActiveSpeakerUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
   static ActiveSpeakerUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1470,16 +1716,30 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
 
 class SpeakerInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SpeakerInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SpeakerInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sid')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sid')
     ..a<$core.double>(
         2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'level',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'level',
         $pb.PbFieldType.OF)
-    ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'active')
+    ..aOB(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'active')
     ..hasRequiredFields = false;
 
   SpeakerInfo._() : super();
@@ -1522,8 +1782,8 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   SpeakerInfo createEmptyInstance() => create();
   static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
   @$core.pragma('dart2js:noInline')
-  static SpeakerInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
+  static SpeakerInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
   static SpeakerInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1565,17 +1825,35 @@ class SpeakerInfo extends $pb.GeneratedMessage {
 
 class UserPacket extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'UserPacket',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'UserPacket',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'participantSid')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
     ..a<$core.List<$core.int>>(
         2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'payload',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'payload',
         $pb.PbFieldType.OY)
-    ..pPS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'destinationSids')
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'topic')
+    ..pPS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'destinationSids')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'topic')
     ..hasRequiredFields = false;
 
   UserPacket._() : super();
@@ -1622,8 +1900,8 @@ class UserPacket extends $pb.GeneratedMessage {
   UserPacket createEmptyInstance() => create();
   static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
   @$core.pragma('dart2js:noInline')
-  static UserPacket getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
+  static UserPacket getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
   static UserPacket? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1668,12 +1946,24 @@ class UserPacket extends $pb.GeneratedMessage {
 
 class ParticipantTracks extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ParticipantTracks',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ParticipantTracks',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'participantSid')
-    ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'trackSids')
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'participantSid')
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'trackSids')
     ..hasRequiredFields = false;
 
   ParticipantTracks._() : super();
@@ -1710,10 +2000,11 @@ class ParticipantTracks extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ParticipantTracks create() => ParticipantTracks._();
   ParticipantTracks createEmptyInstance() => create();
-  static $pb.PbList<ParticipantTracks> createRepeated() => $pb.PbList<ParticipantTracks>();
+  static $pb.PbList<ParticipantTracks> createRepeated() =>
+      $pb.PbList<ParticipantTracks>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantTracks getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
+  static ParticipantTracks getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
   static ParticipantTracks? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1734,25 +2025,49 @@ class ParticipantTracks extends $pb.GeneratedMessage {
 
 class ServerInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ServerInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ServerInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..e<ServerInfo_Edition>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'edition',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'edition',
         $pb.PbFieldType.OE,
         defaultOrMaker: ServerInfo_Edition.Standard,
         valueOf: ServerInfo_Edition.valueOf,
         enumValues: ServerInfo_Edition.values)
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'version')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version')
     ..a<$core.int>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'protocol',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'protocol',
         $pb.PbFieldType.O3)
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'region')
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nodeId')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'debugInfo')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'region')
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nodeId')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'debugInfo')
     ..hasRequiredFields = false;
 
   ServerInfo._() : super();
@@ -1807,8 +2122,8 @@ class ServerInfo extends $pb.GeneratedMessage {
   ServerInfo createEmptyInstance() => create();
   static $pb.PbList<ServerInfo> createRepeated() => $pb.PbList<ServerInfo>();
   @$core.pragma('dart2js:noInline')
-  static ServerInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
+  static ServerInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
   static ServerInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1886,29 +2201,69 @@ class ServerInfo extends $pb.GeneratedMessage {
 
 class ClientInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ClientInfo',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClientInfo',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..e<ClientInfo_SDK>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sdk',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sdk',
         $pb.PbFieldType.OE,
         defaultOrMaker: ClientInfo_SDK.UNKNOWN,
         valueOf: ClientInfo_SDK.valueOf,
         enumValues: ClientInfo_SDK.values)
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'version')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'version')
     ..a<$core.int>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'protocol',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'protocol',
         $pb.PbFieldType.O3)
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'os')
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'osVersion')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'deviceModel')
-    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'browser')
-    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'browserVersion')
-    ..aOS(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'address')
-    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'network')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'os')
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'osVersion')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'deviceModel')
+    ..aOS(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'browser')
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'browserVersion')
+    ..aOS(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'address')
+    ..aOS(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'network')
     ..hasRequiredFields = false;
 
   ClientInfo._() : super();
@@ -1979,8 +2334,8 @@ class ClientInfo extends $pb.GeneratedMessage {
   ClientInfo createEmptyInstance() => create();
   static $pb.PbList<ClientInfo> createRepeated() => $pb.PbList<ClientInfo>();
   @$core.pragma('dart2js:noInline')
-  static ClientInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
+  static ClientInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
   static ClientInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2106,29 +2461,46 @@ class ClientInfo extends $pb.GeneratedMessage {
 
 class ClientConfiguration extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ClientConfiguration',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ClientConfiguration',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..aOM<VideoConfiguration>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'video',
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'video',
         subBuilder: VideoConfiguration.create)
     ..aOM<VideoConfiguration>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'screen',
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'screen',
         subBuilder: VideoConfiguration.create)
     ..e<ClientConfigSetting>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'resumeConnection',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'resumeConnection',
         $pb.PbFieldType.OE,
         defaultOrMaker: ClientConfigSetting.UNSET,
         valueOf: ClientConfigSetting.valueOf,
         enumValues: ClientConfigSetting.values)
     ..aOM<DisabledCodecs>(
-        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'disabledCodecs',
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disabledCodecs',
         subBuilder: DisabledCodecs.create)
     ..e<ClientConfigSetting>(
         5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'forceRelay',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'forceRelay',
         $pb.PbFieldType.OE,
         defaultOrMaker: ClientConfigSetting.UNSET,
         valueOf: ClientConfigSetting.valueOf,
@@ -2181,10 +2553,11 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static ClientConfiguration create() => ClientConfiguration._();
   ClientConfiguration createEmptyInstance() => create();
-  static $pb.PbList<ClientConfiguration> createRepeated() => $pb.PbList<ClientConfiguration>();
+  static $pb.PbList<ClientConfiguration> createRepeated() =>
+      $pb.PbList<ClientConfiguration>();
   @$core.pragma('dart2js:noInline')
-  static ClientConfiguration getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
+  static ClientConfiguration getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
   static ClientConfiguration? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2256,13 +2629,19 @@ class ClientConfiguration extends $pb.GeneratedMessage {
 
 class VideoConfiguration extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'VideoConfiguration',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'VideoConfiguration',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..e<ClientConfigSetting>(
         1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hardwareEncoder',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hardwareEncoder',
         $pb.PbFieldType.OE,
         defaultOrMaker: ClientConfigSetting.UNSET,
         valueOf: ClientConfigSetting.valueOf,
@@ -2299,10 +2678,11 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static VideoConfiguration create() => VideoConfiguration._();
   VideoConfiguration createEmptyInstance() => create();
-  static $pb.PbList<VideoConfiguration> createRepeated() => $pb.PbList<VideoConfiguration>();
+  static $pb.PbList<VideoConfiguration> createRepeated() =>
+      $pb.PbList<VideoConfiguration>();
   @$core.pragma('dart2js:noInline')
-  static VideoConfiguration getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
+  static VideoConfiguration getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
   static VideoConfiguration? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2320,11 +2700,19 @@ class VideoConfiguration extends $pb.GeneratedMessage {
 
 class DisabledCodecs extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'DisabledCodecs',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DisabledCodecs',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..pc<Codec>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'codecs',
+    ..pc<Codec>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'codecs',
         $pb.PbFieldType.PM,
         subBuilder: Codec.create)
     ..hasRequiredFields = false;
@@ -2359,10 +2747,11 @@ class DisabledCodecs extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static DisabledCodecs create() => DisabledCodecs._();
   DisabledCodecs createEmptyInstance() => create();
-  static $pb.PbList<DisabledCodecs> createRepeated() => $pb.PbList<DisabledCodecs>();
+  static $pb.PbList<DisabledCodecs> createRepeated() =>
+      $pb.PbList<DisabledCodecs>();
   @$core.pragma('dart2js:noInline')
-  static DisabledCodecs getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
+  static DisabledCodecs getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
   static DisabledCodecs? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2371,168 +2760,267 @@ class DisabledCodecs extends $pb.GeneratedMessage {
 
 class RTPStats extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'RTPStats',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'RTPStats',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
     ..aOM<$0.Timestamp>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'startTime',
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'startTime',
         subBuilder: $0.Timestamp.create)
     ..aOM<$0.Timestamp>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'endTime',
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'endTime',
         subBuilder: $0.Timestamp.create)
     ..a<$core.double>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'duration',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'duration',
         $pb.PbFieldType.OD)
     ..a<$core.int>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packets',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packets',
         $pb.PbFieldType.OU3)
     ..a<$core.double>(
         5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetRate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetRate',
         $pb.PbFieldType.OD)
     ..a<$fixnum.Int64>(
         6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bytes',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytes',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.double>(
         7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bitrate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrate',
         $pb.PbFieldType.OD)
     ..a<$core.int>(
         8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetsLost',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsLost',
         $pb.PbFieldType.OU3)
     ..a<$core.double>(
         9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetLossRate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetLossRate',
         $pb.PbFieldType.OD)
     ..a<$core.double>(
         10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetLossPercentage',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetLossPercentage',
         $pb.PbFieldType.OF)
     ..a<$core.int>(
         11,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetsDuplicate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsDuplicate',
         $pb.PbFieldType.OU3)
     ..a<$core.double>(
         12,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetDuplicateRate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetDuplicateRate',
         $pb.PbFieldType.OD)
     ..a<$fixnum.Int64>(
         13,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bytesDuplicate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytesDuplicate',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.double>(
         14,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bitrateDuplicate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitrateDuplicate',
         $pb.PbFieldType.OD)
     ..a<$core.int>(
         15,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetsPadding',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsPadding',
         $pb.PbFieldType.OU3)
     ..a<$core.double>(
         16,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetPaddingRate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetPaddingRate',
         $pb.PbFieldType.OD)
     ..a<$fixnum.Int64>(
         17,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bytesPadding',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bytesPadding',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.double>(
         18,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bitratePadding',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'bitratePadding',
         $pb.PbFieldType.OD)
     ..a<$core.int>(
         19,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packetsOutOfOrder',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packetsOutOfOrder',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         20,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'frames',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'frames',
         $pb.PbFieldType.OU3)
     ..a<$core.double>(
         21,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'frameRate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'frameRate',
         $pb.PbFieldType.OD)
     ..a<$core.double>(
         22,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'jitterCurrent',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'jitterCurrent',
         $pb.PbFieldType.OD)
     ..a<$core.double>(
         23,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'jitterMax',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'jitterMax',
         $pb.PbFieldType.OD)
     ..m<$core.int, $core.int>(
-        24, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'gapHistogram',
+        24,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'gapHistogram',
         entryClassName: 'RTPStats.GapHistogramEntry',
         keyFieldType: $pb.PbFieldType.O3,
         valueFieldType: $pb.PbFieldType.OU3,
         packageName: const $pb.PackageName('livekit'))
-    ..a<$core.int>(25, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nacks',
+    ..a<$core.int>(
+        25,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nacks',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         26,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nackMisses',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackMisses',
         $pb.PbFieldType.OU3)
-    ..a<$core.int>(27, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'plis',
+    ..a<$core.int>(
+        27,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'plis',
         $pb.PbFieldType.OU3)
     ..aOM<$0.Timestamp>(
-        28, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastPli',
+        28,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastPli',
         subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(29, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'firs',
+    ..a<$core.int>(
+        29,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'firs',
         $pb.PbFieldType.OU3)
     ..aOM<$0.Timestamp>(
-        30, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastFir',
+        30,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastFir',
         subBuilder: $0.Timestamp.create)
     ..a<$core.int>(
         31,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rttCurrent',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'rttCurrent',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         32,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'rttMax',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'rttMax',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         33,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'keyFrames',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'keyFrames',
         $pb.PbFieldType.OU3)
     ..aOM<$0.Timestamp>(
-        34, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastKeyFrame',
+        34,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastKeyFrame',
         subBuilder: $0.Timestamp.create)
     ..a<$core.int>(
         35,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'layerLockPlis',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'layerLockPlis',
         $pb.PbFieldType.OU3)
     ..aOM<$0.Timestamp>(
-        36, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'lastLayerLockPli',
+        36,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastLayerLockPli',
         subBuilder: $0.Timestamp.create)
     ..a<$core.int>(
         37,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nackAcks',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackAcks',
         $pb.PbFieldType.OU3)
     ..a<$core.int>(
         38,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nackRepeated',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'nackRepeated',
         $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(
         39,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'headerBytes',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytes',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(
         40,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'headerBytesDuplicate',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytesDuplicate',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(
         41,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'headerBytesPadding',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'headerBytesPadding',
         $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
@@ -3231,12 +3719,24 @@ class RTPStats extends $pb.GeneratedMessage {
 
 class TimedVersion extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'TimedVersion',
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'TimedVersion',
       package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'livekit'),
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
       createEmptyInstance: create)
-    ..aInt64(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'unixMicro')
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'ticks',
+    ..aInt64(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'unixMicro')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'ticks',
         $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
@@ -3274,10 +3774,11 @@ class TimedVersion extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static TimedVersion create() => TimedVersion._();
   TimedVersion createEmptyInstance() => create();
-  static $pb.PbList<TimedVersion> createRepeated() => $pb.PbList<TimedVersion>();
+  static $pb.PbList<TimedVersion> createRepeated() =>
+      $pb.PbList<TimedVersion>();
   @$core.pragma('dart2js:noInline')
-  static TimedVersion getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
+  static TimedVersion getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
   static TimedVersion? _defaultInstance;
 
   @$pb.TagNumber(1)
