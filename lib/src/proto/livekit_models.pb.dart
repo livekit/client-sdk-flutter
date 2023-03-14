@@ -389,6 +389,20 @@ class ParticipantPermission extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'recorder')
+    ..pc<TrackSource>(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canPublishSources',
+        $pb.PbFieldType.KE,
+        valueOf: TrackSource.valueOf,
+        enumValues: TrackSource.values,
+        defaultEnumValue: TrackSource.UNKNOWN)
+    ..aOB(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'canUpdateMetadata')
     ..hasRequiredFields = false;
 
   ParticipantPermission._() : super();
@@ -398,6 +412,8 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.bool? canPublishData,
     $core.bool? hidden,
     $core.bool? recorder,
+    $core.Iterable<TrackSource>? canPublishSources,
+    $core.bool? canUpdateMetadata,
   }) {
     final _result = create();
     if (canSubscribe != null) {
@@ -414,6 +430,12 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     }
     if (recorder != null) {
       _result.recorder = recorder;
+    }
+    if (canPublishSources != null) {
+      _result.canPublishSources.addAll(canPublishSources);
+    }
+    if (canUpdateMetadata != null) {
+      _result.canUpdateMetadata = canUpdateMetadata;
     }
     return _result;
   }
@@ -505,6 +527,21 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   $core.bool hasRecorder() => $_has(4);
   @$pb.TagNumber(8)
   void clearRecorder() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.List<TrackSource> get canPublishSources => $_getList(5);
+
+  @$pb.TagNumber(10)
+  $core.bool get canUpdateMetadata => $_getBF(6);
+  @$pb.TagNumber(10)
+  set canUpdateMetadata($core.bool v) {
+    $_setBool(6, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasCanUpdateMetadata() => $_has(6);
+  @$pb.TagNumber(10)
+  void clearCanUpdateMetadata() => clearField(10);
 }
 
 class ParticipantInfo extends $pb.GeneratedMessage {
@@ -785,6 +822,47 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   void clearIsPublisher() => clearField(13);
 }
 
+class Encryption extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Encryption',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  Encryption._() : super();
+  factory Encryption() => create();
+  factory Encryption.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Encryption.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  Encryption clone() => Encryption()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Encryption copyWith(void Function(Encryption) updates) =>
+      super.copyWith((message) => updates(message as Encryption))
+          as Encryption; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Encryption create() => Encryption._();
+  Encryption createEmptyInstance() => create();
+  static $pb.PbList<Encryption> createRepeated() => $pb.PbList<Encryption>();
+  @$core.pragma('dart2js:noInline')
+  static Encryption getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
+  static Encryption? _defaultInstance;
+}
+
 class SimulcastCodecInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -997,6 +1075,25 @@ class TrackInfo extends $pb.GeneratedMessage {
             : 'codecs',
         $pb.PbFieldType.PM,
         subBuilder: SimulcastCodecInfo.create)
+    ..aOB(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'stereo')
+    ..aOB(
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disableRed')
+    ..e<Encryption_Type>(
+        16,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'encryption',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: Encryption_Type.NONE,
+        valueOf: Encryption_Type.valueOf,
+        enumValues: Encryption_Type.values)
     ..hasRequiredFields = false;
 
   TrackInfo._() : super();
@@ -1014,6 +1111,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.String? mimeType,
     $core.String? mid,
     $core.Iterable<SimulcastCodecInfo>? codecs,
+    $core.bool? stereo,
+    $core.bool? disableRed,
+    Encryption_Type? encryption,
   }) {
     final _result = create();
     if (sid != null) {
@@ -1054,6 +1154,15 @@ class TrackInfo extends $pb.GeneratedMessage {
     }
     if (codecs != null) {
       _result.codecs.addAll(codecs);
+    }
+    if (stereo != null) {
+      _result.stereo = stereo;
+    }
+    if (disableRed != null) {
+      _result.disableRed = disableRed;
+    }
+    if (encryption != null) {
+      _result.encryption = encryption;
     }
     return _result;
   }
@@ -1220,6 +1329,42 @@ class TrackInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(13)
   $core.List<SimulcastCodecInfo> get codecs => $_getList(12);
+
+  @$pb.TagNumber(14)
+  $core.bool get stereo => $_getBF(13);
+  @$pb.TagNumber(14)
+  set stereo($core.bool v) {
+    $_setBool(13, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasStereo() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearStereo() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.bool get disableRed => $_getBF(14);
+  @$pb.TagNumber(15)
+  set disableRed($core.bool v) {
+    $_setBool(14, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasDisableRed() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearDisableRed() => clearField(15);
+
+  @$pb.TagNumber(16)
+  Encryption_Type get encryption => $_getN(15);
+  @$pb.TagNumber(16)
+  set encryption(Encryption_Type v) {
+    setField(16, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasEncryption() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearEncryption() => clearField(16);
 }
 
 class VideoLayer extends $pb.GeneratedMessage {
@@ -1704,6 +1849,11 @@ class UserPacket extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'destinationSids')
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'topic')
     ..hasRequiredFields = false;
 
   UserPacket._() : super();
@@ -1711,6 +1861,7 @@ class UserPacket extends $pb.GeneratedMessage {
     $core.String? participantSid,
     $core.List<$core.int>? payload,
     $core.Iterable<$core.String>? destinationSids,
+    $core.String? topic,
   }) {
     final _result = create();
     if (participantSid != null) {
@@ -1721,6 +1872,9 @@ class UserPacket extends $pb.GeneratedMessage {
     }
     if (destinationSids != null) {
       _result.destinationSids.addAll(destinationSids);
+    }
+    if (topic != null) {
+      _result.topic = topic;
     }
     return _result;
   }
@@ -1776,6 +1930,18 @@ class UserPacket extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.String get topic => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set topic($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasTopic() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearTopic() => clearField(4);
 }
 
 class ParticipantTracks extends $pb.GeneratedMessage {

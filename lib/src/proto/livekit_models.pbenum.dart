@@ -9,6 +9,78 @@
 import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+class AudioCodec extends $pb.ProtobufEnum {
+  static const AudioCodec DEFAULT_AC = AudioCodec._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DEFAULT_AC');
+  static const AudioCodec OPUS = AudioCodec._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'OPUS');
+  static const AudioCodec AAC = AudioCodec._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'AAC');
+
+  static const $core.List<AudioCodec> values = <AudioCodec>[
+    DEFAULT_AC,
+    OPUS,
+    AAC,
+  ];
+
+  static final $core.Map<$core.int, AudioCodec> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static AudioCodec? valueOf($core.int value) => _byValue[value];
+
+  const AudioCodec._($core.int v, $core.String n) : super(v, n);
+}
+
+class VideoCodec extends $pb.ProtobufEnum {
+  static const VideoCodec DEFAULT_VC = VideoCodec._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'DEFAULT_VC');
+  static const VideoCodec H264_BASELINE = VideoCodec._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_BASELINE');
+  static const VideoCodec H264_MAIN = VideoCodec._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_MAIN');
+  static const VideoCodec H264_HIGH = VideoCodec._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'H264_HIGH');
+  static const VideoCodec VP8 = VideoCodec._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'VP8');
+
+  static const $core.List<VideoCodec> values = <VideoCodec>[
+    DEFAULT_VC,
+    H264_BASELINE,
+    H264_MAIN,
+    H264_HIGH,
+    VP8,
+  ];
+
+  static final $core.Map<$core.int, VideoCodec> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static VideoCodec? valueOf($core.int value) => _byValue[value];
+
+  const VideoCodec._($core.int v, $core.String n) : super(v, n);
+}
+
 class TrackType extends $pb.ProtobufEnum {
   static const TrackType AUDIO = TrackType._(
       0,
@@ -237,6 +309,48 @@ class DisconnectReason extends $pb.ProtobufEnum {
   const DisconnectReason._($core.int v, $core.String n) : super(v, n);
 }
 
+class ReconnectReason extends $pb.ProtobufEnum {
+  static const ReconnectReason RR_UNKOWN = ReconnectReason._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'RR_UNKOWN');
+  static const ReconnectReason RR_SIGNAL_DISCONNECTED = ReconnectReason._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'RR_SIGNAL_DISCONNECTED');
+  static const ReconnectReason RR_PUBLISHER_FAILED = ReconnectReason._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'RR_PUBLISHER_FAILED');
+  static const ReconnectReason RR_SUBSCRIBER_FAILED = ReconnectReason._(
+      3,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'RR_SUBSCRIBER_FAILED');
+  static const ReconnectReason RR_SWITCH_CANDIDATE = ReconnectReason._(
+      4,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'RR_SWITCH_CANDIDATE');
+
+  static const $core.List<ReconnectReason> values = <ReconnectReason>[
+    RR_UNKOWN,
+    RR_SIGNAL_DISCONNECTED,
+    RR_PUBLISHER_FAILED,
+    RR_SUBSCRIBER_FAILED,
+    RR_SWITCH_CANDIDATE,
+  ];
+
+  static final $core.Map<$core.int, ReconnectReason> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ReconnectReason? valueOf($core.int value) => _byValue[value];
+
+  const ReconnectReason._($core.int v, $core.String n) : super(v, n);
+}
+
 class ParticipantInfo_State extends $pb.ProtobufEnum {
   static const ParticipantInfo_State JOINING = ParticipantInfo_State._(
       0,
@@ -272,6 +386,36 @@ class ParticipantInfo_State extends $pb.ProtobufEnum {
   static ParticipantInfo_State? valueOf($core.int value) => _byValue[value];
 
   const ParticipantInfo_State._($core.int v, $core.String n) : super(v, n);
+}
+
+class Encryption_Type extends $pb.ProtobufEnum {
+  static const Encryption_Type NONE = Encryption_Type._(
+      0,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'NONE');
+  static const Encryption_Type GCM = Encryption_Type._(
+      1,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'GCM');
+  static const Encryption_Type CUSTOM = Encryption_Type._(
+      2,
+      const $core.bool.fromEnvironment('protobuf.omit_enum_names')
+          ? ''
+          : 'CUSTOM');
+
+  static const $core.List<Encryption_Type> values = <Encryption_Type>[
+    NONE,
+    GCM,
+    CUSTOM,
+  ];
+
+  static final $core.Map<$core.int, Encryption_Type> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static Encryption_Type? valueOf($core.int value) => _byValue[value];
+
+  const Encryption_Type._($core.int v, $core.String n) : super(v, n);
 }
 
 class DataPacket_Kind extends $pb.ProtobufEnum {
