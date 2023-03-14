@@ -278,7 +278,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await channel.send(message);
   }
 
-  Future<RTCConfiguration?> _buildRtcConfiguration(
+  Future<RTCConfiguration> _buildRtcConfiguration(
       {required lk_models.ClientConfigSetting serverResponseForceRelay,
       required List<RTCIceServer> serverProvidedIceServers}) async {
     // RTCConfiguration? config;
@@ -714,8 +714,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
-      if (rtcConfiguration != null &&
-          (publisher == null && subscriber == null)) {
+      if (publisher == null && subscriber == null) {
         await _createPeerConnections(rtcConfiguration);
       }
 
@@ -743,10 +742,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
-      if (rtcConfiguration != null) {
-        await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
-        await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
-      }
+      await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
+      await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
 
       if (!_subscriberPrimary) {
         await negotiate();
