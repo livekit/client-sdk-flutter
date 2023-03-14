@@ -46,7 +46,7 @@ class BaseKeyProvider implements KeyProvider {
     final pbkdf2 = Pbkdf2(
       macAlgorithm: Hmac.sha256(),
       iterations: 100000,
-      bits: 128,
+      bits: 256,
     );
 
     final newSecretKey = await pbkdf2.deriveKey(
@@ -60,7 +60,7 @@ class BaseKeyProvider implements KeyProvider {
   Future<void> setSharedKey(String key) async {
     Uint8List keyBytes = await deriveKeyFromString(key);
     if (keyBytes.length != 32) {
-      throw Exception('keyBytes must be 32 bytes');
+      throw Exception('keyBytes must be 32 bytes, length: ${keyBytes.length}');
     }
     _sharedKey.setAll(0, keyBytes);
   }
