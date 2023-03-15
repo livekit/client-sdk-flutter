@@ -231,6 +231,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
     sendUpdateTrackSettings();
   }
 
+  /// Set desired FPS, server will do its best to return FPS close to this.
+  /// It's only supported for video codecs that support SVC currently.
   Future<void> setVideoFPS(int newValue) async {
     if (newValue == _fps) return;
     _fps = newValue;
