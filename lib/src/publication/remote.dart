@@ -31,6 +31,10 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool get enabled => _enabled;
   bool _enabled = true;
 
+  /// The current FPS of the track. This is only available for video tracks.
+  int? _fps;
+  int get fps => _fps ?? 0;
+
   lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
   lk_models.VideoQuality get videoQuality => _videoQuality;
 
@@ -227,6 +231,12 @@ class RemoteTrackPublication<T extends RemoteTrack>
     sendUpdateTrackSettings();
   }
 
+  Future<void> setVideoFPS(int newValue) async {
+    if (newValue == _fps) return;
+    _fps = newValue;
+    sendUpdateTrackSettings();
+  }
+
   Future<void> enable() async {
     if (_enabled) return;
     _enabled = true;
@@ -289,6 +299,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     );
     if (kind == lk_models.TrackType.VIDEO) {
       settings.quality = _videoQuality;
+      if (_fps != null) settings.fps = _fps!;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
