@@ -31,7 +31,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
   bool get enabled => _enabled;
   bool _enabled = true;
 
-  /// The current FPS of the track. This is only available for video tracks.
+  /// The current desired FPS of the track. This is only available for video tracks that support SVC.
   int? _fps;
   int get fps => _fps ?? 0;
 
