@@ -550,6 +550,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final event = DataReceivedEvent(
       participant: senderParticipant,
       data: dataPacketEvent.packet.payload,
+      topic: dataPacketEvent.packet.topic,
     );
 
     senderParticipant?.events.emit(event);

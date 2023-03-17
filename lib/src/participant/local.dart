@@ -256,10 +256,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
+  /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
     Reliability reliability = Reliability.reliable,
     List<String>? destinationSids,
+    String? topic,
   }) async {
     final packet = lk_models.DataPacket(
       kind: reliability.toPBType(),
@@ -267,6 +269,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,
+        topic: topic,
       ),
     );
 
