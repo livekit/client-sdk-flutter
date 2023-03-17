@@ -159,8 +159,8 @@ abstract class Participant<T extends TrackPublication>
   @internal
   void updateFromInfo(lk_models.ParticipantInfo info) {
     identity = info.identity;
-    _name = info.name;
     sid = info.sid;
+    updateName(info.name);
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
@@ -175,6 +175,16 @@ abstract class Participant<T extends TrackPublication>
     final oldValue = _permissions;
     _permissions = newValue;
     return oldValue;
+  }
+
+  @internal
+  void updateName(String name) {
+    if (_name == name) return;
+    _name = name;
+    [events, room.events].emit(ParticipantNameUpdatedEvent(
+      participant: this,
+      name: name,
+    ));
   }
 
   /// for internal use

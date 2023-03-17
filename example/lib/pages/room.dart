@@ -66,6 +66,10 @@ class _RoomPageState extends State<RoomPage> {
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
+    ..on<ParticipantNameUpdatedEvent>((event) {
+      print(
+          'Participant name updated: ${event.participant.identity}, name => ${event.name}');
+    })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';
       try {

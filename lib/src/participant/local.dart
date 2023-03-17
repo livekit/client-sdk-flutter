@@ -273,6 +273,29 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await room.engine.sendDataPacket(packet);
   }
 
+  /// Sets and updates the metadata of the local participant.
+  /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  /// @param metadata
+  void setMetadata(String metadata) {
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
+  }
+
+  /// Sets and updates the name of the local participant.
+  ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  ///  @param name
+  void setName(String name) {
+    super.updateName(name);
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
+  }
+
   /// A convenience property to get all video tracks.
   @override
   List<LocalTrackPublication<LocalVideoTrack>> get videoTracks =>

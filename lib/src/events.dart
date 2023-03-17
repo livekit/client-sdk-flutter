@@ -409,3 +409,16 @@ class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, permissions: ${permissions})';
 }
+
+class ParticipantNameUpdatedEvent with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final String name;
+  const ParticipantNameUpdatedEvent({
+    required this.participant,
+    required this.name,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, name: ${name})';
+}
