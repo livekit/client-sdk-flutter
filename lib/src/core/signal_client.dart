@@ -247,6 +247,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         _pingCount++;
         _resetPingTimeout();
         break;
+      case lk_rtc.SignalResponse_Message.reconnect:
+        events.emit(SignalReconnectResponseEvent(response: msg.reconnect));
+        break;
       default:
         logger.warning('received unknown signal message');
     }
