@@ -105,7 +105,7 @@ class _ConnectPageState extends State<ConnectPage> {
       final listener = room.createListener();
       E2EEOptions? e2eeOptions;
       if (_e2ee) {
-        final keyProvider = await BaseKeyProvider.create();
+        final keyProvider = await BaseKeyProvider.create(sharedKey: true);
         e2eeOptions = E2EEOptions(keyProvider: keyProvider);
         var sharedKey = _sharedKeyCtrl.text;
         await keyProvider.setSharedKey(sharedKey);

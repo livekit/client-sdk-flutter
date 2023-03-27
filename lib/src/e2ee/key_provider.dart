@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:cryptography/cryptography.dart';
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultKeyLength = 32;
@@ -24,52 +23,39 @@ abstract class KeyProvider {
 
 class BaseKeyProvider implements KeyProvider {
   final Map<String, Map<int, Uint8List>> _keys = {};
-  final Uint8List _sharedKey = Uint8List(32);
-  final bool isSharedKey;
+  Uint8List? _sharedKey;
+  final KeyProviderOptions options;
   final KeyManager _keyManager;
   @override
   KeyManager get keyManager => _keyManager;
 
-  Uint8List get sharedKey => _sharedKey;
+  Uint8List? get sharedKey => _sharedKey;
 
-  BaseKeyProvider(this._keyManager, this.isSharedKey);
+  BaseKeyProvider(this._keyManager, this.options);
 
-  static Future<BaseKeyProvider> create({bool sharedKey = true}) async {
+  static Future<BaseKeyProvider> create({
+    bool sharedKey = false,
+    String? ratchetSalt,
+    int? ratchetWindowSize,
+  }) async {
+    KeyProviderOptions options = KeyProviderOptions(
+      sharedKey: sharedKey,
+      ratchetSalt:
+          Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
+      ratchetWindowSize: ratchetWindowSize ?? 16,
+    );
     final keyManager =
-        await FrameCryptorFactory.instance.createDefaultKeyManager();
-    return BaseKeyProvider(keyManager, sharedKey);
-  }
-
-  Future<Uint8List> deriveKeyFromString(String password) async {
-    final secretKey = SecretKey(password.codeUnits);
-
-    final pbkdf2 = Pbkdf2(
-      macAlgorithm: Hmac.sha256(),
-      iterations: 100000,
-      bits: 256,
-    );
-
-    final newSecretKey = await pbkdf2.deriveKey(
-      secretKey: secretKey,
-      nonce: defaultRatchetSalt.codeUnits,
-    );
-    final extractBytes = await newSecretKey.extractBytes();
-    return Uint8List.fromList(extractBytes);
+        await FrameCryptorFactory.instance.createDefaultKeyManager(options);
+    return BaseKeyProvider(keyManager, options);
   }
 
   Future<void> setSharedKey(String key) async {
-    Uint8List keyBytes = await deriveKeyFromString(key);
-    if (keyBytes.length != 32) {
-      throw Exception('keyBytes must be 32 bytes, length: ${keyBytes.length}');
-    }
-    _sharedKey.setAll(0, keyBytes);
+    Uint8List keyBytes = Uint8List.fromList(key.codeUnits);
+    _sharedKey = keyBytes;
   }
 
   Future<void> setKeyForParticipant(String participantId, String key) async {
-    Uint8List keyBytes = await deriveKeyFromString(key);
-    if (keyBytes.length != 32) {
-      throw Exception('keyBytes must be 32 bytes');
-    }
+    Uint8List keyBytes = Uint8List.fromList(key.codeUnits);
     KeyInfo keyInfo = KeyInfo(
       participantId: participantId,
       keyIndex: 0,
