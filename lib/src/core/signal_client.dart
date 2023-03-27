@@ -382,6 +382,12 @@ extension SignalClientRequests on SignalClient {
   }
 
   @internal
+  void sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        updateMetadata: metadata,
+      ));
+
+  @internal
   void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) =>
       _sendRequest(lk_rtc.SignalRequest(
         trackSetting: settings,
