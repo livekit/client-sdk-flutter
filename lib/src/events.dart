@@ -347,9 +347,11 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
   final List<int> data;
+  final String? topic;
   const DataReceivedEvent({
     required this.participant,
     required this.data,
+    required this.topic,
   });
 
   @override
