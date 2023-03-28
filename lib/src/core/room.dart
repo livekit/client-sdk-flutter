@@ -73,6 +73,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
 
+  E2EEManager? get e2eeManager => _e2eeManager;
+
   E2EEManager? _e2eeManager;
   bool get isRecording => _isRecording;
   bool _isRecording = false;

@@ -18,6 +18,7 @@ class KeyInfo {
 
 abstract class KeyProvider {
   Future<void> setKey(KeyInfo keyInfo);
+  Future<Uint8List> ratchetKey(String participantId, int index);
   KeyManager get keyManager;
 }
 
@@ -63,6 +64,10 @@ class BaseKeyProvider implements KeyProvider {
     );
     await setKey(keyInfo);
   }
+
+  @override
+  Future<Uint8List> ratchetKey(String participantId, int index) =>
+      _keyManager.ratchetKey(participantId: participantId, index: index);
 
   @override
   Future<void> setKey(KeyInfo keyInfo) async {

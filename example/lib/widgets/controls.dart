@@ -226,6 +226,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     final result = await context.showSimulateScenarioDialog();
     if (result != null) {
       print('${result}');
+
+      if (SimulateScenarioResult.e2eeKeyRatchet == result) {
+        await widget.room.e2eeManager?.ratchetKey();
+      }
+
       await widget.room.sendSimulateScenario(
         signalReconnect:
             result == SimulateScenarioResult.signalReconnect ? true : null,

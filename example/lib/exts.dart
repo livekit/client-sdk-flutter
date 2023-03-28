@@ -194,4 +194,5 @@ enum SimulateScenarioResult {
   serverLeave,
   switchCandidate,
   clear,
+  e2eeKeyRatchet,
 }

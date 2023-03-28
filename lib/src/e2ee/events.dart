@@ -3,6 +3,7 @@ import '../../livekit_client.dart';
 enum E2EEState {
   kNew,
   kOk,
+  kKeyRatcheted,
   kMissingKey,
   kEncryptionFailed,
   kDecryptionFailed,
