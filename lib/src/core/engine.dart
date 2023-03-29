@@ -295,14 +295,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await channel.send(message);
   }
 
-  Future<void> _configurePeerConnections(
+  Future<RTCConfiguration> _buildRtcConfiguration(
       {required lk_models.ClientConfigSetting serverResponseForceRelay,
       required List<RTCIceServer> serverProvidedIceServers}) async {
-    if (publisher != null || subscriber != null) {
-      logger.warning('Already configured');
-      return;
-    }
-
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
@@ -326,6 +321,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
+    return rtcConfiguration;
+  }
+
+  Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
     publisher = await Transport.create(_peerConnectionCreate,
         rtcConfig: rtcConfiguration, connectOptions: connectOptions);
     subscriber = await Transport.create(_peerConnectionCreate,
@@ -732,13 +731,43 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      await _configurePeerConnections(
+      var rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
+      if (publisher == null && subscriber == null) {
+        await _createPeerConnections(rtcConfiguration);
+      }
+
       if (!_subscriberPrimary) {
         // for subscriberPrimary, we negotiate when necessary (lazy)
+        await negotiate();
+      }
+    })
+    ..on<SignalReconnectResponseEvent>((event) async {
+      var iceServersFromServer =
+          event.response.iceServers.map((e) => e.toSDKType()).toList();
+
+      if (iceServersFromServer.isNotEmpty) {
+        _serverProvidedIceServers = iceServersFromServer;
+      }
+
+      _clientConfiguration = event.response.clientConfiguration;
+
+      logger.fine('Handle ReconnectResponse: '
+          'iceServers: ${event.response.iceServers}, '
+          'forceRelay: $event.response.clientConfiguration.forceRelay');
+
+      var rtcConfiguration = await _buildRtcConfiguration(
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
+          serverProvidedIceServers: _serverProvidedIceServers);
+
+      await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
+      await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
+
+      if (!_subscriberPrimary) {
         await negotiate();
       }
     })

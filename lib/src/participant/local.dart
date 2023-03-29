@@ -291,10 +291,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
+  /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
     Reliability reliability = Reliability.reliable,
     List<String>? destinationSids,
+    String? topic,
   }) async {
     final packet = lk_models.DataPacket(
       kind: reliability.toPBType(),
@@ -302,10 +304,34 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,
+        topic: topic,
       ),
     );
 
     await room.engine.sendDataPacket(packet);
+  }
+
+  /// Sets and updates the metadata of the local participant.
+  /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  /// @param metadata
+  void setMetadata(String metadata) {
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
+  }
+
+  /// Sets and updates the name of the local participant.
+  ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  ///  @param name
+  void setName(String name) {
+    super.updateName(name);
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
   }
 
   /// A convenience property to get all video tracks.

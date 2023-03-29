@@ -247,6 +247,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         _pingCount++;
         _resetPingTimeout();
         break;
+      case lk_rtc.SignalResponse_Message.reconnect:
+        events.emit(SignalReconnectResponseEvent(response: msg.reconnect));
+        break;
       default:
         logger.warning('received unknown signal message');
     }
@@ -382,6 +385,12 @@ extension SignalClientRequests on SignalClient {
       addTrack: req,
     ));
   }
+
+  @internal
+  void sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        updateMetadata: metadata,
+      ));
 
   @internal
   void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) =>

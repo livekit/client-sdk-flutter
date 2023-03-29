@@ -347,9 +347,11 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
   final List<int> data;
+  final String? topic;
   const DataReceivedEvent({
     required this.participant,
     required this.data,
+    required this.topic,
   });
 
   @override
@@ -408,4 +410,17 @@ class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, permissions: ${permissions})';
+}
+
+class ParticipantNameUpdatedEvent with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final String name;
+  const ParticipantNameUpdatedEvent({
+    required this.participant,
+    required this.name,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, name: ${name})';
 }
