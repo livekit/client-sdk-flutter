@@ -266,6 +266,9 @@
         return new A.EfficientLengthMappedIterable(iterable, $function, $S._eval$1("@<0>")._bind$1($T)._eval$1("EfficientLengthMappedIterable<1,2>"));
       return new A.MappedIterable(iterable, $function, $S._eval$1("@<0>")._bind$1($T)._eval$1("MappedIterable<1,2>"));
     },
+    IterableElementError_tooFew() {
+      return new A.StateError("Too few elements");
+    },
     _CopyingBytesBuilder: function _CopyingBytesBuilder(t0) {
       this.__internal$_length = 0;
       this._buffer = t0;
@@ -559,7 +562,7 @@
         return new A.ArgumentError(true, index, _s5_, null);
       $length = A._asInt(J.get$length$asx(indexable));
       if (index < 0 || index >= $length)
-        return A.IndexError$withLength(index, $length, indexable, _s5_);
+        return A.IndexError$withLength(index, $length, indexable, null, _s5_);
       return A.RangeError$value(index, _s5_);
     },
     diagnoseRangeError(start, end, $length) {
@@ -3572,6 +3575,9 @@
       t1 = result._contents;
       return t1.charCodeAt(0) == 0 ? t1 : t1;
     },
+    ListQueue__calculateCapacity(initialCapacity) {
+      return 8;
+    },
     _HashMap: function _HashMap() {
     },
     _IdentityHashMap: function _IdentityHashMap(t0) {
@@ -3609,6 +3615,21 @@
     MapView: function MapView() {
     },
     UnmodifiableMapView: function UnmodifiableMapView() {
+    },
+    ListQueue: function ListQueue(t0, t1) {
+      var _ = this;
+      _._table = t0;
+      _._modificationCount = _._tail = _._head = 0;
+      _.$ti = t1;
+    },
+    _ListQueueIterator: function _ListQueueIterator(t0, t1, t2, t3, t4) {
+      var _ = this;
+      _._queue = t0;
+      _._end = t1;
+      _._modificationCount = t2;
+      _._collection$_position = t3;
+      _._collection$_current = null;
+      _.$ti = t4;
     },
     _ListBase_Object_ListMixin: function _ListBase_Object_ListMixin() {
     },
@@ -3894,7 +3915,7 @@
         throw A.wrapException(A.RangeError$range(value, 0, null, $name, null));
       return value;
     },
-    IndexError$withLength(invalidValue, $length, indexable, $name) {
+    IndexError$withLength(invalidValue, $length, indexable, message, $name) {
       return new A.IndexError($length, true, invalidValue, $name, "Index out of range");
     },
     UnsupportedError$(message) {
@@ -3925,7 +3946,7 @@
       return A.SystemHash_finish(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(A.SystemHash_combine(t2, t1), object2), object3), object4));
     },
     print(object) {
-      A.printString(A.S(object));
+      A.printString(object);
     },
     NoSuchMethodError_toString_closure: function NoSuchMethodError_toString_closure(t0, t1) {
       this._box_0 = t0;
@@ -4549,7 +4570,7 @@
     },
     Cryptor$(keyOptions, participantId, trackId, worker) {
       var t1 = type$.int;
-      return new A.Cryptor(A.LinkedHashMap_LinkedHashMap$_empty(t1, t1), participantId, trackId, keyOptions, B.CryptorError_0, worker, A.List_List$filled(16, null, false, type$.nullable_KeySet));
+      return new A.Cryptor(A.LinkedHashMap_LinkedHashMap$_empty(t1, t1), participantId, trackId, keyOptions, B.CryptorError_0, worker, new A.ListQueue(A.List_List$filled(A.ListQueue__calculateCapacity(null), null, false, type$.nullable_RTCEncodedFrame), type$.ListQueue_RTCEncodedFrame), A.List_List$filled(16, null, false, type$.nullable_KeySet));
     },
     KeyOptions: function KeyOptions(t0, t1, t2) {
       this.sharedKey = t0;
@@ -4563,7 +4584,7 @@
       this.material = t0;
       this.encryptionKey = t1;
     },
-    Cryptor: function Cryptor(t0, t1, t2, t3, t4, t5, t6) {
+    Cryptor: function Cryptor(t0, t1, t2, t3, t4, t5, t6, t7) {
       var _ = this;
       _.sendCounts = t0;
       _.participantId = t1;
@@ -4575,7 +4596,9 @@
       _.lastError = t4;
       _.worker = t5;
       _.currentKeyIndex = 0;
-      _.cryptoKeyRing = t6;
+      _.queue = t6;
+      _.ratchetInProgress = false;
+      _.cryptoKeyRing = t7;
     },
     main() {
       var $async$goto = 0,
@@ -5130,6 +5153,27 @@
         return A.ioore(receiver, index);
       return receiver[index];
     },
+    setRange$4(receiver, start, end, iterable, skipCount) {
+      var $length, otherList, t1, i;
+      A._arrayInstanceType(receiver)._eval$1("Iterable<1>")._as(iterable);
+      if (!!receiver.immutable$list)
+        A.throwExpression(A.UnsupportedError$("setRange"));
+      A.RangeError_checkValidRange(start, end, receiver.length);
+      $length = end - start;
+      if ($length === 0)
+        return;
+      A.RangeError_checkNotNegative(skipCount, "skipCount");
+      otherList = iterable;
+      t1 = J.getInterceptor$asx(otherList);
+      if (skipCount + $length > t1.get$length(otherList))
+        throw A.wrapException(A.IterableElementError_tooFew());
+      if (skipCount < start)
+        for (i = $length - 1; i >= 0; --i)
+          receiver[start + i] = t1.$index(otherList, skipCount + i);
+      else
+        for (i = 0; i < $length; ++i)
+          receiver[start + i] = t1.$index(otherList, skipCount + i);
+    },
     toString$0(receiver) {
       return A.IterableBase_iterableToFullString(receiver, "[", "]");
     },
@@ -5400,7 +5444,7 @@
       var _this = this,
         realIndex = _this.get$_startIndex() + index;
       if (index < 0 || realIndex >= _this.get$_endIndex())
-        throw A.wrapException(A.IndexError$withLength(index, _this.get$length(_this), _this, "index"));
+        throw A.wrapException(A.IndexError$withLength(index, _this.get$length(_this), _this, null, "index"));
       return J.elementAt$1$ax(_this.__internal$_iterable, realIndex);
     },
     toList$1$growable(_, growable) {
@@ -6025,13 +6069,16 @@
       A._checkValidIndex(index, receiver, receiver.length);
       receiver[index] = value;
     },
-    setRange$3(receiver, start, end, iterable) {
+    setRange$4(receiver, start, end, iterable, skipCount) {
       type$.Iterable_int._as(iterable);
       if (type$.NativeTypedArrayOfInt._is(iterable)) {
-        this._setRangeFast$4(receiver, start, end, iterable, 0);
+        this._setRangeFast$4(receiver, start, end, iterable, skipCount);
         return;
       }
-      this.super$ListMixin$setRange(receiver, start, end, iterable, 0);
+      this.super$ListMixin$setRange(receiver, start, end, iterable, skipCount);
+    },
+    setRange$3($receiver, start, end, iterable) {
+      return this.setRange$4($receiver, start, end, iterable, 0);
     },
     $isEfficientLengthIterable: 1,
     $isIterable: 1,
@@ -6917,7 +6964,7 @@
         otherStart = 0;
       }
       if (otherStart + $length > otherList.length)
-        throw A.wrapException(A.StateError$("Too few elements"));
+        throw A.wrapException(A.IterableElementError_tooFew());
       if (otherStart < start)
         for (i = $length - 1; i >= 0; --i) {
           t1 = otherStart + i;
@@ -6992,6 +7039,75 @@
     $isMap: 1
   };
   A.UnmodifiableMapView.prototype = {};
+  A.ListQueue.prototype = {
+    get$iterator(_) {
+      var _this = this;
+      return new A._ListQueueIterator(_this, _this._tail, _this._modificationCount, _this._head, _this.$ti._eval$1("_ListQueueIterator<1>"));
+    },
+    get$isEmpty(_) {
+      return this._head === this._tail;
+    },
+    get$length(_) {
+      return (this._tail - this._head & this._table.length - 1) >>> 0;
+    },
+    elementAt$1(_, index) {
+      var t2, t3, _this = this,
+        t1 = _this.get$length(_this);
+      if (0 > index || index >= t1)
+        A.throwExpression(A.IndexError$withLength(index, t1, _this, null, "index"));
+      t1 = _this._table;
+      t2 = t1.length;
+      t3 = (_this._head + index & t2 - 1) >>> 0;
+      if (!(t3 >= 0 && t3 < t2))
+        return A.ioore(t1, t3);
+      t3 = t1[t3];
+      return t3 == null ? _this.$ti._precomputed1._as(t3) : t3;
+    },
+    clear$0(_) {
+      var _this = this,
+        i = _this._head;
+      if (i !== _this._tail) {
+        for (; i !== _this._tail; i = (i + 1 & _this._table.length - 1) >>> 0)
+          B.JSArray_methods.$indexSet(_this._table, i, null);
+        _this._head = _this._tail = 0;
+        ++_this._modificationCount;
+      }
+    },
+    toString$0(_) {
+      return A.IterableBase_iterableToFullString(this, "{", "}");
+    },
+    set$_table(_table) {
+      this._table = this.$ti._eval$1("List<1?>")._as(_table);
+    },
+    $isQueue: 1
+  };
+  A._ListQueueIterator.prototype = {
+    get$current(_) {
+      var t1 = this._collection$_current;
+      return t1 == null ? this.$ti._precomputed1._as(t1) : t1;
+    },
+    moveNext$0() {
+      var t2, t3, _this = this,
+        t1 = _this._queue;
+      if (_this._modificationCount !== t1._modificationCount)
+        A.throwExpression(A.ConcurrentModificationError$(t1));
+      t2 = _this._collection$_position;
+      if (t2 === _this._end) {
+        _this.set$_collection$_current(null);
+        return false;
+      }
+      t3 = t1._table;
+      if (!(t2 < t3.length))
+        return A.ioore(t3, t2);
+      _this.set$_collection$_current(t3[t2]);
+      _this._collection$_position = (_this._collection$_position + 1 & t1._table.length - 1) >>> 0;
+      return true;
+    },
+    set$_collection$_current(_current) {
+      this._collection$_current = this.$ti._eval$1("1?")._as(_current);
+    },
+    $isIterator: 1
+  };
   A._ListBase_Object_ListMixin.prototype = {};
   A._UnmodifiableMapView_MapView__UnmodifiableMapMixin.prototype = {};
   A.Base64Decoder.prototype = {
@@ -7307,7 +7423,7 @@
           return element;
         ++elementIndex;
       }
-      throw A.wrapException(A.IndexError$withLength(index, elementIndex, this, "index"));
+      throw A.wrapException(A.IndexError$withLength(index, elementIndex, this, null, "index"));
     },
     toString$0(_) {
       return A.IterableBase_iterableToShortString(this, "(", ")");
@@ -7436,7 +7552,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7523,7 +7639,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7573,7 +7689,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7617,7 +7733,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7730,7 +7846,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7764,7 +7880,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7797,7 +7913,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7862,7 +7978,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7890,7 +8006,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7963,7 +8079,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -7990,7 +8106,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8023,7 +8139,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8076,7 +8192,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8178,7 +8294,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8205,7 +8321,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8232,7 +8348,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8259,7 +8375,7 @@
       A._asInt(index);
       t1 = receiver.length;
       if (index >>> 0 !== index || index >= t1)
-        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, t1, receiver, null, null));
       return receiver[index];
     },
     $indexSet(receiver, index, value) {
@@ -8636,7 +8752,7 @@
     $index(receiver, index) {
       A._asInt(index);
       if (index >>> 0 !== index || index >= receiver.length)
-        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null, null));
       return receiver.getItem(index);
     },
     $indexSet(receiver, index, value) {
@@ -8658,7 +8774,7 @@
     $index(receiver, index) {
       A._asInt(index);
       if (index >>> 0 !== index || index >= receiver.length)
-        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null, null));
       return receiver.getItem(index);
     },
     $indexSet(receiver, index, value) {
@@ -8684,7 +8800,7 @@
     $index(receiver, index) {
       A._asInt(index);
       if (index >>> 0 !== index || index >= receiver.length)
-        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null, null));
       return receiver.getItem(index);
     },
     $indexSet(receiver, index, value) {
@@ -8706,7 +8822,7 @@
     $index(receiver, index) {
       A._asInt(index);
       if (index >>> 0 !== index || index >= receiver.length)
-        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null));
+        throw A.wrapException(A.IndexError$withLength(index, this.get$length(receiver), receiver, null, null));
       return receiver.getItem(index);
     },
     $indexSet(receiver, index, value) {
@@ -8818,7 +8934,7 @@
     ratchetKey$1(keyIndex) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$returnValue, $async$self = this, t1, currentMaterial, t2, t3, $async$temp1, $async$temp2, $async$temp3, $async$temp4;
+        $async$returnValue, $async$self = this, newKeySet, t1, currentMaterial;
       var $async$ratchetKey$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
@@ -8826,10 +8942,6 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              if ($async$self.lastError !== B.CryptorError_1) {
-                A.print("ratchetKey: lastError != CryptorError.kOk, reset state to kNew");
-                $async$self.lastError = B.CryptorError_0;
-              }
               t1 = $async$self.getKeySet$1(keyIndex);
               currentMaterial = t1 == null ? null : t1.material;
               if (currentMaterial == null) {
@@ -8837,38 +8949,59 @@
                 $async$goto = 1;
                 break;
               }
-              $async$temp1 = type$.CryptoKey;
-              $async$temp2 = A;
-              $async$temp3 = self.crypto.subtle;
-              $async$temp4 = A;
               $async$goto = 4;
-              return A._asyncAwait($async$self.ratchet$2(currentMaterial, $async$self.keyOptions.ratchetSalt), $async$ratchetKey$1);
+              return A._asyncAwait($async$self.ratchetMaterial$1(currentMaterial), $async$ratchetKey$1);
             case 4:
               // returning from await.
               $async$goto = 3;
-              return A._asyncAwait($async$temp2.promiseToFuture($async$temp3.importKey("raw", $async$temp4.jsArrayBufferFrom($async$result), J.get$name$x(type$.Algorithm._as(currentMaterial.algorithm)), false, A._setArrayType(["deriveBits", "deriveKey"], type$.JSArray_String)), type$.dynamic), $async$ratchetKey$1);
+              return A._asyncAwait($async$self.deriveKeys$2($async$result, $async$self.keyOptions.ratchetSalt), $async$ratchetKey$1);
             case 3:
               // returning from await.
-              t1 = $async$temp1._as($async$result);
+              newKeySet = $async$result;
               $async$goto = 5;
-              return A._asyncAwait($async$self.setKeyFromMaterial$2(t1, keyIndex == null ? $async$self.currentKeyIndex : keyIndex), $async$ratchetKey$1);
+              return A._asyncAwait($async$self.setKeySetFromMaterial$2(newKeySet, keyIndex == null ? $async$self.currentKeyIndex : keyIndex), $async$ratchetKey$1);
             case 5:
               // returning from await.
-              if ($async$self.lastError !== B.CryptorError_6) {
-                A.print("ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted");
-                $async$self.lastError = B.CryptorError_6;
-                t1 = $async$self.participantId;
-                t2 = $async$self.trackId;
-                t3 = $async$self.__Cryptor_kind_A;
-                t3 === $ && A.throwLateFieldNI("kind");
-                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t1, "trackId", t2, "kind", t3, "state", "keyRatcheted", "error", "Key ratcheted ok"], type$.String, type$.nullable_String));
-              }
             case 1:
               // return
               return A._asyncReturn($async$returnValue, $async$completer);
           }
       });
       return A._asyncStartSync($async$ratchetKey$1, $async$completer);
+    },
+    ratchetMaterial$1(currentMaterial) {
+      var $async$goto = 0,
+        $async$completer = A._makeAsyncAwaitCompleter(type$.CryptoKey),
+        $async$returnValue, $async$self = this, $async$temp1, $async$temp2, $async$temp3, $async$temp4;
+      var $async$ratchetMaterial$1 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
+        while (true)
+          switch ($async$goto) {
+            case 0:
+              // Function start
+              $async$temp1 = type$.FutureOr_CryptoKey;
+              $async$temp2 = A;
+              $async$temp3 = self.crypto.subtle;
+              $async$temp4 = A;
+              $async$goto = 4;
+              return A._asyncAwait($async$self.ratchet$2(currentMaterial, $async$self.keyOptions.ratchetSalt), $async$ratchetMaterial$1);
+            case 4:
+              // returning from await.
+              $async$goto = 3;
+              return A._asyncAwait($async$temp2.promiseToFuture($async$temp3.importKey("raw", $async$temp4.jsArrayBufferFrom($async$result), J.get$name$x(type$.Algorithm._as(currentMaterial.algorithm)), false, A._setArrayType(["deriveBits", "deriveKey"], type$.JSArray_String)), type$.dynamic), $async$ratchetMaterial$1);
+            case 3:
+              // returning from await.
+              $async$returnValue = $async$temp1._as($async$result);
+              // goto return
+              $async$goto = 1;
+              break;
+            case 1:
+              // return
+              return A._asyncReturn($async$returnValue, $async$completer);
+          }
+      });
+      return A._asyncStartSync($async$ratchetMaterial$1, $async$completer);
     },
     getKeySet$1(keyIndex) {
       var t1 = this.cryptoKeyRing,
@@ -8892,12 +9025,16 @@
                 A.print("setKey: lastError != CryptorError.kOk, reset state to kNew");
                 $async$self.lastError = B.CryptorError_0;
               }
-              $async$goto = 3;
+              $async$goto = 4;
               return A._asyncAwait(A.impportKeyFromRawData(key, A._setArrayType(["deriveBits", "deriveKey"], type$.JSArray_String), "PBKDF2"), $async$setKey$2);
+            case 4:
+              // returning from await.
+              $async$goto = 3;
+              return A._asyncAwait($async$self.deriveKeys$2($async$result, $async$self.keyOptions.ratchetSalt), $async$setKey$2);
             case 3:
               // returning from await.
               $async$goto = 2;
-              return A._asyncAwait($async$self.setKeyFromMaterial$2($async$result, keyIndex), $async$setKey$2);
+              return A._asyncAwait($async$self.setKeySetFromMaterial$2($async$result, keyIndex), $async$setKey$2);
             case 2:
               // returning from await.
               // implicit return
@@ -8906,11 +9043,14 @@
       });
       return A._asyncStartSync($async$setKey$2, $async$completer);
     },
-    setKeyFromMaterial$2(material, keyIndex) {
+    setKeySetFromMaterial$2(keySet, keyIndex) {
+      return this.setKeySetFromMaterial$body$Cryptor(type$.KeySet._as(keySet), keyIndex);
+    },
+    setKeySetFromMaterial$body$Cryptor(keySet, keyIndex) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$self = this, $async$temp1, $async$temp2, $async$temp3;
-      var $async$setKeyFromMaterial$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
+        $async$self = this;
+      var $async$setKeySetFromMaterial$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1)
           return A._asyncRethrow($async$result, $async$completer);
         while (true)
@@ -8920,141 +9060,66 @@
               A.print("setting new key");
               if (keyIndex >= 0)
                 $async$self.currentKeyIndex = B.JSInt_methods.$mod(keyIndex, 16);
-              $async$temp1 = B.JSArray_methods;
-              $async$temp2 = $async$self.cryptoKeyRing;
-              $async$temp3 = $async$self.currentKeyIndex;
-              $async$goto = 2;
-              return A._asyncAwait($async$self.deriveKeys$2(material, $async$self.keyOptions.ratchetSalt), $async$setKeyFromMaterial$2);
-            case 2:
-              // returning from await.
-              $async$temp1.$indexSet($async$temp2, $async$temp3, $async$result);
+              B.JSArray_methods.$indexSet($async$self.cryptoKeyRing, $async$self.currentKeyIndex, keySet);
               // implicit return
               return A._asyncReturn(null, $async$completer);
           }
       });
-      return A._asyncStartSync($async$setKeyFromMaterial$2, $async$completer);
+      return A._asyncStartSync($async$setKeySetFromMaterial$2, $async$completer);
     },
     deriveKeys$2(material, salt) {
-      return this.deriveKeys$body$Cryptor(material, salt);
-    },
-    deriveKeys$body$Cryptor(material, salt) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.KeySet),
-        $async$returnValue, $async$handler = 2, $async$currentError, encryptionKey, e, t1, exception, algorithmOptions, $async$exception;
+        $async$returnValue, algorithmOptions, $async$temp1, $async$temp2;
       var $async$deriveKeys$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1) {
-          $async$currentError = $async$result;
-          $async$goto = $async$handler;
-        }
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
         while (true)
           switch ($async$goto) {
             case 0:
               // Function start
               algorithmOptions = A.getAlgoOptions(J.get$name$x(type$.Algorithm._as(material.algorithm)), salt);
-              $async$handler = 4;
-              t1 = algorithmOptions;
-              $async$goto = 7;
-              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.deriveKey(A.jsify(t1 == null ? type$.Object._as(t1) : t1), material, A.jsify(A.LinkedHashMap_LinkedHashMap$_literal(["name", "AES-GCM", "length", 128], type$.String, type$.Object)), false, A._setArrayType(["encrypt", "decrypt"], type$.JSArray_String)), type$.CryptoKey), $async$deriveKeys$2);
-            case 7:
-              // returning from await.
-              encryptionKey = $async$result;
-              $async$returnValue = new A.KeySet(material, encryptionKey);
-              // goto return
-              $async$goto = 1;
-              break;
-              $async$handler = 2;
-              // goto after finally
-              $async$goto = 6;
-              break;
-            case 4:
-              // catch
-              $async$handler = 3;
-              $async$exception = $async$currentError;
-              e = A.unwrapException($async$exception);
-              A.print(e);
-              $async$returnValue = new A.KeySet(material, material);
-              // goto return
-              $async$goto = 1;
-              break;
-              // goto after finally
-              $async$goto = 6;
-              break;
+              $async$temp1 = A;
+              $async$temp2 = material;
+              $async$goto = 3;
+              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.deriveKey(A.jsify(algorithmOptions), material, A.jsify(A.LinkedHashMap_LinkedHashMap$_literal(["name", "AES-GCM", "length", 128], type$.String, type$.Object)), false, A._setArrayType(["encrypt", "decrypt"], type$.JSArray_String)), type$.CryptoKey), $async$deriveKeys$2);
             case 3:
-              // uncaught
-              // goto rethrow
-              $async$goto = 2;
+              // returning from await.
+              $async$returnValue = new $async$temp1.KeySet($async$temp2, $async$result);
+              // goto return
+              $async$goto = 1;
               break;
-            case 6:
-              // after finally
             case 1:
               // return
               return A._asyncReturn($async$returnValue, $async$completer);
-            case 2:
-              // rethrow
-              return A._asyncRethrow($async$currentError, $async$completer);
           }
       });
       return A._asyncStartSync($async$deriveKeys$2, $async$completer);
     },
     ratchet$2(material, salt) {
-      return this.ratchet$body$Cryptor(material, salt);
-    },
-    ratchet$body$Cryptor(material, salt) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.Uint8List),
-        $async$returnValue, $async$handler = 2, $async$currentError, newKey, e, t1, exception, algorithmOptions, $async$exception;
+        $async$returnValue, algorithmOptions, $async$temp1;
       var $async$ratchet$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
-        if ($async$errorCode === 1) {
-          $async$currentError = $async$result;
-          $async$goto = $async$handler;
-        }
+        if ($async$errorCode === 1)
+          return A._asyncRethrow($async$result, $async$completer);
         while (true)
           switch ($async$goto) {
             case 0:
               // Function start
               algorithmOptions = A.getAlgoOptions("PBKDF2", salt);
-              $async$handler = 4;
-              t1 = algorithmOptions;
-              $async$goto = 7;
-              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.deriveBits(A.jsify(t1 == null ? type$.Object._as(t1) : t1), material, 256), type$.ByteBuffer), $async$ratchet$2);
-            case 7:
-              // returning from await.
-              newKey = $async$result;
-              t1 = A.NativeUint8List_NativeUint8List$view(newKey, 0, null);
-              $async$returnValue = t1;
-              // goto return
-              $async$goto = 1;
-              break;
-              $async$handler = 2;
-              // goto after finally
-              $async$goto = 6;
-              break;
-            case 4:
-              // catch
-              $async$handler = 3;
-              $async$exception = $async$currentError;
-              e = A.unwrapException($async$exception);
-              A.print(e);
-              $async$returnValue = new Uint8Array(0);
-              // goto return
-              $async$goto = 1;
-              break;
-              // goto after finally
-              $async$goto = 6;
-              break;
+              $async$temp1 = A;
+              $async$goto = 3;
+              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.deriveBits(A.jsify(algorithmOptions), material, 256), type$.ByteBuffer), $async$ratchet$2);
             case 3:
-              // uncaught
-              // goto rethrow
-              $async$goto = 2;
+              // returning from await.
+              $async$returnValue = $async$temp1.NativeUint8List_NativeUint8List$view($async$result, 0, null);
+              // goto return
+              $async$goto = 1;
               break;
-            case 6:
-              // after finally
             case 1:
               // return
               return A._asyncReturn($async$returnValue, $async$completer);
-            case 2:
-              // rethrow
-              return A._asyncRethrow($async$currentError, $async$completer);
           }
       });
       return A._asyncStartSync($async$ratchet$2, $async$completer);
@@ -9104,23 +9169,19 @@
       return A._asyncStartSync($async$setupTransform$6$codec$kind$operation$readable$trackId$writable, $async$completer);
     },
     getUnencryptedBytes$2(frame, codec) {
-      var data, naluIndices, t1, t2, _i, index, type;
+      var data, naluIndices, t1, t2, _i, index;
       if (codec != null && codec.toLowerCase() === "h264") {
         data = A.NativeUint8List_NativeUint8List$view(J.get$data$x(frame), 0, null);
         naluIndices = A.findNALUIndices(data);
-        for (t1 = naluIndices.length, t2 = data.length, _i = 0; _i < naluIndices.length; naluIndices.length === t1 || (0, A.throwConcurrentModificationError)(naluIndices), ++_i) {
+        for (t1 = naluIndices.length, t2 = data.length, _i = 0; _i < t1; ++_i) {
           index = naluIndices[_i];
           if (!(index < t2))
             return A.ioore(data, index);
-          type = data[index] & 31;
-          switch (type) {
+          switch (data[index] & 31) {
             case 5:
             case 1:
-              t1 = index + 2;
-              A.printString("unEncryptedBytes NALU of type " + type + ", offset " + t1);
-              return t1;
+              return index + 2;
             default:
-              A.printString("skipping NALU of type " + type);
               break;
           }
         }
@@ -9261,7 +9322,7 @@
     decodeFunction$body$Cryptor(frame, controller) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, headerLength, frameTrailer, ivLength, keyIndex, iv, secretKey, e, secretKey0, finalBuffer, e0, t2, t3, t4, t5, exception, t6, t7, ratchetCount, t1, buffer, decrypted, $async$exception, $async$exception1;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, headerLength, metaData, frameTrailer, ivLength, keyIndex, iv, keySet, initialKeySet, endDecLoop, q, f, e, newMaterial, finalBuffer, e0, t2, t3, t4, newTable, split, t5, t6, t7, t8, endDecLoop0, t9, t10, t11, t12, t13, t14, exception, ratchetCount, t1, buffer, decrypted, $async$exception, $async$exception1;
       var $async$decodeFunction$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -9274,7 +9335,33 @@
               ratchetCount = 0;
               t1 = J.getInterceptor$x(frame);
               buffer = A.NativeUint8List_NativeUint8List$view(t1.get$data(frame), 0, null);
-              decrypted = A.jsArrayBufferFrom(buffer);
+              decrypted = null;
+              if ($async$self.ratchetInProgress) {
+                A.print("ratchet in progress, add the frame to the queue");
+                t1 = $async$self.queue;
+                t2 = t1.$ti;
+                t2._precomputed1._as(frame);
+                B.JSArray_methods.$indexSet(t1._table, t1._tail, frame);
+                t3 = t1._tail;
+                t4 = t1._table.length;
+                t3 = (t3 + 1 & t4 - 1) >>> 0;
+                t1._tail = t3;
+                if (t1._head === t3) {
+                  newTable = A.List_List$filled(t4 * 2, null, false, t2._eval$1("1?"));
+                  t2 = t1._table;
+                  t3 = t1._head;
+                  split = t2.length - t3;
+                  B.JSArray_methods.setRange$4(newTable, 0, split, t2, t3);
+                  B.JSArray_methods.setRange$4(newTable, split, split + t1._head, t1._table, 0);
+                  t1._head = 0;
+                  t1._tail = t1._table.length;
+                  t1.set$_table(newTable);
+                }
+                ++t1._modificationCount;
+                // goto return
+                $async$goto = 1;
+                break;
+              }
               if (!$async$self.enabled || J.get$length$asx(buffer) === 0) {
                 J.enqueue$1$x(controller, frame);
                 // goto return
@@ -9285,7 +9372,7 @@
               t2 = $async$self.__Cryptor_kind_A;
               t2 === $ && A.throwLateFieldNI("kind");
               headerLength = t2 === "video" ? $async$self.getUnencryptedBytes$2(frame, $async$self.codec) : 1;
-              t1.getMetadata$0(frame);
+              metaData = t1.getMetadata$0(frame);
               frameTrailer = J.sublist$1$x(buffer, J.get$length$asx(buffer) - 2);
               ivLength = J.$index$asx(frameTrailer, 0);
               keyIndex = J.$index$asx(frameTrailer, 1);
@@ -9298,141 +9385,192 @@
                 break;
               }
               iv = J.sublist$2$x(buffer, t3 - t4 - 2, J.get$length$asx(buffer) - 2);
-              t4 = $async$self.getKeySet$1(keyIndex);
-              secretKey = t4 == null ? null : t4.encryptionKey;
-              if (secretKey == null)
+              keySet = $async$self.getKeySet$1(keyIndex);
+              initialKeySet = $async$self.getKeySet$1(keyIndex);
+              if (keySet == null) {
                 if ($async$self.lastError !== B.CryptorError_5) {
                   $async$self.lastError = B.CryptorError_5;
-                  t2 = $async$self.participantId;
-                  t3 = $async$self.trackId;
-                  B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t2, "trackId", t3, "kind", $async$self.__Cryptor_kind_A, "state", "missingKey", "error", "Missing key for track " + A.S(t3)], type$.String, type$.nullable_String));
+                  t1 = $async$self.participantId;
+                  t2 = $async$self.trackId;
+                  B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", t1, "trackId", t2, "kind", $async$self.__Cryptor_kind_A, "state", "missingKey", "error", "Missing key for track " + A.S(t2)], type$.String, type$.nullable_String));
                 }
-              $async$handler = 8;
-              t2 = {name: "AES-GCM", iv: A.jsArrayBufferFrom(iv), additionalData: A.jsArrayBufferFrom(J.sublist$2$x(buffer, 0, headerLength))};
-              t3 = secretKey;
-              t3.toString;
-              t4 = J.get$length$asx(buffer);
-              t5 = ivLength;
-              if (typeof t5 !== "number") {
-                $async$returnValue = A.iae(t5);
+                J.enqueue$1$x(controller, frame);
                 // goto return
                 $async$goto = 1;
                 break;
               }
-              $async$goto = 11;
-              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.decrypt(t2, t3, A.jsArrayBufferFrom(J.sublist$2$x(buffer, headerLength, t4 - t5 - 2))), type$.ByteBuffer), $async$decodeFunction$2);
-            case 11:
+              endDecLoop = false;
+              t2 = $async$self.keyOptions, t3 = t2.ratchetSalt, t2 = t2.ratchetWindowSize, t4 = $async$self.queue, t5 = type$.ByteBuffer, t6 = type$.String, t7 = type$.nullable_String, t8 = $async$self.worker, endDecLoop0 = t2 <= 0;
+            case 7:
+              // for condition
+              if (!!A.boolConversionCheck(endDecLoop)) {
+                // goto after for
+                $async$goto = 8;
+                break;
+              }
+              $async$handler = 10;
+              t9 = buffer;
+              t9 = {name: "AES-GCM", iv: A.jsArrayBufferFrom(iv), additionalData: A.jsArrayBufferFrom(new Uint8Array(t9.subarray(0, A._checkValidRange(0, A._asIntQ(headerLength), J.get$length$asx(t9)))))};
+              t10 = keySet.encryptionKey;
+              t11 = buffer;
+              t12 = J.get$length$asx(buffer);
+              t13 = ivLength;
+              if (typeof t13 !== "number") {
+                $async$returnValue = A.iae(t13);
+                // goto return
+                $async$goto = 1;
+                break;
+              }
+              t14 = A._asInt(headerLength);
+              $async$goto = 13;
+              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.decrypt(t9, t10, A.jsArrayBufferFrom(new Uint8Array(t11.subarray(t14, A._checkValidRange(t14, A._asIntQ(t12 - t13 - 2), J.get$length$asx(t11)))))), t5), $async$decodeFunction$2);
+            case 13:
               // returning from await.
               decrypted = $async$result;
-              $async$handler = 4;
-              // goto after finally
-              $async$goto = 10;
-              break;
-            case 8:
-              // catch
-              $async$handler = 7;
-              $async$exception = $async$currentError;
-              e = A.unwrapException($async$exception);
-              A.print("decrypt: e " + J.toString$0$(e));
-              t2 = $async$self.keyOptions.ratchetWindowSize;
-            case 12:
-              // while condition
-              t3 = ratchetCount;
-              if (typeof t3 !== "number") {
-                $async$returnValue = A.iae(t3);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              if (!(t2 > t3)) {
-                // goto after while
-                $async$goto = 13;
-                break;
-              }
-              t3 = ratchetCount;
-              if (typeof t3 !== "number") {
-                $async$returnValue = t3.$lt();
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              $async$goto = t3 < t2 ? 14 : 15;
+              endDecLoop = true;
+              $async$goto = !J.$eq$(keySet, initialKeySet) ? 14 : 15;
               break;
             case 14:
               // then
-              A.printString("ratcheting key attempt " + A.S(ratchetCount) + " of " + t2);
               $async$goto = 16;
-              return A._asyncAwait($async$self.ratchetKey$1(keyIndex), $async$decodeFunction$2);
+              return A._asyncAwait($async$self.setKeySetFromMaterial$2(keySet, keyIndex), $async$decodeFunction$2);
             case 16:
               // returning from await.
-              t2 = ratchetCount;
-              if (typeof t2 !== "number") {
-                $async$returnValue = t2.$add();
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              ratchetCount = t2 + 1;
-              t2 = A._asIntQ(keyIndex);
-              t3 = $async$self.cryptoKeyRing;
-              if (t2 == null)
-                t2 = $async$self.currentKeyIndex;
-              if (!(t2 >= 0 && t2 < 16)) {
-                $async$returnValue = A.ioore(t3, t2);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              t2 = t3[t2];
-              secretKey0 = t2 == null ? null : t2.encryptionKey;
-              t2 = buffer;
-              t2 = {name: "AES-GCM", iv: A.jsArrayBufferFrom(iv), additionalData: A.jsArrayBufferFrom(new Uint8Array(t2.subarray(0, A._checkValidRange(0, A._asIntQ(headerLength), J.get$length$asx(t2)))))};
-              t3 = secretKey0;
-              t3.toString;
-              t4 = buffer;
-              t5 = J.get$length$asx(buffer);
-              t6 = ivLength;
-              if (typeof t6 !== "number") {
-                $async$returnValue = A.iae(t6);
-                // goto return
-                $async$goto = 1;
-                break;
-              }
-              t7 = A._asInt(headerLength);
-              $async$goto = 17;
-              return A._asyncAwait(A.promiseToFuture(self.crypto.subtle.decrypt(t2, t3, A.jsArrayBufferFrom(new Uint8Array(t4.subarray(t7, A._checkValidRange(t7, A._asIntQ(t5 - t6 - 2), J.get$length$asx(t4)))))), type$.ByteBuffer), $async$decodeFunction$2);
-            case 17:
-              // returning from await.
-              decrypted = $async$result;
-              // goto after while
-              $async$goto = 13;
-              break;
             case 15:
               // join
-              // goto while condition
+              if ($async$self.lastError !== B.CryptorError_6) {
+                t9 = ratchetCount;
+                if (typeof t9 !== "number") {
+                  $async$returnValue = t9.$gt();
+                  // goto return
+                  $async$goto = 1;
+                  break;
+                }
+                t9 = t9 > 0;
+              } else
+                t9 = false;
+              if (t9) {
+                A.printString("ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted");
+                $async$self.lastError = B.CryptorError_6;
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1(t8, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "trackId", $async$self.trackId, "kind", $async$self.__Cryptor_kind_A, "state", "keyRatcheted", "error", "Key ratcheted ok"], t6, t7));
+              }
+              $async$self.ratchetInProgress = false;
+              $async$goto = !t4.get$isEmpty(t4) ? 17 : 18;
+              break;
+            case 17:
+              // then
+              A.printString("Ratchet done, process the queue of frames " + ((t4._tail - t4._head & t4._table.length - 1) >>> 0) + "}");
+              q = t4;
+              t4.clear$0(0);
+              t9 = q, t10 = A.instanceType(t9), t9 = new A._ListQueueIterator(t9, t9._tail, t9._modificationCount, t9._head, t10._eval$1("_ListQueueIterator<1>")), t10 = t10._precomputed1;
+            case 19:
+              // for condition
+              if (!t9.moveNext$0()) {
+                // goto after for
+                $async$goto = 20;
+                break;
+              }
+              t11 = t9._collection$_current;
+              f = t11 == null ? t10._as(t11) : t11;
+              $async$goto = 21;
+              return A._asyncAwait($async$self.decodeFunction$2(f, controller), $async$decodeFunction$2);
+            case 21:
+              // returning from await.
+              // goto for condition
+              $async$goto = 19;
+              break;
+            case 20:
+              // after for
+            case 18:
+              // join
+              $async$handler = 4;
+              // goto after finally
               $async$goto = 12;
               break;
-            case 13:
-              // after while
-              // goto after finally
-              $async$goto = 10;
+            case 10:
+              // catch
+              $async$handler = 9;
+              $async$exception = $async$currentError;
+              e = A.unwrapException($async$exception);
+              $async$self.ratchetInProgress = true;
+              t9 = J.toString$0$(e);
+              t10 = A.S(J.get$synchronizationSource$x(metaData));
+              t11 = A.S(t1.get$timestamp(frame));
+              t12 = A.S(ratchetCount);
+              t13 = $async$self.participantId;
+              A.printString("decrypt e " + t9 + ": ssrc " + t10 + " timestamp " + t11 + " ratchetCount " + t12 + "  participantId: " + A.S(t13));
+              t9 = ratchetCount;
+              if (typeof t9 !== "number") {
+                $async$returnValue = t9.$ge();
+                // goto return
+                $async$goto = 1;
+                break;
+              }
+              endDecLoop = t9 >= t2 || endDecLoop0;
+              $async$goto = A.boolConversionCheck(endDecLoop) ? 22 : 23;
               break;
-            case 7:
+            case 22:
+              // then
+              $async$goto = initialKeySet != null ? 24 : 25;
+              break;
+            case 24:
+              // then
+              $async$goto = 26;
+              return A._asyncAwait($async$self.setKeySetFromMaterial$2(initialKeySet, keyIndex), $async$decodeFunction$2);
+            case 26:
+              // returning from await.
+            case 25:
+              // join
+              $async$self.ratchetInProgress = false;
+              if (!t4.get$isEmpty(t4))
+                t4.clear$0(0);
+              throw $async$exception;
+            case 23:
+              // join
+              t9 = ratchetCount;
+              if (typeof t9 !== "number") {
+                $async$returnValue = t9.$add();
+                // goto return
+                $async$goto = 1;
+                break;
+              }
+              ratchetCount = t9 + 1;
+              $async$goto = 27;
+              return A._asyncAwait($async$self.ratchetMaterial$1(keySet.material), $async$decodeFunction$2);
+            case 27:
+              // returning from await.
+              newMaterial = $async$result;
+              $async$goto = 28;
+              return A._asyncAwait($async$self.deriveKeys$2(newMaterial, t3), $async$decodeFunction$2);
+            case 28:
+              // returning from await.
+              keySet = $async$result;
+              // goto after finally
+              $async$goto = 12;
+              break;
+            case 9:
               // uncaught
               // goto catch
               $async$goto = 4;
               break;
-            case 10:
+            case 12:
               // after finally
+              // goto for condition
+              $async$goto = 7;
+              break;
+            case 8:
+              // after for
               t2 = $.$get$_CopyingBytesBuilder__emptyList();
               finalBuffer = new A._CopyingBytesBuilder(t2);
               J.add$1$ax(finalBuffer, new Uint8Array(A._ensureNativeList(J.sublist$2$x(buffer, 0, headerLength))));
-              J.add$1$ax(finalBuffer, A.NativeUint8List_NativeUint8List$view(decrypted, 0, null));
+              t2 = decrypted;
+              t2.toString;
+              J.add$1$ax(finalBuffer, A.NativeUint8List_NativeUint8List$view(t2, 0, null));
               t1.set$data(frame, A.jsArrayBufferFrom(finalBuffer.toBytes$0()));
               J.enqueue$1$x(controller, frame);
               if ($async$self.lastError !== B.CryptorError_1) {
                 $async$self.lastError = B.CryptorError_1;
-                B.DedicatedWorkerGlobalScope_methods.postMessage$1($async$self.worker, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "trackId", $async$self.trackId, "kind", $async$self.__Cryptor_kind_A, "state", "ok", "error", "decryption ok"], type$.String, type$.nullable_String));
+                B.DedicatedWorkerGlobalScope_methods.postMessage$1(t8, A.LinkedHashMap_LinkedHashMap$_literal(["type", "cryptorState", "participantId", $async$self.participantId, "trackId", $async$self.trackId, "kind", $async$self.__Cryptor_kind_A, "state", "ok", "error", "decryption ok"], t6, t7));
               }
               $async$handler = 2;
               // goto after finally
@@ -9749,7 +9887,7 @@
       _inherit = hunkHelpers.inherit,
       _inheritMany = hunkHelpers.inheritMany;
     _inherit(A.Object, null);
-    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, J.ArrayIterator, A._CopyingBytesBuilder, A.Error, A._ListBase_Object_ListMixin, A.SentinelValue, A.Iterable, A.ListIterator, A.Iterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A.Symbol, A.MapView, A.ConstantMap, A.JSInvocationMirror, A.Closure, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A._Required, A.MapMixin, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A.StreamSubscription, A.StreamTransformerBase, A._StreamIterator, A._Zone, A._HashMapKeyIterator, A.ListMixin, A._UnmodifiableMapMixin, A._Base64Decoder, A.DateTime, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.Null, A._StringStackTrace, A.StringBuffer, A.CssStyleDeclarationBase, A.EventStreamProvider, A.ImmutableListMixin, A.FixedSizeListIterator, A._StructuredClone, A._AcceptStructuredClone, A.NullRejectionException, A._JSSecureRandom, A.KeyOptions, A.KeySet, A.Cryptor]);
+    _inheritMany(A.Object, [A.JS_CONST, J.Interceptor, J.ArrayIterator, A._CopyingBytesBuilder, A.Error, A._ListBase_Object_ListMixin, A.SentinelValue, A.Iterable, A.ListIterator, A.Iterator, A.FixedLengthListMixin, A.UnmodifiableListMixin, A.Symbol, A.MapView, A.ConstantMap, A.JSInvocationMirror, A.Closure, A.TypeErrorDecoder, A.NullThrownFromJavaScriptException, A.ExceptionAndStackTrace, A._StackTrace, A._Required, A.MapMixin, A.LinkedHashMapCell, A.LinkedHashMapKeyIterator, A.Rti, A._FunctionParameters, A._Type, A._TimerImpl, A._AsyncAwaitCompleter, A.AsyncError, A._Completer, A._FutureListener, A._Future, A._AsyncCallbackEntry, A.Stream, A.StreamSubscription, A.StreamTransformerBase, A._StreamIterator, A._Zone, A._HashMapKeyIterator, A.ListMixin, A._UnmodifiableMapMixin, A._ListQueueIterator, A._Base64Decoder, A.DateTime, A._Enum, A.OutOfMemoryError, A.StackOverflowError, A._Exception, A.FormatException, A.Null, A._StringStackTrace, A.StringBuffer, A.CssStyleDeclarationBase, A.EventStreamProvider, A.ImmutableListMixin, A.FixedSizeListIterator, A._StructuredClone, A._AcceptStructuredClone, A.NullRejectionException, A._JSSecureRandom, A.KeyOptions, A.KeySet, A.Cryptor]);
     _inheritMany(J.Interceptor, [J.JSBool, J.JSNull, J.JavaScriptObject, J.JSArray, J.JSNumber, J.JSString, A.NativeByteBuffer, A.NativeTypedData]);
     _inheritMany(J.JavaScriptObject, [J.LegacyJavaScriptObject, A.EventTarget, A.AccessibleNodeList, A.Blob, A.CryptoKey, A.CssTransformComponent, A.CssRule, A._CssStyleDeclaration_JavaScriptObject_CssStyleDeclarationBase, A.CssStyleValue, A.DataTransferItem, A.DataTransferItemList, A.DomException, A._DomRectList_JavaScriptObject_ListMixin, A.DomRectReadOnly, A._DomStringList_JavaScriptObject_ListMixin, A.DomTokenList, A.Event, A._FileList_JavaScriptObject_ListMixin, A.Gamepad, A.History, A._HtmlCollection_JavaScriptObject_ListMixin, A.ImageData, A.Location, A.MediaDeviceInfo, A.MediaList, A._MidiInputMap_JavaScriptObject_MapMixin, A._MidiOutputMap_JavaScriptObject_MapMixin, A.MimeType, A._MimeTypeArray_JavaScriptObject_ListMixin, A._NodeList_JavaScriptObject_ListMixin, A.Plugin, A._PluginArray_JavaScriptObject_ListMixin, A._RtcStatsReport_JavaScriptObject_MapMixin, A.SharedArrayBuffer, A.SpeechGrammar, A._SpeechGrammarList_JavaScriptObject_ListMixin, A.SpeechRecognitionResult, A._Storage_JavaScriptObject_MapMixin, A.StyleSheet, A._TextTrackCueList_JavaScriptObject_ListMixin, A.TimeRanges, A.Touch, A._TouchList_JavaScriptObject_ListMixin, A.TrackDefaultList, A.Url, A.VideoTrack, A.__CssRuleList_JavaScriptObject_ListMixin, A.__GamepadList_JavaScriptObject_ListMixin, A.__NamedNodeMap_JavaScriptObject_ListMixin, A.__SpeechRecognitionResultList_JavaScriptObject_ListMixin, A.__StyleSheetList_JavaScriptObject_ListMixin, A.Length, A._LengthList_JavaScriptObject_ListMixin, A.Number, A._NumberList_JavaScriptObject_ListMixin, A.PointList, A._StringList_JavaScriptObject_ListMixin, A.Transform, A._TransformList_JavaScriptObject_ListMixin, A.AudioBuffer, A._AudioParamMap_JavaScriptObject_MapMixin, A.AudioTrack]);
     _inheritMany(J.LegacyJavaScriptObject, [J.PlainJavaScriptObject, J.UnknownJavaScriptObject, J.JavaScriptFunction, A.WritableStream, A.ReadableStream, A.TransformStream, A.TransformStreamDefaultController, A.EncodedStreams, A.RTCEncodedFrame, A.RTCEncodedAudioFrame, A.RTCEncodedVideoFrame, A.RTCEncodedFrameMetadata, A.RTCEncodedAudioFrameMetadata, A.RTCEncodedVideoFrameMetadata, A.RTCTransformEvent, A.RTCRtpScriptTransformer, A.RTCRtpScriptTransform, A.Promise, A.Algorithm, A.AesGcmParams, A.TransformMessage, A.EnableTransformMessage, A.RemoveTransformMessage]);
@@ -9761,7 +9899,7 @@
     _inherit(A.CodeUnits, A.UnmodifiableListBase);
     _inheritMany(A.Iterable, [A.EfficientLengthIterable, A.MappedIterable, A.WhereIterable, A._ConstantMapKeyIterable]);
     _inheritMany(A.EfficientLengthIterable, [A.ListIterable, A.LinkedHashMapKeyIterable, A._HashMapKeyIterable]);
-    _inheritMany(A.ListIterable, [A.SubListIterable, A.MappedListIterable]);
+    _inheritMany(A.ListIterable, [A.SubListIterable, A.MappedListIterable, A.ListQueue]);
     _inherit(A.EfficientLengthMappedIterable, A.MappedIterable);
     _inheritMany(A.Iterator, [A.MappedIterator, A.WhereIterator]);
     _inherit(A._UnmodifiableMapView_MapView__UnmodifiableMapMixin, A.MapView);
@@ -9919,7 +10057,7 @@
     leafTags: null,
     arrayRti: Symbol("$ti")
   };
-  A._Universe_addRules(init.typeUniverse, JSON.parse('{"PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","JavaScriptFunction":"LegacyJavaScriptObject","WritableStream":"LegacyJavaScriptObject","ReadableStream":"LegacyJavaScriptObject","TransformStreamDefaultController":"LegacyJavaScriptObject","RTCEncodedFrame":"LegacyJavaScriptObject","TransformStream":"LegacyJavaScriptObject","EncodedStreams":"LegacyJavaScriptObject","RTCEncodedAudioFrame":"LegacyJavaScriptObject","RTCEncodedVideoFrame":"LegacyJavaScriptObject","RTCEncodedFrameMetadata":"LegacyJavaScriptObject","RTCEncodedAudioFrameMetadata":"LegacyJavaScriptObject","RTCEncodedVideoFrameMetadata":"LegacyJavaScriptObject","RTCTransformEvent":"LegacyJavaScriptObject","RTCRtpScriptTransformer":"LegacyJavaScriptObject","RTCRtpScriptTransform":"LegacyJavaScriptObject","Promise":"LegacyJavaScriptObject","Algorithm":"LegacyJavaScriptObject","AesGcmParams":"LegacyJavaScriptObject","TransformMessage":"LegacyJavaScriptObject","EnableTransformMessage":"LegacyJavaScriptObject","RemoveTransformMessage":"LegacyJavaScriptObject","KeyframeEffect":"JavaScriptObject","KeyframeEffectReadOnly":"JavaScriptObject","AnimationEffectReadOnly":"JavaScriptObject","AbortPaymentEvent":"Event","ExtendableEvent":"Event","AudioContext":"BaseAudioContext","AbsoluteOrientationSensor":"EventTarget","OrientationSensor":"EventTarget","Sensor":"EventTarget","MathMLElement":"Element","AudioElement":"HtmlElement","MediaElement":"HtmlElement","HtmlDocument":"Node","Document":"Node","VttCue":"TextTrackCue","ServiceWorkerGlobalScope":"WorkerGlobalScope","CDataSection":"CharacterData","Text":"CharacterData","HtmlFormControlsCollection":"HtmlCollection","CssCharsetRule":"CssRule","CssMatrixComponent":"CssTransformComponent","CssStyleSheet":"StyleSheet","CssurlImageValue":"CssStyleValue","CssImageValue":"CssStyleValue","CssResourceValue":"CssStyleValue","CanvasCaptureMediaStreamTrack":"MediaStreamTrack","NativeFloat32List":"NativeTypedArrayOfDouble","JSBool":{"bool":[]},"JSNull":{"Null":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[],"WritableStream":[],"ReadableStream":[],"TransformStreamDefaultController":[],"RTCEncodedFrame":[],"RTCTransformEvent":[],"Algorithm":[]},"JSArray":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"JSIndexable":["1"]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"JSIndexable":["1"]},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[]},"JSInt":{"double":[],"int":[],"num":[]},"JSNumNotInt":{"double":[],"num":[]},"JSString":{"String":[],"JSIndexable":["@"]},"LateError":{"Error":[]},"CodeUnits":{"ListMixin":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListMixin.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1","ListIterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2","ListIterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListMixin":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"Symbol":{"Symbol0":[]},"ConstantMapView":{"UnmodifiableMapView":["1","2"],"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_ConstantMapKeyIterable":{"Iterable":["1"],"Iterable.E":"1"},"JSInvocationMirror":{"Invocation":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Function":[]},"Closure2Args":{"Function":[]},"TearOffClosure":{"Function":[]},"StaticClosure":{"Function":[]},"BoundClosure":{"Function":[]},"RuntimeError":{"Error":[]},"_AssertionError":{"Error":[]},"JsLinkedHashMap":{"MapMixin":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapMixin.K":"1","MapMixin.V":"2"},"LinkedHashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"NativeByteBuffer":{"ByteBuffer":[]},"NativeByteData":{"NativeTypedData":[],"ByteData":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"NativeTypedData":[],"JSIndexable":["1"]},"NativeTypedArrayOfDouble":{"NativeTypedArray":["double"],"ListMixin":["double"],"JavaScriptIndexingBehavior":["double"],"List":["double"],"NativeTypedData":[],"EfficientLengthIterable":["double"],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"ListMixin.E":"double"},"NativeTypedArrayOfInt":{"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeInt16List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"Uint8List":[],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"_Future":{"Future":["1"]},"AsyncError":{"Error":[]},"_AsyncCompleter":{"_Completer":["1"]},"_Zone":{"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_HashMap":{"MapMixin":["1","2"],"Map":["1","2"]},"_IdentityHashMap":{"_HashMap":["1","2"],"MapMixin":["1","2"],"Map":["1","2"],"MapMixin.K":"1","MapMixin.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"ListBase":{"ListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"MapMixin":["1","2"],"Map":["1","2"]},"MapMixin":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"double":{"num":[]},"int":{"num":[]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"NullThrownError":{"TypeError":[],"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"NoSuchMethodError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"CyclicInitializationError":{"Error":[]},"_StringStackTrace":{"StackTrace":[]},"CryptoKey":{"JavaScriptObject":[]},"CssRule":{"JavaScriptObject":[]},"Event":{"JavaScriptObject":[]},"File":{"Blob":[],"JavaScriptObject":[]},"Gamepad":{"JavaScriptObject":[]},"MessageEvent":{"Event":[],"JavaScriptObject":[]},"MimeType":{"JavaScriptObject":[]},"Node":{"EventTarget":[],"JavaScriptObject":[]},"Plugin":{"JavaScriptObject":[]},"SourceBuffer":{"EventTarget":[],"JavaScriptObject":[]},"SpeechGrammar":{"JavaScriptObject":[]},"SpeechRecognitionResult":{"JavaScriptObject":[]},"StyleSheet":{"JavaScriptObject":[]},"TextTrack":{"EventTarget":[],"JavaScriptObject":[]},"TextTrackCue":{"EventTarget":[],"JavaScriptObject":[]},"Touch":{"JavaScriptObject":[]},"HtmlElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"AccessibleNodeList":{"JavaScriptObject":[]},"AnchorElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"AreaElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"Blob":{"JavaScriptObject":[]},"CharacterData":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"CssPerspective":{"JavaScriptObject":[]},"CssStyleDeclaration":{"JavaScriptObject":[]},"CssStyleValue":{"JavaScriptObject":[]},"CssTransformComponent":{"JavaScriptObject":[]},"CssTransformValue":{"JavaScriptObject":[]},"CssUnparsedValue":{"JavaScriptObject":[]},"DataTransferItem":{"JavaScriptObject":[]},"DataTransferItemList":{"JavaScriptObject":[]},"DedicatedWorkerGlobalScope":{"EventTarget":[],"JavaScriptObject":[]},"DomException":{"JavaScriptObject":[]},"DomRectList":{"ListMixin":["Rectangle<num>"],"ImmutableListMixin":["Rectangle<num>"],"List":["Rectangle<num>"],"JavaScriptIndexingBehavior":["Rectangle<num>"],"JavaScriptObject":[],"EfficientLengthIterable":["Rectangle<num>"],"Iterable":["Rectangle<num>"],"JSIndexable":["Rectangle<num>"],"ImmutableListMixin.E":"Rectangle<num>","ListMixin.E":"Rectangle<num>"},"DomRectReadOnly":{"JavaScriptObject":[],"Rectangle":["num"]},"DomStringList":{"ListMixin":["String"],"ImmutableListMixin":["String"],"List":["String"],"JavaScriptIndexingBehavior":["String"],"JavaScriptObject":[],"EfficientLengthIterable":["String"],"Iterable":["String"],"JSIndexable":["String"],"ImmutableListMixin.E":"String","ListMixin.E":"String"},"DomTokenList":{"JavaScriptObject":[]},"Element":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"EventTarget":{"JavaScriptObject":[]},"FileList":{"ListMixin":["File"],"ImmutableListMixin":["File"],"List":["File"],"JavaScriptIndexingBehavior":["File"],"JavaScriptObject":[],"EfficientLengthIterable":["File"],"Iterable":["File"],"JSIndexable":["File"],"ImmutableListMixin.E":"File","ListMixin.E":"File"},"FileWriter":{"EventTarget":[],"JavaScriptObject":[]},"FormElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"History":{"JavaScriptObject":[]},"HtmlCollection":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"ImageData":{"JavaScriptObject":[]},"Location":{"JavaScriptObject":[]},"MediaDeviceInfo":{"JavaScriptObject":[]},"MediaList":{"JavaScriptObject":[]},"MediaStreamTrack":{"EventTarget":[],"JavaScriptObject":[]},"MessagePort":{"EventTarget":[],"JavaScriptObject":[]},"MidiInputMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"MidiOutputMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"MimeTypeArray":{"ListMixin":["MimeType"],"ImmutableListMixin":["MimeType"],"List":["MimeType"],"JavaScriptIndexingBehavior":["MimeType"],"JavaScriptObject":[],"EfficientLengthIterable":["MimeType"],"Iterable":["MimeType"],"JSIndexable":["MimeType"],"ImmutableListMixin.E":"MimeType","ListMixin.E":"MimeType"},"NodeList":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"PluginArray":{"ListMixin":["Plugin"],"ImmutableListMixin":["Plugin"],"List":["Plugin"],"JavaScriptIndexingBehavior":["Plugin"],"JavaScriptObject":[],"EfficientLengthIterable":["Plugin"],"Iterable":["Plugin"],"JSIndexable":["Plugin"],"ImmutableListMixin.E":"Plugin","ListMixin.E":"Plugin"},"RtcStatsReport":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"SelectElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"SharedArrayBuffer":{"JavaScriptObject":[]},"SourceBufferList":{"ListMixin":["SourceBuffer"],"ImmutableListMixin":["SourceBuffer"],"EventTarget":[],"List":["SourceBuffer"],"JavaScriptIndexingBehavior":["SourceBuffer"],"JavaScriptObject":[],"EfficientLengthIterable":["SourceBuffer"],"Iterable":["SourceBuffer"],"JSIndexable":["SourceBuffer"],"ImmutableListMixin.E":"SourceBuffer","ListMixin.E":"SourceBuffer"},"SpeechGrammarList":{"ListMixin":["SpeechGrammar"],"ImmutableListMixin":["SpeechGrammar"],"List":["SpeechGrammar"],"JavaScriptIndexingBehavior":["SpeechGrammar"],"JavaScriptObject":[],"EfficientLengthIterable":["SpeechGrammar"],"Iterable":["SpeechGrammar"],"JSIndexable":["SpeechGrammar"],"ImmutableListMixin.E":"SpeechGrammar","ListMixin.E":"SpeechGrammar"},"Storage":{"JavaScriptObject":[],"MapMixin":["String","String"],"Map":["String","String"],"MapMixin.K":"String","MapMixin.V":"String"},"TextTrackCueList":{"ListMixin":["TextTrackCue"],"ImmutableListMixin":["TextTrackCue"],"List":["TextTrackCue"],"JavaScriptIndexingBehavior":["TextTrackCue"],"JavaScriptObject":[],"EfficientLengthIterable":["TextTrackCue"],"Iterable":["TextTrackCue"],"JSIndexable":["TextTrackCue"],"ImmutableListMixin.E":"TextTrackCue","ListMixin.E":"TextTrackCue"},"TextTrackList":{"ListMixin":["TextTrack"],"ImmutableListMixin":["TextTrack"],"EventTarget":[],"List":["TextTrack"],"JavaScriptIndexingBehavior":["TextTrack"],"JavaScriptObject":[],"EfficientLengthIterable":["TextTrack"],"Iterable":["TextTrack"],"JSIndexable":["TextTrack"],"ImmutableListMixin.E":"TextTrack","ListMixin.E":"TextTrack"},"TimeRanges":{"JavaScriptObject":[]},"TouchList":{"ListMixin":["Touch"],"ImmutableListMixin":["Touch"],"List":["Touch"],"JavaScriptIndexingBehavior":["Touch"],"JavaScriptObject":[],"EfficientLengthIterable":["Touch"],"Iterable":["Touch"],"JSIndexable":["Touch"],"ImmutableListMixin.E":"Touch","ListMixin.E":"Touch"},"TrackDefaultList":{"JavaScriptObject":[]},"TrackElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"Url":{"JavaScriptObject":[]},"VideoTrack":{"JavaScriptObject":[]},"VideoTrackList":{"EventTarget":[],"JavaScriptObject":[]},"WorkerGlobalScope":{"EventTarget":[],"JavaScriptObject":[]},"_CssRuleList":{"ListMixin":["CssRule"],"ImmutableListMixin":["CssRule"],"List":["CssRule"],"JavaScriptIndexingBehavior":["CssRule"],"JavaScriptObject":[],"EfficientLengthIterable":["CssRule"],"Iterable":["CssRule"],"JSIndexable":["CssRule"],"ImmutableListMixin.E":"CssRule","ListMixin.E":"CssRule"},"_DomRect":{"JavaScriptObject":[],"Rectangle":["num"]},"_GamepadList":{"ListMixin":["Gamepad?"],"ImmutableListMixin":["Gamepad?"],"List":["Gamepad?"],"JavaScriptIndexingBehavior":["Gamepad?"],"JavaScriptObject":[],"EfficientLengthIterable":["Gamepad?"],"Iterable":["Gamepad?"],"JSIndexable":["Gamepad?"],"ImmutableListMixin.E":"Gamepad?","ListMixin.E":"Gamepad?"},"_NamedNodeMap":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"_SpeechRecognitionResultList":{"ListMixin":["SpeechRecognitionResult"],"ImmutableListMixin":["SpeechRecognitionResult"],"List":["SpeechRecognitionResult"],"JavaScriptIndexingBehavior":["SpeechRecognitionResult"],"JavaScriptObject":[],"EfficientLengthIterable":["SpeechRecognitionResult"],"Iterable":["SpeechRecognitionResult"],"JSIndexable":["SpeechRecognitionResult"],"ImmutableListMixin.E":"SpeechRecognitionResult","ListMixin.E":"SpeechRecognitionResult"},"_StyleSheetList":{"ListMixin":["StyleSheet"],"ImmutableListMixin":["StyleSheet"],"List":["StyleSheet"],"JavaScriptIndexingBehavior":["StyleSheet"],"JavaScriptObject":[],"EfficientLengthIterable":["StyleSheet"],"Iterable":["StyleSheet"],"JSIndexable":["StyleSheet"],"ImmutableListMixin.E":"StyleSheet","ListMixin.E":"StyleSheet"},"_EventStream":{"Stream":["1"]},"_EventStreamSubscription":{"StreamSubscription":["1"]},"FixedSizeListIterator":{"Iterator":["1"]},"Length":{"JavaScriptObject":[]},"Number":{"JavaScriptObject":[]},"Transform":{"JavaScriptObject":[]},"LengthList":{"ListMixin":["Length"],"ImmutableListMixin":["Length"],"List":["Length"],"JavaScriptObject":[],"EfficientLengthIterable":["Length"],"Iterable":["Length"],"ImmutableListMixin.E":"Length","ListMixin.E":"Length"},"NumberList":{"ListMixin":["Number"],"ImmutableListMixin":["Number"],"List":["Number"],"JavaScriptObject":[],"EfficientLengthIterable":["Number"],"Iterable":["Number"],"ImmutableListMixin.E":"Number","ListMixin.E":"Number"},"PointList":{"JavaScriptObject":[]},"StringList":{"ListMixin":["String"],"ImmutableListMixin":["String"],"List":["String"],"JavaScriptObject":[],"EfficientLengthIterable":["String"],"Iterable":["String"],"ImmutableListMixin.E":"String","ListMixin.E":"String"},"TransformList":{"ListMixin":["Transform"],"ImmutableListMixin":["Transform"],"List":["Transform"],"JavaScriptObject":[],"EfficientLengthIterable":["Transform"],"Iterable":["Transform"],"ImmutableListMixin.E":"Transform","ListMixin.E":"Transform"},"AudioBuffer":{"JavaScriptObject":[]},"AudioParamMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"AudioTrack":{"JavaScriptObject":[]},"AudioTrackList":{"EventTarget":[],"JavaScriptObject":[]},"BaseAudioContext":{"EventTarget":[],"JavaScriptObject":[]},"OfflineAudioContext":{"EventTarget":[],"JavaScriptObject":[]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]}}'));
+  A._Universe_addRules(init.typeUniverse, JSON.parse('{"PlainJavaScriptObject":"LegacyJavaScriptObject","UnknownJavaScriptObject":"LegacyJavaScriptObject","JavaScriptFunction":"LegacyJavaScriptObject","WritableStream":"LegacyJavaScriptObject","ReadableStream":"LegacyJavaScriptObject","TransformStreamDefaultController":"LegacyJavaScriptObject","RTCEncodedFrame":"LegacyJavaScriptObject","TransformStream":"LegacyJavaScriptObject","EncodedStreams":"LegacyJavaScriptObject","RTCEncodedAudioFrame":"LegacyJavaScriptObject","RTCEncodedVideoFrame":"LegacyJavaScriptObject","RTCEncodedFrameMetadata":"LegacyJavaScriptObject","RTCEncodedAudioFrameMetadata":"LegacyJavaScriptObject","RTCEncodedVideoFrameMetadata":"LegacyJavaScriptObject","RTCTransformEvent":"LegacyJavaScriptObject","RTCRtpScriptTransformer":"LegacyJavaScriptObject","RTCRtpScriptTransform":"LegacyJavaScriptObject","Promise":"LegacyJavaScriptObject","Algorithm":"LegacyJavaScriptObject","AesGcmParams":"LegacyJavaScriptObject","TransformMessage":"LegacyJavaScriptObject","EnableTransformMessage":"LegacyJavaScriptObject","RemoveTransformMessage":"LegacyJavaScriptObject","KeyframeEffect":"JavaScriptObject","KeyframeEffectReadOnly":"JavaScriptObject","AnimationEffectReadOnly":"JavaScriptObject","AbortPaymentEvent":"Event","ExtendableEvent":"Event","AudioContext":"BaseAudioContext","AbsoluteOrientationSensor":"EventTarget","OrientationSensor":"EventTarget","Sensor":"EventTarget","MathMLElement":"Element","AudioElement":"HtmlElement","MediaElement":"HtmlElement","HtmlDocument":"Node","Document":"Node","VttCue":"TextTrackCue","ServiceWorkerGlobalScope":"WorkerGlobalScope","CDataSection":"CharacterData","Text":"CharacterData","HtmlFormControlsCollection":"HtmlCollection","CssCharsetRule":"CssRule","CssMatrixComponent":"CssTransformComponent","CssStyleSheet":"StyleSheet","CssurlImageValue":"CssStyleValue","CssImageValue":"CssStyleValue","CssResourceValue":"CssStyleValue","CanvasCaptureMediaStreamTrack":"MediaStreamTrack","NativeFloat32List":"NativeTypedArrayOfDouble","JSBool":{"bool":[]},"JSNull":{"Null":[]},"LegacyJavaScriptObject":{"JavaScriptObject":[],"JSObject":[],"WritableStream":[],"ReadableStream":[],"TransformStreamDefaultController":[],"RTCEncodedFrame":[],"RTCTransformEvent":[],"Algorithm":[]},"JSArray":{"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"JSIndexable":["1"]},"JSUnmodifiableArray":{"JSArray":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"JSIndexable":["1"]},"ArrayIterator":{"Iterator":["1"]},"JSNumber":{"double":[],"num":[]},"JSInt":{"double":[],"int":[],"num":[]},"JSNumNotInt":{"double":[],"num":[]},"JSString":{"String":[],"JSIndexable":["@"]},"LateError":{"Error":[]},"CodeUnits":{"ListMixin":["int"],"UnmodifiableListMixin":["int"],"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"],"ListMixin.E":"int","UnmodifiableListMixin.E":"int"},"EfficientLengthIterable":{"Iterable":["1"]},"ListIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"SubListIterable":{"ListIterable":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1","ListIterable.E":"1"},"ListIterator":{"Iterator":["1"]},"MappedIterable":{"Iterable":["2"],"Iterable.E":"2"},"EfficientLengthMappedIterable":{"MappedIterable":["1","2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2"},"MappedIterator":{"Iterator":["2"]},"MappedListIterable":{"ListIterable":["2"],"EfficientLengthIterable":["2"],"Iterable":["2"],"Iterable.E":"2","ListIterable.E":"2"},"WhereIterable":{"Iterable":["1"],"Iterable.E":"1"},"WhereIterator":{"Iterator":["1"]},"UnmodifiableListBase":{"ListMixin":["1"],"UnmodifiableListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"Symbol":{"Symbol0":[]},"ConstantMapView":{"UnmodifiableMapView":["1","2"],"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ConstantMap":{"Map":["1","2"]},"ConstantStringMap":{"ConstantMap":["1","2"],"Map":["1","2"]},"_ConstantMapKeyIterable":{"Iterable":["1"],"Iterable.E":"1"},"JSInvocationMirror":{"Invocation":[]},"NullError":{"TypeError":[],"Error":[]},"JsNoSuchMethodError":{"Error":[]},"UnknownJsTypeError":{"Error":[]},"_StackTrace":{"StackTrace":[]},"Closure":{"Function":[]},"Closure0Args":{"Function":[]},"Closure2Args":{"Function":[]},"TearOffClosure":{"Function":[]},"StaticClosure":{"Function":[]},"BoundClosure":{"Function":[]},"RuntimeError":{"Error":[]},"_AssertionError":{"Error":[]},"JsLinkedHashMap":{"MapMixin":["1","2"],"LinkedHashMap":["1","2"],"Map":["1","2"],"MapMixin.K":"1","MapMixin.V":"2"},"LinkedHashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"LinkedHashMapKeyIterator":{"Iterator":["1"]},"NativeByteBuffer":{"ByteBuffer":[]},"NativeByteData":{"NativeTypedData":[],"ByteData":[]},"NativeTypedArray":{"JavaScriptIndexingBehavior":["1"],"NativeTypedData":[],"JSIndexable":["1"]},"NativeTypedArrayOfDouble":{"NativeTypedArray":["double"],"ListMixin":["double"],"JavaScriptIndexingBehavior":["double"],"List":["double"],"NativeTypedData":[],"EfficientLengthIterable":["double"],"JSIndexable":["double"],"Iterable":["double"],"FixedLengthListMixin":["double"],"ListMixin.E":"double"},"NativeTypedArrayOfInt":{"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"]},"NativeInt16List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeInt32List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeInt8List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint16List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint32List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint8ClampedList":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"NativeUint8List":{"NativeTypedArrayOfInt":[],"NativeTypedArray":["int"],"ListMixin":["int"],"Uint8List":[],"JavaScriptIndexingBehavior":["int"],"List":["int"],"NativeTypedData":[],"EfficientLengthIterable":["int"],"JSIndexable":["int"],"Iterable":["int"],"FixedLengthListMixin":["int"],"ListMixin.E":"int"},"_Error":{"Error":[]},"_TypeError":{"TypeError":[],"Error":[]},"_Future":{"Future":["1"]},"AsyncError":{"Error":[]},"_AsyncCompleter":{"_Completer":["1"]},"_Zone":{"Zone":[]},"_RootZone":{"_Zone":[],"Zone":[]},"_HashMap":{"MapMixin":["1","2"],"Map":["1","2"]},"_IdentityHashMap":{"_HashMap":["1","2"],"MapMixin":["1","2"],"Map":["1","2"],"MapMixin.K":"1","MapMixin.V":"2"},"_HashMapKeyIterable":{"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1"},"_HashMapKeyIterator":{"Iterator":["1"]},"ListBase":{"ListMixin":["1"],"List":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"]},"MapBase":{"MapMixin":["1","2"],"Map":["1","2"]},"MapMixin":{"Map":["1","2"]},"MapView":{"Map":["1","2"]},"UnmodifiableMapView":{"_UnmodifiableMapView_MapView__UnmodifiableMapMixin":["1","2"],"MapView":["1","2"],"_UnmodifiableMapMixin":["1","2"],"Map":["1","2"]},"ListQueue":{"ListIterable":["1"],"Queue":["1"],"EfficientLengthIterable":["1"],"Iterable":["1"],"Iterable.E":"1","ListIterable.E":"1"},"_ListQueueIterator":{"Iterator":["1"]},"double":{"num":[]},"int":{"num":[]},"List":{"EfficientLengthIterable":["1"],"Iterable":["1"]},"AssertionError":{"Error":[]},"TypeError":{"Error":[]},"NullThrownError":{"TypeError":[],"Error":[]},"ArgumentError":{"Error":[]},"RangeError":{"Error":[]},"IndexError":{"Error":[]},"NoSuchMethodError":{"Error":[]},"UnsupportedError":{"Error":[]},"UnimplementedError":{"Error":[]},"StateError":{"Error":[]},"ConcurrentModificationError":{"Error":[]},"OutOfMemoryError":{"Error":[]},"StackOverflowError":{"Error":[]},"CyclicInitializationError":{"Error":[]},"_StringStackTrace":{"StackTrace":[]},"CryptoKey":{"JavaScriptObject":[]},"CssRule":{"JavaScriptObject":[]},"Event":{"JavaScriptObject":[]},"File":{"Blob":[],"JavaScriptObject":[]},"Gamepad":{"JavaScriptObject":[]},"MessageEvent":{"Event":[],"JavaScriptObject":[]},"MimeType":{"JavaScriptObject":[]},"Node":{"EventTarget":[],"JavaScriptObject":[]},"Plugin":{"JavaScriptObject":[]},"SourceBuffer":{"EventTarget":[],"JavaScriptObject":[]},"SpeechGrammar":{"JavaScriptObject":[]},"SpeechRecognitionResult":{"JavaScriptObject":[]},"StyleSheet":{"JavaScriptObject":[]},"TextTrack":{"EventTarget":[],"JavaScriptObject":[]},"TextTrackCue":{"EventTarget":[],"JavaScriptObject":[]},"Touch":{"JavaScriptObject":[]},"HtmlElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"AccessibleNodeList":{"JavaScriptObject":[]},"AnchorElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"AreaElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"Blob":{"JavaScriptObject":[]},"CharacterData":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"CssPerspective":{"JavaScriptObject":[]},"CssStyleDeclaration":{"JavaScriptObject":[]},"CssStyleValue":{"JavaScriptObject":[]},"CssTransformComponent":{"JavaScriptObject":[]},"CssTransformValue":{"JavaScriptObject":[]},"CssUnparsedValue":{"JavaScriptObject":[]},"DataTransferItem":{"JavaScriptObject":[]},"DataTransferItemList":{"JavaScriptObject":[]},"DedicatedWorkerGlobalScope":{"EventTarget":[],"JavaScriptObject":[]},"DomException":{"JavaScriptObject":[]},"DomRectList":{"ListMixin":["Rectangle<num>"],"ImmutableListMixin":["Rectangle<num>"],"List":["Rectangle<num>"],"JavaScriptIndexingBehavior":["Rectangle<num>"],"JavaScriptObject":[],"EfficientLengthIterable":["Rectangle<num>"],"Iterable":["Rectangle<num>"],"JSIndexable":["Rectangle<num>"],"ImmutableListMixin.E":"Rectangle<num>","ListMixin.E":"Rectangle<num>"},"DomRectReadOnly":{"JavaScriptObject":[],"Rectangle":["num"]},"DomStringList":{"ListMixin":["String"],"ImmutableListMixin":["String"],"List":["String"],"JavaScriptIndexingBehavior":["String"],"JavaScriptObject":[],"EfficientLengthIterable":["String"],"Iterable":["String"],"JSIndexable":["String"],"ImmutableListMixin.E":"String","ListMixin.E":"String"},"DomTokenList":{"JavaScriptObject":[]},"Element":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"EventTarget":{"JavaScriptObject":[]},"FileList":{"ListMixin":["File"],"ImmutableListMixin":["File"],"List":["File"],"JavaScriptIndexingBehavior":["File"],"JavaScriptObject":[],"EfficientLengthIterable":["File"],"Iterable":["File"],"JSIndexable":["File"],"ImmutableListMixin.E":"File","ListMixin.E":"File"},"FileWriter":{"EventTarget":[],"JavaScriptObject":[]},"FormElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"History":{"JavaScriptObject":[]},"HtmlCollection":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"ImageData":{"JavaScriptObject":[]},"Location":{"JavaScriptObject":[]},"MediaDeviceInfo":{"JavaScriptObject":[]},"MediaList":{"JavaScriptObject":[]},"MediaStreamTrack":{"EventTarget":[],"JavaScriptObject":[]},"MessagePort":{"EventTarget":[],"JavaScriptObject":[]},"MidiInputMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"MidiOutputMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"MimeTypeArray":{"ListMixin":["MimeType"],"ImmutableListMixin":["MimeType"],"List":["MimeType"],"JavaScriptIndexingBehavior":["MimeType"],"JavaScriptObject":[],"EfficientLengthIterable":["MimeType"],"Iterable":["MimeType"],"JSIndexable":["MimeType"],"ImmutableListMixin.E":"MimeType","ListMixin.E":"MimeType"},"NodeList":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"PluginArray":{"ListMixin":["Plugin"],"ImmutableListMixin":["Plugin"],"List":["Plugin"],"JavaScriptIndexingBehavior":["Plugin"],"JavaScriptObject":[],"EfficientLengthIterable":["Plugin"],"Iterable":["Plugin"],"JSIndexable":["Plugin"],"ImmutableListMixin.E":"Plugin","ListMixin.E":"Plugin"},"RtcStatsReport":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"SelectElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"SharedArrayBuffer":{"JavaScriptObject":[]},"SourceBufferList":{"ListMixin":["SourceBuffer"],"ImmutableListMixin":["SourceBuffer"],"EventTarget":[],"List":["SourceBuffer"],"JavaScriptIndexingBehavior":["SourceBuffer"],"JavaScriptObject":[],"EfficientLengthIterable":["SourceBuffer"],"Iterable":["SourceBuffer"],"JSIndexable":["SourceBuffer"],"ImmutableListMixin.E":"SourceBuffer","ListMixin.E":"SourceBuffer"},"SpeechGrammarList":{"ListMixin":["SpeechGrammar"],"ImmutableListMixin":["SpeechGrammar"],"List":["SpeechGrammar"],"JavaScriptIndexingBehavior":["SpeechGrammar"],"JavaScriptObject":[],"EfficientLengthIterable":["SpeechGrammar"],"Iterable":["SpeechGrammar"],"JSIndexable":["SpeechGrammar"],"ImmutableListMixin.E":"SpeechGrammar","ListMixin.E":"SpeechGrammar"},"Storage":{"JavaScriptObject":[],"MapMixin":["String","String"],"Map":["String","String"],"MapMixin.K":"String","MapMixin.V":"String"},"TextTrackCueList":{"ListMixin":["TextTrackCue"],"ImmutableListMixin":["TextTrackCue"],"List":["TextTrackCue"],"JavaScriptIndexingBehavior":["TextTrackCue"],"JavaScriptObject":[],"EfficientLengthIterable":["TextTrackCue"],"Iterable":["TextTrackCue"],"JSIndexable":["TextTrackCue"],"ImmutableListMixin.E":"TextTrackCue","ListMixin.E":"TextTrackCue"},"TextTrackList":{"ListMixin":["TextTrack"],"ImmutableListMixin":["TextTrack"],"EventTarget":[],"List":["TextTrack"],"JavaScriptIndexingBehavior":["TextTrack"],"JavaScriptObject":[],"EfficientLengthIterable":["TextTrack"],"Iterable":["TextTrack"],"JSIndexable":["TextTrack"],"ImmutableListMixin.E":"TextTrack","ListMixin.E":"TextTrack"},"TimeRanges":{"JavaScriptObject":[]},"TouchList":{"ListMixin":["Touch"],"ImmutableListMixin":["Touch"],"List":["Touch"],"JavaScriptIndexingBehavior":["Touch"],"JavaScriptObject":[],"EfficientLengthIterable":["Touch"],"Iterable":["Touch"],"JSIndexable":["Touch"],"ImmutableListMixin.E":"Touch","ListMixin.E":"Touch"},"TrackDefaultList":{"JavaScriptObject":[]},"TrackElement":{"Node":[],"EventTarget":[],"JavaScriptObject":[]},"Url":{"JavaScriptObject":[]},"VideoTrack":{"JavaScriptObject":[]},"VideoTrackList":{"EventTarget":[],"JavaScriptObject":[]},"WorkerGlobalScope":{"EventTarget":[],"JavaScriptObject":[]},"_CssRuleList":{"ListMixin":["CssRule"],"ImmutableListMixin":["CssRule"],"List":["CssRule"],"JavaScriptIndexingBehavior":["CssRule"],"JavaScriptObject":[],"EfficientLengthIterable":["CssRule"],"Iterable":["CssRule"],"JSIndexable":["CssRule"],"ImmutableListMixin.E":"CssRule","ListMixin.E":"CssRule"},"_DomRect":{"JavaScriptObject":[],"Rectangle":["num"]},"_GamepadList":{"ListMixin":["Gamepad?"],"ImmutableListMixin":["Gamepad?"],"List":["Gamepad?"],"JavaScriptIndexingBehavior":["Gamepad?"],"JavaScriptObject":[],"EfficientLengthIterable":["Gamepad?"],"Iterable":["Gamepad?"],"JSIndexable":["Gamepad?"],"ImmutableListMixin.E":"Gamepad?","ListMixin.E":"Gamepad?"},"_NamedNodeMap":{"ListMixin":["Node"],"ImmutableListMixin":["Node"],"List":["Node"],"JavaScriptIndexingBehavior":["Node"],"JavaScriptObject":[],"EfficientLengthIterable":["Node"],"Iterable":["Node"],"JSIndexable":["Node"],"ImmutableListMixin.E":"Node","ListMixin.E":"Node"},"_SpeechRecognitionResultList":{"ListMixin":["SpeechRecognitionResult"],"ImmutableListMixin":["SpeechRecognitionResult"],"List":["SpeechRecognitionResult"],"JavaScriptIndexingBehavior":["SpeechRecognitionResult"],"JavaScriptObject":[],"EfficientLengthIterable":["SpeechRecognitionResult"],"Iterable":["SpeechRecognitionResult"],"JSIndexable":["SpeechRecognitionResult"],"ImmutableListMixin.E":"SpeechRecognitionResult","ListMixin.E":"SpeechRecognitionResult"},"_StyleSheetList":{"ListMixin":["StyleSheet"],"ImmutableListMixin":["StyleSheet"],"List":["StyleSheet"],"JavaScriptIndexingBehavior":["StyleSheet"],"JavaScriptObject":[],"EfficientLengthIterable":["StyleSheet"],"Iterable":["StyleSheet"],"JSIndexable":["StyleSheet"],"ImmutableListMixin.E":"StyleSheet","ListMixin.E":"StyleSheet"},"_EventStream":{"Stream":["1"]},"_EventStreamSubscription":{"StreamSubscription":["1"]},"FixedSizeListIterator":{"Iterator":["1"]},"Length":{"JavaScriptObject":[]},"Number":{"JavaScriptObject":[]},"Transform":{"JavaScriptObject":[]},"LengthList":{"ListMixin":["Length"],"ImmutableListMixin":["Length"],"List":["Length"],"JavaScriptObject":[],"EfficientLengthIterable":["Length"],"Iterable":["Length"],"ImmutableListMixin.E":"Length","ListMixin.E":"Length"},"NumberList":{"ListMixin":["Number"],"ImmutableListMixin":["Number"],"List":["Number"],"JavaScriptObject":[],"EfficientLengthIterable":["Number"],"Iterable":["Number"],"ImmutableListMixin.E":"Number","ListMixin.E":"Number"},"PointList":{"JavaScriptObject":[]},"StringList":{"ListMixin":["String"],"ImmutableListMixin":["String"],"List":["String"],"JavaScriptObject":[],"EfficientLengthIterable":["String"],"Iterable":["String"],"ImmutableListMixin.E":"String","ListMixin.E":"String"},"TransformList":{"ListMixin":["Transform"],"ImmutableListMixin":["Transform"],"List":["Transform"],"JavaScriptObject":[],"EfficientLengthIterable":["Transform"],"Iterable":["Transform"],"ImmutableListMixin.E":"Transform","ListMixin.E":"Transform"},"AudioBuffer":{"JavaScriptObject":[]},"AudioParamMap":{"JavaScriptObject":[],"MapMixin":["String","@"],"Map":["String","@"],"MapMixin.K":"String","MapMixin.V":"@"},"AudioTrack":{"JavaScriptObject":[]},"AudioTrackList":{"EventTarget":[],"JavaScriptObject":[]},"BaseAudioContext":{"EventTarget":[],"JavaScriptObject":[]},"OfflineAudioContext":{"EventTarget":[],"JavaScriptObject":[]},"Uint8List":{"List":["int"],"EfficientLengthIterable":["int"],"Iterable":["int"]}}'));
   A._Universe_addErasedTypes(init.typeUniverse, JSON.parse('{"EfficientLengthIterable":1,"UnmodifiableListBase":1,"NativeTypedArray":1,"StreamTransformerBase":2,"ListBase":1,"MapBase":2,"_ListBase_Object_ListMixin":1,"Converter":2,"Promise":1}'));
   var string$ = {
     Error_: "Error handler must accept one Object or one Object and a StackTrace as arguments, and return a value of the returned future's type"
@@ -9941,6 +10079,7 @@
       File: findType("File"),
       FileList: findType("FileList"),
       Function: findType("Function"),
+      FutureOr_CryptoKey: findType("CryptoKey/"),
       Future_dynamic: findType("Future<@>"),
       Future_void_Function_RTCEncodedFrame_TransformStreamDefaultController: findType("Future<~>(RTCEncodedFrame,TransformStreamDefaultController)"),
       ImageData: findType("ImageData"),
@@ -9959,6 +10098,7 @@
       JsLinkedHashMap_Symbol_dynamic: findType("JsLinkedHashMap<Symbol0,@>"),
       KeySet: findType("KeySet"),
       Length: findType("Length"),
+      ListQueue_RTCEncodedFrame: findType("ListQueue<RTCEncodedFrame>"),
       List_dynamic: findType("List<@>"),
       List_int: findType("List<int>"),
       Map_dynamic_dynamic: findType("Map<@,@>"),
@@ -10015,6 +10155,7 @@
       nullable_Gamepad: findType("Gamepad?"),
       nullable_KeySet: findType("KeySet?"),
       nullable_Object: findType("Object?"),
+      nullable_RTCEncodedFrame: findType("RTCEncodedFrame?"),
       nullable_String: findType("String?"),
       nullable__FutureListener_dynamic_dynamic: findType("_FutureListener<@,@>?"),
       nullable_dynamic_Function_Event: findType("@(Event)?"),
