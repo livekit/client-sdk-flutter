@@ -4,6 +4,7 @@ import 'dart:js_util' as jsutil;
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:collection';
+import 'dart:async';
 
 import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
 
@@ -159,19 +160,31 @@ class Cryptor {
   final DedicatedWorkerGlobalScope worker;
   int currentKeyIndex = 0;
 
-  final queue = Queue<RTCEncodedFrame>();
-  bool ratchetInProgress = false;
+  Completer? _ratchetCompleter;
 
   List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
 
   Future<void> ratchetKey(int? keyIndex) async {
-    var currentMaterial = getKeySet(keyIndex)?.material;
-    if (currentMaterial == null) {
-      return;
+    if (_ratchetCompleter == null) {
+      _ratchetCompleter = Completer<void>();
+      var currentMaterial = getKeySet(keyIndex)?.material;
+      if (currentMaterial == null) {
+        _ratchetCompleter!.complete();
+        _ratchetCompleter = null;
+        return;
+      }
+      ratchetMaterial(currentMaterial).then((newMaterial) {
+        deriveKeys(newMaterial, keyOptions.ratchetSalt).then((newKeySet) {
+          setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex)
+              .then((_) {
+            _ratchetCompleter!.complete();
+            _ratchetCompleter = null;
+          });
+        });
+      });
     }
-    var newMaterial = await ratchetMaterial(currentMaterial);
-    var newKeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
-    await setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex);
+
+    return _ratchetCompleter!.future;
   }
 
   Future<CryptoKey> ratchetMaterial(CryptoKey currentMaterial) async {
@@ -473,12 +486,8 @@ class Cryptor {
     var ratchetCount = 0;
     var buffer = frame.data.asUint8List();
     ByteBuffer? decrypted;
-
-    if (ratchetInProgress) {
-      print('ratchet in progress, add the frame to the queue');
-      queue.add(frame);
-      return;
-    }
+    KeySet? initialKeySet;
+    int initialKeyIndex = currentKeyIndex;
 
     if (!enabled ||
         // skip for encryption for empty dtx frames
@@ -498,7 +507,8 @@ class Cryptor {
       var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
       var keySet = getKeySet(keyIndex);
-      var initialKeySet = getKeySet(keyIndex);
+      initialKeySet = keySet;
+      initialKeyIndex = keyIndex;
 
       if (keySet == null) {
         if (lastError != CryptorError.kMissingKey) {
@@ -532,14 +542,14 @@ class Cryptor {
           ));
           endDecLoop = true;
 
-          if (keySet != initialKeySet) {
-            // decrypt ok, update keyset.
-            await setKeySetFromMaterial(keySet, keyIndex);
-          }
-
-          if (lastError != CryptorError.kKeyRatcheted && ratchetCount > 0) {
+          if (lastError != CryptorError.kOk &&
+              lastError != CryptorError.kKeyRatcheted &&
+              ratchetCount > 0) {
+            print(
+                'KeyRatcheted: ssrc ${metaData.synchronizationSource} timestamp ${frame.timestamp} ratchetCount $ratchetCount  participantId: $participantId');
             print(
                 'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
+
             lastError = CryptorError.kKeyRatcheted;
             postMessage({
               'type': 'cryptorState',
@@ -550,40 +560,16 @@ class Cryptor {
               'error': 'Key ratcheted ok'
             });
           }
-
-          ratchetInProgress = false;
-
-          if (queue.isNotEmpty) {
-            print('Ratchet done, process the queue of frames ${queue.length}}');
-            var q = queue;
-            queue.clear();
-            for (var f in q) {
-              await decodeFunction(f, controller);
-            }
-          }
         } catch (e) {
-          ratchetInProgress = true;
-          print(
-              'decrypt e ${e.toString()}: ssrc ${metaData.synchronizationSource} timestamp ${frame.timestamp} ratchetCount $ratchetCount  participantId: $participantId');
           endDecLoop = ratchetCount >= keyOptions.ratchetWindowSize ||
               keyOptions.ratchetWindowSize <= 0;
           if (endDecLoop) {
-            /// Since the key it is first send and only afterwards actually used for encrypting, there were
-            /// situations when the decrypting failed due to the fact that the received frame was not encrypted
-            /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
-            ///  we come back to the initial key.
-            if (initialKeySet != null) {
-              await setKeySetFromMaterial(initialKeySet, keyIndex);
-            }
-            ratchetInProgress = false;
-            if (queue.isNotEmpty) {
-              queue.clear();
-            }
             rethrow;
           }
           ratchetCount++;
-          var newMaterial = await ratchetMaterial(keySet!.material);
-          keySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
+          await ratchetKey(keyIndex);
+          keySet = getKeySet(keyIndex);
+          lastError = CryptorError.kInternalError;
         }
       }
 
@@ -621,6 +607,14 @@ class Cryptor {
           'state': 'decryptError',
           'error': e.toString()
         });
+      }
+
+      /// Since the key it is first send and only afterwards actually used for encrypting, there were
+      /// situations when the decrypting failed due to the fact that the received frame was not encrypted
+      /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
+      ///  we come back to the initial key.
+      if (initialKeySet != null) {
+        await setKeySetFromMaterial(initialKeySet, initialKeyIndex);
       }
     }
   }

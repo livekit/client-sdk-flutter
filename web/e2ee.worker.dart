@@ -187,7 +187,7 @@ void main() async {
         {
           var key = Uint8List.fromList(base64Decode(msg['key'] as String));
           var keyIndex = msg['keyIndex'];
-          //print('worker: got setKey ${msg['key']}, key $key');
+          print('worker: got setKey ${msg['key']}, key $key');
           var participantId = msg['participantId'] as String;
           print('worker: setup key for participant $participantId');
 
