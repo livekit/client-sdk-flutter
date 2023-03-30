@@ -506,11 +506,11 @@ class Cryptor {
       var keyIndex = frameTrailer[1];
       var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var keySet = getKeySet(keyIndex);
-      initialKeySet = keySet;
+      var currentkeySet = getKeySet(keyIndex);
+      initialKeySet = currentkeySet;
       initialKeyIndex = keyIndex;
 
-      if (keySet == null) {
+      if (currentkeySet == null) {
         if (lastError != CryptorError.kMissingKey) {
           lastError = CryptorError.kMissingKey;
           postMessage({
@@ -536,7 +536,7 @@ class Cryptor {
               additionalData:
                   crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
             ),
-            keySet!.encryptionKey,
+            currentkeySet!.encryptionKey,
             crypto.jsArrayBufferFrom(
                 buffer.sublist(headerLength, buffer.length - ivLength - 2)),
           ));
@@ -561,15 +561,19 @@ class Cryptor {
             });
           }
         } catch (e) {
+          lastError = CryptorError.kInternalError;
+
           endDecLoop = ratchetCount >= keyOptions.ratchetWindowSize ||
               keyOptions.ratchetWindowSize <= 0;
           if (endDecLoop) {
             rethrow;
           }
-          ratchetCount++;
-          await ratchetKey(keyIndex);
-          keySet = getKeySet(keyIndex);
-          lastError = CryptorError.kInternalError;
+
+          if (currentkeySet == getKeySet(keyIndex)) {
+            ratchetCount++;
+            await ratchetKey(keyIndex);
+          }
+          currentkeySet = getKeySet(keyIndex);
         }
       }
 
