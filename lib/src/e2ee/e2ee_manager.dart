@@ -28,7 +28,10 @@ class E2EEManager {
           var trackId = event.publication.sid;
           var participantId = event.participant.sid;
           var frameCryptor = await _addRtpSender(
-              event.publication.track!.sender!, participantId, trackId);
+              event.publication.track!.sender!,
+              participantId,
+              trackId,
+              event.publication.track!.kind.name.toLowerCase());
           if (kIsWeb && event.publication.track!.codec != null) {
             await frameCryptor.updateCodec(event.publication.track!.codec!);
           }
@@ -56,8 +59,8 @@ class E2EEManager {
         ..on<TrackSubscribedEvent>((event) async {
           var trackId = event.publication.sid;
           var participantId = event.participant.sid;
-          var frameCryptor = await _addRtpReceiver(
-              event.track.receiver!, participantId, trackId);
+          var frameCryptor = await _addRtpReceiver(event.track.receiver!,
+              participantId, trackId, event.track.kind.name.toLowerCase());
           if (kIsWeb) {
             var codec = event.publication.mimeType.split('/')[1];
             await frameCryptor.updateCodec(codec.toLowerCase());
@@ -103,9 +106,9 @@ class E2EEManager {
     _frameCryptors.clear();
   }
 
-  Future<FrameCryptor> _addRtpSender(
-      RTCRtpSender sender, String participantId, String trackId) async {
-    var pid = 'sender-$participantId-$trackId';
+  Future<FrameCryptor> _addRtpSender(RTCRtpSender sender, String participantId,
+      String trackId, String kind) async {
+    var pid = '$kind-sender-$participantId-$trackId';
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpSender(
             participantId: pid,
@@ -122,9 +125,9 @@ class E2EEManager {
     return frameCryptor;
   }
 
-  Future<FrameCryptor> _addRtpReceiver(
-      RTCRtpReceiver receiver, String participantId, String trackId) async {
-    var pid = 'receiver-$participantId-$trackId';
+  Future<FrameCryptor> _addRtpReceiver(RTCRtpReceiver receiver,
+      String participantId, String trackId, String kind) async {
+    var pid = '$kind-receiver-$participantId-$trackId';
     var frameCryptor = await FrameCryptorFactory.instance
         .createFrameCryptorForRtpReceiver(
             participantId: pid,
