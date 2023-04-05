@@ -4,7 +4,9 @@
 
 # LiveKit Flutter SDK
 
-<!--BEGIN_DESCRIPTION--><!--END_DESCRIPTION-->
+<!--BEGIN_DESCRIPTION-->
+Official Flutter SDK for [LiveKit](https://livekit.io). Easily add real-time video and audio to your Flutter apps.
+<!--END_DESCRIPTION-->
 
 This package is published to pub.dev as [livekit_client](https://pub.dev/packages/livekit_client).
 
