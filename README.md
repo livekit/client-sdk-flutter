@@ -1,8 +1,12 @@
+<!--BEGIN_BANNER_IMAGE--><!--END_BANNER_IMAGE-->
+
 [![pub package](https://img.shields.io/pub/v/livekit_client?label=livekit_client&color=blue)](https://pub.dev/packages/livekit_client)
 
 # LiveKit Flutter SDK
 
+<!--BEGIN_DESCRIPTION-->
 Official Flutter SDK for [LiveKit](https://livekit.io). Easily add real-time video and audio to your Flutter apps.
+<!--END_DESCRIPTION-->
 
 This package is published to pub.dev as [livekit_client](https://pub.dev/packages/livekit_client).
 
@@ -408,3 +412,5 @@ Apache License 2.0
 ## Thanks
 
 A huge thank you to [flutter-webrtc](https://github.com/flutter-webrtc/flutter-webrtc) for making it possible to use WebRTC in Flutter.
+
+<!--BEGIN_REPO_NAV--><!--END_REPO_NAV-->
