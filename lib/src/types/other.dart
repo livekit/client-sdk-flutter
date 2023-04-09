@@ -150,18 +150,18 @@ class RTCIceServer {
 
 @immutable
 class ParticipantTrackPermission {
-  /// The participant id this permission applies to.
-  final String participantSid;
+  /// The participant identity this permission applies to.
+  final String participantIdentity;
 
   /// If set to true, the target participant can subscribe to all tracks from the local participant.
   /// Takes precedence over [allowedTrackSids].
   final bool allTracksAllowed;
 
   /// The list of track ids that the target participant can subscribe to.
-  final List<String> allowedTrackSids;
+  final List<String>? allowedTrackSids;
 
   const ParticipantTrackPermission(
-    this.participantSid,
+    this.participantIdentity,
     this.allTracksAllowed,
     this.allowedTrackSids,
   );
