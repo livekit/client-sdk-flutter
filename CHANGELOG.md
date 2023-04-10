@@ -7,7 +7,7 @@
 * Feat: support metadata update.
 * Feat: handle reconnect response to re-configuration PCs.
 * Docs: readme manager initial setup.
-* Feat: upgrade protocol verstion to v9.
+* Feat: upgrade protocol version to v9.
 * Chore: Use participantIdentity instead of Sid for track permissions. 
 * Feat: Bump flutter-webrtc to 0.9.25.
 * Fix: Fix empty label for Wired Headset on Android.
