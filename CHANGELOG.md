@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 1.2.2
+
+* Feat: Support setVideoFPS for subscribe.
+* Feat: topic for data-channel.
+* Feat: support metadata update.
+* Feat: handle reconnect response to re-configuration PCs.
+* Docs: readme manager initial setup.
+* Feat: upgrade protocol version to v9.
+* Chore: Use participantIdentity instead of Sid for track permissions. 
+* Feat: Bump flutter-webrtc to 0.9.25.
+* Fix: Fix empty label for Wired Headset on Android.
+* Fix: ICE Connectivity doesn't establish with DualSIM iPhones.
+
 ## 1.2.1
 
 * Fix: fix memory leak for screen capture (macOS).
