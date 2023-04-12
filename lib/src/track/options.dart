@@ -98,6 +98,19 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
 
+  ScreenShareCaptureOptions copyWith({
+    bool? captureScreenAudio,
+    VideoParameters? params,
+    String? sourceId,
+    double? maxFrameRate,
+  }) =>
+      ScreenShareCaptureOptions(
+        captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
+        params: params ?? this.params,
+        sourceId: sourceId ?? deviceId,
+        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
+      );
+
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = super.toMediaConstraintsMap();
