@@ -89,7 +89,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     this.captureScreenAudio = false,
     String? sourceId,
     double? maxFrameRate,
-    VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
+    VideoParameters params = VideoParametersPresets.screenShareH1080FPS15,
   }) : super(params: params, deviceId: sourceId, maxFrameRate: maxFrameRate);
 
   ScreenShareCaptureOptions.from(

@@ -275,12 +275,14 @@ class Utils {
     required List<VideoParameters> presets,
   }) {
     List<rtc.RTCRtpEncoding> result = [];
+    final rids =
+        videoRids.sublist(videoRids.length - presets.length, videoRids.length);
     presets.forEachIndexed((i, e) {
       if (i >= videoRids.length) {
         return;
       }
       final size = dimensions.min();
-      final rid = videoRids[i];
+      final rid = rids[i];
 
       result.add(e.encoding.toRTCRtpEncoding(
         rid: rid,
