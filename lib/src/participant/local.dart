@@ -175,6 +175,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       init: transceiverInit,
     );
 
+    // prefer to maintainResolution for screen share
+    if (track.source == TrackSource.screenShareVideo) {
+      var sender = track.transceiver!.sender;
+      var parameters = sender.parameters;
+      parameters.degradationPreference =
+          rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
+      await sender.setParameters(parameters);
+    }
+
     await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(

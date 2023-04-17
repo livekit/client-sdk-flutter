@@ -28,7 +28,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     this.cameraPosition = CameraPosition.front,
     String? deviceId,
     double? maxFrameRate,
-    VideoParameters params = VideoParametersPresets.h540_169,
+    VideoParameters params = VideoParametersPresets.h720_169,
   }) : super(params: params, deviceId: deviceId, maxFrameRate: maxFrameRate);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
