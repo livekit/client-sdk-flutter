@@ -323,13 +323,17 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .toList();
 
   /// Shortcut for publishing a [TrackSource.camera]
-  Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.camera, enabled);
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
+      {CameraCaptureOptions? cameraCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.camera, enabled,
+        cameraCaptureOptions: cameraCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.microphone]
-  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.microphone, enabled);
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled,
+      {AudioCaptureOptions? audioCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.microphone, enabled,
+        audioCaptureOptions: audioCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
@@ -346,6 +350,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled,
       {bool? captureScreenAudio,
+      AudioCaptureOptions? audioCaptureOptions,
+      CameraCaptureOptions? cameraCaptureOptions,
       ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
@@ -363,12 +369,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions.defaultCameraCaptureOptions);
+        CameraCaptureOptions captureOptions = cameraCaptureOptions ??
+            room.roomOptions.defaultCameraCaptureOptions;
+        final track = await LocalVideoTrack.createCameraTrack(captureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        final track = await LocalAudioTrack.create(
-            room.roomOptions.defaultAudioCaptureOptions);
+        AudioCaptureOptions captureOptions =
+            audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+        final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
