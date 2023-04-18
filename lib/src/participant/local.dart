@@ -113,6 +113,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
+    // set the default sending bitrate
+    if (publishOptions.videoEncoding == null) {
+      publishOptions = publishOptions.copyWith(
+        videoEncoding: track.currentOptions.params.encoding,
+      );
+    }
+
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
 

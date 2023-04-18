@@ -155,6 +155,20 @@ class VideoPublishOptions {
     this.screenShareSimulcastLayers = const [],
   });
 
+  VideoPublishOptions copyWith({
+    VideoEncoding? videoEncoding,
+    bool? simulcast,
+    List<VideoParameters>? videoSimulcastLayers,
+    List<VideoParameters>? screenShareSimulcastLayers,
+  }) =>
+      VideoPublishOptions(
+        videoEncoding: videoEncoding ?? this.videoEncoding,
+        simulcast: simulcast ?? this.simulcast,
+        videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
+        screenShareSimulcastLayers:
+            screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
+      );
+
   @override
   String toString() =>
       '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
