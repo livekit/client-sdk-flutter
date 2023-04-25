@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
+const defualtMagicBytes = 'LK-ROCKS';
 const defaultKeyLength = 32;
 
 class KeyInfo {
@@ -19,35 +20,36 @@ class KeyInfo {
 abstract class KeyProvider {
   Future<void> setKey(KeyInfo keyInfo);
   Future<Uint8List> ratchetKey(String participantId, int index);
-  KeyManager get keyManager;
+  rtc.KeyProvider get keyProvider;
 }
 
 class BaseKeyProvider implements KeyProvider {
   final Map<String, Map<int, Uint8List>> _keys = {};
   Uint8List? _sharedKey;
-  final KeyProviderOptions options;
-  final KeyManager _keyManager;
+  final rtc.KeyProviderOptions options;
+  final rtc.KeyProvider _keyProvider;
   @override
-  KeyManager get keyManager => _keyManager;
+  rtc.KeyProvider get keyProvider => _keyProvider;
 
   Uint8List? get sharedKey => _sharedKey;
 
-  BaseKeyProvider(this._keyManager, this.options);
+  BaseKeyProvider(this._keyProvider, this.options);
 
   static Future<BaseKeyProvider> create({
     bool sharedKey = false,
     String? ratchetSalt,
     int? ratchetWindowSize,
   }) async {
-    KeyProviderOptions options = KeyProviderOptions(
+    rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
       sharedKey: sharedKey,
       ratchetSalt:
           Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
       ratchetWindowSize: ratchetWindowSize ?? 16,
+      uncryptedMagicBytes: Uint8List.fromList(defualtMagicBytes.codeUnits),
     );
-    final keyManager =
-        await FrameCryptorFactory.instance.createDefaultKeyManager(options);
-    return BaseKeyProvider(keyManager, options);
+    final keyProvider = await rtc.FrameCryptorFactory.instance
+        .createDefaultKeyProvider(options);
+    return BaseKeyProvider(keyProvider, options);
   }
 
   Future<void> setSharedKey(String key) async {
@@ -67,7 +69,7 @@ class BaseKeyProvider implements KeyProvider {
 
   @override
   Future<Uint8List> ratchetKey(String participantId, int index) =>
-      _keyManager.ratchetKey(participantId: participantId, index: index);
+      _keyProvider.ratchetKey(participantId: participantId, index: index);
 
   @override
   Future<void> setKey(KeyInfo keyInfo) async {
@@ -75,7 +77,7 @@ class BaseKeyProvider implements KeyProvider {
       _keys[keyInfo.participantId] = {};
     }
     _keys[keyInfo.participantId]![keyInfo.keyIndex] = keyInfo.key;
-    await _keyManager.setKey(
+    await _keyProvider.setKey(
       participantId: keyInfo.participantId,
       index: keyInfo.keyIndex,
       key: keyInfo.key,

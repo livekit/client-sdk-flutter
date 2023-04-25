@@ -114,11 +114,11 @@ class E2EEManager {
             participantId: pid,
             sender: sender,
             algorithm: _algorithm,
-            keyManager: _keyProvider.keyManager);
+            keyProvider: _keyProvider.keyProvider);
     _frameCryptors[trackId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     if (_keyProvider.options.sharedKey) {
-      await _keyProvider.keyManager
+      await _keyProvider.keyProvider
           .setKey(participantId: pid, index: 0, key: _keyProvider.sharedKey!);
       await frameCryptor.setKeyIndex(0);
     }
@@ -133,11 +133,11 @@ class E2EEManager {
             participantId: pid,
             receiver: receiver,
             algorithm: _algorithm,
-            keyManager: _keyProvider.keyManager);
+            keyProvider: _keyProvider.keyProvider);
     _frameCryptors[trackId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     if (_keyProvider.options.sharedKey) {
-      await _keyProvider.keyManager
+      await _keyProvider.keyProvider
           .setKey(participantId: pid, index: 0, key: _keyProvider.sharedKey!);
       await frameCryptor.setKeyIndex(0);
     }
@@ -149,7 +149,7 @@ class E2EEManager {
     for (var frameCryptor in _frameCryptors.entries) {
       await frameCryptor.value.setEnabled(enabled);
       if (_keyProvider.options.sharedKey) {
-        await _keyProvider.keyManager.setKey(
+        await _keyProvider.keyProvider.setKey(
             participantId: frameCryptor.key,
             index: 0,
             key: _keyProvider.sharedKey!);
