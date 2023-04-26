@@ -4,7 +4,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultMagicBytes = 'LK-ROCKS';
-const defaultKeyLength = 32;
+const defaultRatchetWindowSize = 16;
 
 class KeyInfo {
   final String participantId;
@@ -18,7 +18,7 @@ class KeyInfo {
 }
 
 abstract class KeyProvider {
-  Future<void> setKey(KeyInfo keyInfo);
+  Future<void> setKey(String key, {String? participantId, int keyIndex = 0});
   Future<Uint8List> ratchetKey(String participantId, int index);
   rtc.KeyProvider get keyProvider;
 }
@@ -36,7 +36,7 @@ class BaseKeyProvider implements KeyProvider {
   BaseKeyProvider(this._keyProvider, this.options);
 
   static Future<BaseKeyProvider> create({
-    bool sharedKey = false,
+    bool sharedKey = true,
     String? ratchetSalt,
     String? uncryptedMagicBytes,
     int? ratchetWindowSize,
@@ -45,28 +45,13 @@ class BaseKeyProvider implements KeyProvider {
       sharedKey: sharedKey,
       ratchetSalt:
           Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
-      ratchetWindowSize: ratchetWindowSize ?? 16,
+      ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
       uncryptedMagicBytes: Uint8List.fromList(
-          uncryptedMagicBytes ?? defaultMagicBytes.codeUnits),
+          (uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
     );
     final keyProvider = await rtc.FrameCryptorFactory.instance
         .createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);
-  }
-
-  Future<void> setSharedKey(String key) async {
-    Uint8List keyBytes = Uint8List.fromList(key.codeUnits);
-    _sharedKey = keyBytes;
-  }
-
-  Future<void> setKeyForParticipant(String participantId, String key) async {
-    Uint8List keyBytes = Uint8List.fromList(key.codeUnits);
-    KeyInfo keyInfo = KeyInfo(
-      participantId: participantId,
-      keyIndex: 0,
-      key: keyBytes,
-    );
-    await setKey(keyInfo);
   }
 
   @override
@@ -74,7 +59,21 @@ class BaseKeyProvider implements KeyProvider {
       _keyProvider.ratchetKey(participantId: participantId, index: index);
 
   @override
-  Future<void> setKey(KeyInfo keyInfo) async {
+  Future<void> setKey(String key,
+      {String? participantId, int keyIndex = 0}) async {
+    if (options.sharedKey) {
+      _sharedKey = Uint8List.fromList(key.codeUnits);
+      return;
+    }
+    final keyInfo = KeyInfo(
+      participantId: participantId ?? '',
+      keyIndex: keyIndex,
+      key: Uint8List.fromList(key.codeUnits),
+    );
+    return _setKey(keyInfo);
+  }
+
+  Future<void> _setKey(KeyInfo keyInfo) async {
     if (!_keys.containsKey(keyInfo.participantId)) {
       _keys[keyInfo.participantId] = {};
     }
