@@ -44,6 +44,7 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v6: '6',
         ProtocolVersion.v7: '7',
         ProtocolVersion.v8: '8',
+        ProtocolVersion.v9: '9',
       }[this]!;
 }
 
@@ -158,7 +159,7 @@ extension VideoQualityExt on lk_models.VideoQuality {
 
 extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
   lk_rtc.TrackPermission toPBType() => lk_rtc.TrackPermission(
-        participantSid: participantSid,
+        participantIdentity: participantIdentity,
         allTracks: allTracksAllowed,
         trackSids: allowedTrackSids,
       );
