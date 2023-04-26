@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
-const defualtMagicBytes = 'LK-ROCKS';
+const defaultMagicBytes = 'LK-ROCKS';
 const defaultKeyLength = 32;
 
 class KeyInfo {
@@ -38,6 +38,7 @@ class BaseKeyProvider implements KeyProvider {
   static Future<BaseKeyProvider> create({
     bool sharedKey = false,
     String? ratchetSalt,
+    String? uncryptedMagicBytes,
     int? ratchetWindowSize,
   }) async {
     rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
@@ -45,7 +46,8 @@ class BaseKeyProvider implements KeyProvider {
       ratchetSalt:
           Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
       ratchetWindowSize: ratchetWindowSize ?? 16,
-      uncryptedMagicBytes: Uint8List.fromList(defualtMagicBytes.codeUnits),
+      uncryptedMagicBytes: Uint8List.fromList(
+          uncryptedMagicBytes ?? defaultMagicBytes.codeUnits),
     );
     final keyProvider = await rtc.FrameCryptorFactory.instance
         .createDefaultKeyProvider(options);
