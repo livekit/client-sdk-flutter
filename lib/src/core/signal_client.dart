@@ -350,6 +350,7 @@ extension SignalClientRequests on SignalClient {
     required String name,
     required lk_models.TrackType type,
     required lk_models.TrackSource source,
+    required lk_models.Encryption_Type encryptionType,
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
@@ -359,6 +360,7 @@ extension SignalClientRequests on SignalClient {
       name: name,
       type: type,
       source: source,
+      encryption: encryptionType,
     );
 
     if (type == lk_models.TrackType.VIDEO) {

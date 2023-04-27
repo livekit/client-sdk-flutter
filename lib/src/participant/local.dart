@@ -12,6 +12,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
+import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -181,6 +182,40 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
+
+    if (lkBrowser() != BrowserType.firefox) {
+      var videoCodec = publishOptions.videoCodec.toLowerCase();
+      var caps = await rtc.getRtpSenderCapabilities('video');
+      List<rtc.RTCRtpCodecCapability> matched = [];
+      List<rtc.RTCRtpCodecCapability> partialMatched = [];
+      List<rtc.RTCRtpCodecCapability> unmatched = [];
+      for (var c in caps.codecs!) {
+        var codec = c.mimeType.toLowerCase();
+        if (codec == 'audio/opus') {
+          matched.add(c);
+          continue;
+        }
+
+        var matchesVideoCodec = codec == 'video/$videoCodec';
+        if (!matchesVideoCodec) {
+          unmatched.add(c);
+          continue;
+        }
+        if (publishOptions.videoCodec == 'h264') {
+          if (c.sdpFmtpLine != null &&
+              c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+            matched.add(c);
+          } else {
+            partialMatched.add(c);
+          }
+          continue;
+        }
+        matched.add(c);
+      }
+      matched.addAll([...partialMatched, ...unmatched]);
+      await track.transceiver?.setCodecPreferences(matched);
+      track.codec = videoCodec;
+    }
 
     // prefer to maintainResolution for screen share
     if (track.source == TrackSource.screenShareVideo) {

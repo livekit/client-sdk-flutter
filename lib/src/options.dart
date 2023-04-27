@@ -1,5 +1,6 @@
 import 'constants.dart';
 import 'core/room.dart';
+import 'e2ee/options.dart';
 import 'publication/remote.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
@@ -88,6 +89,9 @@ class RoomOptions {
   /// Defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
+  /// Options for end-to-end encryption.
+  final E2EEOptions? e2eeOptions;
+
   const RoomOptions({
     this.defaultCameraCaptureOptions = const CameraCaptureOptions(),
     this.defaultScreenShareCaptureOptions = const ScreenShareCaptureOptions(),
@@ -98,6 +102,7 @@ class RoomOptions {
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
+    this.e2eeOptions,
   });
 
   RoomOptions copyWith({
@@ -134,6 +139,9 @@ class RoomOptions {
 
 /// Options used when publishing video.
 class VideoPublishOptions {
+  /// The video codec to use.
+  final String videoCodec;
+
   /// If provided, this will be used instead of the SDK's suggested encodings.
   /// Usually you don't need to provide this.
   /// Defaults to null.
@@ -149,6 +157,7 @@ class VideoPublishOptions {
   final List<VideoParameters> screenShareSimulcastLayers;
 
   const VideoPublishOptions({
+    this.videoCodec = 'H264',
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],

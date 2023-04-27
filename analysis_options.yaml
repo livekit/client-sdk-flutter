@@ -30,6 +30,7 @@ analyzer:
     - '**/*.pbenum.dart'
     - '**/*.pbjson.dart'
     - '**/*.pbserver.dart'
+    - 'web/*.dart'
 
 linter:
   rules:
@@ -39,3 +40,4 @@ linter:
     prefer_single_quotes: true
     unnecessary_brace_in_string_interps: false
     unawaited_futures: true
+    depend_on_referenced_packages: false

@@ -153,6 +153,8 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
                     isScreenShare: widget.isScreenShare,
+                    enabledE2EE: widget.participant.firstTrackEncryptionType !=
+                        EncryptionType.kNone,
                   ),
                 ],
               ),

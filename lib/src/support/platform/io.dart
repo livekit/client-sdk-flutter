@@ -12,6 +12,16 @@ PlatformType lkPlatformImplementation() {
   throw UnsupportedError('Unknown Platform');
 }
 
+bool lkE2EESupportedImplementation() {
+  return [
+    PlatformType.windows,
+    PlatformType.linux,
+    PlatformType.macOS,
+    PlatformType.iOS,
+    PlatformType.android,
+  ].contains(lkPlatformImplementation());
+}
+
 BrowserType lkBrowserImplementation() {
   return BrowserType.unknown;
 }

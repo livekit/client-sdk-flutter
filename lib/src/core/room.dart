@@ -7,7 +7,9 @@ import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
@@ -71,6 +73,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
 
+  E2EEManager? get e2eeManager => _e2eeManager;
+
+  E2EEManager? _e2eeManager;
   bool get isRecording => _isRecording;
   bool _isRecording = false;
 
@@ -140,14 +145,22 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
-  }) =>
-      engine.connect(
-        url,
-        token,
-        connectOptions: connectOptions,
-        roomOptions: roomOptions,
-        fastConnectOptions: fastConnectOptions,
-      );
+  }) {
+    if (roomOptions?.e2eeOptions != null) {
+      if (!lkPlatformSupportsE2EE()) {
+        throw LiveKitE2EEException('E2EE is not supported on this platform');
+      }
+      _e2eeManager = E2EEManager(roomOptions!.e2eeOptions!.keyProvider);
+      _e2eeManager!.setup(this);
+    }
+    return engine.connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+  }
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {
@@ -376,6 +389,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       engine.signalClient.sendLeave();
     }
     await _cleanUp();
+  }
+
+  Future<void> setE2EEEnabled(bool enabled) async {
+    if (_e2eeManager != null) {
+      await _e2eeManager!.setEnabled(enabled);
+    } else {
+      throw LiveKitE2EEException('_e2eeManager not setup!');
+    }
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(

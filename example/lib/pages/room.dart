@@ -66,6 +66,7 @@ class _RoomPageState extends State<RoomPage> {
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
+    ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
           'Participant name updated: ${event.participant.identity}, name => ${event.name}');
@@ -100,6 +101,10 @@ class _RoomPageState extends State<RoomPage> {
 
   void _onRoomDidUpdate() {
     _sortParticipants();
+  }
+
+  void _onE2EEStateEvent(TrackE2EEStateEvent e2eeState) {
+    print('e2ee state: $e2eeState');
   }
 
   void _sortParticipants() {

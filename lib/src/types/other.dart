@@ -92,11 +92,13 @@ class RTCConfiguration {
   final int? iceCandidatePoolSize;
   final List<RTCIceServer>? iceServers;
   final RTCIceTransportPolicy? iceTransportPolicy;
+  final bool? encodedInsertableStreams;
 
   const RTCConfiguration({
     this.iceCandidatePoolSize,
     this.iceServers,
     this.iceTransportPolicy,
+    this.encodedInsertableStreams,
   });
 
   Map<String, dynamic> toMap() {
@@ -108,6 +110,8 @@ class RTCConfiguration {
     return <String, dynamic>{
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
+      if (encodedInsertableStreams != null)
+        'encodedInsertableStreams': encodedInsertableStreams,
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
       if (iceCandidatePoolSize != null)
         'iceCandidatePoolSize': iceCandidatePoolSize,
@@ -121,11 +125,14 @@ class RTCConfiguration {
     int? iceCandidatePoolSize,
     List<RTCIceServer>? iceServers,
     RTCIceTransportPolicy? iceTransportPolicy,
+    bool? encodedInsertableStreams,
   }) =>
       RTCConfiguration(
         iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
         iceServers: iceServers ?? this.iceServers,
         iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
+        encodedInsertableStreams:
+            encodedInsertableStreams ?? this.encodedInsertableStreams,
       );
 }
 

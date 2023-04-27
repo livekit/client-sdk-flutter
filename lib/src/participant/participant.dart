@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
@@ -9,12 +10,9 @@ import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
 import '../support/disposable.dart';
-import '../track/local/local.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
-import 'local.dart';
-import 'remote.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -93,6 +91,16 @@ abstract class Participant<T extends TrackPublication>
 
   // Must be implemented by child class.
   List<T> get audioTracks;
+
+  EncryptionType get firstTrackEncryptionType {
+    if (hasAudio) {
+      return audioTracks.first.encryptionType;
+    } else if (hasVideo) {
+      return videoTracks.first.encryptionType;
+    } else {
+      return EncryptionType.kNone;
+    }
+  }
 
   @internal
   bool get hasInfo => _participantInfo != null;
