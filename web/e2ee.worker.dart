@@ -114,7 +114,11 @@ void main() async {
             sharedKey: options['sharedKey'],
             ratchetSalt: Uint8List.fromList(
                 base64Decode(options['ratchetSalt'] as String)),
-            ratchetWindowSize: options['ratchetWindowSize']);
+            ratchetWindowSize: options['ratchetWindowSize'],
+            uncryptedMagicBytes: options['ratchetSalt'] != null
+                ? Uint8List.fromList(
+                    base64Decode(options['uncryptedMagicBytes'] as String))
+                : null);
         print('worker: init with keyOptions ${keyProviderOptions.toString()}');
         break;
       case 'enable':

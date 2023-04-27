@@ -16,10 +16,12 @@ class KeyOptions {
     required this.sharedKey,
     required this.ratchetSalt,
     required this.ratchetWindowSize,
+    this.uncryptedMagicBytes,
   });
   bool sharedKey;
   Uint8List ratchetSalt;
   int ratchetWindowSize;
+  Uint8List? uncryptedMagicBytes;
 
   @override
   String toString() {
@@ -496,6 +498,22 @@ class FrameCryptor {
       return;
     }
 
+    if (keyOptions.uncryptedMagicBytes != null) {
+      var magicBytes = keyOptions.uncryptedMagicBytes!;
+      if (buffer.length >= magicBytes.length + 1) {
+        var magicBytesBuffer = buffer.sublist(
+            buffer.length - (magicBytes.length + 1), magicBytes.length);
+        if (magicBytesBuffer.toString() == magicBytes.toString()) {
+          var finalBuffer = BytesBuilder();
+          finalBuffer.add(Uint8List.fromList(
+              buffer.sublist(0, buffer.length - (magicBytes.length + 1))));
+          frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+          controller.enqueue(frame);
+          return;
+        }
+      }
+    }
+
     try {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
@@ -535,7 +553,7 @@ class FrameCryptor {
               additionalData:
                   crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
             ),
-            currentkeySet!.encryptionKey,
+            currentkeySet.encryptionKey,
             crypto.jsArrayBufferFrom(
                 buffer.sublist(headerLength, buffer.length - ivLength - 2)),
           ));
@@ -571,7 +589,7 @@ class FrameCryptor {
           if (endDecLoop) {
             rethrow;
           }
-          var newMaterial = await ratchetMaterial(currentkeySet!.material);
+          var newMaterial = await ratchetMaterial(currentkeySet.material);
           currentkeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
           ratchetCount++;
         }
