@@ -288,4 +288,20 @@ extension VideoParametersPresets on VideoParameters {
       maxFramerate: 30,
     ),
   );
+
+  static const screenShareH1440FPS30 = VideoParameters(
+    dimensions: VideoDimensionsPresets.h1440_169,
+    encoding: VideoEncoding(
+      maxBitrate: 5 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
+
+  static const screenShareH2160FPS30 = VideoParameters(
+    dimensions: VideoDimensionsPresets.h2160_169,
+    encoding: VideoEncoding(
+      maxBitrate: 8 * 1000 * 1000,
+      maxFramerate: 30,
+    ),
+  );
 }

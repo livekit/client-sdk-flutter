@@ -136,6 +136,23 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
+  Future<bool?> showRecordingStatusChangedDialog(bool isActiveRecording) =>
+      showDialog<bool>(
+        context: this,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Room recording reminder'),
+          content: Text(isActiveRecording
+              ? 'Room recording is active.'
+              : 'Room recording is stoped.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
   Future<bool?> showSubscribePermissionDialog() => showDialog<bool>(
         context: this,
         builder: (ctx) => AlertDialog(
@@ -177,4 +194,5 @@ enum SimulateScenarioResult {
   serverLeave,
   switchCandidate,
   clear,
+  e2eeKeyRatchet,
 }

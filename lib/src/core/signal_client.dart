@@ -210,7 +210,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.leave:
-        events.emit(SignalLeaveEvent(canReconnect: msg.leave.canReconnect));
+        events.emit(SignalLeaveEvent(
+            canReconnect: msg.leave.canReconnect, reason: msg.leave.reason));
         break;
       case lk_rtc.SignalResponse_Message.mute:
         events.emit(SignalRemoteMuteTrackEvent(
@@ -245,6 +246,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.pong:
         _pingCount++;
         _resetPingTimeout();
+        break;
+      case lk_rtc.SignalResponse_Message.reconnect:
+        events.emit(SignalReconnectResponseEvent(response: msg.reconnect));
         break;
       default:
         logger.warning('received unknown signal message');
@@ -346,6 +350,7 @@ extension SignalClientRequests on SignalClient {
     required String name,
     required lk_models.TrackType type,
     required lk_models.TrackSource source,
+    required lk_models.Encryption_Type encryptionType,
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
@@ -355,6 +360,7 @@ extension SignalClientRequests on SignalClient {
       name: name,
       type: type,
       source: source,
+      encryption: encryptionType,
     );
 
     if (type == lk_models.TrackType.VIDEO) {
@@ -379,6 +385,12 @@ extension SignalClientRequests on SignalClient {
       addTrack: req,
     ));
   }
+
+  @internal
+  void sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) =>
+      _sendRequest(lk_rtc.SignalRequest(
+        updateMetadata: metadata,
+      ));
 
   @internal
   void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) =>

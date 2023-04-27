@@ -9,6 +9,34 @@ import 'dart:core' as $core;
 import 'dart:convert' as $convert;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use audioCodecDescriptor instead')
+const AudioCodec$json = const {
+  '1': 'AudioCodec',
+  '2': const [
+    const {'1': 'DEFAULT_AC', '2': 0},
+    const {'1': 'OPUS', '2': 1},
+    const {'1': 'AAC', '2': 2},
+  ],
+};
+
+/// Descriptor for `AudioCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List audioCodecDescriptor = $convert.base64Decode(
+    'CgpBdWRpb0NvZGVjEg4KCkRFRkFVTFRfQUMQABIICgRPUFVTEAESBwoDQUFDEAI=');
+@$core.Deprecated('Use videoCodecDescriptor instead')
+const VideoCodec$json = const {
+  '1': 'VideoCodec',
+  '2': const [
+    const {'1': 'DEFAULT_VC', '2': 0},
+    const {'1': 'H264_BASELINE', '2': 1},
+    const {'1': 'H264_MAIN', '2': 2},
+    const {'1': 'H264_HIGH', '2': 3},
+    const {'1': 'VP8', '2': 4},
+  ],
+};
+
+/// Descriptor for `VideoCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List videoCodecDescriptor = $convert.base64Decode(
+    'CgpWaWRlb0NvZGVjEg4KCkRFRkFVTFRfVkMQABIRCg1IMjY0X0JBU0VMSU5FEAESDQoJSDI2NF9NQUlOEAISDQoJSDI2NF9ISUdIEAMSBwoDVlA4EAQ=');
 @$core.Deprecated('Use trackTypeDescriptor instead')
 const TrackType$json = const {
   '1': 'TrackType',
@@ -95,6 +123,21 @@ const DisconnectReason$json = const {
 /// Descriptor for `DisconnectReason`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List disconnectReasonDescriptor = $convert.base64Decode(
     'ChBEaXNjb25uZWN0UmVhc29uEhIKDlVOS05PV05fUkVBU09OEAASFAoQQ0xJRU5UX0lOSVRJQVRFRBABEhYKEkRVUExJQ0FURV9JREVOVElUWRACEhMKD1NFUlZFUl9TSFVURE9XThADEhcKE1BBUlRJQ0lQQU5UX1JFTU9WRUQQBBIQCgxST09NX0RFTEVURUQQBRISCg5TVEFURV9NSVNNQVRDSBAGEhAKDEpPSU5fRkFJTFVSRRAH');
+@$core.Deprecated('Use reconnectReasonDescriptor instead')
+const ReconnectReason$json = const {
+  '1': 'ReconnectReason',
+  '2': const [
+    const {'1': 'RR_UNKOWN', '2': 0},
+    const {'1': 'RR_SIGNAL_DISCONNECTED', '2': 1},
+    const {'1': 'RR_PUBLISHER_FAILED', '2': 2},
+    const {'1': 'RR_SUBSCRIBER_FAILED', '2': 3},
+    const {'1': 'RR_SWITCH_CANDIDATE', '2': 4},
+  ],
+};
+
+/// Descriptor for `ReconnectReason`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List reconnectReasonDescriptor = $convert.base64Decode(
+    'Cg9SZWNvbm5lY3RSZWFzb24SDQoJUlJfVU5LT1dOEAASGgoWUlJfU0lHTkFMX0RJU0NPTk5FQ1RFRBABEhcKE1JSX1BVQkxJU0hFUl9GQUlMRUQQAhIYChRSUl9TVUJTQ1JJQkVSX0ZBSUxFRBADEhcKE1JSX1NXSVRDSF9DQU5ESURBVEUQBA==');
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = const {
   '1': 'Room',
@@ -165,14 +208,29 @@ const ParticipantPermission$json = const {
       '5': 8,
       '10': 'canPublishData'
     },
+    const {
+      '1': 'can_publish_sources',
+      '3': 9,
+      '4': 3,
+      '5': 14,
+      '6': '.livekit.TrackSource',
+      '10': 'canPublishSources'
+    },
     const {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
     const {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
+    const {
+      '1': 'can_update_metadata',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'canUpdateMetadata'
+    },
   ],
 };
 
 /// Descriptor for `ParticipantPermission`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantPermissionDescriptor = $convert.base64Decode(
-    'ChVQYXJ0aWNpcGFudFBlcm1pc3Npb24SIwoNY2FuX3N1YnNjcmliZRgBIAEoCFIMY2FuU3Vic2NyaWJlEh8KC2Nhbl9wdWJsaXNoGAIgASgIUgpjYW5QdWJsaXNoEigKEGNhbl9wdWJsaXNoX2RhdGEYAyABKAhSDmNhblB1Ymxpc2hEYXRhEhYKBmhpZGRlbhgHIAEoCFIGaGlkZGVuEhoKCHJlY29yZGVyGAggASgIUghyZWNvcmRlcg==');
+    'ChVQYXJ0aWNpcGFudFBlcm1pc3Npb24SIwoNY2FuX3N1YnNjcmliZRgBIAEoCFIMY2FuU3Vic2NyaWJlEh8KC2Nhbl9wdWJsaXNoGAIgASgIUgpjYW5QdWJsaXNoEigKEGNhbl9wdWJsaXNoX2RhdGEYAyABKAhSDmNhblB1Ymxpc2hEYXRhEkQKE2Nhbl9wdWJsaXNoX3NvdXJjZXMYCSADKA4yFC5saXZla2l0LlRyYWNrU291cmNlUhFjYW5QdWJsaXNoU291cmNlcxIWCgZoaWRkZW4YByABKAhSBmhpZGRlbhIaCghyZWNvcmRlchgIIAEoCFIIcmVjb3JkZXISLgoTY2FuX3VwZGF0ZV9tZXRhZGF0YRgKIAEoCFIRY2FuVXBkYXRlTWV0YWRhdGE=');
 @$core.Deprecated('Use participantInfoDescriptor instead')
 const ParticipantInfo$json = const {
   '1': 'ParticipantInfo',
@@ -227,6 +285,25 @@ const ParticipantInfo_State$json = const {
 /// Descriptor for `ParticipantInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
     'Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCGlkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVSBXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSGgoIbWV0YWRhdGEYBSABKAlSCG1ldGFkYXRhEhsKCWpvaW5lZF9hdBgGIAEoA1IIam9pbmVkQXQSEgoEbmFtZRgJIAEoCVIEbmFtZRIYCgd2ZXJzaW9uGAogASgNUgd2ZXJzaW9uEj4KCnBlcm1pc3Npb24YCyABKAsyHi5saXZla2l0LlBhcnRpY2lwYW50UGVybWlzc2lvblIKcGVybWlzc2lvbhIWCgZyZWdpb24YDCABKAlSBnJlZ2lvbhIhCgxpc19wdWJsaXNoZXIYDSABKAhSC2lzUHVibGlzaGVyIj4KBVN0YXRlEgsKB0pPSU5JTkcQABIKCgZKT0lORUQQARIKCgZBQ1RJVkUQAhIQCgxESVNDT05ORUNURUQQAw==');
+@$core.Deprecated('Use encryptionDescriptor instead')
+const Encryption$json = const {
+  '1': 'Encryption',
+  '4': const [Encryption_Type$json],
+};
+
+@$core.Deprecated('Use encryptionDescriptor instead')
+const Encryption_Type$json = const {
+  '1': 'Type',
+  '2': const [
+    const {'1': 'NONE', '2': 0},
+    const {'1': 'GCM', '2': 1},
+    const {'1': 'CUSTOM', '2': 2},
+  ],
+};
+
+/// Descriptor for `Encryption`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List encryptionDescriptor = $convert.base64Decode(
+    'CgpFbmNyeXB0aW9uIiUKBFR5cGUSCAoETk9ORRAAEgcKA0dDTRABEgoKBkNVU1RPTRAC');
 @$core.Deprecated('Use simulcastCodecInfoDescriptor instead')
 const SimulcastCodecInfo$json = const {
   '1': 'SimulcastCodecInfo',
@@ -293,12 +370,22 @@ const TrackInfo$json = const {
       '6': '.livekit.SimulcastCodecInfo',
       '10': 'codecs'
     },
+    const {'1': 'stereo', '3': 14, '4': 1, '5': 8, '10': 'stereo'},
+    const {'1': 'disable_red', '3': 15, '4': 1, '5': 8, '10': 'disableRed'},
+    const {
+      '1': 'encryption',
+      '3': 16,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.Encryption.Type',
+      '10': 'encryption'
+    },
   ],
 };
 
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
-    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSGwoJbWltZV90eXBlGAsgASgJUghtaW1lVHlwZRIQCgNtaWQYDCABKAlSA21pZBIzCgZjb2RlY3MYDSADKAsyGy5saXZla2l0LlNpbXVsY2FzdENvZGVjSW5mb1IGY29kZWNz');
+    'CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVHJhY2tUeXBlUgR0eXBlEhIKBG5hbWUYAyABKAlSBG5hbWUSFAoFbXV0ZWQYBCABKAhSBW11dGVkEhQKBXdpZHRoGAUgASgNUgV3aWR0aBIWCgZoZWlnaHQYBiABKA1SBmhlaWdodBIcCglzaW11bGNhc3QYByABKAhSCXNpbXVsY2FzdBIfCgtkaXNhYmxlX2R0eBgIIAEoCFIKZGlzYWJsZUR0eBIsCgZzb3VyY2UYCSABKA4yFC5saXZla2l0LlRyYWNrU291cmNlUgZzb3VyY2USKwoGbGF5ZXJzGAogAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSGwoJbWltZV90eXBlGAsgASgJUghtaW1lVHlwZRIQCgNtaWQYDCABKAlSA21pZBIzCgZjb2RlY3MYDSADKAsyGy5saXZla2l0LlNpbXVsY2FzdENvZGVjSW5mb1IGY29kZWNzEhYKBnN0ZXJlbxgOIAEoCFIGc3RlcmVvEh8KC2Rpc2FibGVfcmVkGA8gASgIUgpkaXNhYmxlUmVkEjgKCmVuY3J5cHRpb24YECABKA4yGC5saXZla2l0LkVuY3J5cHRpb24uVHlwZVIKZW5jcnlwdGlvbg==');
 @$core.Deprecated('Use videoLayerDescriptor instead')
 const VideoLayer$json = const {
   '1': 'VideoLayer',
@@ -420,12 +507,24 @@ const UserPacket$json = const {
       '5': 9,
       '10': 'destinationSids'
     },
+    const {
+      '1': 'topic',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'topic',
+      '17': true
+    },
+  ],
+  '8': const [
+    const {'1': '_topic'},
   ],
 };
 
 /// Descriptor for `UserPacket`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
-    'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHM=');
+    'CgpVc2VyUGFja2V0EicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCVIOcGFydGljaXBhbnRTaWQSGAoHcGF5bG9hZBgCIAEoDFIHcGF5bG9hZBIpChBkZXN0aW5hdGlvbl9zaWRzGAMgAygJUg9kZXN0aW5hdGlvblNpZHMSGQoFdG9waWMYBCABKAlIAFIFdG9waWOIAQFCCAoGX3RvcGlj');
 @$core.Deprecated('Use participantTracksDescriptor instead')
 const ParticipantTracks$json = const {
   '1': 'ParticipantTracks',

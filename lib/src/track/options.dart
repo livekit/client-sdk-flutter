@@ -28,7 +28,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     this.cameraPosition = CameraPosition.front,
     String? deviceId,
     double? maxFrameRate,
-    VideoParameters params = VideoParametersPresets.h540_169,
+    VideoParameters params = VideoParametersPresets.h720_169,
   }) : super(params: params, deviceId: deviceId, maxFrameRate: maxFrameRate);
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
@@ -89,7 +89,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     this.captureScreenAudio = false,
     String? sourceId,
     double? maxFrameRate,
-    VideoParameters params = VideoParametersPresets.screenShareH720FPS15,
+    VideoParameters params = VideoParametersPresets.screenShareH1080FPS15,
   }) : super(params: params, deviceId: sourceId, maxFrameRate: maxFrameRate);
 
   ScreenShareCaptureOptions.from(
@@ -97,6 +97,19 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
       this.captureScreenAudio = false,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
+
+  ScreenShareCaptureOptions copyWith({
+    bool? captureScreenAudio,
+    VideoParameters? params,
+    String? sourceId,
+    double? maxFrameRate,
+  }) =>
+      ScreenShareCaptureOptions(
+        captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
+        params: params ?? this.params,
+        sourceId: sourceId ?? deviceId,
+        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
+      );
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
@@ -228,5 +241,41 @@ class AudioCaptureOptions extends LocalTrackOptions {
       }
     }
     return constraints;
+  }
+
+  AudioCaptureOptions copyWith({
+    String? deviceId,
+    bool? noiseSuppression,
+    bool? echoCancellation,
+    bool? autoGainControl,
+    bool? highPassFilter,
+    bool? typingNoiseDetection,
+  }) {
+    return AudioCaptureOptions(
+      deviceId: deviceId ?? this.deviceId,
+      noiseSuppression: noiseSuppression ?? this.noiseSuppression,
+      echoCancellation: echoCancellation ?? this.echoCancellation,
+      autoGainControl: autoGainControl ?? this.autoGainControl,
+      highPassFilter: highPassFilter ?? this.highPassFilter,
+      typingNoiseDetection: typingNoiseDetection ?? this.typingNoiseDetection,
+    );
+  }
+}
+
+class AudioOutputOptions {
+  /// The deviceId of the output device to use.
+  final String? deviceId;
+
+  /// If true, the audio will be played on the speaker.
+  /// for mobile only
+  final bool? speakerOn;
+
+  const AudioOutputOptions({this.deviceId, this.speakerOn});
+
+  AudioOutputOptions copyWith({String? deviceId, bool? speakerOn}) {
+    return AudioOutputOptions(
+      deviceId: deviceId ?? this.deviceId,
+      speakerOn: speakerOn ?? this.speakerOn,
+    );
   }
 }

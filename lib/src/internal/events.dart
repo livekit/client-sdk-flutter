@@ -101,6 +101,15 @@ class SignalJoinResponseEvent with SignalEvent, InternalEvent {
   });
 }
 
+@internal
+// Received a ReconnectResponse from the server.
+class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
+  final lk_rtc.ReconnectResponse response;
+  const SignalReconnectResponseEvent({
+    required this.response,
+  });
+}
+
 /// Base class for a ConnectionStateUpdated event
 @internal
 abstract class ConnectionStateUpdatedEvent with InternalEvent {
@@ -247,8 +256,10 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
 @internal
 class SignalLeaveEvent with SignalEvent, InternalEvent {
   final bool canReconnect;
+  final lk_models.DisconnectReason reason;
   const SignalLeaveEvent({
     required this.canReconnect,
+    required this.reason,
   });
 }
 

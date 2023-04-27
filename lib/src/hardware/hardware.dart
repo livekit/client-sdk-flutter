@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import '../logger.dart';
+
 class MediaDevice {
   const MediaDevice(this.deviceId, this.label, this.kind);
 
@@ -40,6 +42,7 @@ class Hardware {
           devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??=
           devices.firstWhereOrNull((element) => element.kind == 'videoinput');
+      speakerOn = true;
     });
   }
 
@@ -53,6 +56,8 @@ class Hardware {
   MediaDevice? selectedAudioOutput;
 
   MediaDevice? selectedVideoInput;
+
+  bool? speakerOn;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -78,16 +83,18 @@ class Hardware {
 
   Future<void> selectAudioOutput(MediaDevice device) async {
     if (rtc.WebRTC.platformIsWeb) {
-      throw UnimplementedError('selectAudioOutput not support on web');
+      logger.warning('selectAudioOutput not support on web');
+      return;
     }
     selectedAudioOutput = device;
     await rtc.Helper.selectAudioOutput(device.deviceId);
   }
 
   Future<void> selectAudioInput(MediaDevice device) async {
-    if (rtc.WebRTC.platformIsWeb || rtc.WebRTC.platformIsIOS) {
-      throw UnimplementedError(
+    if (rtc.WebRTC.platformIsWeb) {
+      logger.warning(
           'selectAudioInput is only supported on Android/Windows/macOS');
+      return;
     }
     selectedAudioInput = device;
     await rtc.Helper.selectAudioInput(device.deviceId);
@@ -95,9 +102,10 @@ class Hardware {
 
   Future<void> setSpeakerphoneOn(bool enable) async {
     if (rtc.WebRTC.platformIsMobile) {
+      speakerOn = enable;
       await rtc.Helper.setSpeakerphoneOn(enable);
     } else {
-      throw UnimplementedError('setSpeakerphoneOn only support on iOS/Android');
+      logger.warning('setSpeakerphoneOn only support on iOS/Android');
     }
   }
 

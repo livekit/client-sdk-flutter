@@ -33,7 +33,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   List<MediaDevice>? _audioInputs;
   List<MediaDevice>? _audioOutputs;
   List<MediaDevice>? _videoInputs;
-  MediaDevice? _selectedVideoInput;
 
   StreamSubscription? _subscription;
 
@@ -61,7 +60,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _audioOutputs = devices.where((d) => d.kind == 'audiooutput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
-    _selectedVideoInput = _videoInputs?.first;
     setState(() {});
   }
 
@@ -94,23 +92,18 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   }
 
   void _selectAudioOutput(MediaDevice device) async {
-    await Hardware.instance.selectAudioOutput(device);
+    await widget.room.setAudioOutputDevice(device);
     setState(() {});
   }
 
   void _selectAudioInput(MediaDevice device) async {
-    await Hardware.instance.selectAudioInput(device);
+    await widget.room.setAudioInputDevice(device);
     setState(() {});
   }
 
   void _selectVideoInput(MediaDevice device) async {
-    final track = participant.videoTracks.firstOrNull?.track;
-    if (track == null) return;
-    if (_selectedVideoInput?.deviceId != device.deviceId) {
-      await track.switchCamera(device.deviceId);
-      _selectedVideoInput = device;
-      setState(() {});
-    }
+    await widget.room.setVideoInputDevice(device);
+    setState(() {});
   }
 
   void _toggleCamera() async {
@@ -216,18 +209,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result == true) await widget.room.disconnect();
   }
 
-  void _onTapReconnect() async {
-    final result = await context.showReconnectDialog();
-    if (result == true) {
-      try {
-        await widget.room.reconnect();
-        await context.showReconnectSuccessDialog();
-      } catch (error) {
-        await context.showErrorDialog(error);
-      }
-    }
-  }
-
   void _onTapUpdateSubscribePermission() async {
     final result = await context.showSubscribePermissionDialog();
     if (result != null) {
@@ -245,6 +226,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     final result = await context.showSimulateScenarioDialog();
     if (result != null) {
       print('${result}');
+
+      if (SimulateScenarioResult.e2eeKeyRatchet == result) {
+        await widget.room.e2eeManager?.ratchetKey();
+      }
+
       await widget.room.sendSimulateScenario(
         signalReconnect:
             result == SimulateScenarioResult.signalReconnect ? true : null,
@@ -305,8 +291,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         value: device,
                         child: ListTile(
                           leading: (device.deviceId ==
-                                  Hardware
-                                      .instance.selectedAudioInput?.deviceId)
+                                  widget.room.selectedAudioInputDeviceId)
                               ? const Icon(
                                   EvaIcons.checkmarkSquare,
                                   color: Colors.white,
@@ -349,7 +334,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       value: device,
                       child: ListTile(
                         leading: (device.deviceId ==
-                                Hardware.instance.selectedAudioOutput?.deviceId)
+                                widget.room.selectedAudioOutputDeviceId)
                             ? const Icon(
                                 EvaIcons.checkmarkSquare,
                                 color: Colors.white,
@@ -387,16 +372,16 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       return PopupMenuItem<MediaDevice>(
                         value: device,
                         child: ListTile(
-                          leading:
-                              (device.deviceId == _selectedVideoInput?.deviceId)
-                                  ? const Icon(
-                                      EvaIcons.checkmarkSquare,
-                                      color: Colors.white,
-                                    )
-                                  : const Icon(
-                                      EvaIcons.square,
-                                      color: Colors.white,
-                                    ),
+                          leading: (device.deviceId ==
+                                  widget.room.selectedVideoInputDeviceId)
+                              ? const Icon(
+                                  EvaIcons.checkmarkSquare,
+                                  color: Colors.white,
+                                )
+                              : const Icon(
+                                  EvaIcons.square,
+                                  color: Colors.white,
+                                ),
                           title: Text(device.label),
                         ),
                         onTap: () => _selectVideoInput(device),
@@ -439,11 +424,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             onPressed: _onTapSendData,
             icon: const Icon(EvaIcons.paperPlane),
             tooltip: 'send demo data',
-          ),
-          IconButton(
-            onPressed: _onTapReconnect,
-            icon: const Icon(EvaIcons.refresh),
-            tooltip: 're-connect',
           ),
           IconButton(
             onPressed: _onTapUpdateSubscribePermission,

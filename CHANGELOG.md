@@ -1,6 +1,38 @@
 # CHANGELOG
 
+## 1.2.2
+
+* Feat: Support setVideoFPS for subscribe.
+* Feat: topic for data-channel.
+* Feat: support metadata update.
+* Feat: handle reconnect response to re-configuration PCs.
+* Docs: readme manager initial setup.
+* Feat: upgrade protocol version to v9.
+* Chore: Use participantIdentity instead of Sid for track permissions. 
+* Feat: Bump flutter-webrtc to 0.9.25.
+* Fix: Fix empty label for Wired Headset on Android.
+* Fix: ICE Connectivity doesn't establish with DualSIM iPhones.
+
+## 1.2.1
+
+* Fix: fix memory leak for screen capture (macOS).
+* Feat: web/native device consistency management (native/web).
+* Fix: fix renderer issue for Safari/Firefox.
+* Fix: set forceRelay if server response is enabled.
+* Feat: Forward leave reason of disconnected events.
+* Feat: expose logger level api.
+* Feat: expose Room recording event.
+
+## 1.2.0
+
+* Fix: re-publish tracks after re connect
+* Fix the bug for firefox.
+* Fix crash when using virtual camera (OBS) for osx.
+* Fix crash when screen sharing with simulcast on macOS
+* Feat: support fast switch camera for LocalVideoTrack.
+
 ## 1.1.12
+
 * Fix: Audio output list is empty in android (#231)
 * Update flutter-webrtc to 0.9.19
   * As a result of this, the BLUETOOTH_CONNECT permission for Android is no longer needed.

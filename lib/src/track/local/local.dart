@@ -50,6 +50,8 @@ abstract class LocalTrack extends Track {
   bool _published = false;
   bool get isPublished => _published;
 
+  String? codec;
+
   LocalTrack(
     String name,
     lk_models.TrackType kind,

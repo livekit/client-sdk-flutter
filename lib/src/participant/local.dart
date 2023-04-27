@@ -12,6 +12,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
+import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -88,6 +89,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+    await room.applyAudioSpeakerSettings();
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -111,6 +113,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
+
+    // set the default sending bitrate
+    if (publishOptions.videoEncoding == null) {
+      publishOptions = publishOptions.copyWith(
+        videoEncoding: track.currentOptions.params.encoding,
+      );
+    }
 
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
@@ -174,6 +183,49 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       init: transceiverInit,
     );
 
+    if (lkBrowser() != BrowserType.firefox) {
+      var videoCodec = publishOptions.videoCodec.toLowerCase();
+      var caps = await rtc.getRtpSenderCapabilities('video');
+      List<rtc.RTCRtpCodecCapability> matched = [];
+      List<rtc.RTCRtpCodecCapability> partialMatched = [];
+      List<rtc.RTCRtpCodecCapability> unmatched = [];
+      for (var c in caps.codecs!) {
+        var codec = c.mimeType.toLowerCase();
+        if (codec == 'audio/opus') {
+          matched.add(c);
+          continue;
+        }
+
+        var matchesVideoCodec = codec == 'video/$videoCodec';
+        if (!matchesVideoCodec) {
+          unmatched.add(c);
+          continue;
+        }
+        if (publishOptions.videoCodec == 'h264') {
+          if (c.sdpFmtpLine != null &&
+              c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+            matched.add(c);
+          } else {
+            partialMatched.add(c);
+          }
+          continue;
+        }
+        matched.add(c);
+      }
+      matched.addAll([...partialMatched, ...unmatched]);
+      await track.transceiver?.setCodecPreferences(matched);
+      track.codec = videoCodec;
+    }
+
+    // prefer to maintainResolution for screen share
+    if (track.source == TrackSource.screenShareVideo) {
+      var sender = track.transceiver!.sender;
+      var parameters = sender.parameters;
+      parameters.degradationPreference =
+          rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
+      await sender.setParameters(parameters);
+    }
+
     await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(
@@ -228,6 +280,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       // did unpublish
       await track.onUnpublish();
+      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {
@@ -254,10 +307,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Publish a new data payload to the room.
   /// @param destinationSids When empty, data will be forwarded to each participant in the room.
+  /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
     Reliability reliability = Reliability.reliable,
     List<String>? destinationSids,
+    String? topic,
   }) async {
     final packet = lk_models.DataPacket(
       kind: reliability.toPBType(),
@@ -265,10 +320,34 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         payload: data,
         participantSid: sid,
         destinationSids: destinationSids,
+        topic: topic,
       ),
     );
 
     await room.engine.sendDataPacket(packet);
+  }
+
+  /// Sets and updates the metadata of the local participant.
+  /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  /// @param metadata
+  void setMetadata(String metadata) {
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
+  }
+
+  /// Sets and updates the name of the local participant.
+  ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
+  ///  @param name
+  void setName(String name) {
+    super.updateName(name);
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      name: name,
+      metadata: metadata,
+    ));
   }
 
   /// A convenience property to get all video tracks.
@@ -286,27 +365,36 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .toList();
 
   /// Shortcut for publishing a [TrackSource.camera]
-  Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.camera, enabled);
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
+      {CameraCaptureOptions? cameraCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.camera, enabled,
+        cameraCaptureOptions: cameraCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.microphone]
-  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.microphone, enabled);
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled,
+      {AudioCaptureOptions? audioCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.microphone, enabled,
+        audioCaptureOptions: audioCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
   Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
-      {bool? captureScreenAudio}) async {
+      {bool? captureScreenAudio,
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
     return setSourceEnabled(TrackSource.screenShareVideo, enabled,
-        captureScreenAudio: captureScreenAudio);
+        captureScreenAudio: captureScreenAudio,
+        screenShareCaptureOptions: screenShareCaptureOptions);
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled,
-      {bool? captureScreenAudio}) async {
+      {bool? captureScreenAudio,
+      AudioCaptureOptions? audioCaptureOptions,
+      CameraCaptureOptions? cameraCaptureOptions,
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
@@ -319,24 +407,30 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await publication.mute();
         }
       }
+      await room.applyAudioSpeakerSettings();
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions.defaultCameraCaptureOptions);
+        CameraCaptureOptions captureOptions = cameraCaptureOptions ??
+            room.roomOptions.defaultCameraCaptureOptions;
+        final track = await LocalVideoTrack.createCameraTrack(captureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        final track = await LocalAudioTrack.create(
-            room.roomOptions.defaultAudioCaptureOptions);
+        AudioCaptureOptions captureOptions =
+            audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+        final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
+        ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
+            room.roomOptions.defaultScreenShareCaptureOptions;
+
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
         /// so we publish it twice here, but only return videoTrack to user.
         if (captureScreenAudio != null) {
+          captureOptions = captureOptions.copyWith(captureScreenAudio: true);
           final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
-              ScreenShareCaptureOptions(
-                  captureScreenAudio: captureScreenAudio));
+              captureOptions);
           LocalTrackPublication<LocalVideoTrack>? publication;
           for (final track in tracks) {
             if (track is LocalVideoTrack) {
@@ -349,8 +443,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           /// just return the video track publication
           return publication;
         }
-        final track = await LocalVideoTrack.createScreenShareTrack(
-            room.roomOptions.defaultScreenShareCaptureOptions);
+        final track =
+            await LocalVideoTrack.createScreenShareTrack(captureOptions);
         return await publishVideoTrack(track);
       }
     }

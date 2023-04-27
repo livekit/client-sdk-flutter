@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:livekit_client/src/hardware/hardware.dart';
 import 'package:livekit_client/src/support/app_state.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
@@ -69,6 +72,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   /// Server region
   String? get serverRegion => _serverRegion;
   String? _serverRegion;
+
+  E2EEManager? get e2eeManager => _e2eeManager;
+
+  E2EEManager? _e2eeManager;
+  bool get isRecording => _isRecording;
+  bool _isRecording = false;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -136,14 +145,22 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
-  }) =>
-      engine.connect(
-        url,
-        token,
-        connectOptions: connectOptions,
-        roomOptions: roomOptions,
-        fastConnectOptions: fastConnectOptions,
-      );
+  }) {
+    if (roomOptions?.e2eeOptions != null) {
+      if (!lkPlatformSupportsE2EE()) {
+        throw LiveKitE2EEException('E2EE is not supported on this platform');
+      }
+      _e2eeManager = E2EEManager(roomOptions!.e2eeOptions!.keyProvider);
+      _e2eeManager!.setup(this);
+    }
+    return engine.connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+  }
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {
@@ -152,6 +169,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
+
+      if (_isRecording != event.response.room.activeRecording) {
+        _isRecording = event.response.room.activeRecording;
+        emitWhenConnected(
+            RoomRecordingStatusChanged(activeRecording: _isRecording));
+      }
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
@@ -166,7 +189,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
-          engine.fastConnectOptions != null) {
+          engine.fastConnectOptions != null &&
+          !engine.fullReconnect) {
         var options = engine.fastConnectOptions!;
 
         var audio = options.microphone;
@@ -260,10 +284,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.room.metadata;
       emitWhenConnected(
           RoomMetadataChangedEvent(metadata: event.room.metadata));
+      if (_isRecording != event.room.activeRecording) {
+        _isRecording = event.room.activeRecording;
+        emitWhenConnected(
+            RoomRecordingStatusChanged(activeRecording: _isRecording));
+      }
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) {
       // during reconnection, need to send sync state upon signal connection.
-      if (event.didReconnect) {
+      if (event.newState == ConnectionState.reconnecting) {
         logger.fine('Sending syncState');
         _sendSyncState();
       }
@@ -306,18 +335,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connected) {
         events.emit(const RoomRestartedEvent());
-        // recreate signal listener.
-        await _signalListener.cancelAll();
-        await _signalListener.dispose();
-        _signalListener = engine.signalClient.createListener();
-        _setUpSignalListeners();
         await _handlePostReconnect(event.fullReconnect);
       } else if (event.newState == ConnectionState.reconnecting) {
         events.emit(const RoomReconnectingEvent());
       } else if (event.newState == ConnectionState.disconnected) {
         if (!event.fullReconnect) {
           await _cleanUp();
-          events.emit(const RoomDisconnectedEvent());
+          events.emit(RoomDisconnectedEvent(reason: event.disconnectReason));
         }
       }
       // always notify ChangeNotifier
@@ -347,6 +371,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           event.stream,
           trackSid,
           receiver: event.receiver,
+          audioOutputOptions: roomOptions.defaultAudioOutputOptions,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.severe('addSubscribedMediaTrack() throwed ${event}');
@@ -366,8 +391,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await _cleanUp();
   }
 
-  Future<void> reconnect() async {
-    await engine.restartConnection();
+  Future<void> setE2EEEnabled(bool enabled) async {
+    if (_e2eeManager != null) {
+      await _e2eeManager!.setEnabled(enabled);
+    } else {
+      throw LiveKitE2EEException('_e2eeManager not setup!');
+    }
   }
 
   RemoteParticipant _getOrCreateRemoteParticipant(
@@ -542,6 +571,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final event = DataReceivedEvent(
       participant: senderParticipant,
       data: dataPacketEvent.packet.payload,
+      topic: dataPacketEvent.packet.topic,
     );
 
     senderParticipant?.events.emit(event);
@@ -646,5 +676,103 @@ extension RoomDebugMethods on Room {
         migration: migration,
         serverLeave: serverLeave,
         switchCandidate: switchCandidate);
+  }
+}
+
+/// Room extension methods for managing audio, video.
+extension RoomHardwareManagementMethods on Room {
+  /// Get current audio output device.
+  String? get selectedAudioOutputDeviceId =>
+      roomOptions.defaultAudioOutputOptions.deviceId ??
+      Hardware.instance.selectedAudioOutput?.deviceId;
+
+  /// Get current audio input device.
+  String? get selectedAudioInputDeviceId =>
+      roomOptions.defaultAudioCaptureOptions.deviceId ??
+      Hardware.instance.selectedAudioInput?.deviceId;
+
+  /// Get current video input device.
+  String? get selectedVideoInputDeviceId =>
+      roomOptions.defaultCameraCaptureOptions.deviceId ??
+      Hardware.instance.selectedVideoInput?.deviceId;
+
+  /// Get mobile device's speaker status.
+  bool? get speakerOn => roomOptions.defaultAudioOutputOptions.speakerOn;
+
+  /// Set audio output device.
+  Future<void> setAudioOutputDevice(MediaDevice device) async {
+    if (lkPlatformIs(PlatformType.web)) {
+      participants.forEach((_, participant) {
+        for (var audioTrack in participant.audioTracks) {
+          audioTrack.track?.setSinkId(device.deviceId);
+        }
+      });
+      Hardware.instance.selectedAudioOutput = device;
+    } else {
+      await Hardware.instance.selectAudioOutput(device);
+    }
+    engine.roomOptions = engine.roomOptions.copyWith(
+      defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
+        deviceId: device.deviceId,
+      ),
+    );
+  }
+
+  /// Set audio input device.
+  Future<void> setAudioInputDevice(MediaDevice device) async {
+    if (lkPlatformIs(PlatformType.web) && localParticipant != null) {
+      for (var audioTrack in localParticipant!.audioTracks) {
+        await audioTrack.track?.setDeviceId(device.deviceId);
+      }
+      Hardware.instance.selectedAudioInput = device;
+    } else {
+      await Hardware.instance.selectAudioInput(device);
+    }
+    engine.roomOptions = engine.roomOptions.copyWith(
+      defaultAudioCaptureOptions:
+          roomOptions.defaultAudioCaptureOptions.copyWith(
+        deviceId: device.deviceId,
+      ),
+    );
+  }
+
+  /// Set video input device.
+  Future<void> setVideoInputDevice(MediaDevice device) async {
+    final track = localParticipant?.videoTracks.firstOrNull?.track;
+    if (track == null) return;
+    if (selectedVideoInputDeviceId != device.deviceId) {
+      await track.switchCamera(device.deviceId);
+      Hardware.instance.selectedVideoInput = device;
+    }
+    engine.roomOptions = engine.roomOptions.copyWith(
+      defaultCameraCaptureOptions:
+          roomOptions.defaultCameraCaptureOptions.copyWith(
+        deviceId: device.deviceId,
+      ),
+    );
+  }
+
+  Future<void> setSpeakerOn(bool speakerOn) async {
+    if (lkPlatformIs(PlatformType.iOS) || lkPlatformIs(PlatformType.android)) {
+      await Hardware.instance.setSpeakerphoneOn(speakerOn);
+      engine.roomOptions = engine.roomOptions.copyWith(
+        defaultAudioOutputOptions:
+            roomOptions.defaultAudioOutputOptions.copyWith(
+          speakerOn: speakerOn,
+        ),
+      );
+    }
+  }
+
+  /// Apply audio output device settings.
+  @internal
+  Future<void> applyAudioSpeakerSettings() async {
+    if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
+      if (lkPlatformIs(PlatformType.iOS) ||
+          lkPlatformIs(PlatformType.android)) {
+        await Hardware.instance.setSpeakerphoneOn(
+            roomOptions.defaultAudioOutputOptions.speakerOn!);
+      }
+    }
   }
 }

@@ -1,5 +1,6 @@
 import 'constants.dart';
 import 'core/room.dart';
+import 'e2ee/options.dart';
 import 'publication/remote.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
@@ -44,7 +45,7 @@ class ConnectOptions {
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
-    this.protocolVersion = ProtocolVersion.v8,
+    this.protocolVersion = ProtocolVersion.v9,
     this.timeouts = Timeouts.defaultTimeouts,
   });
 }
@@ -67,6 +68,8 @@ class RoomOptions {
   /// Default options used when publishing a [LocalAudioTrack].
   final AudioPublishOptions defaultAudioPublishOptions;
 
+  final AudioOutputOptions defaultAudioOutputOptions;
+
   /// AdaptiveStream lets LiveKit automatically manage quality of subscribed
   /// video tracks to optimize for bandwidth and CPU.
   /// When attached video elements are visible, it'll choose an appropriate
@@ -86,20 +89,59 @@ class RoomOptions {
   /// Defaults to true.
   final bool stopLocalTrackOnUnpublish;
 
+  /// Options for end-to-end encryption.
+  final E2EEOptions? e2eeOptions;
+
   const RoomOptions({
     this.defaultCameraCaptureOptions = const CameraCaptureOptions(),
     this.defaultScreenShareCaptureOptions = const ScreenShareCaptureOptions(),
     this.defaultAudioCaptureOptions = const AudioCaptureOptions(),
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
+    this.defaultAudioOutputOptions = const AudioOutputOptions(),
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
+    this.e2eeOptions,
   });
+
+  RoomOptions copyWith({
+    CameraCaptureOptions? defaultCameraCaptureOptions,
+    ScreenShareCaptureOptions? defaultScreenShareCaptureOptions,
+    AudioCaptureOptions? defaultAudioCaptureOptions,
+    VideoPublishOptions? defaultVideoPublishOptions,
+    AudioPublishOptions? defaultAudioPublishOptions,
+    AudioOutputOptions? defaultAudioOutputOptions,
+    bool? adaptiveStream,
+    bool? dynacast,
+    bool? stopLocalTrackOnUnpublish,
+  }) {
+    return RoomOptions(
+      defaultCameraCaptureOptions:
+          defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
+      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions ??
+          this.defaultScreenShareCaptureOptions,
+      defaultAudioCaptureOptions:
+          defaultAudioCaptureOptions ?? this.defaultAudioCaptureOptions,
+      defaultVideoPublishOptions:
+          defaultVideoPublishOptions ?? this.defaultVideoPublishOptions,
+      defaultAudioPublishOptions:
+          defaultAudioPublishOptions ?? this.defaultAudioPublishOptions,
+      defaultAudioOutputOptions:
+          defaultAudioOutputOptions ?? this.defaultAudioOutputOptions,
+      adaptiveStream: adaptiveStream ?? this.adaptiveStream,
+      dynacast: dynacast ?? this.dynacast,
+      stopLocalTrackOnUnpublish:
+          stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+    );
+  }
 }
 
 /// Options used when publishing video.
 class VideoPublishOptions {
+  /// The video codec to use.
+  final String videoCodec;
+
   /// If provided, this will be used instead of the SDK's suggested encodings.
   /// Usually you don't need to provide this.
   /// Defaults to null.
@@ -115,11 +157,26 @@ class VideoPublishOptions {
   final List<VideoParameters> screenShareSimulcastLayers;
 
   const VideoPublishOptions({
+    this.videoCodec = 'H264',
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
   });
+
+  VideoPublishOptions copyWith({
+    VideoEncoding? videoEncoding,
+    bool? simulcast,
+    List<VideoParameters>? videoSimulcastLayers,
+    List<VideoParameters>? screenShareSimulcastLayers,
+  }) =>
+      VideoPublishOptions(
+        videoEncoding: videoEncoding ?? this.videoEncoding,
+        simulcast: simulcast ?? this.simulcast,
+        videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
+        screenShareSimulcastLayers:
+            screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
+      );
 
   @override
   String toString() =>

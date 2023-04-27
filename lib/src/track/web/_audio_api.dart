@@ -7,3 +7,7 @@ void startAudio(String id, rtc.MediaStreamTrack stream) {
 void stopAudio(String id) {
   // do nothing
 }
+
+void setSinkId(String id, String deviceId) {
+  // do nothing
+}

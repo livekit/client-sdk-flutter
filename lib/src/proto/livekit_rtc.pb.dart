@@ -31,6 +31,8 @@ enum SignalRequest_Message {
   syncState,
   simulate,
   ping,
+  updateMetadata,
+  pingReq,
   notSet
 }
 
@@ -50,6 +52,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     12: SignalRequest_Message.syncState,
     13: SignalRequest_Message.simulate,
     14: SignalRequest_Message.ping,
+    15: SignalRequest_Message.updateMetadata,
+    16: SignalRequest_Message.pingReq,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -61,7 +65,7 @@ class SignalRequest extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16])
     ..aOM<SessionDescription>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -139,6 +143,18 @@ class SignalRequest extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'ping')
+    ..aOM<UpdateParticipantMetadata>(
+        15,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'updateMetadata',
+        subBuilder: UpdateParticipantMetadata.create)
+    ..aOM<Ping>(
+        16,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'pingReq',
+        subBuilder: Ping.create)
     ..hasRequiredFields = false;
 
   SignalRequest._() : super();
@@ -156,6 +172,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     SyncState? syncState,
     SimulateScenario? simulate,
     $fixnum.Int64? ping,
+    UpdateParticipantMetadata? updateMetadata,
+    Ping? pingReq,
   }) {
     final _result = create();
     if (offer != null) {
@@ -196,6 +214,12 @@ class SignalRequest extends $pb.GeneratedMessage {
     }
     if (ping != null) {
       _result.ping = ping;
+    }
+    if (updateMetadata != null) {
+      _result.updateMetadata = updateMetadata;
+    }
+    if (pingReq != null) {
+      _result.pingReq = pingReq;
     }
     return _result;
   }
@@ -409,6 +433,34 @@ class SignalRequest extends $pb.GeneratedMessage {
   $core.bool hasPing() => $_has(12);
   @$pb.TagNumber(14)
   void clearPing() => clearField(14);
+
+  @$pb.TagNumber(15)
+  UpdateParticipantMetadata get updateMetadata => $_getN(13);
+  @$pb.TagNumber(15)
+  set updateMetadata(UpdateParticipantMetadata v) {
+    setField(15, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasUpdateMetadata() => $_has(13);
+  @$pb.TagNumber(15)
+  void clearUpdateMetadata() => clearField(15);
+  @$pb.TagNumber(15)
+  UpdateParticipantMetadata ensureUpdateMetadata() => $_ensure(13);
+
+  @$pb.TagNumber(16)
+  Ping get pingReq => $_getN(14);
+  @$pb.TagNumber(16)
+  set pingReq(Ping v) {
+    setField(16, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasPingReq() => $_has(14);
+  @$pb.TagNumber(16)
+  void clearPingReq() => clearField(16);
+  @$pb.TagNumber(16)
+  Ping ensurePingReq() => $_ensure(14);
 }
 
 enum SignalResponse_Message {
@@ -429,6 +481,8 @@ enum SignalResponse_Message {
   refreshToken,
   trackUnpublished,
   pong,
+  reconnect,
+  pongResp,
   notSet
 }
 
@@ -452,6 +506,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     16: SignalResponse_Message.refreshToken,
     17: SignalResponse_Message.trackUnpublished,
     18: SignalResponse_Message.pong,
+    19: SignalResponse_Message.reconnect,
+    20: SignalResponse_Message.pongResp,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -463,7 +519,8 @@ class SignalResponse extends $pb.GeneratedMessage {
               ? ''
               : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+    ..oo(
+        0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     ..aOM<JoinResponse>(
         1,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -564,6 +621,18 @@ class SignalResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'pong')
+    ..aOM<ReconnectResponse>(
+        19,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'reconnect',
+        subBuilder: ReconnectResponse.create)
+    ..aOM<Pong>(
+        20,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'pongResp',
+        subBuilder: Pong.create)
     ..hasRequiredFields = false;
 
   SignalResponse._() : super();
@@ -585,6 +654,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     $core.String? refreshToken,
     TrackUnpublishedResponse? trackUnpublished,
     $fixnum.Int64? pong,
+    ReconnectResponse? reconnect,
+    Pong? pongResp,
   }) {
     final _result = create();
     if (join != null) {
@@ -637,6 +708,12 @@ class SignalResponse extends $pb.GeneratedMessage {
     }
     if (pong != null) {
       _result.pong = pong;
+    }
+    if (reconnect != null) {
+      _result.reconnect = reconnect;
+    }
+    if (pongResp != null) {
+      _result.pongResp = pongResp;
     }
     return _result;
   }
@@ -905,6 +982,34 @@ class SignalResponse extends $pb.GeneratedMessage {
   $core.bool hasPong() => $_has(16);
   @$pb.TagNumber(18)
   void clearPong() => clearField(18);
+
+  @$pb.TagNumber(19)
+  ReconnectResponse get reconnect => $_getN(17);
+  @$pb.TagNumber(19)
+  set reconnect(ReconnectResponse v) {
+    setField(19, v);
+  }
+
+  @$pb.TagNumber(19)
+  $core.bool hasReconnect() => $_has(17);
+  @$pb.TagNumber(19)
+  void clearReconnect() => clearField(19);
+  @$pb.TagNumber(19)
+  ReconnectResponse ensureReconnect() => $_ensure(17);
+
+  @$pb.TagNumber(20)
+  Pong get pongResp => $_getN(18);
+  @$pb.TagNumber(20)
+  set pongResp(Pong v) {
+    setField(20, v);
+  }
+
+  @$pb.TagNumber(20)
+  $core.bool hasPongResp() => $_has(18);
+  @$pb.TagNumber(20)
+  void clearPongResp() => clearField(20);
+  @$pb.TagNumber(20)
+  Pong ensurePongResp() => $_ensure(18);
 }
 
 class SimulcastCodec extends $pb.GeneratedMessage {
@@ -1095,6 +1200,25 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'sid')
+    ..aOB(
+        12,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'stereo')
+    ..aOB(
+        13,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'disableRed')
+    ..e<$1.Encryption_Type>(
+        14,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'encryption',
+        $pb.PbFieldType.OE,
+        defaultOrMaker: $1.Encryption_Type.NONE,
+        valueOf: $1.Encryption_Type.valueOf,
+        enumValues: $1.Encryption_Type.values)
     ..hasRequiredFields = false;
 
   AddTrackRequest._() : super();
@@ -1110,6 +1234,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $core.Iterable<$1.VideoLayer>? layers,
     $core.Iterable<SimulcastCodec>? simulcastCodecs,
     $core.String? sid,
+    $core.bool? stereo,
+    $core.bool? disableRed,
+    $1.Encryption_Type? encryption,
   }) {
     final _result = create();
     if (cid != null) {
@@ -1144,6 +1271,15 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     }
     if (sid != null) {
       _result.sid = sid;
+    }
+    if (stereo != null) {
+      _result.stereo = stereo;
+    }
+    if (disableRed != null) {
+      _result.disableRed = disableRed;
+    }
+    if (encryption != null) {
+      _result.encryption = encryption;
     }
     return _result;
   }
@@ -1287,6 +1423,42 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   $core.bool hasSid() => $_has(10);
   @$pb.TagNumber(11)
   void clearSid() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.bool get stereo => $_getBF(11);
+  @$pb.TagNumber(12)
+  set stereo($core.bool v) {
+    $_setBool(11, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasStereo() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearStereo() => clearField(12);
+
+  @$pb.TagNumber(13)
+  $core.bool get disableRed => $_getBF(12);
+  @$pb.TagNumber(13)
+  set disableRed($core.bool v) {
+    $_setBool(12, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasDisableRed() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearDisableRed() => clearField(13);
+
+  @$pb.TagNumber(14)
+  $1.Encryption_Type get encryption => $_getN(13);
+  @$pb.TagNumber(14)
+  set encryption($1.Encryption_Type v) {
+    setField(14, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasEncryption() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearEncryption() => clearField(14);
 }
 
 class TrickleRequest extends $pb.GeneratedMessage {
@@ -1768,6 +1940,90 @@ class JoinResponse extends $pb.GeneratedMessage {
   $1.ServerInfo ensureServerInfo() => $_ensure(11);
 }
 
+class ReconnectResponse extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'ReconnectResponse',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<ICEServer>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'iceServers',
+        $pb.PbFieldType.PM,
+        subBuilder: ICEServer.create)
+    ..aOM<$1.ClientConfiguration>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'clientConfiguration',
+        subBuilder: $1.ClientConfiguration.create)
+    ..hasRequiredFields = false;
+
+  ReconnectResponse._() : super();
+  factory ReconnectResponse({
+    $core.Iterable<ICEServer>? iceServers,
+    $1.ClientConfiguration? clientConfiguration,
+  }) {
+    final _result = create();
+    if (iceServers != null) {
+      _result.iceServers.addAll(iceServers);
+    }
+    if (clientConfiguration != null) {
+      _result.clientConfiguration = clientConfiguration;
+    }
+    return _result;
+  }
+  factory ReconnectResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ReconnectResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ReconnectResponse clone() => ReconnectResponse()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ReconnectResponse copyWith(void Function(ReconnectResponse) updates) =>
+      super.copyWith((message) => updates(message as ReconnectResponse))
+          as ReconnectResponse; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static ReconnectResponse create() => ReconnectResponse._();
+  ReconnectResponse createEmptyInstance() => create();
+  static $pb.PbList<ReconnectResponse> createRepeated() =>
+      $pb.PbList<ReconnectResponse>();
+  @$core.pragma('dart2js:noInline')
+  static ReconnectResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ReconnectResponse>(create);
+  static ReconnectResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<ICEServer> get iceServers => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $1.ClientConfiguration get clientConfiguration => $_getN(1);
+  @$pb.TagNumber(2)
+  set clientConfiguration($1.ClientConfiguration v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasClientConfiguration() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearClientConfiguration() => clearField(2);
+  @$pb.TagNumber(2)
+  $1.ClientConfiguration ensureClientConfiguration() => $_ensure(1);
+}
+
 class TrackPublishedResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -2212,6 +2468,18 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
             ? ''
             : 'height',
         $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'fps',
+        $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'priority',
+        $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   UpdateTrackSettings._() : super();
@@ -2221,6 +2489,8 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
     $1.VideoQuality? quality,
     $core.int? width,
     $core.int? height,
+    $core.int? fps,
+    $core.int? priority,
   }) {
     final _result = create();
     if (trackSids != null) {
@@ -2237,6 +2507,12 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
     }
     if (height != null) {
       _result.height = height;
+    }
+    if (fps != null) {
+      _result.fps = fps;
+    }
+    if (priority != null) {
+      _result.priority = priority;
     }
     return _result;
   }
@@ -2317,6 +2593,30 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   $core.bool hasHeight() => $_has(4);
   @$pb.TagNumber(6)
   void clearHeight() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get fps => $_getIZ(5);
+  @$pb.TagNumber(7)
+  set fps($core.int v) {
+    $_setUnsignedInt32(5, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasFps() => $_has(5);
+  @$pb.TagNumber(7)
+  void clearFps() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get priority => $_getIZ(6);
+  @$pb.TagNumber(8)
+  set priority($core.int v) {
+    $_setUnsignedInt32(6, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasPriority() => $_has(6);
+  @$pb.TagNumber(8)
+  void clearPriority() => clearField(8);
 }
 
 class LeaveRequest extends $pb.GeneratedMessage {
@@ -2490,6 +2790,96 @@ class UpdateVideoLayers extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $core.List<$1.VideoLayer> get layers => $_getList(1);
+}
+
+class UpdateParticipantMetadata extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'UpdateParticipantMetadata',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'metadata')
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'name')
+    ..hasRequiredFields = false;
+
+  UpdateParticipantMetadata._() : super();
+  factory UpdateParticipantMetadata({
+    $core.String? metadata,
+    $core.String? name,
+  }) {
+    final _result = create();
+    if (metadata != null) {
+      _result.metadata = metadata;
+    }
+    if (name != null) {
+      _result.name = name;
+    }
+    return _result;
+  }
+  factory UpdateParticipantMetadata.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UpdateParticipantMetadata.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UpdateParticipantMetadata clone() =>
+      UpdateParticipantMetadata()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UpdateParticipantMetadata copyWith(
+          void Function(UpdateParticipantMetadata) updates) =>
+      super.copyWith((message) => updates(message as UpdateParticipantMetadata))
+          as UpdateParticipantMetadata; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static UpdateParticipantMetadata create() => UpdateParticipantMetadata._();
+  UpdateParticipantMetadata createEmptyInstance() => create();
+  static $pb.PbList<UpdateParticipantMetadata> createRepeated() =>
+      $pb.PbList<UpdateParticipantMetadata>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateParticipantMetadata getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateParticipantMetadata>(create);
+  static UpdateParticipantMetadata? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get metadata => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set metadata($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasMetadata() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMetadata() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get name => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set name($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearName() => clearField(2);
 }
 
 class ICEServer extends $pb.GeneratedMessage {
@@ -3694,6 +4084,12 @@ class SyncState extends $pb.GeneratedMessage {
             : 'dataChannels',
         $pb.PbFieldType.PM,
         subBuilder: DataChannelInfo.create)
+    ..aOM<SessionDescription>(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'offer',
+        subBuilder: SessionDescription.create)
     ..hasRequiredFields = false;
 
   SyncState._() : super();
@@ -3702,6 +4098,7 @@ class SyncState extends $pb.GeneratedMessage {
     UpdateSubscription? subscription,
     $core.Iterable<TrackPublishedResponse>? publishTracks,
     $core.Iterable<DataChannelInfo>? dataChannels,
+    SessionDescription? offer,
   }) {
     final _result = create();
     if (answer != null) {
@@ -3715,6 +4112,9 @@ class SyncState extends $pb.GeneratedMessage {
     }
     if (dataChannels != null) {
       _result.dataChannels.addAll(dataChannels);
+    }
+    if (offer != null) {
+      _result.offer = offer;
     }
     return _result;
   }
@@ -3777,6 +4177,20 @@ class SyncState extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(4)
   $core.List<DataChannelInfo> get dataChannels => $_getList(3);
+
+  @$pb.TagNumber(5)
+  SessionDescription get offer => $_getN(4);
+  @$pb.TagNumber(5)
+  set offer(SessionDescription v) {
+    setField(5, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasOffer() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearOffer() => clearField(5);
+  @$pb.TagNumber(5)
+  SessionDescription ensureOffer() => $_ensure(4);
 }
 
 class DataChannelInfo extends $pb.GeneratedMessage {
@@ -4070,4 +4484,178 @@ class SimulateScenario extends $pb.GeneratedMessage {
   $core.bool hasSwitchCandidateProtocol() => $_has(4);
   @$pb.TagNumber(5)
   void clearSwitchCandidateProtocol() => clearField(5);
+}
+
+class Ping extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Ping',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aInt64(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'timestamp')
+    ..aInt64(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'rtt')
+    ..hasRequiredFields = false;
+
+  Ping._() : super();
+  factory Ping({
+    $fixnum.Int64? timestamp,
+    $fixnum.Int64? rtt,
+  }) {
+    final _result = create();
+    if (timestamp != null) {
+      _result.timestamp = timestamp;
+    }
+    if (rtt != null) {
+      _result.rtt = rtt;
+    }
+    return _result;
+  }
+  factory Ping.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Ping.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  Ping clone() => Ping()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Ping copyWith(void Function(Ping) updates) =>
+      super.copyWith((message) => updates(message as Ping))
+          as Ping; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Ping create() => Ping._();
+  Ping createEmptyInstance() => create();
+  static $pb.PbList<Ping> createRepeated() => $pb.PbList<Ping>();
+  @$core.pragma('dart2js:noInline')
+  static Ping getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Ping>(create);
+  static Ping? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get timestamp => $_getI64(0);
+  @$pb.TagNumber(1)
+  set timestamp($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTimestamp() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTimestamp() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get rtt => $_getI64(1);
+  @$pb.TagNumber(2)
+  set rtt($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasRtt() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRtt() => clearField(2);
+}
+
+class Pong extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'Pong',
+      package: const $pb.PackageName(
+          const $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'livekit'),
+      createEmptyInstance: create)
+    ..aInt64(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'lastPingTimestamp')
+    ..aInt64(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'timestamp')
+    ..hasRequiredFields = false;
+
+  Pong._() : super();
+  factory Pong({
+    $fixnum.Int64? lastPingTimestamp,
+    $fixnum.Int64? timestamp,
+  }) {
+    final _result = create();
+    if (lastPingTimestamp != null) {
+      _result.lastPingTimestamp = lastPingTimestamp;
+    }
+    if (timestamp != null) {
+      _result.timestamp = timestamp;
+    }
+    return _result;
+  }
+  factory Pong.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Pong.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  Pong clone() => Pong()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Pong copyWith(void Function(Pong) updates) =>
+      super.copyWith((message) => updates(message as Pong))
+          as Pong; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static Pong create() => Pong._();
+  Pong createEmptyInstance() => create();
+  static $pb.PbList<Pong> createRepeated() => $pb.PbList<Pong>();
+  @$core.pragma('dart2js:noInline')
+  static Pong getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Pong>(create);
+  static Pong? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get lastPingTimestamp => $_getI64(0);
+  @$pb.TagNumber(1)
+  set lastPingTimestamp($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasLastPingTimestamp() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLastPingTimestamp() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get timestamp => $_getI64(1);
+  @$pb.TagNumber(2)
+  set timestamp($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasTimestamp() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTimestamp() => clearField(2);
 }

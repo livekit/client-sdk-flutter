@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 
-import 'events.dart';
-import 'managers/event.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
-import 'types/other.dart';
 
 extension DataPacketKindExt on lk_models.DataPacket_Kind {
   Reliability toSDKType() => {
@@ -46,6 +44,7 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v6: '6',
         ProtocolVersion.v7: '7',
         ProtocolVersion.v8: '8',
+        ProtocolVersion.v9: '9',
       }[this]!;
 }
 
@@ -160,7 +159,7 @@ extension VideoQualityExt on lk_models.VideoQuality {
 
 extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
   lk_rtc.TrackPermission toPBType() => lk_rtc.TrackPermission(
-        participantSid: participantSid,
+        participantIdentity: participantIdentity,
         allTracks: allTracksAllowed,
         trackSids: allowedTrackSids,
       );
@@ -169,4 +168,30 @@ extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
 extension WidgetsBindingCompatible on WidgetsBinding {
   // always return optional type for compatibility with flutter v2 and v3
   static WidgetsBinding? get instance => WidgetsBinding.instance;
+}
+
+extension EncryptionTypeExt on lk_models.Encryption_Type {
+  EncryptionType toLkType() => {
+        lk_models.Encryption_Type.NONE: EncryptionType.kNone,
+        lk_models.Encryption_Type.GCM: EncryptionType.kGcm,
+        lk_models.Encryption_Type.CUSTOM: EncryptionType.kCustom,
+      }[this]!;
+}
+
+extension DisconnectReasonExt on lk_models.DisconnectReason {
+  DisconnectReason toSDKType() => {
+        lk_models.DisconnectReason.UNKNOWN_REASON: DisconnectReason.unknown,
+        lk_models.DisconnectReason.CLIENT_INITIATED:
+            DisconnectReason.clientInitiated,
+        lk_models.DisconnectReason.DUPLICATE_IDENTITY:
+            DisconnectReason.duplicateIdentity,
+        lk_models.DisconnectReason.SERVER_SHUTDOWN:
+            DisconnectReason.serverShutdown,
+        lk_models.DisconnectReason.PARTICIPANT_REMOVED:
+            DisconnectReason.participantRemoved,
+        lk_models.DisconnectReason.ROOM_DELETED: DisconnectReason.roomDeleted,
+        lk_models.DisconnectReason.STATE_MISMATCH:
+            DisconnectReason.stateMismatch,
+        lk_models.DisconnectReason.JOIN_FAILURE: DisconnectReason.joinFailure,
+      }[this]!;
 }

@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -18,6 +19,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../support/websocket.dart';
+import '../types/internal.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
@@ -59,6 +61,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // true if publisher connection has already been established.
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
+
+  bool _restarting = false;
 
   lk_models.ClientConfiguration? _clientConfiguration;
 
@@ -185,6 +189,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     // TODO: Check if cid already published
 
+    lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
+    if (roomOptions.e2eeOptions != null) {
+      switch (roomOptions.e2eeOptions!.encryptionType) {
+        case EncryptionType.kNone:
+          encryptionType = lk_models.Encryption_Type.NONE;
+          break;
+        case EncryptionType.kGcm:
+          encryptionType = lk_models.Encryption_Type.GCM;
+          break;
+        case EncryptionType.kCustom:
+          encryptionType = lk_models.Encryption_Type.CUSTOM;
+          break;
+      }
+    }
+
     // send request to add track
     signalClient.sendAddTrack(
       cid: cid,
@@ -194,6 +213,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       dimensions: dimensions,
       dtx: dtx,
       videoLayers: videoLayers,
+      encryptionType: encryptionType,
     );
 
     // wait for response, or timeout
@@ -218,7 +238,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnect = true;
       }
-      await handleDisconnect(DisconnectReason.negotiationFailed);
+      await handleDisconnect(ClientDisconnectReason.negotiationFailed);
     }
   }
 
@@ -275,14 +295,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await channel.send(message);
   }
 
-  Future<void> _configurePeerConnections(
-      {required lk_models.ClientConfigSetting forceRelay,
+  Future<RTCConfiguration> _buildRtcConfiguration(
+      {required lk_models.ClientConfigSetting serverResponseForceRelay,
       required List<RTCIceServer> serverProvidedIceServers}) async {
-    if (publisher != null || subscriber != null) {
-      logger.warning('Already configured');
-      return;
-    }
-
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
@@ -294,25 +309,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           .copyWith(iceServers: serverProvidedIceServers);
     }
 
-    // set forceRelay
-    if (rtcConfiguration.iceTransportPolicy == null) {
-      switch (forceRelay) {
-        case lk_models.ClientConfigSetting.ENABLED:
-          rtcConfiguration = rtcConfiguration.copyWith(
-            iceTransportPolicy: RTCIceTransportPolicy.relay,
-          );
-          break;
-        case lk_models.ClientConfigSetting.DISABLED:
-          rtcConfiguration = rtcConfiguration.copyWith(
-            iceTransportPolicy: RTCIceTransportPolicy.all,
-          );
-          break;
-        case lk_models.ClientConfigSetting.UNSET:
-          // do nothing
-          break;
-      }
+    // set forceRelay if server response is enabled
+    if (serverResponseForceRelay == lk_models.ClientConfigSetting.ENABLED) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+        iceTransportPolicy: RTCIceTransportPolicy.relay,
+      );
     }
 
+    if (kIsWeb && roomOptions.e2eeOptions != null) {
+      rtcConfiguration =
+          rtcConfiguration.copyWith(encodedInsertableStreams: true);
+    }
+
+    return rtcConfiguration;
+  }
+
+  Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
     publisher = await Transport.create(_peerConnectionCreate,
         rtcConfig: rtcConfiguration, connectOptions: connectOptions);
     subscriber = await Transport.create(_peerConnectionCreate,
@@ -368,9 +380,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     events.on<EnginePeerStateUpdatedEvent>((event) {
       if (event.state.isDisconnectedOrFailed()) {
-        handleDisconnect(DisconnectReason.reconnect);
+        handleDisconnect(ClientDisconnectReason.reconnect);
       } else if (event.state.isClosed()) {
-        handleDisconnect(DisconnectReason.peerConnectionClosed);
+        handleDisconnect(ClientDisconnectReason.peerConnectionClosed);
       }
     });
 
@@ -534,7 +546,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> handleDisconnect(DisconnectReason reason) async {
+  Future<void> handleDisconnect(ClientDisconnectReason reason) async {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
@@ -542,13 +554,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
           [
-            DisconnectReason.leaveReconnect,
-            DisconnectReason.negotiationFailed,
-            DisconnectReason.peerConnectionClosed
+            ClientDisconnectReason.leaveReconnect,
+            ClientDisconnectReason.negotiationFailed,
+            ClientDisconnectReason.peerConnectionClosed
           ].contains(reason);
     }
 
-    if (_connectionState == ConnectionState.reconnecting && !fullReconnect) {
+    if (_restarting ||
+        (_connectionState == ConnectionState.reconnecting && !fullReconnect)) {
       logger.fine('[$objectId] Already reconnecting...');
       return;
     }
@@ -566,6 +579,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> resumeConnection() async {
     if (_connectionState == ConnectionState.disconnected) {
       logger.fine('resumeConnection: Already closed.');
@@ -633,10 +647,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> restartConnection([bool signalEvents = false]) async {
+    if (_restarting) {
+      logger.fine('restartConnection: Already restarting...');
+      return;
+    }
+    _restarting = true;
     await publisher?.dispose();
     publisher = null;
-    _hasPublished = false;
 
     await subscriber?.dispose();
     subscriber = null;
@@ -646,6 +665,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _lossyDCSub = null;
     _lossyDCPub = null;
     await _signalListener.cancelAll();
+    await events.cancelAll();
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
 
@@ -657,7 +677,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fastConnectOptions: fastConnectOptions,
     );
 
+    if (_hasPublished) {
+      await negotiate();
+      logger.fine('restartConnection: Waiting for publisher to ice-connect...');
+      await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+        filter: (event) => event.state.isConnected(),
+        duration: connectOptions.timeouts.peerConnection,
+      );
+    }
+
     fullReconnect = false;
+    _restarting = false;
   }
 
   @internal
@@ -701,18 +731,49 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      await _configurePeerConnections(
-          forceRelay: event.response.clientConfiguration.forceRelay,
+      var rtcConfiguration = await _buildRtcConfiguration(
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
+
+      if (publisher == null && subscriber == null) {
+        await _createPeerConnections(rtcConfiguration);
+      }
 
       if (!_subscriberPrimary) {
         // for subscriberPrimary, we negotiate when necessary (lazy)
         await negotiate();
       }
     })
+    ..on<SignalReconnectResponseEvent>((event) async {
+      var iceServersFromServer =
+          event.response.iceServers.map((e) => e.toSDKType()).toList();
+
+      if (iceServersFromServer.isNotEmpty) {
+        _serverProvidedIceServers = iceServersFromServer;
+      }
+
+      _clientConfiguration = event.response.clientConfiguration;
+
+      logger.fine('Handle ReconnectResponse: '
+          'iceServers: ${event.response.iceServers}, '
+          'forceRelay: $event.response.clientConfiguration.forceRelay');
+
+      var rtcConfiguration = await _buildRtcConfiguration(
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
+          serverProvidedIceServers: _serverProvidedIceServers);
+
+      await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
+      await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
+
+      if (!_subscriberPrimary) {
+        await negotiate();
+      }
+    })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       if (event.newState == ConnectionState.disconnected) {
-        await handleDisconnect(DisconnectReason.signal);
+        await handleDisconnect(ClientDisconnectReason.signal);
       }
     })
     ..on<SignalOfferEvent>((event) async {
@@ -767,14 +828,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fullReconnect = true;
         // reconnect immediately instead of waiting for next attempt
         _connectionState = ConnectionState.reconnecting;
-        await handleDisconnect(DisconnectReason.leaveReconnect);
+        _updateConnectionState(ConnectionState.reconnecting);
+        await handleDisconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
           logger.warning(
               '[Signal] Received Leave while engine is reconnecting, ignoring...');
           return;
         }
-        _updateConnectionState(ConnectionState.disconnected);
+        _updateConnectionState(ConnectionState.disconnected,
+            reason: event.reason.toSDKType());
         await cleanUp();
       }
     });
@@ -790,7 +853,8 @@ extension EnginePrivateMethods on Engine {
       _publisherDataChannel(reliability)?.state ??
       rtc.RTCDataChannelState.RTCDataChannelClosed;
 
-  void _updateConnectionState(ConnectionState newValue) {
+  void _updateConnectionState(ConnectionState newValue,
+      {DisconnectReason? reason}) {
     if (_connectionState == newValue) return;
 
     logger.fine('Engine ConnectionState '
@@ -807,6 +871,7 @@ extension EnginePrivateMethods on Engine {
       oldState: oldState,
       didReconnect: didReconnect,
       fullReconnect: fullReconnect,
+      disconnectReason: reason,
     ));
   }
 }

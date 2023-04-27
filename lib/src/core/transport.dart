@@ -37,6 +37,7 @@ class Transport extends Disposable {
       pc.onRenegotiationNeeded = null;
       pc.onIceCandidate = null;
       pc.onConnectionState = null;
+      pc.onIceConnectionState = null;
       pc.onTrack = null;
 
       // Remove all senders
