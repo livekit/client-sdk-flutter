@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 import '../core/signal_client.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
-import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../support/disposable.dart';
 
