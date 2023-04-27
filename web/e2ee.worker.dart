@@ -56,7 +56,7 @@ extension PropsRTCTransformEventHandler on html.DedicatedWorkerGlobalScope {
       js_util.setProperty<Function>(this, 'onrtctransform', callback);
 }
 
-var participantCryptors = <Cryptor>[];
+var participantCryptors = <FrameCryptor>[];
 var publisherKeys = <String, html.CryptoKey>{};
 bool isEncryptionEnabled = false;
 
@@ -85,7 +85,7 @@ void main() async {
           participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
 
       if (cryptor == null) {
-        cryptor = Cryptor(
+        cryptor = FrameCryptor(
           worker: self,
           participantId: participantId,
           trackId: trackId,
@@ -151,7 +151,7 @@ void main() async {
               participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
 
           if (cryptor == null) {
-            cryptor = Cryptor(
+            cryptor = FrameCryptor(
                 worker: self,
                 participantId: participantId,
                 trackId: trackId,

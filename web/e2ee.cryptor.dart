@@ -143,8 +143,8 @@ class KeySet {
   CryptoKey encryptionKey;
 }
 
-class Cryptor {
-  Cryptor(
+class FrameCryptor {
+  FrameCryptor(
       {required this.worker,
       required this.participantId,
       required this.trackId,
