@@ -113,6 +113,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
+    // set the default sending bitrate
+    if (publishOptions.videoEncoding == null) {
+      publishOptions = publishOptions.copyWith(
+        videoEncoding: track.currentOptions.params.encoding,
+      );
+    }
+
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
 
@@ -174,6 +181,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
+
+    // prefer to maintainResolution for screen share
+    if (track.source == TrackSource.screenShareVideo) {
+      var sender = track.transceiver!.sender;
+      var parameters = sender.parameters;
+      parameters.degradationPreference =
+          rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
+      await sender.setParameters(parameters);
+    }
 
     await room.engine.negotiate();
 
@@ -314,27 +330,36 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .toList();
 
   /// Shortcut for publishing a [TrackSource.camera]
-  Future<LocalTrackPublication?> setCameraEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.camera, enabled);
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
+      {CameraCaptureOptions? cameraCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.camera, enabled,
+        cameraCaptureOptions: cameraCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.microphone]
-  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled) async {
-    return setSourceEnabled(TrackSource.microphone, enabled);
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled,
+      {AudioCaptureOptions? audioCaptureOptions}) async {
+    return setSourceEnabled(TrackSource.microphone, enabled,
+        audioCaptureOptions: audioCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
   Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
-      {bool? captureScreenAudio}) async {
+      {bool? captureScreenAudio,
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
     return setSourceEnabled(TrackSource.screenShareVideo, enabled,
-        captureScreenAudio: captureScreenAudio);
+        captureScreenAudio: captureScreenAudio,
+        screenShareCaptureOptions: screenShareCaptureOptions);
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
   Future<LocalTrackPublication?> setSourceEnabled(
       TrackSource source, bool enabled,
-      {bool? captureScreenAudio}) async {
+      {bool? captureScreenAudio,
+      AudioCaptureOptions? audioCaptureOptions,
+      CameraCaptureOptions? cameraCaptureOptions,
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
@@ -351,21 +376,26 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        final track = await LocalVideoTrack.createCameraTrack(
-            room.roomOptions.defaultCameraCaptureOptions);
+        CameraCaptureOptions captureOptions = cameraCaptureOptions ??
+            room.roomOptions.defaultCameraCaptureOptions;
+        final track = await LocalVideoTrack.createCameraTrack(captureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        final track = await LocalAudioTrack.create(
-            room.roomOptions.defaultAudioCaptureOptions);
+        AudioCaptureOptions captureOptions =
+            audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+        final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
+        ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
+            room.roomOptions.defaultScreenShareCaptureOptions;
+
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
         /// so we publish it twice here, but only return videoTrack to user.
         if (captureScreenAudio != null) {
+          captureOptions = captureOptions.copyWith(captureScreenAudio: true);
           final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
-              ScreenShareCaptureOptions(
-                  captureScreenAudio: captureScreenAudio));
+              captureOptions);
           LocalTrackPublication<LocalVideoTrack>? publication;
           for (final track in tracks) {
             if (track is LocalVideoTrack) {
@@ -378,8 +408,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           /// just return the video track publication
           return publication;
         }
-        final track = await LocalVideoTrack.createScreenShareTrack(
-            room.roomOptions.defaultScreenShareCaptureOptions);
+        final track =
+            await LocalVideoTrack.createScreenShareTrack(captureOptions);
         return await publishVideoTrack(track);
       }
     }
