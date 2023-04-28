@@ -9408,7 +9408,7 @@
     decodeFunction$body$FrameCryptor(frame, controller) {
       var $async$goto = 0,
         $async$completer = A._makeAsyncAwaitCompleter(type$.void),
-        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, headerLength, metaData, frameTrailer, ivLength, keyIndex, iv, initialKeySet0, endDecLoop, currentkeySet, newMaterial, finalBuffer, e, t2, t3, t4, t5, t6, t7, endDecLoop0, t8, t9, t10, t11, t12, t13, exception, ratchetCount, t1, buffer, decrypted, initialKeySet, initialKeyIndex, $async$exception, $async$exception1;
+        $async$returnValue, $async$handler = 2, $async$currentError, $async$self = this, headerLength, metaData, frameTrailer, ivLength, keyIndex, iv, initialKeySet0, endDecLoop, currentkeySet, newMaterial, finalBuffer, e, t2, t3, t4, t5, t6, magicBytesBuffer, t7, endDecLoop0, t8, t9, t10, t11, t12, t13, exception, ratchetCount, t1, buffer, decrypted, initialKeySet, initialKeyIndex, $async$exception, $async$exception1;
       var $async$decodeFunction$2 = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {
         if ($async$errorCode === 1) {
           $async$currentError = $async$result;
@@ -9436,8 +9436,18 @@
                 t4 = J.get$length$asx(buffer);
                 t5 = t3.length;
                 t6 = t5 + 1;
-                if (t4 >= t6)
-                  if (A.IterableBase_iterableToFullString(J.sublist$2$x(buffer, J.get$length$asx(buffer) - t6, t5), "[", "]") === A.IterableBase_iterableToFullString(t3, "[", "]")) {
+                if (t4 > t6) {
+                  magicBytesBuffer = J.sublist$2$x(buffer, J.get$length$asx(buffer) - t5 - 1, J.get$length$asx(buffer) - 1);
+                  A.print("magicBytesBuffer " + A.S(magicBytesBuffer) + ", magicBytes " + A.S(t3) + ", ");
+                  if (A.IterableBase_iterableToFullString(magicBytesBuffer, "[", "]") === A.IterableBase_iterableToFullString(t3, "[", "]")) {
+                    t2 = J.sublist$1$x(buffer, J.get$length$asx(buffer) - 1);
+                    if (0 >= t2.length) {
+                      $async$returnValue = A.ioore(t2, 0);
+                      // goto return
+                      $async$goto = 1;
+                      break;
+                    }
+                    A.print("skip uncrypted frame, type " + t2[0]);
                     t2 = $.$get$_CopyingBytesBuilder__emptyList();
                     finalBuffer = new A._CopyingBytesBuilder(t2);
                     finalBuffer.add$1(0, new Uint8Array(A._ensureNativeList(J.sublist$2$x(buffer, 0, J.get$length$asx(buffer) - t6))));
@@ -9447,6 +9457,7 @@
                     $async$goto = 1;
                     break;
                   }
+                }
               }
               $async$handler = 4;
               t3 = $async$self.__FrameCryptor_kind_A;
