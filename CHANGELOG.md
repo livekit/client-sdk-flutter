@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.0
+
+* Fix resolution/framerate/bitrate issue for publishVideoTrack.
+* End-to-end encryption support.
+
 ## 1.2.2
 
 * Feat: Support setVideoFPS for subscribe.
