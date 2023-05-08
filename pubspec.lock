@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: "8875e8ed511a49f030e313656154e4bbbcef18d68dfd32eb853fac10bce48e96"
+      sha256: b74247fad72c171381dbe700ca17da24deac637ab6d43c343b42867acb95c991
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "3.0.6"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
@@ -235,12 +235,11 @@ packages:
   flutter_webrtc:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "feat/frame-encryption"
-      resolved-ref: abb6aba36434fa3a30ce5c56b6c521acb83b1139
-      url: "https://github.com/flutter-webrtc/flutter-webrtc.git"
-    source: git
-    version: "0.9.20"
+      name: flutter_webrtc
+      sha256: "958f5b0aa2f286b0a5ae84fadc630d453d892e1aa397549040a79df1d1a5b262"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.28"
   flutter_window_close:
     dependency: "direct main"
     description:
@@ -282,7 +281,7 @@ packages:
     source: hosted
     version: "4.6.0"
   js:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: js
       sha256: "5528c2f391ededb7775ec1daa69e65a2d61276f7552de2b5f7b8d34ee9fd4ab7"
@@ -578,10 +577,10 @@ packages:
     dependency: "direct main"
     description:
       name: webrtc_interface
-      sha256: "5fdd616bc2937194402298f3024e81c74f68f44f6d73de31aaea69ee7d156b12"
+      sha256: "0ac4693f921c81005edefd2f43b9fe84b0ed54481474fe1ee16b789b0c84a77c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.12"
+    version: "1.0.13"
   win32:
     dependency: transitive
     description:
