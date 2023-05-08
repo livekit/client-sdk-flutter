@@ -118,7 +118,9 @@ abstract class Track extends DisposableChangeNotifier
   Future<void> enable() async {
     logger.fine('$objectId.enable() enabling ${mediaStreamTrack.objectId}...');
     try {
-      mediaStreamTrack.enabled = true;
+      if (_active) {
+        mediaStreamTrack.enabled = true;
+      }
     } catch (_) {
       logger.warning(
           '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
@@ -129,7 +131,9 @@ abstract class Track extends DisposableChangeNotifier
     logger
         .fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
-      mediaStreamTrack.enabled = false;
+      if (_active) {
+        mediaStreamTrack.enabled = false;
+      }
     } catch (_) {
       logger.warning(
           '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
