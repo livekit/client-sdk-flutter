@@ -117,9 +117,34 @@ We require a set of permissions that need to be declared in your `AppManifest.xm
   <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
   <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
   ...
 </manifest>
+```
+
+For using the bluetooth headset correctly on the android device, you need to add `permission_handler` to your project.
+And call the following code after launching your app for the first time.
+
+```dart
+import 'package:permission_handler/permission_handler.dart';
+
+Future<void> _checkPremissions() async {
+  var status = await Permission.bluetooth.request();
+  if (status.isPermanentlyDenied) {
+    print('Bluetooth Permission disabled');
+  }
+  status = await Permission.bluetoothConnect.request();
+  if (status.isPermanentlyDenied) {
+    print('Bluetooth Connect Permission disabled');
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _checkPremissions();
+  runApp(MyApp());
+}
 ```
 
 ### Desktop support
