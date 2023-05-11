@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../exts.dart';
 import 'room.dart';
@@ -42,6 +43,9 @@ class _ConnectPageState extends State<ConnectPage> {
   void initState() {
     super.initState();
     _readPrefs();
+    if(lkPlatformIs(PlatformType.android)) {
+      _checkPremissions();
+    }
   }
 
   @override
@@ -49,6 +53,28 @@ class _ConnectPageState extends State<ConnectPage> {
     _uriCtrl.dispose();
     _tokenCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkPremissions() async {
+    var status = await Permission.bluetooth.request();
+    if (status.isPermanentlyDenied) {
+      print('Bluetooth Permission disabled');
+    }
+
+    status = await Permission.bluetoothConnect.request();
+    if (status.isPermanentlyDenied) {
+      print('Bluetooth Connect Permission disabled');
+    }
+
+    status = await Permission.camera.request();
+    if (status.isPermanentlyDenied) {
+      print('Camera Permission disabled');
+    }
+
+    status = await Permission.microphone.request();
+    if (status.isPermanentlyDenied) {
+      print('Microphone Permission disabled');
+    }
   }
 
   // Read saved URL and Token
