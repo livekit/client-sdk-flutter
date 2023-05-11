@@ -43,7 +43,7 @@ class _ConnectPageState extends State<ConnectPage> {
   void initState() {
     super.initState();
     _readPrefs();
-    if(lkPlatformIs(PlatformType.android)) {
+    if (lkPlatformIs(PlatformType.android)) {
       _checkPremissions();
     }
   }
