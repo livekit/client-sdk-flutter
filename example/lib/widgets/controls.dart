@@ -276,6 +276,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                 return [
                   PopupMenuItem<MediaDevice>(
                     value: null,
+                    onTap: isMuted ? _enableAudio : _disableAudio,
                     child: const ListTile(
                       leading: Icon(
                         EvaIcons.micOff,
@@ -283,7 +284,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       ),
                       title: Text('Mute Microphone'),
                     ),
-                    onTap: isMuted ? _enableAudio : _disableAudio,
                   ),
                   if (_audioInputs != null)
                     ..._audioInputs!.map((device) {
@@ -358,6 +358,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                 return [
                   PopupMenuItem<MediaDevice>(
                     value: null,
+                    onTap: _disableVideo,
                     child: const ListTile(
                       leading: Icon(
                         EvaIcons.videoOff,
@@ -365,7 +366,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       ),
                       title: Text('Disable Camera'),
                     ),
-                    onTap: _disableVideo,
                   ),
                   if (_videoInputs != null)
                     ..._videoInputs!.map((device) {

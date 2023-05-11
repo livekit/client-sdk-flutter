@@ -19,8 +19,6 @@ analyzer:
   # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
   #
   strong-mode:
-    implicit-casts: false
-    implicit-dynamic: false
 
   #
   # exclude protobuf files
@@ -44,3 +42,5 @@ linter:
     # Turn off avoid_print for example projects
     #
     avoid_print: false
+    depend_on_referenced_packages: false
+    use_build_context_synchronously: false
