@@ -8,6 +8,8 @@ void stopAudio(String id) {
   // do nothing
 }
 
+Future<void> startAllAudioElement() async {}
+
 void setSinkId(String id, String deviceId) {
   // do nothing
 }

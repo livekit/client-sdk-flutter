@@ -8,6 +8,8 @@ import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter:
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
+Map<String, html.Element> _audioElements = {};
+
 void startAudio(String id, rtc.MediaStreamTrack track) {
   if (track is! MediaStreamTrackWeb) {
     return;
@@ -19,6 +21,7 @@ void startAudio(String id, rtc.MediaStreamTrack track) {
       ..id = elementId
       ..autoplay = true;
     findOrCreateAudioContainer().append(audioElement);
+    _audioElements[id] = audioElement;
   }
 
   if (audioElement is! html.AudioElement) {
@@ -29,12 +32,21 @@ void startAudio(String id, rtc.MediaStreamTrack track) {
   audioElement.srcObject = audioStream;
 }
 
+Future<void> startAllAudioElement() async {
+  for (final element in _audioElements.values) {
+    if (element is html.AudioElement) {
+      await element.play();
+    }
+  }
+}
+
 void stopAudio(String id) {
   final audioElement = html.document.getElementById(audioPrefix + id);
   if (audioElement != null) {
     if (audioElement is html.AudioElement) {
       audioElement.srcObject = null;
     }
+    _audioElements.remove(id);
     audioElement.remove();
   }
 }

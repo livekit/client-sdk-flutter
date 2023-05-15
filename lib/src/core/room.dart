@@ -28,6 +28,9 @@ import '../track/track.dart';
 import '../types/other.dart';
 import 'engine.dart';
 
+import '../track/web/_audio_api.dart'
+    if (dart.library.html) '../track/web/_audio_html.dart' as audio;
+
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
 /// Notifies changes to its state via two ways, by assigning a delegate, or using
@@ -78,6 +81,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   E2EEManager? _e2eeManager;
   bool get isRecording => _isRecording;
   bool _isRecording = false;
+
+  bool _audioEnabled = false;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -774,5 +779,37 @@ extension RoomHardwareManagementMethods on Room {
             roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
     }
+  }
+
+  Future<void> startAudio() async {
+    try {
+      await audio.startAllAudioElement();
+      handleAudioPlaybackStarted();
+    } catch (err) {
+      logger.warning('could not playback audio $err');
+      //if (err.name == 'NotAllowedError') {
+      handleAudioPlaybackFailed();
+      //}
+    }
+  }
+
+  bool get canPlaybackAudio {
+    return _audioEnabled;
+  }
+
+  void handleAudioPlaybackStarted() {
+    if (canPlaybackAudio) {
+      return;
+    }
+    _audioEnabled = true;
+    events.emit(const AudioPlaybackStatusChanged(isPlaying: true));
+  }
+
+  void handleAudioPlaybackFailed() {
+    if (!canPlaybackAudio) {
+      return;
+    }
+    _audioEnabled = false;
+    events.emit(const AudioPlaybackStatusChanged(isPlaying: false));
   }
 }

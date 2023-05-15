@@ -424,3 +424,14 @@ class ParticipantNameUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, name: ${name})';
 }
+
+class AudioPlaybackStatusChanged with RoomEvent {
+  final bool isPlaying;
+  const AudioPlaybackStatusChanged({
+    required this.isPlaying,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'Audio Playback Status Changed, isPlaying: ${isPlaying})';
+}
