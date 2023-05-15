@@ -62,7 +62,7 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
 }
 
 @internal
-class AudioPlaybackStarted with TrackEvent, InternalEvent {
+class AudioPlaybackStarted with TrackEvent, EngineEvent, InternalEvent {
   final Track track;
   const AudioPlaybackStarted({
     required this.track,
@@ -70,7 +70,7 @@ class AudioPlaybackStarted with TrackEvent, InternalEvent {
 }
 
 @internal
-class AudioPlaybackFailed with TrackEvent, InternalEvent {
+class AudioPlaybackFailed with TrackEvent, EngineEvent, InternalEvent {
   final Track track;
   const AudioPlaybackFailed({
     required this.track,

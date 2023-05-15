@@ -81,8 +81,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   E2EEManager? _e2eeManager;
   bool get isRecording => _isRecording;
   bool _isRecording = false;
-
-  bool _audioEnabled = false;
+  bool _audioEnabled = true;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -357,6 +356,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
+    ..on<AudioPlaybackStarted>((event) {
+      _handleAudioPlaybackStarted();
+    })
+    ..on<AudioPlaybackFailed>((event) {
+      _handleAudioPlaybackFailed();
+    })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
@@ -784,11 +789,11 @@ extension RoomHardwareManagementMethods on Room {
   Future<void> startAudio() async {
     try {
       await audio.startAllAudioElement();
-      handleAudioPlaybackStarted();
+      _handleAudioPlaybackStarted();
     } catch (err) {
       logger.warning('could not playback audio $err');
       //if (err.name == 'NotAllowedError') {
-      handleAudioPlaybackFailed();
+      _handleAudioPlaybackFailed();
       //}
     }
   }
@@ -797,7 +802,7 @@ extension RoomHardwareManagementMethods on Room {
     return _audioEnabled;
   }
 
-  void handleAudioPlaybackStarted() {
+  void _handleAudioPlaybackStarted() {
     if (canPlaybackAudio) {
       return;
     }
@@ -805,7 +810,7 @@ extension RoomHardwareManagementMethods on Room {
     events.emit(const AudioPlaybackStatusChanged(isPlaying: true));
   }
 
-  void handleAudioPlaybackFailed() {
+  void _handleAudioPlaybackFailed() {
     if (!canPlaybackAudio) {
       return;
     }

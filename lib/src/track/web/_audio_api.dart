@@ -1,6 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-void startAudio(String id, rtc.MediaStreamTrack stream) {
+Future<dynamic> startAudio(String id, rtc.MediaStreamTrack stream) async {
   // do nothing
 }
 

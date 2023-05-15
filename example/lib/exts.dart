@@ -20,6 +20,25 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
+  Future<bool?> showPlayAudioManuallyDialog() => showDialog<bool>(
+        context: this,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Play Audio'),
+          content: const Text(
+              'You need to manually activate audio PlayBack for iOS Safari !'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Ignore'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Play Audio'),
+            ),
+          ],
+        ),
+      );
+
   Future<bool?> showUnPublishDialog() => showDialog<bool>(
         context: this,
         builder: (ctx) => AlertDialog(

@@ -31,13 +31,14 @@ class RemoteAudioTrack extends RemoteTrack
     if (didStart) {
       try {
         // web support
-        audio.startAudio(getCid(), mediaStreamTrack);
+        await audio.startAudio(getCid(), mediaStreamTrack);
         if (_deviceId != null) {
           audio.setSinkId(getCid(), _deviceId!);
         }
-        events.emit(AudioPlaybackStarted(track: this));
       } catch (e) {
-        events.emit(AudioPlaybackFailed(track: this));
+        if (e.toString().startsWith('NotAllowedError')) {
+          events.emit(AudioPlaybackFailed(track: this));
+        }
       }
     }
     return didStart;

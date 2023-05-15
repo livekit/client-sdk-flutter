@@ -10,7 +10,7 @@ const audioPrefix = 'livekit_audio_';
 
 Map<String, html.Element> _audioElements = {};
 
-void startAudio(String id, rtc.MediaStreamTrack track) {
+Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
   if (track is! MediaStreamTrackWeb) {
     return;
   }
@@ -30,6 +30,7 @@ void startAudio(String id, rtc.MediaStreamTrack track) {
   final audioStream = html.MediaStream();
   audioStream.addTrack(track.jsTrack);
   audioElement.srcObject = audioStream;
+  return audioElement.play();
 }
 
 Future<void> startAllAudioElement() async {

@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
@@ -121,6 +122,17 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       // audio track
       track = RemoteAudioTrack(pub.name, pub.source, stream, mediaTrack,
           receiver: receiver);
+
+      var listener = track.createListener();
+      listener.on<AudioPlaybackStarted>((event) {
+        logger.fine('AudioPlaybackStarted');
+        room.engine.events.emit(event);
+      });
+
+      listener.on<AudioPlaybackFailed>((event) {
+        logger.fine('AudioPlaybackFailed');
+        room.engine.events.emit(event);
+      });
     } else {
       throw UnexpectedStateException('Unknown track type');
     }
