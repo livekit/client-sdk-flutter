@@ -79,6 +79,15 @@ class _RoomPageState extends State<RoomPage> {
         print('Failed to decode: $_');
       }
       context.showDataReceivedDialog(decoded);
+    })
+    ..on<AudioPlaybackStatusChanged>((event) async {
+      if (!widget.room.canPlaybackAudio) {
+        print('Audio playback failed for iOS Safari ..........');
+        bool? yesno = await context.showPlayAudioManuallyDialog();
+        if (yesno == true) {
+          await widget.room.startAudio();
+        }
+      }
     });
 
   void _askPublish() async {

@@ -28,6 +28,9 @@ import '../track/track.dart';
 import '../types/other.dart';
 import 'engine.dart';
 
+import '../track/web/_audio_api.dart'
+    if (dart.library.html) '../track/web/_audio_html.dart' as audio;
+
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
 /// Notifies changes to its state via two ways, by assigning a delegate, or using
@@ -78,6 +81,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   E2EEManager? _e2eeManager;
   bool get isRecording => _isRecording;
   bool _isRecording = false;
+  bool _audioEnabled = true;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -352,6 +356,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
+    ..on<AudioPlaybackStarted>((event) {
+      _handleAudioPlaybackStarted();
+    })
+    ..on<AudioPlaybackFailed>((event) {
+      _handleAudioPlaybackFailed();
+    })
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
@@ -774,5 +784,39 @@ extension RoomHardwareManagementMethods on Room {
             roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
     }
+  }
+
+  Future<void> startAudio() async {
+    try {
+      var audioContextRunning = await audio.startAllAudioElement();
+      if (audioContextRunning) {
+        _handleAudioPlaybackStarted();
+      } else {
+        _handleAudioPlaybackFailed();
+      }
+    } catch (err) {
+      logger.warning('could not playback audio $err');
+      _handleAudioPlaybackFailed();
+    }
+  }
+
+  bool get canPlaybackAudio {
+    return _audioEnabled;
+  }
+
+  void _handleAudioPlaybackStarted() {
+    if (canPlaybackAudio) {
+      return;
+    }
+    _audioEnabled = true;
+    events.emit(const AudioPlaybackStatusChanged(isPlaying: true));
+  }
+
+  void _handleAudioPlaybackFailed() {
+    if (!canPlaybackAudio) {
+      return;
+    }
+    _audioEnabled = false;
+    events.emit(const AudioPlaybackStatusChanged(isPlaying: false));
   }
 }

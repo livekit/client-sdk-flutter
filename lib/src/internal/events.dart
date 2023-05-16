@@ -62,6 +62,22 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
 }
 
 @internal
+class AudioPlaybackStarted with TrackEvent, EngineEvent, InternalEvent {
+  final Track track;
+  const AudioPlaybackStarted({
+    required this.track,
+  });
+}
+
+@internal
+class AudioPlaybackFailed with TrackEvent, EngineEvent, InternalEvent {
+  final Track track;
+  const AudioPlaybackFailed({
+    required this.track,
+  });
+}
+
+@internal
 class LocalTrackOptionsUpdatedEvent with TrackEvent, InternalEvent {
   final LocalTrack track;
   final LocalTrackOptions options;

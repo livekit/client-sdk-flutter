@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/internal/events.dart';
 
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
@@ -28,10 +29,16 @@ class RemoteAudioTrack extends RemoteTrack
   Future<bool> start() async {
     final didStart = await super.start();
     if (didStart) {
-      // web support
-      audio.startAudio(getCid(), mediaStreamTrack);
-      if (_deviceId != null) {
-        audio.setSinkId(getCid(), _deviceId!);
+      try {
+        // web support
+        await audio.startAudio(getCid(), mediaStreamTrack);
+        if (_deviceId != null) {
+          audio.setSinkId(getCid(), _deviceId!);
+        }
+      } catch (e) {
+        if (e.toString().startsWith('NotAllowedError')) {
+          events.emit(AudioPlaybackFailed(track: this));
+        }
       }
     }
     return didStart;
