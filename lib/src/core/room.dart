@@ -788,13 +788,15 @@ extension RoomHardwareManagementMethods on Room {
 
   Future<void> startAudio() async {
     try {
-      await audio.startAllAudioElement();
-      _handleAudioPlaybackStarted();
+      var audioContextRunning = await audio.startAllAudioElement();
+      if (audioContextRunning) {
+        _handleAudioPlaybackStarted();
+      } else {
+        _handleAudioPlaybackFailed();
+      }
     } catch (err) {
       logger.warning('could not playback audio $err');
-      //if (err.name == 'NotAllowedError') {
       _handleAudioPlaybackFailed();
-      //}
     }
   }
 

@@ -31,6 +31,7 @@ dependencies:
   dart_webrtc: 1.0.16
   js: ^0.6.4
   platform_detect: ^2.0.7
+  js_bindings: ^0.1.2+1
 
 dev_dependencies:
   flutter_test:

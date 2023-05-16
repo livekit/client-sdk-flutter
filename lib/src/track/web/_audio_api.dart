@@ -8,7 +8,9 @@ void stopAudio(String id) {
   // do nothing
 }
 
-Future<void> startAllAudioElement() async {}
+Future<bool> startAllAudioElement() async {
+  return true;
+}
 
 void setSinkId(String id, String deviceId) {
   // do nothing
