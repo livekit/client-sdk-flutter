@@ -27,6 +27,8 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 | Android |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
 |   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
 | Windows |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+| Linux   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢       |
+
 
 🟢 = Available
 
