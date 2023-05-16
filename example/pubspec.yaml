@@ -11,19 +11,20 @@ dependencies:
   flutter:
     sdk: flutter
 
-  intl: ^0.17.0
+  intl: ^0.18.1
   flutter_background: ^1.1.0
   permission_handler: ^10.2.0
   provider: ^6.0.1
   logging: ^1.0.1
   shared_preferences: ^2.0.7
 
-  google_fonts: ^2.1.0
+  google_fonts: ^4.0.4
   eva_icons_flutter: ^3.0.0
-  flutter_svg: ^1.0.0
+  flutter_svg: ^2.0.5
 
   livekit_client:
     path: ../
+  js_bindings: ^0.1.2+1
     # git:
     #   url: https://github.com/livekit/client-sdk-flutter
     #   ref: main
@@ -31,7 +32,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
 
 # The following section is specific to Flutter.
 flutter:
