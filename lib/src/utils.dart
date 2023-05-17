@@ -113,7 +113,7 @@ class Utils {
       case PlatformType.iOS:
         final info = await _deviceInfoPlugin.iosInfo;
         String? model = info.utsname.machine;
-        if (model != null && ['i386', 'x86_64', 'arm64'].contains(model)) {
+        if (['i386', 'x86_64', 'arm64'].contains(model)) {
           model = 'iOSSimulator,${model}';
         }
         return lk_models.ClientInfo(
