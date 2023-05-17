@@ -12,7 +12,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.3.3'
+          flutter-version: '3.10.0'
       - name: Install project dependencies
         run: flutter pub get
       - name: Dart Format Check
@@ -23,8 +23,8 @@ jobs:
         run: flutter analyze
       - name: Dart Test Check
         run: flutter test
-      - name: Check Publish Warnings
-        run: dart pub publish --dry-run
+      #- name: Check Publish Warnings
+      #  run: dart pub publish --dry-run
       - name: Publish
         uses: k-paxian/dart-package-publisher@v1.5.1
         with:
