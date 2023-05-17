@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/e2ee/events.dart';
-import 'package:livekit_client/src/extensions.dart';
 
-import '../events.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import '../core/room.dart';
+import '../e2ee/events.dart';
+import '../events.dart';
+import '../extensions.dart';
 import '../managers/event.dart';
 import 'key_provider.dart';
 

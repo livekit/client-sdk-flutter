@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -112,7 +113,7 @@ class Utils {
       case PlatformType.iOS:
         final info = await _deviceInfoPlugin.iosInfo;
         String? model = info.utsname.machine;
-        if (model != null && ['i386', 'x86_64', 'arm64'].contains(model)) {
+        if (['i386', 'x86_64', 'arm64'].contains(model)) {
           model = 'iOSSimulator,${model}';
         }
         return lk_models.ClientInfo(
