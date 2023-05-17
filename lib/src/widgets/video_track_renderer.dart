@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/support/platform.dart';
 
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../managers/event.dart';
+import '../support/platform.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';

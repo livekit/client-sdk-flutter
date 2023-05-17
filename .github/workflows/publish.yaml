@@ -1,26 +1,37 @@
 name: Publish build
 
 on:
-  push:
-    # only publish on version tags
-    tags:
-      - v*
+  release:
+    types: [published]
 
 jobs:
   publish:
-    # This job will run on ubuntu virtual machine
     runs-on: ubuntu-latest
     steps:
-      # Setup the flutter environment.
-      - uses: subosito/flutter-action@v1
-
       - uses: actions/checkout@v2
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v1
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
         with:
-          path: /opt/hostedtoolcache/flutter
-          key: ${{ runner.OS }}-flutter-install-cache-${{ env.flutter_version }}
+          flutter-version: '3.3.3'
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Dart Format Check
+        run: dart format lib/ test/ --set-exit-if-changed
+      - name: Import Sorter Check
+        run: dart run import_sorter:main --no-comments --exit-if-changed
+      - name: Dart Analyze Check
+        run: flutter analyze
+      - name: Dart Test Check
+        run: flutter test
+      - name: Check Publish Warnings
+        run: dart pub publish --dry-run
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@v1.5.1
+        with:
+          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+          flutter: true
+          skipTests: true
+          force: true
 
       - run: flutter pub get
       - run: flutter pub global activate dartdoc

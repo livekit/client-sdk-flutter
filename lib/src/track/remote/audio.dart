@@ -1,6 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/internal/events.dart';
 
+import '../../internal/events.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../audio_management.dart';

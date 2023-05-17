@@ -1,6 +1,6 @@
-import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
+import '../../livekit_client.dart';
 import '../core/signal_client.dart';
 import '../extensions.dart';
 import '../internal/events.dart';

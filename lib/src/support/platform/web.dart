@@ -1,7 +1,8 @@
-import '../platform.dart';
 import 'dart:js' as js;
 
 import 'package:platform_detect/platform_detect.dart';
+
+import '../platform.dart';
 
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
