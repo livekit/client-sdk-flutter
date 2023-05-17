@@ -25,15 +25,7 @@ jobs:
         run: flutter test
       #- name: Check Publish Warnings
       #  run: dart pub publish --dry-run
-      - name: Publish
-        uses: k-paxian/dart-package-publisher@v1.5.1
-        with:
-          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          flutter: true
-          skipTests: true
-          force: true
-
-      - run: flutter pub get
+      
       - run: flutter pub global activate dartdoc
 
       # Generate docs
@@ -46,3 +38,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
           AWS_DEFAULT_REGION: "us-east-1"
+
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@v1.5.1
+        with:
+          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+          flutter: true
+          skipTests: true
+          force: true
