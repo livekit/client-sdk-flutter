@@ -24,6 +24,7 @@ dependencies:
 
   livekit_client:
     path: ../
+  js_bindings: ^0.1.2+1
     # git:
     #   url: https://github.com/livekit/client-sdk-flutter
     #   ref: main

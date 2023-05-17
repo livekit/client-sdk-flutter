@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 1.3.1
+
+* Feat: add linux support.
+* Fix: audio play bug for ios safari.
+* Fix: fix bluetooth device enumerate on android.
+* Fix: Do not operate on inactive tracks.
+* Fix: use the correct transceiver id.
+* Fix: Support restart camera for windows/linux.
+* Fix: Move the call of capturer.stopCapture() outside the main thread
+       to avoid blocking of flutter method call.
+* Fix: Handle exceptions for framerate settings for darwin.
+
 ## 1.3.0
 
 * Fix resolution/framerate/bitrate issue for publishVideoTrack.
@@ -13,7 +25,7 @@
 * Feat: handle reconnect response to re-configuration PCs.
 * Docs: readme manager initial setup.
 * Feat: upgrade protocol version to v9.
-* Chore: Use participantIdentity instead of Sid for track permissions. 
+* Chore: Use participantIdentity instead of Sid for track permissions.
 * Feat: Bump flutter-webrtc to 0.9.25.
 * Fix: Fix empty label for Wired Headset on Android.
 * Fix: ICE Connectivity doesn't establish with DualSIM iPhones.
@@ -163,7 +175,7 @@
   video layers that are not being consumed by any subscribers, significantly
   reducing publishing CPU and bandwidth usage. (currently defaults to off)
 * Rename `optimizeVideo` to `adaptiveStream` and improve stability.
-  AdaptiveStream lets LiveKit automatically manage quality of subscribed 
+  AdaptiveStream lets LiveKit automatically manage quality of subscribed
   video tracks to optimize for bandwidth and CPU.
 * Ensure data channel is ready state when `LocalParticipant.publishData` api is called.
 
