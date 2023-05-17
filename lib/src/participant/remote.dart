@@ -1,11 +1,11 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/internal/events.dart';
 import 'package:meta/meta.dart';
 
 import '../core/room.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
 import '../logger.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/remote.dart';

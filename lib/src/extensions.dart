@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
+import '../livekit_client.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 
