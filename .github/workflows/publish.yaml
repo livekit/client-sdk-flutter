@@ -18,7 +18,7 @@ jobs:
       - name: Dart Format Check
         run: dart format lib/ test/ --set-exit-if-changed
       - name: Import Sorter Check
-        run: flutter pub run import_sorter:main --no-comments --exit-if-changed
+        run: dart run import_sorter:main --no-comments --exit-if-changed
       - name: Dart Analyze Check
         run: flutter analyze
       - name: Dart Test Check
