@@ -5,6 +5,7 @@ import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../local/local.dart';
+import '../stats.dart';
 import 'remote.dart';
 
 import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
@@ -57,5 +58,56 @@ class RemoteAudioTrack extends RemoteTrack
   Future<void> setSinkId(String deviceId) async {
     audio.setSinkId(getCid(), deviceId);
     _deviceId = deviceId;
+  }
+
+  AudioReceiverStats? prevStats;
+  num? _currentBitrate;
+  get currentBitrate => _currentBitrate;
+
+  @override
+  Future<void> monitorReceiver() async {
+    if (receiver == null) {
+      _currentBitrate = 0;
+      return;
+    }
+    final stats = await getReceiverStats();
+
+    if (stats != null && prevStats != null && receiver != null) {
+      _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+    }
+
+    prevStats = stats;
+  }
+
+  Future<AudioReceiverStats?> getReceiverStats() async {
+    if (receiver != null) {
+      return null;
+    }
+
+    final stats = await receiver!.getStats();
+    AudioReceiverStats? receiverStats;
+    for (var v in stats) {
+      if (v.type == 'inbound-rtp') {
+        receiverStats ??= AudioReceiverStats();
+        receiverStats.timestamp = v.timestamp;
+        receiverStats.streamId = v.id;
+        receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
+        receiverStats.bytesReceived ??=
+            getNumValFromReport(v.values, 'bytesReceived');
+        receiverStats.concealedSamples ??=
+            getNumValFromReport(v.values, 'concealedSamples');
+        receiverStats.concealmentEvents ??=
+            getNumValFromReport(v.values, 'concealmentEvents');
+        receiverStats.silentConcealedSamples ??=
+            getNumValFromReport(v.values, 'silentConcealedSamples');
+        receiverStats.silentConcealmentEvents ??=
+            getNumValFromReport(v.values, 'silentConcealmentEvents');
+        receiverStats.totalAudioEnergy ??=
+            getNumValFromReport(v.values, 'totalAudioEnergy');
+        receiverStats.totalSamplesDuration ??=
+            getNumValFromReport(v.values, 'totalSamplesDuration');
+      }
+    }
+    return receiverStats;
   }
 }

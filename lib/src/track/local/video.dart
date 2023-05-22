@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/track/stats.dart';
 
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -14,6 +15,81 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   // Options used for this track
   @override
   covariant VideoCaptureOptions currentOptions;
+
+  num? _currentBitrate;
+  get currentBitrate => _currentBitrate;
+  Map<String, VideoSenderStats>? prevStats;
+
+  @override
+  Future<void> monitorSender() async {
+    if (sender == null) {
+      _currentBitrate = 0;
+      return;
+    }
+    List<VideoSenderStats> stats = [];
+    try {
+      stats = await getSenderStats();
+    } catch (e) {
+      logger.warning('Failed to get sender stats: $e');
+      return;
+    }
+    Map<String, VideoSenderStats> statsMap = {};
+
+    stats.map((e) => statsMap[e.rid!] = e);
+
+    if (prevStats != null) {
+      num totalBitrate = 0;
+      statsMap.forEach((key, s) {
+        final prev = prevStats![key];
+        totalBitrate += computeBitrateForSenderStats(s, prev);
+      });
+      _currentBitrate = totalBitrate;
+    }
+
+    prevStats = statsMap;
+  }
+
+  Future<List<VideoSenderStats>> getSenderStats() async {
+    if (sender == null) {
+      return [];
+    }
+
+    final stats = await sender!.getStats();
+    List<VideoSenderStats> items = [];
+    for (var v in stats) {
+      if (v.type == 'outbound-rtp') {
+        VideoSenderStats vs = VideoSenderStats();
+        vs.timestamp ??= v.timestamp;
+        vs.streamId ??= v.id;
+        vs.frameHeight ??= getNumValFromReport(v.values, 'frameHeight');
+        vs.frameWidth ??= getNumValFromReport(v.values, 'frameWidth');
+        vs.firCount ??= getNumValFromReport(v.values, 'firCount');
+        vs.pliCount ??= getNumValFromReport(v.values, 'pliCount');
+        vs.nackCount ??= getNumValFromReport(v.values, 'nackCount');
+        vs.packetsSent ??= getNumValFromReport(v.values, 'packetsSent');
+        vs.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');
+        vs.framesSent ??= getNumValFromReport(v.values, 'framesSent');
+        vs.rid ??= getStringValFromReport(v.values, 'rid');
+        vs.retransmittedPacketsSent ??=
+            getNumValFromReport(v.values, 'retransmittedPacketsSent');
+        vs.qualityLimitationReason ??=
+            getStringValFromReport(v.values, 'qualityLimitationReason');
+        vs.qualityLimitationResolutionChanges ??=
+            getNumValFromReport(v.values, 'qualityLimitationResolutionChanges');
+
+        // locate the appropriate remote-inbound-rtp item
+        final remoteId = getStringValFromReport(v.values, 'remoteId');
+        final r = v.values[remoteId];
+        if (r != null) {
+          vs.jitter ??= getNumValFromReport(r, 'bytesSent');
+          vs.packetsLost ??= getNumValFromReport(r, 'roundTripTime');
+          vs.roundTripTime ??= getNumValFromReport(r, 'roundTripTime');
+        }
+        items.add(vs);
+      }
+    }
+    return items;
+  }
 
   // Private constructor
   LocalVideoTrack._(
