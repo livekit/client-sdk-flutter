@@ -1,10 +1,10 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/track/stats.dart';
 
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../options.dart';
+import '../stats.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'local.dart';

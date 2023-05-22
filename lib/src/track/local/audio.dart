@@ -57,7 +57,8 @@ class LocalAudioTrack extends LocalTrack
         senderStats ??= AudioSenderStats();
         senderStats.timestamp = v.timestamp;
         senderStats.streamId = v.id;
-        senderStats.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');
+        senderStats.packetsSent ??=
+            getNumValFromReport(v.values, 'packetsSent');
         senderStats.packetsLost ??=
             getNumValFromReport(v.values, 'packetsLost');
         senderStats.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');

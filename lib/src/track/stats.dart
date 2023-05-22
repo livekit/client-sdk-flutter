@@ -1,5 +1,4 @@
 import 'package:livekit_client/livekit_client.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 const monitorFrequency = 2000;
 
