@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.2
+
+* Fix: Improve iOS/macOS H264 encoder.
+* Fix: Default capture/publish options for fast connect.
+
 ## 1.3.1
 
 * Feat: add linux support.
