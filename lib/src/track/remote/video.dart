@@ -45,7 +45,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
   }
 
   Future<VideoReceiverStats?> getReceiverStats() async {
-    if (receiver != null) {
+    if (receiver == null) {
       return null;
     }
 
@@ -57,6 +57,8 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
         receiverStats.timestamp = v.timestamp;
         receiverStats.streamId = v.id;
         receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
+        receiverStats.jitterBufferDelay ??=
+            getNumValFromReport(v.values, 'jitterBufferDelay');
         receiverStats.bytesReceived ??=
             getNumValFromReport(v.values, 'bytesReceived');
         receiverStats.packetsLost ??=

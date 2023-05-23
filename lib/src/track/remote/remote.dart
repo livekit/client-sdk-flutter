@@ -48,7 +48,7 @@ abstract class RemoteTrack extends Track {
   @internal
   void startMonitor() {
     _monitorTimer ??=
-        Timer.periodic(const Duration(seconds: monitorFrequency), (_) {
+        Timer.periodic(const Duration(milliseconds: monitorFrequency), (_) {
       monitorReceiver();
     });
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:collection/collection.dart';
 
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -35,7 +36,9 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
     Map<String, VideoSenderStats> statsMap = {};
 
-    stats.map((e) => statsMap[e.rid!] = e);
+    for (var s in stats) {
+      statsMap[s.rid!] = s;
+    }
 
     if (prevStats != null) {
       num totalBitrate = 0;
@@ -79,11 +82,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
         // locate the appropriate remote-inbound-rtp item
         final remoteId = getStringValFromReport(v.values, 'remoteId');
-        final r = v.values[remoteId];
+        final r = stats.firstWhereOrNull((element) => element.id == remoteId);
         if (r != null) {
-          vs.jitter ??= getNumValFromReport(r, 'bytesSent');
-          vs.packetsLost ??= getNumValFromReport(r, 'roundTripTime');
-          vs.roundTripTime ??= getNumValFromReport(r, 'roundTripTime');
+          vs.jitter ??= getNumValFromReport(r.values, 'jitter');
+          vs.packetsLost ??= getNumValFromReport(r.values, 'packetsLost');
+          vs.roundTripTime ??= getNumValFromReport(r.values, 'roundTripTime');
         }
         items.add(vs);
       }

@@ -80,7 +80,7 @@ class RemoteAudioTrack extends RemoteTrack
   }
 
   Future<AudioReceiverStats?> getReceiverStats() async {
-    if (receiver != null) {
+    if (receiver == null) {
       return null;
     }
 
@@ -92,8 +92,14 @@ class RemoteAudioTrack extends RemoteTrack
         receiverStats.timestamp = v.timestamp;
         receiverStats.streamId = v.id;
         receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
+        receiverStats.packetsLost ??=
+            getNumValFromReport(v.values, 'packetsLost');
+        receiverStats.jitterBufferDelay ??=
+            getNumValFromReport(v.values, 'jitterBufferDelay');
         receiverStats.bytesReceived ??=
             getNumValFromReport(v.values, 'bytesReceived');
+        receiverStats.packetsReceived ??=
+            getNumValFromReport(v.values, 'packetsReceived');
         receiverStats.concealedSamples ??=
             getNumValFromReport(v.values, 'concealedSamples');
         receiverStats.concealmentEvents ??=
