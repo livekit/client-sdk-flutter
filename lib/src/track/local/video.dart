@@ -1,5 +1,5 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:collection/collection.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
