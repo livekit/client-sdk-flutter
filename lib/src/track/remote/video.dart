@@ -1,6 +1,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../events.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../local/local.dart';
@@ -39,6 +40,8 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
 
     if (stats != null && prevStats != null && receiver != null) {
       _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+      events.emit(VideoReceiverStatsEvent(
+          stats: stats, currentBitrate: currentBitrate));
     }
 
     prevStats = stats;
@@ -71,6 +74,8 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
             getNumValFromReport(v.values, 'framesReceived');
         receiverStats.packetsReceived ??=
             getNumValFromReport(v.values, 'packetsReceived');
+        receiverStats.framesPerSecond ??=
+            getNumValFromReport(v.values, 'framesPerSecond');
         receiverStats.frameWidth ??=
             getNumValFromReport(v.values, 'frameWidth');
         receiverStats.frameHeight ??=

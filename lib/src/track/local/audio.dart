@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -40,6 +41,8 @@ class LocalAudioTrack extends LocalTrack
 
     if (stats != null && prevStats != null && sender != null) {
       _currentBitrate = computeBitrateForSenderStats(stats, prevStats);
+      events.emit(
+          AudioSenderStatsEvent(stats: stats, currentBitrate: currentBitrate));
     }
 
     prevStats = stats;

@@ -1,5 +1,6 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import '../../events.dart';
 import '../../internal/events.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
@@ -74,6 +75,8 @@ class RemoteAudioTrack extends RemoteTrack
 
     if (stats != null && prevStats != null && receiver != null) {
       _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+      events.emit(AudioReceiverStatsEvent(
+          stats: stats, currentBitrate: currentBitrate));
     }
 
     prevStats = stats;

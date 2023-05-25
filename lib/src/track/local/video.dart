@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
@@ -37,7 +38,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     Map<String, VideoSenderStats> statsMap = {};
 
     for (var s in stats) {
-      statsMap[s.rid!] = s;
+      statsMap[s.rid ?? 'f'] = s;
     }
 
     if (prevStats != null) {
@@ -47,6 +48,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         totalBitrate += computeBitrateForSenderStats(s, prev);
       });
       _currentBitrate = totalBitrate;
+      events.emit(VideoSenderStatsEvent(
+        stats: statsMap,
+        currentBitrate: currentBitrate,
+      ));
     }
 
     prevStats = statsMap;
@@ -66,6 +71,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         vs.streamId ??= v.id;
         vs.frameHeight ??= getNumValFromReport(v.values, 'frameHeight');
         vs.frameWidth ??= getNumValFromReport(v.values, 'frameWidth');
+        vs.framesPerSecond ??= getNumValFromReport(v.values, 'framesPerSecond');
         vs.firCount ??= getNumValFromReport(v.values, 'firCount');
         vs.pliCount ??= getNumValFromReport(v.values, 'pliCount');
         vs.nackCount ??= getNumValFromReport(v.values, 'nackCount');
@@ -73,6 +79,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         vs.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');
         vs.framesSent ??= getNumValFromReport(v.values, 'framesSent');
         vs.rid ??= getStringValFromReport(v.values, 'rid');
+        vs.encoderImplementation ??=
+            getStringValFromReport(v.values, 'encoderImplementation');
         vs.retransmittedPacketsSent ??=
             getNumValFromReport(v.values, 'retransmittedPacketsSent');
         vs.qualityLimitationReason ??=

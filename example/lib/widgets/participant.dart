@@ -7,6 +7,7 @@ import 'package:livekit_example/theme.dart';
 
 import 'no_video.dart';
 import 'participant_info.dart';
+import 'participatn_stats.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
@@ -136,7 +137,12 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                     )
                   : const NoVideoWidget(),
             ),
-
+            Positioned(
+                top: 30,
+                right: 30,
+                child: ParticipantStatsWidget(
+                  participant: widget.participant,
+                )),
             // Bottom bar
             Align(
               alignment: Alignment.bottomCenter,

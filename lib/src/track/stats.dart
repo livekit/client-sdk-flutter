@@ -22,6 +22,8 @@ class SenderStats {
   /// ID of the outbound stream
   String? streamId;
 
+  String? encoderImplementation;
+
   num? timestamp;
 }
 
@@ -47,6 +49,8 @@ class VideoSenderStats extends SenderStats {
   num? frameHeight;
 
   num? framesSent;
+
+  num? framesPerSecond;
 
   // bandwidth, cpu, other, none
   String? qualityLimitationReason;
@@ -101,6 +105,8 @@ class VideoReceiverStats extends ReceiverStats {
   num? framesDropped;
 
   num? framesReceived;
+
+  num? framesPerSecond;
 
   num? frameWidth;
 
