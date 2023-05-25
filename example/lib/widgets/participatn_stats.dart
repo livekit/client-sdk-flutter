@@ -47,9 +47,9 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
           stats['video decoder'] = '${event.stats.decoderImplementation}';
           //stats['video packets lost'] = '${event.stats.packetsLost}';
           //stats['video packets received'] = '${event.stats.packetsReceived}';
-          //stats['video frames received'] = '${event.stats.framesReceived}';
-          //stats['video frames decoded'] = '${event.stats.framesDecoded}';
-          //stats['video frames dropped'] = '${event.stats.framesDropped}';
+          stats['video frames received'] = '${event.stats.framesReceived}';
+          stats['video frames decoded'] = '${event.stats.framesDecoded}';
+          stats['video frames dropped'] = '${event.stats.framesDropped}';
         });
       });
     } else if (track is LocalAudioTrack) {
