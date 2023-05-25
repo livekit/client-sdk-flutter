@@ -31,6 +31,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         setState(() {
           stats['video tx'] = '${event.currentBitrate.toInt()} kpbs';
           event.stats.forEach((key, value) {
+            stats['$key-encoder'] = '${value.encoderImplementation}';
             stats[key] =
                 '${value.frameWidth}x${value.frameHeight} ${value.framesPerSecond?.toDouble()}fps \n qualityLimitationReason: ${value.qualityLimitationReason}';
           });

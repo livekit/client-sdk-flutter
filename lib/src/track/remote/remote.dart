@@ -36,8 +36,8 @@ abstract class RemoteTrack extends Track {
     final didStop = await super.stop();
     if (didStop) {
       await disable();
-      stopMonitor();
     }
+    stopMonitor();
     return didStop;
   }
 
