@@ -1,5 +1,6 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/livekit_client.dart';
+import 'package:flutter/foundation.dart';
+
+import '../proto/livekit_models.pb.dart';
 
 const monitorFrequency = 2000;
 
@@ -146,7 +147,7 @@ num computeBitrateForSenderStats(
       prevStats.timestamp == null) {
     return 0;
   }
-  if (WebRTC.platformIsWeb) {
+  if (kIsWeb) {
     return ((bytesNow - bytesPrev) * 8) /
         (currentStats.timestamp! - prevStats.timestamp!);
   }
@@ -174,7 +175,7 @@ num computeBitrateForReceiverStats(
       prevStats.timestamp == null) {
     return 0;
   }
-  if (WebRTC.platformIsWeb) {
+  if (kIsWeb) {
     return ((bytesNow - bytesPrev) * 8) /
         (currentStats.timestamp! - prevStats.timestamp!);
   }
