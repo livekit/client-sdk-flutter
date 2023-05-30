@@ -116,6 +116,14 @@ class RemoteAudioTrack extends RemoteTrack
         receiverStats.totalSamplesDuration ??=
             getNumValFromReport(v.values, 'totalSamplesDuration');
       }
+      if (v.type == 'codec') {
+        receiverStats ??= AudioReceiverStats();
+        receiverStats.mimeType = getStringValFromReport(v.values, 'mimeType');
+        receiverStats.payloadType =
+            getNumValFromReport(v.values, 'payloadType');
+        receiverStats.channels = getNumValFromReport(v.values, 'channels');
+        receiverStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+      }
     }
     return receiverStats;
   }

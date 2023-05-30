@@ -452,10 +452,12 @@ class AudioSenderStatsEvent with TrackEvent {
 
 class VideoSenderStatsEvent with TrackEvent {
   final Map<String, VideoSenderStats> stats;
+  final Map<String, num> bitrateForLayers;
   final num currentBitrate;
   const VideoSenderStatsEvent({
     required this.stats,
     required this.currentBitrate,
+    required this.bitrateForLayers,
   });
 
   @override

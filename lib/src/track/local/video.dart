@@ -21,6 +21,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   num? _currentBitrate;
   get currentBitrate => _currentBitrate;
   Map<String, VideoSenderStats>? prevStats;
+  final Map<String, num> _bitrateFoLayers = {};
 
   @override
   Future<void> monitorSender() async {
@@ -45,12 +46,15 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       num totalBitrate = 0;
       statsMap.forEach((key, s) {
         final prev = prevStats![key];
-        totalBitrate += computeBitrateForSenderStats(s, prev);
+        var bitRateForlayer = computeBitrateForSenderStats(s, prev).toInt();
+        _bitrateFoLayers[key] = bitRateForlayer;
+        totalBitrate += bitRateForlayer;
       });
       _currentBitrate = totalBitrate;
       events.emit(VideoSenderStatsEvent(
         stats: statsMap,
         currentBitrate: currentBitrate,
+        bitrateForLayers: _bitrateFoLayers,
       ));
     }
 
@@ -95,6 +99,13 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
           vs.jitter ??= getNumValFromReport(r.values, 'jitter');
           vs.packetsLost ??= getNumValFromReport(r.values, 'packetsLost');
           vs.roundTripTime ??= getNumValFromReport(r.values, 'roundTripTime');
+        }
+        final c = stats.firstWhereOrNull((element) => element.type == 'codec');
+        if (c != null) {
+          vs.mimeType = getStringValFromReport(c.values, 'mimeType');
+          vs.payloadType = getNumValFromReport(c.values, 'payloadType');
+          vs.channels = getNumValFromReport(c.values, 'channels');
+          vs.clockRate = getNumValFromReport(c.values, 'clockRate');
         }
         items.add(vs);
       }

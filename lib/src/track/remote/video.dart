@@ -86,6 +86,14 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
         receiverStats.decoderImplementation ??=
             getStringValFromReport(v.values, 'decoderImplementation');
       }
+      if (v.type == 'codec') {
+        receiverStats ??= VideoReceiverStats();
+        receiverStats.mimeType = getStringValFromReport(v.values, 'mimeType');
+        receiverStats.payloadType =
+            getNumValFromReport(v.values, 'payloadType');
+        receiverStats.channels = getNumValFromReport(v.values, 'channels');
+        receiverStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+      }
     }
 
     return receiverStats;

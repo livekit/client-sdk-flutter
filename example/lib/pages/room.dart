@@ -196,7 +196,8 @@ class _RoomPageState extends State<RoomPage> {
               children: [
                 Expanded(
                     child: participantTracks.isNotEmpty
-                        ? ParticipantWidget.widgetFor(participantTracks.first)
+                        ? ParticipantWidget.widgetFor(participantTracks.first,
+                            showStatsLayer: true)
                         : Container()),
                 if (widget.room.localParticipant != null)
                   SafeArea(

@@ -69,6 +69,14 @@ class LocalAudioTrack extends LocalTrack
             getNumValFromReport(v.values, 'roundTripTime');
         senderStats.jitter ??= getNumValFromReport(v.values, 'jitter');
       }
+
+      if (v.type == 'codec') {
+        senderStats ??= AudioSenderStats();
+        senderStats.mimeType = getStringValFromReport(v.values, 'mimeType');
+        senderStats.payloadType = getNumValFromReport(v.values, 'payloadType');
+        senderStats.channels = getNumValFromReport(v.values, 'channels');
+        senderStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+      }
     }
     return senderStats;
   }

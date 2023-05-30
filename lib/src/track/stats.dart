@@ -1,9 +1,17 @@
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 const monitorFrequency = 2000;
 
+class CodecStats {
+  String? mimeType;
+  num? payloadType;
+  num? channels;
+  num? clockRate;
+}
+
 // key stats for senders and receivers
-class SenderStats {
+class SenderStats extends CodecStats {
   /// number of packets sent
   num? packetsSent;
 
@@ -60,7 +68,7 @@ class VideoSenderStats extends SenderStats {
   num? retransmittedPacketsSent;
 }
 
-class ReceiverStats {
+class ReceiverStats extends CodecStats {
   num? jitterBufferDelay;
 
   /// packets reported lost by remote
@@ -138,6 +146,11 @@ num computeBitrateForSenderStats(
       prevStats.timestamp == null) {
     return 0;
   }
+  if (WebRTC.platformIsWeb) {
+    return ((bytesNow - bytesPrev) * 8) /
+        (currentStats.timestamp! - prevStats.timestamp!);
+  }
+
   return ((bytesNow - bytesPrev) * 8 * 1000) /
       (currentStats.timestamp! - prevStats.timestamp!);
 }
@@ -161,6 +174,11 @@ num computeBitrateForReceiverStats(
       prevStats.timestamp == null) {
     return 0;
   }
+  if (WebRTC.platformIsWeb) {
+    return ((bytesNow - bytesPrev) * 8) /
+        (currentStats.timestamp! - prevStats.timestamp!);
+  }
+
   return ((bytesNow - bytesPrev) * 8 * 1000) /
       (currentStats.timestamp! - prevStats.timestamp!);
 }
