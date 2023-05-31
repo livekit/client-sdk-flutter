@@ -7,7 +7,7 @@ import 'package:livekit_example/theme.dart';
 
 import 'no_video.dart';
 import 'participant_info.dart';
-import 'participatn_stats.dart';
+import 'participant_stats.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant

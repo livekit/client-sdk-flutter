@@ -34,7 +34,8 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
             stats['layer-$key'] =
                 '${value.frameWidth ?? 0}x${value.frameHeight ?? 0} ${value.framesPerSecond?.toDouble() ?? 0} fps, ${event.bitrateForLayers[key] ?? 0} kbps';
           });
-          var firstStats = event.stats['f'];
+          var firstStats =
+              event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
           if (firstStats != null) {
             stats['encoder'] = firstStats.encoderImplementation ?? '';
             stats['video codec'] =
