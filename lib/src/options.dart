@@ -157,7 +157,7 @@ class VideoPublishOptions {
   final List<VideoParameters> screenShareSimulcastLayers;
 
   const VideoPublishOptions({
-    this.videoCodec = 'vp8',
+    this.videoCodec = 'H264',
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
