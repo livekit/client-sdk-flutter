@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.3
+
+* Fix: issue for get user audio on Android.
+
 ## 1.3.2
 
 * Fix: Improve iOS/macOS H264 encoder.
