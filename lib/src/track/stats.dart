@@ -13,6 +13,8 @@ class CodecStats {
 
 // key stats for senders and receivers
 class SenderStats extends CodecStats {
+  SenderStats(this.streamId, this.timestamp);
+
   /// number of packets sent
   num? packetsSent;
 
@@ -29,20 +31,20 @@ class SenderStats extends CodecStats {
   num? roundTripTime;
 
   /// ID of the outbound stream
-  String? streamId;
+  String streamId;
 
   String? encoderImplementation;
 
-  num? timestamp;
+  num timestamp;
 }
 
 class AudioSenderStats extends SenderStats {
-  AudioSenderStats();
+  AudioSenderStats(String streamId, num timestamp) : super(streamId, timestamp);
   TrackType type = TrackType.AUDIO;
 }
 
 class VideoSenderStats extends SenderStats {
-  VideoSenderStats();
+  VideoSenderStats(String streamId, num timestamp) : super(streamId, timestamp);
   TrackType type = TrackType.VIDEO;
 
   num? firCount;
@@ -70,6 +72,7 @@ class VideoSenderStats extends SenderStats {
 }
 
 class ReceiverStats extends CodecStats {
+  ReceiverStats(this.streamId, this.timestamp);
   num? jitterBufferDelay;
 
   /// packets reported lost by remote
@@ -80,15 +83,16 @@ class ReceiverStats extends CodecStats {
 
   num? bytesReceived;
 
-  String? streamId;
+  String streamId;
 
   num? jitter;
 
-  num? timestamp;
+  num timestamp;
 }
 
 class AudioReceiverStats extends ReceiverStats {
-  AudioReceiverStats();
+  AudioReceiverStats(String streamId, num timestamp)
+      : super(streamId, timestamp);
   TrackType type = TrackType.AUDIO;
 
   num? concealedSamples;
@@ -105,7 +109,8 @@ class AudioReceiverStats extends ReceiverStats {
 }
 
 class VideoReceiverStats extends ReceiverStats {
-  VideoReceiverStats();
+  VideoReceiverStats(String streamId, num timestamp)
+      : super(streamId, timestamp);
 
   TrackType type = TrackType.VIDEO;
 
@@ -141,19 +146,16 @@ num computeBitrateForSenderStats(
   num? bytesPrev;
   bytesNow = currentStats.bytesSent;
   bytesPrev = prevStats.bytesSent;
-  if (bytesNow == null ||
-      bytesPrev == null ||
-      currentStats.timestamp == null ||
-      prevStats.timestamp == null) {
+  if (bytesNow == null || bytesPrev == null) {
     return 0;
   }
   if (kIsWeb) {
     return ((bytesNow - bytesPrev) * 8) /
-        (currentStats.timestamp! - prevStats.timestamp!);
+        (currentStats.timestamp - prevStats.timestamp);
   }
 
   return ((bytesNow - bytesPrev) * 8 * 1000) /
-      (currentStats.timestamp! - prevStats.timestamp!);
+      (currentStats.timestamp - prevStats.timestamp);
 }
 
 num computeBitrateForReceiverStats(
@@ -169,19 +171,16 @@ num computeBitrateForReceiverStats(
   bytesNow = currentStats.bytesReceived;
   bytesPrev = prevStats.bytesReceived;
 
-  if (bytesNow == null ||
-      bytesPrev == null ||
-      currentStats.timestamp == null ||
-      prevStats.timestamp == null) {
+  if (bytesNow == null || bytesPrev == null) {
     return 0;
   }
   if (kIsWeb) {
     return ((bytesNow - bytesPrev) * 8) /
-        (currentStats.timestamp! - prevStats.timestamp!);
+        (currentStats.timestamp - prevStats.timestamp);
   }
 
   return ((bytesNow - bytesPrev) * 8 * 1000) /
-      (currentStats.timestamp! - prevStats.timestamp!);
+      (currentStats.timestamp - prevStats.timestamp);
 }
 
 num? getNumValFromReport(Map<dynamic, dynamic> values, String key) {

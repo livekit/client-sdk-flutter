@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
@@ -91,9 +92,8 @@ class RemoteAudioTrack extends RemoteTrack
     AudioReceiverStats? receiverStats;
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {
-        receiverStats ??= AudioReceiverStats();
-        receiverStats.timestamp = v.timestamp;
-        receiverStats.streamId = v.id;
+        receiverStats ??= AudioReceiverStats(v.id, v.timestamp);
+
         receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
         receiverStats.packetsLost ??=
             getNumValFromReport(v.values, 'packetsLost');
@@ -115,14 +115,16 @@ class RemoteAudioTrack extends RemoteTrack
             getNumValFromReport(v.values, 'totalAudioEnergy');
         receiverStats.totalSamplesDuration ??=
             getNumValFromReport(v.values, 'totalSamplesDuration');
-      }
-      if (v.type == 'codec') {
-        receiverStats ??= AudioReceiverStats();
-        receiverStats.mimeType = getStringValFromReport(v.values, 'mimeType');
-        receiverStats.payloadType =
-            getNumValFromReport(v.values, 'payloadType');
-        receiverStats.channels = getNumValFromReport(v.values, 'channels');
-        receiverStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+
+        final c = stats.firstWhereOrNull((element) => element.type == 'codec');
+        if (c != null) {
+          receiverStats.mimeType = getStringValFromReport(c.values, 'mimeType');
+          receiverStats.payloadType =
+              getNumValFromReport(c.values, 'payloadType');
+          receiverStats.channels = getNumValFromReport(c.values, 'channels');
+          receiverStats.clockRate = getNumValFromReport(c.values, 'clockRate');
+        }
+        break;
       }
     }
     return receiverStats;

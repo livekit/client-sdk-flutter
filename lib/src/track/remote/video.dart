@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -56,9 +57,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
     VideoReceiverStats? receiverStats;
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {
-        receiverStats ??= VideoReceiverStats();
-        receiverStats.timestamp = v.timestamp;
-        receiverStats.streamId = v.id;
+        receiverStats ??= VideoReceiverStats(v.id, v.timestamp);
         receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
         receiverStats.jitterBufferDelay ??=
             getNumValFromReport(v.values, 'jitterBufferDelay');
@@ -85,14 +84,16 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
         receiverStats.nackCount ??= getNumValFromReport(v.values, 'nackCount');
         receiverStats.decoderImplementation ??=
             getStringValFromReport(v.values, 'decoderImplementation');
-      }
-      if (v.type == 'codec') {
-        receiverStats ??= VideoReceiverStats();
-        receiverStats.mimeType = getStringValFromReport(v.values, 'mimeType');
-        receiverStats.payloadType =
-            getNumValFromReport(v.values, 'payloadType');
-        receiverStats.channels = getNumValFromReport(v.values, 'channels');
-        receiverStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+
+        final c = stats.firstWhereOrNull((element) => element.type == 'codec');
+        if (c != null) {
+          receiverStats.mimeType = getStringValFromReport(c.values, 'mimeType');
+          receiverStats.payloadType =
+              getNumValFromReport(c.values, 'payloadType');
+          receiverStats.channels = getNumValFromReport(c.values, 'channels');
+          receiverStats.clockRate = getNumValFromReport(c.values, 'clockRate');
+        }
+        break;
       }
     }
 

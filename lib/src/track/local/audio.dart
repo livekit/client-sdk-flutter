@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -57,9 +58,7 @@ class LocalAudioTrack extends LocalTrack
     AudioSenderStats? senderStats;
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
-        senderStats ??= AudioSenderStats();
-        senderStats.timestamp = v.timestamp;
-        senderStats.streamId = v.id;
+        senderStats ??= AudioSenderStats(v.id, v.timestamp);
         senderStats.packetsSent ??=
             getNumValFromReport(v.values, 'packetsSent');
         senderStats.packetsLost ??=
@@ -68,14 +67,16 @@ class LocalAudioTrack extends LocalTrack
         senderStats.roundTripTime ??=
             getNumValFromReport(v.values, 'roundTripTime');
         senderStats.jitter ??= getNumValFromReport(v.values, 'jitter');
-      }
 
-      if (v.type == 'codec') {
-        senderStats ??= AudioSenderStats();
-        senderStats.mimeType = getStringValFromReport(v.values, 'mimeType');
-        senderStats.payloadType = getNumValFromReport(v.values, 'payloadType');
-        senderStats.channels = getNumValFromReport(v.values, 'channels');
-        senderStats.clockRate = getNumValFromReport(v.values, 'clockRate');
+        final c = stats.firstWhereOrNull((element) => element.type == 'codec');
+        if (c != null) {
+          senderStats.mimeType = getStringValFromReport(c.values, 'mimeType');
+          senderStats.payloadType =
+              getNumValFromReport(c.values, 'payloadType');
+          senderStats.channels = getNumValFromReport(c.values, 'channels');
+          senderStats.clockRate = getNumValFromReport(c.values, 'clockRate');
+        }
+        break;
       }
     }
     return senderStats;

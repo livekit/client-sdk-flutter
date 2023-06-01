@@ -70,9 +70,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     List<VideoSenderStats> items = [];
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
-        VideoSenderStats vs = VideoSenderStats();
-        vs.timestamp ??= v.timestamp;
-        vs.streamId ??= v.id;
+        VideoSenderStats vs = VideoSenderStats(v.id, v.timestamp);
         vs.frameHeight ??= getNumValFromReport(v.values, 'frameHeight');
         vs.frameWidth ??= getNumValFromReport(v.values, 'frameWidth');
         vs.framesPerSecond ??= getNumValFromReport(v.values, 'framesPerSecond');
