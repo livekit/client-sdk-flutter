@@ -58,31 +58,30 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {
         receiverStats ??= VideoReceiverStats(v.id, v.timestamp);
-        receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
-        receiverStats.jitterBufferDelay ??=
+        receiverStats.jitter = getNumValFromReport(v.values, 'jitter');
+        receiverStats.jitterBufferDelay =
             getNumValFromReport(v.values, 'jitterBufferDelay');
-        receiverStats.bytesReceived ??=
+        receiverStats.bytesReceived =
             getNumValFromReport(v.values, 'bytesReceived');
-        receiverStats.packetsLost ??=
+        receiverStats.packetsLost =
             getNumValFromReport(v.values, 'packetsLost');
-        receiverStats.framesDecoded ??=
+        receiverStats.framesDecoded =
             getNumValFromReport(v.values, 'framesDecoded');
-        receiverStats.framesDropped ??=
+        receiverStats.framesDropped =
             getNumValFromReport(v.values, 'framesDropped');
-        receiverStats.framesReceived ??=
+        receiverStats.framesReceived =
             getNumValFromReport(v.values, 'framesReceived');
-        receiverStats.packetsReceived ??=
+        receiverStats.packetsReceived =
             getNumValFromReport(v.values, 'packetsReceived');
-        receiverStats.framesPerSecond ??=
+        receiverStats.framesPerSecond =
             getNumValFromReport(v.values, 'framesPerSecond');
-        receiverStats.frameWidth ??=
-            getNumValFromReport(v.values, 'frameWidth');
-        receiverStats.frameHeight ??=
+        receiverStats.frameWidth = getNumValFromReport(v.values, 'frameWidth');
+        receiverStats.frameHeight =
             getNumValFromReport(v.values, 'frameHeight');
-        receiverStats.pliCount ??= getNumValFromReport(v.values, 'pliCount');
-        receiverStats.firCount ??= getNumValFromReport(v.values, 'firCount');
-        receiverStats.nackCount ??= getNumValFromReport(v.values, 'nackCount');
-        receiverStats.decoderImplementation ??=
+        receiverStats.pliCount = getNumValFromReport(v.values, 'pliCount');
+        receiverStats.firCount = getNumValFromReport(v.values, 'firCount');
+        receiverStats.nackCount = getNumValFromReport(v.values, 'nackCount');
+        receiverStats.decoderImplementation =
             getStringValFromReport(v.values, 'decoderImplementation');
 
         final c = stats.firstWhereOrNull((element) => element.type == 'codec');

@@ -94,26 +94,26 @@ class RemoteAudioTrack extends RemoteTrack
       if (v.type == 'inbound-rtp') {
         receiverStats ??= AudioReceiverStats(v.id, v.timestamp);
 
-        receiverStats.jitter ??= getNumValFromReport(v.values, 'jitter');
-        receiverStats.packetsLost ??=
+        receiverStats.jitter = getNumValFromReport(v.values, 'jitter');
+        receiverStats.packetsLost =
             getNumValFromReport(v.values, 'packetsLost');
-        receiverStats.jitterBufferDelay ??=
+        receiverStats.jitterBufferDelay =
             getNumValFromReport(v.values, 'jitterBufferDelay');
-        receiverStats.bytesReceived ??=
+        receiverStats.bytesReceived =
             getNumValFromReport(v.values, 'bytesReceived');
-        receiverStats.packetsReceived ??=
+        receiverStats.packetsReceived =
             getNumValFromReport(v.values, 'packetsReceived');
-        receiverStats.concealedSamples ??=
+        receiverStats.concealedSamples =
             getNumValFromReport(v.values, 'concealedSamples');
-        receiverStats.concealmentEvents ??=
+        receiverStats.concealmentEvents =
             getNumValFromReport(v.values, 'concealmentEvents');
-        receiverStats.silentConcealedSamples ??=
+        receiverStats.silentConcealedSamples =
             getNumValFromReport(v.values, 'silentConcealedSamples');
-        receiverStats.silentConcealmentEvents ??=
+        receiverStats.silentConcealmentEvents =
             getNumValFromReport(v.values, 'silentConcealmentEvents');
-        receiverStats.totalAudioEnergy ??=
+        receiverStats.totalAudioEnergy =
             getNumValFromReport(v.values, 'totalAudioEnergy');
-        receiverStats.totalSamplesDuration ??=
+        receiverStats.totalSamplesDuration =
             getNumValFromReport(v.values, 'totalSamplesDuration');
 
         final c = stats.firstWhereOrNull((element) => element.type == 'codec');

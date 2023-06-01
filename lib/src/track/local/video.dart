@@ -71,32 +71,32 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
         VideoSenderStats vs = VideoSenderStats(v.id, v.timestamp);
-        vs.frameHeight ??= getNumValFromReport(v.values, 'frameHeight');
-        vs.frameWidth ??= getNumValFromReport(v.values, 'frameWidth');
-        vs.framesPerSecond ??= getNumValFromReport(v.values, 'framesPerSecond');
-        vs.firCount ??= getNumValFromReport(v.values, 'firCount');
-        vs.pliCount ??= getNumValFromReport(v.values, 'pliCount');
-        vs.nackCount ??= getNumValFromReport(v.values, 'nackCount');
-        vs.packetsSent ??= getNumValFromReport(v.values, 'packetsSent');
-        vs.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');
-        vs.framesSent ??= getNumValFromReport(v.values, 'framesSent');
-        vs.rid ??= getStringValFromReport(v.values, 'rid');
-        vs.encoderImplementation ??=
+        vs.frameHeight = getNumValFromReport(v.values, 'frameHeight');
+        vs.frameWidth = getNumValFromReport(v.values, 'frameWidth');
+        vs.framesPerSecond = getNumValFromReport(v.values, 'framesPerSecond');
+        vs.firCount = getNumValFromReport(v.values, 'firCount');
+        vs.pliCount = getNumValFromReport(v.values, 'pliCount');
+        vs.nackCount = getNumValFromReport(v.values, 'nackCount');
+        vs.packetsSent = getNumValFromReport(v.values, 'packetsSent');
+        vs.bytesSent = getNumValFromReport(v.values, 'bytesSent');
+        vs.framesSent = getNumValFromReport(v.values, 'framesSent');
+        vs.rid = getStringValFromReport(v.values, 'rid');
+        vs.encoderImplementation =
             getStringValFromReport(v.values, 'encoderImplementation');
-        vs.retransmittedPacketsSent ??=
+        vs.retransmittedPacketsSent =
             getNumValFromReport(v.values, 'retransmittedPacketsSent');
-        vs.qualityLimitationReason ??=
+        vs.qualityLimitationReason =
             getStringValFromReport(v.values, 'qualityLimitationReason');
-        vs.qualityLimitationResolutionChanges ??=
+        vs.qualityLimitationResolutionChanges =
             getNumValFromReport(v.values, 'qualityLimitationResolutionChanges');
 
         // locate the appropriate remote-inbound-rtp item
         final remoteId = getStringValFromReport(v.values, 'remoteId');
         final r = stats.firstWhereOrNull((element) => element.id == remoteId);
         if (r != null) {
-          vs.jitter ??= getNumValFromReport(r.values, 'jitter');
-          vs.packetsLost ??= getNumValFromReport(r.values, 'packetsLost');
-          vs.roundTripTime ??= getNumValFromReport(r.values, 'roundTripTime');
+          vs.jitter = getNumValFromReport(r.values, 'jitter');
+          vs.packetsLost = getNumValFromReport(r.values, 'packetsLost');
+          vs.roundTripTime = getNumValFromReport(r.values, 'roundTripTime');
         }
         final c = stats.firstWhereOrNull((element) => element.type == 'codec');
         if (c != null) {
@@ -130,7 +130,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<LocalVideoTrack> createCameraTrack([
     CameraCaptureOptions? options,
   ]) async {
-    options ??= const CameraCaptureOptions();
+    options = const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
@@ -149,7 +149,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<LocalVideoTrack> createScreenShareTrack([
     ScreenShareCaptureOptions? options,
   ]) async {
-    options ??= const ScreenShareCaptureOptions();
+    options = const ScreenShareCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
@@ -169,7 +169,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
     ScreenShareCaptureOptions? options,
   ]) async {
-    options ??= const ScreenShareCaptureOptions(captureScreenAudio: true);
+    options = const ScreenShareCaptureOptions(captureScreenAudio: true);
 
     final stream = await LocalTrack.createStream(options);
 

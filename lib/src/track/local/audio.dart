@@ -59,14 +59,12 @@ class LocalAudioTrack extends LocalTrack
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
         senderStats ??= AudioSenderStats(v.id, v.timestamp);
-        senderStats.packetsSent ??=
-            getNumValFromReport(v.values, 'packetsSent');
-        senderStats.packetsLost ??=
-            getNumValFromReport(v.values, 'packetsLost');
-        senderStats.bytesSent ??= getNumValFromReport(v.values, 'bytesSent');
-        senderStats.roundTripTime ??=
+        senderStats.packetsSent = getNumValFromReport(v.values, 'packetsSent');
+        senderStats.packetsLost = getNumValFromReport(v.values, 'packetsLost');
+        senderStats.bytesSent = getNumValFromReport(v.values, 'bytesSent');
+        senderStats.roundTripTime =
             getNumValFromReport(v.values, 'roundTripTime');
-        senderStats.jitter ??= getNumValFromReport(v.values, 'jitter');
+        senderStats.jitter = getNumValFromReport(v.values, 'jitter');
 
         final c = stats.firstWhereOrNull((element) => element.type == 'codec');
         if (c != null) {
@@ -102,7 +100,7 @@ class LocalAudioTrack extends LocalTrack
   static Future<LocalAudioTrack> create([
     AudioCaptureOptions? options,
   ]) async {
-    options ??= const AudioCaptureOptions();
+    options = const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack(
