@@ -190,31 +190,40 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Column(
+        body: Stack(
           children: [
-            Expanded(
-                child: participantTracks.isNotEmpty
-                    ? ParticipantWidget.widgetFor(participantTracks.first)
-                    : Container()),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: math.max(0, participantTracks.length - 1),
-                itemBuilder: (BuildContext context, int index) => SizedBox(
-                  width: 100,
-                  height: 100,
-                  child:
-                      ParticipantWidget.widgetFor(participantTracks[index + 1]),
-                ),
-              ),
+            Column(
+              children: [
+                Expanded(
+                    child: participantTracks.isNotEmpty
+                        ? ParticipantWidget.widgetFor(participantTracks.first,
+                            showStatsLayer: true)
+                        : Container()),
+                if (widget.room.localParticipant != null)
+                  SafeArea(
+                    top: false,
+                    child: ControlsWidget(
+                        widget.room, widget.room.localParticipant!),
+                  )
+              ],
             ),
-            if (widget.room.localParticipant != null)
-              SafeArea(
-                top: false,
-                child:
-                    ControlsWidget(widget.room, widget.room.localParticipant!),
-              ),
+            Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                child: SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: math.max(0, participantTracks.length - 1),
+                    itemBuilder: (BuildContext context, int index) => SizedBox(
+                      width: 180,
+                      height: 120,
+                      child: ParticipantWidget.widgetFor(
+                          participantTracks[index + 1]),
+                    ),
+                  ),
+                )),
           ],
         ),
       );

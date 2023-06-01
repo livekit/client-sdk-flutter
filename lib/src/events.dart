@@ -7,6 +7,7 @@ import 'participant/remote.dart';
 import 'publication/local.dart';
 import 'publication/remote.dart';
 import 'publication/track_publication.dart';
+import 'track/stats.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/participant_permissions.dart';
@@ -434,4 +435,58 @@ class AudioPlaybackStatusChanged with RoomEvent {
   @override
   String toString() => '${runtimeType}'
       'Audio Playback Status Changed, isPlaying: ${isPlaying})';
+}
+
+class AudioSenderStatsEvent with TrackEvent {
+  final AudioSenderStats stats;
+  final num currentBitrate;
+  const AudioSenderStatsEvent({
+    required this.stats,
+    required this.currentBitrate,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'stats: ${stats})';
+}
+
+class VideoSenderStatsEvent with TrackEvent {
+  final Map<String, VideoSenderStats> stats;
+  final Map<String, num> bitrateForLayers;
+  final num currentBitrate;
+  const VideoSenderStatsEvent({
+    required this.stats,
+    required this.currentBitrate,
+    required this.bitrateForLayers,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'stats: ${stats})';
+}
+
+class AudioReceiverStatsEvent with TrackEvent {
+  final AudioReceiverStats stats;
+  final num currentBitrate;
+  const AudioReceiverStatsEvent({
+    required this.stats,
+    required this.currentBitrate,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'stats: ${stats})';
+}
+
+class VideoReceiverStatsEvent with TrackEvent {
+  final VideoReceiverStats stats;
+  final num currentBitrate;
+  const VideoReceiverStatsEvent({
+    required this.stats,
+    required this.currentBitrate,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'stats: ${stats})';
 }

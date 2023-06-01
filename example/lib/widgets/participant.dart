@@ -7,20 +7,24 @@ import 'package:livekit_example/theme.dart';
 
 import 'no_video.dart';
 import 'participant_info.dart';
+import 'participant_stats.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
-  static ParticipantWidget widgetFor(ParticipantTrack participantTrack) {
+  static ParticipantWidget widgetFor(ParticipantTrack participantTrack,
+      {bool showStatsLayer = false}) {
     if (participantTrack.participant is LocalParticipant) {
       return LocalParticipantWidget(
           participantTrack.participant as LocalParticipant,
           participantTrack.videoTrack,
-          participantTrack.isScreenShare);
+          participantTrack.isScreenShare,
+          showStatsLayer);
     } else if (participantTrack.participant is RemoteParticipant) {
       return RemoteParticipantWidget(
           participantTrack.participant as RemoteParticipant,
           participantTrack.videoTrack,
-          participantTrack.isScreenShare);
+          participantTrack.isScreenShare,
+          showStatsLayer);
     }
     throw UnimplementedError('Unknown participant type');
   }
@@ -29,6 +33,7 @@ abstract class ParticipantWidget extends StatefulWidget {
   abstract final Participant participant;
   abstract final VideoTrack? videoTrack;
   abstract final bool isScreenShare;
+  abstract final bool showStatsLayer;
   final VideoQuality quality;
 
   const ParticipantWidget({
@@ -44,11 +49,14 @@ class LocalParticipantWidget extends ParticipantWidget {
   final VideoTrack? videoTrack;
   @override
   final bool isScreenShare;
+  @override
+  final bool showStatsLayer;
 
   const LocalParticipantWidget(
     this.participant,
     this.videoTrack,
-    this.isScreenShare, {
+    this.isScreenShare,
+    this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
 
@@ -63,11 +71,14 @@ class RemoteParticipantWidget extends ParticipantWidget {
   final VideoTrack? videoTrack;
   @override
   final bool isScreenShare;
+  @override
+  final bool showStatsLayer;
 
   const RemoteParticipantWidget(
     this.participant,
     this.videoTrack,
-    this.isScreenShare, {
+    this.isScreenShare,
+    this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
 
@@ -136,7 +147,13 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                     )
                   : const NoVideoWidget(),
             ),
-
+            if (widget.showStatsLayer)
+              Positioned(
+                  top: 30,
+                  right: 30,
+                  child: ParticipantStatsWidget(
+                    participant: widget.participant,
+                  )),
             // Bottom bar
             Align(
               alignment: Alignment.bottomCenter,
