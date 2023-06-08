@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.4
+
+* Fix: Frame drops for Android.
+
 ## 1.3.3
 
 * Fix: issue for get user audio on Android.
