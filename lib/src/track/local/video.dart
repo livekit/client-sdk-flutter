@@ -149,7 +149,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<LocalVideoTrack> createScreenShareTrack([
     ScreenShareCaptureOptions? options,
   ]) async {
-    options = const ScreenShareCaptureOptions();
+    options ??= const ScreenShareCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
