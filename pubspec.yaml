@@ -19,7 +19,7 @@ dependencies:
   cryptography: ^2.0.5
   fixnum: ^1.0.1
   meta: ^1.8.0
-  http: ^0.13.5
+  http: ^1.0.0
   logging: ^1.1.0
   uuid: ^3.0.6
   synchronized: ^3.0.0+3
