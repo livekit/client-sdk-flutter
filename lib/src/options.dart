@@ -139,8 +139,8 @@ class RoomOptions {
 
 /// Options used when publishing video.
 class VideoPublishOptions {
-  static const cameraName = 'camera';
-  static const screenShareName = 'screenshare';
+  static const defaultCameraName = 'camera';
+  static const defaultScreenShareName = 'screenshare';
 
   /// The video codec to use.
   final String videoCodec;
@@ -201,7 +201,7 @@ class AudioPreset {
 
 /// Options used when publishing audio.
 class AudioPublishOptions {
-  static const microphoneName = 'microphone';
+  static const defaultMicrophoneName = 'microphone';
 
   /// Whether to enable DTX (Discontinuous Transmission) or not.
   /// https://en.wikipedia.org/wiki/Discontinuous_transmission
