@@ -206,10 +206,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       logger.warning('Not a camera track');
       return;
     }
-
-    await restartTrack(
-      options.copyWith(cameraPosition: position),
-    );
+    final newOptions = CameraCaptureOptions(
+        cameraPosition: position,
+        deviceId: null,
+        maxFrameRate: options.maxFrameRate,
+        params: options.params);
+    await restartTrack(newOptions);
+    currentOptions = newOptions;
   }
 
   Future<void> switchCamera(String deviceId, {bool fastSwitch = false}) async {

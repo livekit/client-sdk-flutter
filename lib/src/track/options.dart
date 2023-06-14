@@ -44,8 +44,9 @@ class CameraCaptureOptions extends VideoCaptureOptions {
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = <String, dynamic>{
       ...super.toMediaConstraintsMap(),
-      'facingMode':
-          cameraPosition == CameraPosition.front ? 'user' : 'environment',
+      if (deviceId == null)
+        'facingMode':
+            cameraPosition == CameraPosition.front ? 'user' : 'environment'
     };
     if (deviceId != null) {
       if (kIsWeb) {
