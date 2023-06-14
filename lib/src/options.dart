@@ -207,11 +207,14 @@ class AudioPublishOptions {
   @Deprecated('Mic indicator will always turn off now when muted.')
   final bool stopMicTrackOnMute;
 
-  const AudioPublishOptions({
-    this.dtx = true,
-    this.audioBitrate = AudioPreset.music,
-    this.stopMicTrackOnMute = true,
-  });
+  /// Name of the audio track.
+  final String? name;
+
+  const AudioPublishOptions(
+      {this.dtx = true,
+      this.audioBitrate = AudioPreset.music,
+      this.stopMicTrackOnMute = true,
+      this.name});
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';

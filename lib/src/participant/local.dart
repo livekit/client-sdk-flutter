@@ -57,7 +57,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
-      name: track.name,
+      name: publishOptions.name ?? track.name,
       kind: track.kind,
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
@@ -419,7 +419,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else if (source == TrackSource.microphone) {
         AudioCaptureOptions captureOptions =
             audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(captureOptions);
+        final track = await LocalAudioTrack.create(
+            captureOptions, room.roomOptions.defaultAudioPublishOptions.name);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??

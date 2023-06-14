@@ -97,14 +97,13 @@ class LocalAudioTrack extends LocalTrack
         );
 
   /// Creates a new audio track from the default audio input device.
-  static Future<LocalAudioTrack> create([
-    AudioCaptureOptions? options,
-  ]) async {
+  static Future<LocalAudioTrack> create(
+      [AudioCaptureOptions? options, String? name]) async {
     options = const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack(
-      '',
+      name ?? '',
       TrackSource.microphone,
       stream,
       stream.getAudioTracks().first,

@@ -145,6 +145,8 @@ class _ConnectPageState extends State<ConnectPage> {
         roomOptions: RoomOptions(
           adaptiveStream: _adaptiveStream,
           dynacast: _dynacast,
+          defaultAudioPublishOptions:
+              const AudioPublishOptions(name: 'custom_audio_track_name'),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
           ),
