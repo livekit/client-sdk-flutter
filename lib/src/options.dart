@@ -155,7 +155,7 @@ class VideoPublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
-  /// Name of the audio track.
+  /// Name of the video track.
   final String? name;
 
   final List<VideoParameters> videoSimulcastLayers;
