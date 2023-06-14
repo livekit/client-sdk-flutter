@@ -17,10 +17,6 @@ import '../types/other.dart';
 abstract class Track extends DisposableChangeNotifier
     with EventsEmittable<TrackEvent> {
   static const uuid = Uuid();
-  static const cameraName = 'camera';
-  static const screenShareName = 'screenshare';
-
-  final String name;
   final lk_models.TrackType kind;
   final TrackSource source;
 
@@ -47,8 +43,7 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpReceiver? receiver;
 
-  Track(this.name, this.kind, this.source, this._mediaStream,
-      this._mediaStreamTrack,
+  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack,
       {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {

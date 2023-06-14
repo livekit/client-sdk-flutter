@@ -9,11 +9,10 @@ import '../stats.dart';
 import '../track.dart';
 
 abstract class RemoteTrack extends Track {
-  RemoteTrack(String name, lk_models.TrackType kind, TrackSource source,
+  RemoteTrack(lk_models.TrackType kind, TrackSource source,
       rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          name,
           kind,
           source,
           stream,
