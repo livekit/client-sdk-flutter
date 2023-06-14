@@ -7,7 +7,6 @@ import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
-import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
 import '../support/disposable.dart';

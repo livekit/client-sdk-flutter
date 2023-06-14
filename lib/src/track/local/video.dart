@@ -7,7 +7,6 @@ import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../options.dart';
 import '../stats.dart';
-import '../track.dart';
 import 'audio.dart';
 import 'local.dart';
 
