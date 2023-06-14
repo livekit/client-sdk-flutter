@@ -7,10 +7,10 @@ import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
+import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
 import '../support/disposable.dart';
-import '../track/track.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 
@@ -249,13 +249,13 @@ abstract class Participant<T extends TrackPublication>
                 e.kind == lk_models.TrackType.AUDIO) ||
             (source == TrackSource.camera &&
                 e.kind == lk_models.TrackType.VIDEO &&
-                e.name != Track.screenShareName) ||
+                e.name != VideoPublishOptions.screenShareName) ||
             (source == TrackSource.screenShareVideo &&
                 e.kind == lk_models.TrackType.VIDEO &&
-                e.name == Track.screenShareName) ||
+                e.name == VideoPublishOptions.screenShareName) ||
             (source == TrackSource.screenShareAudio &&
                 e.kind == lk_models.TrackType.AUDIO &&
-                e.name == Track.screenShareName));
+                e.name == VideoPublishOptions.screenShareName));
   }
 
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].

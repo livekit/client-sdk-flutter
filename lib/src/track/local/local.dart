@@ -57,13 +57,11 @@ abstract class LocalTrack extends Track {
   String? codec;
 
   LocalTrack(
-    String name,
     lk_models.TrackType kind,
     TrackSource source,
     rtc.MediaStream mediaStream,
     rtc.MediaStreamTrack mediaStreamTrack,
   ) : super(
-          name,
           kind,
           source,
           mediaStream,

@@ -83,13 +83,11 @@ class LocalAudioTrack extends LocalTrack
   // private constructor
   @internal
   LocalAudioTrack(
-    String name,
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          name,
           lk_models.TrackType.AUDIO,
           source,
           stream,
@@ -97,13 +95,13 @@ class LocalAudioTrack extends LocalTrack
         );
 
   /// Creates a new audio track from the default audio input device.
-  static Future<LocalAudioTrack> create(
-      [AudioCaptureOptions? options, String? name]) async {
+  static Future<LocalAudioTrack> create([
+    AudioCaptureOptions? options,
+  ]) async {
     options = const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack(
-      name ?? '',
       TrackSource.microphone,
       stream,
       stream.getAudioTracks().first,
