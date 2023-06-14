@@ -83,13 +83,11 @@ class LocalAudioTrack extends LocalTrack
   // private constructor
   @internal
   LocalAudioTrack(
-    String name,
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          name,
           lk_models.TrackType.AUDIO,
           source,
           stream,
@@ -104,7 +102,6 @@ class LocalAudioTrack extends LocalTrack
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack(
-      '',
       TrackSource.microphone,
       stream,
       stream.getAudioTracks().first,

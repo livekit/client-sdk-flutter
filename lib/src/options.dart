@@ -139,6 +139,9 @@ class RoomOptions {
 
 /// Options used when publishing video.
 class VideoPublishOptions {
+  static const defaultCameraName = 'camera';
+  static const defaultScreenShareName = 'screenshare';
+
   /// The video codec to use.
   final String videoCodec;
 
@@ -152,6 +155,9 @@ class VideoPublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
+  /// Name of the video track.
+  final String? name;
+
   final List<VideoParameters> videoSimulcastLayers;
 
   final List<VideoParameters> screenShareSimulcastLayers;
@@ -162,6 +168,7 @@ class VideoPublishOptions {
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
+    this.name,
   });
 
   VideoPublishOptions copyWith({
@@ -194,6 +201,8 @@ class AudioPreset {
 
 /// Options used when publishing audio.
 class AudioPublishOptions {
+  static const defaultMicrophoneName = 'microphone';
+
   /// Whether to enable DTX (Discontinuous Transmission) or not.
   /// https://en.wikipedia.org/wiki/Discontinuous_transmission
   /// Defaults to true.
@@ -207,11 +216,14 @@ class AudioPublishOptions {
   @Deprecated('Mic indicator will always turn off now when muted.')
   final bool stopMicTrackOnMute;
 
-  const AudioPublishOptions({
-    this.dtx = true,
-    this.audioBitrate = AudioPreset.music,
-    this.stopMicTrackOnMute = true,
-  });
+  /// Name of the audio track.
+  final String? name;
+
+  const AudioPublishOptions(
+      {this.dtx = true,
+      this.audioBitrate = AudioPreset.music,
+      this.stopMicTrackOnMute = true,
+      this.name});
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';

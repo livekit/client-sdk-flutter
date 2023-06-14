@@ -62,9 +62,10 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     updateFromInfo(info);
   }
 
-  /// True when the track is published with name [Track.screenShareName].
+  /// True when the track is published with source [TrackSource.screenShareVideo].
   bool get isScreenShare =>
-      kind == lk_models.TrackType.VIDEO && name == Track.screenShareName;
+      kind == lk_models.TrackType.VIDEO &&
+      source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     _simulcasted = info.simulcast;

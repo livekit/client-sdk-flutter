@@ -7,7 +7,6 @@ import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../options.dart';
 import '../stats.dart';
-import '../track.dart';
 import 'audio.dart';
 import 'local.dart';
 
@@ -113,13 +112,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   // Private constructor
   LocalVideoTrack._(
-    String name,
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          name,
           lk_models.TrackType.VIDEO,
           source,
           stream,
@@ -134,7 +131,6 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
-      Track.cameraName,
       TrackSource.camera,
       stream,
       stream.getVideoTracks().first,
@@ -153,7 +149,6 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
-      Track.screenShareName,
       TrackSource.screenShareVideo,
       stream,
       stream.getVideoTracks().first,
@@ -175,7 +170,6 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
     List<LocalTrack> tracks = [
       LocalVideoTrack._(
-        Track.screenShareName,
         TrackSource.screenShareVideo,
         stream,
         stream.getVideoTracks().first,
@@ -184,12 +178,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     ];
 
     if (stream.getAudioTracks().isNotEmpty) {
-      tracks.add(LocalAudioTrack(
-          Track.screenShareName,
-          TrackSource.screenShareAudio,
-          stream,
-          stream.getAudioTracks().first,
-          const AudioCaptureOptions()));
+      tracks.add(LocalAudioTrack(TrackSource.screenShareAudio, stream,
+          stream.getAudioTracks().first, const AudioCaptureOptions()));
     }
     return tracks;
   }

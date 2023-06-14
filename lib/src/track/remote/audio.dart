@@ -16,11 +16,10 @@ import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
 class RemoteAudioTrack extends RemoteTrack
     with AudioTrack, RemoteAudioManagementMixin {
   String? _deviceId;
-  RemoteAudioTrack(String name, TrackSource source, rtc.MediaStream stream,
-      rtc.MediaStreamTrack track,
+  RemoteAudioTrack(
+      TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          name,
           lk_models.TrackType.AUDIO,
           source,
           stream,
