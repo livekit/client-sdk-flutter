@@ -17,6 +17,8 @@ import '../types/other.dart';
 abstract class Track extends DisposableChangeNotifier
     with EventsEmittable<TrackEvent> {
   static const uuid = Uuid();
+  @Deprecated('Use TrackPublication.name instead')
+  final String name = 'Deprecated, please use TrackPublication.name instead';
   final lk_models.TrackType kind;
   final TrackSource source;
 
