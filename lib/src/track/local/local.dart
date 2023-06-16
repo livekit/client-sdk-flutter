@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -119,7 +120,7 @@ abstract class LocalTrack extends Track {
   static Future<rtc.MediaStream> createStream(
     LocalTrackOptions options,
   ) async {
-    final constraints = <String, dynamic>{
+    var constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
@@ -132,6 +133,14 @@ abstract class LocalTrack extends Track {
 
     final rtc.MediaStream stream;
     if (options is ScreenShareCaptureOptions) {
+      if (kIsWeb) {
+        if (options.preferCurrentTab) {
+          constraints['preferCurrentTab'] = true;
+        }
+        if (options.selfBrowserSurface != null) {
+          constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
+        }
+      }
       stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
       // options is CameraVideoTrackOptions
