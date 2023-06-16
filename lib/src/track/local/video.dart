@@ -23,17 +23,17 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   final Map<String, num> _bitrateFoLayers = {};
 
   @override
-  Future<void> monitorSender() async {
-    if (sender == null) {
+  Future<bool> monitorStats() async {
+    if (sender == null || events.isDisposed) {
       _currentBitrate = 0;
-      return;
+      return false;
     }
     List<VideoSenderStats> stats = [];
     try {
       stats = await getSenderStats();
     } catch (e) {
       logger.warning('Failed to get sender stats: $e');
-      return;
+      return false;
     }
     Map<String, VideoSenderStats> statsMap = {};
 
@@ -58,6 +58,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
 
     prevStats = statsMap;
+    return true;
   }
 
   Future<List<VideoSenderStats>> getSenderStats() async {

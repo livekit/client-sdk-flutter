@@ -33,10 +33,10 @@ class LocalAudioTrack extends LocalTrack
   AudioSenderStats? prevStats;
 
   @override
-  Future<void> monitorSender() async {
-    if (sender == null) {
+  Future<bool> monitorStats() async {
+    if (sender == null || events.isDisposed) {
       _currentBitrate = 0;
-      return;
+      return false;
     }
     final stats = await getSenderStats();
 
@@ -47,6 +47,7 @@ class LocalAudioTrack extends LocalTrack
     }
 
     prevStats = stats;
+    return true;
   }
 
   Future<AudioSenderStats?> getSenderStats() async {
