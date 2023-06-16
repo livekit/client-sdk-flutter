@@ -120,7 +120,7 @@ abstract class LocalTrack extends Track {
   static Future<rtc.MediaStream> createStream(
     LocalTrackOptions options,
   ) async {
-    var constraints = <String, dynamic>{
+    final constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
@@ -133,14 +133,6 @@ abstract class LocalTrack extends Track {
 
     final rtc.MediaStream stream;
     if (options is ScreenShareCaptureOptions) {
-      if (kIsWeb) {
-        if (options.preferCurrentTab) {
-          constraints['preferCurrentTab'] = true;
-        }
-        if (options.selfBrowserSurface != null) {
-          constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
-        }
-      }
       stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
       // options is CameraVideoTrackOptions
