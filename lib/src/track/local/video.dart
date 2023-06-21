@@ -128,7 +128,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<LocalVideoTrack> createCameraTrack([
     CameraCaptureOptions? options,
   ]) async {
-    options = const CameraCaptureOptions();
+    options ??= const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
     return LocalVideoTrack._(
@@ -165,8 +165,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
     ScreenShareCaptureOptions? options,
   ]) async {
-    options = const ScreenShareCaptureOptions(captureScreenAudio: true);
-
+    if (options == null) {
+      options = const ScreenShareCaptureOptions(captureScreenAudio: true);
+    } else {
+      options = options.copyWith(captureScreenAudio: true);
+    }
     final stream = await LocalTrack.createStream(options);
 
     List<LocalTrack> tracks = [

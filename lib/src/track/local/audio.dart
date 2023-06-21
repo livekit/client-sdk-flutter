@@ -99,7 +99,7 @@ class LocalAudioTrack extends LocalTrack
   static Future<LocalAudioTrack> create([
     AudioCaptureOptions? options,
   ]) async {
-    options = const AudioCaptureOptions();
+    options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     return LocalAudioTrack(
