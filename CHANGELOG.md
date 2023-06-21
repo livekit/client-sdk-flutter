@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 1.3.5
+
+* Fix: Fix ScreenShareCaptureOptions not passed correctly.
+* Fix: facingMode for mobile web.
+* Fix: add name to AudioPublishOptions.
+* Fix: track not stop stats monitor correctly.
+* Feat: add preferCurrentTab support for flutter web.
+* Fix incorrect 4:3 preset bitrates
+* Fix: fix wrong override when options is not null when LocalTrack.create.
+
 ## 1.3.4
 
 * Fix: Frame drops for Android.
