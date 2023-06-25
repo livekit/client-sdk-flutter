@@ -664,8 +664,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _reliableDCPub = null;
     _lossyDCSub = null;
     _lossyDCPub = null;
+
     await _signalListener.cancelAll();
-    await events.cancelAll();
+
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
 
