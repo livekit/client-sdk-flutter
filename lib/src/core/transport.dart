@@ -8,6 +8,7 @@ import '../internal/types.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../support/disposable.dart';
+import '../support/platform.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
@@ -128,7 +129,7 @@ class Transport extends Disposable {
       }
     }
 
-    if (restartingIce && !rtc.WebRTC.platformIsWeb) {
+    if (restartingIce && !lkPlatformIs(PlatformType.web)) {
       await pc.restartIce();
     }
 

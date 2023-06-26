@@ -7,6 +7,15 @@ PlatformType lkPlatform() => lkPlatformImplementation();
 
 bool lkPlatformIs(PlatformType type) => lkPlatform() == type;
 
+bool lkPlatformIsMobile() =>
+    [PlatformType.iOS, PlatformType.android].contains(lkPlatform());
+
+bool lkPlatformIsDesktop() => [
+      PlatformType.macOS,
+      PlatformType.windows,
+      PlatformType.linux
+    ].contains(lkPlatform());
+
 bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
 
 bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
