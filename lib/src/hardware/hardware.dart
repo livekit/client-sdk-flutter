@@ -63,7 +63,7 @@ class Hardware {
 
   bool? speakerOn;
 
-  bool preferSpeakerOutput = false;
+  bool _preferSpeakerOutput = false;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -108,7 +108,7 @@ class Hardware {
 
   Future<void> setPreferSpeakerOutput(bool enable) async {
     if (lkPlatformIsMobile()) {
-      if (preferSpeakerOutput != enable) {
+      if (_preferSpeakerOutput != enable) {
         NativeAudioConfiguration? config;
         if (lkPlatformIs(PlatformType.iOS)) {
           // Only iOS for now...
@@ -121,15 +121,17 @@ class Hardware {
           }
         }
       }
-      preferSpeakerOutput = enable;
+      _preferSpeakerOutput = enable;
     } else {
       logger.warning('setPreferSpeakerOutput only support on iOS/Android');
     }
   }
 
+  bool get preferSpeakerOutput => _preferSpeakerOutput;
+
   bool get canSwitchSpeakerphone =>
       lkPlatformIsMobile() &&
-      !preferSpeakerOutput &&
+      !_preferSpeakerOutput &&
       [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
           .contains(audioTrackState);
 
