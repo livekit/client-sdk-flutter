@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-
+import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';
@@ -132,10 +131,10 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = super.toMediaConstraintsMap();
-    if (useiOSBroadcastExtension && WebRTC.platformIsIOS) {
+    if (useiOSBroadcastExtension && lkPlatformIs(PlatformType.iOS)) {
       constraints['deviceId'] = 'broadcast';
     }
-    if (WebRTC.platformIsDesktop) {
+    if (lkPlatformIsDesktop()) {
       if (deviceId != null) {
         constraints['deviceId'] = {'exact': deviceId};
       }

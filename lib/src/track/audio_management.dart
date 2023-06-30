@@ -1,5 +1,6 @@
 import 'package:synchronized/synchronized.dart' as sync;
 
+import '../hardware/hardware.dart';
 import '../logger.dart';
 import '../support/native.dart';
 import '../support/native_audio.dart';
@@ -23,6 +24,9 @@ ConfigureNativeAudioFunc onConfigureNativeAudio =
 
 final _trackCounterLock = sync.Lock();
 AudioTrackState _audioTrackState = AudioTrackState.none;
+
+AudioTrackState get audioTrackState => _audioTrackState;
+
 int _localTrackCount = 0;
 int _remoteTrackCount = 0;
 
@@ -141,7 +145,9 @@ Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
         AppleAudioCategoryOption.allowBluetooth,
         AppleAudioCategoryOption.mixWithOthers,
       },
-      appleAudioMode: AppleAudioMode.videoChat,
+      appleAudioMode: Hardware.instance.preferSpeakerOutput
+          ? AppleAudioMode.videoChat
+          : AppleAudioMode.voiceChat,
     );
   }
 

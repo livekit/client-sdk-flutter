@@ -4,6 +4,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../logger.dart';
+import '../support/native.dart';
+import '../support/native_audio.dart';
+import '../support/platform.dart';
+import '../track/audio_management.dart';
 
 class MediaDevice {
   const MediaDevice(this.deviceId, this.label, this.kind);
@@ -59,6 +63,8 @@ class Hardware {
 
   bool? speakerOn;
 
+  bool _preferSpeakerOutput = false;
+
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
     var devices =
@@ -82,7 +88,7 @@ class Hardware {
   }
 
   Future<void> selectAudioOutput(MediaDevice device) async {
-    if (rtc.WebRTC.platformIsWeb) {
+    if (lkPlatformIs(PlatformType.web)) {
       logger.warning('selectAudioOutput not support on web');
       return;
     }
@@ -91,7 +97,7 @@ class Hardware {
   }
 
   Future<void> selectAudioInput(MediaDevice device) async {
-    if (rtc.WebRTC.platformIsWeb) {
+    if (lkPlatformIs(PlatformType.web)) {
       logger.warning(
           'selectAudioInput is only supported on Android/Windows/macOS');
       return;
@@ -100,10 +106,43 @@ class Hardware {
     await rtc.Helper.selectAudioInput(device.deviceId);
   }
 
+  Future<void> setPreferSpeakerOutput(bool enable) async {
+    if (lkPlatformIsMobile()) {
+      if (_preferSpeakerOutput != enable) {
+        NativeAudioConfiguration? config;
+        if (lkPlatformIs(PlatformType.iOS)) {
+          // Only iOS for now...
+          config = await onConfigureNativeAudio.call(audioTrackState);
+          logger.fine('configuring for ${audioTrackState} using ${config}...');
+          try {
+            await Native.configureAudio(config);
+          } catch (error) {
+            logger.warning('failed to configure ${error}');
+          }
+        }
+      }
+      _preferSpeakerOutput = enable;
+    } else {
+      logger.warning('setPreferSpeakerOutput only support on iOS/Android');
+    }
+  }
+
+  bool get preferSpeakerOutput => _preferSpeakerOutput;
+
+  bool get canSwitchSpeakerphone =>
+      lkPlatformIsMobile() &&
+      !_preferSpeakerOutput &&
+      [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
+          .contains(audioTrackState);
+
   Future<void> setSpeakerphoneOn(bool enable) async {
-    if (rtc.WebRTC.platformIsMobile) {
-      speakerOn = enable;
-      await rtc.Helper.setSpeakerphoneOn(enable);
+    if (lkPlatformIsMobile()) {
+      if (canSwitchSpeakerphone) {
+        speakerOn = enable;
+        await rtc.Helper.setSpeakerphoneOn(enable);
+      } else {
+        logger.warning('Can\'t switch speaker/earpiece');
+      }
     } else {
       logger.warning('setSpeakerphoneOn only support on iOS/Android');
     }
@@ -115,7 +154,7 @@ class Hardware {
       if (facingMode != null) 'facingMode': facingMode ? 'user' : 'environment',
     };
     if (device != null) {
-      if (rtc.WebRTC.platformIsWeb) {
+      if (lkPlatformIs(PlatformType.web)) {
         constraints['deviceId'] = device.deviceId;
       } else {
         constraints['optional'] = [
