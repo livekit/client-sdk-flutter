@@ -49,8 +49,8 @@ class BaseKeyProvider implements KeyProvider {
       uncryptedMagicBytes: Uint8List.fromList(
           (uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
     );
-    final keyProvider = await rtc.FrameCryptorFactory.instance
-        .createDefaultKeyProvider(options);
+    final keyProvider =
+        await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);
   }
 
