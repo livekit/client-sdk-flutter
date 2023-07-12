@@ -19,11 +19,11 @@ dependencies:
   cryptography: ^2.0.5
   fixnum: ^1.0.1
   meta: ^1.8.0
-  http: ^0.13.5
+  http: ^1.1.0
   logging: ^1.1.0
   uuid: ^3.0.6
   synchronized: ^3.0.0+3
-  protobuf: ^2.1.0
+  protobuf: ^3.0.0
   flutter_webrtc: 0.9.35
   flutter_window_close: ^0.2.2
   device_info_plus: ^9.0.0
