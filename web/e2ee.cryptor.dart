@@ -161,7 +161,7 @@ class FrameCryptor {
   CryptorError lastError = CryptorError.kNew;
   final DedicatedWorkerGlobalScope worker;
   int currentKeyIndex = 0;
-
+  bool hasValidKey = false;
   Completer? _ratchetCompleter;
 
   List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
@@ -243,6 +243,7 @@ class FrameCryptor {
       keyOptions.ratchetSalt,
     );
     await setKeySetFromMaterial(keySet, keyIndex);
+    hasValidKey = true;
   }
 
   Future<void> setKeySetFromMaterial(KeySet keySet, int keyIndex) async {
@@ -530,7 +531,7 @@ class FrameCryptor {
       var initialKeySet = getKeySet(keyIndex);
       initialKeyIndex = keyIndex;
 
-      if (initialKeySet == null) {
+      if (initialKeySet == null || !hasValidKey) {
         if (lastError != CryptorError.kMissingKey) {
           lastError = CryptorError.kMissingKey;
           postMessage({
@@ -641,6 +642,7 @@ class FrameCryptor {
       if (initialKeySet != null) {
         await setKeySetFromMaterial(initialKeySet, initialKeyIndex);
       }
+      hasValidKey = false;
     }
   }
 }
