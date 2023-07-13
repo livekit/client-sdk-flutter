@@ -16,6 +16,9 @@ class TrackOption<E extends Object, T extends Object> {
   const TrackOption({this.enabled, this.track});
 }
 
+/// This will enable the local participant to publish tracks on connect,
+/// instead of having to explicitly publish them.
+/// Defaults to false for all three tracks: microphone, camera, and screen.
 class FastConnectOptions {
   FastConnectOptions({
     this.microphone = const TrackOption(enabled: false),
