@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.0
+
+* Upgrade flutter-webrtc to 0.9.36 (libwebrtc m114).
+* Fix: Skip decryption when ratchet exceeded.
+* Fix SpeakerPhone switch for mobile.
+* Fix: Fix data channel cannot be opened due to events loss.
+
 ## 1.3.5
 
 * Fix: Fix ScreenShareCaptureOptions not passed correctly.
