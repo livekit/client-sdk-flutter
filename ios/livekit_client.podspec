@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name                = 'livekit_client'
-  s.version             = '1.3.1'
+  s.version             = '1.4.0'
   s.summary             = 'Open source platform for real-time audio and video.'
   s.description         = 'Open source platform for real-time audio and video.'
   s.homepage            = 'https://livekit.io/'
@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.static_framework    = true
 
   s.dependency 'Flutter'
-  s.dependency 'WebRTC-SDK', '104.5112.17'
+  s.dependency 'WebRTC-SDK', '114.5735.02'
 end

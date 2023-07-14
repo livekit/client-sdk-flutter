@@ -110,12 +110,11 @@ class E2EEManager {
   Future<FrameCryptor> _addRtpSender(RTCRtpSender sender, String participantId,
       String trackId, String kind) async {
     var pid = '$kind-sender-$participantId-$trackId';
-    var frameCryptor = await FrameCryptorFactory.instance
-        .createFrameCryptorForRtpSender(
-            participantId: pid,
-            sender: sender,
-            algorithm: _algorithm,
-            keyProvider: _keyProvider.keyProvider);
+    var frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
+        participantId: pid,
+        sender: sender,
+        algorithm: _algorithm,
+        keyProvider: _keyProvider.keyProvider);
     _frameCryptors[trackId] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     if (_keyProvider.options.sharedKey) {
@@ -129,8 +128,8 @@ class E2EEManager {
   Future<FrameCryptor> _addRtpReceiver(RTCRtpReceiver receiver,
       String participantId, String trackId, String kind) async {
     var pid = '$kind-receiver-$participantId-$trackId';
-    var frameCryptor = await FrameCryptorFactory.instance
-        .createFrameCryptorForRtpReceiver(
+    var frameCryptor =
+        await frameCryptorFactory.createFrameCryptorForRtpReceiver(
             participantId: pid,
             receiver: receiver,
             algorithm: _algorithm,
