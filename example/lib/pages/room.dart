@@ -32,7 +32,9 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
+    // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
+    // add callbacks for finer grained events
     _setUpListeners();
     _sortParticipants();
     WidgetsBindingCompatible.instance?.addPostFrameCallback((_) {
@@ -53,6 +55,7 @@ class _RoomPageState extends State<RoomPage> {
     super.dispose();
   }
 
+  /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
   void _setUpListeners() => _listener
     ..on<RoomDisconnectedEvent>((event) async {
       if (event.reason != null) {
@@ -60,6 +63,11 @@ class _RoomPageState extends State<RoomPage> {
       }
       WidgetsBindingCompatible.instance
           ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+    })
+    ..on<ParticipantEvent>((event) {
+      print('Participant event');
+      // sort participants on many track events as noted in documentation linked above
+      _sortParticipants();
     })
     ..on<RoomRecordingStatusChanged>((event) {
       context.showRecordingStatusChangedDialog(event.activeRecording);
