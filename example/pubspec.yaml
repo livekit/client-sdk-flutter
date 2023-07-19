@@ -8,6 +8,7 @@ environment:
   sdk: ">=2.15.0 <3.0.0"
 
 dependencies:
+  dropdown_textfield: ^1.0.8
   flutter:
     sdk: flutter
 
@@ -25,6 +26,7 @@ dependencies:
   livekit_client:
     path: ../
   js_bindings: ^0.1.2+1
+  random_name_generator: ^1.1.0
     # git:
     #   url: https://github.com/livekit/client-sdk-flutter
     #   ref: main

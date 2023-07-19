@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/pages/prejoin.dart';
 import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -123,6 +124,11 @@ class _ConnectPageState extends State<ConnectPage> {
 
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
+
+      await Navigator.push<void>(
+        ctx,
+        MaterialPageRoute(builder: (_) => const PreJoinPage()),
+      );
 
       //create new room
       final room = Room();

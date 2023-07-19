@@ -10,7 +10,6 @@ import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
 
 class RoomPage extends StatefulWidget {
-  //
   final Room room;
   final EventsListener<RoomEvent> listener;
 
