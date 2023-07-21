@@ -57,6 +57,12 @@ class _PreJoinPageState extends State<PreJoinPage> {
     _displayNameCtrl.text = randomNames.name();
   }
 
+  @override
+  void deactivate() {
+    _subscription?.cancel();
+    super.deactivate();
+  }
+
   void _loadDevices(List<MediaDevice> devices) async {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
@@ -65,13 +71,25 @@ class _PreJoinPageState extends State<PreJoinPage> {
     await _changeLocalAudioTrack();
   }
 
-  void _setEnableVideo(value) {
+  void _setEnableVideo(value) async {
     _enableVideo = value;
+    if (!_enableVideo) {
+      await _videoTrack?.stop();
+      _videoTrack = null;
+    } else {
+      await _changeLocalVideoTrack();
+    }
     setState(() {});
   }
 
-  void _setEnableAudio(value) {
+  void _setEnableAudio(value) async {
     _enableAudio = value;
+    if (!_enableAudio) {
+      await _audioTrack?.stop();
+      _audioTrack = null;
+    } else {
+      await _changeLocalAudioTrack();
+    }
     setState(() {});
   }
 
@@ -88,6 +106,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       _audioTrack = await LocalAudioTrack.create(AudioCaptureOptions(
         deviceId: audioInput,
       ));
+      await _audioTrack!.start();
     }
     setState(() {});
   }
@@ -106,6 +125,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
           await LocalVideoTrack.createCameraTrack(CameraCaptureOptions(
         deviceId: videoInput,
       ));
+      await _videoTrack!.start();
     }
     setState(() {});
   }
@@ -117,18 +137,12 @@ class _PreJoinPageState extends State<PreJoinPage> {
   }
 
   _join(BuildContext context) async {
-    var videoInput = _videoInputs.isNotEmpty
-        ? _videoInputs[_selectedVideoIdx].deviceId
-        : null;
-    var audioInput = _audioInputs.isNotEmpty
-        ? _audioInputs[_selectedAudioIdx].deviceId
-        : null;
     var displayName = _displayNameCtrl.text;
     if (displayName.isEmpty) {
       displayName = RandomNames(Zone.us).name();
     }
+
     _busy = true;
-    print('Joining with $videoInput, $audioInput, $displayName');
 
     try {
       //create new room
