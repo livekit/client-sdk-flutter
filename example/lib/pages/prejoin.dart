@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:math' as math;
 
-import 'package:dropdown_textfield/dropdown_textfield.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/exts.dart';
-import 'package:random_name_generator/random_name_generator.dart';
 
-import '../widgets/text_field.dart';
+import '../theme.dart';
 import 'room.dart';
 
 class PreJoinPage extends StatefulWidget {
@@ -33,28 +34,26 @@ class PreJoinPage extends StatefulWidget {
 }
 
 class _PreJoinPageState extends State<PreJoinPage> {
-  final _displayNameCtrl = TextEditingController();
   List<MediaDevice> _audioInputs = [];
   List<MediaDevice> _videoInputs = [];
   StreamSubscription? _subscription;
-  var _selectedAudioIdx = 0;
-  var _selectedVideoIdx = 0;
+
   bool _busy = false;
   bool _enableVideo = true;
   bool _enableAudio = true;
   LocalAudioTrack? _audioTrack;
   LocalVideoTrack? _videoTrack;
 
+  MediaDevice? _selectedVideoDevice;
+  MediaDevice? _selectedAudioDevice;
+  VideoParameters _selectedVideoParameters = VideoParametersPresets.h720_169;
+
   @override
   void initState() {
     super.initState();
-    _subscription = Hardware.instance.onDeviceChange.stream
-        .listen((List<MediaDevice> devices) {
-      _loadDevices(devices);
-    });
+    _subscription =
+        Hardware.instance.onDeviceChange.stream.listen(_loadDevices);
     Hardware.instance.enumerateDevices().then(_loadDevices);
-    var randomNames = RandomNames(Zone.us);
-    _displayNameCtrl.text = randomNames.name();
   }
 
   @override
@@ -66,9 +65,27 @@ class _PreJoinPageState extends State<PreJoinPage> {
   void _loadDevices(List<MediaDevice> devices) async {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
+
+    if (_audioInputs.isNotEmpty) {
+      if (_selectedAudioDevice == null) {
+        _selectedAudioDevice = _audioInputs.first;
+        Future.delayed(const Duration(milliseconds: 100), () async {
+          await _changeLocalAudioTrack();
+          setState(() {});
+        });
+      }
+    }
+
+    if (_videoInputs.isNotEmpty) {
+      if (_selectedVideoDevice == null) {
+        _selectedVideoDevice = _videoInputs.first;
+        Future.delayed(const Duration(milliseconds: 100), () async {
+          await _changeLocalVideoTrack();
+          setState(() {});
+        });
+      }
+    }
     setState(() {});
-    await _changeLocalVideoTrack();
-    await _changeLocalAudioTrack();
   }
 
   void _setEnableVideo(value) async {
@@ -98,17 +115,13 @@ class _PreJoinPageState extends State<PreJoinPage> {
       await _audioTrack!.stop();
       _audioTrack = null;
     }
-    var audioInput = _audioInputs.isNotEmpty
-        ? _audioInputs[_selectedAudioIdx].deviceId
-        : null;
 
-    if (audioInput != null) {
+    if (_selectedAudioDevice != null) {
       _audioTrack = await LocalAudioTrack.create(AudioCaptureOptions(
-        deviceId: audioInput,
+        deviceId: _selectedAudioDevice!.deviceId,
       ));
       await _audioTrack!.start();
     }
-    setState(() {});
   }
 
   Future<void> _changeLocalVideoTrack() async {
@@ -116,18 +129,15 @@ class _PreJoinPageState extends State<PreJoinPage> {
       await _videoTrack!.stop();
       _videoTrack = null;
     }
-    var videoInput = _videoInputs.isNotEmpty
-        ? _videoInputs[_selectedVideoIdx].deviceId
-        : null;
 
-    if (videoInput != null) {
+    if (_selectedVideoDevice != null) {
       _videoTrack =
           await LocalVideoTrack.createCameraTrack(CameraCaptureOptions(
-        deviceId: videoInput,
+        deviceId: _selectedVideoDevice!.deviceId,
+        params: _selectedVideoParameters,
       ));
       await _videoTrack!.start();
     }
-    setState(() {});
   }
 
   @override
@@ -137,12 +147,9 @@ class _PreJoinPageState extends State<PreJoinPage> {
   }
 
   _join(BuildContext context) async {
-    var displayName = _displayNameCtrl.text;
-    if (displayName.isEmpty) {
-      displayName = RandomNames(Zone.us).name();
-    }
-
     _busy = true;
+
+    setState(() {});
 
     try {
       //create new room
@@ -179,14 +186,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     maxBitrate: 3 * 1000 * 1000,
                     maxFramerate: 15,
                   ))),
-          defaultCameraCaptureOptions: const CameraCaptureOptions(
-              maxFrameRate: 30,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h720_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 2 * 1000 * 1000,
-                    maxFramerate: 30,
-                  ))),
+          defaultCameraCaptureOptions: CameraCaptureOptions(
+              maxFrameRate: 30, params: _selectedVideoParameters),
           e2eeOptions: e2eeOptions,
         ),
         fastConnectOptions: FastConnectOptions(
@@ -231,16 +232,30 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: SizedBox(
-                          width: 320,
-                          height: 240,
-                          child: _videoTrack != null
-                              ? VideoTrackRenderer(
-                                  _videoTrack!,
-                                  fit: RTCVideoViewObjectFit
-                                      .RTCVideoViewObjectFitContain,
-                                )
-                              : const Placeholder(),
-                        )),
+                            width: 320,
+                            height: 240,
+                            child: Container(
+                              alignment: Alignment.center,
+                              color: Colors.black54,
+                              child: _videoTrack != null
+                                  ? VideoTrackRenderer(
+                                      _videoTrack!,
+                                      fit: RTCVideoViewObjectFit
+                                          .RTCVideoViewObjectFitContain,
+                                    )
+                                  : Container(
+                                      alignment: Alignment.center,
+                                      child: LayoutBuilder(
+                                        builder: (ctx, constraints) => Icon(
+                                          EvaIcons.videoOffOutline,
+                                          color: LKColors.lkBlue,
+                                          size: math.min(constraints.maxHeight,
+                                                  constraints.maxWidth) *
+                                              0.3,
+                                        ),
+                                      ),
+                                    ),
+                            ))),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 5),
                       child: Row(
@@ -254,38 +269,91 @@ class _PreJoinPageState extends State<PreJoinPage> {
                         ],
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 25),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton2<MediaDevice>(
+                          isExpanded: true,
+                          disabledHint: const Text('Disable Camera'),
+                          hint: const Text(
+                            'Select Camera',
+                          ),
+                          items: _enableVideo
+                              ? _videoInputs
+                                  .map((MediaDevice item) =>
+                                      DropdownMenuItem<MediaDevice>(
+                                        value: item,
+                                        child: Text(
+                                          item.label,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ))
+                                  .toList()
+                              : [],
+                          value: _selectedVideoDevice,
+                          onChanged: (MediaDevice? value) async {
+                            if (value != null) {
+                              _selectedVideoDevice = value;
+                              await _changeLocalVideoTrack();
+                              setState(() {});
+                            }
+                          },
+                          buttonStyleData: const ButtonStyleData(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            height: 40,
+                            width: 140,
+                          ),
+                          menuItemStyleData: const MenuItemStyleData(
+                            height: 40,
+                          ),
+                        ),
+                      ),
+                    ),
                     if (_enableVideo)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 25),
-                        child: DropDownTextField(
-                          initialValue: 'Please select a camera',
-                          listSpace: 20,
-                          listPadding: ListPadding(top: 20),
-                          enableSearch: false,
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Required field';
-                            } else {
-                              return null;
-                            }
-                          },
-                          dropDownList: _videoInputs
-                              .map((e) => DropDownValueModel(
-                                  name: e.label, value: e.deviceId))
-                              .toList(),
-                          listTextStyle: const TextStyle(color: Colors.white),
-                          dropDownItemCount: _videoInputs.length,
-                          dropDownIconProperty: IconProperty(
-                            color: Colors.white,
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton2<VideoParameters>(
+                            isExpanded: true,
+                            hint: const Text(
+                              'Select Video Dimensions',
+                            ),
+                            items: [
+                              VideoParametersPresets.h480_43,
+                              VideoParametersPresets.h540_169,
+                              VideoParametersPresets.h720_169,
+                              VideoParametersPresets.h1080_169,
+                            ]
+                                .map((VideoParameters item) =>
+                                    DropdownMenuItem<VideoParameters>(
+                                      value: item,
+                                      child: Text(
+                                        '${item.dimensions.width}x${item.dimensions.height}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                            value: _selectedVideoParameters,
+                            onChanged: (VideoParameters? value) async {
+                              if (value != null) {
+                                _selectedVideoParameters = value;
+                                await _changeLocalVideoTrack();
+                                setState(() {});
+                              }
+                            },
+                            buttonStyleData: const ButtonStyleData(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              height: 40,
+                              width: 140,
+                            ),
+                            menuItemStyleData: const MenuItemStyleData(
+                              height: 40,
+                            ),
                           ),
-                          onChanged: (val) {
-                            print('onChanged $val');
-                            if (val != null) {
-                              _selectedVideoIdx = _videoInputs.indexWhere(
-                                  (element) => val.value == element.deviceId);
-                              _changeLocalVideoTrack();
-                            }
-                          },
                         ),
                       ),
                     Padding(
@@ -301,45 +369,46 @@ class _PreJoinPageState extends State<PreJoinPage> {
                         ],
                       ),
                     ),
-                    if (_enableAudio)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 25),
-                        child: DropDownTextField(
-                          initialValue: 'Please select a microphone',
-                          listSpace: 20,
-                          listPadding: ListPadding(top: 20),
-                          enableSearch: false,
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Required field';
-                            } else {
-                              return null;
-                            }
-                          },
-                          dropDownList: _audioInputs
-                              .map((e) => DropDownValueModel(
-                                  name: e.label, value: e.deviceId))
-                              .toList(),
-                          listTextStyle: const TextStyle(color: Colors.white),
-                          dropDownItemCount: _audioInputs.length,
-                          dropDownIconProperty: IconProperty(
-                            color: Colors.white,
-                          ),
-                          onChanged: (val) {
-                            print('onChanged $val');
-                            if (val != null) {
-                              _selectedAudioIdx = _audioInputs.indexWhere(
-                                  (element) => val.value == element.deviceId);
-                              _changeLocalAudioTrack();
-                            }
-                          },
-                        ),
-                      ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 25),
-                      child: LKTextField(
-                        label: 'Display Name',
-                        ctrl: _displayNameCtrl,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton2<MediaDevice>(
+                          isExpanded: true,
+                          disabledHint: const Text('Disable Microphone'),
+                          hint: const Text(
+                            'Select Micriphone',
+                          ),
+                          items: _enableAudio
+                              ? _audioInputs
+                                  .map((MediaDevice item) =>
+                                      DropdownMenuItem<MediaDevice>(
+                                        value: item,
+                                        child: Text(
+                                          item.label,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ))
+                                  .toList()
+                              : [],
+                          value: _selectedAudioDevice,
+                          onChanged: (MediaDevice? value) async {
+                            if (value != null) {
+                              _selectedAudioDevice = value;
+                              await _changeLocalAudioTrack();
+                              setState(() {});
+                            }
+                          },
+                          buttonStyleData: const ButtonStyleData(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            height: 40,
+                            width: 140,
+                          ),
+                          menuItemStyleData: const MenuItemStyleData(
+                            height: 40,
+                          ),
+                        ),
                       ),
                     ),
                     ElevatedButton(
