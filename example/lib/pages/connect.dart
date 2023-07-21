@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../exts.dart';
-import 'room.dart';
 
 class ConnectPage extends StatefulWidget {
   //
@@ -26,7 +25,6 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeySimulcast = 'simulcast';
   static const _storeKeyAdaptiveStream = 'adaptive-stream';
   static const _storeKeyDynacast = 'dynacast';
-  static const _storeKeyFastConnect = 'fast-connect';
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
 
@@ -37,7 +35,6 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _adaptiveStream = true;
   bool _dynacast = true;
   bool _busy = false;
-  bool _fastConnect = false;
   bool _e2ee = false;
 
   @override
@@ -94,7 +91,6 @@ class _ConnectPageState extends State<ConnectPage> {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
-      _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
     });
   }
@@ -108,7 +104,6 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeySimulcast, _simulcast);
     await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
     await prefs.setBool(_storeKeyDynacast, _dynacast);
-    await prefs.setBool(_storeKeyFastConnect, _fastConnect);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
   }
 
@@ -125,66 +120,20 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
+      var url = _uriCtrl.text;
+      var token = _tokenCtrl.text;
       await Navigator.push<void>(
         ctx,
-        MaterialPageRoute(builder: (_) => const PreJoinPage()),
-      );
-
-      //create new room
-      final room = Room();
-
-      // Create a Listener before connecting
-      final listener = room.createListener();
-      E2EEOptions? e2eeOptions;
-      if (_e2ee) {
-        final keyProvider = await BaseKeyProvider.create();
-        e2eeOptions = E2EEOptions(keyProvider: keyProvider);
-        var sharedKey = _sharedKeyCtrl.text;
-        await keyProvider.setKey(sharedKey);
-      }
-
-      // Try to connect to the room
-      // This will throw an Exception if it fails for any reason.
-      await room.connect(
-        _uriCtrl.text,
-        _tokenCtrl.text,
-        roomOptions: RoomOptions(
-          adaptiveStream: _adaptiveStream,
-          dynacast: _dynacast,
-          defaultAudioPublishOptions:
-              const AudioPublishOptions(name: 'custom_audio_track_name'),
-          defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: _simulcast,
-          ),
-          defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-              useiOSBroadcastExtension: true,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h1080_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 3 * 1000 * 1000,
-                    maxFramerate: 15,
-                  ))),
-          e2eeOptions: e2eeOptions,
-          defaultCameraCaptureOptions: const CameraCaptureOptions(
-              maxFrameRate: 30,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h720_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 2 * 1000 * 1000,
-                    maxFramerate: 30,
-                  ))),
-        ),
-        fastConnectOptions: _fastConnect
-            ? FastConnectOptions(
-                microphone: const TrackOption(enabled: true),
-                camera: const TrackOption(enabled: true),
-              )
-            : null,
-      );
-
-      await Navigator.push<void>(
-        ctx,
-        MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
+        MaterialPageRoute(
+            builder: (_) => PreJoinPage(
+                  url,
+                  token,
+                  e2ee: _e2ee,
+                  e2eeKey: _sharedKeyCtrl.text,
+                  dynacast: _dynacast,
+                  adaptiveStream: _adaptiveStream,
+                  simulcast: _simulcast,
+                )),
       );
     } catch (error) {
       print('Could not connect $error');
@@ -221,13 +170,6 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _dynacast == value) return;
     setState(() {
       _dynacast = value;
-    });
-  }
-
-  void _setFastConnect(bool? value) async {
-    if (value == null || _fastConnect == value) return;
-    setState(() {
-      _fastConnect = value;
     });
   }
 
@@ -308,19 +250,6 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _adaptiveStream,
                           onChanged: (value) => _setAdaptiveStream(value),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Fast Connect'),
-                        Switch(
-                          value: _fastConnect,
-                          onChanged: (value) => _setFastConnect(value),
                         ),
                       ],
                     ),
