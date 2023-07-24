@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../core/room.dart';
 import '../core/signal_client.dart';
@@ -534,5 +537,70 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ));
     }
     return oldValue;
+  }
+
+  Future<void> publishAdditionalCodecForTrack(
+    LocalVideoTrack track,
+    String backupCodec,
+    VideoPublishOptions? options,
+  ) async {
+    // is it not published? if so skip
+    LocalTrackPublication? existingPublication;
+    for (var publication in videoTracks) {
+      if (publication.track == null) {
+        continue;
+      }
+      if (publication.track == track) {
+        existingPublication = publication;
+      }
+    }
+    if (existingPublication == null) {
+      throw Exception('track is not published');
+    }
+
+    options ??= room.roomOptions.defaultVideoPublishOptions;
+
+    var encodings =
+        Utils.computeTrackBackupEncodings(track, backupCodec, options);
+    if (encodings == null) {
+      logger.fine(
+          'backup codec has been disabled, ignoring request to add additional codec for track');
+      return;
+    }
+
+    var simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
+
+    var simulcastCodecs = <lk_rtc.SimulcastCodec>[
+      lk_rtc.SimulcastCodec(
+          codec: options.videoCodec,
+          cid: track.getCid(),
+          enableSimulcastLayers: options.simulcast),
+    ];
+
+    var layers = Utils.computeVideoLayers(
+        track.currentOptions.params.dimensions, encodings);
+
+    final trackInfo = await room.engine.addTrack(
+        cid: track.getCid(),
+        name: options.name ??
+            (track.source == TrackSource.screenShareVideo
+                ? VideoPublishOptions.defaultScreenShareName
+                : VideoPublishOptions.defaultCameraName),
+        kind: track.kind,
+        source: track.source.toPBType(),
+        videoLayers: layers,
+        simulcastCodecs: simulcastCodecs);
+
+    var transceiverInit = RTCRtpTransceiverInit(
+      direction: TransceiverDirection.SendOnly,
+      sendEncodings: encodings,
+    );
+
+    await room.engine
+        .createSimulcastSender(track, simulcastTrack, options, encodings);
+
+    await room.engine.negotiate();
+
+    logger.info('published backupCodec $backupCodec for track ${track.sid}');
   }
 }
