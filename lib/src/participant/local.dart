@@ -156,18 +156,40 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final layers = Utils.computeVideoLayers(dimensions, encodings);
 
     logger.fine('Video layers: ${layers.map((e) => e)}');
+    var simulcastCodecs = <lk_rtc.SimulcastCodec>[];
+
+    if (publishOptions.backupCodec != null &&
+        publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
+      simulcastCodecs = <lk_rtc.SimulcastCodec>[
+        lk_rtc.SimulcastCodec(
+            codec: publishOptions.videoCodec,
+            cid: track.getCid(),
+            enableSimulcastLayers: publishOptions.simulcast),
+        lk_rtc.SimulcastCodec(
+            codec: publishOptions.backupCodec!.codec,
+            cid: '',
+            enableSimulcastLayers: publishOptions.simulcast),
+      ];
+    } else {
+      simulcastCodecs = <lk_rtc.SimulcastCodec>[
+        lk_rtc.SimulcastCodec(
+            codec: publishOptions.videoCodec,
+            cid: track.getCid(),
+            enableSimulcastLayers: publishOptions.simulcast),
+      ];
+    }
 
     final trackInfo = await room.engine.addTrack(
-      cid: track.getCid(),
-      name: publishOptions.name ??
-          (track.source == TrackSource.screenShareVideo
-              ? VideoPublishOptions.defaultScreenShareName
-              : VideoPublishOptions.defaultCameraName),
-      kind: track.kind,
-      source: track.source.toPBType(),
-      dimensions: dimensions,
-      videoLayers: layers,
-    );
+        cid: track.getCid(),
+        name: publishOptions.name ??
+            (track.source == TrackSource.screenShareVideo
+                ? VideoPublishOptions.defaultScreenShareName
+                : VideoPublishOptions.defaultCameraName),
+        kind: track.kind,
+        source: track.source.toPBType(),
+        dimensions: dimensions,
+        videoLayers: layers,
+        simulcastCodecs: simulcastCodecs);
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 

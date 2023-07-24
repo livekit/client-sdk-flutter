@@ -227,7 +227,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.subscribedQualityUpdate:
         events.emit(SignalSubscribedQualityUpdatedEvent(
           trackSid: msg.subscribedQualityUpdate.trackSid,
-          updates: msg.subscribedQualityUpdate.subscribedQualities,
+          subscribedQualities: msg.subscribedQualityUpdate.subscribedQualities,
+          subscribedCodecs: msg.subscribedQualityUpdate.subscribedCodecs,
         ));
         break;
       case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
@@ -354,6 +355,7 @@ extension SignalClientRequests on SignalClient {
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
+    Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
   }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
@@ -361,6 +363,7 @@ extension SignalClientRequests on SignalClient {
       type: type,
       source: source,
       encryption: encryptionType,
+      simulcastCodecs: simulcastCodecs,
     );
 
     if (type == lk_models.TrackType.VIDEO) {

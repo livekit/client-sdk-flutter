@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
@@ -23,6 +24,7 @@ import '../types/internal.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
+import '../track/local/video.dart';
 import 'room.dart';
 import 'signal_client.dart';
 import 'transport.dart';
@@ -186,6 +188,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
+    Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
   }) async {
     // TODO: Check if cid already published
 
@@ -214,6 +217,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       dtx: dtx,
       videoLayers: videoLayers,
       encryptionType: encryptionType,
+      simulcastCodecs: simulcastCodecs,
     );
 
     // wait for response, or timeout
@@ -885,6 +889,32 @@ extension EngineInternalMethods on Engine {
           .where((e) => e.id != -1)
           .map((e) => e.toLKInfoType())
           .toList();
+  @internal
+  Future<RTCRtpSender> createSimulcastTransceiverSender(
+    LocalVideoTrack track,
+    SimulcastTrackInfo simulcastTrack,
+    VideoPublishOptions opts,
+    List<RTCRtpEncoding>? encodings,
+  ) async {
+    if (publisher == null) {
+      throw Exception('publisher is closed');
+    }
+    var transceiverInit =
+        RTCRtpTransceiverInit(direction: TransceiverDirection.SendOnly);
+    if (encodings != null) {
+      transceiverInit.sendEncodings = encodings;
+    }
+    // addTransceiver for react-native is async. web is synchronous, but await won't effect it.
+    final transceiver = await publisher!.pc.addTransceiver(
+      track: simulcastTrack.mediaStreamTrack,
+      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      init: transceiverInit,
+    );
+    //TODO:
+    //this.setPreferredCodec(transceiver, track.kind, opts.videoCodec);
+    //track.setSimulcastTrackSender(opts.videoCodec, transceiver.sender);
+    return transceiver.sender;
+  }
 }
 
 Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {

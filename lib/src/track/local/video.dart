@@ -1,14 +1,30 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../publication/local.dart';
 import '../../types/other.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../options.dart';
 import '../stats.dart';
 import 'audio.dart';
 import 'local.dart';
+
+
+class SimulcastTrackInfo {
+  lk_models.VideoCodec codec;
+
+  rtc.MediaStreamTrack mediaStreamTrack;
+
+  rtc.RTCRtpSender? sender;
+
+  List<rtc.RTCRtpEncoding>? encodings;
+
+  SimulcastTrackInfo(this.codec, this.encodings, this.mediaStreamTrack, this.sender);
+}
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
@@ -21,6 +37,12 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   get currentBitrate => _currentBitrate;
   Map<String, VideoSenderStats>? prevStats;
   final Map<String, num> _bitrateFoLayers = {};
+
+  lk_models.VideoCodec? videoCodec;
+
+  Map<lk_models.VideoCodec, SimulcastTrackInfo> simulcastCodecs = {};
+
+  List<lk_rtc.SubscribedCodec> subscribedCodecs = [];
 
   @override
   Future<bool> monitorStats() async {
@@ -226,4 +248,130 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       options.copyWith(deviceId: deviceId),
     );
   }
+
+  Future<List<lk_models.VideoCodec>> setPublishingCodecs(List<lk_rtc.SubscribedCodec> codecs, LocalTrackPublication publication) async {
+    logger.fine('setPublishingCodecs $codecs');
+
+    // only enable simulcast codec for preference codec setted
+    if (videoCodec == null && codecs.isNotEmpty) {
+       publication.updatePublishingLayers(codecs[0].qualities);
+      return [];
+    }
+
+    subscribedCodecs = codecs;
+
+    List<lk_models.VideoCodec> newCodecs = [];
+
+    for  (var codec in codecs) {
+      if (videoCodec == null || videoCodec?.name == codec.codec) {
+         publication.updatePublishingLayers(codec.qualities);
+      } else {
+        final simulcastCodecInfo = simulcastCodecs[codec.codec];
+        logger.fine('setPublishingCodecs $codecs');
+        if (simulcastCodecInfo == null || simulcastCodecInfo.sender == null) {
+          for (var q in codec.qualities) {
+            if (q.enabled) {
+              newCodecs.add(codec.codec as lk_models.VideoCodec);
+              break;
+            }
+          }
+        } else if (simulcastCodecInfo.encodings != null) {
+          logger.fine('setPublishingCodecs $codecs');
+          await setPublishingLayersForSender(
+            simulcastCodecInfo.sender!,
+            simulcastCodecInfo.encodings!,
+            codec.qualities,
+          );
+        }
+      }
+    }
+    return newCodecs;
+  }
+
+  Future<void> publishAdditionalCodecForTrack(
+    LocalVideoTrack track,
+    lk_models.VideoCodec backupVideoCodec,
+    VideoPublishOptions? options,
+  ) async {
+    // is it not published? if so skip
+    LocalTrackPublication? existingPublication;
+    this.tracks.forEach((publication) => {
+      if (!publication.track) {
+        return;
+      }
+      if (publication.track == track) {
+        existingPublication = <LocalTrackPublication>publication;
+      }
+    });
+    if (!existingPublication) {
+      throw new TrackInvalidError('track is not published');
+    }
+
+    if (!(track instanceof LocalVideoTrack)) {
+      throw new TrackInvalidError('track is not a video track');
+    }
+
+    const opts: TrackPublishOptions = {
+      ...this.roomOptions?.publishDefaults,
+      ...options,
+    };
+
+    const encodings = computeTrackBackupEncodings(track, videoCodec, opts);
+    if (!encodings) {
+      log.info(
+        `backup codec has been disabled, ignoring request to add additional codec for track`,
+      );
+      return;
+    }
+    const simulcastTrack = track.addSimulcastTrack(videoCodec, encodings);
+    const req = AddTrackRequest.fromPartial({
+      cid: simulcastTrack.mediaStreamTrack.id,
+      type: Track.kindToProto(track.kind),
+      muted: track.isMuted,
+      source: Track.sourceToProto(track.source),
+      sid: track.sid,
+      simulcastCodecs: [
+        {
+          codec: opts.videoCodec,
+          cid: simulcastTrack.mediaStreamTrack.id,
+          enableSimulcastLayers: opts.simulcast,
+        },
+      ],
+    });
+    req.layers = videoLayersFromEncodings(req.width, req.height, encodings);
+
+    if (!this.engine || this.engine.isClosed) {
+      throw new UnexpectedConnectionState('cannot publish track when not connected');
+    }
+
+    const ti = await this.engine.addTrack(req);
+
+    const transceiverInit: RTCRtpTransceiverInit = { direction: 'sendonly' };
+    if (encodings) {
+      transceiverInit.sendEncodings = encodings;
+    }
+    await this.engine.createSimulcastSender(track, simulcastTrack, opts, encodings);
+
+    await this.engine.negotiate();
+    log.debug(`published ${videoCodec} for track ${track.sid}`, { encodings, trackInfo: ti });
+  }
+
+    void setSimulcastTrackSender(lk_models.VideoCodec codec, RTCRtpSender sender) {
+    var simulcastCodecInfo = simulcastCodecs[codec];
+    if (simulcastCodecInfo == null) {
+      return;
+    }
+    
+    simulcastCodecInfo.sender = sender;
+
+    // browser will reenable disabled codec/layers after new codec has been published,
+    // so refresh subscribedCodecs after publish a new codec
+    setTimeout(() => {
+      if (this.subscribedCodecs) {
+        this.setPublishingCodecs(this.subscribedCodecs);
+      }
+    }, refreshSubscribedCodecAfterNewCodec);
+  }
+
+
 }

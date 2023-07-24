@@ -1,5 +1,6 @@
+import 'package:livekit_client/src/proto/livekit_models.pb.dart';
+
 import 'constants.dart';
-import 'core/room.dart';
 import 'e2ee/options.dart';
 import 'publication/remote.dart';
 import 'track/local/audio.dart';
@@ -143,6 +144,15 @@ class RoomOptions {
   }
 }
 
+class BackupVideoCodec {
+  BackupVideoCodec({
+    required this.codec,
+    required this.encoding,
+  });
+  String codec;
+  VideoEncoding encoding;
+}
+
 /// Options used when publishing video.
 class VideoPublishOptions {
   static const defaultCameraName = 'camera';
@@ -168,6 +178,8 @@ class VideoPublishOptions {
 
   final List<VideoParameters> screenShareSimulcastLayers;
 
+  final BackupVideoCodec? backupCodec;
+
   const VideoPublishOptions({
     this.videoCodec = 'H264',
     this.videoEncoding,
@@ -175,6 +187,7 @@ class VideoPublishOptions {
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
     this.name,
+    this.backupCodec,
   });
 
   VideoPublishOptions copyWith({
@@ -233,4 +246,12 @@ class AudioPublishOptions {
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';
+}
+
+final backupCodecs = ['vp8', 'h264'];
+
+final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
+
+bool isBackupCodec(VideoCodec codec) {
+  return backupCodecs.contains(codec.name.toLowerCase());
 }
