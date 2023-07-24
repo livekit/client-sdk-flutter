@@ -265,7 +265,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         return;
       }
       if (event.subscribedCodecs.isNotEmpty) {
-        if (publication.track! is LocalVideoTrack) {
+        if (publication.track! is! LocalVideoTrack) {
           return;
         }
         var videoTrack = publication.track as LocalVideoTrack;
