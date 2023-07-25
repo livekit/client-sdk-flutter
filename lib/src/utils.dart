@@ -7,9 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/types/other.dart';
 import 'package:meta/meta.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
 import './support/native.dart';
@@ -19,6 +17,7 @@ import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
 import 'track/local/video.dart';
+import 'types/other.dart';
 import 'types/video_dimensions.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -427,7 +426,7 @@ class Utils {
   }
 
   @internal
-  static List<RTCRtpEncoding>? computeTrackBackupEncodings(
+  static List<rtc.RTCRtpEncoding>? computeTrackBackupEncodings(
     LocalVideoTrack track,
     String videoCodec,
     VideoPublishOptions opts,
