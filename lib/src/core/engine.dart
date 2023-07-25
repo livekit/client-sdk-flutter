@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
@@ -891,25 +890,25 @@ extension EngineInternalMethods on Engine {
           .map((e) => e.toLKInfoType())
           .toList();
   @internal
-  Future<RTCRtpSender> createSimulcastTransceiverSender(
+  Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,
     SimulcastTrackInfo simulcastTrack,
     VideoPublishOptions opts,
-    List<RTCRtpEncoding>? encodings,
+    List<rtc.RTCRtpEncoding>? encodings,
     LocalTrackPublication publication,
   ) async {
     if (publisher == null) {
       throw Exception('publisher is closed');
     }
     var transceiverInit =
-        RTCRtpTransceiverInit(direction: TransceiverDirection.SendOnly);
+        rtc.RTCRtpTransceiverInit(direction: rtc.TransceiverDirection.SendOnly);
     if (encodings != null) {
       transceiverInit.sendEncodings = encodings;
     }
     // addTransceiver for react-native is async. web is synchronous, but await won't effect it.
     final transceiver = await publisher!.pc.addTransceiver(
       track: simulcastTrack.mediaStreamTrack,
-      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
     //TODO:
@@ -920,11 +919,11 @@ extension EngineInternalMethods on Engine {
   }
 
   @internal
-  Future<RTCRtpSender> createSimulcastSender(
+  Future<rtc.RTCRtpSender> createSimulcastSender(
     LocalVideoTrack track,
     SimulcastTrackInfo simulcastTrack,
     VideoPublishOptions opts,
-    List<RTCRtpEncoding>? encodings,
+    List<rtc.RTCRtpEncoding>? encodings,
     LocalTrackPublication publication,
   ) async {
     return createSimulcastTransceiverSender(

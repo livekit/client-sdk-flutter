@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
@@ -295,12 +294,12 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   Future<void> setPublishingLayersForSender(
-      RTCRtpSender sender,
-      List<RTCRtpEncoding> encodings,
+      rtc.RTCRtpSender sender,
+      List<rtc.RTCRtpEncoding> encodings,
       List<lk_rtc.SubscribedQuality> qualities) async {}
 
   SimulcastTrackInfo addSimulcastTrack(
-      String codec, List<RTCRtpEncoding> encodings) {
+      String codec, List<rtc.RTCRtpEncoding> encodings) {
     if (simulcastCodecs[codec] != null) {
       throw Exception('$codec already added');
     }
@@ -311,8 +310,8 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return simulcastCodecInfo;
   }
 
-  void setSimulcastTrackSender(
-      String codec, RTCRtpSender sender, LocalTrackPublication publication) {
+  void setSimulcastTrackSender(String codec, rtc.RTCRtpSender sender,
+      LocalTrackPublication publication) {
     var simulcastCodecInfo = simulcastCodecs[codec];
     if (simulcastCodecInfo == null) {
       return;
