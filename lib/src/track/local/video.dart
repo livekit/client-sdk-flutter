@@ -4,10 +4,10 @@ import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../publication/local.dart';
-import '../../types/other.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../../publication/local.dart';
+import '../../types/other.dart';
 import '../../utils.dart';
 import '../options.dart';
 import '../stats.dart';
@@ -311,8 +311,8 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return simulcastCodecInfo;
   }
 
-  void setSimulcastTrackSender(lk_models.VideoCodec codec, RTCRtpSender sender,
-      LocalTrackPublication publication) {
+  void setSimulcastTrackSender(
+      String codec, RTCRtpSender sender, LocalTrackPublication publication) {
     var simulcastCodecInfo = simulcastCodecs[codec];
     if (simulcastCodecInfo == null) {
       return;

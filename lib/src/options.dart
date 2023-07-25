@@ -1,5 +1,4 @@
 import 'package:livekit_client/src/proto/livekit_models.pb.dart';
-
 import 'constants.dart';
 import 'e2ee/options.dart';
 import 'publication/remote.dart';

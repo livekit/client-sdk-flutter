@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:webrtc_interface/webrtc_interface.dart';
 
+import 'package:livekit_client/src/core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
 import '../events.dart';
@@ -596,8 +595,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       sendEncodings: encodings,
     );
 
-    await room.engine
-        .createSimulcastSender(track, simulcastTrack, options, encodings);
+    await room.engine.createSimulcastSender(
+        track, simulcastTrack, options, encodings, existingPublication);
 
     await room.engine.negotiate();
 
