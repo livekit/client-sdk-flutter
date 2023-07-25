@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:webrtc_interface/webrtc_interface.dart';
 
 import 'package:livekit_client/src/core/engine.dart';
 import '../core/room.dart';
@@ -590,16 +589,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         videoLayers: layers,
         simulcastCodecs: simulcastCodecs);
 
-    var transceiverInit = RTCRtpTransceiverInit(
-      direction: TransceiverDirection.SendOnly,
-      sendEncodings: encodings,
-    );
-
     await room.engine.createSimulcastSender(
         track, simulcastTrack, options, encodings, existingPublication);
 
     await room.engine.negotiate();
 
-    logger.info('published backupCodec $backupCodec for track ${track.sid}');
+    logger.info(
+        'published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
   }
 }
