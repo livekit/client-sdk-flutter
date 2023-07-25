@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:js_interop';
 
 import 'package:flutter/foundation.dart';
 
@@ -911,11 +912,55 @@ extension EngineInternalMethods on Engine {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
-    //TODO:
-    //this.setPreferredCodec(transceiver, track.kind, opts.videoCodec);
+    await setPreferredCodec(
+        transceiver, track.kind.toString(), opts.videoCodec);
     track.setSimulcastTrackSender(
         opts.videoCodec, transceiver.sender, publication);
     return transceiver.sender;
+  }
+
+  Future<void> setPreferredCodec(
+    rtc.RTCRtpTransceiver transceiver,
+    String kind,
+    String videoCodec,
+  ) async {
+    var cap = await rtc.getRtpSenderCapabilities(kind);
+    if (cap.codecs == null) return;
+
+    logger.info('get capabilities $cap');
+
+    List<rtc.RTCRtpCodecCapability> matched = [];
+    List<rtc.RTCRtpCodecCapability> partialMatched = [];
+    List<rtc.RTCRtpCodecCapability> unmatched = [];
+
+    cap.codecs?.forEach((c) {
+      var codec = c.mimeType.toLowerCase();
+      if (codec == 'audio/opus') {
+        matched.add(c);
+        return;
+      }
+      var matchesVideoCodec = codec == 'video/$videoCodec';
+      if (!matchesVideoCodec) {
+        unmatched.add(c);
+        return;
+      }
+      // for h264 codecs that have sdpFmtpLine available, use only if the
+      // profile-level-id is 42e01f for cross-browser compatibility
+      if (videoCodec == 'h264') {
+        if (c.sdpFmtpLine != null &&
+            c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+          matched.add(c);
+        } else {
+          partialMatched.add(c);
+        }
+        return;
+      }
+
+      matched.add(c);
+    });
+
+    await transceiver
+        .setCodecPreferences([...matched, ...partialMatched, ...unmatched]);
   }
 
   @internal
