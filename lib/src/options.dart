@@ -195,6 +195,7 @@ class VideoPublishOptions {
     List<VideoParameters>? videoSimulcastLayers,
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
+    BackupVideoCodec? backupCodec,
   }) =>
       VideoPublishOptions(
         videoEncoding: videoEncoding ?? this.videoEncoding,
@@ -203,6 +204,7 @@ class VideoPublishOptions {
         screenShareSimulcastLayers:
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
+        backupCodec: backupCodec ?? this.backupCodec,
       );
 
   @override

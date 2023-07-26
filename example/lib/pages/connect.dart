@@ -28,6 +28,7 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyFastConnect = 'fast-connect';
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
+  static const _storeKeyMultiCodec = 'multi-codec';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -38,6 +39,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _busy = false;
   bool _fastConnect = false;
   bool _e2ee = false;
+  bool _multiCodec = false;
 
   @override
   void initState() {
@@ -95,6 +97,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
+      _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
     });
   }
 
@@ -109,6 +112,7 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyFastConnect, _fastConnect);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
+    await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -137,6 +141,8 @@ class _ConnectPageState extends State<ConnectPage> {
         await keyProvider.setKey(sharedKey);
       }
 
+      if (_multiCodec) {}
+
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
       await room.connect(
@@ -149,6 +155,13 @@ class _ConnectPageState extends State<ConnectPage> {
               const AudioPublishOptions(name: 'custom_audio_track_name'),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
+            videoCodec: 'vp9',
+            backupCodec: BackupVideoCodec(
+                codec: 'VP8',
+                encoding: const VideoEncoding(
+                  maxBitrate: 2 * 1000 * 1000,
+                  maxFramerate: 30,
+                )),
           ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
@@ -222,6 +235,13 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _fastConnect == value) return;
     setState(() {
       _fastConnect = value;
+    });
+  }
+
+  void _setMultiCodec(bool? value) async {
+    if (value == null || _multiCodec == value) return;
+    setState(() {
+      _multiCodec = value;
     });
   }
 
@@ -320,7 +340,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 25),
+                    padding: const EdgeInsets.only(bottom: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -328,6 +348,19 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _dynacast,
                           onChanged: (value) => _setDynacast(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Multi Codec'),
+                        Switch(
+                          value: _multiCodec,
+                          onChanged: (value) => _setMultiCodec(value),
                         ),
                       ],
                     ),

@@ -361,7 +361,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     publisher?.onOffer = (offer) {
-      logger.fine('publisher onOffer');
+      logger.fine('publisher onOffer ${offer.sdp}');
       signalClient.sendOffer(offer);
     };
 
