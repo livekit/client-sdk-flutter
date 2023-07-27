@@ -156,12 +156,6 @@ class _ConnectPageState extends State<ConnectPage> {
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
             videoCodec: 'vp9',
-            backupCodec: BackupVideoCodec(
-                codec: 'VP8',
-                encoding: const VideoEncoding(
-                  maxBitrate: 2 * 1000 * 1000,
-                  maxFramerate: 30,
-                )),
           ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,

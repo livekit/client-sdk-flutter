@@ -76,6 +76,8 @@ class RoomOptions {
 
   final AudioOutputOptions defaultAudioOutputOptions;
 
+  final VideoSubscribeOptions defaultVideoSubscribeOptions;
+
   /// AdaptiveStream lets LiveKit automatically manage quality of subscribed
   /// video tracks to optimize for bandwidth and CPU.
   /// When attached video elements are visible, it'll choose an appropriate
@@ -105,6 +107,7 @@ class RoomOptions {
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.defaultAudioOutputOptions = const AudioOutputOptions(),
+    this.defaultVideoSubscribeOptions = const VideoSubscribeOptions(),
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
@@ -177,6 +180,8 @@ class VideoPublishOptions {
 
   final List<VideoParameters> screenShareSimulcastLayers;
 
+  final String? scalabilityMode;
+
   final BackupVideoCodec? backupCodec;
 
   const VideoPublishOptions({
@@ -187,6 +192,7 @@ class VideoPublishOptions {
     this.screenShareSimulcastLayers = const [],
     this.name,
     this.backupCodec,
+    this.scalabilityMode,
   });
 
   VideoPublishOptions copyWith({
@@ -196,6 +202,7 @@ class VideoPublishOptions {
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
     BackupVideoCodec? backupCodec,
+    String? scalabilityMode,
   }) =>
       VideoPublishOptions(
         videoEncoding: videoEncoding ?? this.videoEncoding,
@@ -205,6 +212,7 @@ class VideoPublishOptions {
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
         backupCodec: backupCodec ?? this.backupCodec,
+        scalabilityMode: scalabilityMode ?? this.scalabilityMode,
       );
 
   @override
@@ -257,4 +265,11 @@ final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
 
 bool isBackupCodec(VideoCodec codec) {
   return backupCodecs.contains(codec.name.toLowerCase());
+}
+
+/// for testing purposes
+class VideoSubscribeOptions {
+  final List<String> preferredVideoCodecs;
+  const VideoSubscribeOptions(
+      {this.preferredVideoCodecs = const ['vp8', 'h264', 'vp9', 'av1']});
 }

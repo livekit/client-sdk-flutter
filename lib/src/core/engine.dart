@@ -921,27 +921,30 @@ extension EngineInternalMethods on Engine {
   Future<void> setPreferredCodec(
     rtc.RTCRtpTransceiver transceiver,
     String kind,
-    String videoCodec,
-  ) async {
-    var cap = await rtc.getRtpSenderCapabilities(kind);
-    if (cap.codecs == null) return;
+    String videoCodec, {
+    bool isPublisher = true,
+  }) async {
+    var caps = isPublisher
+        ? await rtc.getRtpSenderCapabilities(kind)
+        : await rtc.getRtpReceiverCapabilities(kind);
+    if (caps.codecs == null) return;
 
-    logger.info('get capabilities $cap');
+    logger.info('get capabilities ${caps.codecs}');
 
     List<rtc.RTCRtpCodecCapability> matched = [];
     List<rtc.RTCRtpCodecCapability> partialMatched = [];
     List<rtc.RTCRtpCodecCapability> unmatched = [];
-
-    cap.codecs?.forEach((c) {
+    for (var c in caps.codecs!) {
       var codec = c.mimeType.toLowerCase();
       if (codec == 'audio/opus') {
         matched.add(c);
-        return;
+        continue;
       }
+
       var matchesVideoCodec = codec == 'video/$videoCodec';
       if (!matchesVideoCodec) {
         unmatched.add(c);
-        return;
+        continue;
       }
       // for h264 codecs that have sdpFmtpLine available, use only if the
       // profile-level-id is 42e01f for cross-browser compatibility
@@ -952,14 +955,12 @@ extension EngineInternalMethods on Engine {
         } else {
           partialMatched.add(c);
         }
-        return;
+        continue;
       }
-
       matched.add(c);
-    });
-
-    await transceiver
-        .setCodecPreferences([...matched, ...partialMatched, ...unmatched]);
+    }
+    matched.addAll([...partialMatched, ...unmatched]);
+    await transceiver.setCodecPreferences(matched);
   }
 
   @internal

@@ -361,8 +361,12 @@ class Utils {
     options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
+    var scalabilityMode = options.scalabilityMode;
 
-    if ((videoEncoding == null && !options.simulcast) || dimensions == null) {
+    if ((videoEncoding == null &&
+            !options.simulcast &&
+            scalabilityMode == null) ||
+        dimensions == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return [rtc.RTCRtpEncoding()];
@@ -384,15 +388,36 @@ class Utils {
       logger.fine('using video encoding', videoEncoding);
     }
 
-    if (!options.simulcast) {
-      // not using simulcast
-      return [videoEncoding.toRTCRtpEncoding()];
-    }
-
     final original = VideoParameters(
       dimensions: dimensions,
       encoding: videoEncoding,
     );
+
+    if (scalabilityMode != null && isSVCCodec(options.videoCodec)) {
+      logger.info('using svc with scalabilityMode ${scalabilityMode}');
+
+      final sm = ScalabilityMode(scalabilityMode);
+
+      List<rtc.RTCRtpEncoding> encodings = [];
+
+      if (sm.spatial > 3) {
+        throw Exception('unsupported scalabilityMode: ${scalabilityMode}');
+      }
+      for (int i = 0; i < sm.spatial; i += 1) {
+        encodings.add(rtc.RTCRtpEncoding(
+          rid: videoRids[i],
+          maxBitrate: (videoEncoding.maxBitrate / 3 * i).toInt(),
+          maxFramerate: videoEncoding.maxFramerate,
+        ));
+      }
+      /* @ts-ignore */
+      encodings[0].scalabilityMode = scalabilityMode;
+      logger.fine('encodings $encodings');
+      return encodings;
+    } else if (!options.simulcast) {
+      // not using simulcast
+      return [videoEncoding.toRTCRtpEncoding()];
+    }
 
     final userParams = isScreenShare
         ? options.screenShareSimulcastLayers
@@ -514,3 +539,39 @@ class Utils {
 }
 
 const refreshSubscribedCodecAfterNewCodec = 5000;
+
+bool isSVCCodec(String codec) => ['vp9', 'av1'].contains(codec.toLowerCase());
+
+class ScalabilityMode {
+  late num spatial;
+
+  late num temporal;
+
+  String? suffix;
+
+  /// 'h' | '_KEY' | '_KEY_SHIFT';
+
+  ScalabilityMode(String scalabilityMode) {
+    RegExp exp = RegExp(r'^L(\d)T(\d)(h|_KEY|_KEY_SHIFT){0,1}');
+    Iterable<RegExpMatch> matches = exp.allMatches(scalabilityMode);
+    if (matches.isEmpty) {
+      throw Exception('invalid scalability mode');
+    }
+    var results = matches.first.groups([1, 2, 3]);
+    spatial = int.tryParse(results[0]!) as num;
+    temporal = int.tryParse(results[1]!) as num;
+    if (results.length > 2) {
+      switch (results[2]) {
+        case 'h':
+        case '_KEY':
+        case '_KEY_SHIFT':
+          suffix = results[2];
+      }
+    }
+  }
+
+  @override
+  String toString() {
+    return 'L${spatial}T${temporal}${suffix ?? ''}';
+  }
+}

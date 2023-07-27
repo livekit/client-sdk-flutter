@@ -145,6 +145,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine(
         'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
+    if (isSVCCodec(publishOptions.videoCodec)) {
+      // set scalabilityMode to 'L3T3_KEY' by default
+      publishOptions = publishOptions.copyWith(
+        scalabilityMode: 'L3T3_KEY',
+      );
+    }
+
     // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
@@ -212,35 +219,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (lkBrowser() != BrowserType.firefox) {
       var videoCodec = publishOptions.videoCodec.toLowerCase();
-      var caps = await rtc.getRtpSenderCapabilities('video');
-      List<rtc.RTCRtpCodecCapability> matched = [];
-      List<rtc.RTCRtpCodecCapability> partialMatched = [];
-      List<rtc.RTCRtpCodecCapability> unmatched = [];
-      for (var c in caps.codecs!) {
-        var codec = c.mimeType.toLowerCase();
-        if (codec == 'audio/opus') {
-          matched.add(c);
-          continue;
-        }
-
-        var matchesVideoCodec = codec == 'video/$videoCodec';
-        if (!matchesVideoCodec) {
-          unmatched.add(c);
-          continue;
-        }
-        if (publishOptions.videoCodec == 'h264') {
-          if (c.sdpFmtpLine != null &&
-              c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
-            matched.add(c);
-          } else {
-            partialMatched.add(c);
-          }
-          continue;
-        }
-        matched.add(c);
-      }
-      matched.addAll([...partialMatched, ...unmatched]);
-      await track.transceiver?.setCodecPreferences(matched);
+      await room.engine.setPreferredCodec(
+        track.transceiver!,
+        'video',
+        videoCodec,
+      );
       track.codec = videoCodec;
     }
 
