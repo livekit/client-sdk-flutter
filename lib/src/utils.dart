@@ -406,11 +406,10 @@ class Utils {
       for (int i = 0; i < sm.spatial; i += 1) {
         encodings.add(rtc.RTCRtpEncoding(
           rid: videoRids[i],
-          maxBitrate: (videoEncoding.maxBitrate / 3 * i).toInt(),
+          maxBitrate: (videoEncoding.maxBitrate / 3 * (i + 1)).toInt(),
           maxFramerate: videoEncoding.maxFramerate,
         ));
       }
-      /* @ts-ignore */
       encodings[0].scalabilityMode = scalabilityMode;
       logger.fine('encodings $encodings');
       return encodings;

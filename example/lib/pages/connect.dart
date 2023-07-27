@@ -155,7 +155,13 @@ class _ConnectPageState extends State<ConnectPage> {
               const AudioPublishOptions(name: 'custom_audio_track_name'),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
-            videoCodec: 'vp9',
+            videoCodec: 'av1',
+            backupCodec: BackupVideoCodec(
+                codec: 'vp8',
+                encoding: const VideoEncoding(
+                  maxBitrate: 2 * 1000 * 1000,
+                  maxFramerate: 30,
+                )),
           ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
