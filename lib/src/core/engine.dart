@@ -808,7 +808,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       logger.fine('received answer (type: ${event.sd.type})');
-      logger.finer('sdp: ${event.sd.sdp}');
+      logger.fine('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
@@ -896,12 +896,16 @@ extension EngineInternalMethods on Engine {
     VideoPublishOptions opts,
     List<rtc.RTCRtpEncoding>? encodings,
     LocalTrackPublication publication,
+    String videoCodec,
   ) async {
     if (publisher == null) {
       throw Exception('publisher is closed');
     }
-    var transceiverInit =
-        rtc.RTCRtpTransceiverInit(direction: rtc.TransceiverDirection.SendOnly);
+    var transceiverInit = rtc.RTCRtpTransceiverInit(
+        direction: rtc.TransceiverDirection.SendOnly,
+        streams: [
+          simulcastTrack.mediaStream,
+        ]);
     if (encodings != null) {
       transceiverInit.sendEncodings = encodings;
     }
@@ -912,32 +916,30 @@ extension EngineInternalMethods on Engine {
       init: transceiverInit,
     );
     await setPreferredCodec(
-        transceiver, track.kind.toString(), opts.videoCodec);
-    track.setSimulcastTrackSender(
-        opts.videoCodec, transceiver.sender, publication);
+        transceiver, track.kind.toString().toLowerCase(), videoCodec);
     return transceiver.sender;
   }
 
   Future<void> setPreferredCodec(
-    rtc.RTCRtpTransceiver transceiver,
-    String kind,
-    String videoCodec, {
-    bool isPublisher = true,
-  }) async {
-    var caps = isPublisher
-        ? await rtc.getRtpSenderCapabilities(kind)
-        : await rtc.getRtpReceiverCapabilities(kind);
+      rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
+    var caps = await rtc.getRtpSenderCapabilities(kind);
     if (caps.codecs == null) return;
 
     logger.info('get capabilities ${caps.codecs}');
 
     List<rtc.RTCRtpCodecCapability> matched = [];
     List<rtc.RTCRtpCodecCapability> partialMatched = [];
+    List<rtc.RTCRtpCodecCapability> noneCodecs = [];
     List<rtc.RTCRtpCodecCapability> unmatched = [];
     for (var c in caps.codecs!) {
       var codec = c.mimeType.toLowerCase();
       if (codec == 'audio/opus') {
         matched.add(c);
+        continue;
+      }
+
+      if (['rtx', 'red', 'ulpfec'].contains(codec.split('/')[1])) {
+        noneCodecs.add(c);
         continue;
       }
 
@@ -959,20 +961,8 @@ extension EngineInternalMethods on Engine {
       }
       matched.add(c);
     }
-    matched.addAll([...partialMatched, ...unmatched]);
+    matched.addAll([...partialMatched, ...unmatched, ...noneCodecs]);
     await transceiver.setCodecPreferences(matched);
-  }
-
-  @internal
-  Future<rtc.RTCRtpSender> createSimulcastSender(
-    LocalVideoTrack track,
-    SimulcastTrackInfo simulcastTrack,
-    VideoPublishOptions opts,
-    List<rtc.RTCRtpEncoding>? encodings,
-    LocalTrackPublication publication,
-  ) async {
-    return createSimulcastTransceiverSender(
-        track, simulcastTrack, opts, encodings, publication);
   }
 }
 

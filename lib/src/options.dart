@@ -263,8 +263,8 @@ final backupCodecs = ['vp8', 'h264'];
 
 final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
 
-bool isBackupCodec(VideoCodec codec) {
-  return backupCodecs.contains(codec.name.toLowerCase());
+bool isBackupCodec(String codec) {
+  return backupCodecs.contains(codec.toLowerCase());
 }
 
 /// for testing purposes

@@ -562,18 +562,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.currentOptions.params.dimensions, encodings);
 
     final trackInfo = await room.engine.addTrack(
-        cid: track.getCid(),
-        name: options.name ??
-            (track.source == TrackSource.screenShareVideo
-                ? VideoPublishOptions.defaultScreenShareName
-                : VideoPublishOptions.defaultCameraName),
+        cid: existingPublication.sid,
+        name: name,
         kind: track.kind,
         source: track.source.toPBType(),
         videoLayers: layers,
         simulcastCodecs: simulcastCodecs);
 
-    await room.engine.createSimulcastSender(
-        track, simulcastTrack, options, encodings, existingPublication);
+    simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
+        track,
+        simulcastTrack,
+        options,
+        encodings,
+        existingPublication,
+        backupCodec);
 
     await room.engine.negotiate();
 
