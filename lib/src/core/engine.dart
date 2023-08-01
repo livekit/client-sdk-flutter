@@ -203,6 +203,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
     Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
+    String? sid,
   }) async {
     // TODO: Check if cid already published
 
@@ -232,6 +233,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       videoLayers: videoLayers,
       encryptionType: encryptionType,
       simulcastCodecs: simulcastCodecs,
+      sid: sid,
     );
 
     // wait for response, or timeout
@@ -916,10 +918,11 @@ extension EngineInternalMethods on Engine {
       throw Exception('publisher is closed');
     }
     var transceiverInit = rtc.RTCRtpTransceiverInit(
-        direction: rtc.TransceiverDirection.SendOnly,
-        streams: [
+      direction: rtc.TransceiverDirection.SendOnly,
+      /*streams: [
           simulcastTrack.mediaStream,
-        ]);
+        ]*/
+    );
     if (encodings != null) {
       transceiverInit.sendEncodings = encodings;
     }

@@ -370,6 +370,7 @@ extension SignalClientRequests on SignalClient {
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
     Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
+    String? sid,
   }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
@@ -378,6 +379,8 @@ extension SignalClientRequests on SignalClient {
       source: source,
       encryption: encryptionType,
       simulcastCodecs: simulcastCodecs,
+      sid: sid,
+      muted: false,
     );
 
     if (type == lk_models.TrackType.VIDEO) {

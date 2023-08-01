@@ -186,11 +186,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         lk_rtc.SimulcastCodec(
             codec: publishOptions.videoCodec,
             cid: track.getCid(),
-            enableSimulcastLayers: publishOptions.simulcast),
+            enableSimulcastLayers: true),
         lk_rtc.SimulcastCodec(
             codec: publishOptions.backupCodec!.codec,
             cid: '',
-            enableSimulcastLayers: publishOptions.simulcast),
+            enableSimulcastLayers: true),
       ];
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
@@ -220,7 +220,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
       sendEncodings: encodings,
-      streams: [track.mediaStream],
+      //streams: [track.mediaStream],
     );
 
     logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
@@ -565,23 +565,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     var simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
 
-    var simulcastCodecs = <lk_rtc.SimulcastCodec>[
-      lk_rtc.SimulcastCodec(
-          codec: options.videoCodec,
-          cid: track.getCid(),
-          enableSimulcastLayers: options.simulcast),
-    ];
-
     var layers = Utils.computeVideoLayers(
         track.currentOptions.params.dimensions, encodings);
-
-    final trackInfo = await room.engine.addTrack(
-        cid: existingPublication.sid,
-        name: name,
-        kind: track.kind,
-        source: track.source.toPBType(),
-        videoLayers: layers,
-        simulcastCodecs: simulcastCodecs);
 
     simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
         track,
@@ -590,6 +575,23 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         encodings,
         existingPublication,
         backupCodec);
+
+    var cid = simulcastTrack.sender!.senderId;
+
+    final trackInfo = await room.engine.addTrack(
+        cid: cid,
+        name: options.name ??
+            (track.source == TrackSource.screenShareVideo
+                ? VideoPublishOptions.defaultScreenShareName
+                : VideoPublishOptions.defaultCameraName),
+        kind: track.kind,
+        source: track.source.toPBType(),
+        videoLayers: layers,
+        sid: existingPublication.sid,
+        simulcastCodecs: <lk_rtc.SimulcastCodec>[
+          lk_rtc.SimulcastCodec(
+              codec: backupCodec, cid: cid, enableSimulcastLayers: true),
+        ]);
 
     await room.engine.negotiate();
 
