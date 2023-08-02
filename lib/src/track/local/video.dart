@@ -31,8 +31,6 @@ class SimulcastTrackInfo {
 
   rtc.MediaStreamTrack mediaStreamTrack;
 
-  rtc.MediaStream mediaStream;
-
   rtc.RTCRtpSender? sender;
 
   List<rtc.RTCRtpEncoding>? encodings;
@@ -41,7 +39,6 @@ class SimulcastTrackInfo {
       {required this.codec,
       this.encodings,
       required this.mediaStreamTrack,
-      required this.mediaStream,
       this.sender});
 }
 
@@ -245,6 +242,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
         maxFrameRate: options.maxFrameRate,
         params: options.params);
     await restartTrack(newOptions);
+    await replaceTrackForMultiCodecSimulcast();
     currentOptions = newOptions;
   }
 
@@ -264,6 +262,15 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     await restartTrack(
       options.copyWith(deviceId: deviceId),
     );
+
+    await replaceTrackForMultiCodecSimulcast();
+  }
+
+  Future<void> replaceTrackForMultiCodecSimulcast() async {
+    simulcastCodecs.forEach((key, simulcastTrack) async {
+      await simulcastTrack.sender?.replaceTrack(mediaStreamTrack);
+      simulcastTrack.mediaStreamTrack = mediaStreamTrack;
+    });
   }
 
   Future<List<String>> setPublishingCodecs(List<lk_rtc.SubscribedCodec> codecs,
@@ -318,10 +325,10 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       throw Exception('$codec already added');
     }
     SimulcastTrackInfo simulcastCodecInfo = SimulcastTrackInfo(
-        codec: codec,
-        encodings: encodings,
-        mediaStreamTrack: mediaStreamTrack /*TODO: track.clone()*/,
-        mediaStream: mediaStream);
+      codec: codec,
+      encodings: encodings,
+      mediaStreamTrack: mediaStreamTrack,
+    );
 
     simulcastCodecs[codec] = simulcastCodecInfo;
     return simulcastCodecInfo;
