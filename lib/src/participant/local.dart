@@ -291,6 +291,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (sender != null) {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
+          if (track is LocalVideoTrack) {
+            track.simulcastCodecs.forEach((key, simulcastTrack) async {
+              await room.engine.publisher?.pc
+                  .removeTrack(simulcastTrack.sender!);
+            });
+          }
         } catch (_) {
           logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
         }

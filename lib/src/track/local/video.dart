@@ -242,7 +242,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
         maxFrameRate: options.maxFrameRate,
         params: options.params);
     await restartTrack(newOptions);
-    await replaceTrackForMultiCodecSimulcast();
+    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
     currentOptions = newOptions;
   }
 
@@ -263,12 +263,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       options.copyWith(deviceId: deviceId),
     );
 
-    await replaceTrackForMultiCodecSimulcast();
+    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
   }
 
-  Future<void> replaceTrackForMultiCodecSimulcast() async {
+  Future<void> replaceTrackForMultiCodecSimulcast(
+      rtc.MediaStreamTrack newTrack) async {
     simulcastCodecs.forEach((key, simulcastTrack) async {
-      await simulcastTrack.sender?.replaceTrack(mediaStreamTrack);
+      await simulcastTrack.sender?.replaceTrack(newTrack);
       simulcastTrack.mediaStreamTrack = mediaStreamTrack;
     });
   }

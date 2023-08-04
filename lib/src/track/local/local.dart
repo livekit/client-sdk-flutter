@@ -192,6 +192,10 @@ abstract class LocalTrack extends Track {
     // replace track on sender
     try {
       await sender?.replaceTrack(newTrack);
+      if (this is LocalVideoTrack) {
+        var videoTrack = this as LocalVideoTrack;
+        await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
+      }
     } catch (error) {
       logger.severe('RTCRtpSender.replaceTrack() did throw $error');
     }
