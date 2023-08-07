@@ -144,15 +144,16 @@ class Hardware {
   bool get preferSpeakerOutput => _preferSpeakerOutput;
 
   bool get canSwitchSpeakerphone =>
-      lkPlatformIsMobile() &&
-      !_preferSpeakerOutput &&
-      [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
-          .contains(audioTrackState);
+      (lkPlatformIs(PlatformType.iOS) &&
+          !_preferSpeakerOutput &&
+          [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
+              .contains(audioTrackState)) ||
+      lkPlatformIs(PlatformType.android);
 
   Future<void> setSpeakerphoneOn(bool enable) async {
     if (lkPlatformIsMobile()) {
+      speakerOn = enable;
       if (canSwitchSpeakerphone) {
-        speakerOn = enable;
         await rtc.Helper.setSpeakerphoneOn(enable);
       } else {
         logger.warning('Can\'t switch speaker/earpiece');
