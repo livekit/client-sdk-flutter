@@ -919,9 +919,6 @@ extension EngineInternalMethods on Engine {
     }
     var transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
-      /*streams: [
-          simulcastTrack.mediaStream,
-        ]*/
     );
     if (encodings != null) {
       transceiverInit.sendEncodings = encodings;

@@ -220,7 +220,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
       sendEncodings: encodings,
-      //streams: [track.mediaStream],
     );
 
     logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');

@@ -40,6 +40,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _fastConnect = false;
   bool _e2ee = false;
   bool _multiCodec = false;
+  String _preferredCodec = 'Preferred Codec';
 
   @override
   void initState() {
@@ -141,7 +142,20 @@ class _ConnectPageState extends State<ConnectPage> {
         await keyProvider.setKey(sharedKey);
       }
 
-      if (_multiCodec) {}
+      BackupVideoCodec? backupVideoCodec;
+      String preferredCodec = 'H264';
+      if (_multiCodec && _preferredCodec != 'Preferred Codec') {
+        if (['av1', 'vp9'].contains(_preferredCodec.toLowerCase())) {
+          backupVideoCodec = BackupVideoCodec(
+              codec: 'vp8',
+              encoding: const VideoEncoding(
+                maxBitrate: 2 * 1000 * 1000,
+                maxFramerate: 30,
+              ));
+        }
+
+        preferredCodec = _preferredCodec.toLowerCase();
+      }
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
@@ -155,13 +169,8 @@ class _ConnectPageState extends State<ConnectPage> {
               const AudioPublishOptions(name: 'custom_audio_track_name'),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: _simulcast,
-            videoCodec: 'av1',
-            backupCodec: BackupVideoCodec(
-                codec: 'vp8',
-                encoding: const VideoEncoding(
-                  maxBitrate: 2 * 1000 * 1000,
-                  maxFramerate: 30,
-                )),
+            videoCodec: preferredCodec,
+            backupCodec: backupVideoCodec,
           ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
@@ -353,7 +362,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 25),
+                    padding: EdgeInsets.only(bottom: _multiCodec ? 5 : 25),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -365,6 +374,45 @@ class _ConnectPageState extends State<ConnectPage> {
                       ],
                     ),
                   ),
+                  if (_multiCodec)
+                    Padding(
+                        padding: const EdgeInsets.only(bottom: 25),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Preferred Codec:'),
+                              DropdownButton<String>(
+                                value: _preferredCodec,
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.blue,
+                                ),
+                                elevation: 16,
+                                style: const TextStyle(color: Colors.blue),
+                                underline: Container(
+                                  height: 2,
+                                  color: Colors.blueAccent,
+                                ),
+                                onChanged: (String? value) {
+                                  // This is called when the user selects an item.
+                                  setState(() {
+                                    _preferredCodec = value!;
+                                  });
+                                },
+                                items: [
+                                  'Preferred Codec',
+                                  'AV1',
+                                  'VP9',
+                                  'VP8',
+                                  'H264'
+                                ].map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                              )
+                            ])),
                   ElevatedButton(
                     onPressed: _busy ? null : () => _connect(context),
                     child: Row(
