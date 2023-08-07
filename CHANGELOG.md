@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.1
+
+* Fix: fix android earpiece not being replaced after wired headset is disconnected.
+* Fix: SpeakerPhone switch for android.
+* Feat: expose android audio modes.
+
 ## 1.4.0
 
 * Upgrade flutter-webrtc to 0.9.36 (libwebrtc m114).
