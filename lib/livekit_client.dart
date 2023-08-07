@@ -15,6 +15,7 @@
 /// Flutter Client SDK to LiveKit.
 library livekit_client;
 
+export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/events.dart';
 export 'src/exceptions.dart';
