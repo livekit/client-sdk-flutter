@@ -152,8 +152,8 @@ class Hardware {
 
   Future<void> setSpeakerphoneOn(bool enable) async {
     if (lkPlatformIsMobile()) {
+      speakerOn = enable;
       if (canSwitchSpeakerphone) {
-        speakerOn = enable;
         await rtc.Helper.setSpeakerphoneOn(enable);
       } else {
         logger.warning('Can\'t switch speaker/earpiece');

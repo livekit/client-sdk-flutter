@@ -42,6 +42,10 @@ class _RoomPageState extends State<RoomPage> {
         _askPublish();
       }
     });
+
+    if (lkPlatformIsMobile()) {
+      Hardware.instance.setSpeakerphoneOn(true);
+    }
   }
 
   @override
