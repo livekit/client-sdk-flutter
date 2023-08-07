@@ -2,9 +2,10 @@
 
 ## 1.4.1
 
-* Fix: fix android earpiece not being replaced after wired headset is disconnected.
-* Fix: SpeakerPhone switch for android.
-* Feat: expose android audio modes.
+* Fix: fix Android earpiece not being replaced after wired headset is disconnected.
+* Fix: SpeakerPhone switch for Android.
+* Feat: expose Android audio modes.
+* Fix: Correctly save speakerOn state and restore in AudioManagement.
 
 ## 1.4.0
 
