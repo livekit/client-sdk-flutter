@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../hardware/hardware.dart';
@@ -121,6 +122,13 @@ Future<void> _onAudioTrackCountDidChange() async {
         await Native.configureAudio(config);
       } catch (error) {
         logger.warning('failed to configure ${error}');
+      }
+    }
+
+    if (lkPlatformIsMobile()) {
+      if (Hardware.instance.speakerOn != null &&
+          Hardware.instance.canSwitchSpeakerphone) {
+        await rtc.Helper.setSpeakerphoneOn(Hardware.instance.speakerOn!);
       }
     }
   }
