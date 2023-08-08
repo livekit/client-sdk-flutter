@@ -909,7 +909,6 @@ extension EngineInternalMethods on Engine {
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,
     SimulcastTrackInfo simulcastTrack,
-    VideoPublishOptions opts,
     List<rtc.RTCRtpEncoding>? encodings,
     LocalTrackPublication publication,
     String videoCodec,

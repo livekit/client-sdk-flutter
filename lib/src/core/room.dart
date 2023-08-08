@@ -294,7 +294,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
       } else if (event.subscribedQualities.isNotEmpty) {
-        publication.updatePublishingLayers(event.subscribedQualities);
+        var videoTrack = publication.track as LocalVideoTrack;
+        await videoTrack.updatePublishingLayers(
+            videoTrack, event.subscribedQualities);
       }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {

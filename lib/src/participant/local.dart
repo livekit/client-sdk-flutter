@@ -574,12 +574,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.currentOptions.params.dimensions, encodings);
 
     simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
-        track,
-        simulcastTrack,
-        options,
-        encodings,
-        existingPublication,
-        backupCodec);
+      track,
+      simulcastTrack,
+      encodings,
+      existingPublication,
+      backupCodec,
+    );
 
     var cid = simulcastTrack.sender!.senderId;
 
