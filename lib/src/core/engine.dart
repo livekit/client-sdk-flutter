@@ -943,17 +943,11 @@ extension EngineInternalMethods on Engine {
 
     List<rtc.RTCRtpCodecCapability> matched = [];
     List<rtc.RTCRtpCodecCapability> partialMatched = [];
-    List<rtc.RTCRtpCodecCapability> noneCodecs = [];
     List<rtc.RTCRtpCodecCapability> unmatched = [];
     for (var c in caps.codecs!) {
       var codec = c.mimeType.toLowerCase();
       if (codec == 'audio/opus') {
         matched.add(c);
-        continue;
-      }
-
-      if (['rtx', 'red', 'ulpfec'].contains(codec.split('/')[1])) {
-        noneCodecs.add(c);
         continue;
       }
 
@@ -975,7 +969,7 @@ extension EngineInternalMethods on Engine {
       }
       matched.add(c);
     }
-    matched.addAll([...partialMatched, ...unmatched, ...noneCodecs]);
+    matched.addAll([...partialMatched, ...unmatched]);
     await transceiver.setCodecPreferences(matched);
   }
 }
