@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../../extensions.dart';
 import '../../events.dart';
+import '../../extensions.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
