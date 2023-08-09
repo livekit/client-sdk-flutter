@@ -124,13 +124,6 @@ Future<void> _onAudioTrackCountDidChange() async {
         logger.warning('failed to configure ${error}');
       }
     }
-
-    if (lkPlatformIsMobile()) {
-      if (Hardware.instance.speakerOn != null &&
-          Hardware.instance.canSwitchSpeakerphone) {
-        await Hardware.instance.setSpeakerphoneOn(Hardware.instance.speakerOn!);
-      }
-    }
   }
 }
 
