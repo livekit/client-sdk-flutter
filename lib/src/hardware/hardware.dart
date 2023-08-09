@@ -154,7 +154,11 @@ class Hardware {
     if (lkPlatformIsMobile()) {
       speakerOn = enable;
       if (canSwitchSpeakerphone) {
-        await rtc.Helper.setSpeakerphoneOn(enable);
+        if (enable) {
+          await rtc.Helper.setSpeakerphoneOnButPreferBluetooth();
+        } else {
+          await rtc.Helper.setSpeakerphoneOn(false);
+        }
       } else {
         logger.warning('Can\'t switch speaker/earpiece');
       }
