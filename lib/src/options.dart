@@ -90,8 +90,6 @@ class RoomOptions {
 
   final AudioOutputOptions defaultAudioOutputOptions;
 
-  final VideoSubscribeOptions defaultVideoSubscribeOptions;
-
   /// AdaptiveStream lets LiveKit automatically manage quality of subscribed
   /// video tracks to optimize for bandwidth and CPU.
   /// When attached video elements are visible, it'll choose an appropriate
@@ -121,7 +119,6 @@ class RoomOptions {
     this.defaultVideoPublishOptions = const VideoPublishOptions(),
     this.defaultAudioPublishOptions = const AudioPublishOptions(),
     this.defaultAudioOutputOptions = const AudioOutputOptions(),
-    this.defaultVideoSubscribeOptions = const VideoSubscribeOptions(),
     this.adaptiveStream = false,
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
@@ -279,11 +276,4 @@ final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
 
 bool isBackupCodec(String codec) {
   return backupCodecs.contains(codec.toLowerCase());
-}
-
-/// for testing purposes
-class VideoSubscribeOptions {
-  final List<String> preferredVideoCodecs;
-  const VideoSubscribeOptions(
-      {this.preferredVideoCodecs = const ['vp8', 'h264', 'vp9', 'av1']});
 }
