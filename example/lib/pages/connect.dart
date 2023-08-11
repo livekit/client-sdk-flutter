@@ -147,14 +147,15 @@ class _ConnectPageState extends State<ConnectPage> {
       if (_multiCodec && _preferredCodec != 'Preferred Codec') {
         if (['av1', 'vp9'].contains(_preferredCodec.toLowerCase())) {
           backupVideoCodec = BackupVideoCodec(
-              codec: 'vp8',
+              simulcast: true,
+              codec: 'VP8',
               encoding: const VideoEncoding(
                 maxBitrate: 2 * 1000 * 1000,
                 maxFramerate: 30,
               ));
         }
 
-        preferredCodec = _preferredCodec.toLowerCase();
+        preferredCodec = _preferredCodec;
       }
 
       // Try to connect to the room

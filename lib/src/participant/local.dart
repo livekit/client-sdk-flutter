@@ -184,18 +184,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
+            codec: publishOptions.videoCodec.toLowerCase(),
             cid: track.getCid(),
             enableSimulcastLayers: true),
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.backupCodec!.codec,
+            codec: publishOptions.backupCodec!.codec.toLowerCase(),
             cid: '',
             enableSimulcastLayers: true),
       ];
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
+            codec: publishOptions.videoCodec.toLowerCase(),
             cid: track.getCid(),
             enableSimulcastLayers: publishOptions.simulcast),
       ];
@@ -560,8 +560,23 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     options ??= room.roomOptions.defaultVideoPublishOptions;
 
-    var encodings =
-        Utils.computeTrackBackupEncodings(track, backupCodec, options);
+    options = options.copyWith(simulcast: options.backupCodec!.simulcast);
+
+    if (options.backupCodec == null ||
+        options.backupCodec?.codec.toLowerCase() ==
+            options.videoCodec.toLowerCase()) {
+      // backup codec publishing is disabled
+      return;
+    }
+
+    if (backupCodec != options.backupCodec?.codec.toLowerCase()) {
+      logger.warning(
+        'requested a different codec than specified as backup serverRequested: ${backupCodec}, backup: ${options.backupCodec?.codec}',
+      );
+    }
+
+    var encodings = Utils.computeTrackBackupEncodings(track, options);
+
     if (encodings == null) {
       logger.fine(
           'backup codec has been disabled, ignoring request to add additional codec for track');
@@ -569,9 +584,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     var simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
+    var dimensions = track.currentOptions.params.dimensions;
 
-    var layers = Utils.computeVideoLayers(
-        track.currentOptions.params.dimensions, encodings);
+    var layers = Utils.computeVideoLayers(dimensions, encodings);
 
     simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
       track,
@@ -591,11 +606,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
                 : VideoPublishOptions.defaultCameraName),
         kind: track.kind,
         source: track.source.toPBType(),
+        dimensions: dimensions,
         videoLayers: layers,
         sid: existingPublication.sid,
         simulcastCodecs: <lk_rtc.SimulcastCodec>[
           lk_rtc.SimulcastCodec(
-              codec: backupCodec, cid: cid, enableSimulcastLayers: true),
+              codec: backupCodec.toLowerCase(),
+              cid: cid,
+              enableSimulcastLayers: true),
         ]);
 
     await room.engine.negotiate();

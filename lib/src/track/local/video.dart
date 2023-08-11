@@ -18,7 +18,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
-import '../../extensions.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -293,7 +292,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     List<String> newCodecs = [];
 
     for (var codec in codecs) {
-      if (this.codec == codec.codec) {
+      if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
         await updatePublishingLayers(publication.track, codec.qualities);
       } else {
         final simulcastCodecInfo = simulcastCodecs[codec.codec];

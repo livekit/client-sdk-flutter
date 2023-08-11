@@ -957,7 +957,7 @@ extension EngineInternalMethods on Engine {
       }
       // for h264 codecs that have sdpFmtpLine available, use only if the
       // profile-level-id is 42e01f for cross-browser compatibility
-      if (videoCodec == 'h264') {
+      if (videoCodec.toLowerCase() == 'h264') {
         if (c.sdpFmtpLine != null &&
             c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
           matched.add(c);

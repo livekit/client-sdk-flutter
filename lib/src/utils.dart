@@ -466,20 +466,8 @@ class Utils {
   @internal
   static List<rtc.RTCRtpEncoding>? computeTrackBackupEncodings(
     LocalVideoTrack track,
-    String videoCodec,
     VideoPublishOptions opts,
   ) {
-    if (opts.backupCodec == null ||
-        opts.backupCodec?.codec == opts.videoCodec) {
-      // backup codec publishing is disabled
-      return null;
-    }
-    if (videoCodec != opts.backupCodec?.codec) {
-      logger.warning(
-        'requested a different codec than specified as backup serverRequested: ${videoCodec}, backup: ${opts.backupCodec?.codec}',
-      );
-    }
-
     opts = opts.copyWith(
         videoCodec: opts.backupCodec!.codec,
         videoEncoding: opts.backupCodec!.encoding);

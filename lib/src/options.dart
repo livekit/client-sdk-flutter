@@ -161,9 +161,11 @@ class BackupVideoCodec {
   BackupVideoCodec({
     required this.codec,
     required this.encoding,
+    this.simulcast = true,
   });
   String codec;
   VideoEncoding encoding;
+  bool simulcast;
 }
 
 /// Options used when publishing video.
