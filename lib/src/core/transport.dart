@@ -128,7 +128,7 @@ class Transport extends Disposable {
       restartingIce = true;
     }
 
-    if (pc.signalingState ==
+    if (await pc.getSignalingState() ==
         rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
