@@ -37,7 +37,6 @@ class Transport extends Disposable {
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   bool restartingIce = false;
   bool renegotiate = false;
-  bool negotiated = false;
   TransportOnOffer? onOffer;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
@@ -106,7 +105,6 @@ class Transport extends Disposable {
 
     _pendingCandidates.clear();
     restartingIce = false;
-    negotiated = true;
 
     if (renegotiate) {
       renegotiate = false;
@@ -130,7 +128,7 @@ class Transport extends Disposable {
       restartingIce = true;
     }
 
-    if (pc.signalingState ==
+    if (await pc.getSignalingState() ==
         rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
@@ -139,7 +137,7 @@ class Transport extends Disposable {
         // TODO: handle when ICE restart is needed but we don't have a remote description
         // the best thing to do is to recreate the peerconnection
         await pc.setRemoteDescription(currentSD);
-      } else if (!negotiated) {
+      } else {
         renegotiate = true;
         return;
       }
@@ -154,7 +152,6 @@ class Transport extends Disposable {
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
     try {
       await pc.setLocalDescription(offer);
-      negotiated = false;
     } catch (e) {
       throw NegotiationError(e.toString());
     }
