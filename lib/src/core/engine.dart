@@ -276,11 +276,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
 
-      if (publisher?.pc.connectionState?.isConnected() != true) {
+      if ((await publisher?.pc.getConnectionState())?.isConnected() != true) {
         logger.fine('Publisher is not connected...');
 
         // start negotiation
-        if (publisher?.pc.connectionState !=
+        if (await publisher?.pc.getConnectionState() !=
             rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           await negotiate();
         }
@@ -634,7 +634,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ));
       }
 
-      final iceConnected = primary?.pc.connectionState?.isConnected() ?? false;
+      final iceConnected =
+          (await primary?.pc.getConnectionState())?.isConnected() ?? false;
 
       logger.fine('resumeConnection: iceConnected: $iceConnected');
 
@@ -802,9 +803,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.warning('[$objectId] subscriber is null');
         return;
       }
-
+      var signalingState = await subscriber!.pc.getSignalingState();
       logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
-          '${subscriber!.pc.signalingState})');
+          '$signalingState)');
       logger.finer('sdp: ${event.sd.sdp}');
 
       await subscriber!.setRemoteDescription(event.sd);
