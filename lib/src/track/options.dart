@@ -110,7 +110,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
     this.captureScreenAudio = false,
-    this.preferCurrentTab = true,
+    this.preferCurrentTab = false,
     this.selfBrowserSurface,
     String? sourceId,
     double? maxFrameRate,
@@ -120,7 +120,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
       this.captureScreenAudio = false,
-      this.preferCurrentTab = true,
+      this.preferCurrentTab = false,
       this.selfBrowserSurface,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);
