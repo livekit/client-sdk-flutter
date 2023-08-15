@@ -102,7 +102,8 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   final bool captureScreenAudio;
 
   /// for browser only, if true, will capture current tab.
-  final bool preferCurrentTab;
+  @Deprecated('Deprecated parameter no longer works in chrome m115+')
+  final bool? preferCurrentTab;
 
   /// for browser only, include or exclude self browser surface.
   final String? selfBrowserSurface;
@@ -110,7 +111,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   const ScreenShareCaptureOptions({
     this.useiOSBroadcastExtension = false,
     this.captureScreenAudio = false,
-    this.preferCurrentTab = true,
+    this.preferCurrentTab,
     this.selfBrowserSurface,
     String? sourceId,
     double? maxFrameRate,
@@ -120,7 +121,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   ScreenShareCaptureOptions.from(
       {this.useiOSBroadcastExtension = false,
       this.captureScreenAudio = false,
-      this.preferCurrentTab = true,
+      this.preferCurrentTab,
       this.selfBrowserSurface,
       required VideoCaptureOptions captureOptions})
       : super(params: captureOptions.params);

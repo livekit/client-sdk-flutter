@@ -148,9 +148,10 @@ abstract class LocalTrack extends Track {
     final rtc.MediaStream stream;
     if (options is ScreenShareCaptureOptions) {
       if (kIsWeb) {
-        if (options.preferCurrentTab) {
+        if (options.preferCurrentTab == true) {
           constraints['preferCurrentTab'] = true;
         }
+
         if (options.selfBrowserSurface != null) {
           constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
         }
