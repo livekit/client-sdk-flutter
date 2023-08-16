@@ -159,7 +159,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine(
         'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
-    if (isSVCCodec(publishOptions.videoCodec)) {
+    if (isSVCCodec(publishOptions.videoCodec) &&
+        publishOptions.scalabilityMode == null) {
       // set scalabilityMode to 'L3T3_KEY' by default
       publishOptions = publishOptions.copyWith(
         scalabilityMode: 'L3T3_KEY',
