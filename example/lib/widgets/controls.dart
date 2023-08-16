@@ -280,51 +280,58 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             tooltip: 'Unpublish all',
           ),
           if (participant.isMicrophoneEnabled())
-            PopupMenuButton<MediaDevice>(
-              icon: const Icon(Icons.settings_voice),
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<MediaDevice>(
-                    value: null,
-                    onTap: isMuted ? _enableAudio : _disableAudio,
-                    child: const ListTile(
-                      leading: Icon(
-                        EvaIcons.micOff,
-                        color: Colors.white,
-                      ),
-                      title: Text('Mute Microphone'),
-                    ),
-                  ),
-                  if (_audioInputs != null)
-                    ..._audioInputs!.map((device) {
-                      return PopupMenuItem<MediaDevice>(
-                        value: device,
-                        child: ListTile(
-                          leading: (device.deviceId ==
-                                  widget.room.selectedAudioInputDeviceId)
-                              ? const Icon(
-                                  EvaIcons.checkmarkSquare,
-                                  color: Colors.white,
-                                )
-                              : const Icon(
-                                  EvaIcons.square,
-                                  color: Colors.white,
-                                ),
-                          title: Text(device.label),
+            if (lkPlatformIs(PlatformType.android))
+              IconButton(
+                onPressed: _disableAudio,
+                icon: const Icon(EvaIcons.mic),
+                tooltip: 'mute audio',
+              )
+            else
+              PopupMenuButton<MediaDevice>(
+                icon: const Icon(Icons.settings_voice),
+                itemBuilder: (BuildContext context) {
+                  return [
+                    PopupMenuItem<MediaDevice>(
+                      value: null,
+                      onTap: isMuted ? _enableAudio : _disableAudio,
+                      child: const ListTile(
+                        leading: Icon(
+                          EvaIcons.micOff,
+                          color: Colors.white,
                         ),
-                        onTap: () => _selectAudioInput(device),
-                      );
-                    }).toList()
-                ];
-              },
-            )
+                        title: Text('Mute Microphone'),
+                      ),
+                    ),
+                    if (_audioInputs != null)
+                      ..._audioInputs!.map((device) {
+                        return PopupMenuItem<MediaDevice>(
+                          value: device,
+                          child: ListTile(
+                            leading: (device.deviceId ==
+                                    widget.room.selectedAudioInputDeviceId)
+                                ? const Icon(
+                                    EvaIcons.checkmarkSquare,
+                                    color: Colors.white,
+                                  )
+                                : const Icon(
+                                    EvaIcons.square,
+                                    color: Colors.white,
+                                  ),
+                            title: Text(device.label),
+                          ),
+                          onTap: () => _selectAudioInput(device),
+                        );
+                      }).toList()
+                  ];
+                },
+              )
           else
             IconButton(
               onPressed: _enableAudio,
               icon: const Icon(EvaIcons.micOff),
               tooltip: 'un-mute audio',
             ),
-          if (!lkPlatformIsMobile())
+          if (!lkPlatformIs(PlatformType.iOS))
             PopupMenuButton<MediaDevice>(
               icon: const Icon(Icons.volume_up),
               itemBuilder: (BuildContext context) {
@@ -362,7 +369,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                 ];
               },
             ),
-          if (!kIsWeb && lkPlatformIsMobile())
+          if (!kIsWeb && lkPlatformIs(PlatformType.iOS))
             IconButton(
               disabledColor: Colors.grey,
               onPressed: Hardware.instance.canSwitchSpeakerphone

@@ -125,7 +125,7 @@ Future<void> _onAudioTrackCountDidChange() async {
       }
     }
 
-    if (lkPlatformIsMobile()) {
+    if (lkPlatformIs(PlatformType.iOS)) {
       if (Hardware.instance.speakerOn != null &&
           Hardware.instance.canSwitchSpeakerphone) {
         await rtc.Helper.setSpeakerphoneOn(Hardware.instance.speakerOn!);
