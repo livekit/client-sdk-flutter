@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.4.3
+
+* Fix: remove js_bindings and use the built-in AudioContext for js interop to support flutter 3.13.0.
+
 ## 1.4.2
 
 * Fix: fix the speakerPhone switch issue for Android.
