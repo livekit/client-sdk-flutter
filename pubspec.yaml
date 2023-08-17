@@ -43,6 +43,7 @@ dependencies:
   device_info_plus: ^9.0.0
   js: ^0.6.4
   platform_detect: ^2.0.7
+  dart_webrtc: 1.1.2
 
 dev_dependencies:
   flutter_test:
