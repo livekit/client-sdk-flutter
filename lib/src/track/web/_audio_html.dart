@@ -16,7 +16,7 @@ import 'dart:html' as html;
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:js_bindings/js_bindings.dart' as js_bindings;
+import 'package:typings/core.dart' as js;
 
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter: keep
@@ -24,7 +24,7 @@ import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter:
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
-js_bindings.AudioContext _audioContext = js_bindings.AudioContext();
+js.AudioContext _audioContext = js.AudioContext();
 Map<String, html.Element> _audioElements = {};
 
 Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
@@ -57,7 +57,7 @@ Future<bool> startAllAudioElement() async {
       await element.play();
     }
   }
-  return _audioContext.state == js_bindings.AudioContextState.running;
+  return _audioContext.state == js.AudioContextState.running;
 }
 
 void stopAudio(String id) {
