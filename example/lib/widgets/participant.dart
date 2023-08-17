@@ -237,7 +237,7 @@ class _RemoteParticipantWidgetState
             if (videoPublication != null)
               RemoteTrackQualityMenuWidget(
                 pub: videoPublication!,
-                icon: EvaIcons.monitorOutline,
+                icon: Icons.monitor_outlined,
               ),
           ],
         ),
