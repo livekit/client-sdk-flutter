@@ -17,10 +17,10 @@ import 'dart:js_util' as jsutil;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import '_audio_context.dart';
+
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter: keep
-
-import '_audio_context.dart';
 
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
