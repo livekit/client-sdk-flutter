@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -222,18 +221,18 @@ class _RemoteParticipantWidgetState
             if (firstAudioPublication != null && !isScreenShare)
               RemoteTrackPublicationMenuWidget(
                 pub: firstAudioPublication!,
-                icon: EvaIcons.volumeUp,
+                icon: Icons.volume_up,
               ),
             // Menu for RemoteTrackPublication<RemoteVideoTrack>
             if (videoPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: videoPublication!,
-                icon: isScreenShare ? EvaIcons.monitor : EvaIcons.video,
+                icon: isScreenShare ? Icons.monitor : Icons.videocam,
               ),
             if (videoPublication != null)
               RemoteTrackFPSMenuWidget(
                 pub: videoPublication!,
-                icon: EvaIcons.options2,
+                icon: Icons.menu,
               ),
           ],
         ),
