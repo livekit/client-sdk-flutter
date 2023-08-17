@@ -1,4 +1,3 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -13,7 +12,7 @@ class NoVideoWidget extends StatelessWidget {
         alignment: Alignment.center,
         child: LayoutBuilder(
           builder: (ctx, constraints) => Icon(
-            EvaIcons.videoOffOutline,
+            Icons.videocam_off_outlined,
             color: LKColors.lkBlue,
             size: math.min(constraints.maxHeight, constraints.maxWidth) * 0.3,
           ),

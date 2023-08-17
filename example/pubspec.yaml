@@ -17,9 +17,7 @@ dependencies:
   provider: ^6.0.1
   logging: ^1.0.1
   shared_preferences: ^2.0.7
-
   google_fonts: ^4.0.4
-  eva_icons_flutter: ^3.0.0
   flutter_svg: ^2.0.5
 
   livekit_client:
