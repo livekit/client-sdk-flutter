@@ -27,7 +27,6 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 |   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
 | Windows |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
 | Linux   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
-   
 
 🟢 = Available
 
@@ -212,11 +211,9 @@ On Android, you would have to define a foreground service in your AndroidManifes
 On iOS, a broadcast extension is needed in order to capture screen content from
 other apps. See [setup guide](https://github.com/flutter-webrtc/flutter-webrtc/wiki/iOS-Screen-Sharing#broadcast-extension-quick-setup) for instructions.
 
-
 #### Desktop(Windows/macOS)
 
 On dekstop you can use `ScreenSelectDialog` to select the window or screen you want to share.
-
 
 ```dart
 try {
@@ -249,7 +246,7 @@ By default, the native platform can support E2EE without any settings, but for f
 ```bash
 # for example app
 dart compile js .\web\e2ee.worker.dart -o .\example\web\e2ee.worker.dart.js
-# for your project 
+# for your project
 export YOU_PROJECT_DIR=your_project_dir
 git clone https://github.com/livekit/client-sdk-flutter.git
 cd client-sdk-flutter && flutter pub get
@@ -448,7 +445,7 @@ For more info, see [Subscriber controls](https://docs.livekit.io/guides/room/rec
 
 ## Getting help / Contributing
 
-Please join us on [Slack](https://join.slack.com/t/livekit-users/shared_invite/zt-rrdy5abr-5pZ1wW8pXEkiQxBzFiXPUg) to get help from our [devs](https://github.com/orgs/livekit/teams/devs/members) / community members. We welcome your contributions(PRs) and details can be discussed there.
+Please join us on [Slack](https://livekit.io/join-slack) to get help from our devs / community members. We welcome your contributions(PRs) and details can be discussed there.
 
 ## License
 
@@ -459,7 +456,9 @@ Apache License 2.0
 A huge thank you to [flutter-webrtc](https://github.com/flutter-webrtc/flutter-webrtc) for making it possible to use WebRTC in Flutter.
 
 <!--BEGIN_REPO_NAV-->
+
 <br/><table>
+
 <thead><tr><th colspan="2">LiveKit Ecosystem</th></tr></thead>
 <tbody>
 <tr><td>Client SDKs</td><td><a href="https://github.com/livekit/components-js">Components</a> · <a href="https://github.com/livekit/client-sdk-js">JavaScript</a> · <a href="https://github.com/livekit/client-sdk-swift">iOS/macOS</a> · <a href="https://github.com/livekit/client-sdk-android">Android</a> · <b>Flutter</b> · <a href="https://github.com/livekit/client-sdk-react-native">React Native</a> · <a href="https://github.com/livekit/client-sdk-rust">Rust</a> · <a href="https://github.com/livekit/client-sdk-python">Python</a> · <a href="https://github.com/livekit/client-sdk-unity-web">Unity (web)</a> · <a href="https://github.com/livekit/client-sdk-unity">Unity (beta)</a></td></tr><tr></tr>

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.4.2
+
+* Fix: fix the speakerPhone switch issue for Android.
+* Fix: fix iOS cannot publish the audio track correctly.
+* Fix: fix crash when re-publish video track on Windows/Linux.
+* Fix: set preferCurrentTab to false by default 
+
 ## 1.4.1
 
 * Fix: fix Android earpiece not being replaced after wired headset is disconnected.

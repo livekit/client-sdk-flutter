@@ -1,4 +1,3 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -51,7 +50,7 @@ class ParticipantInfoWidget extends StatelessWidget {
                 ? const Padding(
                     padding: EdgeInsets.only(left: 5),
                     child: Icon(
-                      EvaIcons.monitor,
+                      Icons.monitor,
                       color: Colors.white,
                       size: 16,
                     ),
@@ -59,7 +58,7 @@ class ParticipantInfoWidget extends StatelessWidget {
                 : Padding(
                     padding: const EdgeInsets.only(left: 5),
                     child: Icon(
-                      audioAvailable ? EvaIcons.mic : EvaIcons.micOff,
+                      audioAvailable ? Icons.mic : Icons.mic_off,
                       color: audioAvailable ? Colors.white : Colors.red,
                       size: 16,
                     ),
@@ -69,8 +68,8 @@ class ParticipantInfoWidget extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 5),
                 child: Icon(
                   connectionQuality == ConnectionQuality.poor
-                      ? EvaIcons.wifiOffOutline
-                      : EvaIcons.wifi,
+                      ? Icons.wifi_off_outlined
+                      : Icons.wifi,
                   color: {
                     ConnectionQuality.excellent: Colors.green,
                     ConnectionQuality.good: Colors.orange,
@@ -82,7 +81,7 @@ class ParticipantInfoWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 5),
               child: Icon(
-                enabledE2EE ? EvaIcons.lock : EvaIcons.unlock,
+                enabledE2EE ? Icons.lock : Icons.lock_open,
                 color: enabledE2EE ? Colors.green : Colors.red,
                 size: 16,
               ),

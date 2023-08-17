@@ -19,7 +19,7 @@ version: 1.4.1
 homepage: https://livekit.io
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
@@ -38,12 +38,11 @@ dependencies:
   uuid: ^3.0.6
   synchronized: ^3.0.0+3
   protobuf: ^3.0.0
-  flutter_webrtc: 0.9.39
+  flutter_webrtc: 0.9.40
   flutter_window_close: ^0.2.2
   device_info_plus: ^9.0.0
   js: ^0.6.4
   platform_detect: ^2.0.7
-  js_bindings: ^0.1.2+1
 
 dev_dependencies:
   flutter_test:
