@@ -227,7 +227,7 @@ class _RemoteParticipantWidgetState
             if (videoPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: videoPublication!,
-                icon: isScreenShare ? Icons.monitor : Icons.video_library,
+                icon: isScreenShare ? Icons.monitor : Icons.videocam,
               ),
             if (videoPublication != null)
               RemoteTrackFPSMenuWidget(
