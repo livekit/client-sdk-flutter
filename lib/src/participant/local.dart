@@ -191,7 +191,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         lk_rtc.SimulcastCodec(
             codec: publishOptions.backupCodec!.codec.toLowerCase(),
             cid: '',
-            enableSimulcastLayers: true),
+            enableSimulcastLayers: publishOptions.backupCodec!.simulcast),
       ];
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
@@ -614,7 +614,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           lk_rtc.SimulcastCodec(
               codec: backupCodec.toLowerCase(),
               cid: cid,
-              enableSimulcastLayers: true),
+              enableSimulcastLayers: options.backupCodec!.simulcast),
         ]);
 
     await room.engine.negotiate();

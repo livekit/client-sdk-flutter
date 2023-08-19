@@ -377,7 +377,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     publisher?.onOffer = (offer) {
-      logger.fine('publisher onOffer ${offer.sdp}');
+      logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
     };
 
@@ -923,7 +923,6 @@ extension EngineInternalMethods on Engine {
     if (encodings != null) {
       transceiverInit.sendEncodings = encodings;
     }
-    // addTransceiver for react-native is async. web is synchronous, but await won't effect it.
     final transceiver = await publisher!.pc.addTransceiver(
       track: simulcastTrack.mediaStreamTrack,
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
@@ -939,7 +938,7 @@ extension EngineInternalMethods on Engine {
     var caps = await rtc.getRtpSenderCapabilities(kind);
     if (caps.codecs == null) return;
 
-    logger.info('get capabilities ${caps.codecs}');
+    logger.fine('get capabilities ${caps.codecs}');
 
     List<rtc.RTCRtpCodecCapability> matched = [];
     List<rtc.RTCRtpCodecCapability> partialMatched = [];
