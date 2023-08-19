@@ -183,6 +183,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (publishOptions.backupCodec != null &&
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
+      if (!room.roomOptions.dynacast) {
+        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
+      }
+
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
             codec: publishOptions.videoCodec.toLowerCase(),

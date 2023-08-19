@@ -102,6 +102,8 @@ class RoomOptions {
   /// enable Dynacast, off by default. With Dynacast dynamically pauses
   /// video layers that are not being consumed by any subscribers, significantly
   /// reducing publishing CPU and bandwidth usage.
+  /// Dynacast will be enabled if SVC codecs (VP9/AV1) are used. Multi-codec
+  /// simulcast requires dynacast
   final bool dynacast;
 
   /// Set this to false in case you would like to stop the track yourself.
@@ -135,6 +137,7 @@ class RoomOptions {
     bool? adaptiveStream,
     bool? dynacast,
     bool? stopLocalTrackOnUnpublish,
+    E2EEOptions? e2eeOptions,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions:
@@ -153,6 +156,7 @@ class RoomOptions {
       dynacast: dynacast ?? this.dynacast,
       stopLocalTrackOnUnpublish:
           stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+      e2eeOptions: e2eeOptions ?? this.e2eeOptions,
     );
   }
 }
