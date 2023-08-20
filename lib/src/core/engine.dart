@@ -31,8 +31,10 @@ import '../managers/event.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../publication/local.dart';
 import '../support/disposable.dart';
 import '../support/websocket.dart';
+import '../track/local/video.dart';
 import '../types/internal.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
@@ -200,6 +202,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
+    Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
+    String? sid,
   }) async {
     // TODO: Check if cid already published
 
@@ -228,6 +232,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       dtx: dtx,
       videoLayers: videoLayers,
       encryptionType: encryptionType,
+      simulcastCodecs: simulcastCodecs,
+      sid: sid,
     );
 
     // wait for response, or timeout
@@ -819,7 +825,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       logger.fine('received answer (type: ${event.sd.type})');
-      logger.finer('sdp: ${event.sd.sdp}');
+      logger.fine('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
@@ -900,6 +906,71 @@ extension EngineInternalMethods on Engine {
           .where((e) => e.id != -1)
           .map((e) => e.toLKInfoType())
           .toList();
+  @internal
+  Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
+    LocalVideoTrack track,
+    SimulcastTrackInfo simulcastTrack,
+    List<rtc.RTCRtpEncoding>? encodings,
+    LocalTrackPublication publication,
+    String videoCodec,
+  ) async {
+    if (publisher == null) {
+      throw Exception('publisher is closed');
+    }
+    var transceiverInit = rtc.RTCRtpTransceiverInit(
+      direction: rtc.TransceiverDirection.SendOnly,
+    );
+    if (encodings != null) {
+      transceiverInit.sendEncodings = encodings;
+    }
+    final transceiver = await publisher!.pc.addTransceiver(
+      track: simulcastTrack.mediaStreamTrack,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      init: transceiverInit,
+    );
+    await setPreferredCodec(
+        transceiver, track.kind.toString().toLowerCase(), videoCodec);
+    return transceiver.sender;
+  }
+
+  Future<void> setPreferredCodec(
+      rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
+    var caps = await rtc.getRtpSenderCapabilities(kind);
+    if (caps.codecs == null) return;
+
+    logger.fine('get capabilities ${caps.codecs}');
+
+    List<rtc.RTCRtpCodecCapability> matched = [];
+    List<rtc.RTCRtpCodecCapability> partialMatched = [];
+    List<rtc.RTCRtpCodecCapability> unmatched = [];
+    for (var c in caps.codecs!) {
+      var codec = c.mimeType.toLowerCase();
+      if (codec == 'audio/opus') {
+        matched.add(c);
+        continue;
+      }
+
+      var matchesVideoCodec = codec == 'video/$videoCodec';
+      if (!matchesVideoCodec) {
+        unmatched.add(c);
+        continue;
+      }
+      // for h264 codecs that have sdpFmtpLine available, use only if the
+      // profile-level-id is 42e01f for cross-browser compatibility
+      if (videoCodec.toLowerCase() == 'h264') {
+        if (c.sdpFmtpLine != null &&
+            c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+          matched.add(c);
+        } else {
+          partialMatched.add(c);
+        }
+        continue;
+      }
+      matched.add(c);
+    }
+    matched.addAll([...partialMatched, ...unmatched]);
+    await transceiver.setCodecPreferences(matched);
+  }
 }
 
 Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {

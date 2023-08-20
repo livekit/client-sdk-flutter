@@ -20,14 +20,13 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 
 ## Current supported features
 
-| Feature | Subscribe/Publish | Simulcast | Background audio | Screen sharing | End to End Encryption |
-| :-----: | :---------------: | :-------: | :--------------: | :------------: | :-------------------: |
-|   Web   |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
-|   iOS   |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
-| Android |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
-|   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
-| Windows |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
-|  Linux  |        🟢         |    🟢     |        🟢        |       🟢       |          🟢           |
+| Feature | Subscribe/Publish | Simulcast | Background audio | Screen sharing | End to End Encryption | Multi Codec Simulcast |
+| :-----: | :---------------: | :-------: | :--------------: | :------------: | :-------------------: | :-------------------: |
+|   iOS   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
+| Android |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
+|   Mac   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
+| Windows |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
+| Linux   |        🟢         |    🟢     |        🟢        |       🟢       |       🟢               |          🟢          |
 
 🟢 = Available
 

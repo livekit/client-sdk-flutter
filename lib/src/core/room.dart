@@ -264,7 +264,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>(
         (event) => _onSignalStreamStateUpdateEvent(event.updates))
-    ..on<SignalSubscribedQualityUpdatedEvent>((event) {
+    ..on<SignalSubscribedQualityUpdatedEvent>((event) async {
       // Dynacast is off or is unsupported
       if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
         logger.fine('Received subscribed quality update'
@@ -278,7 +278,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             'Received subscribed quality update for unknown track (${event.trackSid})');
         return;
       }
-      publication.updatePublishingLayers(event.updates);
+      if (event.subscribedCodecs.isNotEmpty) {
+        if (publication.track! is! LocalVideoTrack) {
+          return;
+        }
+        var videoTrack = publication.track as LocalVideoTrack;
+        final newCodecs = await videoTrack.setPublishingCodecs(
+            event.subscribedCodecs, publication);
+        for (var codec in newCodecs) {
+          if (isBackupCodec(codec)) {
+            logger.info(
+                'publishing backup codec ${codec} for ${publication.track?.sid}');
+            await localParticipant?.publishAdditionalCodecForTrack(
+                videoTrack, codec, roomOptions.defaultVideoPublishOptions);
+          }
+        }
+      } else if (event.subscribedQualities.isNotEmpty) {
+        var videoTrack = publication.track as LocalVideoTrack;
+        await videoTrack.updatePublishingLayers(
+            videoTrack, event.subscribedQualities);
+      }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
       logger.fine('SignalSubscriptionPermissionUpdateEvent '

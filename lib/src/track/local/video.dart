@@ -12,17 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/foundation.dart';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../../publication/local.dart';
+import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../stats.dart';
 import 'audio.dart';
 import 'local.dart';
+
+class SimulcastTrackInfo {
+  String codec;
+
+  rtc.MediaStreamTrack mediaStreamTrack;
+
+  rtc.RTCRtpSender? sender;
+
+  List<rtc.RTCRtpEncoding>? encodings;
+
+  SimulcastTrackInfo(
+      {required this.codec,
+      this.encodings,
+      required this.mediaStreamTrack,
+      this.sender});
+}
 
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
@@ -35,6 +56,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   get currentBitrate => _currentBitrate;
   Map<String, VideoSenderStats>? prevStats;
   final Map<String, num> _bitrateFoLayers = {};
+
+  Map<String, SimulcastTrackInfo> simulcastCodecs = {};
+
+  List<lk_rtc.SubscribedCodec> subscribedCodecs = [];
 
   @override
   Future<bool> monitorStats() async {
@@ -220,6 +245,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
         maxFrameRate: options.maxFrameRate,
         params: options.params);
     await restartTrack(newOptions);
+    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
     currentOptions = newOptions;
   }
 
@@ -239,5 +265,207 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     await restartTrack(
       options.copyWith(deviceId: deviceId),
     );
+
+    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+  }
+
+  Future<void> replaceTrackForMultiCodecSimulcast(
+      rtc.MediaStreamTrack newTrack) async {
+    simulcastCodecs.forEach((key, simulcastTrack) async {
+      await simulcastTrack.sender?.replaceTrack(newTrack);
+      simulcastTrack.mediaStreamTrack = mediaStreamTrack;
+    });
+  }
+
+  Future<List<String>> setPublishingCodecs(List<lk_rtc.SubscribedCodec> codecs,
+      LocalTrackPublication publication) async {
+    logger.fine('setPublishingCodecs $codecs');
+
+    // only enable simulcast codec for preference codec setted
+    if (codec == null && codecs.isNotEmpty) {
+      await updatePublishingLayers(publication.track, codecs[0].qualities);
+      return [];
+    }
+
+    subscribedCodecs = codecs;
+
+    List<String> newCodecs = [];
+
+    for (var codec in codecs) {
+      if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
+        await updatePublishingLayers(publication.track, codec.qualities);
+      } else {
+        final simulcastCodecInfo = simulcastCodecs[codec.codec];
+        logger.fine('setPublishingCodecs $codecs');
+        if (simulcastCodecInfo == null) {
+          for (var q in codec.qualities) {
+            if (q.enabled) {
+              newCodecs.add(codec.codec.toLowerCase());
+              break;
+            }
+          }
+        } else if (simulcastCodecInfo.encodings != null &&
+            simulcastCodecInfo.sender != null) {
+          logger.fine('setPublishingCodecs $codecs');
+          await setPublishingLayersForSender(
+            simulcastCodecInfo.sender!,
+            simulcastCodecInfo.encodings!,
+            codec.qualities,
+          );
+        }
+      }
+    }
+    return newCodecs;
+  }
+
+  Future<void> updatePublishingLayers(
+      LocalTrack? track, List<lk_rtc.SubscribedQuality> layers) async {
+    logger.fine('Update publishing layers: $layers');
+
+    if (track?.sender == null) {
+      logger.fine('Update publishing layers: sender is null');
+      return;
+    }
+
+    final params = track?.sender?.parameters;
+    if (params == null) {
+      logger.fine('Update publishing layers: sender params are null');
+      return;
+    }
+
+    final encodings = params.encodings;
+    if (encodings == null) {
+      logger.fine('Update publishing layers: encodings are null');
+      return;
+    }
+
+    return setPublishingLayersForSender(track!.sender!, encodings, layers);
+  }
+
+  lk_models.VideoQuality videoQualityForRid(String rid) {
+    switch (rid) {
+      case 'f':
+        return lk_models.VideoQuality.HIGH;
+      case 'h':
+        return lk_models.VideoQuality.MEDIUM;
+      case 'q':
+        return lk_models.VideoQuality.LOW;
+      default:
+        return lk_models.VideoQuality.HIGH;
+    }
+  }
+
+  Future<void> setPublishingLayersForSender(
+      rtc.RTCRtpSender sender,
+      List<rtc.RTCRtpEncoding> encodings,
+      List<lk_rtc.SubscribedQuality> layers) async {
+    logger.fine('Update publishing layers: $layers');
+
+    final params = sender.parameters;
+
+    var hasChanged = false;
+
+    /* disable closable spatial layer as it has video blur / frozen issue with current server / client
+    1. chrome 113: when switching to up layer with scalability Mode change, it will generate a
+          low resolution frame and recover very quickly, but noticable
+    2. livekit sfu: additional pli request cause video frozen for a few frames, also noticable */
+
+    /* @ts-ignore */
+    if (encodings[0].scalabilityMode != null) {
+      // svc dynacast encodings
+      var encoding = encodings[0];
+      /* @ts-ignore */
+      // const mode = new ScalabilityMode(encoding.scalabilityMode);
+      var maxQuality = lk_models.VideoQuality.OFF;
+      for (var q in layers) {
+        if (q.enabled &&
+            (maxQuality == lk_models.VideoQuality.OFF ||
+                q.quality.value > maxQuality.value)) {
+          maxQuality = q.quality;
+        }
+      }
+
+      if (maxQuality == lk_models.VideoQuality.OFF) {
+        if (encoding.active) {
+          encoding.active = false;
+          hasChanged = true;
+        }
+      } else if (!encoding.active /* || mode.spatial !== maxQuality + 1*/) {
+        hasChanged = true;
+        encoding.active = true;
+        /*
+        var originalMode = new ScalabilityMode(senderEncodings[0].scalabilityMode)
+        mode.spatial = maxQuality + 1;
+        mode.suffix = originalMode.suffix;
+        if (mode.spatial === 1) {
+          // no suffix for L1Tx
+          mode.suffix = undefined;
+        }
+        encoding.scalabilityMode = mode.toString();
+        encoding.scaleResolutionDownBy = 2 ** (2 - maxQuality);
+      */
+      }
+    } else {
+      // simulcast dynacast encodings
+      var idx = 0;
+      for (var encoding in encodings) {
+        var rid = encoding.rid ?? '';
+        if (rid == '') {
+          rid = 'q';
+        }
+        var quality = videoQualityForRid(rid);
+        var subscribedQuality =
+            layers.firstWhereOrNull((q) => q.quality == quality);
+        if (subscribedQuality == null) {
+          continue;
+        }
+        if (encoding.active != subscribedQuality.enabled) {
+          hasChanged = true;
+          encoding.active = subscribedQuality.enabled;
+          logger.fine(
+            'setting layer ${subscribedQuality.quality} to ${encoding.active ? 'enabled' : 'disabled'}',
+          );
+
+          // FireFox does not support setting encoding.active to false, so we
+          // have a workaround of lowering its bitrate and resolution to the min.
+          if (kIsWeb && lkBrowser() == BrowserType.firefox) {
+            if (subscribedQuality.enabled) {
+              encoding.scaleResolutionDownBy =
+                  encodings[idx].scaleResolutionDownBy;
+              encoding.maxBitrate = encodings[idx].maxBitrate;
+              encoding.maxFramerate = encodings[idx].maxBitrate;
+            } else {
+              encoding.scaleResolutionDownBy = 4;
+              encoding.maxBitrate = 10;
+              encoding.maxFramerate = 2;
+            }
+          }
+        }
+        idx++;
+      }
+    }
+
+    if (hasChanged) {
+      params.encodings = encodings;
+      final result = await sender.setParameters(params);
+      if (result == false) {
+        logger.warning('Failed to update sender parameters');
+      }
+    }
+  }
+
+  SimulcastTrackInfo addSimulcastTrack(
+      String codec, List<rtc.RTCRtpEncoding> encodings) {
+    if (simulcastCodecs[codec] != null) {
+      throw Exception('$codec already added');
+    }
+    SimulcastTrackInfo simulcastCodecInfo = SimulcastTrackInfo(
+      codec: codec,
+      encodings: encodings,
+      mediaStreamTrack: mediaStreamTrack,
+    );
+
+    simulcastCodecs[codec] = simulcastCodecInfo;
+    return simulcastCodecInfo;
   }
 }
