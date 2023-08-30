@@ -217,7 +217,7 @@ extension VideoParametersPresets on VideoParameters {
   static const h360_43 = VideoParameters(
     dimensions: VideoDimensionsPresets.h360_43,
     encoding: VideoEncoding(
-      maxBitrate: 225 * 1000,
+      maxBitrate: 330 * 1000,
       maxFramerate: 20,
     ),
   );
