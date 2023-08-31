@@ -26,6 +26,15 @@ class VideoEncoding implements Comparable<VideoEncoding> {
     required this.maxBitrate,
   });
 
+  VideoEncoding copyWith({
+    int? maxFramerate,
+    int? maxBitrate,
+  }) =>
+      VideoEncoding(
+        maxFramerate: maxFramerate ?? this.maxFramerate,
+        maxBitrate: maxBitrate ?? this.maxBitrate,
+      );
+
   @override
   String toString() =>
       '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
