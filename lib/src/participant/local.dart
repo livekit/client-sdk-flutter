@@ -130,11 +130,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
+    print('publishVideoTrack: ${publishOptions}');
+
     // set the default sending bitrate
     if (publishOptions.videoEncoding == null) {
       publishOptions = publishOptions.copyWith(
         videoEncoding: track.currentOptions.params.encoding,
       );
+    }
+
+    // handle SVC publishing
+    if (isSVCCodec(publishOptions.videoCodec)) {
+      if (!room.roomOptions.dynacast) {
+        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
+      }
+      if (publishOptions.backupCodec == null) {
+        publishOptions = publishOptions.copyWith(
+          backupCodec: BackupVideoCodec(
+            codec: 'vp8',
+            simulcast: true,
+          ),
+        );
+      }
+      if (publishOptions.scalabilityMode == null) {
+        publishOptions = publishOptions.copyWith(
+          scalabilityMode: 'L3T3_KEY',
+        );
+      }
     }
 
     // use constraints passed to getUserMedia by default
@@ -159,14 +181,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine(
         'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
-    if (isSVCCodec(publishOptions.videoCodec) &&
-        publishOptions.scalabilityMode == null) {
-      // set scalabilityMode to 'L3T3_KEY' by default
-      publishOptions = publishOptions.copyWith(
-        scalabilityMode: 'L3T3_KEY',
-      );
-    }
-
     // Video encodings and simulcasts
     final encodings = Utils.computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
@@ -183,10 +197,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (publishOptions.backupCodec != null &&
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
-      if (!room.roomOptions.dynacast) {
-        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
-      }
-
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
             codec: publishOptions.videoCodec.toLowerCase(),
