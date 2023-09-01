@@ -138,7 +138,7 @@ class _ConnectPageState extends State<ConnectPage> {
         await keyProvider.setKey(sharedKey);
       }
 
-      String preferredCodec = 'vp8';
+      String preferredCodec = 'VP8';
       if (_preferredCodec != 'Preferred Codec') {
         preferredCodec = _preferredCodec;
       }

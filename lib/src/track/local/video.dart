@@ -277,13 +277,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     });
   }
 
-  Future<List<String>> setPublishingCodecs(List<lk_rtc.SubscribedCodec> codecs,
-      LocalTrackPublication publication) async {
+  Future<List<String>> setPublishingCodecs(
+      List<lk_rtc.SubscribedCodec> codecs, LocalTrack track) async {
     logger.fine('setPublishingCodecs $codecs');
 
     // only enable simulcast codec for preference codec setted
     if (codec == null && codecs.isNotEmpty) {
-      await updatePublishingLayers(publication.track, codecs[0].qualities);
+      await updatePublishingLayers(track, codecs[0].qualities);
       return [];
     }
 
@@ -293,7 +293,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     for (var codec in codecs) {
       if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
-        await updatePublishingLayers(publication.track, codec.qualities);
+        await updatePublishingLayers(track, codec.qualities);
       } else {
         final simulcastCodecInfo = simulcastCodecs[codec.codec];
         logger.fine('setPublishingCodecs $codecs');

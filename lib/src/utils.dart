@@ -21,6 +21,7 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
@@ -466,12 +467,13 @@ class Utils {
   @internal
   static List<rtc.RTCRtpEncoding>? computeTrackBackupEncodings(
     LocalVideoTrack track,
-    VideoPublishOptions opts,
+    BackupVideoCodec backupOpts,
   ) {
-    opts = opts.copyWith(
-        videoCodec: opts.backupCodec!.codec,
-        videoEncoding: opts.backupCodec!.encoding);
-
+    final opts = VideoPublishOptions(
+      videoCodec: backupOpts.codec,
+      videoEncoding: backupOpts.encoding,
+      simulcast: backupOpts.simulcast,
+    );
     var encodings = computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
       dimensions: track.currentOptions.params.dimensions,
@@ -484,6 +486,7 @@ class Utils {
   static List<lk_models.VideoLayer> computeVideoLayers(
     VideoDimensions dimensions,
     List<rtc.RTCRtpEncoding>? encodings,
+    bool isSVC,
   ) {
     // default to a single layer, HQ
     if (encodings == null) {
@@ -495,6 +498,21 @@ class Utils {
           bitrate: 0,
         )
       ];
+    }
+
+    if (isSVC) {
+      final sm = ScalabilityMode(encodings[0].scalabilityMode ?? 'L3T3_KEY');
+      final List<lk_models.VideoLayer> layers = [];
+      final maxBitrate = encodings[0].maxBitrate ?? 0;
+      for (var i = 0; i < sm.spatial; i++) {
+        layers.add(lk_models.VideoLayer(
+          quality: VideoQuality.valueOf(VideoQuality.HIGH.value - i),
+          width: (dimensions.width / math.pow(2, i)).floor(),
+          height: (dimensions.height / math.pow(2, i)).floor(),
+          bitrate: (maxBitrate / math.pow(3, i)).ceil(),
+        ));
+      }
+      return layers;
     }
 
     return encodings.map((e) {
