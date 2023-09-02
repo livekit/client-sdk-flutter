@@ -21,7 +21,6 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
@@ -506,7 +505,8 @@ class Utils {
       final maxBitrate = encodings[0].maxBitrate ?? 0;
       for (var i = 0; i < sm.spatial; i++) {
         layers.add(lk_models.VideoLayer(
-          quality: VideoQuality.valueOf(VideoQuality.HIGH.value - i),
+          quality: lk_models.VideoQuality.valueOf(
+              lk_models.VideoQuality.HIGH.value - i),
           width: (dimensions.width / math.pow(2, i)).floor(),
           height: (dimensions.height / math.pow(2, i)).floor(),
           bitrate: (maxBitrate / math.pow(3, i)).ceil(),
