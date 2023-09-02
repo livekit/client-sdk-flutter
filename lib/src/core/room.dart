@@ -284,13 +284,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
         var videoTrack = publication.track as LocalVideoTrack;
         final newCodecs = await videoTrack.setPublishingCodecs(
-            event.subscribedCodecs, publication);
+            event.subscribedCodecs, videoTrack);
         for (var codec in newCodecs) {
           if (isBackupCodec(codec)) {
             logger.info(
                 'publishing backup codec ${codec} for ${publication.track?.sid}');
-            await localParticipant?.publishAdditionalCodecForTrack(
-                videoTrack, codec, roomOptions.defaultVideoPublishOptions);
+            await localParticipant?.publishAdditionalCodecForPublication(
+                publication, codec);
           }
         }
       } else if (event.subscribedQualities.isNotEmpty) {

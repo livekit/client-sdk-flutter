@@ -130,11 +130,6 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      //create new room
-      final room = Room();
-
-      // Create a Listener before connecting
-      final listener = room.createListener();
       E2EEOptions? e2eeOptions;
       if (_e2ee) {
         final keyProvider = await BaseKeyProvider.create();
@@ -143,55 +138,41 @@ class _ConnectPageState extends State<ConnectPage> {
         await keyProvider.setKey(sharedKey);
       }
 
-      BackupVideoCodec? backupVideoCodec;
-      String preferredCodec = 'H264';
-      if (_multiCodec && _preferredCodec != 'Preferred Codec') {
-        if (['av1', 'vp9'].contains(_preferredCodec.toLowerCase())) {
-          backupVideoCodec = BackupVideoCodec(
-              simulcast: true,
-              codec: _backupCodec,
-              encoding: const VideoEncoding(
-                maxBitrate: 2 * 1000 * 1000,
-                maxFramerate: 30,
-              ));
-        }
-
+      String preferredCodec = 'VP8';
+      if (_preferredCodec != 'Preferred Codec') {
         preferredCodec = _preferredCodec;
       }
+
+      // create new room
+      final room = Room(
+          roomOptions: RoomOptions(
+        adaptiveStream: _adaptiveStream,
+        dynacast: _dynacast,
+        defaultAudioPublishOptions: const AudioPublishOptions(
+          dtx: true,
+        ),
+        defaultVideoPublishOptions: VideoPublishOptions(
+          simulcast: _simulcast,
+          videoCodec: preferredCodec,
+        ),
+        defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
+            useiOSBroadcastExtension: true,
+            params: VideoParametersPresets.screenShareH1080FPS30),
+        e2eeOptions: e2eeOptions,
+        defaultCameraCaptureOptions: const CameraCaptureOptions(
+          maxFrameRate: 30,
+          params: VideoParametersPresets.h720_169,
+        ),
+      ));
+
+      // Create a Listener before connecting
+      final listener = room.createListener();
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
       await room.connect(
         _uriCtrl.text,
         _tokenCtrl.text,
-        roomOptions: RoomOptions(
-          adaptiveStream: _adaptiveStream,
-          dynacast: _dynacast,
-          defaultAudioPublishOptions:
-              const AudioPublishOptions(name: 'custom_audio_track_name'),
-          defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: _simulcast,
-            videoCodec: preferredCodec,
-            backupCodec: backupVideoCodec,
-          ),
-          defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-              useiOSBroadcastExtension: true,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h1080_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 3 * 1000 * 1000,
-                    maxFramerate: 15,
-                  ))),
-          e2eeOptions: e2eeOptions,
-          defaultCameraCaptureOptions: const CameraCaptureOptions(
-              maxFrameRate: 30,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h720_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 2 * 1000 * 1000,
-                    maxFramerate: 30,
-                  ))),
-        ),
         fastConnectOptions: _fastConnect
             ? FastConnectOptions(
                 microphone: const TrackOption(enabled: true),

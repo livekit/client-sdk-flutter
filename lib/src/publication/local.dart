@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import '../options.dart';
 import '../participant/local.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -23,6 +24,8 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   /// The [LocalParticipant] this instance belongs to.
   @override
   final LocalParticipant participant;
+
+  BackupVideoCodec? backupVideoCodec;
 
   LocalTrackPublication({
     required this.participant,
