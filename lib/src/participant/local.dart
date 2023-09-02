@@ -130,10 +130,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
-    // set the default sending bitrate
-    if (publishOptions.videoEncoding == null) {
+    if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
-        videoEncoding: track.currentOptions.params.encoding,
+        videoCodec: publishOptions.videoCodec.toLowerCase(),
       );
     }
 
@@ -200,7 +199,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec.toLowerCase(),
+            codec: publishOptions.videoCodec,
             cid: track.getCid(),
             enableSimulcastLayers: true),
         lk_rtc.SimulcastCodec(
@@ -211,7 +210,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec.toLowerCase(),
+            codec: publishOptions.videoCodec,
             cid: track.getCid(),
             enableSimulcastLayers: publishOptions.simulcast),
       ];
@@ -247,11 +246,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     if (lkBrowser() != BrowserType.firefox) {
-      var videoCodec = publishOptions.videoCodec.toLowerCase();
       await room.engine.setPreferredCodec(
         track.transceiver!,
         'video',
-        videoCodec,
+        publishOptions.videoCodec,
       );
       track.codec = videoCodec;
     }
