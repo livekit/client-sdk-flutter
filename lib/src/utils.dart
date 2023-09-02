@@ -443,7 +443,7 @@ class Utils {
       for (int i = 0; i < sm.spatial; i += 1) {
         encodings.add(rtc.RTCRtpEncoding(
           rid: videoRids[2 - i],
-          maxBitrate: (videoEncoding.maxBitrate / math.pow(3, i)).toInt(),
+          maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
           maxFramerate: videoEncoding.maxFramerate,
           scaleResolutionDownBy: null,
           numTemporalLayers: sm.temporal.toInt(),
