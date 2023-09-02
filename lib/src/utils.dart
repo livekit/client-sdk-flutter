@@ -271,6 +271,7 @@ class Utils {
     required bool isScreenShare,
     required VideoDimensions dimensions,
     required List<VideoParameters> presets,
+    String? codec,
   }) {
     assert(presets.isNotEmpty, 'presets should not be empty');
     VideoEncoding result = presets.first.encoding;
@@ -281,6 +282,26 @@ class Utils {
     for (final preset in presets) {
       result = preset.encoding;
       if (preset.dimensions.width >= size) break;
+    }
+
+    // presets are based on the assumption of vp8 as a codec
+    // for other codecs we adjust the maxBitrate if no specific videoEncoding has been provided
+    // users should override these with ones that are optimized for their use case
+    // NOTE: SVC codec bitrates are inclusive of all scalability layers. while
+    // bitrate for non-SVC codecs does not include other simulcast layers.
+    if (codec != null) {
+      switch (codec) {
+        case 'av1':
+          result =
+              result.copyWith(maxBitrate: (result.maxBitrate * 0.7) as int);
+          break;
+        case 'vp9':
+          result =
+              result.copyWith(maxBitrate: (result.maxBitrate * 0.85) as int);
+          break;
+        default:
+          break;
+      }
     }
 
     return result;
@@ -371,6 +392,7 @@ class Utils {
     required bool isScreenShare,
     VideoDimensions? dimensions,
     VideoPublishOptions? options,
+    String? codec,
   }) {
     options ??= const VideoPublishOptions();
 
@@ -397,6 +419,7 @@ class Utils {
         isScreenShare: isScreenShare,
         dimensions: dimensions,
         presets: presets,
+        codec: codec,
       );
 
       logger.fine('using video encoding', videoEncoding);

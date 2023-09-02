@@ -172,6 +172,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       isScreenShare: track.source == TrackSource.screenShareVideo,
       dimensions: dimensions,
       options: publishOptions,
+      codec: publishOptions.videoCodec,
     );
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
