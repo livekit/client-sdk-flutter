@@ -251,7 +251,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         'video',
         publishOptions.videoCodec,
       );
-      track.codec = videoCodec;
+      track.codec = publishOptions.videoCodec;
     }
 
     // prefer to maintainResolution for screen share
