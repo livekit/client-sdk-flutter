@@ -171,6 +171,9 @@ void main() async {
 }
 ```
 
+Note: the audio routing will become controlled by the system and cannot be manually changed with functions like
+`Hardware.selectAudioOutput`.
+
 ### Desktop support
 
 In order to enable Flutter desktop development, please follow [instructions here](https://docs.flutter.dev/desktop#set-up).
