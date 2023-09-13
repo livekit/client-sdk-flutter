@@ -129,7 +129,7 @@ And call the following code after launching your app for the first time.
 ```dart
 import 'package:permission_handler/permission_handler.dart';
 
-Future<void> _checkPremissions() async {
+Future<void> _checkPermissions() async {
   var status = await Permission.bluetooth.request();
   if (status.isPermanentlyDenied) {
     print('Bluetooth Permission disabled');
@@ -142,10 +142,37 @@ Future<void> _checkPremissions() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _checkPremissions();
+  await _checkPermissions();
   runApp(MyApp());
 }
 ```
+
+#### Audio Modes
+
+By default, we use the `communication` audio mode on Android which works best for two-way voice communication. 
+
+If your app is media playback oriented and does not need the use of the device's microphone, you can use the `media`
+audio mode which will provide better audio quality.
+
+```dart
+import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
+
+Future<void> _initializeAndroidAudioSettings() async {
+  await webrtc.WebRTC.initialize(options: {
+    'androidAudioConfiguration': webrtc.AndroidAudioConfiguration.media.toMap()
+  });
+  webrtc.Helper.setAndroidAudioConfiguration(
+      webrtc.AndroidAudioConfiguration.media);
+}
+
+void main() async {
+  await _initializeAudioSettings();
+  runApp(const MyApp());
+}
+```
+
+Note: the audio routing will become controlled by the system and cannot be manually changed with functions like
+`Hardware.selectAudioOutput`.
 
 ### Desktop support
 
