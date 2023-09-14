@@ -1,9 +1,7 @@
 name: deploy web on github-page
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
