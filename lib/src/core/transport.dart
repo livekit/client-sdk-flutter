@@ -185,9 +185,6 @@ class Transport extends Disposable {
 
         // mung sdp for codec bitrate setting that can't apply by sendEncoding
         for (var trackbr in _bitrateTrackers) {
-          ensureVideoDDExtensionForSVC(media, media['type'], media['port'],
-              media['protocol'], media['payloads']);
-
           if (media['msid'] == null ||
               trackbr.cid == null ||
               !(media['msid'] as String).contains(trackbr.cid!)) {
