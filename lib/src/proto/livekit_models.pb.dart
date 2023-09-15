@@ -1,23 +1,13 @@
-// Copyright 2023 LiveKit, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-///
 //  Generated code. Do not modify.
 //  source: livekit_models.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
+
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
@@ -25,79 +15,11 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'google/protobuf/timestamp.pb.dart' as $0;
-
 import 'livekit_models.pbenum.dart';
 
 export 'livekit_models.pbenum.dart';
 
 class Room extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'Room',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'sid')
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'name')
-    ..a<$core.int>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'emptyTimeout',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'maxParticipants',
-        $pb.PbFieldType.OU3)
-    ..aInt64(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'creationTime')
-    ..aOS(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'turnPassword')
-    ..pc<Codec>(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'enabledCodecs',
-        $pb.PbFieldType.PM,
-        subBuilder: Codec.create)
-    ..aOS(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'metadata')
-    ..a<$core.int>(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'numParticipants',
-        $pb.PbFieldType.OU3)
-    ..aOB(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'activeRecording')
-    ..hasRequiredFields = false;
-
-  Room._() : super();
   factory Room({
     $core.String? sid,
     $core.String? name,
@@ -109,73 +31,93 @@ class Room extends $pb.GeneratedMessage {
     $core.String? metadata,
     $core.int? numParticipants,
     $core.bool? activeRecording,
+    $core.int? numPublishers,
+    PlayoutDelay? playoutDelay,
   }) {
-    final _result = create();
+    final $result = create();
     if (sid != null) {
-      _result.sid = sid;
+      $result.sid = sid;
     }
     if (name != null) {
-      _result.name = name;
+      $result.name = name;
     }
     if (emptyTimeout != null) {
-      _result.emptyTimeout = emptyTimeout;
+      $result.emptyTimeout = emptyTimeout;
     }
     if (maxParticipants != null) {
-      _result.maxParticipants = maxParticipants;
+      $result.maxParticipants = maxParticipants;
     }
     if (creationTime != null) {
-      _result.creationTime = creationTime;
+      $result.creationTime = creationTime;
     }
     if (turnPassword != null) {
-      _result.turnPassword = turnPassword;
+      $result.turnPassword = turnPassword;
     }
     if (enabledCodecs != null) {
-      _result.enabledCodecs.addAll(enabledCodecs);
+      $result.enabledCodecs.addAll(enabledCodecs);
     }
     if (metadata != null) {
-      _result.metadata = metadata;
+      $result.metadata = metadata;
     }
     if (numParticipants != null) {
-      _result.numParticipants = numParticipants;
+      $result.numParticipants = numParticipants;
     }
     if (activeRecording != null) {
-      _result.activeRecording = activeRecording;
+      $result.activeRecording = activeRecording;
     }
-    return _result;
+    if (numPublishers != null) {
+      $result.numPublishers = numPublishers;
+    }
+    if (playoutDelay != null) {
+      $result.playoutDelay = playoutDelay;
+    }
+    return $result;
   }
-  factory Room.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Room.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  Room._() : super();
+  factory Room.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Room.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Room', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sid')
+    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'emptyTimeout', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'maxParticipants', $pb.PbFieldType.OU3)
+    ..aInt64(5, _omitFieldNames ? '' : 'creationTime')
+    ..aOS(6, _omitFieldNames ? '' : 'turnPassword')
+    ..pc<Codec>(7, _omitFieldNames ? '' : 'enabledCodecs', $pb.PbFieldType.PM, subBuilder: Codec.create)
+    ..aOS(8, _omitFieldNames ? '' : 'metadata')
+    ..a<$core.int>(9, _omitFieldNames ? '' : 'numParticipants', $pb.PbFieldType.OU3)
+    ..aOB(10, _omitFieldNames ? '' : 'activeRecording')
+    ..a<$core.int>(11, _omitFieldNames ? '' : 'numPublishers', $pb.PbFieldType.OU3)
+    ..aOM<PlayoutDelay>(12, _omitFieldNames ? '' : 'playoutDelay', subBuilder: PlayoutDelay.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Room clone() => Room()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  Room copyWith(void Function(Room) updates) =>
-      super.copyWith((message) => updates(message as Room))
-          as Room; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Room copyWith(void Function(Room) updates) => super.copyWith((message) => updates(message as Room)) as Room;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Room create() => Room._();
   Room createEmptyInstance() => create();
   static $pb.PbList<Room> createRepeated() => $pb.PbList<Room>();
   @$core.pragma('dart2js:noInline')
-  static Room getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Room>(create);
+  static Room getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Room>(create);
   static Room? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set sid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -184,10 +126,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String v) {
-    $_setString(1, v);
-  }
-
+  set name($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
@@ -196,10 +135,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get emptyTimeout => $_getIZ(2);
   @$pb.TagNumber(3)
-  set emptyTimeout($core.int v) {
-    $_setUnsignedInt32(2, v);
-  }
-
+  set emptyTimeout($core.int v) { $_setUnsignedInt32(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasEmptyTimeout() => $_has(2);
   @$pb.TagNumber(3)
@@ -208,10 +144,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get maxParticipants => $_getIZ(3);
   @$pb.TagNumber(4)
-  set maxParticipants($core.int v) {
-    $_setUnsignedInt32(3, v);
-  }
-
+  set maxParticipants($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasMaxParticipants() => $_has(3);
   @$pb.TagNumber(4)
@@ -220,10 +153,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get creationTime => $_getI64(4);
   @$pb.TagNumber(5)
-  set creationTime($fixnum.Int64 v) {
-    $_setInt64(4, v);
-  }
-
+  set creationTime($fixnum.Int64 v) { $_setInt64(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasCreationTime() => $_has(4);
   @$pb.TagNumber(5)
@@ -232,10 +162,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get turnPassword => $_getSZ(5);
   @$pb.TagNumber(6)
-  set turnPassword($core.String v) {
-    $_setString(5, v);
-  }
-
+  set turnPassword($core.String v) { $_setString(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasTurnPassword() => $_has(5);
   @$pb.TagNumber(6)
@@ -247,10 +174,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get metadata => $_getSZ(7);
   @$pb.TagNumber(8)
-  set metadata($core.String v) {
-    $_setString(7, v);
-  }
-
+  set metadata($core.String v) { $_setString(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasMetadata() => $_has(7);
   @$pb.TagNumber(8)
@@ -259,10 +183,7 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.int get numParticipants => $_getIZ(8);
   @$pb.TagNumber(9)
-  set numParticipants($core.int v) {
-    $_setUnsignedInt32(8, v);
-  }
-
+  set numParticipants($core.int v) { $_setUnsignedInt32(8, v); }
   @$pb.TagNumber(9)
   $core.bool hasNumParticipants() => $_has(8);
   @$pb.TagNumber(9)
@@ -271,85 +192,82 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.bool get activeRecording => $_getBF(9);
   @$pb.TagNumber(10)
-  set activeRecording($core.bool v) {
-    $_setBool(9, v);
-  }
-
+  set activeRecording($core.bool v) { $_setBool(9, v); }
   @$pb.TagNumber(10)
   $core.bool hasActiveRecording() => $_has(9);
   @$pb.TagNumber(10)
   void clearActiveRecording() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get numPublishers => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set numPublishers($core.int v) { $_setUnsignedInt32(10, v); }
+  @$pb.TagNumber(11)
+  $core.bool hasNumPublishers() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearNumPublishers() => clearField(11);
+
+  @$pb.TagNumber(12)
+  PlayoutDelay get playoutDelay => $_getN(11);
+  @$pb.TagNumber(12)
+  set playoutDelay(PlayoutDelay v) { setField(12, v); }
+  @$pb.TagNumber(12)
+  $core.bool hasPlayoutDelay() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPlayoutDelay() => clearField(12);
+  @$pb.TagNumber(12)
+  PlayoutDelay ensurePlayoutDelay() => $_ensure(11);
 }
 
 class Codec extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'Codec',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mime')
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'fmtpLine')
-    ..hasRequiredFields = false;
-
-  Codec._() : super();
   factory Codec({
     $core.String? mime,
     $core.String? fmtpLine,
   }) {
-    final _result = create();
+    final $result = create();
     if (mime != null) {
-      _result.mime = mime;
+      $result.mime = mime;
     }
     if (fmtpLine != null) {
-      _result.fmtpLine = fmtpLine;
+      $result.fmtpLine = fmtpLine;
     }
-    return _result;
+    return $result;
   }
-  factory Codec.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Codec.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  Codec._() : super();
+  factory Codec.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Codec.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Codec', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'mime')
+    ..aOS(2, _omitFieldNames ? '' : 'fmtpLine')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Codec clone() => Codec()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  Codec copyWith(void Function(Codec) updates) =>
-      super.copyWith((message) => updates(message as Codec))
-          as Codec; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Codec copyWith(void Function(Codec) updates) => super.copyWith((message) => updates(message as Codec)) as Codec;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Codec create() => Codec._();
   Codec createEmptyInstance() => create();
   static $pb.PbList<Codec> createRepeated() => $pb.PbList<Codec>();
   @$core.pragma('dart2js:noInline')
-  static Codec getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Codec>(create);
+  static Codec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Codec>(create);
   static Codec? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get mime => $_getSZ(0);
   @$pb.TagNumber(1)
-  set mime($core.String v) {
-    $_setString(0, v);
-  }
-
+  set mime($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasMime() => $_has(0);
   @$pb.TagNumber(1)
@@ -358,68 +276,78 @@ class Codec extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get fmtpLine => $_getSZ(1);
   @$pb.TagNumber(2)
-  set fmtpLine($core.String v) {
-    $_setString(1, v);
-  }
-
+  set fmtpLine($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasFmtpLine() => $_has(1);
   @$pb.TagNumber(2)
   void clearFmtpLine() => clearField(2);
 }
 
-class ParticipantPermission extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ParticipantPermission',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOB(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'canSubscribe')
-    ..aOB(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'canPublish')
-    ..aOB(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'canPublishData')
-    ..aOB(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'hidden')
-    ..aOB(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'recorder')
-    ..pc<TrackSource>(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'canPublishSources',
-        $pb.PbFieldType.KE,
-        valueOf: TrackSource.valueOf,
-        enumValues: TrackSource.values,
-        defaultEnumValue: TrackSource.UNKNOWN)
-    ..aOB(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'canUpdateMetadata')
-    ..hasRequiredFields = false;
+class PlayoutDelay extends $pb.GeneratedMessage {
+  factory PlayoutDelay({
+    $core.bool? enabled,
+    $core.int? min,
+  }) {
+    final $result = create();
+    if (enabled != null) {
+      $result.enabled = enabled;
+    }
+    if (min != null) {
+      $result.min = min;
+    }
+    return $result;
+  }
+  PlayoutDelay._() : super();
+  factory PlayoutDelay.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory PlayoutDelay.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  ParticipantPermission._() : super();
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PlayoutDelay', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'enabled')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  PlayoutDelay clone() => PlayoutDelay()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  PlayoutDelay copyWith(void Function(PlayoutDelay) updates) => super.copyWith((message) => updates(message as PlayoutDelay)) as PlayoutDelay;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PlayoutDelay create() => PlayoutDelay._();
+  PlayoutDelay createEmptyInstance() => create();
+  static $pb.PbList<PlayoutDelay> createRepeated() => $pb.PbList<PlayoutDelay>();
+  @$core.pragma('dart2js:noInline')
+  static PlayoutDelay getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PlayoutDelay>(create);
+  static PlayoutDelay? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get enabled => $_getBF(0);
+  @$pb.TagNumber(1)
+  set enabled($core.bool v) { $_setBool(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasEnabled() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEnabled() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get min => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set min($core.int v) { $_setUnsignedInt32(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasMin() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMin() => clearField(2);
+}
+
+class ParticipantPermission extends $pb.GeneratedMessage {
   factory ParticipantPermission({
     $core.bool? canSubscribe,
     $core.bool? canPublish,
@@ -429,129 +357,125 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.Iterable<TrackSource>? canPublishSources,
     $core.bool? canUpdateMetadata,
   }) {
-    final _result = create();
+    final $result = create();
     if (canSubscribe != null) {
-      _result.canSubscribe = canSubscribe;
+      $result.canSubscribe = canSubscribe;
     }
     if (canPublish != null) {
-      _result.canPublish = canPublish;
+      $result.canPublish = canPublish;
     }
     if (canPublishData != null) {
-      _result.canPublishData = canPublishData;
+      $result.canPublishData = canPublishData;
     }
     if (hidden != null) {
-      _result.hidden = hidden;
+      $result.hidden = hidden;
     }
     if (recorder != null) {
-      _result.recorder = recorder;
+      $result.recorder = recorder;
     }
     if (canPublishSources != null) {
-      _result.canPublishSources.addAll(canPublishSources);
+      $result.canPublishSources.addAll(canPublishSources);
     }
     if (canUpdateMetadata != null) {
-      _result.canUpdateMetadata = canUpdateMetadata;
+      $result.canUpdateMetadata = canUpdateMetadata;
     }
-    return _result;
+    return $result;
   }
-  factory ParticipantPermission.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ParticipantPermission.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  ParticipantPermission clone() =>
-      ParticipantPermission()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ParticipantPermission copyWith(
-          void Function(ParticipantPermission) updates) =>
-      super.copyWith((message) => updates(message as ParticipantPermission))
-          as ParticipantPermission; // ignore: deprecated_member_use
+  ParticipantPermission._() : super();
+  factory ParticipantPermission.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ParticipantPermission.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ParticipantPermission', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'canSubscribe')
+    ..aOB(2, _omitFieldNames ? '' : 'canPublish')
+    ..aOB(3, _omitFieldNames ? '' : 'canPublishData')
+    ..aOB(7, _omitFieldNames ? '' : 'hidden')
+    ..aOB(8, _omitFieldNames ? '' : 'recorder')
+    ..pc<TrackSource>(9, _omitFieldNames ? '' : 'canPublishSources', $pb.PbFieldType.KE, valueOf: TrackSource.valueOf, enumValues: TrackSource.values, defaultEnumValue: TrackSource.UNKNOWN)
+    ..aOB(10, _omitFieldNames ? '' : 'canUpdateMetadata')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  ParticipantPermission clone() => ParticipantPermission()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ParticipantPermission copyWith(void Function(ParticipantPermission) updates) => super.copyWith((message) => updates(message as ParticipantPermission)) as ParticipantPermission;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ParticipantPermission create() => ParticipantPermission._();
   ParticipantPermission createEmptyInstance() => create();
-  static $pb.PbList<ParticipantPermission> createRepeated() =>
-      $pb.PbList<ParticipantPermission>();
+  static $pb.PbList<ParticipantPermission> createRepeated() => $pb.PbList<ParticipantPermission>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantPermission getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
+  static ParticipantPermission getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
   static ParticipantPermission? _defaultInstance;
 
+  /// allow participant to subscribe to other tracks in the room
   @$pb.TagNumber(1)
   $core.bool get canSubscribe => $_getBF(0);
   @$pb.TagNumber(1)
-  set canSubscribe($core.bool v) {
-    $_setBool(0, v);
-  }
-
+  set canSubscribe($core.bool v) { $_setBool(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasCanSubscribe() => $_has(0);
   @$pb.TagNumber(1)
   void clearCanSubscribe() => clearField(1);
 
+  /// allow participant to publish new tracks to room
   @$pb.TagNumber(2)
   $core.bool get canPublish => $_getBF(1);
   @$pb.TagNumber(2)
-  set canPublish($core.bool v) {
-    $_setBool(1, v);
-  }
-
+  set canPublish($core.bool v) { $_setBool(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasCanPublish() => $_has(1);
   @$pb.TagNumber(2)
   void clearCanPublish() => clearField(2);
 
+  /// allow participant to publish data
   @$pb.TagNumber(3)
   $core.bool get canPublishData => $_getBF(2);
   @$pb.TagNumber(3)
-  set canPublishData($core.bool v) {
-    $_setBool(2, v);
-  }
-
+  set canPublishData($core.bool v) { $_setBool(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasCanPublishData() => $_has(2);
   @$pb.TagNumber(3)
   void clearCanPublishData() => clearField(3);
 
+  /// indicates that it's hidden to others
   @$pb.TagNumber(7)
   $core.bool get hidden => $_getBF(3);
   @$pb.TagNumber(7)
-  set hidden($core.bool v) {
-    $_setBool(3, v);
-  }
-
+  set hidden($core.bool v) { $_setBool(3, v); }
   @$pb.TagNumber(7)
   $core.bool hasHidden() => $_has(3);
   @$pb.TagNumber(7)
   void clearHidden() => clearField(7);
 
+  /// indicates it's a recorder instance
   @$pb.TagNumber(8)
   $core.bool get recorder => $_getBF(4);
   @$pb.TagNumber(8)
-  set recorder($core.bool v) {
-    $_setBool(4, v);
-  }
-
+  set recorder($core.bool v) { $_setBool(4, v); }
   @$pb.TagNumber(8)
   $core.bool hasRecorder() => $_has(4);
   @$pb.TagNumber(8)
   void clearRecorder() => clearField(8);
 
+  /// sources that are allowed to be published
   @$pb.TagNumber(9)
   $core.List<TrackSource> get canPublishSources => $_getList(5);
 
+  /// indicates that participant can update own metadata
   @$pb.TagNumber(10)
   $core.bool get canUpdateMetadata => $_getBF(6);
   @$pb.TagNumber(10)
-  set canUpdateMetadata($core.bool v) {
-    $_setBool(6, v);
-  }
-
+  set canUpdateMetadata($core.bool v) { $_setBool(6, v); }
   @$pb.TagNumber(10)
   $core.bool hasCanUpdateMetadata() => $_has(6);
   @$pb.TagNumber(10)
@@ -559,81 +483,6 @@ class ParticipantPermission extends $pb.GeneratedMessage {
 }
 
 class ParticipantInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ParticipantInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'sid')
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'identity')
-    ..e<ParticipantInfo_State>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'state',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ParticipantInfo_State.JOINING,
-        valueOf: ParticipantInfo_State.valueOf,
-        enumValues: ParticipantInfo_State.values)
-    ..pc<TrackInfo>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'tracks',
-        $pb.PbFieldType.PM,
-        subBuilder: TrackInfo.create)
-    ..aOS(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'metadata')
-    ..aInt64(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'joinedAt')
-    ..aOS(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'name')
-    ..a<$core.int>(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'version',
-        $pb.PbFieldType.OU3)
-    ..aOM<ParticipantPermission>(
-        11,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'permission',
-        subBuilder: ParticipantPermission.create)
-    ..aOS(
-        12,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'region')
-    ..aOB(
-        13,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'isPublisher')
-    ..hasRequiredFields = false;
-
-  ParticipantInfo._() : super();
   factory ParticipantInfo({
     $core.String? sid,
     $core.String? identity,
@@ -647,76 +496,86 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.String? region,
     $core.bool? isPublisher,
   }) {
-    final _result = create();
+    final $result = create();
     if (sid != null) {
-      _result.sid = sid;
+      $result.sid = sid;
     }
     if (identity != null) {
-      _result.identity = identity;
+      $result.identity = identity;
     }
     if (state != null) {
-      _result.state = state;
+      $result.state = state;
     }
     if (tracks != null) {
-      _result.tracks.addAll(tracks);
+      $result.tracks.addAll(tracks);
     }
     if (metadata != null) {
-      _result.metadata = metadata;
+      $result.metadata = metadata;
     }
     if (joinedAt != null) {
-      _result.joinedAt = joinedAt;
+      $result.joinedAt = joinedAt;
     }
     if (name != null) {
-      _result.name = name;
+      $result.name = name;
     }
     if (version != null) {
-      _result.version = version;
+      $result.version = version;
     }
     if (permission != null) {
-      _result.permission = permission;
+      $result.permission = permission;
     }
     if (region != null) {
-      _result.region = region;
+      $result.region = region;
     }
     if (isPublisher != null) {
-      _result.isPublisher = isPublisher;
+      $result.isPublisher = isPublisher;
     }
-    return _result;
+    return $result;
   }
-  factory ParticipantInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ParticipantInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ParticipantInfo._() : super();
+  factory ParticipantInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ParticipantInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ParticipantInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sid')
+    ..aOS(2, _omitFieldNames ? '' : 'identity')
+    ..e<ParticipantInfo_State>(3, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE, defaultOrMaker: ParticipantInfo_State.JOINING, valueOf: ParticipantInfo_State.valueOf, enumValues: ParticipantInfo_State.values)
+    ..pc<TrackInfo>(4, _omitFieldNames ? '' : 'tracks', $pb.PbFieldType.PM, subBuilder: TrackInfo.create)
+    ..aOS(5, _omitFieldNames ? '' : 'metadata')
+    ..aInt64(6, _omitFieldNames ? '' : 'joinedAt')
+    ..aOS(9, _omitFieldNames ? '' : 'name')
+    ..a<$core.int>(10, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
+    ..aOM<ParticipantPermission>(11, _omitFieldNames ? '' : 'permission', subBuilder: ParticipantPermission.create)
+    ..aOS(12, _omitFieldNames ? '' : 'region')
+    ..aOB(13, _omitFieldNames ? '' : 'isPublisher')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ParticipantInfo clone() => ParticipantInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ParticipantInfo copyWith(void Function(ParticipantInfo) updates) =>
-      super.copyWith((message) => updates(message as ParticipantInfo))
-          as ParticipantInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ParticipantInfo copyWith(void Function(ParticipantInfo) updates) => super.copyWith((message) => updates(message as ParticipantInfo)) as ParticipantInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ParticipantInfo create() => ParticipantInfo._();
   ParticipantInfo createEmptyInstance() => create();
-  static $pb.PbList<ParticipantInfo> createRepeated() =>
-      $pb.PbList<ParticipantInfo>();
+  static $pb.PbList<ParticipantInfo> createRepeated() => $pb.PbList<ParticipantInfo>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ParticipantInfo>(create);
+  static ParticipantInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantInfo>(create);
   static ParticipantInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set sid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -725,10 +584,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get identity => $_getSZ(1);
   @$pb.TagNumber(2)
-  set identity($core.String v) {
-    $_setString(1, v);
-  }
-
+  set identity($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasIdentity() => $_has(1);
   @$pb.TagNumber(2)
@@ -737,10 +593,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ParticipantInfo_State get state => $_getN(2);
   @$pb.TagNumber(3)
-  set state(ParticipantInfo_State v) {
-    setField(3, v);
-  }
-
+  set state(ParticipantInfo_State v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasState() => $_has(2);
   @$pb.TagNumber(3)
@@ -752,22 +605,17 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get metadata => $_getSZ(4);
   @$pb.TagNumber(5)
-  set metadata($core.String v) {
-    $_setString(4, v);
-  }
-
+  set metadata($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasMetadata() => $_has(4);
   @$pb.TagNumber(5)
   void clearMetadata() => clearField(5);
 
+  /// timestamp when participant joined room, in seconds
   @$pb.TagNumber(6)
   $fixnum.Int64 get joinedAt => $_getI64(5);
   @$pb.TagNumber(6)
-  set joinedAt($fixnum.Int64 v) {
-    $_setInt64(5, v);
-  }
-
+  set joinedAt($fixnum.Int64 v) { $_setInt64(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasJoinedAt() => $_has(5);
   @$pb.TagNumber(6)
@@ -776,10 +624,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.String get name => $_getSZ(6);
   @$pb.TagNumber(9)
-  set name($core.String v) {
-    $_setString(6, v);
-  }
-
+  set name($core.String v) { $_setString(6, v); }
   @$pb.TagNumber(9)
   $core.bool hasName() => $_has(6);
   @$pb.TagNumber(9)
@@ -788,10 +633,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.int get version => $_getIZ(7);
   @$pb.TagNumber(10)
-  set version($core.int v) {
-    $_setUnsignedInt32(7, v);
-  }
-
+  set version($core.int v) { $_setUnsignedInt32(7, v); }
   @$pb.TagNumber(10)
   $core.bool hasVersion() => $_has(7);
   @$pb.TagNumber(10)
@@ -800,10 +642,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   ParticipantPermission get permission => $_getN(8);
   @$pb.TagNumber(11)
-  set permission(ParticipantPermission v) {
-    setField(11, v);
-  }
-
+  set permission(ParticipantPermission v) { setField(11, v); }
   @$pb.TagNumber(11)
   $core.bool hasPermission() => $_has(8);
   @$pb.TagNumber(11)
@@ -814,22 +653,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.String get region => $_getSZ(9);
   @$pb.TagNumber(12)
-  set region($core.String v) {
-    $_setString(9, v);
-  }
-
+  set region($core.String v) { $_setString(9, v); }
   @$pb.TagNumber(12)
   $core.bool hasRegion() => $_has(9);
   @$pb.TagNumber(12)
   void clearRegion() => clearField(12);
 
+  /// indicates the participant has an active publisher connection
+  /// and can publish to the server
   @$pb.TagNumber(13)
   $core.bool get isPublisher => $_getBF(10);
   @$pb.TagNumber(13)
-  set isPublisher($core.bool v) {
-    $_setBool(10, v);
-  }
-
+  set isPublisher($core.bool v) { $_setBool(10, v); }
   @$pb.TagNumber(13)
   $core.bool hasIsPublisher() => $_has(10);
   @$pb.TagNumber(13)
@@ -837,136 +672,96 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 }
 
 class Encryption extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'Encryption',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..hasRequiredFields = false;
-
-  Encryption._() : super();
   factory Encryption() => create();
-  factory Encryption.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Encryption.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  Encryption._() : super();
+  factory Encryption.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Encryption.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Encryption', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   Encryption clone() => Encryption()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  Encryption copyWith(void Function(Encryption) updates) =>
-      super.copyWith((message) => updates(message as Encryption))
-          as Encryption; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Encryption copyWith(void Function(Encryption) updates) => super.copyWith((message) => updates(message as Encryption)) as Encryption;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static Encryption create() => Encryption._();
   Encryption createEmptyInstance() => create();
   static $pb.PbList<Encryption> createRepeated() => $pb.PbList<Encryption>();
   @$core.pragma('dart2js:noInline')
-  static Encryption getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
+  static Encryption getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
   static Encryption? _defaultInstance;
 }
 
 class SimulcastCodecInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'SimulcastCodecInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mimeType')
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mid')
-    ..aOS(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'cid')
-    ..pc<VideoLayer>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'layers',
-        $pb.PbFieldType.PM,
-        subBuilder: VideoLayer.create)
-    ..hasRequiredFields = false;
-
-  SimulcastCodecInfo._() : super();
   factory SimulcastCodecInfo({
     $core.String? mimeType,
     $core.String? mid,
     $core.String? cid,
     $core.Iterable<VideoLayer>? layers,
   }) {
-    final _result = create();
+    final $result = create();
     if (mimeType != null) {
-      _result.mimeType = mimeType;
+      $result.mimeType = mimeType;
     }
     if (mid != null) {
-      _result.mid = mid;
+      $result.mid = mid;
     }
     if (cid != null) {
-      _result.cid = cid;
+      $result.cid = cid;
     }
     if (layers != null) {
-      _result.layers.addAll(layers);
+      $result.layers.addAll(layers);
     }
-    return _result;
+    return $result;
   }
-  factory SimulcastCodecInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory SimulcastCodecInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  SimulcastCodecInfo._() : super();
+  factory SimulcastCodecInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SimulcastCodecInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SimulcastCodecInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'mimeType')
+    ..aOS(2, _omitFieldNames ? '' : 'mid')
+    ..aOS(3, _omitFieldNames ? '' : 'cid')
+    ..pc<VideoLayer>(4, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: VideoLayer.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   SimulcastCodecInfo clone() => SimulcastCodecInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  SimulcastCodecInfo copyWith(void Function(SimulcastCodecInfo) updates) =>
-      super.copyWith((message) => updates(message as SimulcastCodecInfo))
-          as SimulcastCodecInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SimulcastCodecInfo copyWith(void Function(SimulcastCodecInfo) updates) => super.copyWith((message) => updates(message as SimulcastCodecInfo)) as SimulcastCodecInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static SimulcastCodecInfo create() => SimulcastCodecInfo._();
   SimulcastCodecInfo createEmptyInstance() => create();
-  static $pb.PbList<SimulcastCodecInfo> createRepeated() =>
-      $pb.PbList<SimulcastCodecInfo>();
+  static $pb.PbList<SimulcastCodecInfo> createRepeated() => $pb.PbList<SimulcastCodecInfo>();
   @$core.pragma('dart2js:noInline')
-  static SimulcastCodecInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
+  static SimulcastCodecInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
   static SimulcastCodecInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get mimeType => $_getSZ(0);
   @$pb.TagNumber(1)
-  set mimeType($core.String v) {
-    $_setString(0, v);
-  }
-
+  set mimeType($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasMimeType() => $_has(0);
   @$pb.TagNumber(1)
@@ -975,10 +770,7 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get mid => $_getSZ(1);
   @$pb.TagNumber(2)
-  set mid($core.String v) {
-    $_setString(1, v);
-  }
-
+  set mid($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasMid() => $_has(1);
   @$pb.TagNumber(2)
@@ -987,10 +779,7 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get cid => $_getSZ(2);
   @$pb.TagNumber(3)
-  set cid($core.String v) {
-    $_setString(2, v);
-  }
-
+  set cid($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasCid() => $_has(2);
   @$pb.TagNumber(3)
@@ -1001,116 +790,6 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'TrackInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'sid')
-    ..e<TrackType>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'type',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: TrackType.AUDIO,
-        valueOf: TrackType.valueOf,
-        enumValues: TrackType.values)
-    ..aOS(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'name')
-    ..aOB(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'muted')
-    ..a<$core.int>(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'width',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'height',
-        $pb.PbFieldType.OU3)
-    ..aOB(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'simulcast')
-    ..aOB(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'disableDtx')
-    ..e<TrackSource>(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'source',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: TrackSource.UNKNOWN,
-        valueOf: TrackSource.valueOf,
-        enumValues: TrackSource.values)
-    ..pc<VideoLayer>(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'layers',
-        $pb.PbFieldType.PM,
-        subBuilder: VideoLayer.create)
-    ..aOS(
-        11,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mimeType')
-    ..aOS(
-        12,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'mid')
-    ..pc<SimulcastCodecInfo>(
-        13,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'codecs',
-        $pb.PbFieldType.PM,
-        subBuilder: SimulcastCodecInfo.create)
-    ..aOB(
-        14,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'stereo')
-    ..aOB(
-        15,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'disableRed')
-    ..e<Encryption_Type>(
-        16,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'encryption',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: Encryption_Type.NONE,
-        valueOf: Encryption_Type.valueOf,
-        enumValues: Encryption_Type.values)
-    ..hasRequiredFields = false;
-
-  TrackInfo._() : super();
   factory TrackInfo({
     $core.String? sid,
     TrackType? type,
@@ -1128,91 +807,112 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.bool? stereo,
     $core.bool? disableRed,
     Encryption_Type? encryption,
+    $core.String? stream,
   }) {
-    final _result = create();
+    final $result = create();
     if (sid != null) {
-      _result.sid = sid;
+      $result.sid = sid;
     }
     if (type != null) {
-      _result.type = type;
+      $result.type = type;
     }
     if (name != null) {
-      _result.name = name;
+      $result.name = name;
     }
     if (muted != null) {
-      _result.muted = muted;
+      $result.muted = muted;
     }
     if (width != null) {
-      _result.width = width;
+      $result.width = width;
     }
     if (height != null) {
-      _result.height = height;
+      $result.height = height;
     }
     if (simulcast != null) {
-      _result.simulcast = simulcast;
+      $result.simulcast = simulcast;
     }
     if (disableDtx != null) {
-      _result.disableDtx = disableDtx;
+      $result.disableDtx = disableDtx;
     }
     if (source != null) {
-      _result.source = source;
+      $result.source = source;
     }
     if (layers != null) {
-      _result.layers.addAll(layers);
+      $result.layers.addAll(layers);
     }
     if (mimeType != null) {
-      _result.mimeType = mimeType;
+      $result.mimeType = mimeType;
     }
     if (mid != null) {
-      _result.mid = mid;
+      $result.mid = mid;
     }
     if (codecs != null) {
-      _result.codecs.addAll(codecs);
+      $result.codecs.addAll(codecs);
     }
     if (stereo != null) {
-      _result.stereo = stereo;
+      $result.stereo = stereo;
     }
     if (disableRed != null) {
-      _result.disableRed = disableRed;
+      $result.disableRed = disableRed;
     }
     if (encryption != null) {
-      _result.encryption = encryption;
+      $result.encryption = encryption;
     }
-    return _result;
+    if (stream != null) {
+      $result.stream = stream;
+    }
+    return $result;
   }
-  factory TrackInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory TrackInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  TrackInfo._() : super();
+  factory TrackInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory TrackInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sid')
+    ..e<TrackType>(2, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: TrackType.AUDIO, valueOf: TrackType.valueOf, enumValues: TrackType.values)
+    ..aOS(3, _omitFieldNames ? '' : 'name')
+    ..aOB(4, _omitFieldNames ? '' : 'muted')
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
+    ..a<$core.int>(6, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
+    ..aOB(7, _omitFieldNames ? '' : 'simulcast')
+    ..aOB(8, _omitFieldNames ? '' : 'disableDtx')
+    ..e<TrackSource>(9, _omitFieldNames ? '' : 'source', $pb.PbFieldType.OE, defaultOrMaker: TrackSource.UNKNOWN, valueOf: TrackSource.valueOf, enumValues: TrackSource.values)
+    ..pc<VideoLayer>(10, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: VideoLayer.create)
+    ..aOS(11, _omitFieldNames ? '' : 'mimeType')
+    ..aOS(12, _omitFieldNames ? '' : 'mid')
+    ..pc<SimulcastCodecInfo>(13, _omitFieldNames ? '' : 'codecs', $pb.PbFieldType.PM, subBuilder: SimulcastCodecInfo.create)
+    ..aOB(14, _omitFieldNames ? '' : 'stereo')
+    ..aOB(15, _omitFieldNames ? '' : 'disableRed')
+    ..e<Encryption_Type>(16, _omitFieldNames ? '' : 'encryption', $pb.PbFieldType.OE, defaultOrMaker: Encryption_Type.NONE, valueOf: Encryption_Type.valueOf, enumValues: Encryption_Type.values)
+    ..aOS(17, _omitFieldNames ? '' : 'stream')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   TrackInfo clone() => TrackInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  TrackInfo copyWith(void Function(TrackInfo) updates) =>
-      super.copyWith((message) => updates(message as TrackInfo))
-          as TrackInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  TrackInfo copyWith(void Function(TrackInfo) updates) => super.copyWith((message) => updates(message as TrackInfo)) as TrackInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static TrackInfo create() => TrackInfo._();
   TrackInfo createEmptyInstance() => create();
   static $pb.PbList<TrackInfo> createRepeated() => $pb.PbList<TrackInfo>();
   @$core.pragma('dart2js:noInline')
-  static TrackInfo getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackInfo>(create);
+  static TrackInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackInfo>(create);
   static TrackInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set sid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -1221,10 +921,7 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   TrackType get type => $_getN(1);
   @$pb.TagNumber(2)
-  set type(TrackType v) {
-    setField(2, v);
-  }
-
+  set type(TrackType v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasType() => $_has(1);
   @$pb.TagNumber(2)
@@ -1233,10 +930,7 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get name => $_getSZ(2);
   @$pb.TagNumber(3)
-  set name($core.String v) {
-    $_setString(2, v);
-  }
-
+  set name($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasName() => $_has(2);
   @$pb.TagNumber(3)
@@ -1245,70 +939,58 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool get muted => $_getBF(3);
   @$pb.TagNumber(4)
-  set muted($core.bool v) {
-    $_setBool(3, v);
-  }
-
+  set muted($core.bool v) { $_setBool(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasMuted() => $_has(3);
   @$pb.TagNumber(4)
   void clearMuted() => clearField(4);
 
+  /// original width of video (unset for audio)
+  /// clients may receive a lower resolution version with simulcast
   @$pb.TagNumber(5)
   $core.int get width => $_getIZ(4);
   @$pb.TagNumber(5)
-  set width($core.int v) {
-    $_setUnsignedInt32(4, v);
-  }
-
+  set width($core.int v) { $_setUnsignedInt32(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasWidth() => $_has(4);
   @$pb.TagNumber(5)
   void clearWidth() => clearField(5);
 
+  /// original height of video (unset for audio)
   @$pb.TagNumber(6)
   $core.int get height => $_getIZ(5);
   @$pb.TagNumber(6)
-  set height($core.int v) {
-    $_setUnsignedInt32(5, v);
-  }
-
+  set height($core.int v) { $_setUnsignedInt32(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasHeight() => $_has(5);
   @$pb.TagNumber(6)
   void clearHeight() => clearField(6);
 
+  /// true if track is simulcasted
   @$pb.TagNumber(7)
   $core.bool get simulcast => $_getBF(6);
   @$pb.TagNumber(7)
-  set simulcast($core.bool v) {
-    $_setBool(6, v);
-  }
-
+  set simulcast($core.bool v) { $_setBool(6, v); }
   @$pb.TagNumber(7)
   $core.bool hasSimulcast() => $_has(6);
   @$pb.TagNumber(7)
   void clearSimulcast() => clearField(7);
 
+  /// true if DTX (Discontinuous Transmission) is disabled for audio
   @$pb.TagNumber(8)
   $core.bool get disableDtx => $_getBF(7);
   @$pb.TagNumber(8)
-  set disableDtx($core.bool v) {
-    $_setBool(7, v);
-  }
-
+  set disableDtx($core.bool v) { $_setBool(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasDisableDtx() => $_has(7);
   @$pb.TagNumber(8)
   void clearDisableDtx() => clearField(8);
 
+  /// source of media
   @$pb.TagNumber(9)
   TrackSource get source => $_getN(8);
   @$pb.TagNumber(9)
-  set source(TrackSource v) {
-    setField(9, v);
-  }
-
+  set source(TrackSource v) { setField(9, v); }
   @$pb.TagNumber(9)
   $core.bool hasSource() => $_has(8);
   @$pb.TagNumber(9)
@@ -1317,13 +999,11 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.List<VideoLayer> get layers => $_getList(9);
 
+  /// mime type of codec
   @$pb.TagNumber(11)
   $core.String get mimeType => $_getSZ(10);
   @$pb.TagNumber(11)
-  set mimeType($core.String v) {
-    $_setString(10, v);
-  }
-
+  set mimeType($core.String v) { $_setString(10, v); }
   @$pb.TagNumber(11)
   $core.bool hasMimeType() => $_has(10);
   @$pb.TagNumber(11)
@@ -1332,10 +1012,7 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.String get mid => $_getSZ(11);
   @$pb.TagNumber(12)
-  set mid($core.String v) {
-    $_setString(11, v);
-  }
-
+  set mid($core.String v) { $_setString(11, v); }
   @$pb.TagNumber(12)
   $core.bool hasMid() => $_has(11);
   @$pb.TagNumber(12)
@@ -1347,22 +1024,17 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $core.bool get stereo => $_getBF(13);
   @$pb.TagNumber(14)
-  set stereo($core.bool v) {
-    $_setBool(13, v);
-  }
-
+  set stereo($core.bool v) { $_setBool(13, v); }
   @$pb.TagNumber(14)
   $core.bool hasStereo() => $_has(13);
   @$pb.TagNumber(14)
   void clearStereo() => clearField(14);
 
+  /// true if RED (Redundant Encoding) is disabled for audio
   @$pb.TagNumber(15)
   $core.bool get disableRed => $_getBF(14);
   @$pb.TagNumber(15)
-  set disableRed($core.bool v) {
-    $_setBool(14, v);
-  }
-
+  set disableRed($core.bool v) { $_setBool(14, v); }
   @$pb.TagNumber(15)
   $core.bool hasDisableRed() => $_has(14);
   @$pb.TagNumber(15)
@@ -1371,62 +1043,24 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   Encryption_Type get encryption => $_getN(15);
   @$pb.TagNumber(16)
-  set encryption(Encryption_Type v) {
-    setField(16, v);
-  }
-
+  set encryption(Encryption_Type v) { setField(16, v); }
   @$pb.TagNumber(16)
   $core.bool hasEncryption() => $_has(15);
   @$pb.TagNumber(16)
   void clearEncryption() => clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.String get stream => $_getSZ(16);
+  @$pb.TagNumber(17)
+  set stream($core.String v) { $_setString(16, v); }
+  @$pb.TagNumber(17)
+  $core.bool hasStream() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearStream() => clearField(17);
 }
 
+/// provide information about available spatial layers
 class VideoLayer extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'VideoLayer',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..e<VideoQuality>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'quality',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: VideoQuality.LOW,
-        valueOf: VideoQuality.valueOf,
-        enumValues: VideoQuality.values)
-    ..a<$core.int>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'width',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'height',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bitrate',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'ssrc',
-        $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false;
-
-  VideoLayer._() : super();
   factory VideoLayer({
     VideoQuality? quality,
     $core.int? width,
@@ -1434,57 +1068,63 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? bitrate,
     $core.int? ssrc,
   }) {
-    final _result = create();
+    final $result = create();
     if (quality != null) {
-      _result.quality = quality;
+      $result.quality = quality;
     }
     if (width != null) {
-      _result.width = width;
+      $result.width = width;
     }
     if (height != null) {
-      _result.height = height;
+      $result.height = height;
     }
     if (bitrate != null) {
-      _result.bitrate = bitrate;
+      $result.bitrate = bitrate;
     }
     if (ssrc != null) {
-      _result.ssrc = ssrc;
+      $result.ssrc = ssrc;
     }
-    return _result;
+    return $result;
   }
-  factory VideoLayer.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory VideoLayer.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  VideoLayer._() : super();
+  factory VideoLayer.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory VideoLayer.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VideoLayer', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..e<VideoQuality>(1, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE, defaultOrMaker: VideoQuality.LOW, valueOf: VideoQuality.valueOf, enumValues: VideoQuality.values)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'bitrate', $pb.PbFieldType.OU3)
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'ssrc', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   VideoLayer clone() => VideoLayer()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  VideoLayer copyWith(void Function(VideoLayer) updates) =>
-      super.copyWith((message) => updates(message as VideoLayer))
-          as VideoLayer; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  VideoLayer copyWith(void Function(VideoLayer) updates) => super.copyWith((message) => updates(message as VideoLayer)) as VideoLayer;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static VideoLayer create() => VideoLayer._();
   VideoLayer createEmptyInstance() => create();
   static $pb.PbList<VideoLayer> createRepeated() => $pb.PbList<VideoLayer>();
   @$core.pragma('dart2js:noInline')
-  static VideoLayer getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
+  static VideoLayer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
   static VideoLayer? _defaultInstance;
 
+  /// for tracks with a single layer, this should be HIGH
   @$pb.TagNumber(1)
   VideoQuality get quality => $_getN(0);
   @$pb.TagNumber(1)
-  set quality(VideoQuality v) {
-    setField(1, v);
-  }
-
+  set quality(VideoQuality v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasQuality() => $_has(0);
   @$pb.TagNumber(1)
@@ -1493,10 +1133,7 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get width => $_getIZ(1);
   @$pb.TagNumber(2)
-  set width($core.int v) {
-    $_setUnsignedInt32(1, v);
-  }
-
+  set width($core.int v) { $_setUnsignedInt32(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasWidth() => $_has(1);
   @$pb.TagNumber(2)
@@ -1505,22 +1142,17 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get height => $_getIZ(2);
   @$pb.TagNumber(3)
-  set height($core.int v) {
-    $_setUnsignedInt32(2, v);
-  }
-
+  set height($core.int v) { $_setUnsignedInt32(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasHeight() => $_has(2);
   @$pb.TagNumber(3)
   void clearHeight() => clearField(3);
 
+  /// target bitrate in bit per second (bps), server will measure actual
   @$pb.TagNumber(4)
   $core.int get bitrate => $_getIZ(3);
   @$pb.TagNumber(4)
-  set bitrate($core.int v) {
-    $_setUnsignedInt32(3, v);
-  }
-
+  set bitrate($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasBitrate() => $_has(3);
   @$pb.TagNumber(4)
@@ -1529,99 +1161,74 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.int get ssrc => $_getIZ(4);
   @$pb.TagNumber(5)
-  set ssrc($core.int v) {
-    $_setUnsignedInt32(4, v);
-  }
-
+  set ssrc($core.int v) { $_setUnsignedInt32(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasSsrc() => $_has(4);
   @$pb.TagNumber(5)
   void clearSsrc() => clearField(5);
 }
 
-enum DataPacket_Value { user, speaker, notSet }
+enum DataPacket_Value {
+  user, 
+  speaker, 
+  notSet
+}
 
+/// new DataPacket API
 class DataPacket extends $pb.GeneratedMessage {
-  static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
-    2: DataPacket_Value.user,
-    3: DataPacket_Value.speaker,
-    0: DataPacket_Value.notSet
-  };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'DataPacket',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..oo(0, [2, 3])
-    ..e<DataPacket_Kind>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'kind',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: DataPacket_Kind.RELIABLE,
-        valueOf: DataPacket_Kind.valueOf,
-        enumValues: DataPacket_Kind.values)
-    ..aOM<UserPacket>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'user',
-        subBuilder: UserPacket.create)
-    ..aOM<ActiveSpeakerUpdate>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'speaker',
-        subBuilder: ActiveSpeakerUpdate.create)
-    ..hasRequiredFields = false;
-
-  DataPacket._() : super();
   factory DataPacket({
     DataPacket_Kind? kind,
     UserPacket? user,
     ActiveSpeakerUpdate? speaker,
   }) {
-    final _result = create();
+    final $result = create();
     if (kind != null) {
-      _result.kind = kind;
+      $result.kind = kind;
     }
     if (user != null) {
-      _result.user = user;
+      $result.user = user;
     }
     if (speaker != null) {
-      _result.speaker = speaker;
+      $result.speaker = speaker;
     }
-    return _result;
+    return $result;
   }
-  factory DataPacket.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory DataPacket.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  DataPacket._() : super();
+  factory DataPacket.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory DataPacket.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
+    2 : DataPacket_Value.user,
+    3 : DataPacket_Value.speaker,
+    0 : DataPacket_Value.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataPacket', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..oo(0, [2, 3])
+    ..e<DataPacket_Kind>(1, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE, defaultOrMaker: DataPacket_Kind.RELIABLE, valueOf: DataPacket_Kind.valueOf, enumValues: DataPacket_Kind.values)
+    ..aOM<UserPacket>(2, _omitFieldNames ? '' : 'user', subBuilder: UserPacket.create)
+    ..aOM<ActiveSpeakerUpdate>(3, _omitFieldNames ? '' : 'speaker', subBuilder: ActiveSpeakerUpdate.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   DataPacket clone() => DataPacket()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  DataPacket copyWith(void Function(DataPacket) updates) =>
-      super.copyWith((message) => updates(message as DataPacket))
-          as DataPacket; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  DataPacket copyWith(void Function(DataPacket) updates) => super.copyWith((message) => updates(message as DataPacket)) as DataPacket;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static DataPacket create() => DataPacket._();
   DataPacket createEmptyInstance() => create();
   static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
   @$core.pragma('dart2js:noInline')
-  static DataPacket getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
+  static DataPacket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
   static DataPacket? _defaultInstance;
 
   DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
@@ -1630,10 +1237,7 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   DataPacket_Kind get kind => $_getN(0);
   @$pb.TagNumber(1)
-  set kind(DataPacket_Kind v) {
-    setField(1, v);
-  }
-
+  set kind(DataPacket_Kind v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasKind() => $_has(0);
   @$pb.TagNumber(1)
@@ -1642,10 +1246,7 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   UserPacket get user => $_getN(1);
   @$pb.TagNumber(2)
-  set user(UserPacket v) {
-    setField(2, v);
-  }
-
+  set user(UserPacket v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasUser() => $_has(1);
   @$pb.TagNumber(2)
@@ -1656,10 +1257,7 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ActiveSpeakerUpdate get speaker => $_getN(2);
   @$pb.TagNumber(3)
-  set speaker(ActiveSpeakerUpdate v) {
-    setField(3, v);
-  }
-
+  set speaker(ActiveSpeakerUpdate v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasSpeaker() => $_has(2);
   @$pb.TagNumber(3)
@@ -1669,59 +1267,43 @@ class DataPacket extends $pb.GeneratedMessage {
 }
 
 class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ActiveSpeakerUpdate',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..pc<SpeakerInfo>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'speakers',
-        $pb.PbFieldType.PM,
-        subBuilder: SpeakerInfo.create)
-    ..hasRequiredFields = false;
-
-  ActiveSpeakerUpdate._() : super();
   factory ActiveSpeakerUpdate({
     $core.Iterable<SpeakerInfo>? speakers,
   }) {
-    final _result = create();
+    final $result = create();
     if (speakers != null) {
-      _result.speakers.addAll(speakers);
+      $result.speakers.addAll(speakers);
     }
-    return _result;
+    return $result;
   }
-  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ActiveSpeakerUpdate.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ActiveSpeakerUpdate._() : super();
+  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ActiveSpeakerUpdate.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ActiveSpeakerUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..pc<SpeakerInfo>(1, _omitFieldNames ? '' : 'speakers', $pb.PbFieldType.PM, subBuilder: SpeakerInfo.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ActiveSpeakerUpdate clone() => ActiveSpeakerUpdate()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) =>
-      super.copyWith((message) => updates(message as ActiveSpeakerUpdate))
-          as ActiveSpeakerUpdate; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) => super.copyWith((message) => updates(message as ActiveSpeakerUpdate)) as ActiveSpeakerUpdate;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
   ActiveSpeakerUpdate createEmptyInstance() => create();
-  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() =>
-      $pb.PbList<ActiveSpeakerUpdate>();
+  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() => $pb.PbList<ActiveSpeakerUpdate>();
   @$core.pragma('dart2js:noInline')
-  static ActiveSpeakerUpdate getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
+  static ActiveSpeakerUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
   static ActiveSpeakerUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1729,108 +1311,79 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
 }
 
 class SpeakerInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'SpeakerInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'sid')
-    ..a<$core.double>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'level',
-        $pb.PbFieldType.OF)
-    ..aOB(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'active')
-    ..hasRequiredFields = false;
-
-  SpeakerInfo._() : super();
   factory SpeakerInfo({
     $core.String? sid,
     $core.double? level,
     $core.bool? active,
   }) {
-    final _result = create();
+    final $result = create();
     if (sid != null) {
-      _result.sid = sid;
+      $result.sid = sid;
     }
     if (level != null) {
-      _result.level = level;
+      $result.level = level;
     }
     if (active != null) {
-      _result.active = active;
+      $result.active = active;
     }
-    return _result;
+    return $result;
   }
-  factory SpeakerInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory SpeakerInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  SpeakerInfo._() : super();
+  factory SpeakerInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SpeakerInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SpeakerInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'sid')
+    ..a<$core.double>(2, _omitFieldNames ? '' : 'level', $pb.PbFieldType.OF)
+    ..aOB(3, _omitFieldNames ? '' : 'active')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   SpeakerInfo clone() => SpeakerInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  SpeakerInfo copyWith(void Function(SpeakerInfo) updates) =>
-      super.copyWith((message) => updates(message as SpeakerInfo))
-          as SpeakerInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  SpeakerInfo copyWith(void Function(SpeakerInfo) updates) => super.copyWith((message) => updates(message as SpeakerInfo)) as SpeakerInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static SpeakerInfo create() => SpeakerInfo._();
   SpeakerInfo createEmptyInstance() => create();
   static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
   @$core.pragma('dart2js:noInline')
-  static SpeakerInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
+  static SpeakerInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
   static SpeakerInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set sid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
   void clearSid() => clearField(1);
 
+  /// audio level, 0-1.0, 1 is loudest
   @$pb.TagNumber(2)
   $core.double get level => $_getN(1);
   @$pb.TagNumber(2)
-  set level($core.double v) {
-    $_setFloat(1, v);
-  }
-
+  set level($core.double v) { $_setFloat(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasLevel() => $_has(1);
   @$pb.TagNumber(2)
   void clearLevel() => clearField(2);
 
+  /// true if speaker is currently active
   @$pb.TagNumber(3)
   $core.bool get active => $_getBF(2);
   @$pb.TagNumber(3)
-  set active($core.bool v) {
-    $_setBool(2, v);
-  }
-
+  set active($core.bool v) { $_setBool(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasActive() => $_has(2);
   @$pb.TagNumber(3)
@@ -1838,196 +1391,168 @@ class SpeakerInfo extends $pb.GeneratedMessage {
 }
 
 class UserPacket extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'UserPacket',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'participantSid')
-    ..a<$core.List<$core.int>>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'payload',
-        $pb.PbFieldType.OY)
-    ..pPS(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'destinationSids')
-    ..aOS(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'topic')
-    ..hasRequiredFields = false;
-
-  UserPacket._() : super();
   factory UserPacket({
     $core.String? participantSid,
     $core.List<$core.int>? payload,
     $core.Iterable<$core.String>? destinationSids,
     $core.String? topic,
+    $core.String? participantIdentity,
+    $core.Iterable<$core.String>? destinationIdentities,
   }) {
-    final _result = create();
+    final $result = create();
     if (participantSid != null) {
-      _result.participantSid = participantSid;
+      $result.participantSid = participantSid;
     }
     if (payload != null) {
-      _result.payload = payload;
+      $result.payload = payload;
     }
     if (destinationSids != null) {
-      _result.destinationSids.addAll(destinationSids);
+      $result.destinationSids.addAll(destinationSids);
     }
     if (topic != null) {
-      _result.topic = topic;
+      $result.topic = topic;
     }
-    return _result;
+    if (participantIdentity != null) {
+      $result.participantIdentity = participantIdentity;
+    }
+    if (destinationIdentities != null) {
+      $result.destinationIdentities.addAll(destinationIdentities);
+    }
+    return $result;
   }
-  factory UserPacket.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory UserPacket.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  UserPacket._() : super();
+  factory UserPacket.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory UserPacket.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UserPacket', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'participantSid')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'payload', $pb.PbFieldType.OY)
+    ..pPS(3, _omitFieldNames ? '' : 'destinationSids')
+    ..aOS(4, _omitFieldNames ? '' : 'topic')
+    ..aOS(5, _omitFieldNames ? '' : 'participantIdentity')
+    ..pPS(6, _omitFieldNames ? '' : 'destinationIdentities')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   UserPacket clone() => UserPacket()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  UserPacket copyWith(void Function(UserPacket) updates) =>
-      super.copyWith((message) => updates(message as UserPacket))
-          as UserPacket; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  UserPacket copyWith(void Function(UserPacket) updates) => super.copyWith((message) => updates(message as UserPacket)) as UserPacket;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static UserPacket create() => UserPacket._();
   UserPacket createEmptyInstance() => create();
   static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
   @$core.pragma('dart2js:noInline')
-  static UserPacket getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
+  static UserPacket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
   static UserPacket? _defaultInstance;
 
+  /// participant ID of user that sent the message
   @$pb.TagNumber(1)
   $core.String get participantSid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set participantSid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set participantSid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasParticipantSid() => $_has(0);
   @$pb.TagNumber(1)
   void clearParticipantSid() => clearField(1);
 
+  /// user defined payload
   @$pb.TagNumber(2)
   $core.List<$core.int> get payload => $_getN(1);
   @$pb.TagNumber(2)
-  set payload($core.List<$core.int> v) {
-    $_setBytes(1, v);
-  }
-
+  set payload($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasPayload() => $_has(1);
   @$pb.TagNumber(2)
   void clearPayload() => clearField(2);
 
+  /// the ID of the participants who will receive the message (sent to all by default)
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
 
+  /// topic under which the message was published
   @$pb.TagNumber(4)
   $core.String get topic => $_getSZ(3);
   @$pb.TagNumber(4)
-  set topic($core.String v) {
-    $_setString(3, v);
-  }
-
+  set topic($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasTopic() => $_has(3);
   @$pb.TagNumber(4)
   void clearTopic() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get participantIdentity => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set participantIdentity($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasParticipantIdentity() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearParticipantIdentity() => clearField(5);
+
+  /// identities of participants who will receive the message (sent to all by default)
+  @$pb.TagNumber(6)
+  $core.List<$core.String> get destinationIdentities => $_getList(5);
 }
 
 class ParticipantTracks extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ParticipantTracks',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOS(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'participantSid')
-    ..pPS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'trackSids')
-    ..hasRequiredFields = false;
-
-  ParticipantTracks._() : super();
   factory ParticipantTracks({
     $core.String? participantSid,
     $core.Iterable<$core.String>? trackSids,
   }) {
-    final _result = create();
+    final $result = create();
     if (participantSid != null) {
-      _result.participantSid = participantSid;
+      $result.participantSid = participantSid;
     }
     if (trackSids != null) {
-      _result.trackSids.addAll(trackSids);
+      $result.trackSids.addAll(trackSids);
     }
-    return _result;
+    return $result;
   }
-  factory ParticipantTracks.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ParticipantTracks.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ParticipantTracks._() : super();
+  factory ParticipantTracks.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ParticipantTracks.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ParticipantTracks', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'participantSid')
+    ..pPS(2, _omitFieldNames ? '' : 'trackSids')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ParticipantTracks clone() => ParticipantTracks()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ParticipantTracks copyWith(void Function(ParticipantTracks) updates) =>
-      super.copyWith((message) => updates(message as ParticipantTracks))
-          as ParticipantTracks; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ParticipantTracks copyWith(void Function(ParticipantTracks) updates) => super.copyWith((message) => updates(message as ParticipantTracks)) as ParticipantTracks;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ParticipantTracks create() => ParticipantTracks._();
   ParticipantTracks createEmptyInstance() => create();
-  static $pb.PbList<ParticipantTracks> createRepeated() =>
-      $pb.PbList<ParticipantTracks>();
+  static $pb.PbList<ParticipantTracks> createRepeated() => $pb.PbList<ParticipantTracks>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantTracks getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
+  static ParticipantTracks getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
   static ParticipantTracks? _defaultInstance;
 
+  /// participant ID of participant to whom the tracks belong
   @$pb.TagNumber(1)
   $core.String get participantSid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set participantSid($core.String v) {
-    $_setString(0, v);
-  }
-
+  set participantSid($core.String v) { $_setString(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasParticipantSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -2037,54 +1562,8 @@ class ParticipantTracks extends $pb.GeneratedMessage {
   $core.List<$core.String> get trackSids => $_getList(1);
 }
 
+/// details about the server
 class ServerInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ServerInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..e<ServerInfo_Edition>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'edition',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ServerInfo_Edition.Standard,
-        valueOf: ServerInfo_Edition.valueOf,
-        enumValues: ServerInfo_Edition.values)
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'version')
-    ..a<$core.int>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'protocol',
-        $pb.PbFieldType.O3)
-    ..aOS(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'region')
-    ..aOS(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nodeId')
-    ..aOS(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'debugInfo')
-    ..hasRequiredFields = false;
-
-  ServerInfo._() : super();
   factory ServerInfo({
     ServerInfo_Edition? edition,
     $core.String? version,
@@ -2093,60 +1572,66 @@ class ServerInfo extends $pb.GeneratedMessage {
     $core.String? nodeId,
     $core.String? debugInfo,
   }) {
-    final _result = create();
+    final $result = create();
     if (edition != null) {
-      _result.edition = edition;
+      $result.edition = edition;
     }
     if (version != null) {
-      _result.version = version;
+      $result.version = version;
     }
     if (protocol != null) {
-      _result.protocol = protocol;
+      $result.protocol = protocol;
     }
     if (region != null) {
-      _result.region = region;
+      $result.region = region;
     }
     if (nodeId != null) {
-      _result.nodeId = nodeId;
+      $result.nodeId = nodeId;
     }
     if (debugInfo != null) {
-      _result.debugInfo = debugInfo;
+      $result.debugInfo = debugInfo;
     }
-    return _result;
+    return $result;
   }
-  factory ServerInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ServerInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ServerInfo._() : super();
+  factory ServerInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ServerInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ServerInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..e<ServerInfo_Edition>(1, _omitFieldNames ? '' : 'edition', $pb.PbFieldType.OE, defaultOrMaker: ServerInfo_Edition.Standard, valueOf: ServerInfo_Edition.valueOf, enumValues: ServerInfo_Edition.values)
+    ..aOS(2, _omitFieldNames ? '' : 'version')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'protocol', $pb.PbFieldType.O3)
+    ..aOS(4, _omitFieldNames ? '' : 'region')
+    ..aOS(5, _omitFieldNames ? '' : 'nodeId')
+    ..aOS(6, _omitFieldNames ? '' : 'debugInfo')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ServerInfo clone() => ServerInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ServerInfo copyWith(void Function(ServerInfo) updates) =>
-      super.copyWith((message) => updates(message as ServerInfo))
-          as ServerInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ServerInfo copyWith(void Function(ServerInfo) updates) => super.copyWith((message) => updates(message as ServerInfo)) as ServerInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ServerInfo create() => ServerInfo._();
   ServerInfo createEmptyInstance() => create();
   static $pb.PbList<ServerInfo> createRepeated() => $pb.PbList<ServerInfo>();
   @$core.pragma('dart2js:noInline')
-  static ServerInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
+  static ServerInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
   static ServerInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   ServerInfo_Edition get edition => $_getN(0);
   @$pb.TagNumber(1)
-  set edition(ServerInfo_Edition v) {
-    setField(1, v);
-  }
-
+  set edition(ServerInfo_Edition v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasEdition() => $_has(0);
   @$pb.TagNumber(1)
@@ -2155,10 +1640,7 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String v) {
-    $_setString(1, v);
-  }
-
+  set version($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -2167,10 +1649,7 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get protocol => $_getIZ(2);
   @$pb.TagNumber(3)
-  set protocol($core.int v) {
-    $_setSignedInt32(2, v);
-  }
-
+  set protocol($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasProtocol() => $_has(2);
   @$pb.TagNumber(3)
@@ -2179,10 +1658,7 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get region => $_getSZ(3);
   @$pb.TagNumber(4)
-  set region($core.String v) {
-    $_setString(3, v);
-  }
-
+  set region($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasRegion() => $_has(3);
   @$pb.TagNumber(4)
@@ -2191,96 +1667,25 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get nodeId => $_getSZ(4);
   @$pb.TagNumber(5)
-  set nodeId($core.String v) {
-    $_setString(4, v);
-  }
-
+  set nodeId($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasNodeId() => $_has(4);
   @$pb.TagNumber(5)
   void clearNodeId() => clearField(5);
 
+  /// additional debugging information. sent only if server is in development mode
   @$pb.TagNumber(6)
   $core.String get debugInfo => $_getSZ(5);
   @$pb.TagNumber(6)
-  set debugInfo($core.String v) {
-    $_setString(5, v);
-  }
-
+  set debugInfo($core.String v) { $_setString(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasDebugInfo() => $_has(5);
   @$pb.TagNumber(6)
   void clearDebugInfo() => clearField(6);
 }
 
+/// details about the client
 class ClientInfo extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ClientInfo',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..e<ClientInfo_SDK>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'sdk',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ClientInfo_SDK.UNKNOWN,
-        valueOf: ClientInfo_SDK.valueOf,
-        enumValues: ClientInfo_SDK.values)
-    ..aOS(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'version')
-    ..a<$core.int>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'protocol',
-        $pb.PbFieldType.O3)
-    ..aOS(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'os')
-    ..aOS(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'osVersion')
-    ..aOS(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'deviceModel')
-    ..aOS(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'browser')
-    ..aOS(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'browserVersion')
-    ..aOS(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'address')
-    ..aOS(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'network')
-    ..hasRequiredFields = false;
-
-  ClientInfo._() : super();
   factory ClientInfo({
     ClientInfo_SDK? sdk,
     $core.String? version,
@@ -2293,72 +1698,82 @@ class ClientInfo extends $pb.GeneratedMessage {
     $core.String? address,
     $core.String? network,
   }) {
-    final _result = create();
+    final $result = create();
     if (sdk != null) {
-      _result.sdk = sdk;
+      $result.sdk = sdk;
     }
     if (version != null) {
-      _result.version = version;
+      $result.version = version;
     }
     if (protocol != null) {
-      _result.protocol = protocol;
+      $result.protocol = protocol;
     }
     if (os != null) {
-      _result.os = os;
+      $result.os = os;
     }
     if (osVersion != null) {
-      _result.osVersion = osVersion;
+      $result.osVersion = osVersion;
     }
     if (deviceModel != null) {
-      _result.deviceModel = deviceModel;
+      $result.deviceModel = deviceModel;
     }
     if (browser != null) {
-      _result.browser = browser;
+      $result.browser = browser;
     }
     if (browserVersion != null) {
-      _result.browserVersion = browserVersion;
+      $result.browserVersion = browserVersion;
     }
     if (address != null) {
-      _result.address = address;
+      $result.address = address;
     }
     if (network != null) {
-      _result.network = network;
+      $result.network = network;
     }
-    return _result;
+    return $result;
   }
-  factory ClientInfo.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ClientInfo.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ClientInfo._() : super();
+  factory ClientInfo.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ClientInfo.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..e<ClientInfo_SDK>(1, _omitFieldNames ? '' : 'sdk', $pb.PbFieldType.OE, defaultOrMaker: ClientInfo_SDK.UNKNOWN, valueOf: ClientInfo_SDK.valueOf, enumValues: ClientInfo_SDK.values)
+    ..aOS(2, _omitFieldNames ? '' : 'version')
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'protocol', $pb.PbFieldType.O3)
+    ..aOS(4, _omitFieldNames ? '' : 'os')
+    ..aOS(5, _omitFieldNames ? '' : 'osVersion')
+    ..aOS(6, _omitFieldNames ? '' : 'deviceModel')
+    ..aOS(7, _omitFieldNames ? '' : 'browser')
+    ..aOS(8, _omitFieldNames ? '' : 'browserVersion')
+    ..aOS(9, _omitFieldNames ? '' : 'address')
+    ..aOS(10, _omitFieldNames ? '' : 'network')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ClientInfo clone() => ClientInfo()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ClientInfo copyWith(void Function(ClientInfo) updates) =>
-      super.copyWith((message) => updates(message as ClientInfo))
-          as ClientInfo; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ClientInfo copyWith(void Function(ClientInfo) updates) => super.copyWith((message) => updates(message as ClientInfo)) as ClientInfo;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ClientInfo create() => ClientInfo._();
   ClientInfo createEmptyInstance() => create();
   static $pb.PbList<ClientInfo> createRepeated() => $pb.PbList<ClientInfo>();
   @$core.pragma('dart2js:noInline')
-  static ClientInfo getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
+  static ClientInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
   static ClientInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
   ClientInfo_SDK get sdk => $_getN(0);
   @$pb.TagNumber(1)
-  set sdk(ClientInfo_SDK v) {
-    setField(1, v);
-  }
-
+  set sdk(ClientInfo_SDK v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasSdk() => $_has(0);
   @$pb.TagNumber(1)
@@ -2367,10 +1782,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String v) {
-    $_setString(1, v);
-  }
-
+  set version($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -2379,10 +1791,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get protocol => $_getIZ(2);
   @$pb.TagNumber(3)
-  set protocol($core.int v) {
-    $_setSignedInt32(2, v);
-  }
-
+  set protocol($core.int v) { $_setSignedInt32(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasProtocol() => $_has(2);
   @$pb.TagNumber(3)
@@ -2391,10 +1800,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get os => $_getSZ(3);
   @$pb.TagNumber(4)
-  set os($core.String v) {
-    $_setString(3, v);
-  }
-
+  set os($core.String v) { $_setString(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasOs() => $_has(3);
   @$pb.TagNumber(4)
@@ -2403,10 +1809,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get osVersion => $_getSZ(4);
   @$pb.TagNumber(5)
-  set osVersion($core.String v) {
-    $_setString(4, v);
-  }
-
+  set osVersion($core.String v) { $_setString(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasOsVersion() => $_has(4);
   @$pb.TagNumber(5)
@@ -2415,10 +1818,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get deviceModel => $_getSZ(5);
   @$pb.TagNumber(6)
-  set deviceModel($core.String v) {
-    $_setString(5, v);
-  }
-
+  set deviceModel($core.String v) { $_setString(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasDeviceModel() => $_has(5);
   @$pb.TagNumber(6)
@@ -2427,10 +1827,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get browser => $_getSZ(6);
   @$pb.TagNumber(7)
-  set browser($core.String v) {
-    $_setString(6, v);
-  }
-
+  set browser($core.String v) { $_setString(6, v); }
   @$pb.TagNumber(7)
   $core.bool hasBrowser() => $_has(6);
   @$pb.TagNumber(7)
@@ -2439,10 +1836,7 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get browserVersion => $_getSZ(7);
   @$pb.TagNumber(8)
-  set browserVersion($core.String v) {
-    $_setString(7, v);
-  }
-
+  set browserVersion($core.String v) { $_setString(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasBrowserVersion() => $_has(7);
   @$pb.TagNumber(8)
@@ -2451,77 +1845,25 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.String get address => $_getSZ(8);
   @$pb.TagNumber(9)
-  set address($core.String v) {
-    $_setString(8, v);
-  }
-
+  set address($core.String v) { $_setString(8, v); }
   @$pb.TagNumber(9)
   $core.bool hasAddress() => $_has(8);
   @$pb.TagNumber(9)
   void clearAddress() => clearField(9);
 
+  /// wifi, wired, cellular, vpn, empty if not known
   @$pb.TagNumber(10)
   $core.String get network => $_getSZ(9);
   @$pb.TagNumber(10)
-  set network($core.String v) {
-    $_setString(9, v);
-  }
-
+  set network($core.String v) { $_setString(9, v); }
   @$pb.TagNumber(10)
   $core.bool hasNetwork() => $_has(9);
   @$pb.TagNumber(10)
   void clearNetwork() => clearField(10);
 }
 
+/// server provided client configuration
 class ClientConfiguration extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'ClientConfiguration',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOM<VideoConfiguration>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'video',
-        subBuilder: VideoConfiguration.create)
-    ..aOM<VideoConfiguration>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'screen',
-        subBuilder: VideoConfiguration.create)
-    ..e<ClientConfigSetting>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'resumeConnection',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
-    ..aOM<DisabledCodecs>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'disabledCodecs',
-        subBuilder: DisabledCodecs.create)
-    ..e<ClientConfigSetting>(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'forceRelay',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
-    ..hasRequiredFields = false;
-
-  ClientConfiguration._() : super();
   factory ClientConfiguration({
     VideoConfiguration? video,
     VideoConfiguration? screen,
@@ -2529,58 +1871,62 @@ class ClientConfiguration extends $pb.GeneratedMessage {
     DisabledCodecs? disabledCodecs,
     ClientConfigSetting? forceRelay,
   }) {
-    final _result = create();
+    final $result = create();
     if (video != null) {
-      _result.video = video;
+      $result.video = video;
     }
     if (screen != null) {
-      _result.screen = screen;
+      $result.screen = screen;
     }
     if (resumeConnection != null) {
-      _result.resumeConnection = resumeConnection;
+      $result.resumeConnection = resumeConnection;
     }
     if (disabledCodecs != null) {
-      _result.disabledCodecs = disabledCodecs;
+      $result.disabledCodecs = disabledCodecs;
     }
     if (forceRelay != null) {
-      _result.forceRelay = forceRelay;
+      $result.forceRelay = forceRelay;
     }
-    return _result;
+    return $result;
   }
-  factory ClientConfiguration.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory ClientConfiguration.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  ClientConfiguration._() : super();
+  factory ClientConfiguration.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ClientConfiguration.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientConfiguration', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOM<VideoConfiguration>(1, _omitFieldNames ? '' : 'video', subBuilder: VideoConfiguration.create)
+    ..aOM<VideoConfiguration>(2, _omitFieldNames ? '' : 'screen', subBuilder: VideoConfiguration.create)
+    ..e<ClientConfigSetting>(3, _omitFieldNames ? '' : 'resumeConnection', $pb.PbFieldType.OE, defaultOrMaker: ClientConfigSetting.UNSET, valueOf: ClientConfigSetting.valueOf, enumValues: ClientConfigSetting.values)
+    ..aOM<DisabledCodecs>(4, _omitFieldNames ? '' : 'disabledCodecs', subBuilder: DisabledCodecs.create)
+    ..e<ClientConfigSetting>(5, _omitFieldNames ? '' : 'forceRelay', $pb.PbFieldType.OE, defaultOrMaker: ClientConfigSetting.UNSET, valueOf: ClientConfigSetting.valueOf, enumValues: ClientConfigSetting.values)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   ClientConfiguration clone() => ClientConfiguration()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  ClientConfiguration copyWith(void Function(ClientConfiguration) updates) =>
-      super.copyWith((message) => updates(message as ClientConfiguration))
-          as ClientConfiguration; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  ClientConfiguration copyWith(void Function(ClientConfiguration) updates) => super.copyWith((message) => updates(message as ClientConfiguration)) as ClientConfiguration;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static ClientConfiguration create() => ClientConfiguration._();
   ClientConfiguration createEmptyInstance() => create();
-  static $pb.PbList<ClientConfiguration> createRepeated() =>
-      $pb.PbList<ClientConfiguration>();
+  static $pb.PbList<ClientConfiguration> createRepeated() => $pb.PbList<ClientConfiguration>();
   @$core.pragma('dart2js:noInline')
-  static ClientConfiguration getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
+  static ClientConfiguration getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
   static ClientConfiguration? _defaultInstance;
 
   @$pb.TagNumber(1)
   VideoConfiguration get video => $_getN(0);
   @$pb.TagNumber(1)
-  set video(VideoConfiguration v) {
-    setField(1, v);
-  }
-
+  set video(VideoConfiguration v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasVideo() => $_has(0);
   @$pb.TagNumber(1)
@@ -2591,10 +1937,7 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   VideoConfiguration get screen => $_getN(1);
   @$pb.TagNumber(2)
-  set screen(VideoConfiguration v) {
-    setField(2, v);
-  }
-
+  set screen(VideoConfiguration v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasScreen() => $_has(1);
   @$pb.TagNumber(2)
@@ -2605,10 +1948,7 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ClientConfigSetting get resumeConnection => $_getN(2);
   @$pb.TagNumber(3)
-  set resumeConnection(ClientConfigSetting v) {
-    setField(3, v);
-  }
-
+  set resumeConnection(ClientConfigSetting v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasResumeConnection() => $_has(2);
   @$pb.TagNumber(3)
@@ -2617,10 +1957,7 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   DisabledCodecs get disabledCodecs => $_getN(3);
   @$pb.TagNumber(4)
-  set disabledCodecs(DisabledCodecs v) {
-    setField(4, v);
-  }
-
+  set disabledCodecs(DisabledCodecs v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasDisabledCodecs() => $_has(3);
   @$pb.TagNumber(4)
@@ -2631,10 +1968,7 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   ClientConfigSetting get forceRelay => $_getN(4);
   @$pb.TagNumber(5)
-  set forceRelay(ClientConfigSetting v) {
-    setField(5, v);
-  }
-
+  set forceRelay(ClientConfigSetting v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasForceRelay() => $_has(4);
   @$pb.TagNumber(5)
@@ -2642,70 +1976,49 @@ class ClientConfiguration extends $pb.GeneratedMessage {
 }
 
 class VideoConfiguration extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'VideoConfiguration',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..e<ClientConfigSetting>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'hardwareEncoder',
-        $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
-    ..hasRequiredFields = false;
-
-  VideoConfiguration._() : super();
   factory VideoConfiguration({
     ClientConfigSetting? hardwareEncoder,
   }) {
-    final _result = create();
+    final $result = create();
     if (hardwareEncoder != null) {
-      _result.hardwareEncoder = hardwareEncoder;
+      $result.hardwareEncoder = hardwareEncoder;
     }
-    return _result;
+    return $result;
   }
-  factory VideoConfiguration.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory VideoConfiguration.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  VideoConfiguration._() : super();
+  factory VideoConfiguration.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory VideoConfiguration.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VideoConfiguration', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..e<ClientConfigSetting>(1, _omitFieldNames ? '' : 'hardwareEncoder', $pb.PbFieldType.OE, defaultOrMaker: ClientConfigSetting.UNSET, valueOf: ClientConfigSetting.valueOf, enumValues: ClientConfigSetting.values)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   VideoConfiguration clone() => VideoConfiguration()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  VideoConfiguration copyWith(void Function(VideoConfiguration) updates) =>
-      super.copyWith((message) => updates(message as VideoConfiguration))
-          as VideoConfiguration; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  VideoConfiguration copyWith(void Function(VideoConfiguration) updates) => super.copyWith((message) => updates(message as VideoConfiguration)) as VideoConfiguration;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static VideoConfiguration create() => VideoConfiguration._();
   VideoConfiguration createEmptyInstance() => create();
-  static $pb.PbList<VideoConfiguration> createRepeated() =>
-      $pb.PbList<VideoConfiguration>();
+  static $pb.PbList<VideoConfiguration> createRepeated() => $pb.PbList<VideoConfiguration>();
   @$core.pragma('dart2js:noInline')
-  static VideoConfiguration getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
+  static VideoConfiguration getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
   static VideoConfiguration? _defaultInstance;
 
   @$pb.TagNumber(1)
   ClientConfigSetting get hardwareEncoder => $_getN(0);
   @$pb.TagNumber(1)
-  set hardwareEncoder(ClientConfigSetting v) {
-    setField(1, v);
-  }
-
+  set hardwareEncoder(ClientConfigSetting v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasHardwareEncoder() => $_has(0);
   @$pb.TagNumber(1)
@@ -2713,333 +2026,226 @@ class VideoConfiguration extends $pb.GeneratedMessage {
 }
 
 class DisabledCodecs extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'DisabledCodecs',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..pc<Codec>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'codecs',
-        $pb.PbFieldType.PM,
-        subBuilder: Codec.create)
-    ..hasRequiredFields = false;
-
-  DisabledCodecs._() : super();
   factory DisabledCodecs({
     $core.Iterable<Codec>? codecs,
+    $core.Iterable<Codec>? publish,
   }) {
-    final _result = create();
+    final $result = create();
     if (codecs != null) {
-      _result.codecs.addAll(codecs);
+      $result.codecs.addAll(codecs);
     }
-    return _result;
+    if (publish != null) {
+      $result.publish.addAll(publish);
+    }
+    return $result;
   }
-  factory DisabledCodecs.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory DisabledCodecs.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  DisabledCodecs._() : super();
+  factory DisabledCodecs.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory DisabledCodecs.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DisabledCodecs', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..pc<Codec>(1, _omitFieldNames ? '' : 'codecs', $pb.PbFieldType.PM, subBuilder: Codec.create)
+    ..pc<Codec>(2, _omitFieldNames ? '' : 'publish', $pb.PbFieldType.PM, subBuilder: Codec.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   DisabledCodecs clone() => DisabledCodecs()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  DisabledCodecs copyWith(void Function(DisabledCodecs) updates) =>
-      super.copyWith((message) => updates(message as DisabledCodecs))
-          as DisabledCodecs; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  DisabledCodecs copyWith(void Function(DisabledCodecs) updates) => super.copyWith((message) => updates(message as DisabledCodecs)) as DisabledCodecs;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static DisabledCodecs create() => DisabledCodecs._();
   DisabledCodecs createEmptyInstance() => create();
-  static $pb.PbList<DisabledCodecs> createRepeated() =>
-      $pb.PbList<DisabledCodecs>();
+  static $pb.PbList<DisabledCodecs> createRepeated() => $pb.PbList<DisabledCodecs>();
   @$core.pragma('dart2js:noInline')
-  static DisabledCodecs getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
+  static DisabledCodecs getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
   static DisabledCodecs? _defaultInstance;
 
+  /// disabled for both publish and subscribe
   @$pb.TagNumber(1)
   $core.List<Codec> get codecs => $_getList(0);
+
+  /// only disable for publish
+  @$pb.TagNumber(2)
+  $core.List<Codec> get publish => $_getList(1);
+}
+
+class RTPDrift extends $pb.GeneratedMessage {
+  factory RTPDrift({
+    $0.Timestamp? startTime,
+    $0.Timestamp? endTime,
+    $core.double? duration,
+    $fixnum.Int64? startTimestamp,
+    $fixnum.Int64? endTimestamp,
+    $fixnum.Int64? rtpClockTicks,
+    $fixnum.Int64? driftSamples,
+    $core.double? driftMs,
+    $core.double? clockRate,
+  }) {
+    final $result = create();
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (duration != null) {
+      $result.duration = duration;
+    }
+    if (startTimestamp != null) {
+      $result.startTimestamp = startTimestamp;
+    }
+    if (endTimestamp != null) {
+      $result.endTimestamp = endTimestamp;
+    }
+    if (rtpClockTicks != null) {
+      $result.rtpClockTicks = rtpClockTicks;
+    }
+    if (driftSamples != null) {
+      $result.driftSamples = driftSamples;
+    }
+    if (driftMs != null) {
+      $result.driftMs = driftMs;
+    }
+    if (clockRate != null) {
+      $result.clockRate = clockRate;
+    }
+    return $result;
+  }
+  RTPDrift._() : super();
+  factory RTPDrift.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RTPDrift.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RTPDrift', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $0.Timestamp.create)
+    ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(4, _omitFieldNames ? '' : 'startTimestamp', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'endTimestamp', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(6, _omitFieldNames ? '' : 'rtpClockTicks', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aInt64(7, _omitFieldNames ? '' : 'driftSamples')
+    ..a<$core.double>(8, _omitFieldNames ? '' : 'driftMs', $pb.PbFieldType.OD)
+    ..a<$core.double>(9, _omitFieldNames ? '' : 'clockRate', $pb.PbFieldType.OD)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RTPDrift clone() => RTPDrift()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RTPDrift copyWith(void Function(RTPDrift) updates) => super.copyWith((message) => updates(message as RTPDrift)) as RTPDrift;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RTPDrift create() => RTPDrift._();
+  RTPDrift createEmptyInstance() => create();
+  static $pb.PbList<RTPDrift> createRepeated() => $pb.PbList<RTPDrift>();
+  @$core.pragma('dart2js:noInline')
+  static RTPDrift getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPDrift>(create);
+  static RTPDrift? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $0.Timestamp get startTime => $_getN(0);
+  @$pb.TagNumber(1)
+  set startTime($0.Timestamp v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasStartTime() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStartTime() => clearField(1);
+  @$pb.TagNumber(1)
+  $0.Timestamp ensureStartTime() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $0.Timestamp get endTime => $_getN(1);
+  @$pb.TagNumber(2)
+  set endTime($0.Timestamp v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasEndTime() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEndTime() => clearField(2);
+  @$pb.TagNumber(2)
+  $0.Timestamp ensureEndTime() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.double get duration => $_getN(2);
+  @$pb.TagNumber(3)
+  set duration($core.double v) { $_setDouble(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasDuration() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDuration() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get startTimestamp => $_getI64(3);
+  @$pb.TagNumber(4)
+  set startTimestamp($fixnum.Int64 v) { $_setInt64(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasStartTimestamp() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearStartTimestamp() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get endTimestamp => $_getI64(4);
+  @$pb.TagNumber(5)
+  set endTimestamp($fixnum.Int64 v) { $_setInt64(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasEndTimestamp() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearEndTimestamp() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $fixnum.Int64 get rtpClockTicks => $_getI64(5);
+  @$pb.TagNumber(6)
+  set rtpClockTicks($fixnum.Int64 v) { $_setInt64(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasRtpClockTicks() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRtpClockTicks() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get driftSamples => $_getI64(6);
+  @$pb.TagNumber(7)
+  set driftSamples($fixnum.Int64 v) { $_setInt64(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasDriftSamples() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearDriftSamples() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.double get driftMs => $_getN(7);
+  @$pb.TagNumber(8)
+  set driftMs($core.double v) { $_setDouble(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasDriftMs() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearDriftMs() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.double get clockRate => $_getN(8);
+  @$pb.TagNumber(9)
+  set clockRate($core.double v) { $_setDouble(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasClockRate() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearClockRate() => clearField(9);
 }
 
 class RTPStats extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'RTPStats',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aOM<$0.Timestamp>(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'startTime',
-        subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'endTime',
-        subBuilder: $0.Timestamp.create)
-    ..a<$core.double>(
-        3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'duration',
-        $pb.PbFieldType.OD)
-    ..a<$core.int>(
-        4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packets',
-        $pb.PbFieldType.OU3)
-    ..a<$core.double>(
-        5,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetRate',
-        $pb.PbFieldType.OD)
-    ..a<$fixnum.Int64>(
-        6,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bytes',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(
-        7,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bitrate',
-        $pb.PbFieldType.OD)
-    ..a<$core.int>(
-        8,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetsLost',
-        $pb.PbFieldType.OU3)
-    ..a<$core.double>(
-        9,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetLossRate',
-        $pb.PbFieldType.OD)
-    ..a<$core.double>(
-        10,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetLossPercentage',
-        $pb.PbFieldType.OF)
-    ..a<$core.int>(
-        11,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetsDuplicate',
-        $pb.PbFieldType.OU3)
-    ..a<$core.double>(
-        12,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetDuplicateRate',
-        $pb.PbFieldType.OD)
-    ..a<$fixnum.Int64>(
-        13,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bytesDuplicate',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(
-        14,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bitrateDuplicate',
-        $pb.PbFieldType.OD)
-    ..a<$core.int>(
-        15,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetsPadding',
-        $pb.PbFieldType.OU3)
-    ..a<$core.double>(
-        16,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetPaddingRate',
-        $pb.PbFieldType.OD)
-    ..a<$fixnum.Int64>(
-        17,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bytesPadding',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(
-        18,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'bitratePadding',
-        $pb.PbFieldType.OD)
-    ..a<$core.int>(
-        19,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'packetsOutOfOrder',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        20,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'frames',
-        $pb.PbFieldType.OU3)
-    ..a<$core.double>(
-        21,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'frameRate',
-        $pb.PbFieldType.OD)
-    ..a<$core.double>(
-        22,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'jitterCurrent',
-        $pb.PbFieldType.OD)
-    ..a<$core.double>(
-        23,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'jitterMax',
-        $pb.PbFieldType.OD)
-    ..m<$core.int, $core.int>(
-        24,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'gapHistogram',
-        entryClassName: 'RTPStats.GapHistogramEntry',
-        keyFieldType: $pb.PbFieldType.O3,
-        valueFieldType: $pb.PbFieldType.OU3,
-        packageName: const $pb.PackageName('livekit'))
-    ..a<$core.int>(
-        25,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nacks',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        26,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nackMisses',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        27,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'plis',
-        $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(
-        28,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'lastPli',
-        subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(
-        29,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'firs',
-        $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(
-        30,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'lastFir',
-        subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(
-        31,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'rttCurrent',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        32,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'rttMax',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        33,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'keyFrames',
-        $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(
-        34,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'lastKeyFrame',
-        subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(
-        35,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'layerLockPlis',
-        $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(
-        36,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'lastLayerLockPli',
-        subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(
-        37,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nackAcks',
-        $pb.PbFieldType.OU3)
-    ..a<$core.int>(
-        38,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'nackRepeated',
-        $pb.PbFieldType.OU3)
-    ..a<$fixnum.Int64>(
-        39,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'headerBytes',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$fixnum.Int64>(
-        40,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'headerBytesDuplicate',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$fixnum.Int64>(
-        41,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'headerBytesPadding',
-        $pb.PbFieldType.OU6,
-        defaultOrMaker: $fixnum.Int64.ZERO)
-    ..hasRequiredFields = false;
-
-  RTPStats._() : super();
   factory RTPStats({
     $0.Timestamp? startTime,
     $0.Timestamp? endTime,
@@ -3082,166 +2288,217 @@ class RTPStats extends $pb.GeneratedMessage {
     $fixnum.Int64? headerBytes,
     $fixnum.Int64? headerBytesDuplicate,
     $fixnum.Int64? headerBytesPadding,
+    RTPDrift? packetDrift,
+    RTPDrift? reportDrift,
   }) {
-    final _result = create();
+    final $result = create();
     if (startTime != null) {
-      _result.startTime = startTime;
+      $result.startTime = startTime;
     }
     if (endTime != null) {
-      _result.endTime = endTime;
+      $result.endTime = endTime;
     }
     if (duration != null) {
-      _result.duration = duration;
+      $result.duration = duration;
     }
     if (packets != null) {
-      _result.packets = packets;
+      $result.packets = packets;
     }
     if (packetRate != null) {
-      _result.packetRate = packetRate;
+      $result.packetRate = packetRate;
     }
     if (bytes != null) {
-      _result.bytes = bytes;
+      $result.bytes = bytes;
     }
     if (bitrate != null) {
-      _result.bitrate = bitrate;
+      $result.bitrate = bitrate;
     }
     if (packetsLost != null) {
-      _result.packetsLost = packetsLost;
+      $result.packetsLost = packetsLost;
     }
     if (packetLossRate != null) {
-      _result.packetLossRate = packetLossRate;
+      $result.packetLossRate = packetLossRate;
     }
     if (packetLossPercentage != null) {
-      _result.packetLossPercentage = packetLossPercentage;
+      $result.packetLossPercentage = packetLossPercentage;
     }
     if (packetsDuplicate != null) {
-      _result.packetsDuplicate = packetsDuplicate;
+      $result.packetsDuplicate = packetsDuplicate;
     }
     if (packetDuplicateRate != null) {
-      _result.packetDuplicateRate = packetDuplicateRate;
+      $result.packetDuplicateRate = packetDuplicateRate;
     }
     if (bytesDuplicate != null) {
-      _result.bytesDuplicate = bytesDuplicate;
+      $result.bytesDuplicate = bytesDuplicate;
     }
     if (bitrateDuplicate != null) {
-      _result.bitrateDuplicate = bitrateDuplicate;
+      $result.bitrateDuplicate = bitrateDuplicate;
     }
     if (packetsPadding != null) {
-      _result.packetsPadding = packetsPadding;
+      $result.packetsPadding = packetsPadding;
     }
     if (packetPaddingRate != null) {
-      _result.packetPaddingRate = packetPaddingRate;
+      $result.packetPaddingRate = packetPaddingRate;
     }
     if (bytesPadding != null) {
-      _result.bytesPadding = bytesPadding;
+      $result.bytesPadding = bytesPadding;
     }
     if (bitratePadding != null) {
-      _result.bitratePadding = bitratePadding;
+      $result.bitratePadding = bitratePadding;
     }
     if (packetsOutOfOrder != null) {
-      _result.packetsOutOfOrder = packetsOutOfOrder;
+      $result.packetsOutOfOrder = packetsOutOfOrder;
     }
     if (frames != null) {
-      _result.frames = frames;
+      $result.frames = frames;
     }
     if (frameRate != null) {
-      _result.frameRate = frameRate;
+      $result.frameRate = frameRate;
     }
     if (jitterCurrent != null) {
-      _result.jitterCurrent = jitterCurrent;
+      $result.jitterCurrent = jitterCurrent;
     }
     if (jitterMax != null) {
-      _result.jitterMax = jitterMax;
+      $result.jitterMax = jitterMax;
     }
     if (gapHistogram != null) {
-      _result.gapHistogram.addAll(gapHistogram);
+      $result.gapHistogram.addAll(gapHistogram);
     }
     if (nacks != null) {
-      _result.nacks = nacks;
+      $result.nacks = nacks;
     }
     if (nackMisses != null) {
-      _result.nackMisses = nackMisses;
+      $result.nackMisses = nackMisses;
     }
     if (plis != null) {
-      _result.plis = plis;
+      $result.plis = plis;
     }
     if (lastPli != null) {
-      _result.lastPli = lastPli;
+      $result.lastPli = lastPli;
     }
     if (firs != null) {
-      _result.firs = firs;
+      $result.firs = firs;
     }
     if (lastFir != null) {
-      _result.lastFir = lastFir;
+      $result.lastFir = lastFir;
     }
     if (rttCurrent != null) {
-      _result.rttCurrent = rttCurrent;
+      $result.rttCurrent = rttCurrent;
     }
     if (rttMax != null) {
-      _result.rttMax = rttMax;
+      $result.rttMax = rttMax;
     }
     if (keyFrames != null) {
-      _result.keyFrames = keyFrames;
+      $result.keyFrames = keyFrames;
     }
     if (lastKeyFrame != null) {
-      _result.lastKeyFrame = lastKeyFrame;
+      $result.lastKeyFrame = lastKeyFrame;
     }
     if (layerLockPlis != null) {
-      _result.layerLockPlis = layerLockPlis;
+      $result.layerLockPlis = layerLockPlis;
     }
     if (lastLayerLockPli != null) {
-      _result.lastLayerLockPli = lastLayerLockPli;
+      $result.lastLayerLockPli = lastLayerLockPli;
     }
     if (nackAcks != null) {
-      _result.nackAcks = nackAcks;
+      $result.nackAcks = nackAcks;
     }
     if (nackRepeated != null) {
-      _result.nackRepeated = nackRepeated;
+      $result.nackRepeated = nackRepeated;
     }
     if (headerBytes != null) {
-      _result.headerBytes = headerBytes;
+      $result.headerBytes = headerBytes;
     }
     if (headerBytesDuplicate != null) {
-      _result.headerBytesDuplicate = headerBytesDuplicate;
+      $result.headerBytesDuplicate = headerBytesDuplicate;
     }
     if (headerBytesPadding != null) {
-      _result.headerBytesPadding = headerBytesPadding;
+      $result.headerBytesPadding = headerBytesPadding;
     }
-    return _result;
+    if (packetDrift != null) {
+      $result.packetDrift = packetDrift;
+    }
+    if (reportDrift != null) {
+      $result.reportDrift = reportDrift;
+    }
+    return $result;
   }
-  factory RTPStats.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory RTPStats.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  RTPStats._() : super();
+  factory RTPStats.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RTPStats.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RTPStats', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $0.Timestamp.create)
+    ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'packets', $pb.PbFieldType.OU3)
+    ..a<$core.double>(5, _omitFieldNames ? '' : 'packetRate', $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(6, _omitFieldNames ? '' : 'bytes', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(7, _omitFieldNames ? '' : 'bitrate', $pb.PbFieldType.OD)
+    ..a<$core.int>(8, _omitFieldNames ? '' : 'packetsLost', $pb.PbFieldType.OU3)
+    ..a<$core.double>(9, _omitFieldNames ? '' : 'packetLossRate', $pb.PbFieldType.OD)
+    ..a<$core.double>(10, _omitFieldNames ? '' : 'packetLossPercentage', $pb.PbFieldType.OF)
+    ..a<$core.int>(11, _omitFieldNames ? '' : 'packetsDuplicate', $pb.PbFieldType.OU3)
+    ..a<$core.double>(12, _omitFieldNames ? '' : 'packetDuplicateRate', $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(13, _omitFieldNames ? '' : 'bytesDuplicate', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(14, _omitFieldNames ? '' : 'bitrateDuplicate', $pb.PbFieldType.OD)
+    ..a<$core.int>(15, _omitFieldNames ? '' : 'packetsPadding', $pb.PbFieldType.OU3)
+    ..a<$core.double>(16, _omitFieldNames ? '' : 'packetPaddingRate', $pb.PbFieldType.OD)
+    ..a<$fixnum.Int64>(17, _omitFieldNames ? '' : 'bytesPadding', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.double>(18, _omitFieldNames ? '' : 'bitratePadding', $pb.PbFieldType.OD)
+    ..a<$core.int>(19, _omitFieldNames ? '' : 'packetsOutOfOrder', $pb.PbFieldType.OU3)
+    ..a<$core.int>(20, _omitFieldNames ? '' : 'frames', $pb.PbFieldType.OU3)
+    ..a<$core.double>(21, _omitFieldNames ? '' : 'frameRate', $pb.PbFieldType.OD)
+    ..a<$core.double>(22, _omitFieldNames ? '' : 'jitterCurrent', $pb.PbFieldType.OD)
+    ..a<$core.double>(23, _omitFieldNames ? '' : 'jitterMax', $pb.PbFieldType.OD)
+    ..m<$core.int, $core.int>(24, _omitFieldNames ? '' : 'gapHistogram', entryClassName: 'RTPStats.GapHistogramEntry', keyFieldType: $pb.PbFieldType.O3, valueFieldType: $pb.PbFieldType.OU3, packageName: const $pb.PackageName('livekit'))
+    ..a<$core.int>(25, _omitFieldNames ? '' : 'nacks', $pb.PbFieldType.OU3)
+    ..a<$core.int>(26, _omitFieldNames ? '' : 'nackMisses', $pb.PbFieldType.OU3)
+    ..a<$core.int>(27, _omitFieldNames ? '' : 'plis', $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(28, _omitFieldNames ? '' : 'lastPli', subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(29, _omitFieldNames ? '' : 'firs', $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(30, _omitFieldNames ? '' : 'lastFir', subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(31, _omitFieldNames ? '' : 'rttCurrent', $pb.PbFieldType.OU3)
+    ..a<$core.int>(32, _omitFieldNames ? '' : 'rttMax', $pb.PbFieldType.OU3)
+    ..a<$core.int>(33, _omitFieldNames ? '' : 'keyFrames', $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(34, _omitFieldNames ? '' : 'lastKeyFrame', subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(35, _omitFieldNames ? '' : 'layerLockPlis', $pb.PbFieldType.OU3)
+    ..aOM<$0.Timestamp>(36, _omitFieldNames ? '' : 'lastLayerLockPli', subBuilder: $0.Timestamp.create)
+    ..a<$core.int>(37, _omitFieldNames ? '' : 'nackAcks', $pb.PbFieldType.OU3)
+    ..a<$core.int>(38, _omitFieldNames ? '' : 'nackRepeated', $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(39, _omitFieldNames ? '' : 'headerBytes', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(40, _omitFieldNames ? '' : 'headerBytesDuplicate', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(41, _omitFieldNames ? '' : 'headerBytesPadding', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<RTPDrift>(44, _omitFieldNames ? '' : 'packetDrift', subBuilder: RTPDrift.create)
+    ..aOM<RTPDrift>(45, _omitFieldNames ? '' : 'reportDrift', subBuilder: RTPDrift.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   RTPStats clone() => RTPStats()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  RTPStats copyWith(void Function(RTPStats) updates) =>
-      super.copyWith((message) => updates(message as RTPStats))
-          as RTPStats; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RTPStats copyWith(void Function(RTPStats) updates) => super.copyWith((message) => updates(message as RTPStats)) as RTPStats;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static RTPStats create() => RTPStats._();
   RTPStats createEmptyInstance() => create();
   static $pb.PbList<RTPStats> createRepeated() => $pb.PbList<RTPStats>();
   @$core.pragma('dart2js:noInline')
-  static RTPStats getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPStats>(create);
+  static RTPStats getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPStats>(create);
   static RTPStats? _defaultInstance;
 
   @$pb.TagNumber(1)
   $0.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($0.Timestamp v) {
-    setField(1, v);
-  }
-
+  set startTime($0.Timestamp v) { setField(1, v); }
   @$pb.TagNumber(1)
   $core.bool hasStartTime() => $_has(0);
   @$pb.TagNumber(1)
@@ -3252,10 +2509,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($0.Timestamp v) {
-    setField(2, v);
-  }
-
+  set endTime($0.Timestamp v) { setField(2, v); }
   @$pb.TagNumber(2)
   $core.bool hasEndTime() => $_has(1);
   @$pb.TagNumber(2)
@@ -3266,10 +2520,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
   @$pb.TagNumber(3)
-  set duration($core.double v) {
-    $_setDouble(2, v);
-  }
-
+  set duration($core.double v) { $_setDouble(2, v); }
   @$pb.TagNumber(3)
   $core.bool hasDuration() => $_has(2);
   @$pb.TagNumber(3)
@@ -3278,10 +2529,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get packets => $_getIZ(3);
   @$pb.TagNumber(4)
-  set packets($core.int v) {
-    $_setUnsignedInt32(3, v);
-  }
-
+  set packets($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
   $core.bool hasPackets() => $_has(3);
   @$pb.TagNumber(4)
@@ -3290,10 +2538,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.double get packetRate => $_getN(4);
   @$pb.TagNumber(5)
-  set packetRate($core.double v) {
-    $_setDouble(4, v);
-  }
-
+  set packetRate($core.double v) { $_setDouble(4, v); }
   @$pb.TagNumber(5)
   $core.bool hasPacketRate() => $_has(4);
   @$pb.TagNumber(5)
@@ -3302,10 +2547,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $fixnum.Int64 get bytes => $_getI64(5);
   @$pb.TagNumber(6)
-  set bytes($fixnum.Int64 v) {
-    $_setInt64(5, v);
-  }
-
+  set bytes($fixnum.Int64 v) { $_setInt64(5, v); }
   @$pb.TagNumber(6)
   $core.bool hasBytes() => $_has(5);
   @$pb.TagNumber(6)
@@ -3314,10 +2556,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.double get bitrate => $_getN(6);
   @$pb.TagNumber(7)
-  set bitrate($core.double v) {
-    $_setDouble(6, v);
-  }
-
+  set bitrate($core.double v) { $_setDouble(6, v); }
   @$pb.TagNumber(7)
   $core.bool hasBitrate() => $_has(6);
   @$pb.TagNumber(7)
@@ -3326,10 +2565,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.int get packetsLost => $_getIZ(7);
   @$pb.TagNumber(8)
-  set packetsLost($core.int v) {
-    $_setUnsignedInt32(7, v);
-  }
-
+  set packetsLost($core.int v) { $_setUnsignedInt32(7, v); }
   @$pb.TagNumber(8)
   $core.bool hasPacketsLost() => $_has(7);
   @$pb.TagNumber(8)
@@ -3338,10 +2574,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.double get packetLossRate => $_getN(8);
   @$pb.TagNumber(9)
-  set packetLossRate($core.double v) {
-    $_setDouble(8, v);
-  }
-
+  set packetLossRate($core.double v) { $_setDouble(8, v); }
   @$pb.TagNumber(9)
   $core.bool hasPacketLossRate() => $_has(8);
   @$pb.TagNumber(9)
@@ -3350,10 +2583,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.double get packetLossPercentage => $_getN(9);
   @$pb.TagNumber(10)
-  set packetLossPercentage($core.double v) {
-    $_setFloat(9, v);
-  }
-
+  set packetLossPercentage($core.double v) { $_setFloat(9, v); }
   @$pb.TagNumber(10)
   $core.bool hasPacketLossPercentage() => $_has(9);
   @$pb.TagNumber(10)
@@ -3362,10 +2592,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.int get packetsDuplicate => $_getIZ(10);
   @$pb.TagNumber(11)
-  set packetsDuplicate($core.int v) {
-    $_setUnsignedInt32(10, v);
-  }
-
+  set packetsDuplicate($core.int v) { $_setUnsignedInt32(10, v); }
   @$pb.TagNumber(11)
   $core.bool hasPacketsDuplicate() => $_has(10);
   @$pb.TagNumber(11)
@@ -3374,10 +2601,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.double get packetDuplicateRate => $_getN(11);
   @$pb.TagNumber(12)
-  set packetDuplicateRate($core.double v) {
-    $_setDouble(11, v);
-  }
-
+  set packetDuplicateRate($core.double v) { $_setDouble(11, v); }
   @$pb.TagNumber(12)
   $core.bool hasPacketDuplicateRate() => $_has(11);
   @$pb.TagNumber(12)
@@ -3386,10 +2610,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $fixnum.Int64 get bytesDuplicate => $_getI64(12);
   @$pb.TagNumber(13)
-  set bytesDuplicate($fixnum.Int64 v) {
-    $_setInt64(12, v);
-  }
-
+  set bytesDuplicate($fixnum.Int64 v) { $_setInt64(12, v); }
   @$pb.TagNumber(13)
   $core.bool hasBytesDuplicate() => $_has(12);
   @$pb.TagNumber(13)
@@ -3398,10 +2619,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $core.double get bitrateDuplicate => $_getN(13);
   @$pb.TagNumber(14)
-  set bitrateDuplicate($core.double v) {
-    $_setDouble(13, v);
-  }
-
+  set bitrateDuplicate($core.double v) { $_setDouble(13, v); }
   @$pb.TagNumber(14)
   $core.bool hasBitrateDuplicate() => $_has(13);
   @$pb.TagNumber(14)
@@ -3410,10 +2628,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   $core.int get packetsPadding => $_getIZ(14);
   @$pb.TagNumber(15)
-  set packetsPadding($core.int v) {
-    $_setUnsignedInt32(14, v);
-  }
-
+  set packetsPadding($core.int v) { $_setUnsignedInt32(14, v); }
   @$pb.TagNumber(15)
   $core.bool hasPacketsPadding() => $_has(14);
   @$pb.TagNumber(15)
@@ -3422,10 +2637,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   $core.double get packetPaddingRate => $_getN(15);
   @$pb.TagNumber(16)
-  set packetPaddingRate($core.double v) {
-    $_setDouble(15, v);
-  }
-
+  set packetPaddingRate($core.double v) { $_setDouble(15, v); }
   @$pb.TagNumber(16)
   $core.bool hasPacketPaddingRate() => $_has(15);
   @$pb.TagNumber(16)
@@ -3434,10 +2646,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   $fixnum.Int64 get bytesPadding => $_getI64(16);
   @$pb.TagNumber(17)
-  set bytesPadding($fixnum.Int64 v) {
-    $_setInt64(16, v);
-  }
-
+  set bytesPadding($fixnum.Int64 v) { $_setInt64(16, v); }
   @$pb.TagNumber(17)
   $core.bool hasBytesPadding() => $_has(16);
   @$pb.TagNumber(17)
@@ -3446,10 +2655,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   $core.double get bitratePadding => $_getN(17);
   @$pb.TagNumber(18)
-  set bitratePadding($core.double v) {
-    $_setDouble(17, v);
-  }
-
+  set bitratePadding($core.double v) { $_setDouble(17, v); }
   @$pb.TagNumber(18)
   $core.bool hasBitratePadding() => $_has(17);
   @$pb.TagNumber(18)
@@ -3458,10 +2664,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   $core.int get packetsOutOfOrder => $_getIZ(18);
   @$pb.TagNumber(19)
-  set packetsOutOfOrder($core.int v) {
-    $_setUnsignedInt32(18, v);
-  }
-
+  set packetsOutOfOrder($core.int v) { $_setUnsignedInt32(18, v); }
   @$pb.TagNumber(19)
   $core.bool hasPacketsOutOfOrder() => $_has(18);
   @$pb.TagNumber(19)
@@ -3470,10 +2673,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   $core.int get frames => $_getIZ(19);
   @$pb.TagNumber(20)
-  set frames($core.int v) {
-    $_setUnsignedInt32(19, v);
-  }
-
+  set frames($core.int v) { $_setUnsignedInt32(19, v); }
   @$pb.TagNumber(20)
   $core.bool hasFrames() => $_has(19);
   @$pb.TagNumber(20)
@@ -3482,10 +2682,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   $core.double get frameRate => $_getN(20);
   @$pb.TagNumber(21)
-  set frameRate($core.double v) {
-    $_setDouble(20, v);
-  }
-
+  set frameRate($core.double v) { $_setDouble(20, v); }
   @$pb.TagNumber(21)
   $core.bool hasFrameRate() => $_has(20);
   @$pb.TagNumber(21)
@@ -3494,10 +2691,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   $core.double get jitterCurrent => $_getN(21);
   @$pb.TagNumber(22)
-  set jitterCurrent($core.double v) {
-    $_setDouble(21, v);
-  }
-
+  set jitterCurrent($core.double v) { $_setDouble(21, v); }
   @$pb.TagNumber(22)
   $core.bool hasJitterCurrent() => $_has(21);
   @$pb.TagNumber(22)
@@ -3506,10 +2700,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   $core.double get jitterMax => $_getN(22);
   @$pb.TagNumber(23)
-  set jitterMax($core.double v) {
-    $_setDouble(22, v);
-  }
-
+  set jitterMax($core.double v) { $_setDouble(22, v); }
   @$pb.TagNumber(23)
   $core.bool hasJitterMax() => $_has(22);
   @$pb.TagNumber(23)
@@ -3521,10 +2712,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   $core.int get nacks => $_getIZ(24);
   @$pb.TagNumber(25)
-  set nacks($core.int v) {
-    $_setUnsignedInt32(24, v);
-  }
-
+  set nacks($core.int v) { $_setUnsignedInt32(24, v); }
   @$pb.TagNumber(25)
   $core.bool hasNacks() => $_has(24);
   @$pb.TagNumber(25)
@@ -3533,10 +2721,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   $core.int get nackMisses => $_getIZ(25);
   @$pb.TagNumber(26)
-  set nackMisses($core.int v) {
-    $_setUnsignedInt32(25, v);
-  }
-
+  set nackMisses($core.int v) { $_setUnsignedInt32(25, v); }
   @$pb.TagNumber(26)
   $core.bool hasNackMisses() => $_has(25);
   @$pb.TagNumber(26)
@@ -3545,10 +2730,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   $core.int get plis => $_getIZ(26);
   @$pb.TagNumber(27)
-  set plis($core.int v) {
-    $_setUnsignedInt32(26, v);
-  }
-
+  set plis($core.int v) { $_setUnsignedInt32(26, v); }
   @$pb.TagNumber(27)
   $core.bool hasPlis() => $_has(26);
   @$pb.TagNumber(27)
@@ -3557,10 +2739,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   $0.Timestamp get lastPli => $_getN(27);
   @$pb.TagNumber(28)
-  set lastPli($0.Timestamp v) {
-    setField(28, v);
-  }
-
+  set lastPli($0.Timestamp v) { setField(28, v); }
   @$pb.TagNumber(28)
   $core.bool hasLastPli() => $_has(27);
   @$pb.TagNumber(28)
@@ -3571,10 +2750,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   $core.int get firs => $_getIZ(28);
   @$pb.TagNumber(29)
-  set firs($core.int v) {
-    $_setUnsignedInt32(28, v);
-  }
-
+  set firs($core.int v) { $_setUnsignedInt32(28, v); }
   @$pb.TagNumber(29)
   $core.bool hasFirs() => $_has(28);
   @$pb.TagNumber(29)
@@ -3583,10 +2759,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   $0.Timestamp get lastFir => $_getN(29);
   @$pb.TagNumber(30)
-  set lastFir($0.Timestamp v) {
-    setField(30, v);
-  }
-
+  set lastFir($0.Timestamp v) { setField(30, v); }
   @$pb.TagNumber(30)
   $core.bool hasLastFir() => $_has(29);
   @$pb.TagNumber(30)
@@ -3597,10 +2770,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(31)
   $core.int get rttCurrent => $_getIZ(30);
   @$pb.TagNumber(31)
-  set rttCurrent($core.int v) {
-    $_setUnsignedInt32(30, v);
-  }
-
+  set rttCurrent($core.int v) { $_setUnsignedInt32(30, v); }
   @$pb.TagNumber(31)
   $core.bool hasRttCurrent() => $_has(30);
   @$pb.TagNumber(31)
@@ -3609,10 +2779,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   $core.int get rttMax => $_getIZ(31);
   @$pb.TagNumber(32)
-  set rttMax($core.int v) {
-    $_setUnsignedInt32(31, v);
-  }
-
+  set rttMax($core.int v) { $_setUnsignedInt32(31, v); }
   @$pb.TagNumber(32)
   $core.bool hasRttMax() => $_has(31);
   @$pb.TagNumber(32)
@@ -3621,10 +2788,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(33)
   $core.int get keyFrames => $_getIZ(32);
   @$pb.TagNumber(33)
-  set keyFrames($core.int v) {
-    $_setUnsignedInt32(32, v);
-  }
-
+  set keyFrames($core.int v) { $_setUnsignedInt32(32, v); }
   @$pb.TagNumber(33)
   $core.bool hasKeyFrames() => $_has(32);
   @$pb.TagNumber(33)
@@ -3633,10 +2797,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(34)
   $0.Timestamp get lastKeyFrame => $_getN(33);
   @$pb.TagNumber(34)
-  set lastKeyFrame($0.Timestamp v) {
-    setField(34, v);
-  }
-
+  set lastKeyFrame($0.Timestamp v) { setField(34, v); }
   @$pb.TagNumber(34)
   $core.bool hasLastKeyFrame() => $_has(33);
   @$pb.TagNumber(34)
@@ -3647,10 +2808,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   $core.int get layerLockPlis => $_getIZ(34);
   @$pb.TagNumber(35)
-  set layerLockPlis($core.int v) {
-    $_setUnsignedInt32(34, v);
-  }
-
+  set layerLockPlis($core.int v) { $_setUnsignedInt32(34, v); }
   @$pb.TagNumber(35)
   $core.bool hasLayerLockPlis() => $_has(34);
   @$pb.TagNumber(35)
@@ -3659,10 +2817,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(36)
   $0.Timestamp get lastLayerLockPli => $_getN(35);
   @$pb.TagNumber(36)
-  set lastLayerLockPli($0.Timestamp v) {
-    setField(36, v);
-  }
-
+  set lastLayerLockPli($0.Timestamp v) { setField(36, v); }
   @$pb.TagNumber(36)
   $core.bool hasLastLayerLockPli() => $_has(35);
   @$pb.TagNumber(36)
@@ -3673,10 +2828,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(37)
   $core.int get nackAcks => $_getIZ(36);
   @$pb.TagNumber(37)
-  set nackAcks($core.int v) {
-    $_setUnsignedInt32(36, v);
-  }
-
+  set nackAcks($core.int v) { $_setUnsignedInt32(36, v); }
   @$pb.TagNumber(37)
   $core.bool hasNackAcks() => $_has(36);
   @$pb.TagNumber(37)
@@ -3685,10 +2837,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(38)
   $core.int get nackRepeated => $_getIZ(37);
   @$pb.TagNumber(38)
-  set nackRepeated($core.int v) {
-    $_setUnsignedInt32(37, v);
-  }
-
+  set nackRepeated($core.int v) { $_setUnsignedInt32(37, v); }
   @$pb.TagNumber(38)
   $core.bool hasNackRepeated() => $_has(37);
   @$pb.TagNumber(38)
@@ -3697,10 +2846,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   $fixnum.Int64 get headerBytes => $_getI64(38);
   @$pb.TagNumber(39)
-  set headerBytes($fixnum.Int64 v) {
-    $_setInt64(38, v);
-  }
-
+  set headerBytes($fixnum.Int64 v) { $_setInt64(38, v); }
   @$pb.TagNumber(39)
   $core.bool hasHeaderBytes() => $_has(38);
   @$pb.TagNumber(39)
@@ -3709,10 +2855,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(40)
   $fixnum.Int64 get headerBytesDuplicate => $_getI64(39);
   @$pb.TagNumber(40)
-  set headerBytesDuplicate($fixnum.Int64 v) {
-    $_setInt64(39, v);
-  }
-
+  set headerBytesDuplicate($fixnum.Int64 v) { $_setInt64(39, v); }
   @$pb.TagNumber(40)
   $core.bool hasHeaderBytesDuplicate() => $_has(39);
   @$pb.TagNumber(40)
@@ -3721,87 +2864,84 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(41)
   $fixnum.Int64 get headerBytesPadding => $_getI64(40);
   @$pb.TagNumber(41)
-  set headerBytesPadding($fixnum.Int64 v) {
-    $_setInt64(40, v);
-  }
-
+  set headerBytesPadding($fixnum.Int64 v) { $_setInt64(40, v); }
   @$pb.TagNumber(41)
   $core.bool hasHeaderBytesPadding() => $_has(40);
   @$pb.TagNumber(41)
   void clearHeaderBytesPadding() => clearField(41);
+
+  @$pb.TagNumber(44)
+  RTPDrift get packetDrift => $_getN(41);
+  @$pb.TagNumber(44)
+  set packetDrift(RTPDrift v) { setField(44, v); }
+  @$pb.TagNumber(44)
+  $core.bool hasPacketDrift() => $_has(41);
+  @$pb.TagNumber(44)
+  void clearPacketDrift() => clearField(44);
+  @$pb.TagNumber(44)
+  RTPDrift ensurePacketDrift() => $_ensure(41);
+
+  @$pb.TagNumber(45)
+  RTPDrift get reportDrift => $_getN(42);
+  @$pb.TagNumber(45)
+  set reportDrift(RTPDrift v) { setField(45, v); }
+  @$pb.TagNumber(45)
+  $core.bool hasReportDrift() => $_has(42);
+  @$pb.TagNumber(45)
+  void clearReportDrift() => clearField(45);
+  @$pb.TagNumber(45)
+  RTPDrift ensureReportDrift() => $_ensure(42);
 }
 
 class TimedVersion extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'TimedVersion',
-      package: const $pb.PackageName(
-          const $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'livekit'),
-      createEmptyInstance: create)
-    ..aInt64(
-        1,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'unixMicro')
-    ..a<$core.int>(
-        2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'ticks',
-        $pb.PbFieldType.O3)
-    ..hasRequiredFields = false;
-
-  TimedVersion._() : super();
   factory TimedVersion({
     $fixnum.Int64? unixMicro,
     $core.int? ticks,
   }) {
-    final _result = create();
+    final $result = create();
     if (unixMicro != null) {
-      _result.unixMicro = unixMicro;
+      $result.unixMicro = unixMicro;
     }
     if (ticks != null) {
-      _result.ticks = ticks;
+      $result.ticks = ticks;
     }
-    return _result;
+    return $result;
   }
-  factory TimedVersion.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory TimedVersion.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
+  TimedVersion._() : super();
+  factory TimedVersion.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory TimedVersion.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TimedVersion', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'unixMicro')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'ticks', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
   TimedVersion clone() => TimedVersion()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  TimedVersion copyWith(void Function(TimedVersion) updates) =>
-      super.copyWith((message) => updates(message as TimedVersion))
-          as TimedVersion; // ignore: deprecated_member_use
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  TimedVersion copyWith(void Function(TimedVersion) updates) => super.copyWith((message) => updates(message as TimedVersion)) as TimedVersion;
+
   $pb.BuilderInfo get info_ => _i;
+
   @$core.pragma('dart2js:noInline')
   static TimedVersion create() => TimedVersion._();
   TimedVersion createEmptyInstance() => create();
-  static $pb.PbList<TimedVersion> createRepeated() =>
-      $pb.PbList<TimedVersion>();
+  static $pb.PbList<TimedVersion> createRepeated() => $pb.PbList<TimedVersion>();
   @$core.pragma('dart2js:noInline')
-  static TimedVersion getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
+  static TimedVersion getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
   static TimedVersion? _defaultInstance;
 
   @$pb.TagNumber(1)
   $fixnum.Int64 get unixMicro => $_getI64(0);
   @$pb.TagNumber(1)
-  set unixMicro($fixnum.Int64 v) {
-    $_setInt64(0, v);
-  }
-
+  set unixMicro($fixnum.Int64 v) { $_setInt64(0, v); }
   @$pb.TagNumber(1)
   $core.bool hasUnixMicro() => $_has(0);
   @$pb.TagNumber(1)
@@ -3810,12 +2950,13 @@ class TimedVersion extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get ticks => $_getIZ(1);
   @$pb.TagNumber(2)
-  set ticks($core.int v) {
-    $_setSignedInt32(1, v);
-  }
-
+  set ticks($core.int v) { $_setSignedInt32(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasTicks() => $_has(1);
   @$pb.TagNumber(2)
   void clearTicks() => clearField(2);
 }
+
+
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
