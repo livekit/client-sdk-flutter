@@ -18,6 +18,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../core/room.dart';
 import '../e2ee/events.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../managers/event.dart';
@@ -39,6 +40,10 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
+          if (event.publication.encryptionType == EncryptionType.kNone) {
+            // no need to setup frame cryptor
+            return;
+          }
           var frameCryptor = await _addRtpSender(
               sender: event.publication.track!.sender!,
               identity: event.participant.identity,
@@ -71,6 +76,10 @@ class E2EEManager {
           }
         })
         ..on<TrackSubscribedEvent>((event) async {
+          if (event.publication.encryptionType == EncryptionType.kNone) {
+            // no need to setup frame cryptor
+            return;
+          }
           var frameCryptor = await _addRtpReceiver(
             receiver: event.track.receiver!,
             identity: event.participant.identity,
