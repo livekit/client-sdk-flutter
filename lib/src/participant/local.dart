@@ -17,10 +17,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/src/core/transport.dart';
 import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
+import '../core/transport.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
