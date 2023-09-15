@@ -199,20 +199,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
-            cid: track.getCid(),
-            enableSimulcastLayers: true),
+          codec: publishOptions.videoCodec,
+          cid: track.getCid(),
+        ),
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.backupCodec!.codec.toLowerCase(),
-            cid: '',
-            enableSimulcastLayers: publishOptions.backupCodec!.simulcast),
+          codec: publishOptions.backupCodec!.codec.toLowerCase(),
+          cid: '',
+        ),
       ];
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
-            cid: track.getCid(),
-            enableSimulcastLayers: publishOptions.simulcast),
+          codec: publishOptions.videoCodec,
+          cid: track.getCid(),
+        ),
       ];
     }
 
@@ -618,9 +618,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         sid: publication.sid,
         simulcastCodecs: <lk_rtc.SimulcastCodec>[
           lk_rtc.SimulcastCodec(
-              codec: backupCodec.toLowerCase(),
-              cid: cid,
-              enableSimulcastLayers: backupCodecOpts.simulcast),
+            codec: backupCodec.toLowerCase(),
+            cid: cid,
+          ),
         ]);
 
     await room.engine.negotiate();

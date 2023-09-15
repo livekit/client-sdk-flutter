@@ -255,6 +255,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         _getOrCreateRemoteParticipant(info.sid, info);
       }
 
+      if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
+        e2eeManager!.keyProvider
+            .setSifTrailer(Uint8List.fromList(event.response.sifTrailer));
+      }
+
       logger.fine('Room Connect completed');
     })
     ..on<SignalParticipantUpdateEvent>(
