@@ -15,7 +15,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/utils.dart';
 
 import '../core/room.dart';
 import '../e2ee/events.dart';
@@ -23,6 +22,7 @@ import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../managers/event.dart';
+import '../utils.dart';
 import 'key_provider.dart';
 
 class E2EEManager {
