@@ -210,7 +210,7 @@ class Transport extends Disposable {
               if (!(fmtp['config'] as String)
                   .contains('x-google-start-bitrate')) {
                 fmtp['config'] +=
-                    ';x-google-start-bitrate=${trackbr.maxbr * startBitrateForSVC}';
+                    ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()}';
               }
               if (!(fmtp['config'] as String)
                   .contains('x-google-max-bitrate')) {
@@ -225,7 +225,7 @@ class Transport extends Disposable {
             media['fmtp']?.add({
               'payload': codecPayload,
               'config':
-                  'x-google-start-bitrate=${trackbr.maxbr * startBitrateForSVC};x-google-max-bitrate=${trackbr.maxbr}',
+                  'x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()};x-google-max-bitrate=${trackbr.maxbr}',
             });
           }
 
@@ -328,7 +328,7 @@ class Transport extends Disposable {
       sd.sdp = munged;
       try {
         logger.fine(
-            'setting munged ${remote == true ? 'remote' : 'local'} description');
+            'setting munged ${remote == true ? 'remote' : 'local'} description munged: $munged ');
         if (remote == true) {
           await pc.setRemoteDescription(sd);
         } else {
