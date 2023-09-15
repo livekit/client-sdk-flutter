@@ -15,6 +15,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:livekit_client/src/utils.dart';
 
 import '../core/room.dart';
 import '../e2ee/events.dart';
@@ -40,7 +41,8 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
-          if (event.publication.encryptionType == EncryptionType.kNone) {
+          if (event.publication.encryptionType == EncryptionType.kNone ||
+              isSVCCodec(event.publication.track?.codec ?? '')) {
             // no need to setup frame cryptor
             return;
           }
@@ -76,7 +78,9 @@ class E2EEManager {
           }
         })
         ..on<TrackSubscribedEvent>((event) async {
-          if (event.publication.encryptionType == EncryptionType.kNone) {
+          var codec = event.publication.mimeType.split('/')[1];
+          if (event.publication.encryptionType == EncryptionType.kNone ||
+              isSVCCodec(codec)) {
             // no need to setup frame cryptor
             return;
           }
@@ -86,7 +90,6 @@ class E2EEManager {
             sid: event.publication.sid,
           );
           if (kIsWeb) {
-            var codec = event.publication.mimeType.split('/')[1];
             await frameCryptor.updateCodec(codec.toLowerCase());
           }
           frameCryptor.onFrameCryptorStateChanged = (trackId, state) {

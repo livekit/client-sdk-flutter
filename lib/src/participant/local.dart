@@ -217,16 +217,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     final trackInfo = await room.engine.addTrack(
-        cid: track.getCid(),
-        name: publishOptions.name ??
-            (track.source == TrackSource.screenShareVideo
-                ? VideoPublishOptions.defaultScreenShareName
-                : VideoPublishOptions.defaultCameraName),
-        kind: track.kind,
-        source: track.source.toPBType(),
-        dimensions: dimensions,
-        videoLayers: layers,
-        simulcastCodecs: simulcastCodecs);
+      cid: track.getCid(),
+      name: publishOptions.name ??
+          (track.source == TrackSource.screenShareVideo
+              ? VideoPublishOptions.defaultScreenShareName
+              : VideoPublishOptions.defaultCameraName),
+      kind: track.kind,
+      source: track.source.toPBType(),
+      dimensions: dimensions,
+      videoLayers: layers,
+      simulcastCodecs: simulcastCodecs,
+      videoCodec: publishOptions.videoCodec,
+    );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 
@@ -621,7 +623,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             codec: backupCodec.toLowerCase(),
             cid: cid,
           ),
-        ]);
+        ],
+        videoCodec: backupCodec);
 
     await room.engine.negotiate();
 
