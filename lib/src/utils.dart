@@ -433,10 +433,10 @@ class Utils {
     if (scalabilityMode != null && isSVCCodec(options.videoCodec)) {
       logger.info('using svc with scalabilityMode ${scalabilityMode}');
 
-      final sm = ScalabilityMode(scalabilityMode);
+      //final sm = ScalabilityMode(scalabilityMode);
 
-      List<rtc.RTCRtpEncoding> encodings = [];
-
+      List<rtc.RTCRtpEncoding> encodings = [videoEncoding.toRTCRtpEncoding()];
+      /*
       if (sm.spatial > 3) {
         throw Exception('unsupported scalabilityMode: ${scalabilityMode}');
       }
@@ -448,7 +448,7 @@ class Utils {
           scaleResolutionDownBy: null,
           numTemporalLayers: sm.temporal.toInt(),
         ));
-      }
+      }*/
       encodings[0].scalabilityMode = scalabilityMode;
       logger.fine('encodings $encodings');
       return encodings;
