@@ -20,6 +20,7 @@ import 'package:meta/meta.dart';
 import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
+import '../core/transport.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -263,6 +264,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       parameters.degradationPreference =
           rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
       await sender.setParameters(parameters);
+    }
+
+    if (kIsWeb &&
+        lkBrowser() == BrowserType.firefox &&
+        track.kind == lk_models.TrackType.AUDIO) {
+      //TOOD:
+    } else if (isSVCCodec(publishOptions.videoCodec) &&
+        encodings?.first.maxBitrate != null) {
+      room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+          cid: track.getCid(),
+          transceiver: track.transceiver,
+          codec: publishOptions.videoCodec,
+          maxbr: encodings![0].maxBitrate! ~/ 1000));
     }
 
     await room.engine.negotiate();
