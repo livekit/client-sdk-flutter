@@ -18,7 +18,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultMagicBytes = 'LK-ROCKS';
-const defaultRatchetWindowSize = 16;
+const defaultRatchetWindowSize = 0;
+const defaultFailureTolerance = -1;
 
 class KeyInfo {
   final String participantId;
@@ -68,7 +69,7 @@ class BaseKeyProvider implements KeyProvider {
       ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
       uncryptedMagicBytes: Uint8List.fromList(
           (uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
-      failureTolerance: failureTolerance ?? -1,
+      failureTolerance: failureTolerance ?? defaultFailureTolerance,
     );
     final keyProvider =
         await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
