@@ -204,11 +204,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     Iterable<lk_models.VideoLayer>? videoLayers,
     Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
     String? sid,
+    String? videoCodec,
   }) async {
     // TODO: Check if cid already published
 
     lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
-    if (roomOptions.e2eeOptions != null) {
+    if (roomOptions.e2eeOptions != null && !isSVCCodec(videoCodec ?? '')) {
       switch (roomOptions.e2eeOptions!.encryptionType) {
         case EncryptionType.kNone:
           encryptionType = lk_models.Encryption_Type.NONE;

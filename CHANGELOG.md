@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.5.0
+
+* Update default bitrates according to VMAF guide
+* Support multi-codec simulcast.
+* Support SVC publishing with AV1/VP9.
+* More robustness for E2EE.
+* Configurable Audio Modes for Android.
+
 ## 1.4.3
 
 * Fix: remove js_bindings and use the built-in AudioContext for js interop to support flutter 3.13.0.

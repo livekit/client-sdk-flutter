@@ -200,34 +200,36 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
-            cid: track.getCid(),
-            enableSimulcastLayers: true),
+          codec: publishOptions.videoCodec,
+          cid: track.getCid(),
+        ),
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.backupCodec!.codec.toLowerCase(),
-            cid: '',
-            enableSimulcastLayers: publishOptions.backupCodec!.simulcast),
+          codec: publishOptions.backupCodec!.codec.toLowerCase(),
+          cid: '',
+        ),
       ];
     } else {
       simulcastCodecs = <lk_rtc.SimulcastCodec>[
         lk_rtc.SimulcastCodec(
-            codec: publishOptions.videoCodec,
-            cid: track.getCid(),
-            enableSimulcastLayers: publishOptions.simulcast),
+          codec: publishOptions.videoCodec,
+          cid: track.getCid(),
+        ),
       ];
     }
 
     final trackInfo = await room.engine.addTrack(
-        cid: track.getCid(),
-        name: publishOptions.name ??
-            (track.source == TrackSource.screenShareVideo
-                ? VideoPublishOptions.defaultScreenShareName
-                : VideoPublishOptions.defaultCameraName),
-        kind: track.kind,
-        source: track.source.toPBType(),
-        dimensions: dimensions,
-        videoLayers: layers,
-        simulcastCodecs: simulcastCodecs);
+      cid: track.getCid(),
+      name: publishOptions.name ??
+          (track.source == TrackSource.screenShareVideo
+              ? VideoPublishOptions.defaultScreenShareName
+              : VideoPublishOptions.defaultCameraName),
+      kind: track.kind,
+      source: track.source.toPBType(),
+      dimensions: dimensions,
+      videoLayers: layers,
+      simulcastCodecs: simulcastCodecs,
+      videoCodec: publishOptions.videoCodec,
+    );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 
@@ -632,10 +634,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         sid: publication.sid,
         simulcastCodecs: <lk_rtc.SimulcastCodec>[
           lk_rtc.SimulcastCodec(
-              codec: backupCodec.toLowerCase(),
-              cid: cid,
-              enableSimulcastLayers: backupCodecOpts.simulcast),
-        ]);
+            codec: backupCodec.toLowerCase(),
+            cid: cid,
+          ),
+        ],
+        videoCodec: backupCodec);
 
     await room.engine.negotiate();
 

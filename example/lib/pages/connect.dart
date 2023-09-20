@@ -135,7 +135,7 @@ class _ConnectPageState extends State<ConnectPage> {
         final keyProvider = await BaseKeyProvider.create();
         e2eeOptions = E2EEOptions(keyProvider: keyProvider);
         var sharedKey = _sharedKeyCtrl.text;
-        await keyProvider.setKey(sharedKey);
+        await keyProvider.setSharedKey(sharedKey);
       }
 
       String preferredCodec = 'VP8';

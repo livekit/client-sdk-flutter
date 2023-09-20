@@ -18,15 +18,16 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../core/room.dart';
 import '../e2ee/events.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../managers/event.dart';
+import '../utils.dart';
 import 'key_provider.dart';
 
 class E2EEManager {
   Room? _room;
-  final Map<String, FrameCryptor> _frameCryptors = {};
-  final List<FrameCryptor> _senderFrameCryptors = [];
+  final Map<Map<String, String>, FrameCryptor> _frameCryptors = {};
   final BaseKeyProvider _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
   bool _enabled = true;
@@ -40,13 +41,15 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
-          var trackId = event.publication.sid;
-          var participantId = event.participant.sid;
+          if (event.publication.encryptionType == EncryptionType.kNone ||
+              isSVCCodec(event.publication.track?.codec ?? '')) {
+            // no need to setup frame cryptor
+            return;
+          }
           var frameCryptor = await _addRtpSender(
-              event.publication.track!.sender!,
-              participantId,
-              trackId,
-              event.publication.track!.kind.name.toLowerCase());
+              sender: event.publication.track!.sender!,
+              identity: event.participant.identity,
+              sid: event.publication.sid);
           if (kIsWeb && event.publication.track!.codec != null) {
             await frameCryptor.updateCodec(event.publication.track!.codec!);
           }
@@ -63,21 +66,30 @@ class E2EEManager {
               state: _e2eeStateFromFrameCryptoState(state),
             ));
           };
-          _senderFrameCryptors.add(frameCryptor);
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
-          var trackId = event.publication.sid;
-          var frameCryptor = _frameCryptors.remove(trackId);
-          _senderFrameCryptors.remove(frameCryptor);
-          await frameCryptor?.dispose();
+          for (var key in _frameCryptors.keys.toList()) {
+            if (key.keys.first == event.participant.identity &&
+                key.values.first == event.publication.sid) {
+              var frameCryptor = _frameCryptors.remove(key);
+              await frameCryptor?.setEnabled(false);
+              await frameCryptor?.dispose();
+            }
+          }
         })
         ..on<TrackSubscribedEvent>((event) async {
-          var trackId = event.publication.sid;
-          var participantId = event.participant.sid;
-          var frameCryptor = await _addRtpReceiver(event.track.receiver!,
-              participantId, trackId, event.track.kind.name.toLowerCase());
+          var codec = event.publication.mimeType.split('/')[1];
+          if (event.publication.encryptionType == EncryptionType.kNone ||
+              isSVCCodec(codec)) {
+            // no need to setup frame cryptor
+            return;
+          }
+          var frameCryptor = await _addRtpReceiver(
+            receiver: event.track.receiver!,
+            identity: event.participant.identity,
+            sid: event.publication.sid,
+          );
           if (kIsWeb) {
-            var codec = event.publication.mimeType.split('/')[1];
             await frameCryptor.updateCodec(codec.toLowerCase());
           }
           frameCryptor.onFrameCryptorStateChanged = (trackId, state) {
@@ -95,16 +107,28 @@ class E2EEManager {
           };
         })
         ..on<TrackUnsubscribedEvent>((event) async {
-          var trackId = event.publication.sid;
-          var frameCryptor = _frameCryptors.remove(trackId);
-          await frameCryptor?.dispose();
+          for (var key in _frameCryptors.keys.toList()) {
+            if (key.keys.first == event.participant.identity &&
+                key.values.first == event.publication.sid) {
+              var frameCryptor = _frameCryptors.remove(key);
+              await frameCryptor?.setEnabled(false);
+              await frameCryptor?.dispose();
+            }
+          }
         });
     }
   }
 
-  Future<void> ratchetKey() async {
-    for (var frameCryptor in _senderFrameCryptors) {
-      var newKey = await _keyProvider.ratchetKey(frameCryptor.participantId, 0);
+  BaseKeyProvider get keyProvider => _keyProvider;
+
+  Future<void> ratchetKey({String? participantId, int? keyIndex}) async {
+    if (participantId != null) {
+      var newKey = await _keyProvider.ratchetKey(participantId, keyIndex);
+      if (kDebugMode) {
+        print('newKey: $newKey');
+      }
+    } else {
+      var newKey = await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
       if (kDebugMode) {
         print('newKey: $newKey');
       }
@@ -121,40 +145,34 @@ class E2EEManager {
     _frameCryptors.clear();
   }
 
-  Future<FrameCryptor> _addRtpSender(RTCRtpSender sender, String participantId,
-      String trackId, String kind) async {
-    var pid = '$kind-sender-$participantId-$trackId';
+  Future<FrameCryptor> _addRtpSender(
+      {required RTCRtpSender sender,
+      required String identity,
+      required String sid}) async {
     var frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
-        participantId: pid,
+        participantId: identity,
         sender: sender,
         algorithm: _algorithm,
         keyProvider: _keyProvider.keyProvider);
-    _frameCryptors[trackId] = frameCryptor;
+    _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    if (_keyProvider.options.sharedKey) {
-      await _keyProvider.keyProvider
-          .setKey(participantId: pid, index: 0, key: _keyProvider.sharedKey!);
-      await frameCryptor.setKeyIndex(0);
-    }
+    await frameCryptor.setKeyIndex(0);
     return frameCryptor;
   }
 
-  Future<FrameCryptor> _addRtpReceiver(RTCRtpReceiver receiver,
-      String participantId, String trackId, String kind) async {
-    var pid = '$kind-receiver-$participantId-$trackId';
+  Future<FrameCryptor> _addRtpReceiver(
+      {required RTCRtpReceiver receiver,
+      required String identity,
+      required String sid}) async {
     var frameCryptor =
         await frameCryptorFactory.createFrameCryptorForRtpReceiver(
-            participantId: pid,
+            participantId: identity,
             receiver: receiver,
             algorithm: _algorithm,
             keyProvider: _keyProvider.keyProvider);
-    _frameCryptors[trackId] = frameCryptor;
+    _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    if (_keyProvider.options.sharedKey) {
-      await _keyProvider.keyProvider
-          .setKey(participantId: pid, index: 0, key: _keyProvider.sharedKey!);
-      await frameCryptor.setKeyIndex(0);
-    }
+    await frameCryptor.setKeyIndex(0);
     return frameCryptor;
   }
 
@@ -162,13 +180,6 @@ class E2EEManager {
     _enabled = enabled;
     for (var frameCryptor in _frameCryptors.entries) {
       await frameCryptor.value.setEnabled(enabled);
-      if (_keyProvider.options.sharedKey) {
-        await _keyProvider.keyProvider.setKey(
-            participantId: frameCryptor.key,
-            index: 0,
-            key: _keyProvider.sharedKey!);
-        await frameCryptor.value.setKeyIndex(0);
-      }
     }
   }
 
