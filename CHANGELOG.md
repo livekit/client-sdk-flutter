@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.5.1
+
+* Fixed Renderer bug for Windows.
+* E2EE Improvements.
+
 ## 1.5.0
 
 * Update default bitrates according to VMAF guide
