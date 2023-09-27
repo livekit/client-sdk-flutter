@@ -4,6 +4,7 @@
 
 * Fixed Renderer bug for Windows.
 * E2EE Improvements.
+* Fixed error when sending events on non-platform thread [iOS/macOS].
 
 ## 1.5.0
 
