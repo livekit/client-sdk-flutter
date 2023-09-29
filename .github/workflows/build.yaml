@@ -40,6 +40,8 @@ jobs:
         run: dart format lib/ test/ --set-exit-if-changed
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
+      - name: Check version consistency
+        run: dart run scripts/check_version.dart
       - name: Dart Analyze Check
         run: flutter analyze
       - name: Dart Test Check

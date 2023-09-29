@@ -26,7 +26,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.10.0'
+          channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
       - name: Dart Format Check
@@ -37,9 +37,17 @@ jobs:
         run: flutter analyze
       - name: Dart Test Check
         run: flutter test
+      - name: Check version consistency
+        run: dart run scripts/check_version.dart
       #- name: Check Publish Warnings
       #  run: dart pub publish --dry-run
-      
+      - name: Publish
+        uses: k-paxian/dart-package-publisher@v1.5.1
+        with:
+          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+          flutter: true
+          skipTests: true
+          force: true
       - run: flutter pub global activate dartdoc
 
       # Generate docs
