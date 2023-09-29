@@ -17,7 +17,7 @@ int main() {
     var content = File(file).readAsStringSync();
     if (!content.contains(version)) {
       RegExp exp = RegExp(r'(\d+\.\d+\.\d+)');
-      RegExpMatch? match = exp.firstMatch(File(file).readAsStringSync());
+      RegExpMatch? match = exp.firstMatch(content);
       print(
           'Version mismatch in $file, pubspec.yaml version is $version != ${match![0]} in $file, please update');
       return -1;
