@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.2
+
+* Non-functional update, forcing the versions in 
+  `'ios/livekit_client.podspec', 'macos/livekit_client.podspec', 'lib/src/livekit.dart'` 
+  consistent with pubspec.yaml
+
 ## 1.5.1
 
 * Fixed Renderer bug for Windows.
