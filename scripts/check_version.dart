@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
-int main() {
+void main() {
   File pubspec = File('pubspec.yaml');
   var doc = loadYaml(pubspec.readAsStringSync());
   var version = doc['version'];
@@ -18,10 +18,10 @@ int main() {
     if (!content.contains(version)) {
       RegExp exp = RegExp(r'(\d+\.\d+\.\d+)');
       RegExpMatch? match = exp.firstMatch(content);
+      // ignore: avoid_print
       print(
           'Version mismatch in $file, pubspec.yaml version is $version != ${match![0]} in $file, please update');
-      return -1;
+      exit(1);
     }
   }
-  return 0;
 }
