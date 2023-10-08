@@ -487,7 +487,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
         /// so we publish it twice here, but only return videoTrack to user.
-        if (captureScreenAudio != null) {
+        if (captureScreenAudio ?? false) {
           captureOptions = captureOptions.copyWith(captureScreenAudio: true);
           final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
               captureOptions);
