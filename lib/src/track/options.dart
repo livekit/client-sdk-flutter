@@ -135,8 +135,8 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     String? selfBrowserSurface,
   }) =>
       ScreenShareCaptureOptions(
-        useiOSBroadcastExtension: useiOSBroadcastExtension ??
-            this.useiOSBroadcastExtension,
+        useiOSBroadcastExtension:
+            useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
         captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
         params: params ?? this.params,
         sourceId: sourceId ?? deviceId,
