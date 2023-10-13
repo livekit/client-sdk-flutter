@@ -153,6 +153,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           scalabilityMode: 'L3T3_KEY',
         );
       }
+
+      // vp9 svc with screenshare has problem to encode, always use L1T3 here
+      if (track.source == TrackSource.screenShareVideo &&
+          publishOptions.videoCodec.toLowerCase() == 'vp9') {
+        publishOptions = publishOptions.copyWith(
+          scalabilityMode: 'L1T3',
+        );
+      }
     }
 
     // use constraints passed to getUserMedia by default
