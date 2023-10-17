@@ -155,9 +155,8 @@ abstract class LocalTrack extends Track {
           constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
         }
 
-        // Remove resolution settings to avoid capturing low-resolution screen sharing
-        // streams in Safari 17.
-        // related bug for safari 17: https://bugs.webkit.org/show_bug.cgi?id=263015
+        // Remove resolution settings to fix low-resolution screen share on Safari 17.
+        // related bug: https://bugs.webkit.org/show_bug.cgi?id=263015
         if (lkBrowser() == BrowserType.safari &&
             lkBrowserVersion().major == 17) {
           constraints['video'] = true;
