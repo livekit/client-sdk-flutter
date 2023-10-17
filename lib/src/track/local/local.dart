@@ -154,6 +154,14 @@ abstract class LocalTrack extends Track {
         if (options.selfBrowserSurface != null) {
           constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
         }
+
+        // Remove resolution settings to avoid capturing low-resolution screen sharing
+        // streams in Safari 17.
+        // related bug for safari 17: https://bugs.webkit.org/show_bug.cgi?id=263015
+        if (lkBrowser() == BrowserType.safari &&
+            lkBrowserVersion().major == 17) {
+          constraints['video'] = true;
+        }
       }
       stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
