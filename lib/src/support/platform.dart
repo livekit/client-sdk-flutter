@@ -36,6 +36,8 @@ bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
 
 BrowserType lkBrowser() => lkBrowserImplementation();
 
+BrowserVersion lkBrowserVersion() => lkBrowserVersionImplementation();
+
 enum PlatformType {
   web,
   windows,
@@ -53,4 +55,17 @@ enum BrowserType {
   internetExplorer,
   wkWebView,
   unknown,
+}
+
+class BrowserVersion {
+  const BrowserVersion(this.major, this.minor, this.patch);
+
+  /// The major version number: "1" in "1.2.3".
+  final int major;
+
+  /// The minor version number: "2" in "1.2.3".
+  final int minor;
+
+  /// The patch version number: "3" in "1.2.3".
+  final int patch;
 }

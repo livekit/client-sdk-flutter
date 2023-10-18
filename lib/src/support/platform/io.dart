@@ -39,3 +39,7 @@ bool lkE2EESupportedImplementation() {
 BrowserType lkBrowserImplementation() {
   return BrowserType.unknown;
 }
+
+BrowserVersion lkBrowserVersionImplementation() {
+  return const BrowserVersion(0, 0, 0);
+}
