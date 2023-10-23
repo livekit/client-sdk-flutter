@@ -68,16 +68,13 @@ class _RoomPageState extends State<RoomPage> {
       WidgetsBindingCompatible.instance
           ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
     })
-    ..on<ParticipantEvent>((event) {
-      print('Participant event');
-      // sort participants on many track events as noted in documentation linked above
-      _sortParticipants();
-    })
     ..on<RoomRecordingStatusChanged>((event) {
       context.showRecordingStatusChangedDialog(event.activeRecording);
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
+    ..on<TrackSubscribedEvent>((_) => _sortParticipants())
+    ..on<TrackUnsubscribedEvent>((_) => _sortParticipants())
     ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
