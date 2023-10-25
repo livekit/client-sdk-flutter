@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:meta/meta.dart';
-
 import 'core/engine.dart';
 import 'core/room.dart';
 import 'core/signal_client.dart';
@@ -505,16 +503,4 @@ class VideoReceiverStatsEvent with TrackEvent {
   @override
   String toString() => '${runtimeType}'
       'stats: ${stats})';
-}
-
-@internal
-class TrackEndedEvent with TrackEvent {
-  final Track track;
-  const TrackEndedEvent({
-    required this.track,
-  });
-
-  @override
-  String toString() => '${runtimeType}'
-      '(track: ${track})';
 }

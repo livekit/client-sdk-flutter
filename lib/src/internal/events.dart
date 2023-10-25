@@ -408,3 +408,15 @@ class SubscriberDataChannelStateUpdatedEvent
           state: state,
         );
 }
+
+@internal
+class TrackEndedEvent with TrackEvent {
+  final Track track;
+  const TrackEndedEvent({
+    required this.track,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(track: ${track})';
+}
