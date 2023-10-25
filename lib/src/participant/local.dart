@@ -471,6 +471,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(publication.sid);
+          final screenAudio =
+              getTrackPublicationBySource(TrackSource.screenShareAudio);
+          if (screenAudio != null) {
+            await unpublishTrack(screenAudio.sid);
+          }
         } else {
           await publication.mute();
         }
