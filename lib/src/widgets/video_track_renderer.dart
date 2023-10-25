@@ -24,6 +24,7 @@ import '../support/platform.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../types/other.dart';
 
 enum VideoViewMirrorMode {
   auto,
@@ -129,6 +130,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         );
 
   bool _shouldMirror() {
+    // off for screen share
+    if (widget.track.source == TrackSource.screenShareVideo) return false;
     // on
     if (widget.mirrorMode == VideoViewMirrorMode.mirror) return true;
     // auto
