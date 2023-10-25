@@ -203,7 +203,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _disableScreenShare() async {
     await participant.setScreenShareEnabled(false);
-    if (Platform.isAndroid) {
+    if (lkPlatformIs(PlatformType.android)) {
       // Android specific
       try {
         //   await FlutterBackground.disableBackgroundExecution();

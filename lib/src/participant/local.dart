@@ -108,6 +108,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.onPublish();
     await room.applyAudioSpeakerSettings();
 
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -299,6 +305,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
