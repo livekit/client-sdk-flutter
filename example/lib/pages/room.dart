@@ -32,6 +32,8 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
+    // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
+    widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
     _setUpListeners();
     _sortParticipants();
@@ -50,6 +52,7 @@ class _RoomPageState extends State<RoomPage> {
   void dispose() {
     // always dispose listener
     (() async {
+      widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
     })();
@@ -65,13 +68,16 @@ class _RoomPageState extends State<RoomPage> {
       WidgetsBindingCompatible.instance
           ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
     })
+    ..on<ParticipantEvent>((event) {
+      print('Participant event');
+      // sort participants on many track events as noted in documentation linked above
+      _sortParticipants();
+    })
     ..on<RoomRecordingStatusChanged>((event) {
       context.showRecordingStatusChangedDialog(event.activeRecording);
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
-    ..on<TrackSubscribedEvent>((_) => _sortParticipants())
-    ..on<TrackUnsubscribedEvent>((_) => _sortParticipants())
     ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
@@ -112,6 +118,10 @@ class _RoomPageState extends State<RoomPage> {
       print('could not publish audio: $error');
       await context.showErrorDialog(error);
     }
+  }
+
+  void _onRoomDidUpdate() {
+    _sortParticipants();
   }
 
   void _onE2EEStateEvent(TrackE2EEStateEvent e2eeState) {
