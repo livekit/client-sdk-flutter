@@ -24,6 +24,7 @@ import '../core/transport.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -107,6 +108,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // did publish
     await track.onPublish();
     await room.applyAudioSpeakerSettings();
+
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -300,6 +307,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // did publish
     await track.onPublish();
 
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -471,6 +484,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(publication.sid);
+          final screenAudio =
+              getTrackPublicationBySource(TrackSource.screenShareAudio);
+          if (screenAudio != null) {
+            await unpublishTrack(screenAudio.sid);
+          }
         } else {
           await publication.mute();
         }

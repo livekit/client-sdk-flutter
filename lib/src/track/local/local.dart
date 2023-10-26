@@ -80,7 +80,12 @@ abstract class LocalTrack extends Track {
           source,
           mediaStream,
           mediaStreamTrack,
-        );
+        ) {
+    mediaStreamTrack.onEnded = () {
+      logger.fine('MediaStreamTrack.onEnded()');
+      events.emit(TrackEndedEvent(track: this));
+    };
+  }
 
   /// Mutes this [LocalTrack]. This will stop the sending of track data
   /// and notify the [RemoteParticipant] with [TrackMutedEvent].

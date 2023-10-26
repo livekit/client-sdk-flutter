@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -203,7 +202,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _disableScreenShare() async {
     await participant.setScreenShareEnabled(false);
-    if (Platform.isAndroid) {
+    if (lkPlatformIs(PlatformType.android)) {
       // Android specific
       try {
         //   await FlutterBackground.disableBackgroundExecution();
