@@ -53,7 +53,7 @@ typedef RetryCondition = bool Function(
 // Collection of state-less static methods
 class Utils {
   // order of rids
-  static final videoRids = ['f', 'h', 'q'];
+  static final videoRids = ['q', 'h', 'f'];
 
   /// Returns a [Future] that will retry [future] while it throws
   /// for a maximum  of [tries] times with [delay] in between.
