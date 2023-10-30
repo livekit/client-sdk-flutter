@@ -53,7 +53,7 @@ typedef RetryCondition = bool Function(
 // Collection of state-less static methods
 class Utils {
   // order of rids
-  static final videoRids = ['q', 'h', 'f'];
+  static final videoRids = ['f', 'h', 'q'];
 
   /// Returns a [Future] that will retry [future] while it throws
   /// for a maximum  of [tries] times with [delay] in between.
@@ -619,4 +619,12 @@ class ScalabilityMode {
   String toString() {
     return 'L${spatial}T${temporal}${suffix ?? ''}';
   }
+}
+
+String mimeTypeToVideoCodecString(String mimeType) {
+  final codec = mimeType.split('/')[1].toLowerCase();
+  if (!videoCodecs.contains(codec)) {
+    throw Exception('Video codec not supported: $codec');
+  }
+  return codec;
 }

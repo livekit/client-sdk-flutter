@@ -193,7 +193,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
     // Video encodings and simulcasts
-    final encodings = Utils.computeVideoEncodings(
+    var encodings = Utils.computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
       dimensions: dimensions,
       options: publishOptions,
@@ -202,6 +202,21 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
+    var simulcastCodecs = <lk_rtc.SimulcastCodec>[
+      lk_rtc.SimulcastCodec(
+        codec: publishOptions.videoCodec,
+        cid: track.getCid(),
+      ),
+    ];
+
+    if (publishOptions.backupCodec != null &&
+        publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
+      simulcastCodecs.add(lk_rtc.SimulcastCodec(
+        codec: publishOptions.backupCodec!.codec.toLowerCase(),
+        cid: '',
+      ));
+    }
+
     final layers = Utils.computeVideoLayers(
       dimensions,
       encodings,
@@ -209,28 +224,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     logger.fine('Video layers: ${layers.map((e) => e)}');
-    var simulcastCodecs = <lk_rtc.SimulcastCodec>[];
-
-    if (publishOptions.backupCodec != null &&
-        publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
-      simulcastCodecs = <lk_rtc.SimulcastCodec>[
-        lk_rtc.SimulcastCodec(
-          codec: publishOptions.videoCodec,
-          cid: track.getCid(),
-        ),
-        lk_rtc.SimulcastCodec(
-          codec: publishOptions.backupCodec!.codec.toLowerCase(),
-          cid: '',
-        ),
-      ];
-    } else {
-      simulcastCodecs = <lk_rtc.SimulcastCodec>[
-        lk_rtc.SimulcastCodec(
-          codec: publishOptions.videoCodec,
-          cid: track.getCid(),
-        ),
-      ];
-    }
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
@@ -249,6 +242,30 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 
     await track.start();
+
+    String? primaryCodecMime;
+    for (var codec in trackInfo.codecs) {
+      primaryCodecMime ??= codec.mimeType;
+    }
+
+    if (primaryCodecMime != null) {
+      final updatedCodec = mimeTypeToVideoCodecString(primaryCodecMime);
+      if (updatedCodec != publishOptions.videoCodec) {
+        logger.warning(
+          'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
+        );
+        publishOptions = publishOptions.copyWith(
+          videoCodec: updatedCodec,
+        );
+        // recompute encodings since bitrates/etc could have changed
+        encodings = Utils.computeVideoEncodings(
+          isScreenShare: track.source == TrackSource.screenShareVideo,
+          dimensions: dimensions,
+          options: publishOptions,
+          codec: publishOptions.videoCodec,
+        );
+      }
+    }
 
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
