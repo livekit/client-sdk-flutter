@@ -251,7 +251,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     if (primaryCodecMime != null) {
       final updatedCodec = mimeTypeToVideoCodecString(primaryCodecMime);
       if (updatedCodec != publishOptions.videoCodec) {
-        logger.warning(
+        logger.fine(
           'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
         );
         publishOptions = publishOptions.copyWith(
