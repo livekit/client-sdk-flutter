@@ -620,3 +620,14 @@ class ScalabilityMode {
     return 'L${spatial}T${temporal}${suffix ?? ''}';
   }
 }
+
+String mimeTypeToVideoCodecString(String mimeType) {
+  if (!mimeType.contains('/') && mimeType.split('/').length != 2) {
+    throw Exception('Invalid mimeType: $mimeType');
+  }
+  final codec = mimeType.split('/')[1].toLowerCase();
+  if (!videoCodecs.contains(codec)) {
+    throw Exception('Video codec not supported: $codec');
+  }
+  return codec;
+}
