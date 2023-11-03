@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 1.5.3
+
+* Handling of incompatible published codecs.
+* Fix/unpublish screen audio track when stop screen share.
+* Upgrade connectivity_plus version.
+* Fix: low-resolution screen sharing for safari 17.
+* Update build.gradle for gradle 8.0.0 namespace.
+* Fix captureScreenAudio conditional.
+* Fix iOSBroadcastExtension always false after copyWith invoked.
+* Fix: VP9 svc screenshare.
+* Fix iOS example compilation after upgrading to XCode 15.
+* Fix: Crop video output size to target settings (iOS/macOS).
+* Fix: Fix bluetooth sco not stopping after room disconnect (Android).
+
 ## 1.5.2
 
 * Non-functional update, forcing the versions in 
