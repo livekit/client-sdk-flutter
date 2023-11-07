@@ -23,6 +23,7 @@ import 'track/track.dart';
 import 'types/other.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
+import 'utils.dart';
 
 class TrackOption<E extends Object, T extends Object> {
   final E? enabled;
@@ -163,7 +164,7 @@ class RoomOptions {
 
 class BackupVideoCodec {
   BackupVideoCodec({
-    this.codec = 'vp8',
+    this.codec = defaultVideoCodec,
     this.encoding,
     this.simulcast = true,
   });
@@ -200,16 +201,19 @@ class VideoPublishOptions {
 
   final String? scalabilityMode;
 
-  final BackupVideoCodec? backupCodec;
+  final bool enableBackupCodec;
+
+  final BackupVideoCodec? backupVideoCodec;
 
   const VideoPublishOptions({
-    this.videoCodec = 'H264',
+    this.videoCodec = defaultVideoCodec,
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
     this.name,
-    this.backupCodec,
+    this.enableBackupCodec = false,
+    this.backupVideoCodec,
     this.scalabilityMode,
   });
 
@@ -219,7 +223,8 @@ class VideoPublishOptions {
     List<VideoParameters>? videoSimulcastLayers,
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
-    BackupVideoCodec? backupCodec,
+    bool? enableBackupCodec,
+    BackupVideoCodec? backupVideoCodec,
     String? scalabilityMode,
   }) =>
       VideoPublishOptions(
@@ -229,7 +234,8 @@ class VideoPublishOptions {
         screenShareSimulcastLayers:
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
-        backupCodec: backupCodec ?? this.backupCodec,
+        enableBackupCodec: enableBackupCodec ?? this.enableBackupCodec,
+        backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
       );
 
