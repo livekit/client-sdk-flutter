@@ -212,7 +212,7 @@ class VideoPublishOptions {
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
     this.name,
-    this.enableBackupCodec = false,
+    this.enableBackupCodec = true,
     this.backupVideoCodec,
     this.scalabilityMode,
   });
