@@ -164,6 +164,7 @@ abstract class Participant<T extends TrackPublication>
     if (changed) {
       [events, room.events].emit(ParticipantMetadataUpdatedEvent(
         participant: this,
+        metadata: md,
       ));
     }
   }

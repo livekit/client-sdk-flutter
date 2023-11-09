@@ -214,4 +214,6 @@ enum SimulateScenarioResult {
   switchCandidate,
   clear,
   e2eeKeyRatchet,
+  participantName,
+  participantMetadata,
 }

@@ -82,6 +82,14 @@ class _RoomPageState extends State<RoomPage> {
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
           'Participant name updated: ${event.participant.identity}, name => ${event.name}');
+      _sortParticipants();
+    })
+    ..on<ParticipantMetadataUpdatedEvent>((event) {
+      print(
+          'Participant metadata updated: ${event.participant.identity}, metadata => ${event.metadata}');
+    })
+    ..on<RoomMetadataChangedEvent>((event) {
+      print('Room metadata changed: ${event.metadata}');
     })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';
