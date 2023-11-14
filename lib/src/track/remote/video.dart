@@ -46,7 +46,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null && events.isDisposed) {
+    if (receiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }

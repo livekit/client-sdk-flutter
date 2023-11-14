@@ -48,7 +48,7 @@ class LocalAudioTrack extends LocalTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (sender == null || events.isDisposed) {
+    if (sender == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }

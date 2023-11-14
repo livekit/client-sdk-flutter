@@ -62,7 +62,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   @override
   Future<bool> monitorStats() async {
-    if (sender == null || events.isDisposed) {
+    if (sender == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }

@@ -81,7 +81,7 @@ class RemoteAudioTrack extends RemoteTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null && events.isDisposed) {
+    if (receiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
