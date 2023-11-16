@@ -239,6 +239,16 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         await widget.room.e2eeManager?.ratchetKey();
       }
 
+      if (SimulateScenarioResult.participantMetadata == result) {
+        widget.room.localParticipant?.setMetadata(
+            'new metadata ${widget.room.localParticipant?.identity}');
+      }
+
+      if (SimulateScenarioResult.participantName == result) {
+        widget.room.localParticipant
+            ?.setName('new name for ${widget.room.localParticipant?.identity}');
+      }
+
       await widget.room.sendSimulateScenario(
         signalReconnect:
             result == SimulateScenarioResult.signalReconnect ? true : null,
