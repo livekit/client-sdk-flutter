@@ -15,7 +15,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -51,21 +50,24 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
-  bool _rendererReady = false;
+  late Future<rtc.RTCVideoRenderer> _rendererFuture;
+
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
+
+  Future<rtc.RTCVideoRenderer> initRenderer() async {
+    _renderer ??= rtc.RTCVideoRenderer();
+    await _renderer?.initialize();
+    await _attach();
+    return _renderer!;
+  }
 
   @override
   void initState() {
     super.initState();
     _internalKey = widget.track.addViewKey();
-    (() async {
-      _renderer ??= rtc.RTCVideoRenderer();
-      await _renderer?.initialize();
-      await _attach();
-      setState(() => _rendererReady = true);
-    })();
+    _rendererFuture = initRenderer();
   }
 
   @override
@@ -110,25 +112,31 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   @override
-  Widget build(BuildContext context) => !_rendererReady
-      ? Container()
-      : Builder(
-          key: _internalKey,
-          builder: (ctx) {
-            // let it render before notifying build
-            WidgetsBindingCompatible.instance
-                ?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewBuild?.call(_internalKey);
-            });
-            return rtc.RTCVideoView(
-              _renderer!,
-              mirror: _shouldMirror(),
-              filterQuality: FilterQuality.medium,
-              objectFit: widget.fit,
+  Widget build(BuildContext context) => FutureBuilder<rtc.RTCVideoRenderer>(
+        future: _rendererFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Builder(
+              key: _internalKey,
+              builder: (ctx) {
+                // let it render before notifying build
+                WidgetsBindingCompatible.instance
+                    ?.addPostFrameCallback((timeStamp) {
+                  widget.track.onVideoViewBuild?.call(_internalKey);
+                });
+                return rtc.RTCVideoView(
+                  snapshot.requireData,
+                  mirror: _shouldMirror(),
+                  filterQuality: FilterQuality.medium,
+                  objectFit: widget.fit,
+                );
+              },
             );
-          },
-        );
-
+          } else {
+            return Container();
+          }
+        },
+      );
   bool _shouldMirror() {
     // off for screen share
     if (widget.track.source == TrackSource.screenShareVideo) return false;
