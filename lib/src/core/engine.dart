@@ -970,7 +970,11 @@ extension EngineInternalMethods on Engine {
       matched.add(c);
     }
     matched.addAll([...partialMatched, ...unmatched]);
-    await transceiver.setCodecPreferences(matched);
+    try {
+      await transceiver.setCodecPreferences(matched);
+    } catch (e) {
+      logger.warning('setCodecPreferences failed: $e');
+    }
   }
 }
 
