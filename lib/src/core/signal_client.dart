@@ -88,7 +88,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Clean up existing socket
       await cleanUp();
 
-      _ws.initWebSocket(
+      await _ws.initWebSocket(
         onMessage: _onSocketData,
         onError: _onSocketError,
         onClose: _onSocketDispose,
