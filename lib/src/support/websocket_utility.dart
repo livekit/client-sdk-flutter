@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../logger.dart';
@@ -45,7 +46,15 @@ const defaultRetryDelaysInMs = [
 ];
 
 class WebSocketUtility {
-  WebSocketUtility();
+  WebSocketUtility() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      logger.fine('network changed ${result.name}, reconnecting...');
+
+      if ((result == ConnectivityResult.mobile ||
+              result == ConnectivityResult.wifi) &&
+          _socketStatus != SocketStatus.kSocketStatusConnected) {}
+    });
+  }
   WebSocketChannel? _webSocket;
   SocketStatus _socketStatus = SocketStatus.kSocketStatusNone;
   final int _reconnectCount = defaultRetryDelaysInMs.length;

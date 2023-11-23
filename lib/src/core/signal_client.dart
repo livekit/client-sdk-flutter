@@ -30,7 +30,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
-import '../support/websocket.dart';
+import '../support/websocket_utility.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';

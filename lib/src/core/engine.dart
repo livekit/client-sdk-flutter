@@ -18,7 +18,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/support/platform.dart';
 import 'package:meta/meta.dart';
 
 import '../e2ee/options.dart';
@@ -34,7 +33,6 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
-import '../support/websocket.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
 import '../types/other.dart';
@@ -850,8 +848,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (event.canReconnect) {
         fullReconnect = true;
         // reconnect immediately instead of waiting for next attempt
-        _connectionState = ConnectionState.reconnecting;
-        _updateConnectionState(ConnectionState.reconnecting);
+        await signalClient.cleanUp();
         await handleDisconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         if (_connectionState == ConnectionState.reconnecting) {
@@ -859,6 +856,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               '[Signal] Received Leave while engine is reconnecting, ignoring...');
           return;
         }
+        await signalClient.cleanUp();
         _updateConnectionState(ConnectionState.disconnected,
             reason: event.reason.toSDKType());
         await cleanUp();
