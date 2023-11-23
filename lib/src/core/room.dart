@@ -339,11 +339,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
     })
-    ..on<SignalConnectionStateUpdatedEvent>((event) {
+    ..on<SignalConnectionStateUpdatedEvent>((event) async {
       // during reconnection, need to send sync state upon signal connection.
       if (event.newState == ConnectionState.reconnecting) {
         logger.fine('Sending syncState');
-        _sendSyncState();
+        await _sendSyncState();
       }
     })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
@@ -722,7 +722,7 @@ extension RoomDebugMethods on Room {
     bool? signalReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.closeSocket();
       return;
     }
     engine.signalClient.sendSimulateScenario(

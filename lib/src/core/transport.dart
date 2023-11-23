@@ -114,7 +114,7 @@ class Transport extends Disposable {
   late final negotiate = Utils.createDebounceFunc(
     (void _) => createAndSendOffer(),
     cancelFunc: (f) => _cancelDebounce = f,
-    wait: connectOptions.timeouts.debounce,
+    wait: connectOptions.timeouts.debounce * 2,
   );
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {

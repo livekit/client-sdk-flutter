@@ -343,6 +343,11 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
   });
 }
 
+@internal
+class SignalResumedEvent with SignalEvent, EngineEvent, InternalEvent {
+  const SignalResumedEvent();
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------

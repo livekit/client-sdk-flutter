@@ -1,32 +1,16 @@
-// Copyright 2023 LiveKit, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+import 'dart:async';
 
-import '../support/disposable.dart';
-import 'websocket/io.dart' if (dart.library.html) 'websocket/web.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-class WebSocketException implements Exception {
-  final int code;
-  const WebSocketException._(this.code);
+import '../logger.dart';
 
-  static WebSocketException unknown() => const WebSocketException._(0);
-  static WebSocketException connect() => const WebSocketException._(1);
-
-  @override
-  String toString() => {
-        WebSocketException.unknown(): 'Unknown error',
-        WebSocketException.connect(): 'Failed to connect',
-      }[this]!;
+enum SocketStatus {
+  kSocketStatusNone,
+  kSocketStatusConnecting,
+  kSocketStatusConnected,
+  kSocketStatusReconnecting,
+  kSocketStatusFailed,
+  kSocketStatusClosed,
 }
 
 typedef WebSocketOnData = Function(dynamic data);
@@ -45,13 +29,175 @@ class WebSocketEventHandlers {
   });
 }
 
-typedef WebSocketConnector = Future<LiveKitWebSocket> Function(Uri uri,
-    [WebSocketEventHandlers? options]);
+const maxRetryDelay = 7000;
 
-abstract class LiveKitWebSocket extends Disposable {
-  void send(List<int> data);
+const defaultRetryDelaysInMs = [
+  0,
+  300,
+  2 * 2 * 300,
+  3 * 3 * 300,
+  4 * 4 * 300,
+  maxRetryDelay,
+  maxRetryDelay,
+  maxRetryDelay,
+  maxRetryDelay,
+  maxRetryDelay,
+];
 
-  static Future<LiveKitWebSocket> connect(Uri uri,
-          [WebSocketEventHandlers? options]) =>
-      lkWebSocketConnect(uri, options);
+class WebSocketUtility {
+  WebSocketUtility();
+  WebSocketChannel? _webSocket;
+  SocketStatus _socketStatus = SocketStatus.kSocketStatusNone;
+  final int _reconnectCount = defaultRetryDelaysInMs.length;
+  int _reconnectTimes = 0;
+  Function? onError;
+  Function? onMessage;
+  Function? onClose;
+  Function? onSocketStatusChange;
+  late Uri _url;
+  Uri? _reconnectUrl;
+  SocketStatus get socketStatus => _socketStatus;
+  bool _isClosed = false;
+  StreamSubscription<dynamic>? _streamSubscription;
+
+  void initWebSocket(
+      {Function? onMessage,
+      Function? onError,
+      Function? onClose,
+      Function? onSocketStatusChange}) {
+    this.onMessage = onMessage;
+    this.onError = onError;
+    this.onClose = onClose;
+    this.onSocketStatusChange = onSocketStatusChange;
+
+    _isClosed = false;
+    _socketStatus = SocketStatus.kSocketStatusNone;
+    onSocketStatusChange?.call(_socketStatus);
+  }
+
+  void setReconnSid(String sid) {
+    try {
+      var queryParameters = Map<String, String>.from(_url.queryParameters);
+      queryParameters['sid'] = sid;
+      queryParameters['reconnect'] = '1';
+      _reconnectUrl = _url.replace(queryParameters: queryParameters);
+    } catch (e) {
+      logger.warning(e);
+    }
+  }
+
+  void _changeSocketStatus(SocketStatus status) {
+    _socketStatus = status;
+    onSocketStatusChange?.call(_socketStatus);
+  }
+
+  Future<void> openSocket(Uri url, {Duration? connectTimeout}) async {
+    _url = url;
+    if (_socketStatus == SocketStatus.kSocketStatusConnecting ||
+        _socketStatus == SocketStatus.kSocketStatusConnected) {
+      return;
+    }
+    _cleanUp();
+    _changeSocketStatus(SocketStatus.kSocketStatusConnecting);
+    WebSocketChannel? channel;
+    try {
+      channel = WebSocketChannel.connect(url);
+      var future = channel.ready;
+      if (connectTimeout != null) {
+        future = future.timeout(connectTimeout);
+      }
+      await future;
+    } catch (e) {
+      if (!_isClosed && !await reconnect()) {
+        logger.warning(e);
+      }
+      logger.warning('WebSocket failed to connect to $url, retrying...');
+      return;
+    }
+    _reconnectTimes = 0;
+    _streamSubscription = channel.stream.listen(
+        (data) => webSocketOnMessage(data),
+        onError: webSocketOnError,
+        onDone: webSocketOnDone);
+
+    logger.fine('WebSocket successfully connected to $url');
+    _changeSocketStatus(SocketStatus.kSocketStatusConnected);
+    _webSocket = channel;
+  }
+
+  webSocketOnMessage(data) {
+    onMessage?.call(data);
+  }
+
+  webSocketOnDone() {
+    logger.fine('closed');
+    if (_socketStatus == SocketStatus.kSocketStatusConnected) {
+      _streamSubscription?.cancel();
+      _streamSubscription = null;
+      _webSocket?.sink.close();
+      _webSocket = null;
+      _changeSocketStatus(SocketStatus.kSocketStatusClosed);
+      onClose?.call();
+    }
+    if (!_isClosed) {
+      reconnect();
+    }
+  }
+
+  webSocketOnError(e) {
+    WebSocketChannelException ex = e;
+    onError?.call(ex.message);
+  }
+
+  void _cleanUp() {
+    if (_webSocket != null) {
+      logger.fine('WebSocket closed');
+      _streamSubscription?.cancel();
+      _streamSubscription = null;
+      _webSocket?.sink.close();
+      _webSocket = null;
+    }
+    _socketStatus = SocketStatus.kSocketStatusNone;
+  }
+
+  void closeSocket() {
+    if (_socketStatus == SocketStatus.kSocketStatusConnected) {
+      _changeSocketStatus(SocketStatus.kSocketStatusClosed);
+      onClose?.call();
+    }
+    _reconnectTimes = 0;
+    _isClosed = true;
+    _cleanUp();
+  }
+
+  void sendMessage(message) {
+    if (_socketStatus != SocketStatus.kSocketStatusConnected) {
+      logger.warning('WebSocket not connected');
+      return;
+    }
+    _webSocket?.sink.add(message);
+  }
+
+  Future<bool> reconnect() async {
+    if (_reconnectTimes < _reconnectCount) {
+      if (_socketStatus != SocketStatus.kSocketStatusReconnecting) {
+        _changeSocketStatus(SocketStatus.kSocketStatusReconnecting);
+      }
+      var delay = defaultRetryDelaysInMs[_reconnectTimes];
+      logger.fine(
+          'WebSocket reconnecting in $delay ms, retry times $_reconnectTimes');
+      _reconnectTimes++;
+      Future.delayed(Duration(milliseconds: delay), () async {
+        await openSocket(_reconnectUrl!,
+            connectTimeout: const Duration(milliseconds: 1000));
+      });
+      return true;
+    } else {
+      logger
+          .warning('WebSocket reconnect failed, retry times $_reconnectTimes');
+      _socketStatus = SocketStatus.kSocketStatusFailed;
+      onSocketStatusChange?.call(_socketStatus);
+      return false;
+    }
+  }
 }
