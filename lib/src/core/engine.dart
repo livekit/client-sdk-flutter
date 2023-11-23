@@ -422,7 +422,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                   'Timed out waiting for SignalResumedEvent'),
             );
           }
-          resumeConnection.call(null);
+          await resumeConnection.call(null);
         } catch (e) {
           logger.warning('Failed to resume connection: $e');
         }
@@ -702,9 +702,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
   }) async {
-    final answer = (await subscriber?.pc.getLocalDescription())?.toPBType();
+    final previousAnswer =
+        (await subscriber?.pc.getLocalDescription())?.toPBType();
+    final previousOffer =
+        (await publisher?.pc.getLocalDescription())?.toPBType();
     signalClient.sendSyncState(
-      answer: answer,
+      answer: previousAnswer,
+      offer: previousOffer,
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
@@ -833,7 +837,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             'Received ${SignalTrickleEvent} but publisher or subscriber was null.');
         return;
       }
-      logger.fine('got ICE candidate from peer');
+      logger.fine('got ICE candidate from peer (target: ${event.target})');
       if (event.target == lk_rtc.SignalTarget.SUBSCRIBER) {
         await subscriber!.addIceCandidate(event.candidate);
       } else if (event.target == lk_rtc.SignalTarget.PUBLISHER) {
@@ -861,6 +865,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             reason: event.reason.toSDKType());
         await cleanUp();
       }
+    })
+    ..on<SignalResumedEvent>((event) async {
+      logger.fine('[$objectId] Signal resumed');
+      await resumeConnection.call(null);
     });
 }
 

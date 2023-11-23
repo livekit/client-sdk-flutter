@@ -275,7 +275,6 @@ class Transport extends Disposable {
 
     try {
       final result = await pc.getRemoteDescription();
-      logger.fine('pc.getRemoteDescription $result');
       return result;
     } catch (_) {
       logger.warning('pc.getRemoteDescription failed with error: $_');
