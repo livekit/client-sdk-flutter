@@ -202,6 +202,10 @@ class WebSocketUtility {
   }
 
   Future<bool> reconnect() async {
+    if (_reconnectUrl == null) {
+      logger.warning('WebSocket reconnect failed, no reconnect url');
+      return false;
+    }
     if (_reconnectTimes < _reconnectCount) {
       if (_socketStatus != SocketStatus.kSocketStatusReconnecting) {
         _changeSocketStatus(SocketStatus.kSocketStatusReconnecting);

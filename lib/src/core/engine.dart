@@ -102,14 +102,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   late EventsListener<SignalEvent> _signalListener =
       signalClient.createListener(synchronized: true);
 
-  Function? _cancelDebounce;
-
-  late final resumeConnection = Utils.createDebounceFunc(
-    (_) => _resumeConnection(),
-    cancelFunc: (f) => _cancelDebounce = f,
-    wait: connectOptions.timeouts.debounce,
-  );
-
   Engine({
     required this.connectOptions,
     required this.roomOptions,
@@ -130,7 +122,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await cleanUp();
       await events.dispose();
       await _signalListener.dispose();
-      _cancelDebounce?.call();
     });
   }
 
@@ -397,37 +388,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
-    subscriber?.pc.onConnectionState =
-        (state) => events.emit(EngineSubscriberPeerStateUpdatedEvent(
-              state: state,
-              isPrimary: _subscriberPrimary,
-            ));
-
-    publisher?.pc.onConnectionState =
-        (state) => events.emit(EnginePublisherPeerStateUpdatedEvent(
-              state: state,
-              isPrimary: !_subscriberPrimary,
-            ));
-
-    events.on<EnginePeerStateUpdatedEvent>((event) async {
-      if (event.state.isDisconnected() || event.state.isFailed()) {
-        try {
-          if (signalClient.connectionState != ConnectionState.connected) {
-            logger.fine(
-                'PeerConnectionState isDisconnected: ${event.state} isPrimary: ${event.isPrimary}');
-
-            await signalClient.events.waitFor<SignalResumedEvent>(
-              duration: connectOptions.timeouts.connection * 2,
-              onTimeout: () => throw ConnectException(
-                  'Timed out waiting for SignalResumedEvent'),
-            );
-          }
-          await resumeConnection.call(null);
-        } catch (e) {
-          logger.warning('Failed to resume connection: $e');
-        }
+    subscriber?.pc.onConnectionState = (state) async {
+      events.emit(EngineSubscriberPeerStateUpdatedEvent(
+        state: state,
+        isPrimary: _subscriberPrimary,
+      ));
+      logger.fine('subscriber connectionState: $state');
+      if (state.isDisconnected()) {
+        await resumeConnection(ClientDisconnectReason.peerConnectionFailed);
       }
-    });
+    };
+
+    publisher?.pc.onConnectionState = (state) async {
+      events.emit(EnginePublisherPeerStateUpdatedEvent(
+        state: state,
+        isPrimary: !_subscriberPrimary,
+      ));
+      logger.fine('publisher connectionState: $state');
+      if (state.isDisconnected()) {
+        await resumeConnection
+            .call(ClientDisconnectReason.peerConnectionFailed);
+      }
+    };
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
       logger.fine('[WebRTC] pc.onTrack');
@@ -593,6 +575,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger
         .info('onDisconnected state:${_connectionState} reason:${reason.name}');
 
+    if (_restarting) {
+      logger.fine('in restarting, skip handleDisconnect');
+      return;
+    }
+
     if (!fullReconnect) {
       fullReconnect = _clientConfiguration?.resumeConnection ==
               lk_models.ClientConfigSetting.DISABLED ||
@@ -603,13 +590,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           ].contains(reason);
     }
 
-    if (reason == ClientDisconnectReason.signal) {
-      logger.fine('[$objectId] Signal disconnected');
-      return;
-    }
-
-    if (_restarting) {
-      logger.fine('[$objectId] Already reconnecting...');
+    if (reason == ClientDisconnectReason.leaveReconnect &&
+        [ConnectionState.disconnected, ConnectionState.connected]
+            .contains(_connectionState)) {
+      logger.fine('skip handleDisconnect for leaveReconnect');
       return;
     }
 
@@ -618,14 +602,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _resumeConnection() async {
-    logger.fine('resumeConnection');
-
-    if (publisher == null || subscriber == null) {
-      throw UnexpectedStateException('publisher or subscribers is null');
+  Future<void> resumeConnection(ClientDisconnectReason reason) async {
+    if (_restarting) {
+      logger.fine('in restarting or resuming, skip resumeConnection..');
+      return;
     }
 
-    subscriber!.restartingIce = true;
+    logger.fine('resumeConnection: reason: ${reason.name}');
 
     if (_hasPublished) {
       logger.fine('resumeConnection: negotiating publisher...');
@@ -640,16 +623,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('resumeConnection: primary is connected: $isConnected');
 
     if (!isConnected) {
+      subscriber!.restartingIce = true;
       logger.fine('resumeConnection: Waiting for primary to connect...');
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
-        duration: connectOptions.timeouts.peerConnection +
-            const Duration(
-              seconds: 5,
-            ),
-        onTimeout: () => throw ConnectException(
-            'Timed out waiting for peerconnection to connect'),
+        duration: connectOptions.timeouts.peerConnection,
       );
+      logger.fine('resumeConnection: primary connected');
     }
   }
 
@@ -780,6 +760,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (!_subscriberPrimary) {
         await negotiate();
       }
+
+      await resumeConnection(ClientDisconnectReason.signal);
     })
     ..on<SignalConnectionStateUpdatedEvent>((event) async {
       switch (event.newState) {
@@ -865,10 +847,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             reason: event.reason.toSDKType());
         await cleanUp();
       }
-    })
-    ..on<SignalResumedEvent>((event) async {
-      logger.fine('[$objectId] Signal resumed');
-      await resumeConnection.call(null);
     });
 }
 

@@ -96,17 +96,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           logger.fine('Socket status changed to $status');
           switch (status) {
             case SocketStatus.kSocketStatusConnected:
-              if (_connectionState == ConnectionState.reconnecting) {
-                _updateConnectionState(ConnectionState.connected);
-                events.emit(const SignalResumedEvent());
-              } else {
-                _updateConnectionState(ConnectionState.connected);
-              }
+              _updateConnectionState(ConnectionState.connected);
               break;
             case SocketStatus.kSocketStatusReconnecting:
               _updateConnectionState(ConnectionState.reconnecting);
               break;
-
             case SocketStatus.kSocketStatusClosed:
               _updateConnectionState(ConnectionState.disconnected);
               break;
