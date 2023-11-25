@@ -20,7 +20,7 @@ import 'package:js/js.dart';
 
 import 'e2ee.cryptor.dart';
 
-import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
+import 'package:dart_webrtc/src/rtc_transform_stream.dart';
 import 'package:collection/collection.dart';
 
 import 'crypto.dart' as crypto;
