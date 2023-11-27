@@ -29,6 +29,7 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
   static const _storeKeyMultiCodec = 'multi-codec';
+  static const _storeKeyAutoSubscribe = 'auto-subscribe';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -40,6 +41,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _fastConnect = false;
   bool _e2ee = false;
   bool _multiCodec = false;
+  bool _autoSubscribe = true;
   String _preferredCodec = 'Preferred Codec';
   String _backupCodec = 'VP8';
 
@@ -100,6 +102,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
+      _autoSubscribe = prefs.getBool(_storeKeyAutoSubscribe) ?? true;
     });
   }
 
@@ -115,6 +118,7 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeyFastConnect, _fastConnect);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
+    await prefs.setBool(_storeKeyAutoSubscribe, _autoSubscribe);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -145,25 +149,28 @@ class _ConnectPageState extends State<ConnectPage> {
 
       // create new room
       final room = Room(
+          connectOptions: ConnectOptions(
+            autoSubscribe: _autoSubscribe,
+          ),
           roomOptions: RoomOptions(
-        adaptiveStream: _adaptiveStream,
-        dynacast: _dynacast,
-        defaultAudioPublishOptions: const AudioPublishOptions(
-          dtx: true,
-        ),
-        defaultVideoPublishOptions: VideoPublishOptions(
-          simulcast: _simulcast,
-          videoCodec: preferredCodec,
-        ),
-        defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-            useiOSBroadcastExtension: true,
-            params: VideoParametersPresets.screenShareH1080FPS30),
-        e2eeOptions: e2eeOptions,
-        defaultCameraCaptureOptions: const CameraCaptureOptions(
-          maxFrameRate: 30,
-          params: VideoParametersPresets.h720_169,
-        ),
-      ));
+            adaptiveStream: _adaptiveStream,
+            dynacast: _dynacast,
+            defaultAudioPublishOptions: const AudioPublishOptions(
+              dtx: true,
+            ),
+            defaultVideoPublishOptions: VideoPublishOptions(
+              simulcast: _simulcast,
+              videoCodec: preferredCodec,
+            ),
+            defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
+                useiOSBroadcastExtension: true,
+                params: VideoParametersPresets.screenShareH1080FPS30),
+            e2eeOptions: e2eeOptions,
+            defaultCameraCaptureOptions: const CameraCaptureOptions(
+              maxFrameRate: 30,
+              params: VideoParametersPresets.h720_169,
+            ),
+          ));
 
       // Create a Listener before connecting
       final listener = room.createListener();
@@ -199,6 +206,13 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _simulcast == value) return;
     setState(() {
       _simulcast = value;
+    });
+  }
+
+  void _setAutoSubscribe(bool? value) async {
+    if (value == null || _autoSubscribe == value) return;
+    setState(() {
+      _autoSubscribe = value;
     });
   }
 
@@ -301,6 +315,19 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _simulcast,
                           onChanged: (value) => _setSimulcast(value),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Auto Subscribe'),
+                        Switch(
+                          value: _autoSubscribe,
+                          onChanged: (value) => _setAutoSubscribe(value),
                         ),
                       ],
                     ),
