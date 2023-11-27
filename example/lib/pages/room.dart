@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../exts.dart';
 import '../widgets/controls.dart';
@@ -24,14 +26,17 @@ class RoomPage extends StatefulWidget {
   State<StatefulWidget> createState() => _RoomPageState();
 }
 
-class _RoomPageState extends State<RoomPage> {
+class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   //
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+  bool gridView = true;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
@@ -56,7 +61,39 @@ class _RoomPageState extends State<RoomPage> {
       await _listener.dispose();
       await widget.room.dispose();
     })();
+
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  AppLifecycleState? _notification;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _notification = state;
+    });
+    if (state == AppLifecycleState.resumed) {
+      for (var p in participantTracks) {
+        if (p.participant.hasVideo &&
+            participantSubscriptions.containsKey(p.participant.identity)) {
+          (p.participant as RemoteParticipant)
+              .videoTracks
+              .firstOrNull
+              ?.subscribe();
+        }
+      }
+    } else if (state == AppLifecycleState.paused) {
+      for (var p in participantTracks) {
+        if (p.participant.hasVideo &&
+            participantSubscriptions.containsKey(p.participant.identity)) {
+          (p.participant as RemoteParticipant)
+              .videoTracks
+              .firstOrNull
+              ?.unsubscribe();
+        }
+      }
+    }
   }
 
   /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
@@ -210,42 +247,166 @@ class _RoomPageState extends State<RoomPage> {
     });
   }
 
+  void subscribeToVideoTracks(RemoteParticipant participant) async {
+    if (participantSubscriptions[participant.identity] == true) {
+      return;
+    }
+    participantSubscriptions[participant.identity] = true;
+    await participant.videoTracks.firstOrNull?.subscribe();
+  }
+
+  void unSubscribeToVideoTracks(RemoteParticipant participant) async {
+    if (participantSubscriptions[participant.identity] == false) {
+      return;
+    }
+    participantSubscriptions[participant.identity] = false;
+    await participant.videoTracks.firstOrNull?.unsubscribe();
+  }
+
+  Map<String, bool> visibleParticipants = {};
+  Map<String, bool> participantSubscriptions = {};
+
   @override
   Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Room: ${widget.room.name} $_notification',
+            style: const TextStyle(color: Colors.white),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.view_module,
+                color: gridView ? Colors.green : Colors.white,
+              ),
+              onPressed: () {
+                setState(() {
+                  gridView = true;
+                });
+              },
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.view_sidebar,
+                color: !gridView ? Colors.green : Colors.white,
+              ),
+              onPressed: () {
+                setState(() {
+                  gridView = false;
+                });
+              },
+            ),
+            SizedBox.fromSize(
+              size: const Size(42, 10),
+            )
+          ],
+        ),
         body: Stack(
           children: [
-            Column(
-              children: [
-                Expanded(
-                    child: participantTracks.isNotEmpty
-                        ? ParticipantWidget.widgetFor(participantTracks.first,
-                            showStatsLayer: true)
-                        : Container()),
-                if (widget.room.localParticipant != null)
-                  SafeArea(
-                    top: false,
-                    child: ControlsWidget(
-                        widget.room, widget.room.localParticipant!),
-                  )
-              ],
-            ),
-            Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                child: SizedBox(
-                  height: 120,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: math.max(0, participantTracks.length - 1),
-                    itemBuilder: (BuildContext context, int index) => SizedBox(
-                      width: 180,
-                      height: 120,
-                      child: ParticipantWidget.widgetFor(
-                          participantTracks[index + 1]),
+            if (gridView)
+              CustomScrollView(
+                slivers: [
+                  SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 300.0,
+                      mainAxisSpacing: 10.0,
+                      crossAxisSpacing: 10.0,
+                      childAspectRatio: 1.5,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        final participant =
+                            participantTracks[index].participant;
+
+                        return VisibilityDetector(
+                          key: Key(participant.identity),
+                          onVisibilityChanged: (info) {
+                            final bool isVisible = info.visibleFraction > 0;
+                            final bool isCompletelyGone =
+                                info.visibleFraction == 0;
+                            final bool isSubscribed = participantSubscriptions[
+                                    participant.identity] ??
+                                false;
+                            final bool shouldSubscribe = !isSubscribed &&
+                                isVisible &&
+                                participant is! LocalParticipant;
+
+                            if (shouldSubscribe) {
+                              subscribeToVideoTracks(
+                                participant as RemoteParticipant,
+                              );
+                              visibleParticipants[participant.identity] = true;
+                            } else if (participant is! LocalParticipant &&
+                                isCompletelyGone) {
+                              unSubscribeToVideoTracks(
+                                participant as RemoteParticipant,
+                              );
+                              visibleParticipants.remove(
+                                participant.identity,
+                              );
+                            }
+                          },
+                          child: SizedBox(
+                            width: 240,
+                            height: 180,
+                            child: ParticipantWidget.widgetFor(
+                              participantTracks[index],
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: participantTracks.length,
                     ),
                   ),
-                )),
+                ],
+              ),
+            if (widget.room.localParticipant != null && gridView)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 20,
+                child: SafeArea(
+                  top: false,
+                  child: ControlsWidget(
+                      widget.room, widget.room.localParticipant!),
+                ),
+              ),
+            if (!gridView)
+              Column(
+                children: [
+                  Expanded(
+                      child: participantTracks.isNotEmpty
+                          ? ParticipantWidget.widgetFor(participantTracks.first,
+                              showStatsLayer: true)
+                          : Container()),
+                  if (widget.room.localParticipant != null)
+                    SafeArea(
+                      top: false,
+                      child: ControlsWidget(
+                          widget.room, widget.room.localParticipant!),
+                    )
+                ],
+              ),
+            if (!gridView)
+              Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: math.max(0, participantTracks.length - 1),
+                      itemBuilder: (BuildContext context, int index) =>
+                          SizedBox(
+                        width: 180,
+                        height: 120,
+                        child: ParticipantWidget.widgetFor(
+                            participantTracks[index + 1]),
+                      ),
+                    ),
+                  )),
           ],
         ),
       );

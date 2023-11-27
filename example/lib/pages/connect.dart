@@ -41,7 +41,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _fastConnect = false;
   bool _e2ee = false;
   bool _multiCodec = false;
-  bool _autoSubscribe = true;
+  bool _autoSubscribe = false;
   String _preferredCodec = 'Preferred Codec';
   String _backupCodec = 'VP8';
 
