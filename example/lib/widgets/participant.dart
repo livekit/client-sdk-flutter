@@ -10,28 +10,20 @@ import 'participant_stats.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
-  static ParticipantWidget widgetFor(ParticipantTrack participantTrack,
+  static ParticipantWidget widgetFor(Participant participant,
       {bool showStatsLayer = false}) {
-    if (participantTrack.participant is LocalParticipant) {
-      return LocalParticipantWidget(
-          participantTrack.participant as LocalParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          showStatsLayer);
-    } else if (participantTrack.participant is RemoteParticipant) {
-      return RemoteParticipantWidget(
-          participantTrack.participant as RemoteParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          showStatsLayer);
+    if (participant is LocalParticipant) {
+      return LocalParticipantWidget(participant, showStatsLayer);
+    } else if (participant is RemoteParticipant) {
+      return RemoteParticipantWidget(participant, showStatsLayer);
     }
     throw UnimplementedError('Unknown participant type');
   }
 
   // Must be implemented by child class
   abstract final Participant participant;
-  abstract final VideoTrack? videoTrack;
-  abstract final bool isScreenShare;
+  VideoTrack? get videoTrack;
+  bool get isScreenShare;
   abstract final bool showStatsLayer;
   final VideoQuality quality;
 
@@ -45,16 +37,15 @@ class LocalParticipantWidget extends ParticipantWidget {
   @override
   final LocalParticipant participant;
   @override
-  final VideoTrack? videoTrack;
+  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
   @override
-  final bool isScreenShare;
+  bool get isScreenShare =>
+      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
   const LocalParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
     this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
@@ -67,16 +58,15 @@ class RemoteParticipantWidget extends ParticipantWidget {
   @override
   final RemoteParticipant participant;
   @override
-  final VideoTrack? videoTrack;
+  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
   @override
-  final bool isScreenShare;
+  bool get isScreenShare =>
+      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
   const RemoteParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
     this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
@@ -139,7 +129,8 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
             // Video
             InkWell(
               onTap: () => setState(() => _visible = !_visible),
-              child: activeVideoTrack != null && !activeVideoTrack!.muted
+              child: (activeVideoTrack != null && !activeVideoTrack!.muted) &&
+                      widget.participant.isCameraEnabled()
                   ? VideoTrackRenderer(
                       activeVideoTrack!,
                       fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,

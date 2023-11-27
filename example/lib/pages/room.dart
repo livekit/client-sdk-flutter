@@ -10,6 +10,7 @@ import '../exts.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
+import '../widgets/participant_video.dart';
 
 class RoomPage extends StatefulWidget {
   //
@@ -28,7 +29,7 @@ class RoomPage extends StatefulWidget {
 
 class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   //
-  List<ParticipantTrack> participantTracks = [];
+  List<Participant> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
   bool gridView = true;
@@ -75,22 +76,14 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     });
     if (state == AppLifecycleState.resumed) {
       for (var p in participantTracks) {
-        if (p.participant.hasVideo &&
-            participantSubscriptions.containsKey(p.participant.identity)) {
-          (p.participant as RemoteParticipant)
-              .videoTracks
-              .firstOrNull
-              ?.subscribe();
+        if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
+          (p as RemoteParticipant).videoTracks.firstOrNull?.subscribe();
         }
       }
     } else if (state == AppLifecycleState.paused) {
       for (var p in participantTracks) {
-        if (p.participant.hasVideo &&
-            participantSubscriptions.containsKey(p.participant.identity)) {
-          (p.participant as RemoteParticipant)
-              .videoTracks
-              .firstOrNull
-              ?.unsubscribe();
+        if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
+          (p as RemoteParticipant).videoTracks.firstOrNull?.unsubscribe();
         }
       }
     }
@@ -176,30 +169,23 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   }
 
   void _sortParticipants() {
-    List<ParticipantTrack> userMediaTracks = [];
-    List<ParticipantTrack> screenTracks = [];
+    /*
+    List<Participant> userMediaTracks = [];
+    List<Participant> screenTracks = [];
     for (var participant in widget.room.participants.values) {
       for (var t in participant.videoTracks) {
         if (t.isScreenShare) {
-          screenTracks.add(ParticipantTrack(
-            participant: participant,
-            videoTrack: t.track,
-            isScreenShare: true,
-          ));
+          screenTracks.add(participant);
         } else {
-          userMediaTracks.add(ParticipantTrack(
-            participant: participant,
-            videoTrack: t.track,
-            isScreenShare: false,
-          ));
+          userMediaTracks.add(participant);
         }
       }
     }
     // sort speakers for the grid
     userMediaTracks.sort((a, b) {
       // loudest speaker first
-      if (a.participant.isSpeaking && b.participant.isSpeaking) {
-        if (a.participant.audioLevel > b.participant.audioLevel) {
+      if (a.isSpeaking && b.isSpeaking) {
+        if (a.audioLevel > b.audioLevel) {
           return -1;
         } else {
           return 1;
@@ -207,43 +193,38 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       }
 
       // last spoken at
-      final aSpokeAt = a.participant.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
-      final bSpokeAt = b.participant.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
 
       if (aSpokeAt != bSpokeAt) {
         return aSpokeAt > bSpokeAt ? -1 : 1;
       }
 
       // video on
-      if (a.participant.hasVideo != b.participant.hasVideo) {
-        return a.participant.hasVideo ? -1 : 1;
+      if (a.hasVideo != b.hasVideo) {
+        return a.hasVideo ? -1 : 1;
       }
 
       // joinedAt
-      return a.participant.joinedAt.millisecondsSinceEpoch -
-          b.participant.joinedAt.millisecondsSinceEpoch;
+      return a.joinedAt.millisecondsSinceEpoch -
+          b.joinedAt.millisecondsSinceEpoch;
     });
 
     final localParticipantTracks = widget.room.localParticipant?.videoTracks;
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
-          screenTracks.add(ParticipantTrack(
-            participant: widget.room.localParticipant!,
-            videoTrack: t.track,
-            isScreenShare: true,
-          ));
+          screenTracks.add(widget.room.localParticipant!);
         } else {
-          userMediaTracks.add(ParticipantTrack(
-            participant: widget.room.localParticipant!,
-            videoTrack: t.track,
-            isScreenShare: false,
-          ));
+          userMediaTracks.add(widget.room.localParticipant!);
         }
       }
     }
+    */
     setState(() {
-      participantTracks = [...screenTracks, ...userMediaTracks];
+      participantTracks = [
+        ...widget.room.participants.values,
+      ];
     });
   }
 
@@ -270,7 +251,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: Text(
-            'Room: ${widget.room.name} $_notification',
+            'Room: ${widget.room.name}',
             style: const TextStyle(color: Colors.white),
           ),
           actions: [
@@ -316,8 +297,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
-                        final participant =
-                            participantTracks[index].participant;
+                        final participant = participantTracks[index];
 
                         return VisibilityDetector(
                           key: Key(participant.identity),
@@ -350,8 +330,9 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                           child: SizedBox(
                             width: 240,
                             height: 180,
-                            child: ParticipantWidget.widgetFor(
+                            child: ParticipantVideo(
                               participantTracks[index],
+                              participantSubscriptions,
                             ),
                           ),
                         );
