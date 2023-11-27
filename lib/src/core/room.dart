@@ -494,13 +494,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         continue;
       }
 
-      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
+      final isNew = !_participants.containsKey(info.sid);
+
+      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED &&
+          !isNew) {
         hasChanged = true;
         await _handleParticipantDisconnect(info.sid);
         continue;
       }
 
-      final isNew = !_participants.containsKey(info.sid);
       final participant = _getOrCreateRemoteParticipant(info.sid, info);
 
       if (isNew) {
