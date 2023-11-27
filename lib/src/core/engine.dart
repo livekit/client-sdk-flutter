@@ -395,7 +395,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('subscriber connectionState: $state');
       if (state.isDisconnected()) {
-        await resumeConnection(ClientDisconnectReason.peerConnectionFailed);
+        await resumeConnection(ClientDisconnectReason.reconnect);
+      } else if (state.isFailed()) {
+        await handleDisconnect(ClientDisconnectReason.peerConnectionFailed);
       }
     };
 
@@ -406,8 +408,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected()) {
-        await resumeConnection
-            .call(ClientDisconnectReason.peerConnectionFailed);
+        await resumeConnection.call(ClientDisconnectReason.reconnect);
+      } else if (state.isFailed()) {
+        await handleDisconnect(ClientDisconnectReason.peerConnectionFailed);
       }
     };
 
