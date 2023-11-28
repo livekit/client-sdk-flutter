@@ -8,20 +8,20 @@ extension ParticipantExtension on Participant {
   bool get isRemoteParticipant => this is RemoteParticipant;
 }
 
-class ParticipantVideo extends StatefulWidget {
+class ParticipantGridTile extends StatefulWidget {
   final Participant participant;
   final Map<String, bool> participantSubscriptions;
-  const ParticipantVideo(
+  const ParticipantGridTile(
     this.participant,
     this.participantSubscriptions, {
     Key? key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _ParticipantVideo();
+  State<StatefulWidget> createState() => _ParticipantGridTile();
 }
 
-class _ParticipantVideo extends State<ParticipantVideo> {
+class _ParticipantGridTile extends State<ParticipantGridTile> {
   String get name => isLocalParticipant
       ? '${widget.participant.name} (you)'
       : widget.participant.name;
@@ -47,33 +47,33 @@ class _ParticipantVideo extends State<ParticipantVideo> {
 
     return Stack(
       children: [
-        if (hasVideo)
-          ClipRRect(
-            //borderRadius: BorderRadius.circular(AppSpacing.radiixSmall),
-            child: Stack(
-              children: [
-                // Your video renderer
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                      //borderRadius: BorderRadius.circular(AppSpacing.radiixSmall),
-                      border: Border.all(
-                    color: Colors.white,
-                    width: 2,
-                  )),
-                  position: DecorationPosition.foreground,
-                  child: widget.participant.isCameraEnabled()
-                      ? VideoTrackRenderer(
-                          widget.participant.videoTracks[0].track as VideoTrack,
-                        )
-                      : const NoVideoWidget(),
-                ),
-                Text(
-                    'cam: ${widget.participant.isCameraEnabled()}\n ${widget.participant.identity} ($name)'),
-                Material(
-                  type: MaterialType.transparency,
-                  child: InkWell(
-                    splashColor: Colors.blueGrey,
-                    onTap: () {
+        ClipRRect(
+          //borderRadius: BorderRadius.circular(AppSpacing.radiixSmall),
+          child: Stack(
+            children: [
+              // Your video renderer
+              DecoratedBox(
+                decoration: BoxDecoration(
+                    //borderRadius: BorderRadius.circular(AppSpacing.radiixSmall),
+                    border: Border.all(
+                  color: Colors.white,
+                  width: 2,
+                )),
+                position: DecorationPosition.foreground,
+                child: hasVideo
+                    ? VideoTrackRenderer(
+                        widget.participant.videoTracks[0].track as VideoTrack,
+                      )
+                    : const NoVideoWidget(),
+              ),
+              Text(
+                  'cam: ${widget.participant.isCameraEnabled()}\n ${widget.participant.identity} ($name)'),
+              Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    if (lkPlatformIsMobile()) {
                       Fluttertoast.showToast(
                           msg:
                               'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}',
@@ -83,19 +83,21 @@ class _ParticipantVideo extends State<ParticipantVideo> {
                           backgroundColor: Colors.orange,
                           textColor: Colors.white,
                           fontSize: 16.0);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: const Color.fromARGB(0, 0, 0, 0),
-                    ),
+                    } else {
+                      print(
+                          'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}');
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: const Color.fromARGB(0, 0, 0, 0),
                   ),
                 ),
-              ],
-            ),
-          )
-        else
-          const NoVideoWidget(),
+              ),
+            ],
+          ),
+        )
       ],
     );
   }

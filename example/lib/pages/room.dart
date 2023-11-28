@@ -10,7 +10,7 @@ import '../exts.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
-import '../widgets/participant_video.dart';
+import '../widgets/participant_grid_tile.dart';
 
 class RoomPage extends StatefulWidget {
   //
@@ -32,7 +32,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   List<Participant> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
-  bool gridView = true;
+  bool gridView = false;
   @override
   void initState() {
     super.initState();
@@ -110,6 +110,12 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
     ..on<TrackSubscribedEvent>((_) => _sortParticipants())
     ..on<TrackUnsubscribedEvent>((_) => _sortParticipants())
+    ..on<ParticipantConnectedEvent>((event) {
+      print('Participant connected: ${event.participant.identity}');
+    })
+    ..on<ParticipantDisconnectedEvent>((event) {
+      print('Participant disconnected: ${event.participant.identity}');
+    })
     ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
@@ -169,20 +175,12 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   }
 
   void _sortParticipants() {
-    /*
-    List<Participant> userMediaTracks = [];
-    List<Participant> screenTracks = [];
+    List<Participant> sortedParticipants = [];
     for (var participant in widget.room.participants.values) {
-      for (var t in participant.videoTracks) {
-        if (t.isScreenShare) {
-          screenTracks.add(participant);
-        } else {
-          userMediaTracks.add(participant);
-        }
-      }
+      sortedParticipants.add(participant);
     }
     // sort speakers for the grid
-    userMediaTracks.sort((a, b) {
+    sortedParticipants.sort((a, b) {
       // loudest speaker first
       if (a.isSpeaking && b.isSpeaking) {
         if (a.audioLevel > b.audioLevel) {
@@ -210,20 +208,13 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
           b.joinedAt.millisecondsSinceEpoch;
     });
 
-    final localParticipantTracks = widget.room.localParticipant?.videoTracks;
-    if (localParticipantTracks != null) {
-      for (var t in localParticipantTracks) {
-        if (t.isScreenShare) {
-          screenTracks.add(widget.room.localParticipant!);
-        } else {
-          userMediaTracks.add(widget.room.localParticipant!);
-        }
-      }
+    if (widget.room.localParticipant != null) {
+      sortedParticipants.add(widget.room.localParticipant!);
     }
-    */
+
     setState(() {
       participantTracks = [
-        ...widget.room.participants.values,
+        ...sortedParticipants,
       ];
     });
   }
@@ -330,7 +321,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                           child: SizedBox(
                             width: 240,
                             height: 180,
-                            child: ParticipantVideo(
+                            child: ParticipantGridTile(
                               participantTracks[index],
                               participantSubscriptions,
                             ),
