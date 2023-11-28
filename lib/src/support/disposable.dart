@@ -51,6 +51,12 @@ mixin _Disposer {
       return false;
     }
   }
+
+  void checkIfDisposed() {
+    if (_isDisposed) {
+      throw Exception('[$objectId] already disposed');
+    }
+  }
 }
 
 abstract class Disposable with _Disposer {
