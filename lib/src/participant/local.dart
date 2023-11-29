@@ -178,10 +178,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       try {
         // try to use getSettings for more accurate resolution
         final settings = track.mediaStreamTrack.getSettings();
-        if (settings['width'] is int) {
+        if ((settings['width'] is int && settings['width'] as int > 0) &&
+            (settings['height'] is int && settings['height'] as int > 0)) {
           dimensions = dimensions.copyWith(width: settings['width'] as int);
-        }
-        if (settings['height'] is int) {
           dimensions = dimensions.copyWith(height: settings['height'] as int);
         }
       } catch (_) {
