@@ -74,3 +74,15 @@ flutter:
       web:
         pluginClass: LiveKitWebPlugin
         fileName: livekit_client_web.dart
+
+
+topics:
+  - webrtc
+  - voip
+  - audio
+  - video
+  - livestream
+  - conference
+  - meeting
+  - chat
+  - real-time
