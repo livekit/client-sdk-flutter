@@ -38,11 +38,7 @@ dependencies:
   uuid: '>=3.0.6'
   synchronized: ^3.0.0+3
   protobuf: ^3.0.0
-  flutter_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc.git
-      ref: fix/throw-exception-for-set-src-object
-  flutter_window_close: ^0.2.2
+  flutter_webrtc: 0.9.47
   device_info_plus: '>=8.0.0'
   js: ^0.6.4
   platform_detect: ^2.0.7
@@ -77,3 +73,15 @@ flutter:
       web:
         pluginClass: LiveKitWebPlugin
         fileName: livekit_client_web.dart
+
+
+topics:
+  - webrtc
+  - voip
+  - audio
+  - video
+  - livestream
+  - conference
+  - meeting
+  - chat
+  - real-time
