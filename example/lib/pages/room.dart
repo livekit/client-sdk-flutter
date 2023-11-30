@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -6,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/method_channels/replay_kit_channel.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
@@ -26,7 +28,6 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  //
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
@@ -50,6 +51,14 @@ class _RoomPageState extends State<RoomPage> {
     }
 
     ReplayKitChannel.listenMethodChannel(widget.room);
+
+    if (!lkPlatformIs(PlatformType.web) && !lkPlatformIsTest()) {
+      onWindowShouldClose = () async {
+        unawaited(widget.room.disconnect());
+        await _listener.waitFor<RoomDisconnectedEvent>(
+            duration: const Duration(seconds: 5));
+      };
+    }
   }
 
   @override
@@ -61,6 +70,7 @@ class _RoomPageState extends State<RoomPage> {
       await _listener.dispose();
       await widget.room.dispose();
     })();
+    onWindowShouldClose = null;
     super.dispose();
   }
 
@@ -87,6 +97,14 @@ class _RoomPageState extends State<RoomPage> {
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
           'Participant name updated: ${event.participant.identity}, name => ${event.name}');
+      _sortParticipants();
+    })
+    ..on<ParticipantMetadataUpdatedEvent>((event) {
+      print(
+          'Participant metadata updated: ${event.participant.identity}, metadata => ${event.metadata}');
+    })
+    ..on<RoomMetadataChangedEvent>((event) {
+      print('Room metadata changed: ${event.metadata}');
     })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';

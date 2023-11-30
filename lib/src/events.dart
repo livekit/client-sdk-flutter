@@ -330,8 +330,10 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [Room] and [Participant].
 class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
+  final String metadata;
   const ParticipantMetadataUpdatedEvent({
     required this.participant,
+    required this.metadata,
   });
 
   @override

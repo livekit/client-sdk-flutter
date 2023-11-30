@@ -17,6 +17,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
 import '../../internal/events.dart';
+import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../audio_management.dart';
@@ -81,19 +82,24 @@ class RemoteAudioTrack extends RemoteTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null && events.isDisposed) {
+    if (receiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
-    final stats = await getReceiverStats();
+    try {
+      final stats = await getReceiverStats();
 
-    if (stats != null && prevStats != null && receiver != null) {
-      _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
-      events.emit(AudioReceiverStatsEvent(
-          stats: stats, currentBitrate: currentBitrate));
+      if (stats != null && prevStats != null && receiver != null) {
+        _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+        events.emit(AudioReceiverStatsEvent(
+            stats: stats, currentBitrate: currentBitrate));
+      }
+
+      prevStats = stats;
+    } catch (e) {
+      logger.warning('failed to get sender stats: $e');
+      return false;
     }
-
-    prevStats = stats;
     return true;
   }
 
@@ -102,7 +108,13 @@ class RemoteAudioTrack extends RemoteTrack
       return null;
     }
 
-    final stats = await receiver!.getStats();
+    late List<rtc.StatsReport> stats;
+    try {
+      stats = await receiver!.getStats();
+    } catch (e) {
+      rethrow;
+    }
+
     AudioReceiverStats? receiverStats;
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {

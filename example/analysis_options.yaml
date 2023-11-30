@@ -32,7 +32,6 @@ analyzer:
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
   # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
   #
-  strong-mode:
 
   #
   # exclude protobuf files
