@@ -20,7 +20,7 @@ import 'dart:typed_data';
 import 'dart:collection';
 import 'dart:async';
 
-import 'package:flutter_webrtc/src/web/rtc_transform_stream.dart';
+import 'package:dart_webrtc/src/rtc_transform_stream.dart';
 
 import 'crypto.dart' as crypto;
 import 'e2ee.utils.dart';

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -7,6 +8,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
@@ -28,7 +30,6 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
-  //
   List<Participant> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
@@ -52,6 +53,14 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     if (lkPlatformIsMobile()) {
       Hardware.instance.setSpeakerphoneOn(true);
     }
+
+    if (!lkPlatformIs(PlatformType.web) && !lkPlatformIsTest()) {
+      onWindowShouldClose = () async {
+        unawaited(widget.room.disconnect());
+        await _listener.waitFor<RoomDisconnectedEvent>(
+            duration: const Duration(seconds: 5));
+      };
+    }
   }
 
   @override
@@ -62,8 +71,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       await _listener.dispose();
       await widget.room.dispose();
     })();
-
     WidgetsBinding.instance.removeObserver(this);
+    onWindowShouldClose = null;
     super.dispose();
   }
 
