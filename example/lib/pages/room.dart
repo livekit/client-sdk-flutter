@@ -48,7 +48,7 @@ class _RoomPageState extends State<RoomPage> {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
-    if (!lkPlatformIs(PlatformType.web) && !lkPlatformIsTest()) {
+    if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
         unawaited(widget.room.disconnect());
         await _listener.waitFor<RoomDisconnectedEvent>(
