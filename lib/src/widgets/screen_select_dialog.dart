@@ -36,15 +36,26 @@ class ThumbnailWidget extends StatefulWidget {
 
 class ThumbnailWidgetState extends State<ThumbnailWidget> {
   final List<StreamSubscription> _subscriptions = [];
+  Uint8List? _thumbnail;
+  String _name = '';
 
   @override
   void initState() {
     super.initState();
-    _subscriptions.add(widget.source.onThumbnailChanged.stream.listen((event) {
-      setState(() {});
+    _name = widget.source.name;
+    _thumbnail = widget.source.thumbnail?.isNotEmpty == true
+        ? widget.source.thumbnail
+        : null;
+    _subscriptions
+        .add(widget.source.onThumbnailChanged.stream.listen((thumbnail) {
+      setState(() {
+        _thumbnail = thumbnail;
+      });
     }));
-    _subscriptions.add(widget.source.onNameChanged.stream.listen((event) {
-      setState(() {});
+    _subscriptions.add(widget.source.onNameChanged.stream.listen((name) {
+      setState(() {
+        _name = name;
+      });
     }));
   }
 
@@ -73,9 +84,9 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
               }
               widget.onTap(widget.source);
             },
-            child: widget.source.thumbnail != null
+            child: _thumbnail != null
                 ? Image.memory(
-                    widget.source.thumbnail!,
+                    _thumbnail!,
                     gaplessPlayback: true,
                     alignment: Alignment.center,
                   )
@@ -83,7 +94,7 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
           ),
         )),
         Text(
-          widget.source.name,
+          _name,
           style: TextStyle(
               fontSize: 12,
               color: Colors.black87,
