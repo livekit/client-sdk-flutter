@@ -226,7 +226,6 @@ abstract class Participant<T extends TrackPublication>
   /// Convenience method to unpublish all tracks.
   Future<void> unpublishAllTracks(
       {bool notify = true, bool? stopOnUnpublish}) async {
-    checkIfDisposed();
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
       await unpublishTrack(trackid, notify: notify);
@@ -235,20 +234,17 @@ abstract class Participant<T extends TrackPublication>
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.
   bool isCameraEnabled() {
-    checkIfDisposed();
     return !(getTrackPublicationBySource(TrackSource.camera)?.muted ?? true);
   }
 
   /// Convenience property to check whether [TrackSource.microphone] is published or not.
   bool isMicrophoneEnabled() {
-    checkIfDisposed();
     return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
         true);
   }
 
   /// Convenience property to check whether [TrackSource.screenShareVideo] is published or not.
   bool isScreenShareEnabled() {
-    checkIfDisposed();
     return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
         true);
   }
