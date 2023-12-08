@@ -62,6 +62,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _audioOutputs = devices.where((d) => d.kind == 'audiooutput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
+    for (var element in _videoInputs ?? []) {
+      print('video input: ${element.deviceId}');
+    }
     setState(() {});
   }
 

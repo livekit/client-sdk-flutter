@@ -11,7 +11,6 @@ import '../exts.dart';
 import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
-import '../widgets/participant_info.dart';
 import '../widgets/participant_grid_tile.dart';
 
 class RoomPage extends StatefulWidget {
@@ -33,6 +32,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   List<Participant> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+  bool get autoSubscribe => widget.room.connectOptions.autoSubscribe;
   bool gridView = false;
   @override
   void initState() {
@@ -83,6 +83,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     setState(() {
       _notification = state;
     });
+    if (autoSubscribe) return;
     if (state == AppLifecycleState.resumed) {
       for (var p in participantTracks) {
         if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
@@ -247,6 +248,44 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   Map<String, bool> visibleParticipants = {};
   Map<String, bool> participantSubscriptions = {};
 
+  Widget _widgetForParticipant(int index) {
+    final participant = participantTracks[index];
+    return VisibilityDetector(
+      key: Key(participant.identity),
+      onVisibilityChanged: (info) {
+        if (autoSubscribe) return;
+        final bool isVisible = info.visibleFraction > 0;
+        final bool isCompletelyGone = info.visibleFraction == 0;
+        final bool isSubscribed =
+            participantSubscriptions[participant.identity] ?? false;
+        final bool shouldSubscribe =
+            !isSubscribed && isVisible && participant is! LocalParticipant;
+
+        if (shouldSubscribe) {
+          subscribeToVideoTracks(
+            participant as RemoteParticipant,
+          );
+          visibleParticipants[participant.identity] = true;
+        } else if (participant is! LocalParticipant && isCompletelyGone) {
+          unSubscribeToVideoTracks(
+            participant as RemoteParticipant,
+          );
+          visibleParticipants.remove(
+            participant.identity,
+          );
+        }
+      },
+      child: SizedBox(
+        width: 240,
+        height: 180,
+        child: ParticipantGridTile(
+          participantTracks[index],
+          participantSubscriptions,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
@@ -296,47 +335,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                       childAspectRatio: 1.5,
                     ),
                     delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        final participant = participantTracks[index];
-
-                        return VisibilityDetector(
-                          key: Key(participant.identity),
-                          onVisibilityChanged: (info) {
-                            final bool isVisible = info.visibleFraction > 0;
-                            final bool isCompletelyGone =
-                                info.visibleFraction == 0;
-                            final bool isSubscribed = participantSubscriptions[
-                                    participant.identity] ??
-                                false;
-                            final bool shouldSubscribe = !isSubscribed &&
-                                isVisible &&
-                                participant is! LocalParticipant;
-
-                            if (shouldSubscribe) {
-                              subscribeToVideoTracks(
-                                participant as RemoteParticipant,
-                              );
-                              visibleParticipants[participant.identity] = true;
-                            } else if (participant is! LocalParticipant &&
-                                isCompletelyGone) {
-                              unSubscribeToVideoTracks(
-                                participant as RemoteParticipant,
-                              );
-                              visibleParticipants.remove(
-                                participant.identity,
-                              );
-                            }
-                          },
-                          child: SizedBox(
-                            width: 240,
-                            height: 180,
-                            child: ParticipantGridTile(
-                              participantTracks[index],
-                              participantSubscriptions,
-                            ),
-                          ),
-                        );
-                      },
+                      (BuildContext context, int index) =>
+                          _widgetForParticipant(index),
                       childCount: participantTracks.length,
                     ),
                   ),
@@ -358,8 +358,45 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                 children: [
                   Expanded(
                       child: participantTracks.isNotEmpty
-                          ? ParticipantWidget.widgetFor(participantTracks.first,
-                              showStatsLayer: true)
+                          ? VisibilityDetector(
+                              key: Key(participantTracks.first.identity),
+                              onVisibilityChanged: (info) {
+                                if (autoSubscribe) return;
+                                final bool isVisible = info.visibleFraction > 0;
+                                final bool isCompletelyGone =
+                                    info.visibleFraction == 0;
+                                final bool isSubscribed =
+                                    participantSubscriptions[
+                                            participantTracks.first.identity] ??
+                                        false;
+                                final bool shouldSubscribe = !isSubscribed &&
+                                    isVisible &&
+                                    participantTracks.first
+                                        is! LocalParticipant;
+
+                                if (shouldSubscribe) {
+                                  subscribeToVideoTracks(
+                                    participantTracks.first
+                                        as RemoteParticipant,
+                                  );
+                                  visibleParticipants[
+                                      participantTracks.first.identity] = true;
+                                } else if (participantTracks.first
+                                        is! LocalParticipant &&
+                                    isCompletelyGone) {
+                                  unSubscribeToVideoTracks(
+                                    participantTracks.first
+                                        as RemoteParticipant,
+                                  );
+                                  visibleParticipants.remove(
+                                    participantTracks.first.identity,
+                                  );
+                                }
+                              },
+                              child: ParticipantWidget.widgetFor(
+                                  participantTracks.first,
+                                  showStatsLayer: true),
+                            )
                           : Container()),
                   if (widget.room.localParticipant != null)
                     SafeArea(
@@ -380,12 +417,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
                       scrollDirection: Axis.horizontal,
                       itemCount: math.max(0, participantTracks.length - 1),
                       itemBuilder: (BuildContext context, int index) =>
-                          SizedBox(
-                        width: 180,
-                        height: 120,
-                        child: ParticipantWidget.widgetFor(
-                            participantTracks[index + 1]),
-                      ),
+                          _widgetForParticipant(index + 1),
                     ),
                   )),
           ],

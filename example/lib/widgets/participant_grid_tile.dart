@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_example/widgets/no_video.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import 'participant.dart';
 
 extension ParticipantExtension on Participant {
   bool get isLocalParticipant => this is LocalParticipant;
@@ -60,14 +61,8 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
                   width: 2,
                 )),
                 position: DecorationPosition.foreground,
-                child: hasVideo
-                    ? VideoTrackRenderer(
-                        widget.participant.videoTracks[0].track as VideoTrack,
-                      )
-                    : const NoVideoWidget(),
+                child: ParticipantWidget.widgetFor(widget.participant),
               ),
-              Text(
-                  'cam: ${widget.participant.isCameraEnabled()}\n ${widget.participant.identity} ($name)'),
               Material(
                 type: MaterialType.transparency,
                 child: InkWell(
