@@ -52,7 +52,7 @@ class _RoomPageState extends State<RoomPage> {
 
     ReplayKitChannel.listenMethodChannel(widget.room);
 
-    if (!lkPlatformIs(PlatformType.web) && !lkPlatformIsTest()) {
+    if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
         unawaited(widget.room.disconnect());
         await _listener.waitFor<RoomDisconnectedEvent>(
