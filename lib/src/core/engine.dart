@@ -159,12 +159,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       logger.fine('Waiting for engine to connect...');
 
-      // wait until engine is connected
+      // wait until primary pc is connected
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(
-            'Timed out waiting for EnginePeerStateUpdatedEvent'),
+        onTimeout: () => throw MediaConnectException(
+            'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity'),
       );
 
       _updateConnectionState(ConnectionState.connected);
@@ -631,6 +631,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: connectOptions.timeouts.peerConnection,
+        onTimeout: () => throw MediaConnectException('ice restart failed'),
       );
       logger.fine('resumeConnection: primary connected');
     }

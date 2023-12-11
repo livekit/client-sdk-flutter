@@ -131,6 +131,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
           '${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
       participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
     }
+    _metadataMuted = event.muted;
     // emit events
     final newEvent = event.muted
         ? TrackMutedEvent(participant: participant, publication: this)
