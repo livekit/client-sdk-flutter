@@ -87,7 +87,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
     setState(() {});
   }
 
-  void _setEnableVideo(value) async {
+  Future<void> _setEnableVideo(value) async {
     _enableVideo = value;
     if (!_enableVideo) {
       await _videoTrack?.stop();
@@ -98,7 +98,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
     setState(() {});
   }
 
-  void _setEnableAudio(value) async {
+  Future<void> _setEnableAudio(value) async {
     _enableAudio = value;
     if (!_enableAudio) {
       await _audioTrack?.stop();
@@ -209,11 +209,26 @@ class _PreJoinPageState extends State<PreJoinPage> {
     }
   }
 
+  void _actionBack(BuildContext context) async {
+    await _setEnableVideo(false);
+    await _setEnableAudio(false);
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Select Devices'),
+          title: const Text(
+            'Select Devices',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => _actionBack(context),
+          ),
         ),
         body: Container(
             alignment: Alignment.center,
