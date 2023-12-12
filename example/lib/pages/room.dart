@@ -76,13 +76,9 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  AppLifecycleState? _notification;
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _notification = state;
-    });
+    setState(() {});
     if (autoSubscribe) return;
     if (state == AppLifecycleState.resumed) {
       for (var p in participantTracks) {

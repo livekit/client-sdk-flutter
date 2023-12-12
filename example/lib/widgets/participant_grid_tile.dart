@@ -71,7 +71,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
                     if (lkPlatformIsMobile()) {
                       Fluttertoast.showToast(
                           msg:
-                              'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}',
+                              'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}, hasVideo = $hasVideo',
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.BOTTOM,
                           timeInSecForIosWeb: 1,
@@ -80,7 +80,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
                           fontSize: 16.0);
                     } else {
                       print(
-                          'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}');
+                          'participant.isCameraEnabled() = ${widget.participant.isCameraEnabled()}, hasVideo = $hasVideo');
                     }
                   },
                   child: Container(
