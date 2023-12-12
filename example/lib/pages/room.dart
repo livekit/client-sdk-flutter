@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
@@ -24,7 +26,6 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  //
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
@@ -45,6 +46,14 @@ class _RoomPageState extends State<RoomPage> {
     if (lkPlatformIsMobile()) {
       Hardware.instance.setSpeakerphoneOn(true);
     }
+
+    if (lkPlatformIsDesktop()) {
+      onWindowShouldClose = () async {
+        unawaited(widget.room.disconnect());
+        await _listener.waitFor<RoomDisconnectedEvent>(
+            duration: const Duration(seconds: 5));
+      };
+    }
   }
 
   @override
@@ -55,6 +64,7 @@ class _RoomPageState extends State<RoomPage> {
       await _listener.dispose();
       await widget.room.dispose();
     })();
+    onWindowShouldClose = null;
     super.dispose();
   }
 

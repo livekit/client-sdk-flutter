@@ -161,12 +161,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       logger.fine('Waiting for engine to connect...');
 
-      // wait until engine is connected
+      // wait until primary pc is connected
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException(
-            'Timed out waiting for EnginePeerStateUpdatedEvent'),
+        onTimeout: () => throw MediaConnectException(
+            'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity'),
       );
 
       _updateConnectionState(ConnectionState.connected);
@@ -646,7 +646,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await events.waitFor<EnginePeerStateUpdatedEvent>(
           filter: (event) => event.isPrimary && event.state.isConnected(),
           duration: connectOptions.timeouts.iceRestart,
-          onTimeout: () => throw ConnectException(),
+          onTimeout: () => throw MediaConnectException('ice restart failed'),
         );
       }
     }
@@ -970,7 +970,11 @@ extension EngineInternalMethods on Engine {
       matched.add(c);
     }
     matched.addAll([...partialMatched, ...unmatched]);
-    await transceiver.setCodecPreferences(matched);
+    try {
+      await transceiver.setCodecPreferences(matched);
+    } catch (e) {
+      logger.warning('setCodecPreferences failed: $e');
+    }
   }
 }
 

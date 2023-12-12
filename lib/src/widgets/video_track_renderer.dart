@@ -19,6 +19,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
+import '../logger.dart';
 import '../managers/event.dart';
 import '../support/platform.dart';
 import '../track/local/local.dart';
@@ -51,29 +52,38 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
-  bool _rendererReady = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
+
+  Future<rtc.RTCVideoRenderer?> _initializeRenderer() async {
+    _renderer ??= rtc.RTCVideoRenderer();
+    await _renderer!.initialize();
+    await _attach();
+    return _renderer;
+  }
+
+  void disposeRenderer() {
+    try {
+      _renderer?.srcObject = null;
+      _renderer?.dispose();
+      _renderer = null;
+    } catch (e) {
+      logger.warning('Got error disposing renderer: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _internalKey = widget.track.addViewKey();
-    (() async {
-      _renderer ??= rtc.RTCVideoRenderer();
-      await _renderer?.initialize();
-      await _attach();
-      setState(() => _rendererReady = true);
-    })();
   }
 
   @override
   void dispose() {
     widget.track.removeViewKey(_internalKey);
     _listener?.dispose();
-    _renderer?.srcObject = null;
-    _renderer?.dispose();
+    disposeRenderer();
     super.dispose();
   }
 
@@ -110,24 +120,30 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   @override
-  Widget build(BuildContext context) => !_rendererReady
-      ? Container()
-      : Builder(
-          key: _internalKey,
-          builder: (ctx) {
-            // let it render before notifying build
-            WidgetsBindingCompatible.instance
-                ?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewBuild?.call(_internalKey);
-            });
-            return rtc.RTCVideoView(
-              _renderer!,
-              mirror: _shouldMirror(),
-              filterQuality: FilterQuality.medium,
-              objectFit: widget.fit,
-            );
-          },
-        );
+  Widget build(BuildContext context) => FutureBuilder(
+      future: _initializeRenderer(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && _renderer != null) {
+          return Builder(
+            key: _internalKey,
+            builder: (ctx) {
+              // let it render before notifying build
+              WidgetsBindingCompatible.instance
+                  ?.addPostFrameCallback((timeStamp) {
+                widget.track.onVideoViewBuild?.call(_internalKey);
+              });
+              return rtc.RTCVideoView(
+                _renderer!,
+                mirror: _shouldMirror(),
+                filterQuality: FilterQuality.medium,
+                objectFit: widget.fit,
+              );
+            },
+          );
+        }
+
+        return Container();
+      });
 
   bool _shouldMirror() {
     // off for screen share

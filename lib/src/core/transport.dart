@@ -123,7 +123,12 @@ class Transport extends Disposable {
       return;
     }
 
-    await pc.setRemoteDescription(sd);
+    try {
+      await pc.setRemoteDescription(sd);
+    } catch (e) {
+      logger
+          .warning('[$objectId] setRemoteDescription() failed with error: $e');
+    }
 
     for (final candidate in _pendingCandidates) {
       await pc.addCandidate(candidate);

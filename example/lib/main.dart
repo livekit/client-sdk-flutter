@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
 import 'pages/connect.dart';
+import 'utils.dart';
 
 void main() async {
   final format = DateFormat('HH:mm:ss');
@@ -13,6 +16,13 @@ void main() async {
   });
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (lkPlatformIsDesktop()) {
+    FlutterWindowClose.setWindowShouldCloseHandler(() async {
+      await onWindowShouldClose?.call();
+      return true;
+    });
+  }
 
   runApp(const LiveKitExampleApp());
 }

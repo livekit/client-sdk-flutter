@@ -30,6 +30,15 @@ class ConnectException extends LiveKitException {
   ConnectException([String msg = 'Failed to connect to server']) : super._(msg);
 }
 
+/// An exception occured while attempting to disconnect.
+/// Common reasons:
+/// - Network condition is not good.
+/// - SFU deploy behind a NAT and not configured correctly.
+/// - Need a turn relay server but not configured.
+class MediaConnectException extends LiveKitException {
+  MediaConnectException([String msg = 'Ice connection failed']) : super._(msg);
+}
+
 /// An internal state of the SDK is not correct and can not continue to execute.
 /// This should not occur frequently.
 class UnexpectedStateException extends LiveKitException {
