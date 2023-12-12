@@ -201,8 +201,6 @@ class VideoPublishOptions {
 
   final String? scalabilityMode;
 
-  final bool enableBackupCodec;
-
   final BackupVideoCodec? backupVideoCodec;
 
   const VideoPublishOptions({
@@ -212,7 +210,6 @@ class VideoPublishOptions {
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
     this.name,
-    this.enableBackupCodec = true,
     this.backupVideoCodec,
     this.scalabilityMode,
   });
@@ -223,7 +220,6 @@ class VideoPublishOptions {
     List<VideoParameters>? videoSimulcastLayers,
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
-    bool? enableBackupCodec,
     BackupVideoCodec? backupVideoCodec,
     String? scalabilityMode,
   }) =>
@@ -234,7 +230,6 @@ class VideoPublishOptions {
         screenShareSimulcastLayers:
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
-        enableBackupCodec: enableBackupCodec ?? this.enableBackupCodec,
         backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
       );

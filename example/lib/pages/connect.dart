@@ -142,7 +142,7 @@ class _ConnectPageState extends State<ConnectPage> {
         preferredCodec = _preferredCodec;
       }
 
-      bool enableBackUpCodec = ['VP9', 'AV1'].contains(preferredCodec);
+      bool enableBackupVideoCodec = ['VP9', 'AV1'].contains(preferredCodec);
 
       // create new room
       final room = Room(
@@ -155,7 +155,7 @@ class _ConnectPageState extends State<ConnectPage> {
         defaultVideoPublishOptions: VideoPublishOptions(
           simulcast: _simulcast,
           videoCodec: preferredCodec,
-          enableBackupCodec: enableBackUpCodec,
+          backupVideoCodec: enableBackupVideoCodec ? BackupVideoCodec() : null,
         ),
         defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
             useiOSBroadcastExtension: true,

@@ -210,12 +210,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     ];
 
-    if (publishOptions.enableBackupCodec == true &&
-        publishOptions.backupVideoCodec == null) {
-      publishOptions.copyWith(backupVideoCodec: BackupVideoCodec());
-    }
-
-    if (publishOptions.enableBackupCodec == true &&
+    if (publishOptions.backupVideoCodec != null &&
         publishOptions.backupVideoCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs.add(lk_rtc.SimulcastCodec(
         codec: publishOptions.backupVideoCodec!.codec.toLowerCase(),
