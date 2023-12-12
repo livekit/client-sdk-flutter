@@ -1,3 +1,17 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -151,11 +165,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) {
-    if (roomOptions?.e2eeOptions != null) {
+    roomOptions ??= this.roomOptions;
+    if (roomOptions.e2eeOptions != null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
-      _e2eeManager = E2EEManager(roomOptions!.e2eeOptions!.keyProvider);
+      _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
       _e2eeManager!.setup(this);
     }
     return engine.connect(
@@ -240,6 +255,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         _getOrCreateRemoteParticipant(info.sid, info);
       }
 
+      if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
+        e2eeManager!.keyProvider
+            .setSifTrailer(Uint8List.fromList(event.response.sifTrailer));
+      }
+
       logger.fine('Room Connect completed');
     })
     ..on<SignalParticipantUpdateEvent>(
@@ -250,7 +270,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         (event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>(
         (event) => _onSignalStreamStateUpdateEvent(event.updates))
-    ..on<SignalSubscribedQualityUpdatedEvent>((event) {
+    ..on<SignalSubscribedQualityUpdatedEvent>((event) async {
       // Dynacast is off or is unsupported
       if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
         logger.fine('Received subscribed quality update'
@@ -264,7 +284,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             'Received subscribed quality update for unknown track (${event.trackSid})');
         return;
       }
-      publication.updatePublishingLayers(event.updates);
+      if (event.subscribedCodecs.isNotEmpty) {
+        if (publication.track! is! LocalVideoTrack) {
+          return;
+        }
+        var videoTrack = publication.track as LocalVideoTrack;
+        final newCodecs = await videoTrack.setPublishingCodecs(
+            event.subscribedCodecs, videoTrack);
+        for (var codec in newCodecs) {
+          if (isBackupCodec(codec)) {
+            logger.info(
+                'publishing backup codec ${codec} for ${publication.track?.sid}');
+            await localParticipant?.publishAdditionalCodecForPublication(
+                publication, codec);
+          }
+        }
+      } else if (event.subscribedQualities.isNotEmpty) {
+        var videoTrack = publication.track as LocalVideoTrack;
+        await videoTrack.updatePublishingLayers(
+            videoTrack, event.subscribedQualities);
+      }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
       logger.fine('SignalSubscriptionPermissionUpdateEvent '

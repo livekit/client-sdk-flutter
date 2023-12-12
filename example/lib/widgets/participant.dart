@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -170,8 +169,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
                     isScreenShare: widget.isScreenShare,
-                    enabledE2EE: widget.participant.firstTrackEncryptionType !=
-                        EncryptionType.kNone,
+                    enabledE2EE: widget.participant.isEncrypted,
                   ),
                 ],
               ),
@@ -222,18 +220,23 @@ class _RemoteParticipantWidgetState
             if (firstAudioPublication != null && !isScreenShare)
               RemoteTrackPublicationMenuWidget(
                 pub: firstAudioPublication!,
-                icon: EvaIcons.volumeUp,
+                icon: Icons.volume_up,
               ),
             // Menu for RemoteTrackPublication<RemoteVideoTrack>
             if (videoPublication != null)
               RemoteTrackPublicationMenuWidget(
                 pub: videoPublication!,
-                icon: isScreenShare ? EvaIcons.monitor : EvaIcons.video,
+                icon: isScreenShare ? Icons.monitor : Icons.videocam,
               ),
             if (videoPublication != null)
               RemoteTrackFPSMenuWidget(
                 pub: videoPublication!,
-                icon: EvaIcons.options2,
+                icon: Icons.menu,
+              ),
+            if (videoPublication != null)
+              RemoteTrackQualityMenuWidget(
+                pub: videoPublication!,
+                icon: Icons.monitor_outlined,
               ),
           ],
         ),
@@ -291,7 +294,7 @@ class RemoteTrackFPSMenuWidget extends StatelessWidget {
   Widget build(BuildContext context) => Material(
         color: Colors.black.withOpacity(0.3),
         child: PopupMenuButton<Function>(
-          tooltip: 'PreferredFPS',
+          tooltip: 'Preferred FPS',
           icon: Icon(icon, color: Colors.white),
           onSelected: (value) => value(),
           itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
@@ -306,6 +309,44 @@ class RemoteTrackFPSMenuWidget extends StatelessWidget {
             PopupMenuItem(
               child: const Text('8'),
               value: () => pub.setVideoFPS(8),
+            ),
+          ],
+        ),
+      );
+}
+
+class RemoteTrackQualityMenuWidget extends StatelessWidget {
+  final IconData icon;
+  final RemoteTrackPublication pub;
+  const RemoteTrackQualityMenuWidget({
+    required this.pub,
+    required this.icon,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.black.withOpacity(0.3),
+        child: PopupMenuButton<Function>(
+          tooltip: 'Preferred Quality',
+          icon: Icon(icon, color: Colors.white),
+          onSelected: (value) => value(),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
+            PopupMenuItem(
+              child: const Text('HIGH'),
+              value: () => pub.setVideoQuality(VideoQuality.HIGH),
+            ),
+            PopupMenuItem(
+              child: const Text('MEDIUM'),
+              value: () => pub.setVideoQuality(VideoQuality.MEDIUM),
+            ),
+            PopupMenuItem(
+              child: const Text('LOW'),
+              value: () => pub.setVideoQuality(VideoQuality.LOW),
+            ),
+            PopupMenuItem(
+              child: const Text('OFF'),
+              value: () => pub.setVideoQuality(VideoQuality.OFF),
             ),
           ],
         ),

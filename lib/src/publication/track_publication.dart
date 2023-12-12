@@ -1,3 +1,17 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'package:meta/meta.dart';
 
 import '../../livekit_client.dart';
@@ -18,6 +32,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   final String name;
   final lk_models.TrackType kind;
   final TrackSource source;
+  bool _metadataMuted = false;
 
   /// The current [Track] for this publication (readonly).
   T? get track => _track;
@@ -26,7 +41,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   /// The [Participant] this publication belongs to.
   abstract final Participant participant;
 
-  bool get muted => track?.muted ?? false;
+  bool get muted => _metadataMuted;
 
   /// If the [Track] is published with simulcast, only for video. (readonly)
   bool get simulcasted => _simulcasted;
@@ -58,6 +73,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
         kind = info.type,
         source = info.source.toLKType(),
         _simulcasted = info.simulcast,
+        _metadataMuted = info.muted,
         _mimeType = info.mimeType {
     updateFromInfo(info);
   }
@@ -70,6 +86,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   void updateFromInfo(lk_models.TrackInfo info) {
     _simulcasted = info.simulcast;
     _mimeType = info.mimeType;
+    _metadataMuted = info.muted;
     if (info.type == lk_models.TrackType.VIDEO) {
       _dimensions = VideoDimensions(info.width, info.height);
     }

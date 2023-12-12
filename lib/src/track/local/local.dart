@@ -1,3 +1,17 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -66,7 +80,12 @@ abstract class LocalTrack extends Track {
           source,
           mediaStream,
           mediaStreamTrack,
-        );
+        ) {
+    mediaStreamTrack.onEnded = () {
+      logger.fine('MediaStreamTrack.onEnded()');
+      events.emit(TrackEndedEvent(track: this));
+    };
+  }
 
   /// Mutes this [LocalTrack]. This will stop the sending of track data
   /// and notify the [RemoteParticipant] with [TrackMutedEvent].
@@ -140,6 +159,13 @@ abstract class LocalTrack extends Track {
         if (options.selfBrowserSurface != null) {
           constraints['selfBrowserSurface'] = options.selfBrowserSurface!;
         }
+
+        // Remove resolution settings to fix low-resolution screen share on Safari 17.
+        // related bug: https://bugs.webkit.org/show_bug.cgi?id=263015
+        if (lkBrowser() == BrowserType.safari &&
+            lkBrowserVersion().major == 17) {
+          constraints['video'] = true;
+        }
       }
       stream = await rtc.navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
@@ -178,6 +204,10 @@ abstract class LocalTrack extends Track {
     // replace track on sender
     try {
       await sender?.replaceTrack(newTrack);
+      if (this is LocalVideoTrack) {
+        var videoTrack = this as LocalVideoTrack;
+        await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
+      }
     } catch (error) {
       logger.severe('RTCRtpSender.replaceTrack() did throw $error');
     }

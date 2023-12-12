@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -247,7 +246,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                                       alignment: Alignment.center,
                                       child: LayoutBuilder(
                                         builder: (ctx, constraints) => Icon(
-                                          EvaIcons.videoOffOutline,
+                                          Icons.videocam_off,
                                           color: LKColors.lkBlue,
                                           size: math.min(constraints.maxHeight,
                                                   constraints.maxWidth) *

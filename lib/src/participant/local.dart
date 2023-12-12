@@ -1,13 +1,30 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
+import '../core/transport.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
+import '../internal/events.dart';
 import '../logger.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -92,6 +109,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.onPublish();
     await room.applyAudioSpeakerSettings();
 
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
+
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
       publication: pub,
@@ -115,11 +138,36 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions =
         publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
-    // set the default sending bitrate
-    if (publishOptions.videoEncoding == null) {
+    if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
-        videoEncoding: track.currentOptions.params.encoding,
+        videoCodec: publishOptions.videoCodec.toLowerCase(),
       );
+    }
+
+    // handle SVC publishing
+    final isSVC = isSVCCodec(publishOptions.videoCodec);
+    if (isSVC) {
+      if (!room.roomOptions.dynacast) {
+        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
+      }
+      if (publishOptions.backupCodec == null) {
+        publishOptions = publishOptions.copyWith(
+          backupCodec: BackupVideoCodec(),
+        );
+      }
+      if (publishOptions.scalabilityMode == null) {
+        publishOptions = publishOptions.copyWith(
+          scalabilityMode: 'L3T3_KEY',
+        );
+      }
+
+      // vp9 svc with screenshare has problem to encode, always use L1T3 here
+      if (track.source == TrackSource.screenShareVideo &&
+          publishOptions.videoCodec.toLowerCase() == 'vp9') {
+        publishOptions = publishOptions.copyWith(
+          scalabilityMode: 'L1T3',
+        );
+      }
     }
 
     // use constraints passed to getUserMedia by default
@@ -145,15 +193,35 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
     // Video encodings and simulcasts
-    final encodings = Utils.computeVideoEncodings(
+    var encodings = Utils.computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
       dimensions: dimensions,
       options: publishOptions,
+      codec: publishOptions.videoCodec,
     );
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
-    final layers = Utils.computeVideoLayers(dimensions, encodings);
+    var simulcastCodecs = <lk_rtc.SimulcastCodec>[
+      lk_rtc.SimulcastCodec(
+        codec: publishOptions.videoCodec,
+        cid: track.getCid(),
+      ),
+    ];
+
+    if (publishOptions.backupCodec != null &&
+        publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
+      simulcastCodecs.add(lk_rtc.SimulcastCodec(
+        codec: publishOptions.backupCodec!.codec.toLowerCase(),
+        cid: '',
+      ));
+    }
+
+    final layers = Utils.computeVideoLayers(
+      dimensions,
+      encodings,
+      isSVC,
+    );
 
     logger.fine('Video layers: ${layers.map((e) => e)}');
 
@@ -167,16 +235,41 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       source: track.source.toPBType(),
       dimensions: dimensions,
       videoLayers: layers,
+      simulcastCodecs: simulcastCodecs,
+      videoCodec: publishOptions.videoCodec,
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
 
     await track.start();
 
+    String? primaryCodecMime;
+    for (var codec in trackInfo.codecs) {
+      primaryCodecMime ??= codec.mimeType;
+    }
+
+    if (primaryCodecMime != null) {
+      final updatedCodec = mimeTypeToVideoCodecString(primaryCodecMime);
+      if (updatedCodec != publishOptions.videoCodec) {
+        logger.fine(
+          'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
+        );
+        publishOptions = publishOptions.copyWith(
+          videoCodec: updatedCodec,
+        );
+        // recompute encodings since bitrates/etc could have changed
+        encodings = Utils.computeVideoEncodings(
+          isScreenShare: track.source == TrackSource.screenShareVideo,
+          dimensions: dimensions,
+          options: publishOptions,
+          codec: publishOptions.videoCodec,
+        );
+      }
+    }
+
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
       sendEncodings: encodings,
-      streams: [track.mediaStream],
     );
 
     logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
@@ -188,37 +281,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     if (lkBrowser() != BrowserType.firefox) {
-      var videoCodec = publishOptions.videoCodec.toLowerCase();
-      var caps = await rtc.getRtpSenderCapabilities('video');
-      List<rtc.RTCRtpCodecCapability> matched = [];
-      List<rtc.RTCRtpCodecCapability> partialMatched = [];
-      List<rtc.RTCRtpCodecCapability> unmatched = [];
-      for (var c in caps.codecs!) {
-        var codec = c.mimeType.toLowerCase();
-        if (codec == 'audio/opus') {
-          matched.add(c);
-          continue;
-        }
-
-        var matchesVideoCodec = codec == 'video/$videoCodec';
-        if (!matchesVideoCodec) {
-          unmatched.add(c);
-          continue;
-        }
-        if (publishOptions.videoCodec == 'h264') {
-          if (c.sdpFmtpLine != null &&
-              c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
-            matched.add(c);
-          } else {
-            partialMatched.add(c);
-          }
-          continue;
-        }
-        matched.add(c);
-      }
-      matched.addAll([...partialMatched, ...unmatched]);
-      await track.transceiver?.setCodecPreferences(matched);
-      track.codec = videoCodec;
+      await room.engine.setPreferredCodec(
+        track.transceiver!,
+        'video',
+        publishOptions.videoCodec,
+      );
+      track.codec = publishOptions.videoCodec;
     }
 
     // prefer to maintainResolution for screen share
@@ -230,6 +298,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       await sender.setParameters(parameters);
     }
 
+    if (kIsWeb &&
+        lkBrowser() == BrowserType.firefox &&
+        track.kind == lk_models.TrackType.AUDIO) {
+      //TOOD:
+    } else if (isSVCCodec(publishOptions.videoCodec) &&
+        encodings?.first.maxBitrate != null) {
+      room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+          cid: track.getCid(),
+          transceiver: track.transceiver,
+          codec: publishOptions.videoCodec,
+          maxbr: encodings![0].maxBitrate! ~/ 1000));
+    }
+
     await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(
@@ -238,9 +319,16 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       track: track,
     );
     addTrackPublication(pub);
+    pub.backupVideoCodec = publishOptions.backupCodec;
 
     // did publish
     await track.onPublish();
+
+    var listener = track.createListener();
+    listener.on((TrackEndedEvent event) {
+      logger.fine('TrackEndedEvent: ${event.track}');
+      unpublishTrack(pub.sid);
+    });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
       participant: this,
@@ -271,6 +359,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (sender != null) {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
+          if (track is LocalVideoTrack) {
+            track.simulcastCodecs.forEach((key, simulcastTrack) async {
+              await room.engine.publisher?.pc
+                  .removeTrack(simulcastTrack.sender!);
+            });
+          }
         } catch (_) {
           logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
         }
@@ -407,6 +501,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else {
         if (source == TrackSource.screenShareVideo) {
           await unpublishTrack(publication.sid);
+          final screenAudio =
+              getTrackPublicationBySource(TrackSource.screenShareAudio);
+          if (screenAudio != null) {
+            await unpublishTrack(screenAudio.sid);
+          }
         } else {
           await publication.mute();
         }
@@ -431,7 +530,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
         /// so we publish it twice here, but only return videoTrack to user.
-        if (captureScreenAudio != null) {
+        if (captureScreenAudio ?? false) {
           captureOptions = captureOptions.copyWith(captureScreenAudio: true);
           final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
               captureOptions);
@@ -512,5 +611,81 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ));
     }
     return oldValue;
+  }
+
+  Future<void> publishAdditionalCodecForPublication(
+    LocalTrackPublication publication,
+    String backupCodec,
+  ) async {
+    if (publication.track is! LocalVideoTrack) {
+      throw Exception('multi-codec simulcast is supported only for video');
+    }
+    var track = publication.track as LocalVideoTrack;
+
+    final backupCodecOpts = publication.backupVideoCodec;
+    if (backupCodecOpts == null) {
+      throw Exception('backupCodec settings not specified');
+    }
+
+    var options = room.roomOptions.defaultVideoPublishOptions;
+    options = options.copyWith(simulcast: backupCodecOpts.simulcast);
+
+    if (backupCodec.toLowerCase() == publication.track?.codec?.toLowerCase()) {
+      // not needed, same codec already published
+      return;
+    }
+
+    if (backupCodec != backupCodecOpts.codec.toLowerCase()) {
+      logger.warning(
+        'requested a different codec than specified as backup serverRequested: ${backupCodec}, backup: ${backupCodecOpts.codec}',
+      );
+    }
+
+    var encodings = Utils.computeTrackBackupEncodings(track, backupCodecOpts);
+    if (encodings == null) {
+      logger.fine(
+          'backup codec has been disabled, ignoring request to add additional codec for track');
+      return;
+    }
+
+    var simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
+    var dimensions = track.currentOptions.params.dimensions;
+
+    var layers = Utils.computeVideoLayers(
+        dimensions, encodings, isSVCCodec(backupCodec));
+
+    simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
+      track,
+      simulcastTrack,
+      encodings,
+      publication,
+      backupCodec,
+    );
+
+    var cid = simulcastTrack.sender!.senderId;
+
+    final trackInfo = await room.engine.addTrack(
+        cid: cid,
+        name: options.name ??
+            (track.source == TrackSource.screenShareVideo
+                ? VideoPublishOptions.defaultScreenShareName
+                : VideoPublishOptions.defaultCameraName),
+        kind: track.kind,
+        source: track.source.toPBType(),
+        dimensions: dimensions,
+        videoLayers: layers,
+        sid: publication.sid,
+        simulcastCodecs: <lk_rtc.SimulcastCodec>[
+          lk_rtc.SimulcastCodec(
+            codec: backupCodec.toLowerCase(),
+            cid: cid,
+          ),
+        ],
+        videoCodec: backupCodec);
+
+    await room.engine.negotiate();
+
+    logger.info(
+        'published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
   }
 }

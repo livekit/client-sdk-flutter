@@ -1,3 +1,17 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:async';
 import 'dart:collection';
 
@@ -227,7 +241,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.subscribedQualityUpdate:
         events.emit(SignalSubscribedQualityUpdatedEvent(
           trackSid: msg.subscribedQualityUpdate.trackSid,
-          updates: msg.subscribedQualityUpdate.subscribedQualities,
+          subscribedQualities: msg.subscribedQualityUpdate.subscribedQualities,
+          subscribedCodecs: msg.subscribedQualityUpdate.subscribedCodecs,
         ));
         break;
       case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
@@ -354,6 +369,8 @@ extension SignalClientRequests on SignalClient {
     VideoDimensions? dimensions,
     bool? dtx,
     Iterable<lk_models.VideoLayer>? videoLayers,
+    Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
+    String? sid,
   }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
@@ -361,6 +378,9 @@ extension SignalClientRequests on SignalClient {
       type: type,
       source: source,
       encryption: encryptionType,
+      simulcastCodecs: simulcastCodecs,
+      sid: sid,
+      muted: false,
     );
 
     if (type == lk_models.TrackType.VIDEO) {

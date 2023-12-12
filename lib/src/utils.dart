@@ -1,3 +1,17 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -16,6 +30,8 @@ import 'livekit.dart';
 import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
+import 'track/local/video.dart';
+import 'types/other.dart';
 import 'types/video_dimensions.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -255,6 +271,7 @@ class Utils {
     required bool isScreenShare,
     required VideoDimensions dimensions,
     required List<VideoParameters> presets,
+    String? codec,
   }) {
     assert(presets.isNotEmpty, 'presets should not be empty');
     VideoEncoding result = presets.first.encoding;
@@ -265,6 +282,26 @@ class Utils {
     for (final preset in presets) {
       result = preset.encoding;
       if (preset.dimensions.width >= size) break;
+    }
+
+    // presets are based on the assumption of vp8 as a codec
+    // for other codecs we adjust the maxBitrate if no specific videoEncoding has been provided
+    // users should override these with ones that are optimized for their use case
+    // NOTE: SVC codec bitrates are inclusive of all scalability layers. while
+    // bitrate for non-SVC codecs does not include other simulcast layers.
+    if (codec != null) {
+      switch (codec) {
+        case 'av1':
+          result =
+              result.copyWith(maxBitrate: (result.maxBitrate * 0.7).toInt());
+          break;
+        case 'vp9':
+          result =
+              result.copyWith(maxBitrate: (result.maxBitrate * 0.85).toInt());
+          break;
+        default:
+          break;
+      }
     }
 
     return result;
@@ -355,12 +392,17 @@ class Utils {
     required bool isScreenShare,
     VideoDimensions? dimensions,
     VideoPublishOptions? options,
+    String? codec,
   }) {
     options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
+    var scalabilityMode = options.scalabilityMode;
 
-    if ((videoEncoding == null && !options.simulcast) || dimensions == null) {
+    if ((videoEncoding == null &&
+            !options.simulcast &&
+            scalabilityMode == null) ||
+        dimensions == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return [rtc.RTCRtpEncoding()];
@@ -377,14 +419,10 @@ class Utils {
         isScreenShare: isScreenShare,
         dimensions: dimensions,
         presets: presets,
+        codec: codec,
       );
 
       logger.fine('using video encoding', videoEncoding);
-    }
-
-    if (!options.simulcast) {
-      // not using simulcast
-      return [videoEncoding.toRTCRtpEncoding()];
     }
 
     final original = VideoParameters(
@@ -392,6 +430,34 @@ class Utils {
       encoding: videoEncoding,
     );
 
+    if (scalabilityMode != null && isSVCCodec(options.videoCodec)) {
+      logger.info('using svc with scalabilityMode ${scalabilityMode}');
+
+      //final sm = ScalabilityMode(scalabilityMode);
+
+      List<rtc.RTCRtpEncoding> encodings = [videoEncoding.toRTCRtpEncoding()];
+      /*
+      if (sm.spatial > 3) {
+        throw Exception('unsupported scalabilityMode: ${scalabilityMode}');
+      }
+      for (int i = 0; i < sm.spatial; i += 1) {
+        encodings.add(rtc.RTCRtpEncoding(
+          rid: videoRids[2 - i],
+          maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
+          maxFramerate: videoEncoding.maxFramerate,
+          scaleResolutionDownBy: null,
+          numTemporalLayers: sm.temporal.toInt(),
+        ));
+      }*/
+      encodings[0].scalabilityMode = scalabilityMode;
+      logger.fine('encodings $encodings');
+      return encodings;
+    } else if (!options.simulcast) {
+      // not using simulcast
+      return [videoEncoding.toRTCRtpEncoding()];
+    }
+
+    // compute simulcast encodings
     final userParams = isScreenShare
         ? options.screenShareSimulcastLayers
         : options.videoSimulcastLayers;
@@ -424,9 +490,28 @@ class Utils {
   }
 
   @internal
+  static List<rtc.RTCRtpEncoding>? computeTrackBackupEncodings(
+    LocalVideoTrack track,
+    BackupVideoCodec backupOpts,
+  ) {
+    final opts = VideoPublishOptions(
+      videoCodec: backupOpts.codec,
+      videoEncoding: backupOpts.encoding,
+      simulcast: backupOpts.simulcast,
+    );
+    var encodings = computeVideoEncodings(
+      isScreenShare: track.source == TrackSource.screenShareVideo,
+      dimensions: track.currentOptions.params.dimensions,
+      options: opts,
+    );
+    return encodings;
+  }
+
+  @internal
   static List<lk_models.VideoLayer> computeVideoLayers(
     VideoDimensions dimensions,
     List<rtc.RTCRtpEncoding>? encodings,
+    bool isSVC,
   ) {
     // default to a single layer, HQ
     if (encodings == null) {
@@ -438,6 +523,22 @@ class Utils {
           bitrate: 0,
         )
       ];
+    }
+
+    if (isSVC) {
+      final sm = ScalabilityMode(encodings[0].scalabilityMode ?? 'L3T3_KEY');
+      final List<lk_models.VideoLayer> layers = [];
+      final maxBitrate = encodings[0].maxBitrate ?? 0;
+      for (var i = 0; i < sm.spatial; i++) {
+        layers.add(lk_models.VideoLayer(
+          quality: lk_models.VideoQuality.valueOf(
+              lk_models.VideoQuality.HIGH.value - i),
+          width: (dimensions.width / math.pow(2, i)).floor(),
+          height: (dimensions.height / math.pow(2, i)).floor(),
+          bitrate: (maxBitrate / math.pow(3, i)).ceil(),
+        ));
+      }
+      return layers;
     }
 
     return encodings.map((e) {
@@ -480,4 +581,53 @@ class Utils {
       cancelFunc?.call(t!.cancel);
     };
   }
+}
+
+const refreshSubscribedCodecAfterNewCodec = 5000;
+
+bool isSVCCodec(String codec) => ['vp9', 'av1'].contains(codec.toLowerCase());
+
+class ScalabilityMode {
+  late num spatial;
+
+  late num temporal;
+
+  String? suffix;
+
+  /// 'h' | '_KEY' | '_KEY_SHIFT';
+
+  ScalabilityMode(String scalabilityMode) {
+    RegExp exp = RegExp(r'^L(\d)T(\d)(h|_KEY|_KEY_SHIFT){0,1}');
+    Iterable<RegExpMatch> matches = exp.allMatches(scalabilityMode);
+    if (matches.isEmpty) {
+      throw Exception('invalid scalability mode');
+    }
+    var results = matches.first.groups([1, 2, 3]);
+    spatial = int.tryParse(results[0]!) as num;
+    temporal = int.tryParse(results[1]!) as num;
+    if (results.length > 2) {
+      switch (results[2]) {
+        case 'h':
+        case '_KEY':
+        case '_KEY_SHIFT':
+          suffix = results[2];
+      }
+    }
+  }
+
+  @override
+  String toString() {
+    return 'L${spatial}T${temporal}${suffix ?? ''}';
+  }
+}
+
+String mimeTypeToVideoCodecString(String mimeType) {
+  if (!mimeType.contains('/') && mimeType.split('/').length != 2) {
+    throw Exception('Invalid mimeType: $mimeType');
+  }
+  final codec = mimeType.split('/')[1].toLowerCase();
+  if (!videoCodecs.contains(codec)) {
+    throw Exception('Video codec not supported: $codec');
+  }
+  return codec;
 }
