@@ -164,10 +164,12 @@ class RoomOptions {
 
 class BackupVideoCodec {
   BackupVideoCodec({
+    this.enabled = true,
     this.codec = defaultVideoCodec,
     this.encoding,
     this.simulcast = true,
   });
+  bool enabled;
   String codec;
   // optional, when unset, it'll be computed based on dimensions and codec
   VideoEncoding? encoding;

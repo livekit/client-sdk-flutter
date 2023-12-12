@@ -151,11 +151,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
       }
 
-      if (publishOptions.backupVideoCodec == null) {
-        publishOptions = publishOptions.copyWith(
-          backupVideoCodec: BackupVideoCodec(),
-        );
-      }
       if (publishOptions.scalabilityMode == null) {
         publishOptions = publishOptions.copyWith(
           scalabilityMode: 'L3T3_KEY',
@@ -210,7 +205,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     ];
 
-    if (publishOptions.backupVideoCodec != null &&
+    if (publishOptions.backupVideoCodec?.enabled == true &&
         publishOptions.backupVideoCodec!.codec != publishOptions.videoCodec) {
       simulcastCodecs.add(lk_rtc.SimulcastCodec(
         codec: publishOptions.backupVideoCodec!.codec.toLowerCase(),
