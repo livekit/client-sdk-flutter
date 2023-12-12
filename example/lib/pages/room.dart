@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/method_channels/replay_kit_channel.dart';
 
 import '../exts.dart';
 import '../utils.dart';
@@ -30,6 +31,7 @@ class _RoomPageState extends State<RoomPage> {
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+  bool _flagStartedReplayKit = false;
   @override
   void initState() {
     super.initState();
@@ -48,6 +50,8 @@ class _RoomPageState extends State<RoomPage> {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
+    ReplayKitChannel.listenMethodChannel(widget.room);
+
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
         unawaited(widget.room.disconnect());
@@ -61,6 +65,7 @@ class _RoomPageState extends State<RoomPage> {
   void dispose() {
     // always dispose listener
     (() async {
+      ReplayKitChannel.closeReplayKit();
       widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
@@ -199,12 +204,24 @@ class _RoomPageState extends State<RoomPage> {
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
+          if (!_flagStartedReplayKit) {
+            _flagStartedReplayKit = true;
+
+            ReplayKitChannel.startReplayKit();
+          }
+
           screenTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
             isScreenShare: true,
           ));
         } else {
+          if (_flagStartedReplayKit) {
+            _flagStartedReplayKit = false;
+
+            ReplayKitChannel.closeReplayKit();
+          }
+
           userMediaTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
