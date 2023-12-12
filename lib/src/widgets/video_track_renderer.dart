@@ -56,13 +56,6 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
-  Future<rtc.RTCVideoRenderer?> _initializeRenderer() async {
-    _renderer ??= rtc.RTCVideoRenderer();
-    await _renderer!.initialize();
-    await _attach();
-    return _renderer;
-  }
-
   void disposeRenderer() {
     try {
       _renderer?.srcObject = null;
@@ -77,6 +70,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void initState() {
     super.initState();
     _internalKey = widget.track.addViewKey();
+    () async {
+      _renderer ??= rtc.RTCVideoRenderer();
+      await _renderer!.initialize();
+      await _attach();
+      setState(() {});
+    }();
   }
 
   @override
@@ -120,30 +119,24 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder(
-      future: _initializeRenderer(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && _renderer != null) {
-          return Builder(
-            key: _internalKey,
-            builder: (ctx) {
-              // let it render before notifying build
-              WidgetsBindingCompatible.instance
-                  ?.addPostFrameCallback((timeStamp) {
-                widget.track.onVideoViewBuild?.call(_internalKey);
-              });
-              return rtc.RTCVideoView(
-                _renderer!,
-                mirror: _shouldMirror(),
-                filterQuality: FilterQuality.medium,
-                objectFit: widget.fit,
-              );
-            },
-          );
-        }
-
-        return Container();
-      });
+  Widget build(BuildContext context) => _renderer != null
+      ? Builder(
+          key: _internalKey,
+          builder: (ctx) {
+            // let it render before notifying build
+            WidgetsBindingCompatible.instance
+                ?.addPostFrameCallback((timeStamp) {
+              widget.track.onVideoViewBuild?.call(_internalKey);
+            });
+            return rtc.RTCVideoView(
+              _renderer!,
+              mirror: _shouldMirror(),
+              filterQuality: FilterQuality.medium,
+              objectFit: widget.fit,
+            );
+          },
+        )
+      : Container();
 
   bool _shouldMirror() {
     // off for screen share
