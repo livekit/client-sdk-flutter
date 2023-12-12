@@ -190,8 +190,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
           e2eeOptions: e2eeOptions,
         ),
         fastConnectOptions: FastConnectOptions(
-          microphone: TrackOption(enabled: _enableAudio, track: _audioTrack),
-          camera: TrackOption(enabled: _enableVideo, track: _videoTrack),
+          microphone: TrackOption(enabled: false, track: _audioTrack),
+          camera: TrackOption(enabled: false, track: _videoTrack),
         ),
       );
 

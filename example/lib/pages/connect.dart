@@ -268,7 +268,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 25),
+                    padding: const EdgeInsets.only(bottom: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -336,7 +336,7 @@ class _ConnectPageState extends State<ConnectPage> {
                       _preferredCodec != 'Preferred Codec' &&
                       ['av1', 'vp9'].contains(_preferredCodec.toLowerCase()))
                     Padding(
-                        padding: const EdgeInsets.only(bottom: 25),
+                        padding: const EdgeInsets.only(bottom: 5),
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
