@@ -172,7 +172,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
       _e2eeManager!.setup(this);
+
+      // Disable backup codec when e2ee is enabled
+      roomOptions = roomOptions.copyWith(
+        defaultVideoPublishOptions:
+            roomOptions.defaultVideoPublishOptions.copyWith(
+          backupVideoCodec: const BackupVideoCodec(enabled: false),
+        ),
+      );
     }
+
     return engine.connect(
       url,
       token,

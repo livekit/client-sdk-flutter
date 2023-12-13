@@ -163,23 +163,41 @@ class RoomOptions {
 }
 
 class BackupVideoCodec {
-  BackupVideoCodec({
+  const BackupVideoCodec({
     this.enabled = true,
     this.codec = defaultVideoCodec,
     this.encoding,
     this.simulcast = true,
   });
-  bool enabled;
-  String codec;
+  final bool enabled;
+  final String codec;
   // optional, when unset, it'll be computed based on dimensions and codec
-  VideoEncoding? encoding;
-  bool simulcast;
+  final VideoEncoding? encoding;
+  final bool simulcast;
+  BackupVideoCodec copyWith({
+    bool? enabled,
+    String? codec,
+    VideoEncoding? encoding,
+    bool? simulcast,
+  }) {
+    return BackupVideoCodec(
+      enabled: enabled ?? this.enabled,
+      codec: codec ?? this.codec,
+      encoding: encoding ?? this.encoding,
+      simulcast: simulcast ?? this.simulcast,
+    );
+  }
 }
 
 /// Options used when publishing video.
 class VideoPublishOptions {
   static const defaultCameraName = 'camera';
   static const defaultScreenShareName = 'screenshare';
+  static const defualtBackupVideoCodec = BackupVideoCodec(
+    enabled: true,
+    codec: defaultVideoCodec,
+    simulcast: true,
+  );
 
   /// The video codec to use.
   final String videoCodec;
@@ -203,7 +221,7 @@ class VideoPublishOptions {
 
   final String? scalabilityMode;
 
-  final BackupVideoCodec? backupVideoCodec;
+  final BackupVideoCodec backupVideoCodec;
 
   const VideoPublishOptions({
     this.videoCodec = defaultVideoCodec,
@@ -211,8 +229,8 @@ class VideoPublishOptions {
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
+    this.backupVideoCodec = defualtBackupVideoCodec,
     this.name,
-    this.backupVideoCodec,
     this.scalabilityMode,
   });
 
