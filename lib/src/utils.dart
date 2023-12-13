@@ -631,3 +631,5 @@ String mimeTypeToVideoCodecString(String mimeType) {
   }
   return codec;
 }
+
+const defaultVideoCodec = 'vp8';

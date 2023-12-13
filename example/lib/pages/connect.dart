@@ -41,7 +41,6 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _e2ee = false;
   bool _multiCodec = false;
   String _preferredCodec = 'Preferred Codec';
-  String _backupCodec = 'VP8';
 
   @override
   void initState() {
@@ -143,6 +142,8 @@ class _ConnectPageState extends State<ConnectPage> {
         preferredCodec = _preferredCodec;
       }
 
+      bool enableBackupVideoCodec = ['VP9', 'AV1'].contains(preferredCodec);
+
       // create new room
       final room = Room(
           roomOptions: RoomOptions(
@@ -154,6 +155,9 @@ class _ConnectPageState extends State<ConnectPage> {
         defaultVideoPublishOptions: VideoPublishOptions(
           simulcast: _simulcast,
           videoCodec: preferredCodec,
+          backupVideoCodec: BackupVideoCodec(
+            enabled: enableBackupVideoCodec,
+          ),
         ),
         defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
             useiOSBroadcastExtension: true,
@@ -386,45 +390,6 @@ class _ConnectPageState extends State<ConnectPage> {
                                   'Preferred Codec',
                                   'AV1',
                                   'VP9',
-                                  'VP8',
-                                  'H264'
-                                ].map<DropdownMenuItem<String>>((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                              )
-                            ])),
-                  if (_multiCodec &&
-                      _preferredCodec != 'Preferred Codec' &&
-                      ['av1', 'vp9'].contains(_preferredCodec.toLowerCase()))
-                    Padding(
-                        padding: const EdgeInsets.only(bottom: 25),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Backup Codec:'),
-                              DropdownButton<String>(
-                                value: _backupCodec,
-                                icon: const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.blue,
-                                ),
-                                elevation: 16,
-                                style: const TextStyle(color: Colors.blue),
-                                underline: Container(
-                                  height: 2,
-                                  color: Colors.blueAccent,
-                                ),
-                                onChanged: (String? value) {
-                                  // This is called when the user selects an item.
-                                  setState(() {
-                                    _backupCodec = value!;
-                                  });
-                                },
-                                items: [
-                                  'Backup Codec',
                                   'VP8',
                                   'H264'
                                 ].map<DropdownMenuItem<String>>((String value) {

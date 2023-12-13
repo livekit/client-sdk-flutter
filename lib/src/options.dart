@@ -23,6 +23,7 @@ import 'track/track.dart';
 import 'types/other.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
+import 'utils.dart';
 
 class TrackOption<E extends Object, T extends Object> {
   final E? enabled;
@@ -162,21 +163,41 @@ class RoomOptions {
 }
 
 class BackupVideoCodec {
-  BackupVideoCodec({
-    this.codec = 'vp8',
+  const BackupVideoCodec({
+    this.enabled = true,
+    this.codec = defaultVideoCodec,
     this.encoding,
     this.simulcast = true,
   });
-  String codec;
+  final bool enabled;
+  final String codec;
   // optional, when unset, it'll be computed based on dimensions and codec
-  VideoEncoding? encoding;
-  bool simulcast;
+  final VideoEncoding? encoding;
+  final bool simulcast;
+  BackupVideoCodec copyWith({
+    bool? enabled,
+    String? codec,
+    VideoEncoding? encoding,
+    bool? simulcast,
+  }) {
+    return BackupVideoCodec(
+      enabled: enabled ?? this.enabled,
+      codec: codec ?? this.codec,
+      encoding: encoding ?? this.encoding,
+      simulcast: simulcast ?? this.simulcast,
+    );
+  }
 }
 
 /// Options used when publishing video.
 class VideoPublishOptions {
   static const defaultCameraName = 'camera';
   static const defaultScreenShareName = 'screenshare';
+  static const defualtBackupVideoCodec = BackupVideoCodec(
+    enabled: true,
+    codec: defaultVideoCodec,
+    simulcast: true,
+  );
 
   /// The video codec to use.
   final String videoCodec;
@@ -200,16 +221,16 @@ class VideoPublishOptions {
 
   final String? scalabilityMode;
 
-  final BackupVideoCodec? backupCodec;
+  final BackupVideoCodec backupVideoCodec;
 
   const VideoPublishOptions({
-    this.videoCodec = 'H264',
+    this.videoCodec = defaultVideoCodec,
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
+    this.backupVideoCodec = defualtBackupVideoCodec,
     this.name,
-    this.backupCodec,
     this.scalabilityMode,
   });
 
@@ -219,7 +240,7 @@ class VideoPublishOptions {
     List<VideoParameters>? videoSimulcastLayers,
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
-    BackupVideoCodec? backupCodec,
+    BackupVideoCodec? backupVideoCodec,
     String? scalabilityMode,
   }) =>
       VideoPublishOptions(
@@ -229,7 +250,7 @@ class VideoPublishOptions {
         screenShareSimulcastLayers:
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
-        backupCodec: backupCodec ?? this.backupCodec,
+        backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
       );
 
