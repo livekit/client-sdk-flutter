@@ -70,6 +70,8 @@ abstract class LocalTrack extends Track {
 
   String? codec;
 
+  bool _stopped = false;
+
   LocalTrack(
     lk_models.TrackType kind,
     TrackSource source,
@@ -117,7 +119,7 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    final didStop = await super.stop();
+    final didStop = await super.stop() || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
@@ -130,6 +132,7 @@ abstract class LocalTrack extends Track {
       } catch (error) {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
+      _stopped = true;
     }
     return didStop;
   }
