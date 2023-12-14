@@ -150,11 +150,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (!room.roomOptions.dynacast) {
         room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
       }
-      if (publishOptions.backupCodec == null) {
-        publishOptions = publishOptions.copyWith(
-          backupCodec: BackupVideoCodec(),
-        );
-      }
+
       if (publishOptions.scalabilityMode == null) {
         publishOptions = publishOptions.copyWith(
           scalabilityMode: 'L3T3_KEY',
@@ -208,10 +204,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     ];
 
-    if (publishOptions.backupCodec != null &&
-        publishOptions.backupCodec!.codec != publishOptions.videoCodec) {
+    if (publishOptions.backupVideoCodec.enabled &&
+        publishOptions.backupVideoCodec.codec != publishOptions.videoCodec) {
       simulcastCodecs.add(lk_rtc.SimulcastCodec(
-        codec: publishOptions.backupCodec!.codec.toLowerCase(),
+        codec: publishOptions.backupVideoCodec.codec.toLowerCase(),
         cid: '',
       ));
     }
@@ -318,7 +314,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       track: track,
     );
     addTrackPublication(pub);
-    pub.backupVideoCodec = publishOptions.backupCodec;
+    pub.backupVideoCodec = publishOptions.backupVideoCodec;
 
     // did publish
     await track.onPublish();

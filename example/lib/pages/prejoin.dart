@@ -10,17 +10,18 @@ import 'package:livekit_example/exts.dart';
 import '../theme.dart';
 import 'room.dart';
 
-class PreJoinPage extends StatefulWidget {
-  const PreJoinPage(
-    this.url,
-    this.token, {
-    Key? key,
+class JoinArgs {
+  JoinArgs({
+    required this.url,
+    required this.token,
     this.e2ee = false,
     this.e2eeKey,
     this.simulcast = true,
     this.adaptiveStream = true,
     this.dynacast = true,
-  }) : super(key: key);
+    this.preferredCodec = 'VP8',
+    this.enableBackupVideoCodec = true,
+  });
   final String url;
   final String token;
   final bool e2ee;
@@ -28,6 +29,16 @@ class PreJoinPage extends StatefulWidget {
   final bool simulcast;
   final bool adaptiveStream;
   final bool dynacast;
+  final String preferredCodec;
+  final bool enableBackupVideoCodec;
+}
+
+class PreJoinPage extends StatefulWidget {
+  const PreJoinPage({
+    required this.args,
+    Key? key,
+  }) : super(key: key);
+  final JoinArgs args;
   @override
   State<StatefulWidget> createState() => _PreJoinPageState();
 }
@@ -150,6 +161,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     setState(() {});
 
+    var args = widget.args;
+
     try {
       //create new room
       final room = Room();
@@ -158,24 +171,28 @@ class _PreJoinPageState extends State<PreJoinPage> {
       final listener = room.createListener();
 
       E2EEOptions? e2eeOptions;
-      if (widget.e2ee && widget.e2eeKey != null) {
+      if (args.e2ee && args.e2eeKey != null) {
         final keyProvider = await BaseKeyProvider.create();
         e2eeOptions = E2EEOptions(keyProvider: keyProvider);
-        await keyProvider.setKey(widget.e2eeKey!);
+        await keyProvider.setKey(args.e2eeKey!);
       }
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.
       await room.connect(
-        widget.url,
-        widget.token,
+        args.url,
+        args.token,
         roomOptions: RoomOptions(
-          adaptiveStream: widget.adaptiveStream,
-          dynacast: widget.dynacast,
+          adaptiveStream: args.adaptiveStream,
+          dynacast: args.dynacast,
           defaultAudioPublishOptions:
               const AudioPublishOptions(name: 'custom_audio_track_name'),
           defaultVideoPublishOptions: VideoPublishOptions(
-            simulcast: widget.simulcast,
+            simulcast: args.simulcast,
+            videoCodec: args.preferredCodec,
+            backupVideoCodec: BackupVideoCodec(
+              enabled: args.enableBackupVideoCodec,
+            ),
           ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
