@@ -13,7 +13,6 @@ import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
 
 class RoomPage extends StatefulWidget {
-  //
   final Room room;
   final EventsListener<RoomEvent> listener;
 
@@ -80,8 +79,8 @@ class _RoomPageState extends State<RoomPage> {
       if (event.reason != null) {
         print('Room disconnected: reason => ${event.reason}');
       }
-      WidgetsBindingCompatible.instance
-          ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+      WidgetsBindingCompatible.instance?.addPostFrameCallback(
+          (timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
     })
     ..on<ParticipantEvent>((event) {
       print('Participant event');

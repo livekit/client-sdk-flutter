@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/pages/prejoin.dart';
 import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../exts.dart';
-import 'room.dart';
 
 class ConnectPage extends StatefulWidget {
   //
@@ -25,7 +25,6 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeySimulcast = 'simulcast';
   static const _storeKeyAdaptiveStream = 'adaptive-stream';
   static const _storeKeyDynacast = 'dynacast';
-  static const _storeKeyFastConnect = 'fast-connect';
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
   static const _storeKeyMultiCodec = 'multi-codec';
@@ -37,7 +36,6 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _adaptiveStream = true;
   bool _dynacast = true;
   bool _busy = false;
-  bool _fastConnect = false;
   bool _e2ee = false;
   bool _multiCodec = false;
   String _preferredCodec = 'Preferred Codec';
@@ -96,7 +94,6 @@ class _ConnectPageState extends State<ConnectPage> {
       _simulcast = prefs.getBool(_storeKeySimulcast) ?? true;
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
-      _fastConnect = prefs.getBool(_storeKeyFastConnect) ?? false;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
     });
@@ -111,7 +108,6 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeySimulcast, _simulcast);
     await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
     await prefs.setBool(_storeKeyDynacast, _dynacast);
-    await prefs.setBool(_storeKeyFastConnect, _fastConnect);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
   }
@@ -129,65 +125,27 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      E2EEOptions? e2eeOptions;
-      if (_e2ee) {
-        final keyProvider = await BaseKeyProvider.create();
-        e2eeOptions = E2EEOptions(keyProvider: keyProvider);
-        var sharedKey = _sharedKeyCtrl.text;
-        await keyProvider.setSharedKey(sharedKey);
-      }
-
-      String preferredCodec = 'VP8';
-      if (_preferredCodec != 'Preferred Codec') {
-        preferredCodec = _preferredCodec;
-      }
-
-      bool enableBackupVideoCodec = ['VP9', 'AV1'].contains(preferredCodec);
-
-      // create new room
-      final room = Room(
-          roomOptions: RoomOptions(
-        adaptiveStream: _adaptiveStream,
-        dynacast: _dynacast,
-        defaultAudioPublishOptions: const AudioPublishOptions(
-          dtx: true,
-        ),
-        defaultVideoPublishOptions: VideoPublishOptions(
-          simulcast: _simulcast,
-          videoCodec: preferredCodec,
-          backupVideoCodec: BackupVideoCodec(
-            enabled: enableBackupVideoCodec,
-          ),
-        ),
-        defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-            useiOSBroadcastExtension: true,
-            params: VideoParametersPresets.screenShareH1080FPS30),
-        e2eeOptions: e2eeOptions,
-        defaultCameraCaptureOptions: const CameraCaptureOptions(
-          maxFrameRate: 30,
-          params: VideoParametersPresets.h720_169,
-        ),
-      ));
-
-      // Create a Listener before connecting
-      final listener = room.createListener();
-
-      // Try to connect to the room
-      // This will throw an Exception if it fails for any reason.
-      await room.connect(
-        _uriCtrl.text,
-        _tokenCtrl.text,
-        fastConnectOptions: _fastConnect
-            ? FastConnectOptions(
-                microphone: const TrackOption(enabled: true),
-                camera: const TrackOption(enabled: true),
-              )
-            : null,
-      );
+      var url = _uriCtrl.text;
+      var token = _tokenCtrl.text;
+      var e2eeKey = _sharedKeyCtrl.text;
 
       await Navigator.push<void>(
         ctx,
-        MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
+        MaterialPageRoute(
+            builder: (_) => PreJoinPage(
+                  args: JoinArgs(
+                    url: url,
+                    token: token,
+                    e2ee: _e2ee,
+                    e2eeKey: e2eeKey,
+                    simulcast: _simulcast,
+                    adaptiveStream: _adaptiveStream,
+                    dynacast: _dynacast,
+                    preferredCodec: _preferredCodec,
+                    enableBackupVideoCodec:
+                        ['VP9', 'AV1'].contains(_preferredCodec),
+                  ),
+                )),
       );
     } catch (error) {
       print('Could not connect $error');
@@ -224,13 +182,6 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _dynacast == value) return;
     setState(() {
       _dynacast = value;
-    });
-  }
-
-  void _setFastConnect(bool? value) async {
-    if (value == null || _fastConnect == value) return;
-    setState(() {
-      _fastConnect = value;
     });
   }
 
@@ -318,19 +269,6 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _adaptiveStream,
                           onChanged: (value) => _setAdaptiveStream(value),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Fast Connect'),
-                        Switch(
-                          value: _fastConnect,
-                          onChanged: (value) => _setFastConnect(value),
                         ),
                       ],
                     ),
