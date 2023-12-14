@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:livekit_example/method_channels/replay_kit_channel.dart';
 
 import '../exts.dart';
 import '../utils.dart';
@@ -14,7 +15,6 @@ import '../widgets/participant.dart';
 import '../widgets/participant_grid_tile.dart';
 
 class RoomPage extends StatefulWidget {
-  //
   final Room room;
   final EventsListener<RoomEvent> listener;
 
@@ -34,6 +34,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
   bool get autoSubscribe => widget.room.connectOptions.autoSubscribe;
   bool gridView = false;
+  bool _flagStartedReplayKit = false;
   @override
   void initState() {
     super.initState();
@@ -54,6 +55,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
+    ReplayKitChannel.listenMethodChannel(widget.room);
+
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
         unawaited(widget.room.disconnect());
@@ -67,6 +70,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   void dispose() {
     // always dispose listener
     (() async {
+      ReplayKitChannel.closeReplayKit();
       widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
@@ -101,8 +105,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       if (event.reason != null) {
         print('Room disconnected: reason => ${event.reason}');
       }
-      WidgetsBindingCompatible.instance
-          ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+      WidgetsBindingCompatible.instance?.addPostFrameCallback(
+          (timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
     })
     ..on<ParticipantEvent>((event) {
       print('Participant event');
@@ -216,6 +220,24 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
 
     if (widget.room.localParticipant != null) {
       sortedParticipants.add(widget.room.localParticipant!);
+      final localParticipantTracks = widget.room.localParticipant?.videoTracks;
+      if (localParticipantTracks != null) {
+        for (var t in localParticipantTracks) {
+          if (t.isScreenShare) {
+            if (!_flagStartedReplayKit) {
+              _flagStartedReplayKit = true;
+
+              ReplayKitChannel.startReplayKit();
+            }
+          } else {
+            if (_flagStartedReplayKit) {
+              _flagStartedReplayKit = false;
+
+              ReplayKitChannel.closeReplayKit();
+            }
+          }
+        }
+      }
     }
 
     setState(() {

@@ -160,7 +160,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
       _e2eeManager!.setup(this);
+
+      // Disable backup codec when e2ee is enabled
+      roomOptions = roomOptions.copyWith(
+        defaultVideoPublishOptions:
+            roomOptions.defaultVideoPublishOptions.copyWith(
+          backupVideoCodec: const BackupVideoCodec(enabled: false),
+        ),
+      );
     }
+
     return engine.connect(
       url,
       token,
@@ -202,7 +211,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         var options = engine.fastConnectOptions!;
 
         var audio = options.microphone;
-        if (audio.enabled != null && audio.enabled == true) {
+        bool audioEnabled = audio.enabled == true || audio.track != null;
+        if (audioEnabled) {
           if (audio.track != null) {
             _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
                 publishOptions: roomOptions.defaultAudioPublishOptions);
@@ -213,7 +223,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
 
         var video = options.camera;
-        if (video.enabled != null && video.enabled == true) {
+        bool videoEnabled = video.enabled == true || video.track != null;
+        if (videoEnabled) {
           if (video.track != null) {
             _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
                 publishOptions: roomOptions.defaultVideoPublishOptions);
@@ -224,7 +235,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
 
         var screen = options.screen;
-        if (screen.enabled != null && screen.enabled == true) {
+        bool screenEnabled = screen.enabled == true || screen.track != null;
+        if (screenEnabled) {
           if (screen.track != null) {
             _localParticipant!.publishVideoTrack(
                 screen.track as LocalVideoTrack,
