@@ -866,9 +866,7 @@ extension EnginePrivateMethods on Engine {
 
   void _updateConnectionState(ConnectionState newValue,
       {DisconnectReason? reason}) {
-    if (_connectionState == newValue) {
-      return;
-    }
+    if (_connectionState == newValue) return;
 
     logger.fine('Engine ConnectionState '
         '${_connectionState.name} -> ${newValue.name}');

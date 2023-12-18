@@ -185,7 +185,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return;
     }
 
-    _ws.sendMessage(req.writeToBuffer());
+    _ws.send(req.writeToBuffer());
   }
 
   Future<void> _onSocketData(dynamic message) async {

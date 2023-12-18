@@ -147,11 +147,11 @@ class WebSocketUtility {
     _changeSocketStatus(SocketStatus.kSocketStatusConnected);
   }
 
-  webSocketOnMessage(data) {
+  void webSocketOnMessage(data) {
     onMessage?.call(data);
   }
 
-  webSocketOnDone() {
+  void webSocketOnDone() {
     logger.fine('closed');
     if (_socketStatus == SocketStatus.kSocketStatusConnected) {
       _webSocket?.dispose();
@@ -164,7 +164,7 @@ class WebSocketUtility {
     }
   }
 
-  webSocketOnError(e) {
+  void webSocketOnError(e) {
     WebSocketException ex = e;
     onError?.call(ex);
   }
@@ -192,12 +192,12 @@ class WebSocketUtility {
     _cleanUp();
   }
 
-  void sendMessage(message) {
+  void send(List<int> data) {
     if (_socketStatus != SocketStatus.kSocketStatusConnected) {
       logger.warning('WebSocket not connected');
       return;
     }
-    _webSocket?.send(message);
+    _webSocket?.send(data);
   }
 
   Future<bool> reconnect() async {
