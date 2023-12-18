@@ -446,9 +446,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     if (hasChanged) {
       params.encodings = encodings;
-      final result = await sender.setParameters(params);
-      if (result == false) {
-        logger.warning('Failed to update sender parameters');
+      try {
+        final result = await sender.setParameters(params);
+        if (result == false) {
+          logger.warning('Failed to update sender parameters');
+        }
+      } catch (e) {
+        logger.warning('Failed to update sender parameters $e');
       }
     }
   }

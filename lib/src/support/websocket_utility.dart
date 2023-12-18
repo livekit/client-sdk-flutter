@@ -1,9 +1,23 @@
+// Copyright 2023 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../logger.dart';
+import 'websocket.dart';
 
 enum SocketStatus {
   kSocketStatusNone,
@@ -12,22 +26,6 @@ enum SocketStatus {
   kSocketStatusReconnecting,
   kSocketStatusFailed,
   kSocketStatusClosed,
-}
-
-typedef WebSocketOnData = Function(dynamic data);
-typedef WebSocketOnError = Function(dynamic error);
-typedef WebSocketOnDispose = Function();
-
-class WebSocketEventHandlers {
-  final WebSocketOnData? onData;
-  final WebSocketOnError? onError;
-  final WebSocketOnDispose? onDispose;
-
-  const WebSocketEventHandlers({
-    this.onData,
-    this.onError,
-    this.onDispose,
-  });
 }
 
 const maxRetryDelay = 7000;
@@ -46,8 +44,9 @@ const defaultRetryDelaysInMs = [
 ];
 
 class WebSocketUtility {
-  WebSocketUtility();
-  WebSocketChannel? _webSocket;
+  WebSocketUtility(this._wsConnector);
+  LiveKitWebSocket? _webSocket;
+  WebSocketConnector _wsConnector;
   SocketStatus _socketStatus = SocketStatus.kSocketStatusNone;
   final int _reconnectCount = defaultRetryDelaysInMs.length;
   int _reconnectTimes = 0;
@@ -59,7 +58,6 @@ class WebSocketUtility {
   Uri? _reconnectUrl;
   SocketStatus get socketStatus => _socketStatus;
   bool _isClosed = false;
-  StreamSubscription<dynamic>? _streamSubscription;
   ConnectivityResult _connectivity = ConnectivityResult.none;
   StreamSubscription<dynamic>? _connectivitySubscription;
 
@@ -120,14 +118,20 @@ class WebSocketUtility {
     }
     _cleanUp();
     _changeSocketStatus(SocketStatus.kSocketStatusConnecting);
-    WebSocketChannel? channel;
+
     try {
-      channel = WebSocketChannel.connect(url);
-      var future = channel.ready;
+      var future = _wsConnector.call(
+        url,
+        WebSocketEventHandlers(
+          onData: webSocketOnMessage,
+          onDispose: webSocketOnDone,
+          onError: webSocketOnError,
+        ),
+      );
       if (connectTimeout != null) {
         future = future.timeout(connectTimeout);
       }
-      await future;
+      _webSocket = await future;
     } catch (e) {
       if (!_isClosed && !await reconnect()) {
         logger.warning(e);
@@ -136,14 +140,8 @@ class WebSocketUtility {
       return;
     }
     _reconnectTimes = 0;
-    _streamSubscription = channel.stream.listen(
-        (data) => webSocketOnMessage(data),
-        onError: webSocketOnError,
-        onDone: webSocketOnDone);
-
     logger.fine('WebSocket successfully connected to $url');
     _changeSocketStatus(SocketStatus.kSocketStatusConnected);
-    _webSocket = channel;
   }
 
   webSocketOnMessage(data) {
@@ -153,9 +151,7 @@ class WebSocketUtility {
   webSocketOnDone() {
     logger.fine('closed');
     if (_socketStatus == SocketStatus.kSocketStatusConnected) {
-      _streamSubscription?.cancel();
-      _streamSubscription = null;
-      _webSocket?.sink.close();
+      _webSocket?.dispose();
       _webSocket = null;
       _changeSocketStatus(SocketStatus.kSocketStatusClosed);
       onClose?.call();
@@ -166,16 +162,14 @@ class WebSocketUtility {
   }
 
   webSocketOnError(e) {
-    WebSocketChannelException ex = e;
-    onError?.call(ex.message);
+    WebSocketException ex = e;
+    onError?.call(ex);
   }
 
   void _cleanUp() {
     if (_webSocket != null) {
       logger.fine('WebSocket closed');
-      _streamSubscription?.cancel();
-      _streamSubscription = null;
-      _webSocket?.sink.close();
+      _webSocket?.dispose();
       _webSocket = null;
     }
     _socketStatus = SocketStatus.kSocketStatusNone;
@@ -198,7 +192,7 @@ class WebSocketUtility {
       logger.warning('WebSocket not connected');
       return;
     }
-    _webSocket?.sink.add(message);
+    _webSocket?.send(message);
   }
 
   Future<bool> reconnect() async {

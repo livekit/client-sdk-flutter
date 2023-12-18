@@ -33,6 +33,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
+import '../support/websocket.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
 import '../types/other.dart';
@@ -107,7 +108,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
-  })  : signalClient = signalClient ?? SignalClient(),
+  })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
         _peerConnectionCreate =
             peerConnectionCreate ?? rtc.createPeerConnection {
     if (kDebugMode) {
@@ -631,7 +632,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: connectOptions.timeouts.peerConnection,
-        onTimeout: () => throw MediaConnectException('ice restart failed'),
       );
       logger.fine('resumeConnection: primary connected');
     }

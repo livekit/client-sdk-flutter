@@ -68,7 +68,6 @@ void main() {
         token,
         connectOptions: connectOptions,
         roomOptions: roomOptions,
-        reconnect: true,
       );
     });
   });

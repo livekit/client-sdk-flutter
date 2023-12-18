@@ -30,6 +30,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/websocket.dart';
 import '../support/websocket_utility.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
@@ -41,7 +42,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   ConnectionState get connectionState => _connectionState;
 
-  final WebSocketUtility _ws = WebSocketUtility();
+  final WebSocketConnector _wsConnector;
+  final WebSocketUtility _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
   Duration? _pingTimeoutDuration;
@@ -55,7 +57,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   int _pingCount = 0;
 
   @internal
-  SignalClient() {
+  SignalClient(WebSocketConnector wsConnector)
+      : _wsConnector = wsConnector,
+        _ws = WebSocketUtility(wsConnector) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
     });
