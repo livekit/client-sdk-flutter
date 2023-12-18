@@ -24,9 +24,9 @@ import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
+import '../stats/stats.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
-import '../stats/stats.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],

@@ -14,14 +14,14 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/src/stats/audio_source_stats.dart';
 
+import 'package:livekit_client/src/stats/audio_source_stats.dart';
 import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
-import '../../types/other.dart';
 import '../../stats/stats.dart';
+import '../../types/other.dart';
 import '../audio_management.dart';
 import '../local/local.dart';
 import 'remote.dart';

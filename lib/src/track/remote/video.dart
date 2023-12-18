@@ -19,8 +19,8 @@ import 'package:meta/meta.dart';
 import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
-import '../../types/other.dart';
 import '../../stats/stats.dart';
+import '../../types/other.dart';
 import '../local/local.dart';
 import 'remote.dart';
 
