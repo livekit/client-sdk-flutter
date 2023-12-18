@@ -54,21 +54,24 @@ void main() {
       );
     });
     test('reconnect', () async {
-      expect(
-          client.events.streamCtrl.stream,
-          emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.reconnecting),
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.newState == ConnectionState.connected &&
-                event.didReconnect == true),
-          ]));
       await client.connect(
         exampleUri,
         token,
         connectOptions: connectOptions,
         roomOptions: roomOptions,
       );
+      expect(
+          client.events.streamCtrl.stream,
+          emitsInOrder(<Matcher>[
+            predicate<SignalConnectionStateUpdatedEvent>(
+                (event) => event.newState == ConnectionState.disconnected),
+            predicate<SignalConnectionStateUpdatedEvent>(
+                (event) => event.newState == ConnectionState.reconnecting),
+            predicate<SignalConnectionStateUpdatedEvent>((event) =>
+                event.newState == ConnectionState.connected &&
+                event.didReconnect == true),
+          ]));
+      await client.closeSocket();
     });
   });
 

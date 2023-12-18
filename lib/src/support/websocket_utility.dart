@@ -17,6 +17,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../logger.dart';
+import 'platform.dart';
 import 'websocket.dart';
 
 enum SocketStatus {
@@ -75,23 +76,25 @@ class WebSocketUtility {
     _socketStatus = SocketStatus.kSocketStatusNone;
     onSocketStatusChange?.call(_socketStatus);
 
-    if (_connectivitySubscription != null) {
-      await _connectivitySubscription?.cancel();
-      _connectivitySubscription = null;
-    }
-
-    _connectivity = await Connectivity().checkConnectivity();
-    _connectivitySubscription =
-        Connectivity().onConnectivityChanged.listen((result) {
-      logger.fine('network changed ${result.name}, reconnecting...');
-      if ((result != ConnectivityResult.none && _connectivity != result) &&
-          !_isClosed) {
-        if (_socketStatus != SocketStatus.kSocketStatusNone) {
-          reconnect();
-        }
+    if (!lkPlatformIsTest()) {
+      if (_connectivitySubscription != null) {
+        await _connectivitySubscription?.cancel();
+        _connectivitySubscription = null;
       }
-      _connectivity = result;
-    });
+
+      _connectivity = await Connectivity().checkConnectivity();
+      _connectivitySubscription =
+          Connectivity().onConnectivityChanged.listen((result) {
+        logger.fine('network changed ${result.name}, reconnecting...');
+        if ((result != ConnectivityResult.none && _connectivity != result) &&
+            !_isClosed) {
+          if (_socketStatus != SocketStatus.kSocketStatusNone) {
+            reconnect();
+          }
+        }
+        _connectivity = result;
+      });
+    }
   }
 
   void setReconnSid(String sid) {
@@ -182,8 +185,10 @@ class WebSocketUtility {
     }
     _reconnectTimes = 0;
     _isClosed = true;
-    _connectivitySubscription?.cancel();
-    _connectivitySubscription = null;
+    if (!lkPlatformIsTest()) {
+      _connectivitySubscription?.cancel();
+      _connectivitySubscription = null;
+    }
     _cleanUp();
   }
 
@@ -196,10 +201,15 @@ class WebSocketUtility {
   }
 
   Future<bool> reconnect() async {
+    if (lkPlatformIsTest()) {
+      _reconnectUrl = Uri.tryParse('ws://example.com');
+    }
+
     if (_reconnectUrl == null) {
       logger.warning('WebSocket reconnect failed, no reconnect url');
       return false;
     }
+
     if (_reconnectTimes < _reconnectCount) {
       if (_socketStatus != SocketStatus.kSocketStatusReconnecting) {
         _changeSocketStatus(SocketStatus.kSocketStatusReconnecting);

@@ -43,6 +43,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState get connectionState => _connectionState;
 
   final WebSocketUtility _ws;
+  WebSocketUtility get ws => _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
   Duration? _pingTimeoutDuration;
