@@ -14,7 +14,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'package:livekit_client/src/stats/audio_source_stats.dart';
+import 'audio_source_stats.dart';
 
 const monitorFrequency = 2000;
 
