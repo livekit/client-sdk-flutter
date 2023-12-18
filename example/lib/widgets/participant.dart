@@ -154,8 +154,8 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   ...extraWidgets(widget.isScreenShare),
                   ParticipantInfoWidget(
                     title: widget.participant.name.isNotEmpty
-                        ? '${widget.participant.isCameraEnabled()} ${widget.participant.name} (${widget.participant.identity})'
-                        : '${widget.participant.isCameraEnabled()} ${widget.participant.identity}',
+                        ? '${widget.participant.name} (${widget.participant.identity})'
+                        : widget.participant.identity,
                     audioAvailable: firstAudioPublication?.muted == false &&
                         firstAudioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
