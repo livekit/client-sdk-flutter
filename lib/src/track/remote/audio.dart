@@ -14,15 +14,16 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/src/stats/audio_source_stats.dart';
 
 import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
+import '../../stats/stats.dart';
 import '../audio_management.dart';
 import '../local/local.dart';
-import '../stats.dart';
 import 'remote.dart';
 
 import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
@@ -150,7 +151,9 @@ class RemoteAudioTrack extends RemoteTrack
           receiverStats.channels = getNumValFromReport(c.values, 'channels');
           receiverStats.clockRate = getNumValFromReport(c.values, 'clockRate');
         }
-        break;
+      } else if (v.type == 'track') {
+        receiverStats ??= AudioReceiverStats(v.id, v.timestamp);
+        receiverStats.audioSourceStats = AudioSourceStats.fromReport(v);
       }
     }
     return receiverStats;

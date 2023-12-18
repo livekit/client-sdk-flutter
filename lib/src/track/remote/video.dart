@@ -20,8 +20,8 @@ import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
+import '../../stats/stats.dart';
 import '../local/local.dart';
-import '../stats.dart';
 import 'remote.dart';
 
 class RemoteVideoTrack extends RemoteTrack with VideoTrack {
