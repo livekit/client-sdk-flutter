@@ -42,7 +42,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   ConnectionState get connectionState => _connectionState;
 
-  final WebSocketConnector _wsConnector;
   final WebSocketUtility _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
@@ -58,8 +57,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   @internal
   SignalClient(WebSocketConnector wsConnector)
-      : _wsConnector = wsConnector,
-        _ws = WebSocketUtility(wsConnector) {
+      : _ws = WebSocketUtility(wsConnector) {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
     });

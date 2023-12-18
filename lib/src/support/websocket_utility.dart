@@ -46,7 +46,7 @@ const defaultRetryDelaysInMs = [
 class WebSocketUtility {
   WebSocketUtility(this._wsConnector);
   LiveKitWebSocket? _webSocket;
-  WebSocketConnector _wsConnector;
+  final WebSocketConnector _wsConnector;
   SocketStatus _socketStatus = SocketStatus.kSocketStatusNone;
   final int _reconnectCount = defaultRetryDelaysInMs.length;
   int _reconnectTimes = 0;
