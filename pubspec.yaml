@@ -78,10 +78,7 @@ flutter:
 topics:
   - webrtc
   - voip
-  - audio
   - video
   - livestream
   - conference
-  - meeting
-  - chat
-  - real-time
+  
