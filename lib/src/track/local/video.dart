@@ -21,10 +21,10 @@ import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../../stats/stats.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
-import '../stats.dart';
 import 'audio.dart';
 import 'local.dart';
 
