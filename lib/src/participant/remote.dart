@@ -259,12 +259,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await pub.dispose();
   }
 
-  @Deprecated(
-      '`unpublishTrack` is deprecated, use `removePublishedTrack` instead')
-  @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) =>
-      removePublishedTrack(trackSid, notify: notify);
-
   @internal
   lk_models.ParticipantTracks participantTracks() =>
       lk_models.ParticipantTracks(

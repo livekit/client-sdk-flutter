@@ -356,7 +356,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalTrackUnpublishedEvent>((event) async {
       // unpublish local track
-      await localParticipant?.unpublishTrack(event.trackSid);
+      await localParticipant?.removePublishedTrack(event.trackSid);
     });
 
   void _setUpEngineListeners() => _engineListener
@@ -651,7 +651,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
         participantTracks: participantTracks,
-        // Deprecated
         trackSids: participantTracks.map((e) => e.trackSids).flattened,
         subscribe: !sendUnSub,
       ),
