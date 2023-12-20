@@ -732,7 +732,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
       onTimeout: () => throw ConnectException(
-          'resumeConnection: Timed out waiting for EngineReconnectedEvent'),
+          'resumeConnection: Timed out waiting for SignalReconnectedEvent'),
     );
 
     events.emit(const EngineSignalResumedEvent());
