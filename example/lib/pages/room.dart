@@ -2,17 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:livekit_example/method_channels/replay_kit_channel.dart';
 
 import '../exts.dart';
 import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
-import '../widgets/participant_grid_tile.dart';
+import '../widgets/participant_info.dart';
 
 class RoomPage extends StatefulWidget {
   final Room room;
@@ -28,18 +26,14 @@ class RoomPage extends StatefulWidget {
   State<StatefulWidget> createState() => _RoomPageState();
 }
 
-class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
-  List<Participant> participantTracks = [];
+class _RoomPageState extends State<RoomPage> {
+  List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
-  bool get autoSubscribe => widget.room.connectOptions.autoSubscribe;
-  bool gridView = false;
   bool _flagStartedReplayKit = false;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
     // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
@@ -75,28 +69,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       await _listener.dispose();
       await widget.room.dispose();
     })();
-    WidgetsBinding.instance.removeObserver(this);
     onWindowShouldClose = null;
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {});
-    if (autoSubscribe) return;
-    if (state == AppLifecycleState.resumed) {
-      for (var p in participantTracks) {
-        if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
-          (p as RemoteParticipant).videoTracks.firstOrNull?.subscribe();
-        }
-      }
-    } else if (state == AppLifecycleState.paused) {
-      for (var p in participantTracks) {
-        if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
-          (p as RemoteParticipant).videoTracks.firstOrNull?.unsubscribe();
-        }
-      }
-    }
   }
 
   /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
@@ -118,14 +92,6 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
-    ..on<TrackSubscribedEvent>((_) => _sortParticipants())
-    ..on<TrackUnsubscribedEvent>((_) => _sortParticipants())
-    ..on<ParticipantConnectedEvent>((event) {
-      print('Participant connected: ${event.participant.identity}');
-    })
-    ..on<ParticipantDisconnectedEvent>((event) {
-      print('Participant disconnected: ${event.participant.identity}');
-    })
     ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
@@ -185,15 +151,30 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   }
 
   void _sortParticipants() {
-    List<Participant> sortedParticipants = [];
+    List<ParticipantTrack> userMediaTracks = [];
+    List<ParticipantTrack> screenTracks = [];
     for (var participant in widget.room.participants.values) {
-      sortedParticipants.add(participant);
+      for (var t in participant.videoTracks) {
+        if (t.isScreenShare) {
+          screenTracks.add(ParticipantTrack(
+            participant: participant,
+            videoTrack: t.track,
+            isScreenShare: true,
+          ));
+        } else {
+          userMediaTracks.add(ParticipantTrack(
+            participant: participant,
+            videoTrack: t.track,
+            isScreenShare: false,
+          ));
+        }
+      }
     }
     // sort speakers for the grid
-    sortedParticipants.sort((a, b) {
+    userMediaTracks.sort((a, b) {
       // loudest speaker first
-      if (a.isSpeaking && b.isSpeaking) {
-        if (a.audioLevel > b.audioLevel) {
+      if (a.participant.isSpeaking && b.participant.isSpeaking) {
+        if (a.participant.audioLevel > b.participant.audioLevel) {
           return -1;
         } else {
           return 1;
@@ -201,243 +182,94 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       }
 
       // last spoken at
-      final aSpokeAt = a.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
-      final bSpokeAt = b.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final aSpokeAt = a.participant.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final bSpokeAt = b.participant.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
 
       if (aSpokeAt != bSpokeAt) {
         return aSpokeAt > bSpokeAt ? -1 : 1;
       }
 
       // video on
-      if (a.hasVideo != b.hasVideo) {
-        return a.hasVideo ? -1 : 1;
+      if (a.participant.hasVideo != b.participant.hasVideo) {
+        return a.participant.hasVideo ? -1 : 1;
       }
 
       // joinedAt
-      return a.joinedAt.millisecondsSinceEpoch -
-          b.joinedAt.millisecondsSinceEpoch;
+      return a.participant.joinedAt.millisecondsSinceEpoch -
+          b.participant.joinedAt.millisecondsSinceEpoch;
     });
 
-    if (widget.room.localParticipant != null) {
-      sortedParticipants.add(widget.room.localParticipant!);
-      final localParticipantTracks = widget.room.localParticipant?.videoTracks;
-      if (localParticipantTracks != null) {
-        for (var t in localParticipantTracks) {
-          if (t.isScreenShare) {
-            if (!_flagStartedReplayKit) {
-              _flagStartedReplayKit = true;
+    final localParticipantTracks = widget.room.localParticipant?.videoTracks;
+    if (localParticipantTracks != null) {
+      for (var t in localParticipantTracks) {
+        if (t.isScreenShare) {
+          if (!_flagStartedReplayKit) {
+            _flagStartedReplayKit = true;
 
-              ReplayKitChannel.startReplayKit();
-            }
-          } else {
-            if (_flagStartedReplayKit) {
-              _flagStartedReplayKit = false;
-
-              ReplayKitChannel.closeReplayKit();
-            }
+            ReplayKitChannel.startReplayKit();
           }
+
+          screenTracks.add(ParticipantTrack(
+            participant: widget.room.localParticipant!,
+            videoTrack: t.track,
+            isScreenShare: true,
+          ));
+        } else {
+          if (_flagStartedReplayKit) {
+            _flagStartedReplayKit = false;
+
+            ReplayKitChannel.closeReplayKit();
+          }
+
+          userMediaTracks.add(ParticipantTrack(
+            participant: widget.room.localParticipant!,
+            videoTrack: t.track,
+            isScreenShare: false,
+          ));
         }
       }
     }
-
     setState(() {
-      participantTracks = [
-        ...sortedParticipants,
-      ];
+      participantTracks = [...screenTracks, ...userMediaTracks];
     });
-  }
-
-  void subscribeToVideoTracks(RemoteParticipant participant) async {
-    if (participantSubscriptions[participant.identity] == true) {
-      return;
-    }
-    participantSubscriptions[participant.identity] = true;
-    await participant.videoTracks.firstOrNull?.subscribe();
-  }
-
-  void unSubscribeToVideoTracks(RemoteParticipant participant) async {
-    if (participantSubscriptions[participant.identity] == false) {
-      return;
-    }
-    participantSubscriptions[participant.identity] = false;
-    await participant.videoTracks.firstOrNull?.unsubscribe();
-  }
-
-  Map<String, bool> visibleParticipants = {};
-  Map<String, bool> participantSubscriptions = {};
-
-  Widget _widgetForParticipant(int index) {
-    final participant = participantTracks[index];
-    return VisibilityDetector(
-      key: Key(participant.identity),
-      onVisibilityChanged: (info) {
-        if (autoSubscribe) return;
-        final bool isVisible = info.visibleFraction > 0;
-        final bool isCompletelyGone = info.visibleFraction == 0;
-        final bool isSubscribed =
-            participantSubscriptions[participant.identity] ?? false;
-        final bool shouldSubscribe =
-            !isSubscribed && isVisible && participant is! LocalParticipant;
-
-        if (shouldSubscribe) {
-          subscribeToVideoTracks(
-            participant as RemoteParticipant,
-          );
-          visibleParticipants[participant.identity] = true;
-        } else if (participant is! LocalParticipant && isCompletelyGone) {
-          unSubscribeToVideoTracks(
-            participant as RemoteParticipant,
-          );
-          visibleParticipants.remove(
-            participant.identity,
-          );
-        }
-      },
-      child: SizedBox(
-        width: 240,
-        height: 180,
-        child: ParticipantGridTile(
-          participantTracks[index],
-          participantSubscriptions,
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Room: ${widget.room.name}',
-            style: const TextStyle(color: Colors.white),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.view_module,
-                color: gridView ? Colors.green : Colors.white,
-              ),
-              onPressed: () {
-                setState(() {
-                  gridView = true;
-                });
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.view_sidebar,
-                color: !gridView ? Colors.green : Colors.white,
-              ),
-              onPressed: () {
-                setState(() {
-                  gridView = false;
-                });
-              },
-            ),
-            SizedBox.fromSize(
-              size: const Size(42, 10),
-            )
-          ],
-        ),
         body: Stack(
           children: [
-            if (gridView)
-              CustomScrollView(
-                slivers: [
-                  SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300.0,
-                      mainAxisSpacing: 10.0,
-                      crossAxisSpacing: 10.0,
-                      childAspectRatio: 1.5,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) =>
-                          _widgetForParticipant(index),
-                      childCount: participantTracks.length,
-                    ),
-                  ),
-                ],
-              ),
-            if (widget.room.localParticipant != null && gridView)
-              Positioned(
+            Column(
+              children: [
+                Expanded(
+                    child: participantTracks.isNotEmpty
+                        ? ParticipantWidget.widgetFor(participantTracks.first,
+                            showStatsLayer: true)
+                        : Container()),
+                if (widget.room.localParticipant != null)
+                  SafeArea(
+                    top: false,
+                    child: ControlsWidget(
+                        widget.room, widget.room.localParticipant!),
+                  )
+              ],
+            ),
+            Positioned(
                 left: 0,
                 right: 0,
-                bottom: 20,
-                child: SafeArea(
-                  top: false,
-                  child: ControlsWidget(
-                      widget.room, widget.room.localParticipant!),
-                ),
-              ),
-            if (!gridView)
-              Column(
-                children: [
-                  Expanded(
-                      child: participantTracks.isNotEmpty
-                          ? VisibilityDetector(
-                              key: Key(participantTracks.first.identity),
-                              onVisibilityChanged: (info) {
-                                if (autoSubscribe) return;
-                                final bool isVisible = info.visibleFraction > 0;
-                                final bool isCompletelyGone =
-                                    info.visibleFraction == 0;
-                                final bool isSubscribed =
-                                    participantSubscriptions[
-                                            participantTracks.first.identity] ??
-                                        false;
-                                final bool shouldSubscribe = !isSubscribed &&
-                                    isVisible &&
-                                    participantTracks.first
-                                        is! LocalParticipant;
-
-                                if (shouldSubscribe) {
-                                  subscribeToVideoTracks(
-                                    participantTracks.first
-                                        as RemoteParticipant,
-                                  );
-                                  visibleParticipants[
-                                      participantTracks.first.identity] = true;
-                                } else if (participantTracks.first
-                                        is! LocalParticipant &&
-                                    isCompletelyGone) {
-                                  unSubscribeToVideoTracks(
-                                    participantTracks.first
-                                        as RemoteParticipant,
-                                  );
-                                  visibleParticipants.remove(
-                                    participantTracks.first.identity,
-                                  );
-                                }
-                              },
-                              child: ParticipantWidget.widgetFor(
-                                  participantTracks.first,
-                                  showStatsLayer: true),
-                            )
-                          : Container()),
-                  if (widget.room.localParticipant != null)
-                    SafeArea(
-                      top: false,
-                      child: ControlsWidget(
-                          widget.room, widget.room.localParticipant!),
-                    )
-                ],
-              ),
-            if (!gridView)
-              Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: SizedBox(
-                    height: 120,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: math.max(0, participantTracks.length - 1),
-                      itemBuilder: (BuildContext context, int index) =>
-                          _widgetForParticipant(index + 1),
+                top: 0,
+                child: SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: math.max(0, participantTracks.length - 1),
+                    itemBuilder: (BuildContext context, int index) => SizedBox(
+                      width: 180,
+                      height: 120,
+                      child: ParticipantWidget.widgetFor(
+                          participantTracks[index + 1]),
                     ),
-                  )),
+                  ),
+                )),
           ],
         ),
       );

@@ -28,7 +28,6 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
   static const _storeKeyMultiCodec = 'multi-codec';
-  static const _storeKeyAutoSubscribe = 'auto-subscribe';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -39,7 +38,6 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _busy = false;
   bool _e2ee = false;
   bool _multiCodec = false;
-  bool _autoSubscribe = false;
   String _preferredCodec = 'Preferred Codec';
 
   @override
@@ -98,7 +96,6 @@ class _ConnectPageState extends State<ConnectPage> {
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
-      _autoSubscribe = prefs.getBool(_storeKeyAutoSubscribe) ?? true;
     });
   }
 
@@ -113,7 +110,6 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
-    await prefs.setBool(_storeKeyAutoSubscribe, _autoSubscribe);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -143,7 +139,6 @@ class _ConnectPageState extends State<ConnectPage> {
                     e2ee: _e2ee,
                     e2eeKey: e2eeKey,
                     simulcast: _simulcast,
-                    autoSubscribe: _autoSubscribe,
                     adaptiveStream: _adaptiveStream,
                     dynacast: _dynacast,
                     preferredCodec: _preferredCodec,
@@ -166,13 +161,6 @@ class _ConnectPageState extends State<ConnectPage> {
     if (value == null || _simulcast == value) return;
     setState(() {
       _simulcast = value;
-    });
-  }
-
-  void _setAutoSubscribe(bool? value) async {
-    if (value == null || _autoSubscribe == value) return;
-    setState(() {
-      _autoSubscribe = value;
     });
   }
 
@@ -268,19 +256,6 @@ class _ConnectPageState extends State<ConnectPage> {
                         Switch(
                           value: _simulcast,
                           onChanged: (value) => _setSimulcast(value),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Auto Subscribe'),
-                        Switch(
-                          value: _autoSubscribe,
-                          onChanged: (value) => _setAutoSubscribe(value),
                         ),
                       ],
                     ),
