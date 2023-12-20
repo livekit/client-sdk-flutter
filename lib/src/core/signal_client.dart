@@ -17,6 +17,7 @@ import 'dart:collection';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -60,7 +61,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
 
   Future<bool> checkInternetConnection() async {
-    if (lkPlatformIsTest()) {
+    if (!kIsWeb && !lkPlatformIsTest()) {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
@@ -76,7 +77,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     onDispose(() async {
       await cleanUp();
       await events.dispose();
-      if (!lkPlatformIsTest()) {
+      if (!kIsWeb && !lkPlatformIsTest()) {
         await connectivitySubscription?.cancel();
       }
     });
@@ -90,7 +91,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required RoomOptions roomOptions,
     bool reconnect = false,
   }) async {
-    if (!lkPlatformIsTest()) {
+    if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
       connectivitySubscription ??= Connectivity()
           .onConnectivityChanged
