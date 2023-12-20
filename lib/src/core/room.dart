@@ -201,13 +201,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         info: event.response.participant,
       );
 
-      if (engine.fullReconnect) {
+      if (engine.fullReconnectOnNext) {
         _localParticipant!.updateFromInfo(event.response.participant);
       }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
-          !engine.fullReconnect) {
+          !engine.fullReconnectOnNext) {
         var options = engine.fastConnectOptions!;
 
         var audio = options.microphone;
@@ -261,6 +261,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       logger.fine('Room Connect completed');
+
+      events.emit(RoomConnectedEvent(room: this, metadata: _metadata));
     })
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
@@ -339,13 +341,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
     })
-    ..on<SignalConnectionStateUpdatedEvent>((event) async {
-      // during reconnection, need to send sync state upon signal connection.
-      if (event.newState == ConnectionState.reconnecting) {
-        logger.fine('Sending syncState');
-        await _sendSyncState();
-      }
-    })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
       if (event.muted) {
@@ -360,11 +355,57 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
+    ..on<EngineReconnectedEvent>((event) async {
+      events.emit(const RoomReconnectedEvent());
+      // re-send tracks permissions
+      localParticipant?.sendTrackSubscriptionPermissions();
+    })
+    ..on<EngineFullRestartingEvent>((event) async {
+      events.emit(const RoomRestartingEvent());
+
+      // clean up RemoteParticipants
+      var copy = _participants.values.toList();
+
+      _participants.clear();
+      _activeSpeakers.clear();
+      // reset params
+      _name = null;
+      _sid = null;
+      _metadata = null;
+      _serverVersion = null;
+      _serverRegion = null;
+
+      for (final participant in copy) {
+        events.emit(ParticipantDisconnectedEvent(participant: participant));
+        await participant.dispose();
+      }
+    })
+    ..on<EngineRestartedEvent>((event) async {
+      events.emit(const RoomRestartedEvent());
+
+      // re-publish all tracks
+      await localParticipant?.rePublishAllTracks();
+
+      for (var participant in participants.values) {
+        for (var pub in participant.trackPublications.values) {
+          if (pub.subscribed) {
+            pub.sendUpdateTrackSettings();
+          }
+        }
+      }
+    })
+    ..on<EngineReconnectingEvent>((event) async {
+      events.emit(const RoomReconnectingEvent());
+    })
+    ..on<EngineReconnectingEvent>((event) async {
+      await _sendSyncState();
+    })
+    ..on<EngineDisconnectedEvent>((event) async {
+      await _cleanUp();
+      events.emit(RoomDisconnectedEvent(reason: event.reason));
+    }) /*
     ..on<EngineConnectionStateUpdatedEvent>((event) async {
       if (event.didReconnect) {
-        events.emit(const RoomReconnectedEvent());
-        // re-send tracks permissions
-        localParticipant?.sendTrackSubscriptionPermissions();
       } else if (event.fullReconnect &&
           event.newState == ConnectionState.connecting) {
         events.emit(const RoomRestartingEvent());
@@ -395,9 +436,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       // always notify ChangeNotifier
       notifyListeners();
-    })
-    ..on<RoomRestartingEvent>((event) {})
-    ..on<RoomRestartedEvent>((event) {})
+    })*/
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
@@ -440,9 +479,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    if (connectionState != ConnectionState.disconnected) {
-      engine.signalClient.sendLeave();
+    if (engine.isClosed) {
+      events.emit(RoomDisconnectedEvent(reason: DisconnectReason.unknown));
+      return;
     }
+    await engine.disconnect();
     await _cleanUp();
   }
 
@@ -660,20 +701,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       publishTracks: localParticipant?.publishedTracksInfo(),
     );
   }
-
-  Future<void> _handlePostReconnect(bool rePublishAllTracks) async {
-    if (rePublishAllTracks) {
-      // re-publish all tracks
-      await localParticipant?.rePublishAllTracks();
-    }
-    for (var participant in participants.values) {
-      for (var pub in participant.trackPublications.values) {
-        if (pub.subscribed) {
-          pub.sendUpdateTrackSettings();
-        }
-      }
-    }
-  }
 }
 
 extension RoomPrivateMethods on Room {
@@ -722,8 +749,15 @@ extension RoomDebugMethods on Room {
     bool? serverLeave,
     bool? switchCandidate,
     bool? signalReconnect,
+    bool? fullReconnect,
+    int? subscriberBandwidth,
   }) async {
     if (signalReconnect != null && signalReconnect) {
+      await engine.signalClient.closeSocket();
+      return;
+    }
+    if (fullReconnect != null && fullReconnect) {
+      engine.fullReconnectOnNext = true;
       await engine.signalClient.closeSocket();
       return;
     }

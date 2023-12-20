@@ -41,10 +41,8 @@ void main() {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.connecting),
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.connected),
+            predicate<SignalConnectingEvent>((event) => true),
+            predicate<SignalConnectedEvent>((event) => true),
           ]));
       await client.connect(
         exampleUri,
@@ -53,25 +51,21 @@ void main() {
         roomOptions: roomOptions,
       );
     });
+
     test('reconnect', () async {
+      expect(
+          client.events.streamCtrl.stream,
+          emitsInOrder(<Matcher>[
+            predicate<SignalReconnectingEvent>((event) => true),
+            predicate<SignalConnectedEvent>((event) => true),
+          ]));
       await client.connect(
         exampleUri,
         token,
         connectOptions: connectOptions,
         roomOptions: roomOptions,
+        reconnect: true,
       );
-      expect(
-          client.events.streamCtrl.stream,
-          emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.disconnected),
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.reconnecting),
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.newState == ConnectionState.connected &&
-                event.didReconnect == true),
-          ]));
-      await client.closeSocket();
     });
   });
 

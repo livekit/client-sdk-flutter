@@ -143,8 +143,8 @@ void main() {
     test('leave', () async {
       expect(
           room.events.streamCtrl.stream,
-          emits(predicate<RoomDisconnectedEvent>((event) =>
-              room.connectionState == ConnectionState.disconnected)));
+          emits(predicate<RoomDisconnectedEvent>(
+              (event) => event.reason == DisconnectReason.unknown)));
       ws.onData(leaveResponse.writeToBuffer());
     });
   });

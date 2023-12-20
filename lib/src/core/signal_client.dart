@@ -15,6 +15,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
@@ -30,20 +31,21 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/platform.dart';
 import '../support/websocket.dart';
-import '../support/websocket_utility.dart';
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
 
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
-  // Connection state of the socket conection.
   ConnectionState _connectionState = ConnectionState.disconnected;
-
   ConnectionState get connectionState => _connectionState;
 
-  final WebSocketUtility _ws;
-  WebSocketUtility get ws => _ws;
+  //inal WebSocketUtility _ws;
+  //WebSocketUtility get ws => _ws;
+
+  final WebSocketConnector _wsConnector;
+  LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
   Duration? _pingTimeoutDuration;
@@ -55,10 +57,21 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   int get pingCount => _pingCount;
 
   int _pingCount = 0;
+  String? participantSid;
+
+  ConnectivityResult? _connectivityResult;
+  StreamSubscription<ConnectivityResult>? connectivitySubscription;
+
+  Future<bool> checkInternetConnection() async {
+    if (lkPlatformIsTest()) {
+      return true;
+    }
+    _connectivityResult = await Connectivity().checkConnectivity();
+    return _connectivityResult != ConnectivityResult.none;
+  }
 
   @internal
-  SignalClient(WebSocketConnector wsConnector)
-      : _ws = WebSocketUtility(wsConnector) {
+  SignalClient(WebSocketConnector wsConnector) : _wsConnector = wsConnector {
     events.listen((event) {
       logger.fine('[SignalEvent] $event');
     });
@@ -66,6 +79,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     onDispose(() async {
       await cleanUp();
       await events.dispose();
+      if (!lkPlatformIsTest()) {
+        await connectivitySubscription?.cancel();
+      }
     });
   }
 
@@ -75,51 +91,113 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     String token, {
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
+    bool reconnect = false,
   }) async {
+    if (!lkPlatformIsTest()) {
+      _connectivityResult = await Connectivity().checkConnectivity();
+      connectivitySubscription ??= Connectivity()
+          .onConnectivityChanged
+          .listen((ConnectivityResult result) {
+        if (_connectivityResult != result) {
+          _connectivityResult = result;
+          if (result == ConnectivityResult.none) {
+            logger.warning('no internet connection');
+          } else {
+            logger.info('internet connection restored');
+            events.emit(SignalConnectivityChangedEvent(
+              state: result,
+            ));
+          }
+        }
+      });
+
+      if (_connectivityResult == ConnectivityResult.none) {
+        logger.warning('no internet connection');
+        events.emit(SignalDisconnectedEvent(
+            reason: DisconnectReason.noInternetConnection));
+        throw ConnectException('no internet connection');
+      }
+    }
+
     final rtcUri = await Utils.buildUri(
       uriString,
       token: token,
       connectOptions: connectOptions,
       roomOptions: roomOptions,
+      reconnect: reconnect,
+      sid: reconnect ? participantSid : null,
     );
 
     logger.fine('SignalClient connecting with url: $rtcUri');
 
     try {
-      _updateConnectionState(ConnectionState.connecting);
-
+      if (reconnect == true) {
+        _connectionState = ConnectionState.reconnecting;
+        events.emit(const SignalReconnectingEvent());
+      } else {
+        _connectionState = ConnectionState.connecting;
+        events.emit(const SignalConnectingEvent());
+      }
+      // Clean up existing socket
+      await cleanUp();
+      // Attempt to connect
+      _ws = await _wsConnector(
+        rtcUri,
+        WebSocketEventHandlers(
+          onData: _onSocketData,
+          onDispose: _onSocketDispose,
+          onError: _onSocketError,
+        ),
+      );
+      // Successful connection
+      _connectionState = ConnectionState.connected;
+      events.emit(const SignalConnectedEvent());
+/*
       // Clean up existing socket
       await cleanUp();
 
-      await _ws.initWebSocket(
-        onMessage: _onSocketData,
-        onError: _onSocketError,
-        onClose: _onSocketDispose,
-        onSocketStatusChange: (status) {
-          logger.fine('Socket status changed to $status');
-          switch (status) {
-            case SocketStatus.kSocketStatusConnected:
-              _updateConnectionState(ConnectionState.connected);
-              break;
-            case SocketStatus.kSocketStatusReconnecting:
-              _updateConnectionState(ConnectionState.reconnecting);
-              break;
-            case SocketStatus.kSocketStatusClosed:
-              _updateConnectionState(ConnectionState.disconnected);
-              break;
-            case SocketStatus.kSocketStatusFailed:
-              events.emit(SignalConnectionStateUpdatedEvent(
-                newState: ConnectionState.disconnected,
-                oldState: _connectionState,
-                didReconnect: false,
-                disconnectReason: DisconnectReason.connectionDropped,
-              ));
-              break;
-          }
-        },
-      );
-      await _ws.openSocket(rtcUri);
+      if (reconnect == true) {
+        _connectionState = ConnectionState.reconnecting;
+        events.emit(const SignalReconnectingEvent());
+      } else {
+        _connectionState = ConnectionState.connecting;
+        events.emit(const SignalConnectingEvent());
+      }
+
+      if (!reconnect) {
+        await _ws.initWebSocket(
+          onMessage: _onSocketData,
+          onError: _onSocketError,
+          onClose: _onSocketDispose,
+          onSocketStatusChange: (status) {
+            logger.fine('Socket status changed to $status');
+            switch (status) {
+              case SocketStatus.kSocketStatusConnected:
+                _connectionState = ConnectionState.connected;
+                events.emit(const SignalConnectedEvent());
+                break;
+              case SocketStatus.kSocketStatusClosed:
+                _connectionState = ConnectionState.disconnected;
+                events.emit(SignalDisconnectedEvent(
+                    reason: DisconnectReason.connectionClosed));
+                break;
+              case SocketStatus.kSocketStatusFailed:
+                _connectionState = ConnectionState.disconnected;
+                events.emit(SignalDisconnectedEvent(
+                    reason: DisconnectReason.signalingConnectionFailure));
+                break;
+            }
+          },
+        );
+      }
+      await _ws.openSocket(rtcUri,
+          connectTimeout: const Duration(milliseconds: 3000),
+          reconnect: reconnect);
+          */
     } catch (socketError) {
+      // Skip validation if reconnect mode
+      if (reconnect) rethrow;
+
       // Attempt Validation
       var finalError = socketError;
       try {
@@ -142,7 +220,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           finalError = error;
         }
       } finally {
-        _updateConnectionState(ConnectionState.disconnected);
+        events.emit(SignalDisconnectedEvent(
+            reason: DisconnectReason.signalingConnectionFailure));
         throw finalError;
       }
     }
@@ -151,14 +230,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> closeSocket() async {
     logger.fine('SignalClient disconnect()');
-    _ws.webSocketOnDone();
+    await _ws?.dispose();
   }
 
   // resets internal state to a re-usable state
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
-    _ws.closeSocket();
+    //_ws.closeSocket();
+    await _ws?.dispose();
+    _ws = null;
     _queue.clear();
     _clearPingInterval();
   }
@@ -172,20 +253,20 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return;
     }
 
-    if (_connectionState == ConnectionState.reconnecting &&
+    if (connectionState == ConnectionState.reconnecting &&
         req._canQueue() &&
         enqueueIfReconnecting) {
       _queue.add(req);
       return;
     }
 
-    if (_ws.socketStatus != SocketStatus.kSocketStatusConnected) {
+    if (connectionState != ConnectionState.connected) {
       logger
           .warning('[$objectId] Could not send message, socket not connected');
       return;
     }
 
-    _ws.send(req.writeToBuffer());
+    _ws?.send(req.writeToBuffer());
   }
 
   Future<void> _onSocketData(dynamic message) async {
@@ -201,8 +282,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
               'ping config timeout: ${msg.join.pingTimeout}, interval: ${msg.join.pingInterval} ');
           _startPingInterval();
         }
-        var sid = msg.join.participant.sid;
-        _ws.setReconnSid(sid);
+        participantSid = msg.join.participant.sid;
         events.emit(SignalJoinResponseEvent(response: msg.join));
         break;
       case lk_rtc.SignalResponse_Message.answer:
@@ -296,7 +376,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }
 
   void _onSocketDispose() {
-    logger.fine('SignalClient onSocketDispose $_connectionState');
+    // don't emit event's when reconnecting state
+    logger.fine('SignalClient did disconnect ${_connectionState}');
+    _connectionState = ConnectionState.disconnected;
+    events.emit(
+        SignalDisconnectedEvent(reason: DisconnectReason.connectionClosed));
   }
 
   void _sendPing() {
@@ -518,38 +602,6 @@ extension on lk_rtc.SignalRequest {
         lk_rtc.SignalRequest_Message.answer,
         lk_rtc.SignalRequest_Message.simulate
       ].contains(whichMessage());
-}
-
-extension SignalClientPrivateMethods on SignalClient {
-  void _updateConnectionState(ConnectionState newValue) {
-    if (_connectionState == newValue) return;
-
-    logger.fine('SignalClient ConnectionState '
-        '${_connectionState.name} -> ${newValue.name}');
-
-    bool didReconnect = _connectionState == ConnectionState.reconnecting &&
-        newValue == ConnectionState.connected;
-
-    final oldState = _connectionState;
-
-    if (newValue == ConnectionState.connected &&
-        oldState == ConnectionState.reconnecting) {
-      // restart ping interval as it's cleared for reconnection
-      _startPingInterval();
-    } else if (newValue == ConnectionState.reconnecting ||
-        newValue == ConnectionState.disconnected) {
-      // clear ping interval and restart it once reconnected
-      _clearPingInterval();
-    }
-
-    _connectionState = newValue;
-
-    events.emit(SignalConnectionStateUpdatedEvent(
-      newState: _connectionState,
-      oldState: oldState,
-      didReconnect: didReconnect,
-    ));
-  }
 }
 
 // internal methods
