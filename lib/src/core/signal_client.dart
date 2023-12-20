@@ -41,9 +41,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState _connectionState = ConnectionState.disconnected;
   ConnectionState get connectionState => _connectionState;
 
-  //inal WebSocketUtility _ws;
-  //WebSocketUtility get ws => _ws;
-
   final WebSocketConnector _wsConnector;
   LiveKitWebSocket? _ws;
 
@@ -195,7 +192,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
-    //_ws.closeSocket();
+    _connectionState = ConnectionState.disconnected;
     await _ws?.dispose();
     _ws = null;
     _queue.clear();
