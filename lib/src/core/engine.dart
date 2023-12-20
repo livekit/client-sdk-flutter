@@ -688,7 +688,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (e) {
       reconnectAttempts = reconnectAttempts! + 1;
       bool recoverable = true;
-      if (e is WebSocketException) {
+      if (e is WebSocketException ||
+          e is ConnectException ||
+          e is MediaConnectException) {
         // cannot resume connection, need to do full reconnect
         fullReconnectOnNext = true;
       } else if (e is TimeoutException) {
@@ -755,7 +757,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: connectOptions.timeouts.peerConnection,
-        onTimeout: () => throw ConnectException(
+        onTimeout: () => throw MediaConnectException(
             'resumeConnection: Timed out waiting for EnginePeerStateUpdatedEvent'),
       );
       logger.fine('resumeConnection: primary connected');
