@@ -21,6 +21,8 @@ dependencies:
   flutter_svg: ^2.0.5
   dropdown_button2: ^2.3.6
   flutter_window_close: ^0.2.2
+  fluttertoast: ^8.2.4
+  visibility_detector: ^0.4.0+2
 
   livekit_client:
     path: ../
