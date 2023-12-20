@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/method_channels/replay_kit_channel.dart';
@@ -49,7 +50,9 @@ class _RoomPageState extends State<RoomPage> {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
-    ReplayKitChannel.listenMethodChannel(widget.room);
+    if (!kIsWeb && lkPlatformIs(PlatformType.iOS)) {
+      ReplayKitChannel.listenMethodChannel(widget.room);
+    }
 
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
@@ -64,7 +67,10 @@ class _RoomPageState extends State<RoomPage> {
   void dispose() {
     // always dispose listener
     (() async {
-      ReplayKitChannel.closeReplayKit();
+      if (!kIsWeb && lkPlatformIs(PlatformType.iOS)) {
+        ReplayKitChannel.closeReplayKit();
+      }
+
       widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
@@ -205,10 +211,12 @@ class _RoomPageState extends State<RoomPage> {
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
-          if (!_flagStartedReplayKit) {
-            _flagStartedReplayKit = true;
+          if (!kIsWeb && lkPlatformIs(PlatformType.iOS)) {
+            if (!_flagStartedReplayKit) {
+              _flagStartedReplayKit = true;
 
-            ReplayKitChannel.startReplayKit();
+              ReplayKitChannel.startReplayKit();
+            }
           }
 
           screenTracks.add(ParticipantTrack(
@@ -217,10 +225,12 @@ class _RoomPageState extends State<RoomPage> {
             isScreenShare: true,
           ));
         } else {
-          if (_flagStartedReplayKit) {
-            _flagStartedReplayKit = false;
+          if (!kIsWeb && lkPlatformIs(PlatformType.iOS)) {
+            if (_flagStartedReplayKit) {
+              _flagStartedReplayKit = false;
 
-            ReplayKitChannel.closeReplayKit();
+              ReplayKitChannel.closeReplayKit();
+            }
           }
 
           userMediaTracks.add(ParticipantTrack(
