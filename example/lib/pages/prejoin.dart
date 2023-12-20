@@ -17,6 +17,7 @@ class JoinArgs {
     this.e2ee = false,
     this.e2eeKey,
     this.simulcast = true,
+    this.autoSubscribe = true,
     this.adaptiveStream = true,
     this.dynacast = true,
     this.preferredCodec = 'VP8',
@@ -27,6 +28,7 @@ class JoinArgs {
   final bool e2ee;
   final String? e2eeKey;
   final bool simulcast;
+  final bool autoSubscribe;
   final bool adaptiveStream;
   final bool dynacast;
   final String preferredCodec;
@@ -205,6 +207,9 @@ class _PreJoinPageState extends State<PreJoinPage> {
           defaultCameraCaptureOptions: CameraCaptureOptions(
               maxFrameRate: 30, params: _selectedVideoParameters),
           e2eeOptions: e2eeOptions,
+        ),
+        connectOptions: ConnectOptions(
+          autoSubscribe: args.autoSubscribe,
         ),
         fastConnectOptions: FastConnectOptions(
           microphone: TrackOption(track: _audioTrack),

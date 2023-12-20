@@ -10,28 +10,20 @@ import 'participant_stats.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
-  static ParticipantWidget widgetFor(ParticipantTrack participantTrack,
+  static ParticipantWidget widgetFor(Participant participant,
       {bool showStatsLayer = false}) {
-    if (participantTrack.participant is LocalParticipant) {
-      return LocalParticipantWidget(
-          participantTrack.participant as LocalParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          showStatsLayer);
-    } else if (participantTrack.participant is RemoteParticipant) {
-      return RemoteParticipantWidget(
-          participantTrack.participant as RemoteParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
-          showStatsLayer);
+    if (participant is LocalParticipant) {
+      return LocalParticipantWidget(participant, showStatsLayer);
+    } else if (participant is RemoteParticipant) {
+      return RemoteParticipantWidget(participant, showStatsLayer);
     }
     throw UnimplementedError('Unknown participant type');
   }
 
   // Must be implemented by child class
   abstract final Participant participant;
-  abstract final VideoTrack? videoTrack;
-  abstract final bool isScreenShare;
+  VideoTrack? get videoTrack;
+  bool get isScreenShare;
   abstract final bool showStatsLayer;
   final VideoQuality quality;
 
@@ -45,16 +37,15 @@ class LocalParticipantWidget extends ParticipantWidget {
   @override
   final LocalParticipant participant;
   @override
-  final VideoTrack? videoTrack;
+  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
   @override
-  final bool isScreenShare;
+  bool get isScreenShare =>
+      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
   const LocalParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
     this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
@@ -67,16 +58,15 @@ class RemoteParticipantWidget extends ParticipantWidget {
   @override
   final RemoteParticipant participant;
   @override
-  final VideoTrack? videoTrack;
+  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
   @override
-  final bool isScreenShare;
+  bool get isScreenShare =>
+      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
   const RemoteParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
     this.showStatsLayer, {
     Key? key,
   }) : super(key: key);
@@ -139,7 +129,8 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
             // Video
             InkWell(
               onTap: () => setState(() => _visible = !_visible),
-              child: activeVideoTrack != null && !activeVideoTrack!.muted
+              child: (activeVideoTrack != null && !activeVideoTrack!.muted) &&
+                      widget.participant.isCameraEnabled()
                   ? VideoTrackRenderer(
                       activeVideoTrack!,
                       fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
@@ -217,15 +208,17 @@ class _RemoteParticipantWidgetState
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             // Menu for RemoteTrackPublication<RemoteAudioTrack>
-            if (firstAudioPublication != null && !isScreenShare)
+            if (widget.participant.audioTracks.isNotEmpty)
               RemoteTrackPublicationMenuWidget(
-                pub: firstAudioPublication!,
+                remote: widget.participant,
+                source: TrackSource.microphone,
                 icon: Icons.volume_up,
               ),
             // Menu for RemoteTrackPublication<RemoteVideoTrack>
-            if (videoPublication != null)
+            if (widget.participant.videoTracks.isNotEmpty)
               RemoteTrackPublicationMenuWidget(
-                pub: videoPublication!,
+                remote: widget.participant,
+                source: TrackSource.camera,
                 icon: isScreenShare ? Icons.monitor : Icons.videocam,
               ),
             if (videoPublication != null)
@@ -245,12 +238,19 @@ class _RemoteParticipantWidgetState
 
 class RemoteTrackPublicationMenuWidget extends StatelessWidget {
   final IconData icon;
-  final RemoteTrackPublication pub;
+  final RemoteParticipant remote;
+  final TrackSource source;
   const RemoteTrackPublicationMenuWidget({
-    required this.pub,
+    required this.remote,
+    required this.source,
     required this.icon,
     Key? key,
   }) : super(key: key);
+
+  List<RemoteTrackPublication> get publications =>
+      source == TrackSource.microphone
+          ? remote.audioTracks
+          : remote.videoTracks;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -259,22 +259,24 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
           tooltip: 'Subscribe menu',
           icon: Icon(icon,
               color: {
-                TrackSubscriptionState.notAllowed: Colors.red,
-                TrackSubscriptionState.unsubscribed: Colors.grey,
-                TrackSubscriptionState.subscribed: Colors.green,
-              }[pub.subscriptionState]),
+                    TrackSubscriptionState.notAllowed: Colors.red,
+                    TrackSubscriptionState.unsubscribed: Colors.grey,
+                    TrackSubscriptionState.subscribed: Colors.green,
+                  }[publications.firstOrNull?.subscriptionState] ??
+                  Colors.white),
           onSelected: (value) => value(),
           itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
             // Subscribe/Unsubscribe
-            if (pub.subscribed == false)
+            if (publications.isNotEmpty &&
+                publications.firstOrNull?.subscribed == false)
               PopupMenuItem(
                 child: const Text('Subscribe'),
-                value: () => pub.subscribe(),
+                value: () => publications.firstOrNull?.subscribe(),
               )
-            else if (pub.subscribed == true)
+            else if (publications.firstOrNull?.subscribed ?? false)
               PopupMenuItem(
                 child: const Text('Un-subscribe'),
-                value: () => pub.unsubscribe(),
+                value: () => publications.firstOrNull?.unsubscribe(),
               ),
           ],
         ),
