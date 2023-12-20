@@ -182,10 +182,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
   }
 
-  @internal
-  Future<void> closeSocket() async {
-    logger.fine('SignalClient disconnect()');
-    await _ws?.dispose();
+  Future<void> sendLeave() async {
+    _sendRequest(lk_rtc.SignalRequest(
+        leave: lk_rtc.LeaveRequest(
+            canReconnect: false,
+            reason: lk_models.DisconnectReason.CLIENT_INITIATED)));
   }
 
   // resets internal state to a re-usable state

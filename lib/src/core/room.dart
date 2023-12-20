@@ -718,12 +718,12 @@ extension RoomDebugMethods on Room {
     int? subscriberBandwidth,
   }) async {
     if (signalReconnect != null && signalReconnect) {
-      await engine.signalClient.closeSocket();
+      await engine.signalClient.cleanUp();
       return;
     }
     if (fullReconnect != null && fullReconnect) {
       engine.fullReconnectOnNext = true;
-      await engine.signalClient.closeSocket();
+      await engine.signalClient.cleanUp();
       return;
     }
     engine.signalClient.sendSimulateScenario(

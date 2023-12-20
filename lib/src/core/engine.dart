@@ -772,6 +772,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
+    events.emit(const EngineFullRestartingEvent());
+
+    if (signalClient.connectionState == ConnectionState.connected) {
+      await signalClient.sendLeave();
+    }
+
     await publisher?.dispose();
     publisher = null;
 
@@ -787,8 +793,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     _signalListener = signalClient.createListener(synchronized: true);
     _setUpSignalListeners();
-
-    events.emit(const EngineFullRestartingEvent());
 
     await connect(
       url!,
@@ -985,7 +989,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> disconnect() async {
     _isClosed = true;
     if (connectionState == ConnectionState.connected) {
-      signalClient.sendLeave();
+      await signalClient.sendLeave();
     } else {
       await cleanUp();
     }
