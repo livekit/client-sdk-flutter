@@ -101,7 +101,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         if (_connectivityResult != result) {
           _connectivityResult = result;
           if (result == ConnectivityResult.none) {
-            logger.warning('no internet connection');
+            logger.warning('lost internet connection');
           } else {
             logger.info('internet connection restored');
             events.emit(SignalConnectivityChangedEvent(
@@ -152,48 +152,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
-/*
-      // Clean up existing socket
-      await cleanUp();
-
-      if (reconnect == true) {
-        _connectionState = ConnectionState.reconnecting;
-        events.emit(const SignalReconnectingEvent());
-      } else {
-        _connectionState = ConnectionState.connecting;
-        events.emit(const SignalConnectingEvent());
-      }
-
-      if (!reconnect) {
-        await _ws.initWebSocket(
-          onMessage: _onSocketData,
-          onError: _onSocketError,
-          onClose: _onSocketDispose,
-          onSocketStatusChange: (status) {
-            logger.fine('Socket status changed to $status');
-            switch (status) {
-              case SocketStatus.kSocketStatusConnected:
-                _connectionState = ConnectionState.connected;
-                events.emit(const SignalConnectedEvent());
-                break;
-              case SocketStatus.kSocketStatusClosed:
-                _connectionState = ConnectionState.disconnected;
-                events.emit(SignalDisconnectedEvent(
-                    reason: DisconnectReason.connectionClosed));
-                break;
-              case SocketStatus.kSocketStatusFailed:
-                _connectionState = ConnectionState.disconnected;
-                events.emit(SignalDisconnectedEvent(
-                    reason: DisconnectReason.signalingConnectionFailure));
-                break;
-            }
-          },
-        );
-      }
-      await _ws.openSocket(rtcUri,
-          connectTimeout: const Duration(milliseconds: 3000),
-          reconnect: reconnect);
-          */
     } catch (socketError) {
       // Skip validation if reconnect mode
       if (reconnect) rethrow;
@@ -378,6 +336,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   void _onSocketDispose() {
     // don't emit event's when reconnecting state
     logger.fine('SignalClient did disconnect ${_connectionState}');
+    if (_connectionState == ConnectionState.reconnecting) {
+      return;
+    }
     _connectionState = ConnectionState.disconnected;
     events.emit(
         SignalDisconnectedEvent(reason: DisconnectReason.connectionClosed));
