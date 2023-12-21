@@ -55,7 +55,9 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
-    ReplayKitChannel.listenMethodChannel(widget.room);
+    if (lkPlatformIs(PlatformType.iOS)) {
+      ReplayKitChannel.listenMethodChannel(widget.room);
+    }
 
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
@@ -70,7 +72,9 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
   void dispose() {
     // always dispose listener
     (() async {
-      ReplayKitChannel.closeReplayKit();
+      if (lkPlatformIs(PlatformType.iOS)) {
+        ReplayKitChannel.closeReplayKit();
+      }
       widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
@@ -224,12 +228,14 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       if (localParticipantTracks != null) {
         for (var t in localParticipantTracks) {
           if (t.isScreenShare) {
+          if (lkPlatformIs(PlatformType.iOS)) {
             if (!_flagStartedReplayKit) {
               _flagStartedReplayKit = true;
 
               ReplayKitChannel.startReplayKit();
             }
           } else {
+          if (lkPlatformIs(PlatformType.iOS)) {
             if (_flagStartedReplayKit) {
               _flagStartedReplayKit = false;
 
