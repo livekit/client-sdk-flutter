@@ -21,7 +21,7 @@ import 'participant/remote.dart';
 import 'publication/local.dart';
 import 'publication/remote.dart';
 import 'publication/track_publication.dart';
-import 'track/stats.dart';
+import 'stats/stats.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/participant_permissions.dart';

@@ -21,10 +21,11 @@ import 'package:meta/meta.dart';
 import '../../events.dart';
 import '../../logger.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../stats/audio_source_stats.dart';
+import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart';
-import '../stats.dart';
 import 'local.dart';
 
 class LocalAudioTrack extends LocalTrack
@@ -101,7 +102,9 @@ class LocalAudioTrack extends LocalTrack
           senderStats.channels = getNumValFromReport(c.values, 'channels');
           senderStats.clockRate = getNumValFromReport(c.values, 'clockRate');
         }
-        break;
+      } else if (v.type == 'media-source') {
+        senderStats ??= AudioSenderStats(v.id, v.timestamp);
+        senderStats.audioSourceStats = AudioSourceStats.fromReport(v);
       }
     }
     return senderStats;

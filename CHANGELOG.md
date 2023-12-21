@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 1.5.4
+
+* Add AudioSourceStats.
+* Fix: invalid muted state for local publication.
+* Add MediaConnectException.
+* Fix preview bug for desktop screen share.
+* Fix errors caused by window close handler for web.
+* Add topic for search optimization in pub.dev.
+* Fix safari screen sharing failure.
+* Fix e2ee worker compile for flutter web.
+* Fix video renderer issue.
+* Fix: video renderer dispose issue and correctly handle metadataMuted for TrackPublication.
+* Fix getStats for remote track.
+* Fix set setScreenShareEnabled when detect replaykit state changed.
+* Improve room/participants metadata update.
+* Simplify backupCodec setting.
+
 ## 1.5.3
 
 * Handling of incompatible published codecs.

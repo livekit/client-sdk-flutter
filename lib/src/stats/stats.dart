@@ -14,7 +14,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../proto/livekit_models.pb.dart';
+import 'audio_source_stats.dart';
 
 const monitorFrequency = 2000;
 
@@ -54,12 +54,11 @@ class SenderStats extends CodecStats {
 
 class AudioSenderStats extends SenderStats {
   AudioSenderStats(String streamId, num timestamp) : super(streamId, timestamp);
-  TrackType type = TrackType.AUDIO;
+  AudioSourceStats? audioSourceStats;
 }
 
 class VideoSenderStats extends SenderStats {
   VideoSenderStats(String streamId, num timestamp) : super(streamId, timestamp);
-  TrackType type = TrackType.VIDEO;
 
   num? firCount;
 
@@ -107,7 +106,6 @@ class ReceiverStats extends CodecStats {
 class AudioReceiverStats extends ReceiverStats {
   AudioReceiverStats(String streamId, num timestamp)
       : super(streamId, timestamp);
-  TrackType type = TrackType.AUDIO;
 
   num? concealedSamples;
 
@@ -120,13 +118,13 @@ class AudioReceiverStats extends ReceiverStats {
   num? totalAudioEnergy;
 
   num? totalSamplesDuration;
+
+  AudioSourceStats? audioSourceStats;
 }
 
 class VideoReceiverStats extends ReceiverStats {
   VideoReceiverStats(String streamId, num timestamp)
       : super(streamId, timestamp);
-
-  TrackType type = TrackType.VIDEO;
 
   num? framesDecoded;
 
@@ -211,4 +209,11 @@ String? getStringValFromReport(Map<dynamic, dynamic> values, String key) {
     return values[key] as String;
   }
   return null;
+}
+
+bool getBoolValFromReport(Map<dynamic, dynamic> values, String key) {
+  if (values.containsKey(key) && values[key] is bool) {
+    return values[key] as bool;
+  }
+  return false;
 }

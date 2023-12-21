@@ -19,7 +19,7 @@ import 'types/other.dart';
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '1.5.3';
+  static const version = '1.5.4';
 
   /// Convenience method for connecting to a LiveKit server.
   /// Returns a [Room] upon a successful connect or throws when it fails.
