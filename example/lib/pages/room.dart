@@ -49,7 +49,9 @@ class _RoomPageState extends State<RoomPage> {
       Hardware.instance.setSpeakerphoneOn(true);
     }
 
-    ReplayKitChannel.listenMethodChannel(widget.room);
+    if (lkPlatformIs(PlatformType.iOS)) {
+      ReplayKitChannel.listenMethodChannel(widget.room);
+    }
 
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
@@ -64,7 +66,9 @@ class _RoomPageState extends State<RoomPage> {
   void dispose() {
     // always dispose listener
     (() async {
-      ReplayKitChannel.closeReplayKit();
+      if (lkPlatformIs(PlatformType.iOS)) {
+        ReplayKitChannel.closeReplayKit();
+      }
       widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
@@ -203,22 +207,25 @@ class _RoomPageState extends State<RoomPage> {
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
-          if (!_flagStartedReplayKit) {
-            _flagStartedReplayKit = true;
+          if (lkPlatformIs(PlatformType.iOS)) {
+            if (!_flagStartedReplayKit) {
+              _flagStartedReplayKit = true;
 
-            ReplayKitChannel.startReplayKit();
+              ReplayKitChannel.startReplayKit();
+            }
           }
-
           screenTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
             isScreenShare: true,
           ));
         } else {
-          if (_flagStartedReplayKit) {
-            _flagStartedReplayKit = false;
+          if (lkPlatformIs(PlatformType.iOS)) {
+            if (_flagStartedReplayKit) {
+              _flagStartedReplayKit = false;
 
-            ReplayKitChannel.closeReplayKit();
+              ReplayKitChannel.closeReplayKit();
+            }
           }
 
           userMediaTracks.add(ParticipantTrack(
