@@ -228,18 +228,20 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       if (localParticipantTracks != null) {
         for (var t in localParticipantTracks) {
           if (t.isScreenShare) {
-          if (lkPlatformIs(PlatformType.iOS)) {
-            if (!_flagStartedReplayKit) {
-              _flagStartedReplayKit = true;
+            if (lkPlatformIs(PlatformType.iOS)) {
+              if (!_flagStartedReplayKit) {
+                _flagStartedReplayKit = true;
 
-              ReplayKitChannel.startReplayKit();
-            }
-          } else {
-          if (lkPlatformIs(PlatformType.iOS)) {
-            if (_flagStartedReplayKit) {
-              _flagStartedReplayKit = false;
+                ReplayKitChannel.startReplayKit();
+              }
+            } else {
+              if (lkPlatformIs(PlatformType.iOS)) {
+                if (_flagStartedReplayKit) {
+                  _flagStartedReplayKit = false;
 
-              ReplayKitChannel.closeReplayKit();
+                  ReplayKitChannel.closeReplayKit();
+                }
+              }
             }
           }
         }
