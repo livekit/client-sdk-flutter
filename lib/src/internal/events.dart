@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -140,57 +141,83 @@ class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
   });
 }
 
-/// Base class for a ConnectionStateUpdated event
 @internal
-abstract class ConnectionStateUpdatedEvent with InternalEvent {
-  final ConnectionState newState;
-  final ConnectionState oldState;
-  final bool didReconnect;
-  final DisconnectReason? disconnectReason;
-  const ConnectionStateUpdatedEvent({
-    required this.newState,
-    required this.oldState,
-    required this.didReconnect,
-    this.disconnectReason,
+class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
+  final ConnectivityResult state;
+  const SignalConnectivityChangedEvent({
+    required this.state,
   });
-  @override
-  String toString() => '$runtimeType(newState: ${newState.name}, '
-      'didReconnect: ${didReconnect}, '
-      'disconnectReason: ${disconnectReason})';
 }
 
 @internal
-class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
-    with SignalEvent {
-  const SignalConnectionStateUpdatedEvent({
-    required ConnectionState newState,
-    required ConnectionState oldState,
-    required bool didReconnect,
-    DisconnectReason? disconnectReason,
-  }) : super(
-          newState: newState,
-          oldState: oldState,
-          didReconnect: didReconnect,
-          disconnectReason: disconnectReason,
-        );
+class EngineConnectedEvent with InternalEvent, SignalEvent, EngineEvent {
+  const EngineConnectedEvent();
 }
 
 @internal
-class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
-    with EngineEvent {
-  final bool fullReconnect;
-  const EngineConnectionStateUpdatedEvent({
-    required ConnectionState newState,
-    required ConnectionState oldState,
-    required bool didReconnect,
-    required this.fullReconnect,
-    DisconnectReason? disconnectReason,
-  }) : super(
-          newState: newState,
-          oldState: oldState,
-          didReconnect: didReconnect,
-          disconnectReason: disconnectReason,
-        );
+class EngineDisconnectedEvent with InternalEvent, EngineEvent {
+  DisconnectReason? reason;
+  EngineDisconnectedEvent({
+    this.reason,
+  });
+}
+
+@internal
+class EngineFullRestartingEvent with InternalEvent, EngineEvent {
+  const EngineFullRestartingEvent();
+}
+
+@internal
+class EngineRestartedEvent with InternalEvent, EngineEvent {
+  const EngineRestartedEvent();
+}
+
+@internal
+class EngineReconnectingEvent with InternalEvent, EngineEvent {
+  const EngineReconnectingEvent();
+}
+
+@internal
+class EngineReconnectedEvent with InternalEvent, EngineEvent {
+  const EngineReconnectedEvent();
+}
+
+@internal
+class EngineResumingEvent with InternalEvent, EngineEvent {
+  const EngineResumingEvent();
+}
+
+@internal
+class EngineSignalResumedEvent with EngineEvent, InternalEvent {
+  const EngineSignalResumedEvent();
+}
+
+@internal
+class SignalConnectedEvent with SignalEvent, InternalEvent {
+  const SignalConnectedEvent();
+}
+
+@internal
+class SignalConnectingEvent with SignalEvent, InternalEvent {
+  const SignalConnectingEvent();
+}
+
+@internal
+class SignalReconnectingEvent with SignalEvent, InternalEvent {
+  const SignalReconnectingEvent();
+}
+
+@internal
+class SignalReconnectedEvent with SignalEvent, InternalEvent, EngineEvent {
+  const SignalReconnectedEvent();
+}
+
+@internal
+class SignalDisconnectedEvent with SignalEvent, InternalEvent {
+  DisconnectReason? reason;
+  SignalDisconnectedEvent({
+    this.reason,
+  });
 }
 
 @internal

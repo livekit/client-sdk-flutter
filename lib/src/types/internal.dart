@@ -18,8 +18,11 @@ import 'package:meta/meta.dart';
 enum ClientDisconnectReason {
   user,
   peerConnectionClosed,
+  peerConnectionFailed,
   negotiationFailed,
   signal,
   reconnect,
+  reconnectRetry,
   leaveReconnect,
+  reconnectAttemptsExceeded,
 }
