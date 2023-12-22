@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
