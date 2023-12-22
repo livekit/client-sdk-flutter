@@ -403,16 +403,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
-    Reliability reliability = Reliability.reliable,
-    List<String>? destinationSids,
+    bool? reliable,
+    List<String>? identities,
     String? topic,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: reliability.toPBType(),
+      kind: reliable == true
+          ? lk_models.DataPacket_Kind.RELIABLE
+          : lk_models.DataPacket_Kind.LOSSY,
       user: lk_models.UserPacket(
         payload: data,
         participantSid: sid,
-        destinationSids: destinationSids,
+        destinationSids: identities,
         topic: topic,
       ),
     );
