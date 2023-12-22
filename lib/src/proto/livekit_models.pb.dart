@@ -32,7 +32,6 @@ class Room extends $pb.GeneratedMessage {
     $core.int? numParticipants,
     $core.bool? activeRecording,
     $core.int? numPublishers,
-    PlayoutDelay? playoutDelay,
   }) {
     final $result = create();
     if (sid != null) {
@@ -68,9 +67,6 @@ class Room extends $pb.GeneratedMessage {
     if (numPublishers != null) {
       $result.numPublishers = numPublishers;
     }
-    if (playoutDelay != null) {
-      $result.playoutDelay = playoutDelay;
-    }
     return $result;
   }
   Room._() : super();
@@ -101,8 +97,6 @@ class Room extends $pb.GeneratedMessage {
     ..aOB(10, _omitFieldNames ? '' : 'activeRecording')
     ..a<$core.int>(
         11, _omitFieldNames ? '' : 'numPublishers', $pb.PbFieldType.OU3)
-    ..aOM<PlayoutDelay>(12, _omitFieldNames ? '' : 'playoutDelay',
-        subBuilder: PlayoutDelay.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -248,20 +242,6 @@ class Room extends $pb.GeneratedMessage {
   $core.bool hasNumPublishers() => $_has(10);
   @$pb.TagNumber(11)
   void clearNumPublishers() => clearField(11);
-
-  @$pb.TagNumber(12)
-  PlayoutDelay get playoutDelay => $_getN(11);
-  @$pb.TagNumber(12)
-  set playoutDelay(PlayoutDelay v) {
-    setField(12, v);
-  }
-
-  @$pb.TagNumber(12)
-  $core.bool hasPlayoutDelay() => $_has(11);
-  @$pb.TagNumber(12)
-  void clearPlayoutDelay() => clearField(12);
-  @$pb.TagNumber(12)
-  PlayoutDelay ensurePlayoutDelay() => $_ensure(11);
 }
 
 class Codec extends $pb.GeneratedMessage {
@@ -344,6 +324,7 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   factory PlayoutDelay({
     $core.bool? enabled,
     $core.int? min,
+    $core.int? max,
   }) {
     final $result = create();
     if (enabled != null) {
@@ -351,6 +332,9 @@ class PlayoutDelay extends $pb.GeneratedMessage {
     }
     if (min != null) {
       $result.min = min;
+    }
+    if (max != null) {
+      $result.max = max;
     }
     return $result;
   }
@@ -368,6 +352,7 @@ class PlayoutDelay extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'enabled')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -416,6 +401,18 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   $core.bool hasMin() => $_has(1);
   @$pb.TagNumber(2)
   void clearMin() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get max => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set max($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasMax() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMax() => clearField(3);
 }
 
 class ParticipantPermission extends $pb.GeneratedMessage {
@@ -427,6 +424,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.bool? recorder,
     $core.Iterable<TrackSource>? canPublishSources,
     $core.bool? canUpdateMetadata,
+    $core.bool? agent,
   }) {
     final $result = create();
     if (canSubscribe != null) {
@@ -449,6 +447,9 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     }
     if (canUpdateMetadata != null) {
       $result.canUpdateMetadata = canUpdateMetadata;
+    }
+    if (agent != null) {
+      $result.agent = agent;
     }
     return $result;
   }
@@ -475,6 +476,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
         enumValues: TrackSource.values,
         defaultEnumValue: TrackSource.UNKNOWN)
     ..aOB(10, _omitFieldNames ? '' : 'canUpdateMetadata')
+    ..aOB(11, _omitFieldNames ? '' : 'agent')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -583,6 +585,19 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   $core.bool hasCanUpdateMetadata() => $_has(6);
   @$pb.TagNumber(10)
   void clearCanUpdateMetadata() => clearField(10);
+
+  /// indicates that participant is an agent
+  @$pb.TagNumber(11)
+  $core.bool get agent => $_getBF(7);
+  @$pb.TagNumber(11)
+  set agent($core.bool v) {
+    $_setBool(7, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasAgent() => $_has(7);
+  @$pb.TagNumber(11)
+  void clearAgent() => clearField(11);
 }
 
 class ParticipantInfo extends $pb.GeneratedMessage {
@@ -598,6 +613,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     ParticipantPermission? permission,
     $core.String? region,
     $core.bool? isPublisher,
+    ParticipantInfo_Kind? kind,
   }) {
     final $result = create();
     if (sid != null) {
@@ -633,6 +649,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (isPublisher != null) {
       $result.isPublisher = isPublisher;
     }
+    if (kind != null) {
+      $result.kind = kind;
+    }
     return $result;
   }
   ParticipantInfo._() : super();
@@ -664,6 +683,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         subBuilder: ParticipantPermission.create)
     ..aOS(12, _omitFieldNames ? '' : 'region')
     ..aOB(13, _omitFieldNames ? '' : 'isPublisher')
+    ..e<ParticipantInfo_Kind>(
+        14, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE,
+        defaultOrMaker: ParticipantInfo_Kind.STANDARD,
+        valueOf: ParticipantInfo_Kind.valueOf,
+        enumValues: ParticipantInfo_Kind.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -816,6 +840,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasIsPublisher() => $_has(10);
   @$pb.TagNumber(13)
   void clearIsPublisher() => clearField(13);
+
+  @$pb.TagNumber(14)
+  ParticipantInfo_Kind get kind => $_getN(11);
+  @$pb.TagNumber(14)
+  set kind(ParticipantInfo_Kind v) {
+    setField(14, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasKind() => $_has(11);
+  @$pb.TagNumber(14)
+  void clearKind() => clearField(14);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -979,6 +1015,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.bool? disableRed,
     Encryption_Type? encryption,
     $core.String? stream,
+    TimedVersion? version,
   }) {
     final $result = create();
     if (sid != null) {
@@ -1032,6 +1069,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     if (stream != null) {
       $result.stream = stream;
     }
+    if (version != null) {
+      $result.version = version;
+    }
     return $result;
   }
   TrackInfo._() : super();
@@ -1076,6 +1116,8 @@ class TrackInfo extends $pb.GeneratedMessage {
         valueOf: Encryption_Type.valueOf,
         enumValues: Encryption_Type.values)
     ..aOS(17, _omitFieldNames ? '' : 'stream')
+    ..aOM<TimedVersion>(18, _omitFieldNames ? '' : 'version',
+        subBuilder: TimedVersion.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1292,6 +1334,20 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool hasStream() => $_has(16);
   @$pb.TagNumber(17)
   void clearStream() => clearField(17);
+
+  @$pb.TagNumber(18)
+  TimedVersion get version => $_getN(17);
+  @$pb.TagNumber(18)
+  set version(TimedVersion v) {
+    setField(18, v);
+  }
+
+  @$pb.TagNumber(18)
+  $core.bool hasVersion() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearVersion() => clearField(18);
+  @$pb.TagNumber(18)
+  TimedVersion ensureVersion() => $_ensure(17);
 }
 
 /// provide information about available spatial layers
