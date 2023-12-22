@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.5.5
+
+* Improve reconnect logic for websocket (#406)
+* Fix: Prevent ReplayKitChannel related code from being executed on non-iOS platforms. (#432)
+
 ## 1.5.4
 
 * Add AudioSourceStats.
