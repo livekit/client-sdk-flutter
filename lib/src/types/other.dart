@@ -84,6 +84,9 @@ enum DisconnectReason {
   roomDeleted,
   stateMismatch,
   joinFailure,
+  connectionClosed,
+  signalingConnectionFailure,
+  noInternetConnection,
 }
 
 /// The reason why a track failed to publish.

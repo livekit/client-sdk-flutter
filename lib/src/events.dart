@@ -44,6 +44,18 @@ mixin EngineEvent implements LiveKitEvent {}
 /// Base type for all [SignalClient] events.
 mixin SignalEvent implements LiveKitEvent {}
 
+class RoomConnectedEvent with RoomEvent {
+  final Room room;
+  final String? metadata;
+  const RoomConnectedEvent({
+    required this.room,
+    required this.metadata,
+  });
+
+  @override
+  String toString() => '${runtimeType}(room: ${room})';
+}
+
 /// When the connection to the server has been interrupted and it's attempting
 /// to reconnect.
 /// Emitted by [Room].
