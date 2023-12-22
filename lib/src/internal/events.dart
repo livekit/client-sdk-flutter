@@ -150,6 +150,11 @@ class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
+class EngineConnectingEvent with InternalEvent, EngineEvent {
+  const EngineConnectingEvent();
+}
+
+@internal
 class EngineConnectedEvent with InternalEvent, SignalEvent, EngineEvent {
   const EngineConnectedEvent();
 }

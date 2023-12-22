@@ -355,10 +355,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
+    ..on<EngineConnectingEvent>((event) async {
+      notifyListeners();
+    })
+    ..on<EngineConnectedEvent>((event) async {
+      notifyListeners();
+    })
     ..on<EngineReconnectedEvent>((event) async {
       events.emit(const RoomReconnectedEvent());
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
+      notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
       events.emit(const RoomRestartingEvent());
@@ -379,6 +386,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
         await participant.dispose();
       }
+      notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
       events.emit(const RoomRestartedEvent());
@@ -393,14 +401,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
       }
+      notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
       events.emit(const RoomReconnectingEvent());
       await _sendSyncState();
+      notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
       await _cleanUp();
       events.emit(RoomDisconnectedEvent(reason: event.reason));
+      notifyListeners();
     })
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))

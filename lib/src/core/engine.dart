@@ -835,7 +835,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   void _setUpEngineListeners() =>
-      events.on<EngineReconnectingEvent>((event) async {
+      events.on<SignalReconnectedEvent>((event) async {
         // send queued requests if engine re-connected
         signalClient.sendQueuedRequests();
       });
@@ -907,6 +907,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectingEvent>((event) async {
       logger.fine('Signal connecting');
+      events.emit(const EngineConnectingEvent());
     })
     ..on<SignalReconnectingEvent>((event) async {
       logger.fine('Signal reconnecting');
