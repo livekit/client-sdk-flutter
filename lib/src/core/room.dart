@@ -355,12 +355,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
-    ..on<EngineConnectingEvent>((event) async {
-      notifyListeners();
-    })
-    ..on<EngineConnectedEvent>((event) async {
-      notifyListeners();
-    })
     ..on<EngineReconnectedEvent>((event) async {
       events.emit(const RoomReconnectedEvent());
       // re-send tracks permissions
