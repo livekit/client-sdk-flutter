@@ -340,8 +340,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return;
     }
     _connectionState = ConnectionState.disconnected;
-    events.emit(
-        SignalDisconnectedEvent(reason: DisconnectReason.connectionClosed));
+    events.emit(SignalDisconnectedEvent(reason: DisconnectReason.disconnected));
   }
 
   void _sendPing() {

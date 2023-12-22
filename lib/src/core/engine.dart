@@ -228,6 +228,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await signalClient.cleanUp();
 
     fullReconnectOnNext = false;
+    attemptingReconnect = false;
 
     clearPendingReconnect();
   }
@@ -625,7 +626,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       reconnectStart = DateTime.now();
     }
 
+    if (reconnectAttempts! >= _reconnectCount) {
+      logger.fine('reconnectAttempts exceeded, disconnecting...');
+      _isClosed = true;
+      await cleanUp();
+
+      events.emit(EngineDisconnectedEvent(
+        reason: DisconnectReason.reconnectAttemptsExceeded,
+      ));
+      return;
+    }
+
     var delay = defaultRetryDelaysInMs[reconnectAttempts!];
+
+    events.emit(EngineAttemptReconnectEvent(
+      attempt: reconnectAttempts! + 1,
+      maxAttempts: _reconnectCount,
+      nextRetryDelaysInMs: delay,
+    ));
 
     clearReconnectTimeout();
     logger.fine(
@@ -654,15 +672,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           ClientDisconnectReason.peerConnectionFailed,
         ].contains(reason)) {
       fullReconnectOnNext = true;
-    }
-
-    if (reconnectAttempts! >= _reconnectCount) {
-      logger.fine('reconnectAttempts exceeded, disconnecting...');
-      events.emit(EngineDisconnectedEvent(
-        reason: DisconnectReason.connectionClosed,
-      ));
-      await cleanUp();
-      return;
     }
 
     try {
@@ -704,7 +713,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       } else {
         logger.fine('attemptReconnect: disconnecting...');
         events.emit(EngineDisconnectedEvent(
-          reason: DisconnectReason.connectionClosed,
+          reason: DisconnectReason.disconnected,
         ));
         await cleanUp();
       }
@@ -718,7 +727,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    events.emit(const EngineResumingEvent());
+    events.emit(const EngineReconnectingEvent());
 
     // wait for socket to connect rtc server
     await signalClient.connect(
@@ -915,7 +924,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if (event.reason == DisconnectReason.connectionClosed && !_isClosed) {
+      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleDisconnect(ClientDisconnectReason.signal);
       } else {
         events.emit(EngineDisconnectedEvent(

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -408,10 +409,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _sendSyncState();
       notifyListeners();
     })
-    ..on<EngineDisconnectedEvent>((event) async {
-      await _cleanUp();
-      events.emit(RoomDisconnectedEvent(reason: event.reason));
+    ..on<EngineAttemptReconnectEvent>((event) async {
+      events.emit(RoomAttemptReconnectEvent(
+        attempt: event.attempt,
+        maxAttemptsRetry: event.maxAttempts,
+        nextRetryDelaysInMs: event.nextRetryDelaysInMs,
+      ));
       notifyListeners();
+    })
+    ..on<EngineDisconnectedEvent>((event) async {
+      if (!engine.fullReconnectOnNext &&
+          ![
+            DisconnectReason.signalingConnectionFailure,
+            DisconnectReason.joinFailure,
+            DisconnectReason.noInternetConnection
+          ].contains(event.reason)) {
+        await _cleanUp();
+        events.emit(RoomDisconnectedEvent(reason: event.reason));
+        notifyListeners();
+      }
     })
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))

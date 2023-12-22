@@ -173,6 +173,18 @@ class EngineFullRestartingEvent with InternalEvent, EngineEvent {
 }
 
 @internal
+class EngineAttemptReconnectEvent with InternalEvent, EngineEvent {
+  int attempt;
+  int maxAttempts;
+  int nextRetryDelaysInMs;
+  EngineAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttempts,
+    required this.nextRetryDelaysInMs,
+  });
+}
+
+@internal
 class EngineRestartedEvent with InternalEvent, EngineEvent {
   const EngineRestartedEvent();
 }
