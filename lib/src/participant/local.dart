@@ -457,6 +457,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
 
+  @override
+  LocalTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
       {CameraCaptureOptions? cameraCaptureOptions}) async {

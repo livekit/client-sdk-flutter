@@ -78,9 +78,30 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       .cast<RemoteTrackPublication>()
       .toList();
 
-  RemoteTrackPublication? getTrackPublication(String sid) {
-    final pub = trackPublications[sid];
-    if (pub is RemoteTrackPublication) return pub;
+  @override
+  RemoteTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  RemoteTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  RemoteTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
     return null;
   }
 
@@ -97,7 +118,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     logger.fine('addSubscribedMediaTrack()');
 
     // If publication doesn't exist yet...
-    RemoteTrackPublication? pub = getTrackPublication(trackSid);
+    RemoteTrackPublication? pub = getTrackPublicationBySid(trackSid);
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
@@ -185,7 +206,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
+      RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {

@@ -64,7 +64,7 @@ void main() {
 
       await room.events.waitFor<ParticipantConnectedEvent>(
           duration: const Duration(seconds: 1));
-      expect(room.participants.length, 1);
+      expect(room.remoteParticipants.length, 1);
     });
 
     test('participant disconnect', () async {
@@ -85,7 +85,7 @@ void main() {
 
       await room.events.waitFor<ParticipantDisconnectedEvent>(
           duration: const Duration(seconds: 1));
-      expect(room.participants.length, 0);
+      expect(room.remoteParticipants.length, 0);
     });
 
     test('participant metadata changed', () async {

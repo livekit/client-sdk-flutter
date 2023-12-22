@@ -220,6 +220,53 @@ abstract class Participant<T extends TrackPublication>
     trackPublications[pub.sid] = pub;
   }
 
+  /// get a [TrackPublication] by its sid.
+  /// returns null when not found.
+  T? getTrackPublicationBySid(String sid) {
+    final pub = trackPublications[sid];
+    if (pub is T) return pub;
+    return null;
+  }
+
+  /// get a [TrackPublication] by its name.
+  /// returns null when not found.
+  T? getTrackPublicationByName(String name) {
+    for (final pub in trackPublications.values) {
+      if (pub.name == name) {
+        return pub;
+      }
+    }
+    return null;
+  }
+
+  /// get all [TrackPublication]s.
+  List<T> getTrackPublications() {
+    return trackPublications.values.toList();
+  }
+
+  /// Tries to find a [TrackPublication] by its [TrackSource]. Otherwise, will
+  /// return a compatible type of [TrackPublication] for the [TrackSource] specified.
+  /// returns null when not found.
+  T? getTrackPublicationBySource(TrackSource source) {
+    if (source == TrackSource.unknown) return null;
+    // try to find by source
+    final result =
+        trackPublications.values.firstWhereOrNull((e) => e.source == source);
+    if (result != null) return result;
+    // try to find by compatibility
+    return trackPublications.values
+        .where((e) => e.source == TrackSource.unknown)
+        .firstWhereOrNull((e) =>
+            (source == TrackSource.microphone &&
+                e.kind == lk_models.TrackType.AUDIO) ||
+            (source == TrackSource.camera &&
+                e.kind == lk_models.TrackType.VIDEO) ||
+            (source == TrackSource.screenShareVideo &&
+                e.kind == lk_models.TrackType.VIDEO) ||
+            (source == TrackSource.screenShareAudio &&
+                e.kind == lk_models.TrackType.AUDIO));
+  }
+
   // Must be implemented by subclasses.
   Future<void> unpublishTrack(String trackSid, {bool notify = true});
 
@@ -247,29 +294,6 @@ abstract class Participant<T extends TrackPublication>
   bool isScreenShareEnabled() {
     return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
         true);
-  }
-
-  /// Tries to find a [TrackPublication] by its [TrackSource]. Otherwise, will
-  /// return a compatible type of [TrackPublication] for the [TrackSource] specified.
-  /// returns null when not found.
-  T? getTrackPublicationBySource(TrackSource source) {
-    if (source == TrackSource.unknown) return null;
-    // try to find by source
-    final result =
-        trackPublications.values.firstWhereOrNull((e) => e.source == source);
-    if (result != null) return result;
-    // try to find by compatibility
-    return trackPublications.values
-        .where((e) => e.source == TrackSource.unknown)
-        .firstWhereOrNull((e) =>
-            (source == TrackSource.microphone &&
-                e.kind == lk_models.TrackType.AUDIO) ||
-            (source == TrackSource.camera &&
-                e.kind == lk_models.TrackType.VIDEO) ||
-            (source == TrackSource.screenShareVideo &&
-                e.kind == lk_models.TrackType.VIDEO) ||
-            (source == TrackSource.screenShareAudio &&
-                e.kind == lk_models.TrackType.AUDIO));
   }
 
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].
