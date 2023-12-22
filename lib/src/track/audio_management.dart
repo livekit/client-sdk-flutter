@@ -149,33 +149,12 @@ AudioTrackState _computeAudioTrackState() {
 Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
     AudioTrackState state) async {
   //
-  if (state == AudioTrackState.remoteOnly) {
-    return NativeAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playback,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.mixWithOthers,
-      },
-      appleAudioMode: AppleAudioMode.spokenAudio,
-    );
-  } else if ([
-    AudioTrackState.localOnly,
-    AudioTrackState.localAndRemote,
-  ].contains(state)) {
-    return NativeAudioConfiguration(
+  return NativeAudioConfiguration(
       appleAudioCategory: AppleAudioCategory.playAndRecord,
       appleAudioCategoryOptions: {
         AppleAudioCategoryOption.allowBluetooth,
         AppleAudioCategoryOption.mixWithOthers,
+        AppleAudioCategoryOption.defaultToSpeaker,
       },
-      appleAudioMode: Hardware.instance.preferSpeakerOutput
-          ? AppleAudioMode.videoChat
-          : AppleAudioMode.voiceChat,
-    );
-  }
-
-  return NativeAudioConfiguration(
-    appleAudioCategory: AppleAudioCategory.soloAmbient,
-    appleAudioCategoryOptions: {},
-    appleAudioMode: AppleAudioMode.default_,
-  );
+      appleAudioMode: AppleAudioMode.videoChat);
 }
