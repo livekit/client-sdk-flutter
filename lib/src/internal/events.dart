@@ -143,8 +143,10 @@ class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
 
 @internal
 class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
+  final ConnectivityResult oldState;
   final ConnectivityResult state;
   const SignalConnectivityChangedEvent({
+    required this.oldState,
     required this.state,
   });
 }

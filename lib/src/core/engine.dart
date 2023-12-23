@@ -677,7 +677,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       attemptingReconnect = true;
 
-      if (await signalClient.checkInternetConnection() == false) {
+      if (await signalClient.networkIsAvailable() == false) {
         logger.fine('no internet connection, waiting...');
         await signalClient.events.waitFor<SignalConnectivityChangedEvent>(
           duration: connectOptions.timeouts.connection * 10,
@@ -697,14 +697,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (e) {
       reconnectAttempts = reconnectAttempts! + 1;
       bool recoverable = true;
-      if (e is WebSocketException ||
-          e is ConnectException ||
-          e is MediaConnectException) {
+      if (e is WebSocketException || e is MediaConnectException) {
         // cannot resume connection, need to do full reconnect
         fullReconnectOnNext = true;
-      } else if (e is TimeoutException) {
-        fullReconnectOnNext = false;
-      } else {
+      }
+
+      if (e is UnexpectedConnectionState) {
         recoverable = false;
       }
 

@@ -61,7 +61,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectivityResult? _connectivityResult;
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
 
-  Future<bool> checkInternetConnection() async {
+  Future<bool> networkIsAvailable() async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       return true;
     }
@@ -98,15 +98,19 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           .onConnectivityChanged
           .listen((ConnectivityResult result) {
         if (_connectivityResult != result) {
-          _connectivityResult = result;
           if (result == ConnectivityResult.none) {
-            logger.warning('lost internet connection');
+            logger.warning('lost Connectivity');
           } else {
-            logger.info('internet connection restored');
-            events.emit(SignalConnectivityChangedEvent(
-              state: result,
-            ));
+            logger.info(
+                'Connectivity changed, ${_connectivityResult!.name} => ${result.name}');
           }
+
+          events.emit(SignalConnectivityChangedEvent(
+            oldState: _connectivityResult!,
+            state: result,
+          ));
+
+          _connectivityResult = result;
         }
       });
 
@@ -140,7 +144,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Clean up existing socket
       await cleanUp();
       // Attempt to connect
-      _ws = await _wsConnector(
+      var future = _wsConnector(
         rtcUri,
         WebSocketEventHandlers(
           onData: _onSocketData,
@@ -148,6 +152,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           onError: _onSocketError,
         ),
       );
+      future = future.timeout(connectOptions.timeouts.connection);
+      _ws = await future;
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
