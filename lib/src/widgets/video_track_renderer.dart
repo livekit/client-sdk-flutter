@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -52,9 +53,17 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
+  bool _rendererReady = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
+
+  Future<rtc.RTCVideoRenderer?> _initializeRenderer() async {
+    _renderer ??= rtc.RTCVideoRenderer();
+    await _renderer!.initialize();
+    await _attach();
+    return _renderer;
+  }
 
   void disposeRenderer() {
     try {
@@ -70,12 +79,14 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void initState() {
     super.initState();
     _internalKey = widget.track.addViewKey();
-    () async {
-      _renderer ??= rtc.RTCVideoRenderer();
-      await _renderer!.initialize();
-      await _attach();
-      setState(() {});
-    }();
+    if (kIsWeb) {
+      () async {
+        _renderer ??= rtc.RTCVideoRenderer();
+        await _renderer?.initialize();
+        await _attach();
+        setState(() => _rendererReady = true);
+      }();
+    }
   }
 
   @override
@@ -118,9 +129,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) => _renderer != null
-      ? Builder(
+  // Using for web will cause flickering,
+  // so revert it to the old way of rendering
+  Widget _videoViewForWeb() => !_rendererReady
+      ? Container()
+      : Builder(
           key: _internalKey,
           builder: (ctx) {
             // let it render before notifying build
@@ -135,8 +148,35 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               objectFit: widget.fit,
             );
           },
-        )
-      : Container();
+        );
+
+  Widget _videoViewForNative() => FutureBuilder(
+      future: _initializeRenderer(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && _renderer != null) {
+          return Builder(
+            key: _internalKey,
+            builder: (ctx) {
+              // let it render before notifying build
+              WidgetsBindingCompatible.instance
+                  ?.addPostFrameCallback((timeStamp) {
+                widget.track.onVideoViewBuild?.call(_internalKey);
+              });
+              return rtc.RTCVideoView(
+                _renderer!,
+                mirror: _shouldMirror(),
+                filterQuality: FilterQuality.medium,
+                objectFit: widget.fit,
+              );
+            },
+          );
+        }
+        return Container();
+      });
+
+  @override
+  Widget build(BuildContext context) =>
+      kIsWeb ? _videoViewForWeb() : _videoViewForNative();
 
   bool _shouldMirror() {
     // off for screen share
