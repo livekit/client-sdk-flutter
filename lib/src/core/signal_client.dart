@@ -517,7 +517,6 @@ extension SignalClientRequests on SignalClient {
   @internal
   void sendSyncState({
     required lk_rtc.SessionDescription? answer,
-    required lk_rtc.SessionDescription? offer,
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
@@ -525,7 +524,6 @@ extension SignalClientRequests on SignalClient {
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
-          offer: offer,
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,
