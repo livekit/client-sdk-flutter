@@ -172,7 +172,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         return Container();
       });
 
-  // FutureBuilder will cause flickering for flutter web. so using 
+  // FutureBuilder will cause flickering for flutter web. so using
   // different rendering methods for web and native.
   @override
   Widget build(BuildContext context) =>
