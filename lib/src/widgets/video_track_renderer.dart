@@ -129,8 +129,6 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
   }
 
-  // Using for web will cause flickering,
-  // so revert it to the old way of rendering
   Widget _videoViewForWeb() => !_rendererReady
       ? Container()
       : Builder(
@@ -174,6 +172,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         return Container();
       });
 
+  // FutureBuilder will cause flickering for flutter web. so using 
+  // different rendering methods for web and native.
   @override
   Widget build(BuildContext context) =>
       kIsWeb ? _videoViewForWeb() : _videoViewForNative();
