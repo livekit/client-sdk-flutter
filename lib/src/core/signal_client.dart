@@ -99,7 +99,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           .listen((ConnectivityResult result) {
         if (_connectivityResult != result) {
           if (result == ConnectivityResult.none) {
-            logger.warning('lost Connectivity');
+            logger.warning('lost connectivity');
           } else {
             logger.info(
                 'Connectivity changed, ${_connectivityResult!.name} => ${result.name}');
