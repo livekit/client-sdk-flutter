@@ -399,7 +399,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Publish a new data payload to the room.
-  /// @param destinationSids When empty, data will be forwarded to each participant in the room.
+  /// @param reliable, when true, data will be sent reliably.
+  /// @param identities When empty, data will be forwarded to each participant in the room.
   /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
@@ -413,8 +414,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           : lk_models.DataPacket_Kind.LOSSY,
       user: lk_models.UserPacket(
         payload: data,
-        participantSid: sid,
-        destinationSids: identities,
+        participantIdentity: identity,
+        destinationIdentities: identities,
         topic: topic,
       ),
     );
