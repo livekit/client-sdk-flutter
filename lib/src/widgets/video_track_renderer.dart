@@ -53,16 +53,17 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
-  bool _rendererReady = false;
+  // for flutter web only.
+  bool _rendererReadyForWeb = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
-  Future<rtc.RTCVideoRenderer?> _initializeRenderer() async {
+  Future<rtc.RTCVideoRenderer> _initializeRenderer() async {
     _renderer ??= rtc.RTCVideoRenderer();
     await _renderer!.initialize();
     await _attach();
-    return _renderer;
+    return _renderer!;
   }
 
   void disposeRenderer() {
@@ -81,10 +82,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _internalKey = widget.track.addViewKey();
     if (kIsWeb) {
       () async {
-        _renderer ??= rtc.RTCVideoRenderer();
-        await _renderer?.initialize();
-        await _attach();
-        setState(() => _rendererReady = true);
+        await _initializeRenderer();
+        setState(() => _rendererReadyForWeb = true);
       }();
     }
   }
@@ -129,7 +128,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
   }
 
-  Widget _videoViewForWeb() => !_rendererReady
+  Widget _videoViewForWeb() => !_rendererReadyForWeb
       ? Container()
       : Builder(
           key: _internalKey,
