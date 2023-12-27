@@ -66,6 +66,21 @@ class RoomReconnectingEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// report the number of attempts to reconnect to the room.
+class RoomAttemptReconnectEvent with RoomEvent {
+  final int attempt;
+  final int maxAttemptsRetry;
+  final int nextRetryDelaysInMs;
+  const RoomAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttemptsRetry,
+    required this.nextRetryDelaysInMs,
+  });
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 /// Connection to room is re-established. All existing state is preserved.
 /// Emitted by [Room].
 class RoomReconnectedEvent with RoomEvent {
