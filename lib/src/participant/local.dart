@@ -55,6 +55,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           name: info.name,
         ) {
     updateFromInfo(info);
+
+    onDispose(() async {
+      await unpublishAllTracks();
+    });
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -334,7 +338,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
-  @override
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
@@ -384,6 +387,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     await pub.dispose();
+  }
+
+  /// Convenience method to unpublish all tracks.
+  Future<void> unpublishAllTracks(
+      {bool notify = true, bool? stopOnUnpublish}) async {
+    final trackSids = trackPublications.keys.toSet();
+    for (final trackid in trackSids) {
+      await unpublishTrack(trackid, notify: notify);
+    }
   }
 
   Future<void> rePublishAllTracks() async {
@@ -477,7 +489,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   @override
   LocalTrackPublication? getTrackPublicationBySource(TrackSource source) {
-    final track = super.getTrackPublicationBySid(sid);
+    final track = super.getTrackPublicationBySource(source);
     if (track != null) {
       return track;
     }

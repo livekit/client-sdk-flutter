@@ -648,7 +648,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       return;
     }
 
-    await participant.unpublishAllTracks(notify: true);
+    await participant.removeAllPublishedTracks(notify: true);
 
     emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
   }

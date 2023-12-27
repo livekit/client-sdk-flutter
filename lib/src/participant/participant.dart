@@ -136,7 +136,6 @@ abstract class Participant<T extends TrackPublication>
 
     onDispose(() async {
       await events.dispose();
-      await unpublishAllTracks();
     });
   }
 
@@ -265,18 +264,6 @@ abstract class Participant<T extends TrackPublication>
                 e.kind == lk_models.TrackType.VIDEO) ||
             (source == TrackSource.screenShareAudio &&
                 e.kind == lk_models.TrackType.AUDIO));
-  }
-
-  // Must be implemented by subclasses.
-  Future<void> unpublishTrack(String trackSid, {bool notify = true});
-
-  /// Convenience method to unpublish all tracks.
-  Future<void> unpublishAllTracks(
-      {bool notify = true, bool? stopOnUnpublish}) async {
-    final trackSids = trackPublications.keys.toSet();
-    for (final trackid in trackSids) {
-      await unpublishTrack(trackid, notify: notify);
-    }
   }
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.

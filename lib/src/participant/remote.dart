@@ -98,7 +98,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
   @override
   RemoteTrackPublication? getTrackPublicationBySource(TrackSource source) {
-    final track = super.getTrackPublicationBySid(sid);
+    final track = super.getTrackPublicationBySource(source);
     if (track != null) {
       return track;
     }
@@ -280,9 +280,15 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await pub.dispose();
   }
 
+  Future<void> removeAllPublishedTracks({bool notify = true}) async {
+    final sids = trackPublications.keys.toList();
+    for (final sid in sids) {
+      await removePublishedTrack(sid);
+    }
+  }
+
   @Deprecated(
       '`unpublishTrack` is deprecated, use `removePublishedTrack` instead')
-  @override
   Future<void> unpublishTrack(String trackSid, {bool notify = true}) =>
       removePublishedTrack(trackSid, notify: notify);
 
