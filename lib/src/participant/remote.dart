@@ -283,7 +283,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   Future<void> removeAllPublishedTracks({bool notify = true}) async {
     final sids = trackPublications.keys.toList();
     for (final sid in sids) {
-      await removePublishedTrack(sid);
+      await removePublishedTrack(sid, notify: notify);
     }
   }
 
