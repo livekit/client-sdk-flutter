@@ -62,7 +62,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
 
   Future<bool> networkIsAvailable() async {
-    if (!kIsWeb && !lkPlatformIsTest()) {
+    // Skip check for web or flutter test
+    if (kIsWeb || lkPlatformIsTest()) {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
