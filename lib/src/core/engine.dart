@@ -830,11 +830,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     final previousAnswer =
         (await subscriber?.pc.getLocalDescription())?.toPBType();
-    final previousOffer =
-        (await publisher?.pc.getLocalDescription())?.toPBType();
     signalClient.sendSyncState(
       answer: previousAnswer,
-      offer: previousOffer,
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
