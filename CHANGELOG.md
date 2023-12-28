@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.6
+
+* Set different rendering methods for web and native.
+* Improve reconnection events, add RoomAttemptReconnectEvent.
+* upgrade protocol.
+
 ## 1.5.5
 
 * Improve reconnect logic for websocket (#406)
