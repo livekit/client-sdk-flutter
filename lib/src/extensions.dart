@@ -127,6 +127,7 @@ extension SessionDescriptionExt on lk_rtc.SessionDescription {
 extension ConnectionQualityExt on lk_models.ConnectionQuality {
   ConnectionQuality toLKType() =>
       {
+        lk_models.ConnectionQuality.LOST: ConnectionQuality.lost,
         lk_models.ConnectionQuality.POOR: ConnectionQuality.poor,
         lk_models.ConnectionQuality.GOOD: ConnectionQuality.good,
         lk_models.ConnectionQuality.EXCELLENT: ConnectionQuality.excellent,
