@@ -66,7 +66,7 @@ class ConnectOptions {
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
-    this.protocolVersion = ProtocolVersion.v9,
+    this.protocolVersion = ProtocolVersion.v12,
     this.timeouts = Timeouts.defaultTimeouts,
   });
 }

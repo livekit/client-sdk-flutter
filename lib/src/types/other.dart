@@ -30,6 +30,9 @@ enum ProtocolVersion {
   v7, // Remote unpublish
   v8,
   v9,
+  v10,
+  v11,
+  v12,
 }
 
 /// Connection state type used throughout the SDK.
