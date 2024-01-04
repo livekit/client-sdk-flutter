@@ -20,7 +20,6 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
@@ -118,7 +117,7 @@ class LocalAudioTrack extends LocalTrack
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          lk_models.TrackType.AUDIO,
+          TrackType.audio,
           source,
           stream,
           track,

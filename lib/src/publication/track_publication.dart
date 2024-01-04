@@ -30,7 +30,7 @@ import '../support/disposable.dart';
 abstract class TrackPublication<T extends Track> extends Disposable {
   final String sid;
   final String name;
-  final lk_models.TrackType kind;
+  final TrackType kind;
   final TrackSource source;
   bool _metadataMuted = false;
 
@@ -70,7 +70,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     required lk_models.TrackInfo info,
   })  : sid = info.sid,
         name = info.name,
-        kind = info.type,
+        kind = info.type.toLKType(),
         source = info.source.toLKType(),
         _simulcasted = info.simulcast,
         _metadataMuted = info.muted,
@@ -80,8 +80,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   /// True when the track is published with source [TrackSource.screenShareVideo].
   bool get isScreenShare =>
-      kind == lk_models.TrackType.VIDEO &&
-      source == TrackSource.screenShareVideo;
+      kind == TrackType.video && source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     _simulcasted = info.simulcast;

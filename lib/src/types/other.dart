@@ -40,6 +40,20 @@ enum ConnectionState {
   connected,
 }
 
+/// The type of track.
+enum TrackType {
+  audio,
+  video,
+  data,
+}
+
+/// Video quality used for publishing video tracks.
+enum VideoQuality {
+  low,
+  medium,
+  high,
+}
+
 /// Connection quality between the [Participant] and server.
 enum ConnectionQuality {
   unknown,

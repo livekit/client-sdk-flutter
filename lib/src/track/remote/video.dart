@@ -18,7 +18,6 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../local/local.dart';
@@ -29,7 +28,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          lk_models.TrackType.VIDEO,
+          TrackType.video,
           source,
           stream,
           track,

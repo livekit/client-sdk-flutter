@@ -156,7 +156,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          lk_models.TrackType.VIDEO,
+          TrackType.video,
           source,
           stream,
           track,
@@ -341,7 +341,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return setPublishingLayersForSender(track!.sender!, encodings, layers);
   }
 
-  lk_models.VideoQuality videoQualityForRid(String rid) {
+  lk_models.VideoQuality _videoQualityForRid(String rid) {
     switch (rid) {
       case 'f':
         return lk_models.VideoQuality.HIGH;
@@ -412,7 +412,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
         if (rid == '') {
           rid = 'q';
         }
-        var quality = videoQualityForRid(rid);
+        var quality = _videoQualityForRid(rid);
         var subscribedQuality =
             layers.firstWhereOrNull((q) => q.quality == quality);
         if (subscribedQuality == null) {

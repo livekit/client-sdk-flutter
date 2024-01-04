@@ -262,14 +262,12 @@ abstract class Participant<T extends TrackPublication>
     return trackPublications.values
         .where((e) => e.source == TrackSource.unknown)
         .firstWhereOrNull((e) =>
-            (source == TrackSource.microphone &&
-                e.kind == lk_models.TrackType.AUDIO) ||
-            (source == TrackSource.camera &&
-                e.kind == lk_models.TrackType.VIDEO) ||
+            (source == TrackSource.microphone && e.kind == TrackType.audio) ||
+            (source == TrackSource.camera && e.kind == TrackType.video) ||
             (source == TrackSource.screenShareVideo &&
-                e.kind == lk_models.TrackType.VIDEO) ||
+                e.kind == TrackType.video) ||
             (source == TrackSource.screenShareAudio &&
-                e.kind == lk_models.TrackType.AUDIO));
+                e.kind == TrackType.audio));
   }
 
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].

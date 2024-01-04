@@ -23,7 +23,6 @@ import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
-import '../proto/livekit_models.pb.dart' as lk_models;
 import '../stats/stats.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
@@ -36,7 +35,7 @@ abstract class Track extends DisposableChangeNotifier
   static const uuid = Uuid();
   @Deprecated('Use TrackPublication.name instead')
   final String name = 'Deprecated, please use TrackPublication.name instead';
-  final lk_models.TrackType kind;
+  final TrackType kind;
   final TrackSource source;
 
   // read only
@@ -80,9 +79,9 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
-      case lk_models.TrackType.AUDIO:
+      case TrackType.audio:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio;
-      case lk_models.TrackType.VIDEO:
+      case TrackType.video:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:
