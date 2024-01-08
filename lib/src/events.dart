@@ -264,11 +264,11 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
+  final RemoteParticipant? participant;
   final String? sid;
   final TrackSubscribeFailReason reason;
   const TrackSubscriptionExceptionEvent({
-    required this.participant,
+    this.participant,
     this.sid,
     required this.reason,
   });
@@ -306,9 +306,6 @@ class TrackMutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// This participant has unmuted one of their tracks
@@ -324,9 +321,6 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
@@ -346,9 +340,6 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, '
       'streamState: ${streamState})';
-
-  @Deprecated('Use publication instead')
-  RemoteTrackPublication get trackPublication => publication;
 }
 
 /// Participant metadata is a simple way for app-specific state to be pushed to

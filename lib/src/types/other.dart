@@ -111,6 +111,7 @@ enum TrackSubscribeFailReason {
   invalidServerResponse,
   notTrackMetadataFound,
   unsupportedTrackType,
+  noParticipantFound,
   // ...
 }
 
