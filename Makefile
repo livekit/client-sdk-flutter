@@ -11,7 +11,7 @@ proto:
 	}
 
 format:
-	flutter format --set-exit-if-changed -l 100 .
+	dart format lib/src/proto
 
 e2ee: dart compile js .\web\e2ee.worker.dart -o .\example\web\e2ee.worker.dart.js
 

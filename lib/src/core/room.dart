@@ -351,7 +351,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalTrackUnpublishedEvent>((event) async {
       // unpublish local track
-      await localParticipant?.unpublishTrack(event.trackSid);
+      await localParticipant?.removePublishedTrack(event.trackSid);
     });
 
   void _setUpEngineListeners() => _engineListener
@@ -359,6 +359,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       events.emit(const RoomReconnectedEvent());
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
+      notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
       events.emit(const RoomRestartingEvent());
@@ -379,6 +380,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
         await participant.dispose();
       }
+      notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
       events.emit(const RoomRestartedEvent());
@@ -393,14 +395,32 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
       }
+      notifyListeners();
     })
     ..on<EngineReconnectingEvent>((event) async {
       events.emit(const RoomReconnectingEvent());
       await _sendSyncState();
+      notifyListeners();
+    })
+    ..on<EngineAttemptReconnectEvent>((event) async {
+      events.emit(RoomAttemptReconnectEvent(
+        attempt: event.attempt,
+        maxAttemptsRetry: event.maxAttempts,
+        nextRetryDelaysInMs: event.nextRetryDelaysInMs,
+      ));
+      notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
-      await _cleanUp();
-      events.emit(RoomDisconnectedEvent(reason: event.reason));
+      if (!engine.fullReconnectOnNext &&
+          ![
+            DisconnectReason.signalingConnectionFailure,
+            DisconnectReason.joinFailure,
+            DisconnectReason.noInternetConnection
+          ].contains(event.reason)) {
+        await _cleanUp();
+        events.emit(RoomDisconnectedEvent(reason: event.reason));
+        notifyListeners();
+      }
     })
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
@@ -660,7 +680,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
         participantTracks: participantTracks,
-        // Deprecated
         trackSids: participantTracks.map((e) => e.trackSids).flattened,
         subscribe: !sendUnSub,
       ),

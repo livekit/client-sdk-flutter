@@ -66,6 +66,21 @@ class RoomReconnectingEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// report the number of attempts to reconnect to the room.
+class RoomAttemptReconnectEvent with RoomEvent {
+  final int attempt;
+  final int maxAttemptsRetry;
+  final int nextRetryDelaysInMs;
+  const RoomAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttemptsRetry,
+    required this.nextRetryDelaysInMs,
+  });
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 /// Connection to room is re-established. All existing state is preserved.
 /// Emitted by [Room].
 class RoomReconnectedEvent with RoomEvent {
@@ -291,9 +306,6 @@ class TrackMutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// This participant has unmuted one of their tracks
@@ -309,9 +321,6 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
@@ -331,9 +340,6 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, '
       'streamState: ${streamState})';
-
-  @Deprecated('Use publication instead')
-  RemoteTrackPublication get trackPublication => publication;
 }
 
 /// Participant metadata is a simple way for app-specific state to be pushed to

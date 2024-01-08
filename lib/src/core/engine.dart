@@ -228,6 +228,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await signalClient.cleanUp();
 
     fullReconnectOnNext = false;
+    attemptingReconnect = false;
 
     clearPendingReconnect();
   }
@@ -625,7 +626,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       reconnectStart = DateTime.now();
     }
 
+    if (reconnectAttempts! >= _reconnectCount) {
+      logger.fine('reconnectAttempts exceeded, disconnecting...');
+      _isClosed = true;
+      await cleanUp();
+
+      events.emit(EngineDisconnectedEvent(
+        reason: DisconnectReason.reconnectAttemptsExceeded,
+      ));
+      return;
+    }
+
     var delay = defaultRetryDelaysInMs[reconnectAttempts!];
+
+    events.emit(EngineAttemptReconnectEvent(
+      attempt: reconnectAttempts! + 1,
+      maxAttempts: _reconnectCount,
+      nextRetryDelaysInMs: delay,
+    ));
 
     clearReconnectTimeout();
     logger.fine(
@@ -656,19 +674,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnectOnNext = true;
     }
 
-    if (reconnectAttempts! >= _reconnectCount) {
-      logger.fine('reconnectAttempts exceeded, disconnecting...');
-      events.emit(EngineDisconnectedEvent(
-        reason: DisconnectReason.connectionClosed,
-      ));
-      await cleanUp();
-      return;
-    }
-
     try {
       attemptingReconnect = true;
 
-      if (await signalClient.checkInternetConnection() == false) {
+      if (await signalClient.networkIsAvailable() == false) {
         logger.fine('no internet connection, waiting...');
         await signalClient.events.waitFor<SignalConnectivityChangedEvent>(
           duration: connectOptions.timeouts.connection * 10,
@@ -688,14 +697,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (e) {
       reconnectAttempts = reconnectAttempts! + 1;
       bool recoverable = true;
-      if (e is WebSocketException ||
-          e is ConnectException ||
-          e is MediaConnectException) {
+      if (e is WebSocketException || e is MediaConnectException) {
         // cannot resume connection, need to do full reconnect
         fullReconnectOnNext = true;
-      } else if (e is TimeoutException) {
-        fullReconnectOnNext = false;
-      } else {
+      }
+
+      if (e is UnexpectedConnectionState) {
         recoverable = false;
       }
 
@@ -704,7 +711,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       } else {
         logger.fine('attemptReconnect: disconnecting...');
         events.emit(EngineDisconnectedEvent(
-          reason: DisconnectReason.connectionClosed,
+          reason: DisconnectReason.disconnected,
         ));
         await cleanUp();
       }
@@ -823,11 +830,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     final previousAnswer =
         (await subscriber?.pc.getLocalDescription())?.toPBType();
-    final previousOffer =
-        (await publisher?.pc.getLocalDescription())?.toPBType();
     signalClient.sendSyncState(
       answer: previousAnswer,
-      offer: previousOffer,
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
@@ -835,7 +839,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   void _setUpEngineListeners() =>
-      events.on<EngineReconnectingEvent>((event) async {
+      events.on<SignalReconnectedEvent>((event) async {
         // send queued requests if engine re-connected
         signalClient.sendQueuedRequests();
       });
@@ -907,6 +911,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectingEvent>((event) async {
       logger.fine('Signal connecting');
+      events.emit(const EngineConnectingEvent());
     })
     ..on<SignalReconnectingEvent>((event) async {
       logger.fine('Signal reconnecting');
@@ -914,7 +919,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if (event.reason == DisconnectReason.connectionClosed && !_isClosed) {
+      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleDisconnect(ClientDisconnectReason.signal);
       } else {
         events.emit(EngineDisconnectedEvent(
