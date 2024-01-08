@@ -78,6 +78,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       kind: track.kind,
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
+      stream: publishOptions.stream,
     );
 
     await track.start();
@@ -232,6 +233,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       videoLayers: layers,
       simulcastCodecs: simulcastCodecs,
       videoCodec: publishOptions.videoCodec,
+      stream: publishOptions.stream,
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
