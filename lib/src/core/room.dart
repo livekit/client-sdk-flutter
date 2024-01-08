@@ -19,7 +19,6 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/src/proto/livekit_rtc.pbserver.dart';
 import '../core/signal_client.dart';
 import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
@@ -724,7 +723,6 @@ extension RoomPrivateMethods on Room {
 
   /// server assigned unique room id.
   /// returns once a sid has been issued by the server.
-
   Future<String> getSid() async {
     if (engine.connectionState == ConnectionState.disconnected) {
       return '';
@@ -736,16 +734,16 @@ extension RoomPrivateMethods on Room {
 
     final completer = Completer<String>();
 
-    unawaited(events
-        .waitFor<SignalRoomUpdateEvent>(
-            duration: connectOptions.timeouts.connection,
-            filter: (event) => event.room.sid.isNotEmpty)
-        .then((event) {
-      completer.complete(event.room.sid);
-    }));
+    events.on<SignalRoomUpdateEvent>((event) {
+      if (event.room.sid.isNotEmpty && !completer.isCompleted) {
+        completer.complete(event.room.sid);
+      }
+    });
 
     events.on<RoomDisconnectedEvent>((event) {
-      completer.complete('');
+      if (!completer.isCompleted) {
+        completer.complete('');
+      }
     });
 
     return completer.future;
