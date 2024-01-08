@@ -117,7 +117,7 @@ class LocalAudioTrack extends LocalTrack
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          TrackType.audio,
+          TrackType.AUDIO,
           source,
           stream,
           track,

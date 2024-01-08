@@ -140,11 +140,11 @@ extension ConnectionQualityExt on lk_models.ConnectionQuality {
 extension VideoQualityExt on lk_models.VideoQuality {
   VideoQuality toLKType() =>
       {
-        lk_models.VideoQuality.HIGH: VideoQuality.high,
-        lk_models.VideoQuality.MEDIUM: VideoQuality.medium,
-        lk_models.VideoQuality.LOW: VideoQuality.low,
+        lk_models.VideoQuality.HIGH: VideoQuality.HIGH,
+        lk_models.VideoQuality.MEDIUM: VideoQuality.MEDIUM,
+        lk_models.VideoQuality.LOW: VideoQuality.LOW,
       }[this] ??
-      VideoQuality.low;
+      VideoQuality.LOW;
 
   String toRid() => {
         lk_models.VideoQuality.HIGH: 'f',
@@ -155,27 +155,27 @@ extension VideoQualityExt on lk_models.VideoQuality {
 
 extension PBVideoQualityExt on VideoQuality {
   lk_models.VideoQuality toPBType() => {
-        VideoQuality.high: lk_models.VideoQuality.HIGH,
-        VideoQuality.medium: lk_models.VideoQuality.MEDIUM,
-        VideoQuality.low: lk_models.VideoQuality.LOW,
+        VideoQuality.HIGH: lk_models.VideoQuality.HIGH,
+        VideoQuality.MEDIUM: lk_models.VideoQuality.MEDIUM,
+        VideoQuality.LOW: lk_models.VideoQuality.LOW,
       }[this]!;
 }
 
 extension TrackTypeExt on lk_models.TrackType {
   TrackType toLKType() =>
       {
-        lk_models.TrackType.AUDIO: TrackType.audio,
-        lk_models.TrackType.VIDEO: TrackType.video,
-        lk_models.TrackType.DATA: TrackType.data,
+        lk_models.TrackType.AUDIO: TrackType.AUDIO,
+        lk_models.TrackType.VIDEO: TrackType.VIDEO,
+        lk_models.TrackType.DATA: TrackType.DATA,
       }[this] ??
-      TrackType.audio;
+      TrackType.AUDIO;
 }
 
 extension PBTrackTypeExt on TrackType {
   lk_models.TrackType toPBType() => {
-        TrackType.audio: lk_models.TrackType.AUDIO,
-        TrackType.video: lk_models.TrackType.VIDEO,
-        TrackType.data: lk_models.TrackType.DATA,
+        TrackType.AUDIO: lk_models.TrackType.AUDIO,
+        TrackType.VIDEO: lk_models.TrackType.VIDEO,
+        TrackType.DATA: lk_models.TrackType.DATA,
       }[this]!;
 }
 

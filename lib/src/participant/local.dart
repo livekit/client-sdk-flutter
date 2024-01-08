@@ -295,7 +295,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (kIsWeb &&
         lkBrowser() == BrowserType.firefox &&
-        track.kind == TrackType.audio) {
+        track.kind == TrackType.AUDIO) {
       //TOOD:
     } else if (isSVCCodec(publishOptions.videoCodec) &&
         encodings?.first.maxBitrate != null) {

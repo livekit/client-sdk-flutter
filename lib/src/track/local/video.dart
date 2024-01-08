@@ -156,7 +156,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          TrackType.video,
+          TrackType.VIDEO,
           source,
           stream,
           track,

@@ -79,9 +79,9 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
-      case TrackType.audio:
+      case TrackType.AUDIO:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio;
-      case TrackType.video:
+      case TrackType.VIDEO:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:

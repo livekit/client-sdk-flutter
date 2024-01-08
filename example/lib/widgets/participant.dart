@@ -36,7 +36,7 @@ abstract class ParticipantWidget extends StatefulWidget {
   final VideoQuality quality;
 
   const ParticipantWidget({
-    this.quality = VideoQuality.medium,
+    this.quality = VideoQuality.MEDIUM,
     Key? key,
   }) : super(key: key);
 }
@@ -334,15 +334,15 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
           itemBuilder: (BuildContext context) => <PopupMenuEntry<Function>>[
             PopupMenuItem(
               child: const Text('HIGH'),
-              value: () => pub.setVideoQuality(VideoQuality.high),
+              value: () => pub.setVideoQuality(VideoQuality.HIGH),
             ),
             PopupMenuItem(
               child: const Text('MEDIUM'),
-              value: () => pub.setVideoQuality(VideoQuality.medium),
+              value: () => pub.setVideoQuality(VideoQuality.MEDIUM),
             ),
             PopupMenuItem(
               child: const Text('LOW'),
-              value: () => pub.setVideoQuality(VideoQuality.low),
+              value: () => pub.setVideoQuality(VideoQuality.LOW),
             ),
           ],
         ),

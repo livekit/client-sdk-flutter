@@ -35,7 +35,7 @@ class RemoteAudioTrack extends RemoteTrack
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          TrackType.audio,
+          TrackType.AUDIO,
           source,
           stream,
           track,
