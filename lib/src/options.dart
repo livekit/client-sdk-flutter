@@ -299,11 +299,6 @@ class AudioPublishOptions extends PublishOptions {
     this.dtx = true,
     this.audioBitrate = AudioPreset.music,
   });
-  /// Name of the audio track.
-  final String? name;
-
-  const AudioPublishOptions(
-      {this.dtx = true, this.audioBitrate = AudioPreset.music, this.name});
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';
