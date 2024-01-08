@@ -17,9 +17,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
-import 'package:livekit_client/src/proto/livekit_rtc.pbserver.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/src/proto/livekit_rtc.pbserver.dart';
 import '../core/signal_client.dart';
 import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
