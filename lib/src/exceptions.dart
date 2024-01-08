@@ -88,3 +88,8 @@ class LiveKitE2EEException extends LiveKitException {
   @override
   String toString() => 'E2EE Exception: [$runtimeType] $message';
 }
+
+class UnexpectedConnectionState extends LiveKitException {
+  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
+      : super._(msg);
+}

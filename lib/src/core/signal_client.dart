@@ -61,8 +61,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectivityResult? _connectivityResult;
   StreamSubscription<ConnectivityResult>? connectivitySubscription;
 
-  Future<bool> checkInternetConnection() async {
-    if (!kIsWeb && !lkPlatformIsTest()) {
+  Future<bool> networkIsAvailable() async {
+    // Skip check for web or flutter test
+    if (kIsWeb || lkPlatformIsTest()) {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
@@ -98,15 +99,19 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           .onConnectivityChanged
           .listen((ConnectivityResult result) {
         if (_connectivityResult != result) {
-          _connectivityResult = result;
           if (result == ConnectivityResult.none) {
-            logger.warning('lost internet connection');
+            logger.warning('lost connectivity');
           } else {
-            logger.info('internet connection restored');
-            events.emit(SignalConnectivityChangedEvent(
-              state: result,
-            ));
+            logger.info(
+                'Connectivity changed, ${_connectivityResult!.name} => ${result.name}');
           }
+
+          events.emit(SignalConnectivityChangedEvent(
+            oldState: _connectivityResult!,
+            state: result,
+          ));
+
+          _connectivityResult = result;
         }
       });
 
@@ -140,7 +145,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Clean up existing socket
       await cleanUp();
       // Attempt to connect
-      _ws = await _wsConnector(
+      var future = _wsConnector(
         rtcUri,
         WebSocketEventHandlers(
           onData: _onSocketData,
@@ -148,6 +153,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           onError: _onSocketError,
         ),
       );
+      future = future.timeout(connectOptions.timeouts.connection);
+      _ws = await future;
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
@@ -340,8 +347,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return;
     }
     _connectionState = ConnectionState.disconnected;
-    events.emit(
-        SignalDisconnectedEvent(reason: DisconnectReason.connectionClosed));
+    events.emit(SignalDisconnectedEvent(reason: DisconnectReason.disconnected));
   }
 
   void _sendPing() {
@@ -517,7 +523,6 @@ extension SignalClientRequests on SignalClient {
   @internal
   void sendSyncState({
     required lk_rtc.SessionDescription? answer,
-    required lk_rtc.SessionDescription? offer,
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
@@ -525,7 +530,6 @@ extension SignalClientRequests on SignalClient {
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
-          offer: offer,
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,

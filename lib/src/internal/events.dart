@@ -143,10 +143,17 @@ class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
 
 @internal
 class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
+  final ConnectivityResult oldState;
   final ConnectivityResult state;
   const SignalConnectivityChangedEvent({
+    required this.oldState,
     required this.state,
   });
+}
+
+@internal
+class EngineConnectingEvent with InternalEvent, EngineEvent {
+  const EngineConnectingEvent();
 }
 
 @internal
@@ -165,6 +172,18 @@ class EngineDisconnectedEvent with InternalEvent, EngineEvent {
 @internal
 class EngineFullRestartingEvent with InternalEvent, EngineEvent {
   const EngineFullRestartingEvent();
+}
+
+@internal
+class EngineAttemptReconnectEvent with InternalEvent, EngineEvent {
+  int attempt;
+  int maxAttempts;
+  int nextRetryDelaysInMs;
+  EngineAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttempts,
+    required this.nextRetryDelaysInMs,
+  });
 }
 
 @internal
