@@ -78,9 +78,30 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       .cast<RemoteTrackPublication>()
       .toList();
 
-  RemoteTrackPublication? getTrackPublication(String sid) {
-    final pub = trackPublications[sid];
-    if (pub is RemoteTrackPublication) return pub;
+  @override
+  RemoteTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  RemoteTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  RemoteTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySource(source);
+    if (track != null) {
+      return track;
+    }
     return null;
   }
 
@@ -97,7 +118,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     logger.fine('addSubscribedMediaTrack()');
 
     // If publication doesn't exist yet...
-    RemoteTrackPublication? pub = getTrackPublication(trackSid);
+    RemoteTrackPublication? pub = getTrackPublicationBySid(trackSid);
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
@@ -177,15 +198,17 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   /// {@nodoc}
   @override
   @internal
-  Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
-    super.updateFromInfo(info);
+    if (!await super.updateFromInfo(info)) {
+      //return false;
+    }
 
     // figuring out deltas between tracks
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
+      RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {
@@ -226,9 +249,10 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
+
+    return true;
   }
 
-  @override
   Future<void> removePublishedTrack(String trackSid,
       {bool notify = true}) async {
     logger.finer('removePublishedTrack track sid: $trackSid, notify: $notify');
@@ -258,6 +282,13 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     await pub.dispose();
+  }
+
+  Future<void> removeAllPublishedTracks({bool notify = true}) async {
+    final sids = trackPublications.keys.toList();
+    for (final sid in sids) {
+      await removePublishedTrack(sid, notify: notify);
+    }
   }
 
   @internal

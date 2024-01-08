@@ -164,7 +164,7 @@ class _RoomPageState extends State<RoomPage> {
   void _sortParticipants() {
     List<ParticipantTrack> userMediaTracks = [];
     List<ParticipantTrack> screenTracks = [];
-    for (var participant in widget.room.participants.values) {
+    for (var participant in widget.room.remoteParticipants.values) {
       for (var t in participant.videoTracks) {
         if (t.isScreenShare) {
           screenTracks.add(ParticipantTrack(

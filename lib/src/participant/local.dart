@@ -55,6 +55,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           name: info.name,
         ) {
     updateFromInfo(info);
+
+    onDispose(() async {
+      await unpublishAllTracks();
+    });
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -333,8 +337,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return pub;
   }
 
-  /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
-  @override
   Future<void> removePublishedTrack(String trackSid,
       {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
@@ -385,6 +387,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     await pub.dispose();
+  }
+
+  /// Convenience method to unpublish all tracks.
+  Future<void> unpublishAllTracks(
+      {bool notify = true, bool? stopOnUnpublish}) async {
+    final trackSids = trackPublications.keys.toSet();
+    for (final trackid in trackSids) {
+      await removePublishedTrack(trackid, notify: notify);
+    }
   }
 
   Future<void> rePublishAllTracks() async {
@@ -460,6 +471,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       trackPublications.values
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
+
+  @override
+  LocalTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySource(source);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
 
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
