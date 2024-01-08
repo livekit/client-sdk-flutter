@@ -49,8 +49,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
   int? _fps;
   int get fps => _fps ?? 0;
 
-  lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
-  lk_models.VideoQuality get videoQuality => _videoQuality;
+  VideoQuality _videoQuality = VideoQuality.HIGH;
+  VideoQuality get videoQuality => _videoQuality;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
@@ -234,7 +234,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
-  Future<void> setVideoQuality(lk_models.VideoQuality newValue) async {
+  Future<void> setVideoQuality(VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
     sendUpdateTrackSettings();
@@ -308,8 +308,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
       trackSids: [sid],
       disabled: !_enabled,
     );
-    if (kind == lk_models.TrackType.VIDEO) {
-      settings.quality = _videoQuality;
+    if (kind == TrackType.VIDEO) {
+      settings.quality = _videoQuality.toPBType();
       if (_fps != null) settings.fps = _fps!;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);

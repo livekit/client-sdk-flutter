@@ -264,14 +264,12 @@ abstract class Participant<T extends TrackPublication>
     return trackPublications.values
         .where((e) => e.source == TrackSource.unknown)
         .firstWhereOrNull((e) =>
-            (source == TrackSource.microphone &&
-                e.kind == lk_models.TrackType.AUDIO) ||
-            (source == TrackSource.camera &&
-                e.kind == lk_models.TrackType.VIDEO) ||
+            (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
+            (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||
             (source == TrackSource.screenShareVideo &&
-                e.kind == lk_models.TrackType.VIDEO) ||
+                e.kind == TrackType.VIDEO) ||
             (source == TrackSource.screenShareAudio &&
-                e.kind == lk_models.TrackType.AUDIO));
+                e.kind == TrackType.AUDIO));
   }
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.

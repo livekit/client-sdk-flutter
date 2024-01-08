@@ -26,7 +26,6 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -73,7 +72,7 @@ abstract class LocalTrack extends Track {
   bool _stopped = false;
 
   LocalTrack(
-    lk_models.TrackType kind,
+    TrackType kind,
     TrackSource source,
     rtc.MediaStream mediaStream,
     rtc.MediaStreamTrack mediaStreamTrack,

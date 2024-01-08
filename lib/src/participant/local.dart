@@ -79,7 +79,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      kind: track.kind,
+      kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
     );
@@ -230,7 +230,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
-      kind: track.kind,
+      kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dimensions: dimensions,
       videoLayers: layers,
@@ -299,7 +299,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (kIsWeb &&
         lkBrowser() == BrowserType.firefox &&
-        track.kind == lk_models.TrackType.AUDIO) {
+        track.kind == TrackType.AUDIO) {
       //TOOD:
     } else if (isSVCCodec(publishOptions.videoCodec) &&
         encodings?.first.maxBitrate != null) {
@@ -707,7 +707,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             (track.source == TrackSource.screenShareVideo
                 ? VideoPublishOptions.defaultScreenShareName
                 : VideoPublishOptions.defaultCameraName),
-        kind: track.kind,
+        kind: track.kind.toPBType(),
         source: track.source.toPBType(),
         dimensions: dimensions,
         videoLayers: layers,
