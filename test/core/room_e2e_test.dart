@@ -51,12 +51,12 @@ void main() {
       expect(
         room.events.streamCtrl.stream,
         emitsInOrder(<Matcher>[
+          predicate<ParticipantConnectedEvent>(
+            (event) => event.participant.sid == remoteParticipantData.sid,
+          ),
           predicate<TrackPublishedEvent>(
             (event) => event.participant.sid == remoteParticipantData.sid,
           ),
-          predicate<ParticipantConnectedEvent>(
-            (event) => event.participant.sid == remoteParticipantData.sid,
-          )
         ]),
       );
 

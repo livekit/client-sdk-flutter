@@ -181,7 +181,13 @@ abstract class Participant<T extends TrackPublication>
   /// for internal use
   /// {@nodoc}
   @internal
-  void updateFromInfo(lk_models.ParticipantInfo info) {
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
+    if (_participantInfo != null &&
+        _participantInfo!.sid == info.sid &&
+        _participantInfo!.version > info.version) {
+      return false;
+    }
+
     identity = info.identity;
     sid = info.sid;
     updateName(info.name);
@@ -190,6 +196,8 @@ abstract class Participant<T extends TrackPublication>
     }
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
+
+    return true;
   }
 
   @internal

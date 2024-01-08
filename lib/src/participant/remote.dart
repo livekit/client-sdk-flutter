@@ -198,9 +198,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   /// {@nodoc}
   @override
   @internal
-  Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
-    super.updateFromInfo(info);
+    if (!await super.updateFromInfo(info)) {
+      //return false;
+    }
 
     // figuring out deltas between tracks
     final newPubs = <RemoteTrackPublication>{};
@@ -247,6 +249,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
+
+    return true;
   }
 
   Future<void> removePublishedTrack(String trackSid,
