@@ -49,8 +49,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
   int? _fps;
   int get fps => _fps ?? 0;
 
-  lk_models.VideoQuality _videoQuality = lk_models.VideoQuality.HIGH;
-  lk_models.VideoQuality get videoQuality => _videoQuality;
+  VideoQuality _videoQuality = VideoQuality.HIGH;
+  VideoQuality get videoQuality => _videoQuality;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
@@ -234,12 +234,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     return didUpdate;
   }
 
-  @Deprecated('use setVideoQuality() instead')
-  set videoQuality(lk_models.VideoQuality newValue) {
-    setVideoQuality(newValue);
-  }
-
-  Future<void> setVideoQuality(lk_models.VideoQuality newValue) async {
+  Future<void> setVideoQuality(VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
     _videoQuality = newValue;
     sendUpdateTrackSettings();
@@ -301,7 +296,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     );
     final subscription = lk_rtc.UpdateSubscription(
       participantTracks: [participantTrack],
-      trackSids: [sid], // Deprecated
+      trackSids: [sid],
       subscribe: subscribed,
     );
     participant.room.engine.signalClient.sendUpdateSubscription(subscription);
@@ -313,8 +308,8 @@ class RemoteTrackPublication<T extends RemoteTrack>
       trackSids: [sid],
       disabled: !_enabled,
     );
-    if (kind == lk_models.TrackType.VIDEO) {
-      settings.quality = _videoQuality;
+    if (kind == TrackType.VIDEO) {
+      settings.quality = _videoQuality.toPBType();
       if (_fps != null) settings.fps = _fps!;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
@@ -350,19 +345,5 @@ class RemoteTrackPublication<T extends RemoteTrack>
     }
 
     return true;
-  }
-
-  // Deprecated --------------------------------------------------
-
-  @Deprecated('use subscribe() or unsubscribe() instead')
-  set subscribed(bool newValue) {
-    logger.fine('Setting subscribed = ${newValue}');
-    newValue ? subscribe() : unsubscribe();
-  }
-
-  @Deprecated('Use enable() or disable() instead')
-  set enabled(bool newValue) {
-    logger.fine('Setting enabled = ${newValue}');
-    newValue ? enable() : disable();
   }
 }
