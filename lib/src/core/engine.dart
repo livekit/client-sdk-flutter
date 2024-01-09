@@ -937,14 +937,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       var signalingState = await subscriber!.pc.getSignalingState();
       logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
           '$signalingState)');
-      logger.fine('sdp: ${event.sd.sdp}');
+      logger.finer('sdp: ${event.sd.sdp}');
 
       await subscriber!.setRemoteDescription(event.sd);
 
       try {
         final answer = await subscriber!.pc.createAnswer();
         logger.fine('Created answer');
-        logger.fine('sdp: ${answer.sdp}');
+        logger.finer('sdp: ${answer.sdp}');
         await subscriber!.pc.setLocalDescription(answer);
         signalClient.sendAnswer(answer);
       } catch (_) {
@@ -956,7 +956,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       logger.fine('received answer (type: ${event.sd.type})');
-      logger.fine('sdp: ${event.sd.sdp}');
+      logger.finer('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
