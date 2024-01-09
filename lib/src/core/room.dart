@@ -780,7 +780,7 @@ extension RoomPrivateMethods on Room {
       }
     });
 
-    events.on<RoomDisconnectedEvent>((event) {
+    events.once<RoomDisconnectedEvent>((event) {
       if (!completer.isCompleted) {
         completer.complete('');
       }
