@@ -32,7 +32,6 @@ export 'src/options.dart';
 export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/remote.dart';
-export 'src/proto/livekit_models.pb.dart' show TrackType, VideoQuality;
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';

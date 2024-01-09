@@ -55,6 +55,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           name: info.name,
         ) {
     updateFromInfo(info);
+
+    onDispose(() async {
+      await unpublishAllTracks();
+    });
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -75,7 +79,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      kind: track.kind,
+      stream: publishOptions.stream,
+      kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
     );
@@ -112,7 +117,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     var listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
-      unpublishTrack(pub.sid);
+      removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
@@ -226,7 +231,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
-      kind: track.kind,
+      stream: publishOptions.stream,
+      kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dimensions: dimensions,
       videoLayers: layers,
@@ -295,7 +301,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (kIsWeb &&
         lkBrowser() == BrowserType.firefox &&
-        track.kind == lk_models.TrackType.AUDIO) {
+        track.kind == TrackType.AUDIO) {
       //TOOD:
     } else if (isSVCCodec(publishOptions.videoCodec) &&
         encodings?.first.maxBitrate != null) {
@@ -322,7 +328,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     var listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
-      unpublishTrack(pub.sid);
+      removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
@@ -333,9 +339,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return pub;
   }
 
-  /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
-  @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
+  Future<void> removePublishedTrack(String trackSid,
+      {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -386,6 +391,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await pub.dispose();
   }
 
+  /// Convenience method to unpublish all tracks.
+  Future<void> unpublishAllTracks(
+      {bool notify = true, bool? stopOnUnpublish}) async {
+    final trackSids = trackPublications.keys.toSet();
+    for (final trackid in trackSids) {
+      await removePublishedTrack(trackid, notify: notify);
+    }
+  }
+
   Future<void> rePublishAllTracks() async {
     final tracks = trackPublications.values.toList();
     trackPublications.clear();
@@ -399,20 +413,23 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Publish a new data payload to the room.
-  /// @param destinationSids When empty, data will be forwarded to each participant in the room.
+  /// @param reliable, when true, data will be sent reliably.
+  /// @param destinationIdentities When empty, data will be forwarded to each participant in the room.
   /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
-    Reliability reliability = Reliability.reliable,
-    List<String>? destinationSids,
+    bool? reliable,
+    List<String>? destinationIdentities,
     String? topic,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: reliability.toPBType(),
+      kind: reliable == true
+          ? lk_models.DataPacket_Kind.RELIABLE
+          : lk_models.DataPacket_Kind.LOSSY,
       user: lk_models.UserPacket(
         payload: data,
-        participantSid: sid,
-        destinationSids: destinationSids,
+        participantIdentity: identity,
+        destinationIdentities: destinationIdentities,
         topic: topic,
       ),
     );
@@ -457,6 +474,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
 
+  @override
+  LocalTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  LocalTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySource(source);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
       {CameraCaptureOptions? cameraCaptureOptions}) async {
@@ -495,11 +539,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await publication.unmute();
       } else {
         if (source == TrackSource.screenShareVideo) {
-          await unpublishTrack(publication.sid);
+          await removePublishedTrack(publication.sid);
           final screenAudio =
               getTrackPublicationBySource(TrackSource.screenShareAudio);
           if (screenAudio != null) {
-            await unpublishTrack(screenAudio.sid);
+            await removePublishedTrack(screenAudio.sid);
           }
         } else {
           await publication.mute();
@@ -665,7 +709,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             (track.source == TrackSource.screenShareVideo
                 ? VideoPublishOptions.defaultScreenShareName
                 : VideoPublishOptions.defaultCameraName),
-        kind: track.kind,
+        stream: options.stream,
+        kind: track.kind.toPBType(),
         source: track.source.toPBType(),
         dimensions: dimensions,
         videoLayers: layers,

@@ -344,10 +344,6 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
               child: const Text('LOW'),
               value: () => pub.setVideoQuality(VideoQuality.LOW),
             ),
-            PopupMenuItem(
-              child: const Text('OFF'),
-              value: () => pub.setVideoQuality(VideoQuality.OFF),
-            ),
           ],
         ),
       );

@@ -189,8 +189,23 @@ class BackupVideoCodec {
   }
 }
 
+class PublishOptions {
+  /// Name of the track.
+  final String? name;
+
+  ///  Set stream name for the track. Audio and video tracks with the same stream name
+  ///  will be placed in the same `MediaStream` and offer better synchronization.
+  ///  By default, camera and microphone will be placed in a stream; as would screen_share and screen_share_audio
+  final String? stream;
+
+  const PublishOptions({
+    this.name,
+    this.stream,
+  });
+}
+
 /// Options used when publishing video.
-class VideoPublishOptions {
+class VideoPublishOptions extends PublishOptions {
   static const defaultCameraName = 'camera';
   static const defaultScreenShareName = 'screenshare';
   static const defualtBackupVideoCodec = BackupVideoCodec(
@@ -212,9 +227,6 @@ class VideoPublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
-  /// Name of the video track.
-  final String? name;
-
   final List<VideoParameters> videoSimulcastLayers;
 
   final List<VideoParameters> screenShareSimulcastLayers;
@@ -224,13 +236,14 @@ class VideoPublishOptions {
   final BackupVideoCodec backupVideoCodec;
 
   const VideoPublishOptions({
+    super.name,
+    super.stream,
     this.videoCodec = defaultVideoCodec,
     this.videoEncoding,
     this.simulcast = true,
     this.videoSimulcastLayers = const [],
     this.screenShareSimulcastLayers = const [],
     this.backupVideoCodec = defualtBackupVideoCodec,
-    this.name,
     this.scalabilityMode,
   });
 
@@ -242,6 +255,8 @@ class VideoPublishOptions {
     String? videoCodec,
     BackupVideoCodec? backupVideoCodec,
     String? scalabilityMode,
+    String? name,
+    String? stream,
   }) =>
       VideoPublishOptions(
         videoEncoding: videoEncoding ?? this.videoEncoding,
@@ -252,6 +267,8 @@ class VideoPublishOptions {
         videoCodec: videoCodec ?? this.videoCodec,
         backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
       );
 
   @override
@@ -269,7 +286,7 @@ class AudioPreset {
 }
 
 /// Options used when publishing audio.
-class AudioPublishOptions {
+class AudioPublishOptions extends PublishOptions {
   static const defaultMicrophoneName = 'microphone';
 
   /// Whether to enable DTX (Discontinuous Transmission) or not.
@@ -280,19 +297,25 @@ class AudioPublishOptions {
   /// max audio bitrate
   final int audioBitrate;
 
-  /// Turn off the audio track when muted, to avoid the microphone
-  /// indicator light on.
-  @Deprecated('Mic indicator will always turn off now when muted.')
-  final bool stopMicTrackOnMute;
+  const AudioPublishOptions({
+    super.name,
+    super.stream,
+    this.dtx = true,
+    this.audioBitrate = AudioPreset.music,
+  });
 
-  /// Name of the audio track.
-  final String? name;
-
-  const AudioPublishOptions(
-      {this.dtx = true,
-      this.audioBitrate = AudioPreset.music,
-      this.stopMicTrackOnMute = true,
-      this.name});
+  AudioPublishOptions copyWith({
+    bool? dtx,
+    int? audioBitrate,
+    String? name,
+    String? stream,
+  }) =>
+      AudioPublishOptions(
+        dtx: dtx ?? this.dtx,
+        audioBitrate: audioBitrate ?? this.audioBitrate,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
+      );
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';

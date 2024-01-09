@@ -331,8 +331,8 @@ class Transport extends Disposable {
       final originalSdp = sd.sdp;
       sd.sdp = munged;
       try {
-        logger.fine(
-            'setting munged ${remote == true ? 'remote' : 'local'} description munged: $munged ');
+        logger.fine('setting munged ${remote == true ? 'remote' : 'local'}');
+        logger.finer('description munged: $munged ');
         if (remote == true) {
           await pc.setRemoteDescription(sd);
         } else {

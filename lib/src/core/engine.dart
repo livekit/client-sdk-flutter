@@ -245,6 +245,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
     String? sid,
     String? videoCodec,
+    String? stream,
   }) async {
     // TODO: Check if cid already published
 
@@ -275,6 +276,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       encryptionType: encryptionType,
       simulcastCodecs: simulcastCodecs,
       sid: sid,
+      stream: stream,
     );
 
     // wait for response, or timeout
@@ -954,7 +956,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       logger.fine('received answer (type: ${event.sd.type})');
-      logger.fine('sdp: ${event.sd.sdp}');
+      logger.finer('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
