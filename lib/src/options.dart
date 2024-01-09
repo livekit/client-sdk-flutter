@@ -66,7 +66,7 @@ class ConnectOptions {
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
-    this.protocolVersion = ProtocolVersion.v9,
+    this.protocolVersion = ProtocolVersion.v10,
     this.timeouts = Timeouts.defaultTimeouts,
   });
 }
@@ -255,6 +255,8 @@ class VideoPublishOptions extends PublishOptions {
     String? videoCodec,
     BackupVideoCodec? backupVideoCodec,
     String? scalabilityMode,
+    String? name,
+    String? stream,
   }) =>
       VideoPublishOptions(
         videoEncoding: videoEncoding ?? this.videoEncoding,
@@ -265,6 +267,8 @@ class VideoPublishOptions extends PublishOptions {
         videoCodec: videoCodec ?? this.videoCodec,
         backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
       );
 
   @override
@@ -299,6 +303,19 @@ class AudioPublishOptions extends PublishOptions {
     this.dtx = true,
     this.audioBitrate = AudioPreset.music,
   });
+
+  AudioPublishOptions copyWith({
+    bool? dtx,
+    int? audioBitrate,
+    String? name,
+    String? stream,
+  }) =>
+      AudioPublishOptions(
+        dtx: dtx ?? this.dtx,
+        audioBitrate: audioBitrate ?? this.audioBitrate,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
+      );
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';

@@ -79,10 +79,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
+      stream: publishOptions.stream,
       kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
-      stream: publishOptions.stream,
     );
 
     await track.start();
@@ -231,13 +231,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
+      stream: publishOptions.stream,
       kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dimensions: dimensions,
       videoLayers: layers,
       simulcastCodecs: simulcastCodecs,
       videoCodec: publishOptions.videoCodec,
-      stream: publishOptions.stream,
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
@@ -709,6 +709,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             (track.source == TrackSource.screenShareVideo
                 ? VideoPublishOptions.defaultScreenShareName
                 : VideoPublishOptions.defaultCameraName),
+        stream: options.stream,
         kind: track.kind.toPBType(),
         source: track.source.toPBType(),
         dimensions: dimensions,
