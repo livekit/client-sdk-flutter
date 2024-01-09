@@ -33,6 +33,7 @@ enum ProtocolVersion {
   v8,
   v9,
   v10,
+  v11,
 }
 
 /// Connection state type used throughout the SDK.
@@ -60,6 +61,7 @@ enum VideoQuality {
 /// Connection quality between the [Participant] and server.
 enum ConnectionQuality {
   unknown,
+  lost,
   poor,
   good,
   excellent,
