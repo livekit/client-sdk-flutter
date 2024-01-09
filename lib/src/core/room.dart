@@ -808,7 +808,7 @@ extension RoomHardwareManagementMethods on Room {
   Future<void> setAudioOutputDevice(MediaDevice device) async {
     if (lkPlatformIs(PlatformType.web)) {
       remoteParticipants.forEach((_, participant) {
-        for (var audioTrack in participant.audioTracks) {
+        for (var audioTrack in participant.audioTrackPublications) {
           audioTrack.track?.setSinkId(device.deviceId);
         }
       });
@@ -826,7 +826,7 @@ extension RoomHardwareManagementMethods on Room {
   /// Set audio input device.
   Future<void> setAudioInputDevice(MediaDevice device) async {
     if (lkPlatformIs(PlatformType.web) && localParticipant != null) {
-      for (var audioTrack in localParticipant!.audioTracks) {
+      for (var audioTrack in localParticipant!.audioTrackPublications) {
         await audioTrack.track?.setDeviceId(device.deviceId);
       }
       Hardware.instance.selectedAudioInput = device;
@@ -843,7 +843,7 @@ extension RoomHardwareManagementMethods on Room {
 
   /// Set video input device.
   Future<void> setVideoInputDevice(MediaDevice device) async {
-    final track = localParticipant?.videoTracks.firstOrNull?.track;
+    final track = localParticipant?.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
     if (selectedVideoInputDeviceId != device.deviceId) {
       await track.switchCamera(device.deviceId);

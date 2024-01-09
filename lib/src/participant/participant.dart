@@ -88,34 +88,34 @@ abstract class Participant<T extends TrackPublication>
   bool get isSpeaking => _isSpeaking;
 
   /// true if [Participant] is publishing an [AudioTrack] and is muted.
-  bool get isMuted => audioTracks.firstOrNull?.muted ?? true;
+  bool get isMuted => audioTrackPublications.firstOrNull?.muted ?? true;
 
   /// true if this [Participant] has more than 1 [AudioTrack].
-  bool get hasAudio => audioTracks.isNotEmpty;
+  bool get hasAudio => audioTrackPublications.isNotEmpty;
 
   /// true if this [Participant] has more than 1 [VideoTrack].
-  bool get hasVideo => videoTracks.isNotEmpty;
+  bool get hasVideo => videoTrackPublications.isNotEmpty;
 
   /// Connection quality between the [Participant] and the Server.
   ConnectionQuality get connectionQuality => _connectionQuality;
 
   // Must be implemented by child class.
-  List<T> get videoTracks;
+  List<T> get videoTrackPublications;
 
   // Must be implemented by child class.
-  List<T> get audioTracks;
+  List<T> get audioTrackPublications;
 
   EncryptionType get firstTrackEncryptionType {
     if (hasAudio) {
-      return audioTracks.first.encryptionType;
+      return audioTrackPublications.first.encryptionType;
     } else if (hasVideo) {
-      return videoTracks.first.encryptionType;
+      return videoTrackPublications.first.encryptionType;
     } else {
       return EncryptionType.kNone;
     }
   }
 
-  bool get isEncrypted => [...audioTracks, ...videoTracks]
+  bool get isEncrypted => [...audioTrackPublications, ...videoTrackPublications]
       .every((track) => track.encryptionType != EncryptionType.kNone);
 
   @internal

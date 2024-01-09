@@ -61,14 +61,14 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
   /// A convenience property to get all video tracks.
   @override
-  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTrackPublications =>
       trackPublications.values
           .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
           .toList();
 
   /// A convenience property to get all audio tracks.
   @override
-  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTrackPublications =>
       trackPublications.values
           .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
           .toList();

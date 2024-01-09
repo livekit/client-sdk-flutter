@@ -165,7 +165,7 @@ class _RoomPageState extends State<RoomPage> {
     List<ParticipantTrack> userMediaTracks = [];
     List<ParticipantTrack> screenTracks = [];
     for (var participant in widget.room.remoteParticipants.values) {
-      for (var t in participant.videoTracks) {
+      for (var t in participant.videoTrackPublications) {
         if (t.isScreenShare) {
           screenTracks.add(ParticipantTrack(
             participant: participant,
@@ -210,7 +210,8 @@ class _RoomPageState extends State<RoomPage> {
           b.participant.joinedAt.millisecondsSinceEpoch;
     });
 
-    final localParticipantTracks = widget.room.localParticipant?.videoTracks;
+    final localParticipantTracks =
+        widget.room.localParticipant?.videoTrackPublications;
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
