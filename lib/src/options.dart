@@ -280,19 +280,11 @@ class AudioPublishOptions {
   /// max audio bitrate
   final int audioBitrate;
 
-  /// Turn off the audio track when muted, to avoid the microphone
-  /// indicator light on.
-  @Deprecated('Mic indicator will always turn off now when muted.')
-  final bool stopMicTrackOnMute;
-
   /// Name of the audio track.
   final String? name;
 
   const AudioPublishOptions(
-      {this.dtx = true,
-      this.audioBitrate = AudioPreset.music,
-      this.stopMicTrackOnMute = true,
-      this.name});
+      {this.dtx = true, this.audioBitrate = AudioPreset.music, this.name});
 
   @override
   String toString() => '${runtimeType}(dtx: ${dtx})';

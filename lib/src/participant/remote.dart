@@ -228,6 +228,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
   }
 
+  @override
   Future<void> removePublishedTrack(String trackSid,
       {bool notify = true}) async {
     logger.finer('removePublishedTrack track sid: $trackSid, notify: $notify');
@@ -258,12 +259,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     await pub.dispose();
   }
-
-  @Deprecated(
-      '`unpublishTrack` is deprecated, use `removePublishedTrack` instead')
-  @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) =>
-      removePublishedTrack(trackSid, notify: notify);
 
   @internal
   lk_models.ParticipantTracks participantTracks() =>

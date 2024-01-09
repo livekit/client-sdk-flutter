@@ -112,7 +112,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     var listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
-      unpublishTrack(pub.sid);
+      removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
@@ -322,7 +322,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     var listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
-      unpublishTrack(pub.sid);
+      removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
@@ -335,7 +335,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Unpublish a [LocalTrackPublication] that's already published by this [LocalParticipant].
   @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) async {
+  Future<void> removePublishedTrack(String trackSid,
+      {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -495,11 +496,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await publication.unmute();
       } else {
         if (source == TrackSource.screenShareVideo) {
-          await unpublishTrack(publication.sid);
+          await removePublishedTrack(publication.sid);
           final screenAudio =
               getTrackPublicationBySource(TrackSource.screenShareAudio);
           if (screenAudio != null) {
-            await unpublishTrack(screenAudio.sid);
+            await removePublishedTrack(screenAudio.sid);
           }
         } else {
           await publication.mute();
