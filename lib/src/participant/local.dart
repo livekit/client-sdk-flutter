@@ -67,7 +67,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
-    if (audioTracks.any(
+    if (audioTrackPublications.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
@@ -134,7 +134,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
-    if (videoTracks.any(
+    if (videoTrackPublications.any(
         (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
@@ -462,14 +462,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// A convenience property to get all video tracks.
   @override
-  List<LocalTrackPublication<LocalVideoTrack>> get videoTracks =>
+  List<LocalTrackPublication<LocalVideoTrack>> get videoTrackPublications =>
       trackPublications.values
           .whereType<LocalTrackPublication<LocalVideoTrack>>()
           .toList();
 
   /// A convenience property to get all audio tracks.
   @override
-  List<LocalTrackPublication<LocalAudioTrack>> get audioTracks =>
+  List<LocalTrackPublication<LocalAudioTrack>> get audioTrackPublications =>
       trackPublications.values
           .whereType<LocalTrackPublication<LocalAudioTrack>>()
           .toList();
