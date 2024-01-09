@@ -937,14 +937,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       var signalingState = await subscriber!.pc.getSignalingState();
       logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
           '$signalingState)');
-      logger.finer('sdp: ${event.sd.sdp}');
+      logger.fine('sdp: ${event.sd.sdp}');
 
       await subscriber!.setRemoteDescription(event.sd);
 
       try {
         final answer = await subscriber!.pc.createAnswer();
         logger.fine('Created answer');
-        logger.finer('sdp: ${answer.sdp}');
+        logger.fine('sdp: ${answer.sdp}');
         await subscriber!.pc.setLocalDescription(answer);
         signalClient.sendAnswer(answer);
       } catch (_) {
