@@ -264,11 +264,11 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
+  final RemoteParticipant? participant;
   final String? sid;
   final TrackSubscribeFailReason reason;
   const TrackSubscriptionExceptionEvent({
-    required this.participant,
+    this.participant,
     this.sid,
     required this.reason,
   });

@@ -136,7 +136,6 @@ abstract class Participant<T extends TrackPublication>
 
     onDispose(() async {
       await events.dispose();
-      await unpublishAllTracks();
     });
   }
 
@@ -182,7 +181,13 @@ abstract class Participant<T extends TrackPublication>
   /// for internal use
   /// {@nodoc}
   @internal
-  void updateFromInfo(lk_models.ParticipantInfo info) {
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
+    if (_participantInfo != null &&
+        _participantInfo!.sid == info.sid &&
+        _participantInfo!.version > info.version) {
+      return false;
+    }
+
     identity = info.identity;
     sid = info.sid;
     updateName(info.name);
@@ -191,6 +196,8 @@ abstract class Participant<T extends TrackPublication>
     }
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
+
+    return true;
   }
 
   @internal
@@ -220,16 +227,49 @@ abstract class Participant<T extends TrackPublication>
     trackPublications[pub.sid] = pub;
   }
 
-  // Must be implemented by subclasses.
-  Future<void> removePublishedTrack(String trackSid, {bool notify = true});
+  /// get a [TrackPublication] by its sid.
+  /// returns null when not found.
+  T? getTrackPublicationBySid(String sid) {
+    final pub = trackPublications[sid];
+    if (pub is T) return pub;
+    return null;
+  }
 
-  /// Convenience method to unpublish all tracks.
-  Future<void> unpublishAllTracks(
-      {bool notify = true, bool? stopOnUnpublish}) async {
-    final trackSids = trackPublications.keys.toSet();
-    for (final trackid in trackSids) {
-      await removePublishedTrack(trackid, notify: notify);
+  /// get a [TrackPublication] by its name.
+  /// returns null when not found.
+  T? getTrackPublicationByName(String name) {
+    for (final pub in trackPublications.values) {
+      if (pub.name == name) {
+        return pub;
+      }
     }
+    return null;
+  }
+
+  /// get all [TrackPublication]s.
+  List<T> getTrackPublications() {
+    return trackPublications.values.toList();
+  }
+
+  /// Tries to find a [TrackPublication] by its [TrackSource]. Otherwise, will
+  /// return a compatible type of [TrackPublication] for the [TrackSource] specified.
+  /// returns null when not found.
+  T? getTrackPublicationBySource(TrackSource source) {
+    if (source == TrackSource.unknown) return null;
+    // try to find by source
+    final result =
+        trackPublications.values.firstWhereOrNull((e) => e.source == source);
+    if (result != null) return result;
+    // try to find by compatibility
+    return trackPublications.values
+        .where((e) => e.source == TrackSource.unknown)
+        .firstWhereOrNull((e) =>
+            (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
+            (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||
+            (source == TrackSource.screenShareVideo &&
+                e.kind == TrackType.VIDEO) ||
+            (source == TrackSource.screenShareAudio &&
+                e.kind == TrackType.AUDIO));
   }
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.
@@ -247,29 +287,6 @@ abstract class Participant<T extends TrackPublication>
   bool isScreenShareEnabled() {
     return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
         true);
-  }
-
-  /// Tries to find a [TrackPublication] by its [TrackSource]. Otherwise, will
-  /// return a compatible type of [TrackPublication] for the [TrackSource] specified.
-  /// returns null when not found.
-  T? getTrackPublicationBySource(TrackSource source) {
-    if (source == TrackSource.unknown) return null;
-    // try to find by source
-    final result =
-        trackPublications.values.firstWhereOrNull((e) => e.source == source);
-    if (result != null) return result;
-    // try to find by compatibility
-    return trackPublications.values
-        .where((e) => e.source == TrackSource.unknown)
-        .firstWhereOrNull((e) =>
-            (source == TrackSource.microphone &&
-                e.kind == lk_models.TrackType.AUDIO) ||
-            (source == TrackSource.camera &&
-                e.kind == lk_models.TrackType.VIDEO) ||
-            (source == TrackSource.screenShareVideo &&
-                e.kind == lk_models.TrackType.VIDEO) ||
-            (source == TrackSource.screenShareAudio &&
-                e.kind == lk_models.TrackType.AUDIO));
   }
 
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].

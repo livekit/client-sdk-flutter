@@ -16,13 +16,12 @@ import 'dart:async';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../types/other.dart';
 import '../track.dart';
 
 abstract class RemoteTrack extends Track {
-  RemoteTrack(lk_models.TrackType kind, TrackSource source,
-      rtc.MediaStream stream, rtc.MediaStreamTrack track,
+  RemoteTrack(TrackType kind, TrackSource source, rtc.MediaStream stream,
+      rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
           kind,

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: constant_identifier_names
+
 import 'package:flutter/material.dart';
 
 import '../extensions.dart';
@@ -41,6 +43,20 @@ enum ConnectionState {
   connecting,
   reconnecting,
   connected,
+}
+
+/// The type of track.
+enum TrackType {
+  AUDIO,
+  VIDEO,
+  DATA,
+}
+
+/// Video quality used for publishing video tracks.
+enum VideoQuality {
+  LOW,
+  MEDIUM,
+  HIGH,
 }
 
 /// Connection quality between the [Participant] and server.
@@ -98,6 +114,7 @@ enum TrackSubscribeFailReason {
   invalidServerResponse,
   notTrackMetadataFound,
   unsupportedTrackType,
+  noParticipantFound,
   // ...
 }
 
