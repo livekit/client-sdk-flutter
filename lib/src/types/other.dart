@@ -62,6 +62,7 @@ enum VideoQuality {
 /// Connection quality between the [Participant] and server.
 enum ConnectionQuality {
   unknown,
+  lost,
   poor,
   good,
   excellent,

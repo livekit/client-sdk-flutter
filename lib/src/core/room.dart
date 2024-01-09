@@ -40,6 +40,7 @@ import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
 import '../types/other.dart';
+import '../utils.dart';
 import 'engine.dart';
 
 import '../track/web/_audio_api.dart'
@@ -435,9 +436,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineTrackAddedEvent>((event) async {
       logger.fine('EngineTrackAddedEvent trackSid:${event.track.id}');
 
-      final idParts = event.stream.id.split('|');
+      final idParts = unpackStreamId(event.stream.id);
       final participantSid = idParts[0];
-      final trackSid = idParts.elementAtOrNull(1) ?? event.track.id;
+      var streamId = idParts[1];
+      var trackSid = event.track.id;
+
+      if (kIsWeb && lkBrowser() == BrowserType.firefox) {
+        // firefox will get streamId (pID|trackId) instead of (pID|streamId) as it doesn't support sync tracks by stream
+        // and generates its own track id instead of infer from sdp track id.
+        if (streamId.isNotEmpty && streamId.startsWith('TR')) {
+          trackSid = streamId;
+        }
+      }
+
       final participant = _getRemoteParticipantBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
