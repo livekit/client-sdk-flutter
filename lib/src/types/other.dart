@@ -34,6 +34,7 @@ enum ProtocolVersion {
   v9,
   v10,
   v11,
+  v12,
 }
 
 /// Connection state type used throughout the SDK.

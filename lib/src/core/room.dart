@@ -76,10 +76,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   String? get name => _name;
   String? _name;
 
-  /// sid of the room
-  String? get sid => _sid;
-  String? _sid;
-
   /// metadata of the room
   String? get metadata => _metadata;
   String? _metadata;
@@ -98,6 +94,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   bool get isRecording => _isRecording;
   bool _isRecording = false;
   bool _audioEnabled = true;
+
+  lk_models.Room? _roomInfo;
 
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
@@ -183,7 +181,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) {
-      _sid = event.response.room.sid;
+      _roomInfo = event.response.room;
       _name = event.response.room.name;
       _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
@@ -336,6 +334,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalRoomUpdateEvent>((event) async {
       _metadata = event.room.metadata;
+      _roomInfo = event.room;
       emitWhenConnected(
           RoomMetadataChangedEvent(metadata: event.room.metadata));
       if (_isRecording != event.room.activeRecording) {
@@ -375,7 +374,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _activeSpeakers.clear();
       // reset params
       _name = null;
-      _sid = null;
       _metadata = null;
       _serverVersion = null;
       _serverRegion = null;
@@ -751,7 +749,6 @@ extension RoomPrivateMethods on Room {
 
     // reset params
     _name = null;
-    _sid = null;
     _metadata = null;
     _serverVersion = null;
     _serverRegion = null;
@@ -762,6 +759,34 @@ extension RoomPrivateMethods on Room {
     if (connectionState == ConnectionState.connected) {
       events.emit(event);
     }
+  }
+
+  /// server assigned unique room id.
+  /// returns once a sid has been issued by the server.
+  Future<String> getSid() async {
+    if (engine.connectionState == ConnectionState.disconnected) {
+      return '';
+    }
+
+    if (_roomInfo != null && _roomInfo!.sid.isNotEmpty) {
+      return _roomInfo!.sid;
+    }
+
+    final completer = Completer<String>();
+
+    events.on<SignalRoomUpdateEvent>((event) {
+      if (event.room.sid.isNotEmpty && !completer.isCompleted) {
+        completer.complete(event.room.sid);
+      }
+    });
+
+    events.once<RoomDisconnectedEvent>((event) {
+      if (!completer.isCompleted) {
+        completer.complete('');
+      }
+    });
+
+    return completer.future;
   }
 }
 
