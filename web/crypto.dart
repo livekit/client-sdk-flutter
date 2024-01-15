@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:js_util' as jsutil;
 import 'dart:html' as html;
+import 'dart:js_util' as jsutil;
+import 'dart:typed_data';
 
 import 'package:js/js.dart';
 

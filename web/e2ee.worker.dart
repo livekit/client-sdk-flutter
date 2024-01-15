@@ -16,14 +16,15 @@ import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
-import 'package:js/js.dart';
 
-import 'e2ee.cryptor.dart';
+import 'package:collection/collection.dart';
+import 'package:js/js.dart';
+import 'package:logging/logging.dart';
 
 import 'package:dart_webrtc/src/rtc_transform_stream.dart';
-import 'package:collection/collection.dart';
-
-import 'crypto.dart' as crypto;
+import 'e2ee.cryptor.dart';
+import 'e2ee.keyhandler.dart';
+import 'e2ee.logger.dart';
 
 @JS()
 abstract class TransformMessage {
@@ -71,21 +72,98 @@ extension PropsRTCTransformEventHandler on html.DedicatedWorkerGlobalScope {
 }
 
 var participantCryptors = <FrameCryptor>[];
+var participantKeys = <String, ParticipantKeyHandler>{};
+ParticipantKeyHandler? sharedKeyHandler;
 var publisherKeys = <String, html.CryptoKey>{};
-bool isEncryptionEnabled = false;
+var sharedKey = Uint8List(0);
 
+bool isEncryptionEnabled = false;
 KeyOptions keyProviderOptions = KeyOptions(
-    sharedKey: true,
-    ratchetSalt: Uint8List.fromList('ratchetSalt'.codeUnits),
-    ratchetWindowSize: 16);
+  sharedKey: true,
+  ratchetSalt: Uint8List.fromList('ratchetSalt'.codeUnits),
+  ratchetWindowSize: 16,
+  failureTolerance: -1,
+);
+
+ParticipantKeyHandler getParticipantKeyHandler(String participantIdentity) {
+  if (keyProviderOptions.sharedKey) {
+    return getSharedKeyHandler();
+  }
+  var keys = participantKeys[participantIdentity];
+  if (keys == null) {
+    keys = ParticipantKeyHandler(
+      worker: self,
+      participantIdentity: participantIdentity,
+      keyOptions: keyProviderOptions,
+    );
+    if (sharedKey.isNotEmpty) {
+      keys.setKey(sharedKey);
+    }
+    //keys.on(KeyHandlerEvent.KeyRatcheted, emitRatchetedKeys);
+    participantKeys[participantIdentity] = keys;
+  }
+  return keys;
+}
+
+FrameCryptor getTrackCryptor(String participantIdentity, String trackId) {
+  var cryptor =
+      participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+  if (cryptor == null) {
+    logger.info('creating new cryptor for $participantIdentity');
+    if (keyProviderOptions == null) {
+      throw Exception('Missing keyProvider options');
+    }
+    cryptor = FrameCryptor(
+      worker: self,
+      participantIdentity: participantIdentity,
+      trackId: trackId,
+      keyHandler: getParticipantKeyHandler(participantIdentity),
+    );
+    //setupCryptorErrorEvents(cryptor);
+    participantCryptors.add(cryptor);
+  } else if (participantIdentity != cryptor.participantIdentity) {
+    // assign new participant id to track cryptor and pass in correct key handler
+    cryptor.setParticipant(
+        participantIdentity, getParticipantKeyHandler(participantIdentity));
+  }
+  if (keyProviderOptions.sharedKey) {}
+  return cryptor;
+}
+
+void unsetCryptorParticipant(String trackId) {
+  participantCryptors
+      .firstWhereOrNull((c) => c.trackId == trackId)
+      ?.unsetParticipant();
+}
+
+ParticipantKeyHandler getSharedKeyHandler() {
+  sharedKeyHandler ??= ParticipantKeyHandler(
+    worker: self,
+    participantIdentity: 'shared-key',
+    keyOptions: keyProviderOptions,
+  );
+  return sharedKeyHandler!;
+}
+
+void setSharedKey(Uint8List key, {int keyIndex = 0}) {
+  logger.info('setting shared key');
+  sharedKey = key;
+  getSharedKeyHandler().setKey(key, keyIndex: keyIndex);
+}
 
 void main() async {
-  print('E2EE Worker created');
+  // configure logs for debugging
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((record) {
+    print('[${record.loggerName}] ${record.level.name}: ${record.message}');
+  });
+
+  logger.info('Worker created');
 
   if (js_util.getProperty(self, 'RTCTransformEvent') != null) {
-    print('setup transform event handler');
+    logger.info('setup RTCTransformEvent event handler');
     self.onrtctransform = allowInterop((event) {
-      print('got transform event');
+      logger.info('Got onrtctransform event');
       var transformer = (event as RTCTransformEvent).transformer;
       transformer.handled = true;
       var options = transformer.options;
@@ -95,18 +173,7 @@ void main() async {
       var codec = options.codec;
       var msgType = options.msgType;
 
-      var cryptor =
-          participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
-
-      if (cryptor == null) {
-        cryptor = FrameCryptor(
-          worker: self,
-          participantId: participantId,
-          trackId: trackId,
-          keyOptions: keyProviderOptions,
-        );
-        participantCryptors.add(cryptor);
-      }
+      var cryptor = getTrackCryptor(participantId, trackId);
 
       cryptor.setupTransform(
           operation: msgType,
@@ -129,19 +196,21 @@ void main() async {
             ratchetSalt: Uint8List.fromList(
                 base64Decode(options['ratchetSalt'] as String)),
             ratchetWindowSize: options['ratchetWindowSize'],
+            failureTolerance: options['failureTolerance'] ?? -1,
             uncryptedMagicBytes: options['ratchetSalt'] != null
                 ? Uint8List.fromList(
                     base64Decode(options['uncryptedMagicBytes'] as String))
                 : null);
-        print('worker: init with keyOptions ${keyProviderOptions.toString()}');
+        logger.config(
+            'Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
         break;
       case 'enable':
         {
           var enabled = msg['enabled'] as bool;
           var participantId = msg['participantId'] as String;
-          print('worker: set enable $enabled for participantId $participantId');
+          logger.config('Set enable $enabled for participantId $participantId');
           var cryptors = participantCryptors
-              .where((c) => c.participantId == participantId)
+              .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var cryptor in cryptors) {
             cryptor.setEnabled(enabled);
@@ -163,29 +232,18 @@ void main() async {
           var readable = msg['readableStream'] as ReadableStream;
           var writable = msg['writableStream'] as WritableStream;
 
-          print(
-              'worker: got $msgType, kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
-          var cryptor =
-              participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+          logger.config(
+              'SetupTransform for kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
 
-          if (cryptor == null) {
-            cryptor = FrameCryptor(
-                worker: self,
-                participantId: participantId,
-                trackId: trackId,
-                keyOptions: keyProviderOptions);
-            participantCryptors.add(cryptor);
-          }
+          var cryptor = getTrackCryptor(participantId, trackId);
 
-          if (!exist) {
-            cryptor.setupTransform(
-                operation: msgType,
-                readable: readable,
-                writable: writable,
-                trackId: trackId,
-                kind: kind);
-          }
-          cryptor.setParticipantId(participantId);
+          cryptor.setupTransform(
+              operation: msgType,
+              readable: readable,
+              writable: writable,
+              trackId: trackId,
+              kind: kind);
+
           self.postMessage({
             'type': 'cryptorSetup',
             'participantId': participantId,
@@ -199,29 +257,23 @@ void main() async {
       case 'removeTransform':
         {
           var trackId = msg['trackId'] as String;
-          print('worker: removing trackId $trackId');
-          participantCryptors.removeWhere((c) => c.trackId == trackId);
+          logger.config('Removing trackId $trackId');
+          unsetCryptorParticipant(trackId);
         }
         break;
       case 'setKey':
         {
           var key = Uint8List.fromList(base64Decode(msg['key'] as String));
-          var keyIndex = msg['keyIndex'];
-          //print('worker: got setKey ${msg['key']}, key $key');
-          var participantId = msg['participantId'] as String;
-          print('worker: setup key for participant $participantId');
-
+          var keyIndex = msg['keyIndex'] as int;
           if (keyProviderOptions.sharedKey) {
-            for (var c in participantCryptors) {
-              c.setKey(keyIndex, key);
-            }
-            return;
-          }
-          var cryptors = participantCryptors
-              .where((c) => c.participantId == participantId)
-              .toList();
-          for (var c in cryptors) {
-            c.setKey(keyIndex, key);
+            logger.config('Set SharedKey keyIndex $keyIndex');
+            setSharedKey(key, keyIndex: keyIndex);
+          } else {
+            var participantId = msg['participantId'] as String;
+            logger.config(
+                'Set key for participant $participantId, keyIndex $keyIndex');
+            getParticipantKeyHandler(participantId)
+                .setKey(key, keyIndex: keyIndex);
           }
         }
         break;
@@ -229,23 +281,14 @@ void main() async {
         {
           var keyIndex = msg['keyIndex'];
           var participantId = msg['participantId'] as String;
-          print(
-              'worker: ratchetKey for participant $participantId, keyIndex $keyIndex');
-          var cryptors = participantCryptors
-              .where((c) => c.participantId == participantId)
-              .toList();
-          for (var c in cryptors) {
-            var keySet = c.getKeySet(keyIndex);
-            c.ratchetKey(keyIndex).then((_) async {
-              var newKey = await c.ratchet(
-                  keySet!.material, keyProviderOptions.ratchetSalt);
-              self.postMessage({
-                'type': 'ratchetKey',
-                'participantId': participantId,
-                'trackId': c.trackId,
-                'key': base64Encode(newKey),
-              });
-            });
+
+          if (keyProviderOptions.sharedKey) {
+            logger.config('RatchetKey for SharedKey, keyIndex $keyIndex');
+            getSharedKeyHandler().ratchetKey(keyIndex);
+          } else {
+            logger.config(
+                'RatchetKey for participant $participantId, keyIndex $keyIndex');
+            getParticipantKeyHandler(participantId).ratchetKey(keyIndex);
           }
         }
         break;
@@ -253,12 +296,23 @@ void main() async {
         {
           var keyIndex = msg['index'];
           var participantId = msg['participantId'] as String;
-          print('worker: setup key index for participant $participantId');
+          logger.config('Setup key index for participant $participantId');
           var cryptors = participantCryptors
-              .where((c) => c.participantId == participantId)
+              .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var c in cryptors) {
             c.setKeyIndex(keyIndex);
+          }
+        }
+        break;
+      case 'setSifTrailer':
+        {
+          var sifTrailer =
+              Uint8List.fromList(base64Decode(msg['sifTrailer'] as String));
+          keyProviderOptions.uncryptedMagicBytes = sifTrailer;
+          logger.config('SetSifTrailer = $sifTrailer');
+          for (var c in participantCryptors) {
+            c.setSifTrailer(sifTrailer);
           }
         }
         break;
@@ -266,7 +320,7 @@ void main() async {
         {
           var codec = msg['codec'] as String;
           var trackId = msg['trackId'] as String;
-          print('worker: update codec for trackId $trackId, codec $codec');
+          logger.config('Update codec for trackId $trackId, codec $codec');
           var cryptor =
               participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           cryptor?.updateCodec(codec);
@@ -275,21 +329,21 @@ void main() async {
       case 'dispose':
         {
           var trackId = msg['trackId'] as String;
-          print('worker: dispose trackId $trackId');
+          logger.config('Dispose for trackId $trackId');
           var cryptor =
               participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           if (cryptor != null) {
             cryptor.lastError = CryptorError.kDisposed;
             self.postMessage({
               'type': 'cryptorDispose',
-              'participantId': cryptor.participantId,
+              'participantId': cryptor.participantIdentity,
               'trackId': trackId,
             });
           }
         }
         break;
       default:
-        print('worker: unknown message kind $msg');
+        logger.warning('Unknown message kind $msg');
     }
   });
 }
