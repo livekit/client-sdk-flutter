@@ -107,7 +107,8 @@ FrameCryptor getTrackCryptor(String participantIdentity, String trackId) {
   var cryptor =
       participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
   if (cryptor == null) {
-    logger.info('creating new cryptor for $participantIdentity');
+    logger.info(
+        'creating new cryptor for $participantIdentity, trackId $trackId');
     if (keyProviderOptions == null) {
       throw Exception('Missing keyProvider options');
     }
@@ -206,11 +207,13 @@ void main() async {
         {
           var enabled = msg['enabled'] as bool;
           var participantId = msg['participantId'] as String;
-          logger.config('Set enable $enabled for participantId $participantId');
+
           var cryptors = participantCryptors
               .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var cryptor in cryptors) {
+            logger.config(
+                'Set enable $enabled for participantId $participantId, trackId ${cryptor.trackId}');
             cryptor.setEnabled(enabled);
           }
           self.postMessage({
@@ -301,6 +304,8 @@ void main() async {
               .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var c in cryptors) {
+            logger.config(
+                'Set keyIndex for participantId $participantId, trackId ${c.trackId}');
             c.setKeyIndex(keyIndex);
           }
         }

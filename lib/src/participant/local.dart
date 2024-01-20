@@ -83,6 +83,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
+      disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
     );
 
     await track.start();
