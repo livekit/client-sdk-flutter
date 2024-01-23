@@ -18,7 +18,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultMagicBytes = 'LK-ROCKS';
-const defaultRatchetWindowSize = 0;
+const defaultRatchetWindowSize = 16;
 const defaultFailureTolerance = -1;
 
 class KeyInfo {
@@ -113,8 +113,7 @@ class BaseKeyProvider implements KeyProvider {
   Future<void> setKey(String key,
       {String? participantId, int? keyIndex}) async {
     if (options.sharedKey) {
-      _sharedKey = Uint8List.fromList(key.codeUnits);
-      return;
+      return setSharedKey(key, keyIndex: keyIndex);
     }
     final keyInfo = KeyInfo(
       participantId: participantId ?? '',

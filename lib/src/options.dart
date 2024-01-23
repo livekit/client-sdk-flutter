@@ -294,6 +294,9 @@ class AudioPublishOptions extends PublishOptions {
   /// Defaults to true.
   final bool dtx;
 
+  /// red (Redundant Audio Data)
+  final bool? red;
+
   /// max audio bitrate
   final int audioBitrate;
 
@@ -301,6 +304,7 @@ class AudioPublishOptions extends PublishOptions {
     super.name,
     super.stream,
     this.dtx = true,
+    this.red = true,
     this.audioBitrate = AudioPreset.music,
   });
 
@@ -309,16 +313,19 @@ class AudioPublishOptions extends PublishOptions {
     int? audioBitrate,
     String? name,
     String? stream,
+    bool? red,
   }) =>
       AudioPublishOptions(
         dtx: dtx ?? this.dtx,
         audioBitrate: audioBitrate ?? this.audioBitrate,
         name: name ?? this.name,
         stream: stream ?? this.stream,
+        red: red ?? this.red,
       );
 
   @override
-  String toString() => '${runtimeType}(dtx: ${dtx})';
+  String toString() =>
+      '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red})';
 }
 
 final backupCodecs = ['vp8', 'h264'];

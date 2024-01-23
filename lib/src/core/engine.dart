@@ -246,6 +246,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     String? sid,
     String? videoCodec,
     String? stream,
+    bool? disableRed,
   }) async {
     // TODO: Check if cid already published
 
@@ -277,6 +278,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       simulcastCodecs: simulcastCodecs,
       sid: sid,
       stream: stream,
+      disableRed: disableRed,
     );
 
     // wait for response, or timeout

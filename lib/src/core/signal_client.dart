@@ -439,6 +439,7 @@ extension SignalClientRequests on SignalClient {
     Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
     String? sid,
     String? stream,
+    bool? disableRed,
   }) {
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
@@ -450,6 +451,7 @@ extension SignalClientRequests on SignalClient {
       sid: sid,
       muted: false,
       stream: stream,
+      disableRed: disableRed,
     );
 
     if (type == lk_models.TrackType.VIDEO) {

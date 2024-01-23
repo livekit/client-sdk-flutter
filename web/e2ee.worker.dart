@@ -74,10 +74,8 @@ extension PropsRTCTransformEventHandler on html.DedicatedWorkerGlobalScope {
 var participantCryptors = <FrameCryptor>[];
 var participantKeys = <String, ParticipantKeyHandler>{};
 ParticipantKeyHandler? sharedKeyHandler;
-var publisherKeys = <String, html.CryptoKey>{};
 var sharedKey = Uint8List(0);
 
-bool isEncryptionEnabled = false;
 KeyOptions keyProviderOptions = KeyOptions(
   sharedKey: true,
   ratchetSalt: Uint8List.fromList('ratchetSalt'.codeUnits),
@@ -109,7 +107,8 @@ FrameCryptor getTrackCryptor(String participantIdentity, String trackId) {
   var cryptor =
       participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
   if (cryptor == null) {
-    logger.info('creating new cryptor for $participantIdentity');
+    logger.info(
+        'creating new cryptor for $participantIdentity, trackId $trackId');
     if (keyProviderOptions == null) {
       throw Exception('Missing keyProvider options');
     }
@@ -208,11 +207,13 @@ void main() async {
         {
           var enabled = msg['enabled'] as bool;
           var participantId = msg['participantId'] as String;
-          logger.config('Set enable $enabled for participantId $participantId');
+
           var cryptors = participantCryptors
               .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var cryptor in cryptors) {
+            logger.config(
+                'Set enable $enabled for participantId $participantId, trackId ${cryptor.trackId}');
             cryptor.setEnabled(enabled);
           }
           self.postMessage({
@@ -262,6 +263,7 @@ void main() async {
         }
         break;
       case 'setKey':
+      case 'setSharedKey':
         {
           var key = Uint8List.fromList(base64Decode(msg['key'] as String));
           var keyIndex = msg['keyIndex'] as int;
@@ -278,6 +280,7 @@ void main() async {
         }
         break;
       case 'ratchetKey':
+      case 'ratchetSharedKey':
         {
           var keyIndex = msg['keyIndex'];
           var participantId = msg['participantId'] as String;
@@ -301,6 +304,8 @@ void main() async {
               .where((c) => c.participantIdentity == participantId)
               .toList();
           for (var c in cryptors) {
+            logger.config(
+                'Set keyIndex for participantId $participantId, trackId ${c.trackId}');
             c.setKeyIndex(keyIndex);
           }
         }
