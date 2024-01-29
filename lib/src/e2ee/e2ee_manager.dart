@@ -183,6 +183,21 @@ class E2EEManager {
     }
   }
 
+  /// Sets the key index for the local participant.
+  /// only valid for encryptors, decryptors will ignore this.
+  /// @param keyIndex the key index to set
+  ///
+  Future<void> setKeyIndex(int keyIndex) async {
+    var identity = _room?.localParticipant?.identity;
+    if (identity != null) {
+      for (var item in _frameCryptors.entries) {
+        if (item.key.keys.first == identity) {
+          await item.value.setKeyIndex(keyIndex);
+        }
+      }
+    }
+  }
+
   E2EEState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
     switch (state) {
       case FrameCryptorState.FrameCryptorStateNew:
