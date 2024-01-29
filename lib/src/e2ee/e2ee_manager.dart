@@ -188,12 +188,9 @@ class E2EEManager {
   /// @param keyIndex the key index to set
   ///
   Future<void> setKeyIndex(int keyIndex) async {
-    var identity = _room?.localParticipant?.identity;
-    if (identity != null) {
-      for (var item in _frameCryptors.entries) {
-        if (item.key.keys.first == identity) {
-          await item.value.setKeyIndex(keyIndex);
-        }
+    for (var item in _frameCryptors.entries) {
+      if (item.key.keys.first == _room?.localParticipant?.identity) {
+        await item.value.setKeyIndex(keyIndex);
       }
     }
   }
