@@ -176,6 +176,10 @@ class E2EEManager {
     return frameCryptor;
   }
 
+  /// Enable/Disable frame crypto for the sender and receiver.
+  /// @param enabled true to enable, false to disable
+  /// if false, the frame cryptor will pass through frames and
+  /// without encryption/decryption
   Future<void> setEnabled(bool enabled) async {
     _enabled = enabled;
     for (var frameCryptor in _frameCryptors.entries) {
@@ -183,16 +187,31 @@ class E2EEManager {
     }
   }
 
-  /// Sets the key index for the local participant.
-  /// only valid for encryptors, decryptors will ignore this.
+  /// Sets the key index for the encryptors of the participant.
   /// @param keyIndex the key index to set
-  ///
-  Future<void> setKeyIndex(int keyIndex) async {
+  /// @param participantIdentity the identity of the participant,
+  /// if null, use local participant.
+  Future<void> setKeyIndex(int keyIndex, {String? participantIdentity}) async {
+    participantIdentity ??= _room?.localParticipant?.identity;
     for (var item in _frameCryptors.entries) {
-      if (item.key.keys.first == _room?.localParticipant?.identity) {
+      if (item.key.keys.first == participantIdentity) {
         await item.value.setKeyIndex(keyIndex);
       }
     }
+  }
+
+  /// Get the key index for the encryptors of the participant.
+  /// @param identity the identity of the participant,
+  /// if null, use local participant.
+  /// @return the key index and -1 if not found
+  Future<int> getKeyIndex(String? participantIdentity) async {
+    participantIdentity ??= _room?.localParticipant?.identity;
+    for (var item in _frameCryptors.entries) {
+      if (item.key.keys.first == participantIdentity) {
+        return await item.value.keyIndex;
+      }
+    }
+    return -1;
   }
 
   E2EEState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
