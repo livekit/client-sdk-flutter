@@ -379,6 +379,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       for (final participant in copy) {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
+        await participant.removeAllPublishedTracks(notify: false);
         await participant.dispose();
       }
       notifyListeners();
@@ -730,6 +731,7 @@ extension RoomPrivateMethods on Room {
     // clean up RemoteParticipants
     var participants = _remoteParticipants.values.toList();
     for (final participant in participants) {
+      await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
