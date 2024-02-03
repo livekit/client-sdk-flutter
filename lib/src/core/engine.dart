@@ -746,8 +746,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'resumeConnection: Timed out waiting for SignalReconnectedEvent'),
     );
 
-    events.emit(const EngineSignalResumedEvent());
-
     logger.fine('resumeConnection: reason: ${reason.name}');
 
     if (_hasPublished) {
@@ -774,7 +772,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
-    events.emit(const EngineReconnectedEvent());
+    events.emit(const EngineResumedEvent());
   }
 
   @internal

@@ -357,14 +357,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
-    ..on<EngineReconnectedEvent>((event) async {
-      events.emit(const RoomReconnectedEvent());
+    ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
       notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
-      events.emit(const RoomRestartingEvent());
+      events.emit(const RoomReconnectingEvent());
 
       // clean up RemoteParticipants
       var copy = _remoteParticipants.values.toList();
@@ -385,8 +384,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
-      events.emit(const RoomRestartedEvent());
-
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
 
@@ -398,9 +395,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
       notifyListeners();
+      events.emit(const RoomReconnectedEvent());
     })
-    ..on<EngineReconnectingEvent>((event) async {
-      events.emit(const RoomReconnectingEvent());
+    ..on<EngineResumingEvent>((event) async {
       await _sendSyncState();
       notifyListeners();
     })
