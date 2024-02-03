@@ -14,6 +14,11 @@
 
 <!--BEGIN_DESCRIPTION-->
 Use this SDK to add real-time video, audio and data features to your Flutter app. By connecting to a self- or cloud-hosted <a href="https://livekit.io/">LiveKit</a> server, you can quickly build applications like interactive live streaming or video calls with just a few lines of code.
+
+## NOTE
+
+Version 2 of the <platform> SDK contains a small set of breaking changes. Read the [migration guide](https://docs.livekit.io/guides/migrate-from-v1/) for a detailed overview of what has changed.
+
 <!--END_DESCRIPTION-->
 
 This package is published to pub.dev as [livekit_client](https://pub.dev/packages/livekit_client).
@@ -201,7 +206,10 @@ final roomOptions = RoomOptions(
   // ... your room options
 )
 
-final room = await LiveKitClient.connect(url, token, roomOptions: roomOptions);
+final room = Room();
+
+await room.connect(url, token, roomOptions: roomOptions);
+
 try {
   // video will fail when running in ios simulator
   await room.localParticipant.setCameraEnabled(true);
