@@ -174,10 +174,13 @@ class FrameCryptor {
           'setKeyIndex: lastError != CryptorError.kOk, reset state to kNew');
       lastError = CryptorError.kNew;
     }
+    logger.config('setKeyIndex for $participantIdentity, newIndex: $keyIndex');
     currentKeyIndex = keyIndex;
   }
 
   void setSifTrailer(Uint8List? magicBytes) {
+    logger.config(
+        'setSifTrailer for $participantIdentity, magicBytes: $magicBytes');
     keyOptions.uncryptedMagicBytes = magicBytes;
   }
 
@@ -187,6 +190,7 @@ class FrameCryptor {
           'setEnabled[$enabled]: lastError != CryptorError.kOk, reset state to kNew');
       lastError = CryptorError.kNew;
     }
+    logger.config('setEnabled for $participantIdentity, enabled: $enabled');
     _enabled = enabled;
   }
 
@@ -203,6 +207,7 @@ class FrameCryptor {
           'updateCodec[$codec]: lastError != CryptorError.kOk, reset state to kNew');
       lastError = CryptorError.kNew;
     }
+    logger.config('updateCodec for $participantIdentity, codec: $codec');
     this.codec = codec;
   }
 
@@ -257,6 +262,7 @@ class FrameCryptor {
         lastError = CryptorError.kInternalError;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'state': 'internalError',
           'error': 'Internal error: ${e.toString()}'
@@ -319,6 +325,7 @@ class FrameCryptor {
         lastError = CryptorError.kMissingKey;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'trackId': trackId,
           'kind': kind,
@@ -368,6 +375,7 @@ class FrameCryptor {
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'trackId': trackId,
           'kind': kind,
@@ -384,6 +392,7 @@ class FrameCryptor {
         lastError = CryptorError.kEncryptError;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'trackId': trackId,
           'kind': kind,
@@ -457,6 +466,7 @@ class FrameCryptor {
           lastError = CryptorError.kMissingKey;
           postMessage({
             'type': 'cryptorState',
+            'msgType': 'event',
             'participantId': participantIdentity,
             'trackId': trackId,
             'kind': kind,
@@ -484,6 +494,8 @@ class FrameCryptor {
           ));
 
           if (currentkeySet != initialKeySet) {
+            logger.warning(
+                'ratchetKey: decryption ok, reset state to kKeyRatcheted');
             await keyHandler.setKeySetFromMaterial(
                 currentkeySet, initialKeyIndex);
           }
@@ -501,6 +513,7 @@ class FrameCryptor {
             lastError = CryptorError.kKeyRatcheted;
             postMessage({
               'type': 'cryptorState',
+              'msgType': 'event',
               'participantId': participantIdentity,
               'trackId': trackId,
               'kind': kind,
@@ -515,8 +528,10 @@ class FrameCryptor {
           if (endDecLoop) {
             rethrow;
           }
-          var newMaterial =
-              await keyHandler.ratchetMaterial(currentkeySet.material);
+          var newKeyBuffer = crypto.jsArrayBufferFrom(await keyHandler.ratchet(
+              currentkeySet.material, keyOptions.ratchetSalt));
+          var newMaterial = await keyHandler.ratchetMaterial(
+              currentkeySet.material, newKeyBuffer);
           currentkeySet =
               await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
           ratchetCount++;
@@ -536,6 +551,7 @@ class FrameCryptor {
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'trackId': trackId,
           'kind': kind,
@@ -551,6 +567,7 @@ class FrameCryptor {
         lastError = CryptorError.kDecryptError;
         postMessage({
           'type': 'cryptorState',
+          'msgType': 'event',
           'participantId': participantIdentity,
           'trackId': trackId,
           'kind': kind,
@@ -564,6 +581,8 @@ class FrameCryptor {
       /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
       ///  we come back to the initial key.
       if (initialKeySet != null) {
+        logger.warning(
+            'decryption failed, ratcheting back to initial key, keyIndex: $initialKeyIndex');
         await keyHandler.setKeySetFromMaterial(initialKeySet, initialKeyIndex);
       }
       keyHandler.decryptionFailure();
