@@ -197,18 +197,13 @@ class EngineReconnectingEvent with InternalEvent, EngineEvent {
 }
 
 @internal
-class EngineReconnectedEvent with InternalEvent, EngineEvent {
-  const EngineReconnectedEvent();
+class EngineResumedEvent with InternalEvent, EngineEvent {
+  const EngineResumedEvent();
 }
 
 @internal
 class EngineResumingEvent with InternalEvent, EngineEvent {
   const EngineResumingEvent();
-}
-
-@internal
-class EngineSignalResumedEvent with EngineEvent, InternalEvent {
-  const EngineSignalResumedEvent();
 }
 
 @internal

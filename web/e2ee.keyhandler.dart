@@ -41,6 +41,55 @@ class KeyOptions {
   }
 }
 
+class KeyProvider {
+  KeyProvider(this.worker, this.id, this.keyProviderOptions);
+  final DedicatedWorkerGlobalScope worker;
+  final String id;
+  final KeyOptions keyProviderOptions;
+  var participantKeys = <String, ParticipantKeyHandler>{};
+  ParticipantKeyHandler? sharedKeyHandler;
+  var sharedKey = Uint8List(0);
+
+  ParticipantKeyHandler getParticipantKeyHandler(String participantIdentity) {
+    if (keyProviderOptions.sharedKey) {
+      return getSharedKeyHandler();
+    }
+    var keys = participantKeys[participantIdentity];
+    if (keys == null) {
+      keys = ParticipantKeyHandler(
+        worker: worker,
+        participantIdentity: participantIdentity,
+        keyOptions: keyProviderOptions,
+      );
+      if (sharedKey.isNotEmpty) {
+        keys.setKey(sharedKey);
+      }
+      //keys.on(KeyHandlerEvent.KeyRatcheted, emitRatchetedKeys);
+      participantKeys[participantIdentity] = keys;
+    }
+    return keys;
+  }
+
+  ParticipantKeyHandler getSharedKeyHandler() {
+    sharedKeyHandler ??= ParticipantKeyHandler(
+      worker: worker,
+      participantIdentity: 'shared-key',
+      keyOptions: keyProviderOptions,
+    );
+    return sharedKeyHandler!;
+  }
+
+  void setSharedKey(Uint8List key, {int keyIndex = 0}) {
+    logger.info('setting shared key');
+    sharedKey = key;
+    getSharedKeyHandler().setKey(key, keyIndex: keyIndex);
+  }
+
+  void setSifTrailer(Uint8List sifTrailer) {
+    keyProviderOptions.uncryptedMagicBytes = sifTrailer;
+  }
+}
+
 const KEYRING_SIZE = 16;
 
 class KeySet {
@@ -50,6 +99,11 @@ class KeySet {
 }
 
 class ParticipantKeyHandler {
+  ParticipantKeyHandler({
+    required this.worker,
+    required this.keyOptions,
+    required this.participantIdentity,
+  });
   int currentKeyIndex = 0;
 
   List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
@@ -62,71 +116,66 @@ class ParticipantKeyHandler {
 
   final DedicatedWorkerGlobalScope worker;
 
-  Completer? _ratchetCompleter;
-
   final String participantIdentity;
 
   int _decryptionFailureCount = 0;
 
-  ParticipantKeyHandler({
-    required this.worker,
-    required this.keyOptions,
-    required this.participantIdentity,
-  });
-
   void decryptionFailure() {
-    if (this.keyOptions.failureTolerance < 0) {
+    if (keyOptions.failureTolerance < 0) {
       return;
     }
     _decryptionFailureCount += 1;
 
-    if (_decryptionFailureCount > this.keyOptions.failureTolerance) {
+    if (_decryptionFailureCount > keyOptions.failureTolerance) {
       logger.warning('key for $participantIdentity is being marked as invalid');
       _hasValidKey = false;
     }
   }
 
-  decryptionSuccess() {
+  void decryptionSuccess() {
     resetKeyStatus();
   }
 
-  /**
-   * Call this after user initiated ratchet or a new key has been set in order to make sure to mark potentially
-   * invalid keys as valid again
-   */
-  resetKeyStatus() {
+  /// Call this after user initiated ratchet or a new key has been set in order
+  /// to make sure to mark potentially invalid keys as valid again
+  void resetKeyStatus() {
     _decryptionFailureCount = 0;
     _hasValidKey = true;
   }
 
-  Future<void> ratchetKey(int? keyIndex) async {
-    if (_ratchetCompleter == null) {
-      _ratchetCompleter = Completer<void>();
-      var currentMaterial = getKeySet(keyIndex)?.material;
-      if (currentMaterial == null) {
-        _ratchetCompleter!.complete();
-        _ratchetCompleter = null;
-        return;
-      }
-      ratchetMaterial(currentMaterial).then((newMaterial) {
-        deriveKeys(newMaterial, keyOptions.ratchetSalt).then((newKeySet) {
-          setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex)
-              .then((_) {
-            _ratchetCompleter!.complete();
-            _ratchetCompleter = null;
-          });
-        });
-      });
+  Future<Uint8List?> exportKey(int? keyIndex) async {
+    var currentMaterial = getKeySet(keyIndex)?.material;
+    if (currentMaterial == null) {
+      return null;
     }
-
-    return _ratchetCompleter!.future;
+    try {
+      var key = await jsutil.promiseToFuture<ByteBuffer>(
+          crypto.exportKey('raw', currentMaterial));
+      return key.asUint8List();
+    } catch (e) {
+      logger.warning('exportKey: $e');
+      return null;
+    }
   }
 
-  Future<CryptoKey> ratchetMaterial(CryptoKey currentMaterial) async {
+  Future<Uint8List?> ratchetKey(int? keyIndex) async {
+    var currentMaterial = getKeySet(keyIndex)?.material;
+    if (currentMaterial == null) {
+      return null;
+    }
+    var newKey = await ratchet(currentMaterial, keyOptions.ratchetSalt);
+    var newMaterial = await ratchetMaterial(
+        currentMaterial, crypto.jsArrayBufferFrom(newKey));
+    var newKeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
+    await setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex);
+    return newKey;
+  }
+
+  Future<CryptoKey> ratchetMaterial(
+      CryptoKey currentMaterial, ByteBuffer newKeyBuffer) async {
     var newMaterial = await jsutil.promiseToFuture(crypto.importKey(
       'raw',
-      crypto.jsArrayBufferFrom(
-          await ratchet(currentMaterial, keyOptions.ratchetSalt)),
+      newKeyBuffer,
       (currentMaterial.algorithm as crypto.Algorithm).name,
       false,
       ['deriveBits', 'deriveKey'],
@@ -150,7 +199,7 @@ class ParticipantKeyHandler {
   }
 
   Future<void> setKeySetFromMaterial(KeySet keySet, int keyIndex) async {
-    logger.info('setKeySetFromMaterial: set new key, index: $keyIndex');
+    logger.config('setKeySetFromMaterial: set new key, index: $keyIndex');
     if (keyIndex >= 0) {
       currentKeyIndex = keyIndex % cryptoKeyRing.length;
     }

@@ -284,12 +284,12 @@ By default, the native platform can support E2EE without any settings, but for f
 
 ```bash
 # for example app
-dart compile js .\web\e2ee.worker.dart -o .\example\web\e2ee.worker.dart.js
+dart compile js web/e2ee.worker.dart -o example/web/e2ee.worker.dart.js -m
 # for your project
 export YOU_PROJECT_DIR=your_project_dir
 git clone https://github.com/livekit/client-sdk-flutter.git
 cd client-sdk-flutter && flutter pub get
-dart compile js .\web\e2ee.worker.dart -o ${YOU_PROJECT_DIR}\web\e2ee.worker.dart.js
+dart compile js web/e2ee.worker.dart -o ${YOU_PROJECT_DIR}/web/e2ee.worker.dart.js -m
 ```
 
 ### Advanced track manipulation

@@ -357,14 +357,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
-    ..on<EngineReconnectedEvent>((event) async {
-      events.emit(const RoomReconnectedEvent());
+    ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
       notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
-      events.emit(const RoomRestartingEvent());
+      events.emit(const RoomReconnectingEvent());
 
       // clean up RemoteParticipants
       var copy = _remoteParticipants.values.toList();
@@ -380,13 +379,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       for (final participant in copy) {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
+        await participant.removeAllPublishedTracks(notify: false);
         await participant.dispose();
       }
       notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
-      events.emit(const RoomRestartedEvent());
-
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
 
@@ -398,9 +396,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
       notifyListeners();
+      events.emit(const RoomReconnectedEvent());
     })
-    ..on<EngineReconnectingEvent>((event) async {
-      events.emit(const RoomReconnectingEvent());
+    ..on<EngineResumingEvent>((event) async {
       await _sendSyncState();
       notifyListeners();
     })
@@ -733,6 +731,7 @@ extension RoomPrivateMethods on Room {
     // clean up RemoteParticipants
     var participants = _remoteParticipants.values.toList();
     for (final participant in participants) {
+      await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
