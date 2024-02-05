@@ -47,6 +47,8 @@ More Docs and guides are available at [https://docs.livekit.io](https://docs.liv
 
 We built a multi-user conferencing app as an example in the [example/](example/) folder. You can join the same room from any supported LiveKit clients.
 
+Online demo: https://livekit.github.io/client-sdk-flutter/
+
 ## Installation
 
 Include this package to your `pubspec.yaml`
