@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2.0.0
+
+## Breaking Changes
+There are several breaking changes between v1 and v2. Please consult our [migration guide](https://docs.livekit.io/guides/migrate-from-v1/) when upgrading to v2.
+
+* `Room.participants` was renamed to `Room.remoteParticipants`
+* `Room.{audio/video}Tracks` was renamed to `Room.{audio/video}TrackPublications`
+* `LocalParticipant.publishData` now uses participant identity as destinations instead of participant sids.
+* `Room.sid` now changed to `await room.getSid();`.
+* Removed `VideoQuality.OFF` from `VideoQuality` enum.
+
+## Removal of previously deprecated APIs
+
+* `LiveKitClient.connect` - Please use `var room = Room(...)` and `room.connect` instead.
+* `track in TrackMutedEvent/TrackUnmutedEvent` - Use `publication` instead
+* `TrackStreamStateUpdatedEvent.trackPublication` - Use `TrackStreamStateUpdatedEvent.publication` instead
+* `RemotePublication.videoQuality` - Use `RemotePublication.setVideoQuality(quality)` instead
+* `RemotePublication.subscribed` - Use `RemotePublication.subscribe()` or `unsubscribe()` instead
+* `RemotePublication.enabled` - Use `RemotePublication.enable()` or `disable()` instead
+* `Participant.unpublishTrack` - Use `Participant.removePublishedTrack` instead
+* Removed `AudioPublishOptions.stopMicTrackOnMute`
+
+## Other changes
+
+* Do not emit Reconnecting event during connection resume. (#459)
+* Cleanup when remove remote participants. (#460)
+* Support change key index for encryptors. (#457)
+* Bug fixes for e2ee (Web/Firefox). (#453)
+* Add lost quality (Protocol v11). (#443)
+* [E2EE] Add key handler for web worker. (#449)
+* E2EE improvement. (#461)
+
 ## 1.5.6
 
 * Set different rendering methods for web and native.
