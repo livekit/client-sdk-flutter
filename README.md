@@ -187,12 +187,6 @@ Note: the audio routing will become controlled by the system and cannot be manua
 
 In order to enable Flutter desktop development, please follow [instructions here](https://docs.flutter.dev/desktop#set-up).
 
-On M1 Macs, you will also need to install x86_64 version of FFI:
-
-```
-sudo arch -x86_64 gem install ffi
-```
-
 On Windows [VS 2019](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=community&rel=16) is needed (link in flutter docs will download VS 2022).
 
 ## Usage
