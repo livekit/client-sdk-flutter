@@ -439,12 +439,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       var streamId = idParts[1];
       var trackSid = event.track.id;
 
-      if (kIsWeb && lkBrowser() == BrowserType.firefox) {
-        // firefox will get streamId (pID|trackId) instead of (pID|streamId) as it doesn't support sync tracks by stream
-        // and generates its own track id instead of infer from sdp track id.
-        if (streamId.isNotEmpty && streamId.startsWith('TR')) {
-          trackSid = streamId;
-        }
+      // firefox will get streamId (pID|trackId) instead of (pID|streamId) as it doesn't support sync tracks by stream
+      // and generates its own track id instead of infer from sdp track id.
+      if (streamId.isNotEmpty && streamId.startsWith('TR')) {
+        trackSid = streamId;
       }
 
       final participant = _getRemoteParticipantBySid(participantSid);
