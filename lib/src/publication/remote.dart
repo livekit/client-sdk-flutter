@@ -158,6 +158,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
         .whereNotNull()
         .map((e) => e.findRenderObject() as RenderBox?)
         .whereNotNull()
+        .where((e) => e.hasSize)
         .map((e) => e.size);
 
     logger.finer(

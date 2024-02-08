@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.1
+
+* bug fix for sync streams.
+
 ## 2.0.0
 
 ## Breaking Changes
