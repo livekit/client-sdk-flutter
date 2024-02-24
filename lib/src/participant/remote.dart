@@ -105,8 +105,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     return null;
   }
 
-  /// for internal use
-  /// {@nodoc}
   @internal
   Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
@@ -193,8 +191,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     ));
   }
 
-  /// for internal use
-  /// {@nodoc}
   @override
   @internal
   Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
