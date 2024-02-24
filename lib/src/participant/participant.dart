@@ -139,8 +139,6 @@ abstract class Participant<T extends TrackPublication>
     });
   }
 
-  /// for internal use
-  /// {@nodoc}
   @internal
   set isSpeaking(bool speaking) {
     if (_isSpeaking == speaking) {
@@ -178,8 +176,6 @@ abstract class Participant<T extends TrackPublication>
     ));
   }
 
-  /// for internal use
-  /// {@nodoc}
   @internal
   Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     if (_participantInfo != null &&
@@ -219,8 +215,6 @@ abstract class Participant<T extends TrackPublication>
     ));
   }
 
-  /// for internal use
-  /// {@nodoc}
   @internal
   void addTrackPublication(T pub) {
     pub.track?.sid = pub.sid;
