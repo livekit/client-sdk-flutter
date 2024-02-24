@@ -230,6 +230,9 @@ On Android, you would have to define a foreground service in your AndroidManifes
 
 ```xml title="AndroidManifest.xml"
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Required permissions for screen share -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
   <application>
     ...
     <service
