@@ -20,6 +20,7 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
+import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
@@ -32,6 +33,8 @@ class LocalAudioTrack extends LocalTrack
   // Options used for this track
   @override
   covariant AudioCaptureOptions currentOptions;
+
+  AudioPublishOptions? lastPublishOptions;
 
   Future<void> setDeviceId(String deviceId) async {
     if (currentOptions.deviceId == deviceId) {

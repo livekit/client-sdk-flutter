@@ -73,8 +73,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     // Use defaultPublishOptions if options is null
-    publishOptions =
-        publishOptions ?? room.roomOptions.defaultAudioPublishOptions;
+    publishOptions ??=
+        track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
@@ -85,6 +85,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       dtx: publishOptions.dtx,
       disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
     );
+
+    track.lastPublishOptions = publishOptions;
 
     await track.start();
 
@@ -141,8 +143,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     // Use defaultPublishOptions if options is null
-    publishOptions =
-        publishOptions ?? room.roomOptions.defaultVideoPublishOptions;
+    publishOptions ??=
+        track.lastPublishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
     if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
@@ -242,6 +244,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
+
+    track.lastPublishOptions = publishOptions;
 
     await track.start();
 
