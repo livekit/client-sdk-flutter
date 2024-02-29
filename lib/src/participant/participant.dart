@@ -283,6 +283,12 @@ abstract class Participant<T extends TrackPublication>
         true);
   }
 
+  /// Convenience property to check whether [TrackSource.screenShareAudio] is published or not.
+  bool isScreenShareAudioEnabled() {
+    return !(getTrackPublicationBySource(TrackSource.screenShareAudio)?.muted ??
+        true);
+  }
+
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].
   @override
   int get hashCode => sid.hashCode;
