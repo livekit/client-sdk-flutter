@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.2
+
+* Add Android 14 media projection perm to docs (#470)
+* fix package of MainActivity.kt (#472)
+* Fix: Remember last settings for republish all tracks (full-reconnect). (#475)
+* Fix: Add screenshareAudioEnabled method (#473)
+* Fix: use latest key index for new rtp nodes (#476)
+
 ## 2.0.1
 
 * bug fix for sync streams.
