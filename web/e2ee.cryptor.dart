@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:html';
 import 'dart:js';
@@ -331,6 +333,8 @@ class FrameCryptor {
           'kind': kind,
           'state': 'missingKey',
           'error': 'Missing key for track $trackId',
+          'currentKeyIndex': currentKeyIndex,
+          'secretKey': secretKey.toString()
         });
       }
       return;
@@ -380,7 +384,10 @@ class FrameCryptor {
           'trackId': trackId,
           'kind': kind,
           'state': 'ok',
-          'error': 'encryption ok'
+          'error': 'encryption ok',
+          'frameTrailer': frameTrailer.buffer.asUint8List(),
+          'currentKeyIndex': currentKeyIndex,
+          'secretKey': secretKey.toString(),
         });
       }
 
@@ -471,7 +478,10 @@ class FrameCryptor {
             'trackId': trackId,
             'kind': kind,
             'state': 'missingKey',
-            'error': 'Missing key for track $trackId'
+            'error': 'Missing key for track $trackId',
+            'frameTrailer': frameTrailer.buffer.asUint8List(),
+            'currentKeyIndex': keyIndex,
+            'secretKey': initialKeySet?.encryptionKey.toString()
           });
         }
         controller.enqueue(frame);
@@ -518,7 +528,10 @@ class FrameCryptor {
               'trackId': trackId,
               'kind': kind,
               'state': 'keyRatcheted',
-              'error': 'Key ratcheted ok'
+              'error': 'Key ratcheted ok',
+              'frameTrailer': frameTrailer.buffer.asUint8List(),
+              'currentKeyIndex': currentKeyIndex,
+              'secretKey': currentkeySet.encryptionKey.toString()
             });
           }
         } catch (e) {
@@ -539,9 +552,8 @@ class FrameCryptor {
       }
 
       logger.finer(
-          'buffer: ${buffer.length}, decrypted: ${decrypted?.asUint8List()?.length ?? 0}');
+          'buffer: ${buffer.length}, decrypted: ${decrypted?.asUint8List().length ?? 0}');
       var finalBuffer = BytesBuilder();
-
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
       finalBuffer.add(decrypted!.asUint8List());
       frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
@@ -556,7 +568,10 @@ class FrameCryptor {
           'trackId': trackId,
           'kind': kind,
           'state': 'ok',
-          'error': 'decryption ok'
+          'error': 'decryption ok',
+          'frameTrailer': frameTrailer.buffer.asUint8List(),
+          'currentKeyIndex': currentKeyIndex,
+          'secretKey': currentkeySet.encryptionKey.toString()
         });
       }
 
