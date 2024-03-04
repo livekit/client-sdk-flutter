@@ -17,13 +17,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../core/room.dart';
-import '../e2ee/events.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
+import '../logger.dart';
 import '../managers/event.dart';
 import '../utils.dart';
+import 'events.dart';
 import 'key_provider.dart';
+import 'options.dart';
 
 class E2EEManager {
   Room? _room;
@@ -156,7 +157,9 @@ class E2EEManager {
         keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    await frameCryptor.setKeyIndex(0);
+    logger.info(
+        '_addRtpSender, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
 
@@ -172,7 +175,9 @@ class E2EEManager {
             keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    await frameCryptor.setKeyIndex(0);
+    logger.info(
+        '_addRtpReceiver, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
 

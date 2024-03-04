@@ -204,6 +204,7 @@ class ParticipantKeyHandler {
       currentKeyIndex = keyIndex % cryptoKeyRing.length;
     }
     cryptoKeyRing[currentKeyIndex] = keySet;
+    logger.config('setKeySetFromMaterial: currentIndex: $currentKeyIndex');
   }
 
   /// Derives a set of keys from the master key.

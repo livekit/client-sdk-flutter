@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
+import '../logger.dart';
 
 const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultMagicBytes = 'LK-ROCKS';
@@ -45,6 +48,11 @@ abstract class KeyProvider {
 
 class BaseKeyProvider implements KeyProvider {
   final Map<String, Map<int, Uint8List>> _keys = {};
+
+  int getLatestIndex(String participantId) {
+    return _keys[participantId]?.keys.last ?? 0;
+  }
+
   Uint8List? _sharedKey;
   final rtc.KeyProviderOptions options;
   final rtc.KeyProvider _keyProvider;
@@ -127,6 +135,8 @@ class BaseKeyProvider implements KeyProvider {
     if (!_keys.containsKey(keyInfo.participantId)) {
       _keys[keyInfo.participantId] = {};
     }
+    logger.info(
+        '_setKey for ${keyInfo.participantId}, idx: ${keyInfo.keyIndex}, key: ${base64Encode(keyInfo.key)}');
     _keys[keyInfo.participantId]![keyInfo.keyIndex] = keyInfo.key;
     await _keyProvider.setKey(
       participantId: keyInfo.participantId,
