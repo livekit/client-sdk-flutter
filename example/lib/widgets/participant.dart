@@ -37,10 +37,11 @@ class LocalParticipantWidget extends ParticipantWidget {
   @override
   final LocalParticipant participant;
   @override
-  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
+  VideoTrack? get videoTrack =>
+      participant.videoTrackPublications.firstOrNull?.track;
   @override
   bool get isScreenShare =>
-      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
+      participant.videoTrackPublications.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
@@ -58,10 +59,11 @@ class RemoteParticipantWidget extends ParticipantWidget {
   @override
   final RemoteParticipant participant;
   @override
-  VideoTrack? get videoTrack => participant.videoTracks.firstOrNull?.track;
+  VideoTrack? get videoTrack =>
+      participant.videoTrackPublications.firstOrNull?.track;
   @override
   bool get isScreenShare =>
-      participant.videoTracks.firstOrNull?.isScreenShare ?? false;
+      participant.videoTrackPublications.firstOrNull?.isScreenShare ?? false;
   @override
   final bool showStatsLayer;
 
@@ -174,13 +176,13 @@ class _LocalParticipantWidgetState
     extends _ParticipantWidgetState<LocalParticipantWidget> {
   @override
   LocalTrackPublication<LocalVideoTrack>? get videoPublication =>
-      widget.participant.videoTracks
+      widget.participant.videoTrackPublications
           .where((element) => element.sid == widget.videoTrack?.sid)
           .firstOrNull;
 
   @override
   LocalTrackPublication<LocalAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTracks.firstOrNull;
+      widget.participant.audioTrackPublications.firstOrNull;
 
   @override
   VideoTrack? get activeVideoTrack => widget.videoTrack;
@@ -190,13 +192,13 @@ class _RemoteParticipantWidgetState
     extends _ParticipantWidgetState<RemoteParticipantWidget> {
   @override
   RemoteTrackPublication<RemoteVideoTrack>? get videoPublication =>
-      widget.participant.videoTracks
+      widget.participant.videoTrackPublications
           .where((element) => element.sid == widget.videoTrack?.sid)
           .firstOrNull;
 
   @override
   RemoteTrackPublication<RemoteAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTracks.firstOrNull;
+      widget.participant.audioTrackPublications.firstOrNull;
 
   @override
   VideoTrack? get activeVideoTrack => widget.videoTrack;
@@ -208,14 +210,14 @@ class _RemoteParticipantWidgetState
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             // Menu for RemoteTrackPublication<RemoteAudioTrack>
-            if (widget.participant.audioTracks.isNotEmpty)
+            if (widget.participant.audioTrackPublications.isNotEmpty)
               RemoteTrackPublicationMenuWidget(
                 remote: widget.participant,
                 source: TrackSource.microphone,
                 icon: Icons.volume_up,
               ),
             // Menu for RemoteTrackPublication<RemoteVideoTrack>
-            if (widget.participant.videoTracks.isNotEmpty)
+            if (widget.participant.videoTrackPublications.isNotEmpty)
               RemoteTrackPublicationMenuWidget(
                 remote: widget.participant,
                 source: TrackSource.camera,
@@ -249,8 +251,8 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
 
   List<RemoteTrackPublication> get publications =>
       source == TrackSource.microphone
-          ? remote.audioTracks
-          : remote.videoTracks;
+          ? remote.audioTrackPublications
+          : remote.videoTrackPublications;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -345,10 +347,6 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
             PopupMenuItem(
               child: const Text('LOW'),
               value: () => pub.setVideoQuality(VideoQuality.LOW),
-            ),
-            PopupMenuItem(
-              child: const Text('OFF'),
-              value: () => pub.setVideoQuality(VideoQuality.OFF),
             ),
           ],
         ),

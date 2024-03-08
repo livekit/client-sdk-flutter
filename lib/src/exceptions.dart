@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -87,4 +87,9 @@ class LiveKitE2EEException extends LiveKitException {
 
   @override
   String toString() => 'E2EE Exception: [$runtimeType] $message';
+}
+
+class UnexpectedConnectionState extends LiveKitException {
+  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
+      : super._(msg);
 }

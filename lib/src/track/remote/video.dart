@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../local/local.dart';
@@ -29,7 +28,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          lk_models.TrackType.VIDEO,
+          TrackType.VIDEO,
           source,
           stream,
           track,

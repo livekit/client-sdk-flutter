@@ -23,12 +23,10 @@ dependencies:
   flutter_window_close: ^0.2.2
   fluttertoast: ^8.2.4
   visibility_detector: ^0.4.0+2
+  collection: '>=1.16.0'
 
   livekit_client:
     path: ../
-    # git:
-    #   url: https://github.com/livekit/client-sdk-flutter
-    #   ref: main
 
 dev_dependencies:
   flutter_test:

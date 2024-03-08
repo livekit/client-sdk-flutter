@@ -95,8 +95,8 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
     }
     listeners.clear();
     for (var track in [
-      ...widget.participant.videoTracks,
-      ...widget.participant.audioTracks
+      ...widget.participant.videoTrackPublications,
+      ...widget.participant.audioTrackPublications
     ]) {
       if (track.track != null) {
         _setUpListener(track.track!);

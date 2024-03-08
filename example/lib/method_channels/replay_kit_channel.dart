@@ -15,7 +15,9 @@ class ReplayKitChannel {
   static void listenMethodChannel(Room room) {
     _replayKitChannel.setMethodCallHandler((call) async {
       if (call.method == 'closeReplayKitFromNative') {
-        if (!(room.localParticipant?.isScreenShareEnabled() ?? false)) return;
+        if (!(room.localParticipant?.isScreenShareEnabled() ?? false)) {
+          return;
+        }
 
         await room.localParticipant?.setScreenShareEnabled(false);
       } else if (call.method == 'hasSampleBroadcast') {

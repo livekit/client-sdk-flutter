@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -633,3 +633,12 @@ String mimeTypeToVideoCodecString(String mimeType) {
 }
 
 const defaultVideoCodec = 'vp8';
+const separator = '|';
+
+List<String> unpackStreamId(String packed) {
+  final parts = packed.split(separator);
+  if (parts.length > 1) {
+    return [parts[0], packed.substring(parts[0].length + 1)];
+  }
+  return [packed, ''];
+}

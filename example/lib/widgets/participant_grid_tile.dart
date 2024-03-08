@@ -38,11 +38,11 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
           (widget.participantSubscriptions[widget.participant.identity] ??
                   false) &&
               widget.participant.isCameraEnabled() &&
-              widget.participant.videoTracks.isNotEmpty &&
-              widget.participant.videoTracks[0].track != null;
+              widget.participant.videoTrackPublications.isNotEmpty &&
+              widget.participant.videoTrackPublications[0].track != null;
     } else if (isLocalParticipant &&
         widget.participant.isCameraEnabled() &&
-        widget.participant.videoTracks.isNotEmpty) {
+        widget.participant.videoTrackPublications.isNotEmpty) {
       hasVideo = true;
     }
 

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -73,7 +72,7 @@ abstract class LocalTrack extends Track {
   bool _stopped = false;
 
   LocalTrack(
-    lk_models.TrackType kind,
+    TrackType kind,
     TrackSource source,
     rtc.MediaStream mediaStream,
     rtc.MediaStreamTrack mediaStreamTrack,

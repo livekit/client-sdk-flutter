@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,14 +61,14 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
   /// A convenience property to get all video tracks.
   @override
-  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTracks =>
+  List<RemoteTrackPublication<RemoteVideoTrack>> get videoTrackPublications =>
       trackPublications.values
           .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
           .toList();
 
   /// A convenience property to get all audio tracks.
   @override
-  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTracks =>
+  List<RemoteTrackPublication<RemoteAudioTrack>> get audioTrackPublications =>
       trackPublications.values
           .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
           .toList();
@@ -78,14 +78,33 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       .cast<RemoteTrackPublication>()
       .toList();
 
-  RemoteTrackPublication? getTrackPublication(String sid) {
-    final pub = trackPublications[sid];
-    if (pub is RemoteTrackPublication) return pub;
+  @override
+  RemoteTrackPublication? getTrackPublicationByName(String name) {
+    final track = super.getTrackPublicationByName(name);
+    if (track != null) {
+      return track;
+    }
     return null;
   }
 
-  /// for internal use
-  /// {@nodoc}
+  @override
+  RemoteTrackPublication? getTrackPublicationBySid(String sid) {
+    final track = super.getTrackPublicationBySid(sid);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
+  @override
+  RemoteTrackPublication? getTrackPublicationBySource(TrackSource source) {
+    final track = super.getTrackPublicationBySource(source);
+    if (track != null) {
+      return track;
+    }
+    return null;
+  }
+
   @internal
   Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
@@ -97,7 +116,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     logger.fine('addSubscribedMediaTrack()');
 
     // If publication doesn't exist yet...
-    RemoteTrackPublication? pub = getTrackPublication(trackSid);
+    RemoteTrackPublication? pub = getTrackPublicationBySid(trackSid);
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
@@ -118,7 +137,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // Check if track type is supported, throw if not.
     if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO]
-        .contains(pub.kind)) {
+        .contains(pub.kind.toPBType())) {
       throw TrackSubscriptionExceptionEvent(
         participant: this,
         sid: trackSid,
@@ -128,11 +147,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // create Track
     final RemoteTrack track;
-    if (pub.kind == lk_models.TrackType.VIDEO) {
+    if (pub.kind == TrackType.VIDEO) {
       // video track
       track =
           RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
-    } else if (pub.kind == lk_models.TrackType.AUDIO) {
+    } else if (pub.kind == TrackType.AUDIO) {
       // audio track
       track =
           RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
@@ -154,8 +173,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await track.start();
 
     /// Apply audio output selection for the web.
-    if (pub.kind == lk_models.TrackType.AUDIO &&
-        lkPlatformIs(PlatformType.web)) {
+    if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
         await (track as RemoteAudioTrack)
             .setSinkId(audioOutputOptions.deviceId!);
@@ -173,19 +191,19 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     ));
   }
 
-  /// for internal use
-  /// {@nodoc}
   @override
   @internal
-  Future<void> updateFromInfo(lk_models.ParticipantInfo info) async {
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
-    super.updateFromInfo(info);
+    if (!await super.updateFromInfo(info)) {
+      //return false;
+    }
 
     // figuring out deltas between tracks
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      RemoteTrackPublication? pub = getTrackPublication(trackInfo.sid);
+      RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {
@@ -226,6 +244,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
+
+    return true;
   }
 
   Future<void> removePublishedTrack(String trackSid,
@@ -259,11 +279,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await pub.dispose();
   }
 
-  @Deprecated(
-      '`unpublishTrack` is deprecated, use `removePublishedTrack` instead')
-  @override
-  Future<void> unpublishTrack(String trackSid, {bool notify = true}) =>
-      removePublishedTrack(trackSid, notify: notify);
+  Future<void> removeAllPublishedTracks({bool notify = true}) async {
+    final sids = trackPublications.keys.toList();
+    for (final sid in sids) {
+      await removePublishedTrack(sid, notify: notify);
+    }
+  }
 
   @internal
   lk_models.ParticipantTracks participantTracks() =>

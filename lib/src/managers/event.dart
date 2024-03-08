@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -170,6 +170,24 @@ abstract class EventsListenable<T> extends Disposable {
         // cast to E
         await then(event);
       });
+
+  /// convenience method to listen & filter a specific event type, just once.
+  void once<E>(
+    FutureOr<void> Function(E) then, {
+    bool Function(E)? filter,
+  }) {
+    CancelListenFunc? cancelFunc;
+    cancelFunc = listen((event) async {
+      // event must be E
+      if (event is! E) return;
+      // filter must be true (if filter is used)
+      if (filter != null && !filter(event)) return;
+      // cast to E
+      await then(event);
+      // cancel after 1 event
+      cancelFunc?.call();
+    });
+  }
 
   // waits for a specific event type
   Future<E> waitFor<E>({

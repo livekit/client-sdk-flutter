@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../core/room.dart';
-import '../e2ee/events.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../extensions.dart';
+import '../logger.dart';
 import '../managers/event.dart';
 import '../utils.dart';
+import 'events.dart';
 import 'key_provider.dart';
+import 'options.dart';
 
 class E2EEManager {
   Room? _room;
@@ -156,7 +157,9 @@ class E2EEManager {
         keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    await frameCryptor.setKeyIndex(0);
+    logger.info(
+        '_addRtpSender, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
 
@@ -172,15 +175,48 @@ class E2EEManager {
             keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    await frameCryptor.setKeyIndex(0);
+    logger.info(
+        '_addRtpReceiver, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
 
+  /// Enable/Disable frame crypto for the sender and receiver.
+  /// @param enabled true to enable, false to disable
+  /// if false, the frame cryptor will pass through frames and
+  /// without encryption/decryption
   Future<void> setEnabled(bool enabled) async {
     _enabled = enabled;
     for (var frameCryptor in _frameCryptors.entries) {
       await frameCryptor.value.setEnabled(enabled);
     }
+  }
+
+  /// Sets the key index for the encryptors of the participant.
+  /// @param keyIndex the key index to set
+  /// @param participantIdentity the identity of the participant,
+  /// if null, use local participant.
+  Future<void> setKeyIndex(int keyIndex, {String? participantIdentity}) async {
+    participantIdentity ??= _room?.localParticipant?.identity;
+    for (var item in _frameCryptors.entries) {
+      if (item.key.keys.first == participantIdentity) {
+        await item.value.setKeyIndex(keyIndex);
+      }
+    }
+  }
+
+  /// Get the key index for the encryptors of the participant.
+  /// @param identity the identity of the participant,
+  /// if null, use local participant.
+  /// @return the key index and -1 if not found
+  Future<int> getKeyIndex(String? participantIdentity) async {
+    participantIdentity ??= _room?.localParticipant?.identity;
+    for (var item in _frameCryptors.entries) {
+      if (item.key.keys.first == participantIdentity) {
+        return await item.value.keyIndex;
+      }
+    }
+    return -1;
   }
 
   E2EEState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {

@@ -116,7 +116,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _toggleCamera() async {
     //
-    final track = participant.videoTracks.firstOrNull?.track;
+    final track = participant.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
 
     try {
@@ -250,8 +250,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       }
 
       await widget.room.sendSimulateScenario(
+        speakerUpdate:
+            result == SimulateScenarioResult.speakerUpdate ? 3 : null,
         signalReconnect:
             result == SimulateScenarioResult.signalReconnect ? true : null,
+        fullReconnect:
+            result == SimulateScenarioResult.fullReconnect ? true : null,
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,

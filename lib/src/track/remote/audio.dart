@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
@@ -36,7 +35,7 @@ class RemoteAudioTrack extends RemoteTrack
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          lk_models.TrackType.AUDIO,
+          TrackType.AUDIO,
           source,
           stream,
           track,

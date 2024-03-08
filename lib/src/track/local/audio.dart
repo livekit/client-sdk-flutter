@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../logger.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
@@ -33,6 +33,8 @@ class LocalAudioTrack extends LocalTrack
   // Options used for this track
   @override
   covariant AudioCaptureOptions currentOptions;
+
+  AudioPublishOptions? lastPublishOptions;
 
   Future<void> setDeviceId(String deviceId) async {
     if (currentOptions.deviceId == deviceId) {
@@ -118,7 +120,7 @@ class LocalAudioTrack extends LocalTrack
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          lk_models.TrackType.AUDIO,
+          TrackType.AUDIO,
           source,
           stream,
           track,

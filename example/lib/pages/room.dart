@@ -91,13 +91,19 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       for (var p in participantTracks) {
         if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
-          (p as RemoteParticipant).videoTracks.firstOrNull?.subscribe();
+          (p as RemoteParticipant)
+              .videoTrackPublications
+              .firstOrNull
+              ?.subscribe();
         }
       }
     } else if (state == AppLifecycleState.paused) {
       for (var p in participantTracks) {
         if (p.hasVideo && participantSubscriptions.containsKey(p.identity)) {
-          (p as RemoteParticipant).videoTracks.firstOrNull?.unsubscribe();
+          (p as RemoteParticipant)
+              .videoTrackPublications
+              .firstOrNull
+              ?.unsubscribe();
         }
       }
     }
@@ -119,6 +125,11 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
     })
     ..on<RoomRecordingStatusChanged>((event) {
       context.showRecordingStatusChangedDialog(event.activeRecording);
+    })
+    ..on<RoomAttemptReconnectEvent>((event) {
+      print(
+          'Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
+          '(${event.nextRetryDelaysInMs}ms delay until next attempt)');
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
@@ -190,7 +201,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
 
   void _sortParticipants() {
     List<Participant> sortedParticipants = [];
-    for (var participant in widget.room.participants.values) {
+    for (var participant in widget.room.remoteParticipants.values) {
       sortedParticipants.add(participant);
     }
     // sort speakers for the grid
@@ -224,7 +235,8 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
 
     if (widget.room.localParticipant != null) {
       sortedParticipants.add(widget.room.localParticipant!);
-      final localParticipantTracks = widget.room.localParticipant?.videoTracks;
+      final localParticipantTracks =
+          widget.room.localParticipant?.videoTrackPublications;
       if (localParticipantTracks != null) {
         for (var t in localParticipantTracks) {
           if (t.isScreenShare) {
@@ -260,7 +272,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       return;
     }
     participantSubscriptions[participant.identity] = true;
-    await participant.videoTracks.firstOrNull?.subscribe();
+    await participant.videoTrackPublications.firstOrNull?.subscribe();
   }
 
   void unSubscribeToVideoTracks(RemoteParticipant participant) async {
@@ -268,7 +280,7 @@ class _RoomPageState extends State<RoomPage> with WidgetsBindingObserver {
       return;
     }
     participantSubscriptions[participant.identity] = false;
-    await participant.videoTracks.firstOrNull?.unsubscribe();
+    await participant.videoTrackPublications.firstOrNull?.unsubscribe();
   }
 
   Map<String, bool> visibleParticipants = {};

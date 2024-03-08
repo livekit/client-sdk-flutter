@@ -27,7 +27,7 @@ enum LoggerLevel {
   kOFF
 }
 
-final logger = Logger('livekit');
+final logger = Logger('E2EE.Worker');
 
 /// disable logging
 void disableLogging() {
@@ -76,6 +76,6 @@ Level getLoggingLevel() {
 }
 
 /// set a custom logging handler
-///void setLoggingHandler(Function(LogRecord) handler) {
-///  logger.onRecord.listen(handler);
-///}
+void setLoggingHandler(Function(LogRecord) handler) {
+  logger.onRecord.listen(handler);
+}
