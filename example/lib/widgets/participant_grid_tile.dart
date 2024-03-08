@@ -63,7 +63,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
                 position: DecorationPosition.foreground,
                 child: ParticipantWidget.widgetFor(widget.participant),
               ),
-              Material(
+              /*Material(
                 type: MaterialType.transparency,
                 child: InkWell(
                   splashColor: Colors.blueGrey,
@@ -89,7 +89,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
                     color: const Color.fromARGB(0, 0, 0, 0),
                   ),
                 ),
-              ),
+              ),*/
             ],
           ),
         )
