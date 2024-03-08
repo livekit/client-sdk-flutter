@@ -701,6 +701,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       return;
     }
 
+    _sidToIdentity.removeWhere((key, value) => value == identity);
+
     await participant.removeAllPublishedTracks(notify: true);
 
     emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));

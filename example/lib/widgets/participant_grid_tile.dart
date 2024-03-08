@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'participant.dart';
 
@@ -31,6 +30,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     bool hasVideo = false;
 
     if (!isLocalParticipant) {
@@ -45,7 +45,7 @@ class _ParticipantGridTile extends State<ParticipantGridTile> {
         widget.participant.videoTrackPublications.isNotEmpty) {
       hasVideo = true;
     }
-
+    */
     return Stack(
       children: [
         ClipRRect(
