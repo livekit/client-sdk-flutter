@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../livekit_client.dart';
+import 'e2ee/options.dart';
+import 'events.dart';
+import 'managers/event.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
+import 'types/other.dart';
 
 extension DataPacketKindExt on lk_models.DataPacket_Kind {
   Reliability toSDKType() => {
@@ -60,6 +63,9 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v7: '7',
         ProtocolVersion.v8: '8',
         ProtocolVersion.v9: '9',
+        ProtocolVersion.v10: '10',
+        ProtocolVersion.v11: '11',
+        ProtocolVersion.v12: '12',
       }[this]!;
 }
 
@@ -94,13 +100,13 @@ extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
   bool isConnected() =>
       this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
 
-  bool isClosed() =>
-      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed;
-
-  bool isDisconnectedOrFailed() => [
+  bool isDisconnected() => [
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
-        rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
       ].contains(this);
+
+  bool isFailed() =>
+      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed;
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
@@ -127,11 +133,54 @@ extension SessionDescriptionExt on lk_rtc.SessionDescription {
 extension ConnectionQualityExt on lk_models.ConnectionQuality {
   ConnectionQuality toLKType() =>
       {
+        lk_models.ConnectionQuality.LOST: ConnectionQuality.lost,
         lk_models.ConnectionQuality.POOR: ConnectionQuality.poor,
         lk_models.ConnectionQuality.GOOD: ConnectionQuality.good,
         lk_models.ConnectionQuality.EXCELLENT: ConnectionQuality.excellent,
       }[this] ??
       ConnectionQuality.unknown;
+}
+
+extension VideoQualityExt on lk_models.VideoQuality {
+  VideoQuality toLKType() =>
+      {
+        lk_models.VideoQuality.HIGH: VideoQuality.HIGH,
+        lk_models.VideoQuality.MEDIUM: VideoQuality.MEDIUM,
+        lk_models.VideoQuality.LOW: VideoQuality.LOW,
+      }[this] ??
+      VideoQuality.LOW;
+
+  String toRid() => {
+        lk_models.VideoQuality.HIGH: 'f',
+        lk_models.VideoQuality.MEDIUM: 'h',
+        lk_models.VideoQuality.LOW: 'q',
+      }[this]!;
+}
+
+extension PBVideoQualityExt on VideoQuality {
+  lk_models.VideoQuality toPBType() => {
+        VideoQuality.HIGH: lk_models.VideoQuality.HIGH,
+        VideoQuality.MEDIUM: lk_models.VideoQuality.MEDIUM,
+        VideoQuality.LOW: lk_models.VideoQuality.LOW,
+      }[this]!;
+}
+
+extension TrackTypeExt on lk_models.TrackType {
+  TrackType toLKType() =>
+      {
+        lk_models.TrackType.AUDIO: TrackType.AUDIO,
+        lk_models.TrackType.VIDEO: TrackType.VIDEO,
+        lk_models.TrackType.DATA: TrackType.DATA,
+      }[this] ??
+      TrackType.AUDIO;
+}
+
+extension PBTrackTypeExt on TrackType {
+  lk_models.TrackType toPBType() => {
+        TrackType.AUDIO: lk_models.TrackType.AUDIO,
+        TrackType.VIDEO: lk_models.TrackType.VIDEO,
+        TrackType.DATA: lk_models.TrackType.DATA,
+      }[this]!;
 }
 
 extension PBTrackSourceExt on lk_models.TrackSource {
@@ -162,14 +211,6 @@ extension PBStreamStateExt on lk_rtc.StreamState {
         lk_rtc.StreamState.ACTIVE: StreamState.active,
       }[this] ??
       StreamState.paused;
-}
-
-extension VideoQualityExt on lk_models.VideoQuality {
-  String toRid() => {
-        lk_models.VideoQuality.HIGH: 'f',
-        lk_models.VideoQuality.MEDIUM: 'h',
-        lk_models.VideoQuality.LOW: 'q',
-      }[this]!;
 }
 
 extension ParticipantTrackPermissionExt on ParticipantTrackPermission {

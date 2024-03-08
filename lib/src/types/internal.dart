@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@ import 'package:meta/meta.dart';
 enum ClientDisconnectReason {
   user,
   peerConnectionClosed,
+  peerConnectionFailed,
   negotiationFailed,
   signal,
   reconnect,
+  reconnectRetry,
   leaveReconnect,
+  reconnectAttemptsExceeded,
 }

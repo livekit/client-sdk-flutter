@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,8 +30,9 @@ import '../support/disposable.dart';
 abstract class TrackPublication<T extends Track> extends Disposable {
   final String sid;
   final String name;
-  final lk_models.TrackType kind;
+  final TrackType kind;
   final TrackSource source;
+  bool _metadataMuted = false;
 
   /// The current [Track] for this publication (readonly).
   T? get track => _track;
@@ -40,7 +41,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   /// The [Participant] this publication belongs to.
   abstract final Participant participant;
 
-  bool get muted => track?.muted ?? false;
+  bool get muted => _metadataMuted;
 
   /// If the [Track] is published with simulcast, only for video. (readonly)
   bool get simulcasted => _simulcasted;
@@ -69,21 +70,22 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     required lk_models.TrackInfo info,
   })  : sid = info.sid,
         name = info.name,
-        kind = info.type,
+        kind = info.type.toLKType(),
         source = info.source.toLKType(),
         _simulcasted = info.simulcast,
+        _metadataMuted = info.muted,
         _mimeType = info.mimeType {
     updateFromInfo(info);
   }
 
   /// True when the track is published with source [TrackSource.screenShareVideo].
   bool get isScreenShare =>
-      kind == lk_models.TrackType.VIDEO &&
-      source == TrackSource.screenShareVideo;
+      kind == TrackType.VIDEO && source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     _simulcasted = info.simulcast;
     _mimeType = info.mimeType;
+    _metadataMuted = info.muted;
     if (info.type == lk_models.TrackType.VIDEO) {
       _dimensions = VideoDimensions(info.width, info.height);
     }
@@ -128,6 +130,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
           '${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
       participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
     }
+    _metadataMuted = event.muted;
     // emit events
     final newEvent = event.muted
         ? TrackMutedEvent(participant: participant, publication: this)

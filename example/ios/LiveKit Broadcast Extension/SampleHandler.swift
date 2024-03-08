@@ -43,6 +43,7 @@ class SampleHandler: RPBroadcastSampleHandler {
         
         DarwinNotificationCenter.shared.postNotification(.broadcastStarted)
         openConnection()
+        startReplayKit()
     }
     
     override func broadcastPaused() {
@@ -57,6 +58,8 @@ class SampleHandler: RPBroadcastSampleHandler {
         // User has requested to finish the broadcast.
         DarwinNotificationCenter.shared.postNotification(.broadcastStopped)
         clientConnection?.close()
+        closeReplayKit()
+        
     }
     
     override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
@@ -99,5 +102,18 @@ private extension SampleHandler {
         }
         
         timer.resume()
+    }
+    
+    func startReplayKit() {
+        let group=UserDefaults(suiteName: Constants.appGroupIdentifier)
+        group!.set(false, forKey: "closeReplayKitFromNative")
+        group!.set(false, forKey: "closeReplayKitFromFlutter")
+        group!.set(true, forKey: "hasSampleBroadcast")
+    }
+    
+    func closeReplayKit() {
+        let group = UserDefaults(suiteName: Constants.appGroupIdentifier)
+        group!.set(true, forKey:"closeReplayKitFromNative")
+        group!.set(false, forKey: "hasSampleBroadcast")
     }
 }

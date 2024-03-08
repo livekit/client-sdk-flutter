@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -619,4 +619,26 @@ class ScalabilityMode {
   String toString() {
     return 'L${spatial}T${temporal}${suffix ?? ''}';
   }
+}
+
+String mimeTypeToVideoCodecString(String mimeType) {
+  if (!mimeType.contains('/') && mimeType.split('/').length != 2) {
+    throw Exception('Invalid mimeType: $mimeType');
+  }
+  final codec = mimeType.split('/')[1].toLowerCase();
+  if (!videoCodecs.contains(codec)) {
+    throw Exception('Video codec not supported: $codec');
+  }
+  return codec;
+}
+
+const defaultVideoCodec = 'vp8';
+const separator = '|';
+
+List<String> unpackStreamId(String packed) {
+  final parts = packed.split(separator);
+  if (parts.length > 1) {
+    return [parts[0], packed.substring(parts[0].length + 1)];
+  }
+  return [packed, ''];
 }

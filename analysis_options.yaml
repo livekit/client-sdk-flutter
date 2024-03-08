@@ -1,4 +1,4 @@
-# Copyright 2023 LiveKit, Inc.
+# Copyright 2024 LiveKit, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ analyzer:
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
   # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
   #
-  strong-mode:
 
   #
   # exclude protobuf files

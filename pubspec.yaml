@@ -1,4 +1,4 @@
-# Copyright 2023 LiveKit, Inc.
+# Copyright 2024 LiveKit, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 name: livekit_client
 description: Flutter Client SDK for LiveKit.
   Build real-time video and audio into your apps. Supports iOS, Android, and Web.
-version: 1.5.2
-homepage: https://livekit.io
+version: 2.0.2
+homepage: https://github.com/livekit/client-sdk-flutter
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -29,7 +29,7 @@ dependencies:
     sdk: flutter
   async: ^2.9.0
   collection: '>=1.16.0'
-  connectivity_plus: ^4.0.0
+  connectivity_plus: ^5.0.0
   cryptography: ^2.0.5
   fixnum: ^1.0.1
   meta: ^1.8.0
@@ -38,12 +38,11 @@ dependencies:
   uuid: '>=3.0.6'
   synchronized: ^3.0.0+3
   protobuf: ^3.0.0
-  flutter_webrtc: 0.9.45
-  flutter_window_close: ^0.2.2
+  flutter_webrtc: ^0.9.48+hotfix.1
   device_info_plus: '>=8.0.0'
   js: ^0.6.4
   platform_detect: ^2.0.7
-  dart_webrtc: 1.1.3
+  dart_webrtc: ^1.2.0
   sdp_transform: ^0.3.2
 
 dev_dependencies:
@@ -74,3 +73,12 @@ flutter:
       web:
         pluginClass: LiveKitWebPlugin
         fileName: livekit_client_web.dart
+
+
+topics:
+  - webrtc
+  - voip
+  - video
+  - livestream
+  - conference
+  

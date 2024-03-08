@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
 import '../../internal/events.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../logger.dart';
+import '../../stats/audio_source_stats.dart';
+import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../local/local.dart';
-import '../stats.dart';
 import 'remote.dart';
 
 import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
@@ -34,7 +35,7 @@ class RemoteAudioTrack extends RemoteTrack
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          lk_models.TrackType.AUDIO,
+          TrackType.AUDIO,
           source,
           stream,
           track,
@@ -81,19 +82,24 @@ class RemoteAudioTrack extends RemoteTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null && events.isDisposed) {
+    if (receiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
-    final stats = await getReceiverStats();
+    try {
+      final stats = await getReceiverStats();
 
-    if (stats != null && prevStats != null && receiver != null) {
-      _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
-      events.emit(AudioReceiverStatsEvent(
-          stats: stats, currentBitrate: currentBitrate));
+      if (stats != null && prevStats != null && receiver != null) {
+        _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+        events.emit(AudioReceiverStatsEvent(
+            stats: stats, currentBitrate: currentBitrate));
+      }
+
+      prevStats = stats;
+    } catch (e) {
+      logger.warning('failed to get sender stats: $e');
+      return false;
     }
-
-    prevStats = stats;
     return true;
   }
 
@@ -102,7 +108,13 @@ class RemoteAudioTrack extends RemoteTrack
       return null;
     }
 
-    final stats = await receiver!.getStats();
+    late List<rtc.StatsReport> stats;
+    try {
+      stats = await receiver!.getStats();
+    } catch (e) {
+      rethrow;
+    }
+
     AudioReceiverStats? receiverStats;
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {
@@ -138,7 +150,9 @@ class RemoteAudioTrack extends RemoteTrack
           receiverStats.channels = getNumValFromReport(c.values, 'channels');
           receiverStats.clockRate = getNumValFromReport(c.values, 'clockRate');
         }
-        break;
+      } else if (v.type == 'track') {
+        receiverStats ??= AudioReceiverStats(v.id, v.timestamp);
+        receiverStats.audioSourceStats = AudioSourceStats.fromReport(v);
       }
     }
     return receiverStats;

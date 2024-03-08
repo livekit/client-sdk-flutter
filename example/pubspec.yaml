@@ -19,13 +19,12 @@ dependencies:
   shared_preferences: ^2.0.7
   google_fonts: ^4.0.4
   flutter_svg: ^2.0.5
+  dropdown_button2: ^2.3.6
+  flutter_window_close: ^0.2.2
+  collection: '>=1.16.0'
 
   livekit_client:
     path: ../
-
-    # git:
-    #   url: https://github.com/livekit/client-sdk-flutter
-    #   ref: main
 
 dev_dependencies:
   flutter_test:

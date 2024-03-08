@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -117,7 +116,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _toggleCamera() async {
     //
-    final track = participant.videoTracks.firstOrNull?.track;
+    final track = participant.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
 
     try {
@@ -203,7 +202,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _disableScreenShare() async {
     await participant.setScreenShareEnabled(false);
-    if (Platform.isAndroid) {
+    if (lkPlatformIs(PlatformType.android)) {
       // Android specific
       try {
         //   await FlutterBackground.disableBackgroundExecution();
@@ -240,9 +239,23 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         await widget.room.e2eeManager?.ratchetKey();
       }
 
+      if (SimulateScenarioResult.participantMetadata == result) {
+        widget.room.localParticipant?.setMetadata(
+            'new metadata ${widget.room.localParticipant?.identity}');
+      }
+
+      if (SimulateScenarioResult.participantName == result) {
+        widget.room.localParticipant
+            ?.setName('new name for ${widget.room.localParticipant?.identity}');
+      }
+
       await widget.room.sendSimulateScenario(
+        speakerUpdate:
+            result == SimulateScenarioResult.speakerUpdate ? 3 : null,
         signalReconnect:
             result == SimulateScenarioResult.signalReconnect ? true : null,
+        fullReconnect:
+            result == SimulateScenarioResult.fullReconnect ? true : null,
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,

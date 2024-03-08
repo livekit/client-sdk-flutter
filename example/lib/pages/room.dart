@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/method_channels/replay_kit_channel.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 import '../widgets/controls.dart';
 import '../widgets/participant.dart';
 import '../widgets/participant_info.dart';
 
 class RoomPage extends StatefulWidget {
-  //
   final Room room;
   final EventsListener<RoomEvent> listener;
 
@@ -25,10 +27,10 @@ class RoomPage extends StatefulWidget {
 }
 
 class _RoomPageState extends State<RoomPage> {
-  //
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
   bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+  bool _flagStartedReplayKit = false;
   @override
   void initState() {
     super.initState();
@@ -44,15 +46,32 @@ class _RoomPageState extends State<RoomPage> {
     if (lkPlatformIsMobile()) {
       Hardware.instance.setSpeakerphoneOn(true);
     }
+
+    if (lkPlatformIs(PlatformType.iOS)) {
+      ReplayKitChannel.listenMethodChannel(widget.room);
+    }
+
+    if (lkPlatformIsDesktop()) {
+      onWindowShouldClose = () async {
+        unawaited(widget.room.disconnect());
+        await _listener.waitFor<RoomDisconnectedEvent>(
+            duration: const Duration(seconds: 5));
+      };
+    }
   }
 
   @override
   void dispose() {
     // always dispose listener
     (() async {
+      if (lkPlatformIs(PlatformType.iOS)) {
+        ReplayKitChannel.closeReplayKit();
+      }
+      widget.room.removeListener(_onRoomDidUpdate);
       await _listener.dispose();
       await widget.room.dispose();
     })();
+    onWindowShouldClose = null;
     super.dispose();
   }
 
@@ -62,11 +81,16 @@ class _RoomPageState extends State<RoomPage> {
       if (event.reason != null) {
         print('Room disconnected: reason => ${event.reason}');
       }
-      WidgetsBindingCompatible.instance
-          ?.addPostFrameCallback((timeStamp) => Navigator.pop(context));
+      WidgetsBindingCompatible.instance?.addPostFrameCallback(
+          (timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
     })
     ..on<RoomRecordingStatusChanged>((event) {
       context.showRecordingStatusChangedDialog(event.activeRecording);
+    })
+    ..on<RoomAttemptReconnectEvent>((event) {
+      print(
+          'Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
+          '(${event.nextRetryDelaysInMs}ms delay until next attempt)');
     })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
@@ -76,6 +100,14 @@ class _RoomPageState extends State<RoomPage> {
     ..on<ParticipantNameUpdatedEvent>((event) {
       print(
           'Participant name updated: ${event.participant.identity}, name => ${event.name}');
+      _sortParticipants();
+    })
+    ..on<ParticipantMetadataUpdatedEvent>((event) {
+      print(
+          'Participant metadata updated: ${event.participant.identity}, metadata => ${event.metadata}');
+    })
+    ..on<RoomMetadataChangedEvent>((event) {
+      print('Room metadata changed: ${event.metadata}');
     })
     ..on<DataReceivedEvent>((event) {
       String decoded = 'Failed to decode';
@@ -121,8 +153,8 @@ class _RoomPageState extends State<RoomPage> {
   void _sortParticipants() {
     List<ParticipantTrack> userMediaTracks = [];
     List<ParticipantTrack> screenTracks = [];
-    for (var participant in widget.room.participants.values) {
-      for (var t in participant.videoTracks) {
+    for (var participant in widget.room.remoteParticipants.values) {
+      for (var t in participant.videoTrackPublications) {
         if (t.isScreenShare) {
           screenTracks.add(ParticipantTrack(
             participant: participant,
@@ -167,16 +199,32 @@ class _RoomPageState extends State<RoomPage> {
           b.participant.joinedAt.millisecondsSinceEpoch;
     });
 
-    final localParticipantTracks = widget.room.localParticipant?.videoTracks;
+    final localParticipantTracks =
+        widget.room.localParticipant?.videoTrackPublications;
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
+          if (lkPlatformIs(PlatformType.iOS)) {
+            if (!_flagStartedReplayKit) {
+              _flagStartedReplayKit = true;
+
+              ReplayKitChannel.startReplayKit();
+            }
+          }
           screenTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,
             isScreenShare: true,
           ));
         } else {
+          if (lkPlatformIs(PlatformType.iOS)) {
+            if (_flagStartedReplayKit) {
+              _flagStartedReplayKit = false;
+
+              ReplayKitChannel.closeReplayKit();
+            }
+          }
+
           userMediaTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
             videoTrack: t.track,

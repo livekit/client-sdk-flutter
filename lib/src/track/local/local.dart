@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -70,8 +69,10 @@ abstract class LocalTrack extends Track {
 
   String? codec;
 
+  bool _stopped = false;
+
   LocalTrack(
-    lk_models.TrackType kind,
+    TrackType kind,
     TrackSource source,
     rtc.MediaStream mediaStream,
     rtc.MediaStreamTrack mediaStreamTrack,
@@ -80,7 +81,12 @@ abstract class LocalTrack extends Track {
           source,
           mediaStream,
           mediaStreamTrack,
-        );
+        ) {
+    mediaStreamTrack.onEnded = () {
+      logger.fine('MediaStreamTrack.onEnded()');
+      events.emit(TrackEndedEvent(track: this));
+    };
+  }
 
   /// Mutes this [LocalTrack]. This will stop the sending of track data
   /// and notify the [RemoteParticipant] with [TrackMutedEvent].
@@ -112,7 +118,7 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    final didStop = await super.stop();
+    final didStop = await super.stop() || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
@@ -125,6 +131,7 @@ abstract class LocalTrack extends Track {
       } catch (error) {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
+      _stopped = true;
     }
     return didStop;
   }

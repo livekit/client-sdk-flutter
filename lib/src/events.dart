@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import 'participant/remote.dart';
 import 'publication/local.dart';
 import 'publication/remote.dart';
 import 'publication/track_publication.dart';
-import 'track/stats.dart';
+import 'stats/stats.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/participant_permissions.dart';
@@ -44,6 +44,18 @@ mixin EngineEvent implements LiveKitEvent {}
 /// Base type for all [SignalClient] events.
 mixin SignalEvent implements LiveKitEvent {}
 
+class RoomConnectedEvent with RoomEvent {
+  final Room room;
+  final String? metadata;
+  const RoomConnectedEvent({
+    required this.room,
+    required this.metadata,
+  });
+
+  @override
+  String toString() => '${runtimeType}(room: ${room})';
+}
+
 /// When the connection to the server has been interrupted and it's attempting
 /// to reconnect.
 /// Emitted by [Room].
@@ -54,24 +66,25 @@ class RoomReconnectingEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// report the number of attempts to reconnect to the room.
+class RoomAttemptReconnectEvent with RoomEvent {
+  final int attempt;
+  final int maxAttemptsRetry;
+  final int nextRetryDelaysInMs;
+  const RoomAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttemptsRetry,
+    required this.nextRetryDelaysInMs,
+  });
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 /// Connection to room is re-established. All existing state is preserved.
 /// Emitted by [Room].
 class RoomReconnectedEvent with RoomEvent {
   const RoomReconnectedEvent();
-
-  @override
-  String toString() => '${runtimeType}()';
-}
-
-class RoomRestartingEvent with RoomEvent {
-  const RoomRestartingEvent();
-
-  @override
-  String toString() => '${runtimeType}()';
-}
-
-class RoomRestartedEvent with RoomEvent {
-  const RoomRestartedEvent();
 
   @override
   String toString() => '${runtimeType}()';
@@ -237,11 +250,11 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
 /// An error has occured during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
-  final RemoteParticipant participant;
+  final RemoteParticipant? participant;
   final String? sid;
   final TrackSubscribeFailReason reason;
   const TrackSubscriptionExceptionEvent({
-    required this.participant,
+    this.participant,
     this.sid,
     required this.reason,
   });
@@ -279,9 +292,6 @@ class TrackMutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// This participant has unmuted one of their tracks
@@ -297,9 +307,6 @@ class TrackUnmutedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication})';
-
-  @Deprecated('Use publication instead')
-  TrackPublication get track => publication;
 }
 
 /// The [StreamState] on the [RemoteTrackPublication] has updated by the server.
@@ -319,9 +326,6 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, '
       'streamState: ${streamState})';
-
-  @Deprecated('Use publication instead')
-  RemoteTrackPublication get trackPublication => publication;
 }
 
 /// Participant metadata is a simple way for app-specific state to be pushed to
@@ -330,8 +334,10 @@ class TrackStreamStateUpdatedEvent with RoomEvent, ParticipantEvent {
 /// Emitted by [Room] and [Participant].
 class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
+  final String metadata;
   const ParticipantMetadataUpdatedEvent({
     required this.participant,
+    required this.metadata,
   });
 
   @override

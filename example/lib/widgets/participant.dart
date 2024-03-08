@@ -183,13 +183,13 @@ class _LocalParticipantWidgetState
     extends _ParticipantWidgetState<LocalParticipantWidget> {
   @override
   LocalTrackPublication<LocalVideoTrack>? get videoPublication =>
-      widget.participant.videoTracks
+      widget.participant.videoTrackPublications
           .where((element) => element.sid == widget.videoTrack?.sid)
           .firstOrNull;
 
   @override
   LocalTrackPublication<LocalAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTracks.firstOrNull;
+      widget.participant.audioTrackPublications.firstOrNull;
 
   @override
   VideoTrack? get activeVideoTrack => widget.videoTrack;
@@ -199,13 +199,13 @@ class _RemoteParticipantWidgetState
     extends _ParticipantWidgetState<RemoteParticipantWidget> {
   @override
   RemoteTrackPublication<RemoteVideoTrack>? get videoPublication =>
-      widget.participant.videoTracks
+      widget.participant.videoTrackPublications
           .where((element) => element.sid == widget.videoTrack?.sid)
           .firstOrNull;
 
   @override
   RemoteTrackPublication<RemoteAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTracks.firstOrNull;
+      widget.participant.audioTrackPublications.firstOrNull;
 
   @override
   VideoTrack? get activeVideoTrack => widget.videoTrack;
@@ -343,10 +343,6 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
             PopupMenuItem(
               child: const Text('LOW'),
               value: () => pub.setVideoQuality(VideoQuality.LOW),
-            ),
-            PopupMenuItem(
-              child: const Text('OFF'),
-              value: () => pub.setVideoQuality(VideoQuality.OFF),
             ),
           ],
         ),

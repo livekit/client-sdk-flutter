@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -140,57 +141,97 @@ class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
   });
 }
 
-/// Base class for a ConnectionStateUpdated event
 @internal
-abstract class ConnectionStateUpdatedEvent with InternalEvent {
-  final ConnectionState newState;
-  final ConnectionState oldState;
-  final bool didReconnect;
-  final DisconnectReason? disconnectReason;
-  const ConnectionStateUpdatedEvent({
-    required this.newState,
+class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
+  final ConnectivityResult oldState;
+  final ConnectivityResult state;
+  const SignalConnectivityChangedEvent({
     required this.oldState,
-    required this.didReconnect,
-    this.disconnectReason,
+    required this.state,
   });
-  @override
-  String toString() => '$runtimeType(newState: ${newState.name}, '
-      'didReconnect: ${didReconnect}, '
-      'disconnectReason: ${disconnectReason})';
 }
 
 @internal
-class SignalConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
-    with SignalEvent {
-  const SignalConnectionStateUpdatedEvent({
-    required ConnectionState newState,
-    required ConnectionState oldState,
-    required bool didReconnect,
-    DisconnectReason? disconnectReason,
-  }) : super(
-          newState: newState,
-          oldState: oldState,
-          didReconnect: didReconnect,
-          disconnectReason: disconnectReason,
-        );
+class EngineConnectingEvent with InternalEvent, EngineEvent {
+  const EngineConnectingEvent();
 }
 
 @internal
-class EngineConnectionStateUpdatedEvent extends ConnectionStateUpdatedEvent
-    with EngineEvent {
-  final bool fullReconnect;
-  const EngineConnectionStateUpdatedEvent({
-    required ConnectionState newState,
-    required ConnectionState oldState,
-    required bool didReconnect,
-    required this.fullReconnect,
-    DisconnectReason? disconnectReason,
-  }) : super(
-          newState: newState,
-          oldState: oldState,
-          didReconnect: didReconnect,
-          disconnectReason: disconnectReason,
-        );
+class EngineConnectedEvent with InternalEvent, SignalEvent, EngineEvent {
+  const EngineConnectedEvent();
+}
+
+@internal
+class EngineDisconnectedEvent with InternalEvent, EngineEvent {
+  DisconnectReason? reason;
+  EngineDisconnectedEvent({
+    this.reason,
+  });
+}
+
+@internal
+class EngineFullRestartingEvent with InternalEvent, EngineEvent {
+  const EngineFullRestartingEvent();
+}
+
+@internal
+class EngineAttemptReconnectEvent with InternalEvent, EngineEvent {
+  int attempt;
+  int maxAttempts;
+  int nextRetryDelaysInMs;
+  EngineAttemptReconnectEvent({
+    required this.attempt,
+    required this.maxAttempts,
+    required this.nextRetryDelaysInMs,
+  });
+}
+
+@internal
+class EngineRestartedEvent with InternalEvent, EngineEvent {
+  const EngineRestartedEvent();
+}
+
+@internal
+class EngineReconnectingEvent with InternalEvent, EngineEvent {
+  const EngineReconnectingEvent();
+}
+
+@internal
+class EngineResumedEvent with InternalEvent, EngineEvent {
+  const EngineResumedEvent();
+}
+
+@internal
+class EngineResumingEvent with InternalEvent, EngineEvent {
+  const EngineResumingEvent();
+}
+
+@internal
+class SignalConnectedEvent with SignalEvent, InternalEvent {
+  const SignalConnectedEvent();
+}
+
+@internal
+class SignalConnectingEvent with SignalEvent, InternalEvent {
+  const SignalConnectingEvent();
+}
+
+@internal
+class SignalReconnectingEvent with SignalEvent, InternalEvent {
+  const SignalReconnectingEvent();
+}
+
+@internal
+class SignalReconnectedEvent with SignalEvent, InternalEvent, EngineEvent {
+  const SignalReconnectedEvent();
+}
+
+@internal
+class SignalDisconnectedEvent with SignalEvent, InternalEvent {
+  DisconnectReason? reason;
+  SignalDisconnectedEvent({
+    this.reason,
+  });
 }
 
 @internal
@@ -407,4 +448,16 @@ class SubscriberDataChannelStateUpdatedEvent
           type: type,
           state: state,
         );
+}
+
+@internal
+class TrackEndedEvent with TrackEvent {
+  final Track track;
+  const TrackEndedEvent({
+    required this.track,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(track: ${track})';
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,10 +41,8 @@ void main() {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.connecting),
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.connected),
+            predicate<SignalConnectingEvent>((event) => true),
+            predicate<SignalConnectedEvent>((event) => true),
           ]));
       await client.connect(
         exampleUri,
@@ -53,15 +51,13 @@ void main() {
         roomOptions: roomOptions,
       );
     });
+
     test('reconnect', () async {
       expect(
           client.events.streamCtrl.stream,
           emitsInOrder(<Matcher>[
-            predicate<SignalConnectionStateUpdatedEvent>(
-                (event) => event.newState == ConnectionState.reconnecting),
-            predicate<SignalConnectionStateUpdatedEvent>((event) =>
-                event.newState == ConnectionState.connected &&
-                event.didReconnect == true),
+            predicate<SignalReconnectingEvent>((event) => true),
+            predicate<SignalConnectedEvent>((event) => true),
           ]));
       await client.connect(
         exampleUri,

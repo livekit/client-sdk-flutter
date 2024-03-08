@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,15 @@ abstract class LiveKitException implements Exception {
 /// - Server not set up correctly (not responding)
 class ConnectException extends LiveKitException {
   ConnectException([String msg = 'Failed to connect to server']) : super._(msg);
+}
+
+/// An exception occured while attempting to disconnect.
+/// Common reasons:
+/// - Network condition is not good.
+/// - SFU deploy behind a NAT and not configured correctly.
+/// - Need a turn relay server but not configured.
+class MediaConnectException extends LiveKitException {
+  MediaConnectException([String msg = 'Ice connection failed']) : super._(msg);
 }
 
 /// An internal state of the SDK is not correct and can not continue to execute.
@@ -78,4 +87,9 @@ class LiveKitE2EEException extends LiveKitException {
 
   @override
   String toString() => 'E2EE Exception: [$runtimeType] $message';
+}
+
+class UnexpectedConnectionState extends LiveKitException {
+  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
+      : super._(msg);
 }

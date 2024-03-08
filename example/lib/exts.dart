@@ -208,10 +208,14 @@ extension LKExampleExt on BuildContext {
 
 enum SimulateScenarioResult {
   signalReconnect,
+  fullReconnect,
+  speakerUpdate,
   nodeFailure,
   migration,
   serverLeave,
   switchCandidate,
-  clear,
   e2eeKeyRatchet,
+  participantName,
+  participantMetadata,
+  clear,
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../logger.dart';
+import '../../options.dart';
+import '../../stats/audio_source_stats.dart';
+import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart';
-import '../stats.dart';
 import 'local.dart';
 
 class LocalAudioTrack extends LocalTrack
@@ -31,6 +33,8 @@ class LocalAudioTrack extends LocalTrack
   // Options used for this track
   @override
   covariant AudioCaptureOptions currentOptions;
+
+  AudioPublishOptions? lastPublishOptions;
 
   Future<void> setDeviceId(String deviceId) async {
     if (currentOptions.deviceId == deviceId) {
@@ -48,19 +52,24 @@ class LocalAudioTrack extends LocalTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (sender == null || events.isDisposed) {
+    if (sender == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
-    final stats = await getSenderStats();
+    try {
+      final stats = await getSenderStats();
 
-    if (stats != null && prevStats != null && sender != null) {
-      _currentBitrate = computeBitrateForSenderStats(stats, prevStats);
-      events.emit(
-          AudioSenderStatsEvent(stats: stats, currentBitrate: currentBitrate));
+      if (stats != null && prevStats != null && sender != null) {
+        _currentBitrate = computeBitrateForSenderStats(stats, prevStats);
+        events.emit(AudioSenderStatsEvent(
+            stats: stats, currentBitrate: currentBitrate));
+      }
+
+      prevStats = stats;
+    } catch (e) {
+      logger.warning('failed to get sender stats: $e');
+      return false;
     }
-
-    prevStats = stats;
     return true;
   }
 
@@ -69,7 +78,13 @@ class LocalAudioTrack extends LocalTrack
       return null;
     }
 
-    final stats = await sender!.getStats();
+    late List<rtc.StatsReport> stats;
+    try {
+      stats = await sender!.getStats();
+    } catch (e) {
+      rethrow;
+    }
+
     AudioSenderStats? senderStats;
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
@@ -89,7 +104,9 @@ class LocalAudioTrack extends LocalTrack
           senderStats.channels = getNumValFromReport(c.values, 'channels');
           senderStats.clockRate = getNumValFromReport(c.values, 'clockRate');
         }
-        break;
+      } else if (v.type == 'media-source') {
+        senderStats ??= AudioSenderStats(v.id, v.timestamp);
+        senderStats.audioSourceStats = AudioSourceStats.fromReport(v);
       }
     }
     return senderStats;
@@ -103,7 +120,7 @@ class LocalAudioTrack extends LocalTrack
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          lk_models.TrackType.AUDIO,
+          TrackType.AUDIO,
           source,
           stream,
           track,

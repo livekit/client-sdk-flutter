@@ -58,6 +58,24 @@ class VideoCodec extends $pb.ProtobufEnum {
   const VideoCodec._($core.int v, $core.String n) : super(v, n);
 }
 
+class ImageCodec extends $pb.ProtobufEnum {
+  static const ImageCodec IC_DEFAULT =
+      ImageCodec._(0, _omitEnumNames ? '' : 'IC_DEFAULT');
+  static const ImageCodec IC_JPEG =
+      ImageCodec._(1, _omitEnumNames ? '' : 'IC_JPEG');
+
+  static const $core.List<ImageCodec> values = <ImageCodec>[
+    IC_DEFAULT,
+    IC_JPEG,
+  ];
+
+  static final $core.Map<$core.int, ImageCodec> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ImageCodec? valueOf($core.int value) => _byValue[value];
+
+  const ImageCodec._($core.int v, $core.String n) : super(v, n);
+}
+
 class TrackType extends $pb.ProtobufEnum {
   static const TrackType AUDIO = TrackType._(0, _omitEnumNames ? '' : 'AUDIO');
   static const TrackType VIDEO = TrackType._(1, _omitEnumNames ? '' : 'VIDEO');
@@ -134,11 +152,14 @@ class ConnectionQuality extends $pb.ProtobufEnum {
       ConnectionQuality._(1, _omitEnumNames ? '' : 'GOOD');
   static const ConnectionQuality EXCELLENT =
       ConnectionQuality._(2, _omitEnumNames ? '' : 'EXCELLENT');
+  static const ConnectionQuality LOST =
+      ConnectionQuality._(3, _omitEnumNames ? '' : 'LOST');
 
   static const $core.List<ConnectionQuality> values = <ConnectionQuality>[
     POOR,
     GOOD,
     EXCELLENT,
+    LOST,
   ];
 
   static final $core.Map<$core.int, ConnectionQuality> _byValue =
@@ -276,6 +297,33 @@ class ParticipantInfo_State extends $pb.ProtobufEnum {
   static ParticipantInfo_State? valueOf($core.int value) => _byValue[value];
 
   const ParticipantInfo_State._($core.int v, $core.String n) : super(v, n);
+}
+
+class ParticipantInfo_Kind extends $pb.ProtobufEnum {
+  static const ParticipantInfo_Kind STANDARD =
+      ParticipantInfo_Kind._(0, _omitEnumNames ? '' : 'STANDARD');
+  static const ParticipantInfo_Kind INGRESS =
+      ParticipantInfo_Kind._(1, _omitEnumNames ? '' : 'INGRESS');
+  static const ParticipantInfo_Kind EGRESS =
+      ParticipantInfo_Kind._(2, _omitEnumNames ? '' : 'EGRESS');
+  static const ParticipantInfo_Kind SIP =
+      ParticipantInfo_Kind._(3, _omitEnumNames ? '' : 'SIP');
+  static const ParticipantInfo_Kind AGENT =
+      ParticipantInfo_Kind._(4, _omitEnumNames ? '' : 'AGENT');
+
+  static const $core.List<ParticipantInfo_Kind> values = <ParticipantInfo_Kind>[
+    STANDARD,
+    INGRESS,
+    EGRESS,
+    SIP,
+    AGENT,
+  ];
+
+  static final $core.Map<$core.int, ParticipantInfo_Kind> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ParticipantInfo_Kind? valueOf($core.int value) => _byValue[value];
+
+  const ParticipantInfo_Kind._($core.int v, $core.String n) : super(v, n);
 }
 
 class Encryption_Type extends $pb.ProtobufEnum {

@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
-import '../../proto/livekit_models.pb.dart' as lk_models;
+import '../../logger.dart';
+import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../local/local.dart';
-import '../stats.dart';
 import 'remote.dart';
 
 class RemoteVideoTrack extends RemoteTrack with VideoTrack {
@@ -28,7 +28,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          lk_models.TrackType.VIDEO,
+          TrackType.VIDEO,
           source,
           stream,
           track,
@@ -46,19 +46,25 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null && events.isDisposed) {
+    if (receiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
-    final stats = await getReceiverStats();
+    try {
+      final stats = await getReceiverStats();
 
-    if (stats != null && prevStats != null && receiver != null) {
-      _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
-      events.emit(VideoReceiverStatsEvent(
-          stats: stats, currentBitrate: currentBitrate));
+      if (stats != null && prevStats != null && receiver != null) {
+        _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
+        events.emit(VideoReceiverStatsEvent(
+            stats: stats, currentBitrate: currentBitrate));
+      }
+
+      prevStats = stats;
+    } catch (e) {
+      logger.warning('Failed to monitor stats: $e');
+      return false;
     }
 
-    prevStats = stats;
     return true;
   }
 
@@ -67,7 +73,13 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       return null;
     }
 
-    final stats = await receiver!.getStats();
+    late List<rtc.StatsReport> stats;
+    try {
+      stats = await receiver!.getStats();
+    } catch (e) {
+      rethrow;
+    }
+
     VideoReceiverStats? receiverStats;
     for (var v in stats) {
       if (v.type == 'inbound-rtp') {

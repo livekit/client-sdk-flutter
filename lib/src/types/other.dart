@@ -1,4 +1,4 @@
-// Copyright 2023 LiveKit, Inc.
+// Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// ignore_for_file: constant_identifier_names
 
 import 'package:flutter/material.dart';
 
@@ -30,6 +32,9 @@ enum ProtocolVersion {
   v7, // Remote unpublish
   v8,
   v9,
+  v10,
+  v11,
+  v12,
 }
 
 /// Connection state type used throughout the SDK.
@@ -40,9 +45,24 @@ enum ConnectionState {
   connected,
 }
 
+/// The type of track.
+enum TrackType {
+  AUDIO,
+  VIDEO,
+  DATA,
+}
+
+/// Video quality used for publishing video tracks.
+enum VideoQuality {
+  LOW,
+  MEDIUM,
+  HIGH,
+}
+
 /// Connection quality between the [Participant] and server.
 enum ConnectionQuality {
   unknown,
+  lost,
   poor,
   good,
   excellent,
@@ -84,6 +104,10 @@ enum DisconnectReason {
   roomDeleted,
   stateMismatch,
   joinFailure,
+  disconnected,
+  signalingConnectionFailure,
+  noInternetConnection,
+  reconnectAttemptsExceeded,
 }
 
 /// The reason why a track failed to publish.
@@ -91,6 +115,7 @@ enum TrackSubscribeFailReason {
   invalidServerResponse,
   notTrackMetadataFound,
   unsupportedTrackType,
+  noParticipantFound,
   // ...
 }
 
