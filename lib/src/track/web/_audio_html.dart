@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:html' as html;
+import 'dart:js_interop';
+
+import 'package:web/web.dart' as web;
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -26,7 +28,7 @@ const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
 AudioContext _audioContext = AudioContext();
-Map<String, html.Element> _audioElements = {};
+Map<String, web.Element> _audioElements = {};
 
 Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
   if (track is! MediaStreamTrackWeb) {
@@ -34,19 +36,19 @@ Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
   }
 
   final elementId = audioPrefix + id;
-  var audioElement = html.document.getElementById(elementId);
+  var audioElement = web.document.getElementById(elementId);
   if (audioElement == null) {
-    audioElement = html.AudioElement()
+    audioElement = web.HTMLAudioElement()
       ..id = elementId
       ..autoplay = true;
     findOrCreateAudioContainer().append(audioElement);
     _audioElements[id] = audioElement;
   }
 
-  if (audioElement is! html.AudioElement) {
+  if (audioElement is! web.HTMLAudioElement) {
     return;
   }
-  final audioStream = html.MediaStream();
+  final audioStream = web.MediaStream();
   audioStream.addTrack(track.jsTrack);
   audioElement.srcObject = audioStream;
   return audioElement.play();
@@ -54,17 +56,17 @@ Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
 
 Future<bool> startAllAudioElement() async {
   for (final element in _audioElements.values) {
-    if (element is html.AudioElement) {
-      await element.play();
+    if (element is web.HTMLAudioElement) {
+      await element.play().toDart;
     }
   }
   return _audioContext.state == AudioContextState.running;
 }
 
 void stopAudio(String id) {
-  final audioElement = html.document.getElementById(audioPrefix + id);
+  final audioElement = web.document.getElementById(audioPrefix + id);
   if (audioElement != null) {
-    if (audioElement is html.AudioElement) {
+    if (audioElement is web.HTMLAudioElement) {
       audioElement.srcObject = null;
     }
     _audioElements.remove(id);
@@ -72,23 +74,27 @@ void stopAudio(String id) {
   }
 }
 
-html.DivElement findOrCreateAudioContainer() {
-  var div = html.document.getElementById(audioContainerId);
+web.HTMLDivElement findOrCreateAudioContainer() {
+  var div = web.document.getElementById(audioContainerId);
   if (div != null) {
-    return div as html.DivElement;
+    return div as web.HTMLDivElement;
   }
 
-  div = html.DivElement();
+  div = web.HTMLDivElement();
   div.id = audioContainerId;
-  div.style.display = 'none';
-  html.document.body?.append(div);
-  return div as html.DivElement;
+  (div as web.HTMLDivElement).style.display = 'none';
+  web.document.body?.append(div);
+  return div;
 }
 
 void setSinkId(String id, String deviceId) {
-  final audioElement = html.document.getElementById(audioPrefix + id);
-  if (audioElement is html.AudioElement &&
+  final audioElement = web.document.getElementById(audioPrefix + id);
+  if (audioElement is web.HTMLAudioElement &&
       jsutil.hasProperty(audioElement, 'setSinkId')) {
     audioElement.setSinkId(deviceId);
   }
+}
+
+extension _SetSinkId on web.HTMLMediaElement {
+  external JSPromise setSinkId(String sinkId);
 }

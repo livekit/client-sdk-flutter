@@ -1,31 +1,19 @@
-// Copyright 2024 LiveKit, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// ignore_for_file: constant_identifier_names
-
 import 'dart:async';
-import 'dart:html';
+
 import 'dart:js';
-import 'dart:js_util' as jsutil;
+import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dart_webrtc/src/rtc_transform_stream.dart';
-import 'crypto.dart' as crypto;
+import 'package:js/js_util.dart' as jsutil;
+import 'package:web/web.dart' as web;
+
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
 import 'e2ee.sfi_guard.dart';
+
+final crypto = web.window.crypto.subtle;
 
 const IV_LENGTH = 12;
 
@@ -152,7 +140,7 @@ class FrameCryptor {
   bool _enabled = false;
   CryptorError lastError = CryptorError.kNew;
   int currentKeyIndex = 0;
-  final DedicatedWorkerGlobalScope worker;
+  final web.DedicatedWorkerGlobalScope worker;
   SifGuard sifGuard = SifGuard();
 
   void setParticipant(String identity, ParticipantKeyHandler keys) {
@@ -235,7 +223,7 @@ class FrameCryptor {
   }
 
   void postMessage(Object message) {
-    worker.postMessage(message);
+    worker.postMessage(jsutil.jsify(message));
   }
 
   Future<void> setupTransform({
@@ -333,8 +321,6 @@ class FrameCryptor {
           'kind': kind,
           'state': 'missingKey',
           'error': 'Missing key for track $trackId',
-          'currentKeyIndex': currentKeyIndex,
-          'secretKey': secretKey.toString()
         });
       }
       return;
@@ -353,14 +339,13 @@ class FrameCryptor {
       frameTrailer.setInt8(1, keyIndex);
 
       var cipherText = await jsutil.promiseToFuture<ByteBuffer>(crypto.encrypt(
-        crypto.AesGcmParams(
-          name: 'AES-GCM',
-          iv: crypto.jsArrayBufferFrom(iv),
-          additionalData:
-              crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+        web.AesGcmParams(
+          //name: 'AES-GCM',
+          iv: iv.toJS,
+          additionalData: buffer.sublist(0, headerLength).toJS,
         ),
         secretKey,
-        crypto.jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
+        buffer.sublist(headerLength, buffer.length).toJS,
       ));
 
       logger.finer(
@@ -371,7 +356,7 @@ class FrameCryptor {
       finalBuffer.add(cipherText.asUint8List());
       finalBuffer.add(iv);
       finalBuffer.add(frameTrailer.buffer.asUint8List());
-      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+      frame.data = finalBuffer.toBytes().buffer;
 
       controller.enqueue(frame);
 
@@ -384,10 +369,7 @@ class FrameCryptor {
           'trackId': trackId,
           'kind': kind,
           'state': 'ok',
-          'error': 'encryption ok',
-          'frameTrailer': frameTrailer.buffer.asUint8List(),
-          'currentKeyIndex': currentKeyIndex,
-          'secretKey': secretKey.toString(),
+          'error': 'encryption ok'
         });
       }
 
@@ -443,7 +425,7 @@ class FrameCryptor {
             var finalBuffer = BytesBuilder();
             finalBuffer.add(Uint8List.fromList(
                 buffer.sublist(0, buffer.length - (magicBytes.length + 1))));
-            frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+            frame.data = finalBuffer.toBytes().buffer;
             controller.enqueue(frame);
           } else {
             logger.finer('SIF limit reached, dropping frame');
@@ -478,10 +460,7 @@ class FrameCryptor {
             'trackId': trackId,
             'kind': kind,
             'state': 'missingKey',
-            'error': 'Missing key for track $trackId',
-            'frameTrailer': frameTrailer.buffer.asUint8List(),
-            'currentKeyIndex': keyIndex,
-            'secretKey': initialKeySet?.encryptionKey.toString()
+            'error': 'Missing key for track $trackId'
           });
         }
         controller.enqueue(frame);
@@ -492,15 +471,13 @@ class FrameCryptor {
       while (!endDecLoop) {
         try {
           decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
-            crypto.AesGcmParams(
-              name: 'AES-GCM',
-              iv: crypto.jsArrayBufferFrom(iv),
-              additionalData:
-                  crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
+            web.AesGcmParams(
+              //name: 'AES-GCM',
+              iv: iv.toJS,
+              additionalData: buffer.sublist(0, headerLength).toJS,
             ),
             currentkeySet.encryptionKey,
-            crypto.jsArrayBufferFrom(
-                buffer.sublist(headerLength, buffer.length - ivLength - 2)),
+            buffer.sublist(headerLength, buffer.length - ivLength - 2).toJS,
           ));
 
           if (currentkeySet != initialKeySet) {
@@ -528,10 +505,7 @@ class FrameCryptor {
               'trackId': trackId,
               'kind': kind,
               'state': 'keyRatcheted',
-              'error': 'Key ratcheted ok',
-              'frameTrailer': frameTrailer.buffer.asUint8List(),
-              'currentKeyIndex': currentKeyIndex,
-              'secretKey': currentkeySet.encryptionKey.toString()
+              'error': 'Key ratcheted ok'
             });
           }
         } catch (e) {
@@ -541,10 +515,10 @@ class FrameCryptor {
           if (endDecLoop) {
             rethrow;
           }
-          var newKeyBuffer = crypto.jsArrayBufferFrom(await keyHandler.ratchet(
-              currentkeySet.material, keyOptions.ratchetSalt));
+          var newKeyBuffer = await keyHandler.ratchet(
+              currentkeySet.material, keyOptions.ratchetSalt);
           var newMaterial = await keyHandler.ratchetMaterial(
-              currentkeySet.material, newKeyBuffer);
+              currentkeySet.material, newKeyBuffer.buffer);
           currentkeySet =
               await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
           ratchetCount++;
@@ -554,9 +528,10 @@ class FrameCryptor {
       logger.finer(
           'buffer: ${buffer.length}, decrypted: ${decrypted?.asUint8List().length ?? 0}');
       var finalBuffer = BytesBuilder();
+
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
       finalBuffer.add(decrypted!.asUint8List());
-      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+      frame.data = finalBuffer.toBytes().buffer;
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
@@ -568,10 +543,7 @@ class FrameCryptor {
           'trackId': trackId,
           'kind': kind,
           'state': 'ok',
-          'error': 'decryption ok',
-          'frameTrailer': frameTrailer.buffer.asUint8List(),
-          'currentKeyIndex': currentKeyIndex,
-          'secretKey': currentkeySet.encryptionKey.toString()
+          'error': 'decryption ok'
         });
       }
 
