@@ -40,6 +40,7 @@ abstract class KeyProvider {
   Future<Uint8List> ratchetSharedKey({int? keyIndex});
   Future<Uint8List> exportSharedKey({int? keyIndex});
   Future<void> setKey(String key, {String? participantId, int? keyIndex});
+  Future<void> setRawKey(Uint8List key, {String? participantId, int? keyIndex});
   Future<Uint8List> ratchetKey(String participantId, int? keyIndex);
   Future<Uint8List> exportKey(String participantId, int? keyIndex);
   Future<void> setSifTrailer(Uint8List trailer);
@@ -129,6 +130,13 @@ class BaseKeyProvider implements KeyProvider {
       key: Uint8List.fromList(key.codeUnits),
     );
     return _setKey(keyInfo);
+  }
+
+  @override
+  Future<void> setRawKey(Uint8List key,
+      {String? participantId, int? keyIndex}) async {
+    return setKey(String.fromCharCodes(key),
+        participantId: participantId, keyIndex: keyIndex);
   }
 
   Future<void> _setKey(KeyInfo keyInfo) async {
