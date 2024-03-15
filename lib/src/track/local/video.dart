@@ -18,6 +18,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../../events.dart';
+import '../../exceptions.dart';
 import '../../logger.dart';
 import '../../options.dart';
 import '../../proto/livekit_models.pb.dart' as lk_models;
@@ -187,6 +188,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<LocalVideoTrack> createScreenShareTrack([
     ScreenShareCaptureOptions? options,
   ]) async {
+    if (lkPlatformIsWebMobile()) {
+      throw TrackCreateException(
+          'Screen sharing is not supported on mobile devices');
+    }
     options ??= const ScreenShareCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
@@ -206,6 +211,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   static Future<List<LocalTrack>> createScreenShareTracksWithAudio([
     ScreenShareCaptureOptions? options,
   ]) async {
+    if (lkPlatformIsWebMobile()) {
+      throw TrackCreateException(
+          'Screen sharing is not supported on mobile devices');
+    }
     if (options == null) {
       options = const ScreenShareCaptureOptions(captureScreenAudio: true);
     } else {

@@ -197,6 +197,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       await participant.publishVideoTrack(track);
       return;
     }
+
+    if (lkPlatformIsWebMobile()) {
+      await context
+          .showErrorDialog('Screen share is not supported on mobile web');
+      return;
+    }
+
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
 
