@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import 'dart:js' as js;
+
 import 'package:flutter/foundation.dart';
+
 import 'package:platform_detect/platform_detect.dart';
 
 import '../platform.dart';
