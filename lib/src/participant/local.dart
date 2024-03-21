@@ -166,8 +166,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
 
       // vp9 svc with screenshare has problem to encode, always use L1T3 here
-      if (track.source == TrackSource.screenShareVideo &&
-          publishOptions.videoCodec.toLowerCase() == 'vp9') {
+      if (track.source == TrackSource.screenShareVideo) {
         publishOptions = publishOptions.copyWith(
           scalabilityMode: 'L1T3',
         );
