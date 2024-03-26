@@ -209,7 +209,6 @@ class Transport extends Disposable {
             continue;
           }
 
-          var fmtpFound = false;
           for (var fmtp in media['fmtp']) {
             if (fmtp['payload'] == codecPayload) {
               if (!(fmtp['config'] as String)
@@ -217,23 +216,9 @@ class Transport extends Disposable {
                 fmtp['config'] +=
                     ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()}';
               }
-              if (!(fmtp['config'] as String)
-                  .contains('x-google-max-bitrate')) {
-                fmtp['config'] += ';x-google-max-bitrate=${trackbr.maxbr}';
-              }
-              fmtpFound = true;
               break;
             }
           }
-
-          if (!fmtpFound) {
-            media['fmtp']?.add({
-              'payload': codecPayload,
-              'config':
-                  'x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()};x-google-max-bitrate=${trackbr.maxbr}',
-            });
-          }
-
           continue;
         }
       }

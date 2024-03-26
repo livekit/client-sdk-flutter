@@ -432,23 +432,23 @@ class Utils {
 
     if (scalabilityMode != null && isSVCCodec(options.videoCodec)) {
       logger.info('using svc with scalabilityMode ${scalabilityMode}');
-
-      //final sm = ScalabilityMode(scalabilityMode);
-
-      List<rtc.RTCRtpEncoding> encodings = [videoEncoding.toRTCRtpEncoding()];
-      /*
-      if (sm.spatial > 3) {
-        throw Exception('unsupported scalabilityMode: ${scalabilityMode}');
+      List<rtc.RTCRtpEncoding> encodings = [];
+      if (lkPlatformIs(PlatformType.web) &&
+          (lkBrowser() == BrowserType.safari ||
+              lkBrowser() == BrowserType.chrome &&
+                  lkBrowserVersion().major < 113)) {
+        final sm = ScalabilityMode(scalabilityMode);
+        for (var i = 0; i < sm.spatial; i += 1) {
+          // in legacy SVC, scaleResolutionDownBy cannot be set
+          encodings.add(rtc.RTCRtpEncoding(
+            rid: videoRids[2 - i],
+            maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
+            maxFramerate: original.encoding.maxFramerate,
+          ));
+        }
+      } else {
+        encodings.add(videoEncoding.toRTCRtpEncoding());
       }
-      for (int i = 0; i < sm.spatial; i += 1) {
-        encodings.add(rtc.RTCRtpEncoding(
-          rid: videoRids[2 - i],
-          maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
-          maxFramerate: videoEncoding.maxFramerate,
-          scaleResolutionDownBy: null,
-          numTemporalLayers: sm.temporal.toInt(),
-        ));
-      }*/
       encodings[0].scalabilityMode = scalabilityMode;
       logger.fine('encodings $encodings');
       return encodings;
