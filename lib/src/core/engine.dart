@@ -1051,7 +1051,9 @@ extension EngineInternalMethods on Engine {
 
   Future<void> setPreferredCodec(
       rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
-    var caps = await rtc.getRtpSenderCapabilities(kind);
+    // when setting codec preferences, the capabilites need to be read from
+    // the RTCRtpReceiver
+    var caps = await rtc.getRtpReceiverCapabilities(kind);
     if (caps.codecs == null) return;
 
     logger.fine('get capabilities ${caps.codecs}');
