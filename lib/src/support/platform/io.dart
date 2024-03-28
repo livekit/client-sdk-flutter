@@ -26,6 +26,10 @@ PlatformType lkPlatformImplementation() {
   throw UnsupportedError('Unknown Platform');
 }
 
+bool lkPlatformIsWebMobileImplementation() {
+  return false;
+}
+
 bool lkE2EESupportedImplementation() {
   return [
     PlatformType.windows,

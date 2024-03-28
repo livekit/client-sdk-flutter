@@ -24,6 +24,8 @@ bool lkPlatformIs(PlatformType type) => lkPlatform() == type;
 bool lkPlatformIsMobile() =>
     [PlatformType.iOS, PlatformType.android].contains(lkPlatform());
 
+bool lkPlatformIsWebMobile() => lkPlatformIsWebMobileImplementation();
+
 bool lkPlatformIsDesktop() => [
       PlatformType.macOS,
       PlatformType.windows,

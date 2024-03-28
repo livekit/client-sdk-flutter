@@ -14,11 +14,18 @@
 
 import 'dart:js' as js;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:platform_detect/platform_detect.dart';
 
 import '../platform.dart';
 
 PlatformType lkPlatformImplementation() => PlatformType.web;
+
+bool lkPlatformIsWebMobileImplementation() {
+  return (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android);
+}
 
 bool lkE2EESupportedImplementation() {
   return isInsertableStreamSupported() || isScriptTransformSupported();
