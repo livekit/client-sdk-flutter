@@ -106,6 +106,33 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   }
 
   @internal
+  RemoteTrackPublication? getTrackPublicationBySidAndSource(
+      String sid, TrackSource source) {
+    for (final pub in trackPublications.values) {
+      if (pub.sid == sid && pub.source == source) {
+        return pub;
+      }
+    }
+    return null;
+  }
+
+  @internal
+  RemoteTrackPublication? getTrackPublicationBySidAndKind(
+      String sid, String? kind) {
+    for (final pub in trackPublications.values) {
+      if (pub.sid == sid) {
+        if (kind == 'audio' && pub.kind == TrackType.AUDIO) {
+          return pub;
+        }
+        if (kind == 'video' && pub.kind == TrackType.VIDEO) {
+          return pub;
+        }
+      }
+    }
+    return null;
+  }
+
+  @internal
   Future<void> addSubscribedMediaTrack(
     rtc.MediaStreamTrack mediaTrack,
     rtc.MediaStream stream,
@@ -116,7 +143,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     logger.fine('addSubscribedMediaTrack()');
 
     // If publication doesn't exist yet...
-    RemoteTrackPublication? pub = getTrackPublicationBySid(trackSid);
+    RemoteTrackPublication? pub =
+        getTrackPublicationBySidAndKind(trackSid, mediaTrack.kind);
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
@@ -203,7 +231,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
+      RemoteTrackPublication? pub = getTrackPublicationBySidAndSource(
+          trackInfo.sid, trackInfo.source.toLKType());
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {
