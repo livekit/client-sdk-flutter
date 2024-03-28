@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.3
+
+* Read capabilities from RtcRTPReceiver instead of from sender. (#488)
+* Update screenshare logic for svc publishing (#487)
+* Prevent screen-sharing on flutter web mobile. (#486)
+* feat: add setKey variant, setRawKey (#482)
+
 ## 2.0.2
 
 * Add Android 14 media projection perm to docs (#470)
