@@ -1,22 +1,12 @@
-// Copyright 2024 LiveKit, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-import 'dart:html';
 import 'dart:js' as js;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
-import 'crypto.dart' as crypto;
+import 'package:js/js_util.dart';
+import 'package:web/web.dart' as web;
+
+final crypto = web.window.crypto.subtle;
 
 bool isE2EESupported() {
   return isInsertableStreamSupported() || isScriptTransformSupported();
@@ -31,27 +21,32 @@ bool isInsertableStreamSupported() {
       js.context['RTCRtpSender']['prototype']['createEncodedStreams'] != null;
 }
 
-Future<CryptoKey> importKey(
+Future<web.CryptoKey> importKey(
     Uint8List keyBytes, String algorithm, String usage) {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-  return promiseToFuture<CryptoKey>(crypto.importKey(
-    'raw',
-    crypto.jsArrayBufferFrom(keyBytes),
-    js.JsObject.jsify({'name': algorithm}),
-    false,
-    usage == 'derive' ? ['deriveBits', 'deriveKey'] : ['encrypt', 'decrypt'],
-  ));
+
+  return crypto
+      .importKey(
+        'raw',
+        keyBytes.toJS,
+        newObject<JSObject>()..setProperty('name'.toJS, algorithm.toJS),
+        false,
+        usage == 'derive'
+            ? <JSString>['deriveBits'.toJS, 'deriveKey'.toJS].toJS
+            : <JSString>['encrypt'.toJS, 'decrypt'.toJS].toJS,
+      )
+      .toDart;
 }
 
-Future<CryptoKey> createKeyMaterialFromString(
+Future<web.CryptoKey> createKeyMaterialFromString(
     Uint8List keyBytes, String algorithm, String usage) {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-  return promiseToFuture<CryptoKey>(crypto.importKey(
+  return promiseToFuture<web.CryptoKey>(crypto.importKey(
     'raw',
-    crypto.jsArrayBufferFrom(keyBytes),
-    js.JsObject.jsify({'name': 'PBKDF2'}),
+    keyBytes.toJS,
+    newObject<JSObject>()..setProperty('name'.toJS, 'PBKDF2'.toJS),
     false,
-    ['deriveBits', 'deriveKey'],
+    <JSString>['deriveBits'.toJS, 'deriveKey'.toJS].toJS,
   ));
 }
 
@@ -60,15 +55,15 @@ dynamic getAlgoOptions(String algorithmName, Uint8List salt) {
     case 'HKDF':
       return {
         'name': 'HKDF',
-        'salt': crypto.jsArrayBufferFrom(salt),
+        'salt': salt.toJS,
         'hash': 'SHA-256',
-        'info': crypto.jsArrayBufferFrom(Uint8List(128)),
+        'info': Uint8List(128).toJS,
       };
     case 'PBKDF2':
       {
         return {
           'name': 'PBKDF2',
-          'salt': crypto.jsArrayBufferFrom(salt),
+          'salt': salt.toJS,
           'hash': 'SHA-256',
           'iterations': 100000,
         };
