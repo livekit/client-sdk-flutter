@@ -829,6 +829,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void sendSyncState({
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
+    required List<String> trackSidsDisabled,
   }) async {
     final previousAnswer =
         (await subscriber?.pc.getLocalDescription())?.toPBType();
@@ -837,6 +838,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
+      trackSidsDisabled: trackSidsDisabled,
     );
   }
 
