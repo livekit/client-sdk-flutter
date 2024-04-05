@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name                = 'livekit_client'
-  s.version             = '2.0.3'
+  s.version             = '2.1.0'
   s.summary             = 'Open source platform for real-time audio and video.'
   s.description         = 'Open source platform for real-time audio and video.'
   s.homepage            = 'https://livekit.io/'

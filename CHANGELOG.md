@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.0
+
+* Fix: bug for sync state (#491)
+
 ## 2.0.3
 
 * Read capabilities from RtcRTPReceiver instead of from sender. (#488)
