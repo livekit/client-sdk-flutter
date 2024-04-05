@@ -1,4 +1,4 @@
-PROTO_DIR="../protocol"
+PROTO_DIR="../protocol/protobufs"
 
 proto:
 	@{ \
@@ -6,7 +6,7 @@ proto:
 	then \
 		protoc --dart_out=lib/src/proto -I$(PROTO_DIR) $(PROTO_DIR)/livekit_rtc.proto $(PROTO_DIR)/livekit_models.proto; \
 	else \
-		echo "../protocol is not found. github.com/livekit/protocol must be checked out"; \
+		echo "../protocol/protobufs is not found. github.com/livekit/protocol must be checked out"; \
 	fi \
 	}
 

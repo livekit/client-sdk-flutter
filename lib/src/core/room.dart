@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -707,15 +709,29 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> _sendSyncState() async {
-    final sendUnSub = connectOptions.autoSubscribe;
-    final participantTracks =
-        remoteParticipants.values.map((e) => e.participantTracks());
+    final autoSubscribe = connectOptions.autoSubscribe;
+
+    final trackSids = <String>[];
+    final trackSidsDisabled = <String>[];
+
+    for (var participant in remoteParticipants.values) {
+      for (var track in participant.trackPublications.values) {
+        if (track.subscribed != autoSubscribe) {
+          trackSids.add(track.sid);
+        }
+        if (!track.enabled) {
+          trackSidsDisabled.add(track.sid);
+        }
+      }
+    }
+
     engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
-        participantTracks: participantTracks,
-        trackSids: participantTracks.map((e) => e.trackSids).flattened,
-        subscribe: !sendUnSub,
+        participantTracks: [],
+        trackSids: trackSids,
+        subscribe: !autoSubscribe,
       ),
+      trackSidsDisabled: trackSidsDisabled,
       publishTracks: localParticipant?.publishedTracksInfo(),
     );
   }

@@ -530,6 +530,7 @@ extension SignalClientRequests on SignalClient {
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
+    required List<String> trackSidsDisabled,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
@@ -537,6 +538,7 @@ extension SignalClientRequests on SignalClient {
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,
+          trackSidsDisabled: trackSidsDisabled,
         ),
       ));
 

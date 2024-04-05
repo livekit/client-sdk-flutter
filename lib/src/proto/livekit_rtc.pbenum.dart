@@ -70,4 +70,26 @@ class CandidateProtocol extends $pb.ProtobufEnum {
   const CandidateProtocol._($core.int v, $core.String n) : super(v, n);
 }
 
+/// indicates action clients should take on receiving this message
+class LeaveRequest_Action extends $pb.ProtobufEnum {
+  static const LeaveRequest_Action DISCONNECT =
+      LeaveRequest_Action._(0, _omitEnumNames ? '' : 'DISCONNECT');
+  static const LeaveRequest_Action RESUME =
+      LeaveRequest_Action._(1, _omitEnumNames ? '' : 'RESUME');
+  static const LeaveRequest_Action RECONNECT =
+      LeaveRequest_Action._(2, _omitEnumNames ? '' : 'RECONNECT');
+
+  static const $core.List<LeaveRequest_Action> values = <LeaveRequest_Action>[
+    DISCONNECT,
+    RESUME,
+    RECONNECT,
+  ];
+
+  static final $core.Map<$core.int, LeaveRequest_Action> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static LeaveRequest_Action? valueOf($core.int value) => _byValue[value];
+
+  const LeaveRequest_Action._($core.int v, $core.String n) : super(v, n);
+}
+
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

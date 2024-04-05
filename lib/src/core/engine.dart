@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -829,6 +831,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void sendSyncState({
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
+    required List<String> trackSidsDisabled,
   }) async {
     final previousAnswer =
         (await subscriber?.pc.getLocalDescription())?.toPBType();
@@ -837,6 +840,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
+      trackSidsDisabled: trackSidsDisabled,
     );
   }
 

@@ -207,6 +207,10 @@ class DisconnectReason extends $pb.ProtobufEnum {
       DisconnectReason._(6, _omitEnumNames ? '' : 'STATE_MISMATCH');
   static const DisconnectReason JOIN_FAILURE =
       DisconnectReason._(7, _omitEnumNames ? '' : 'JOIN_FAILURE');
+  static const DisconnectReason MIGRATION =
+      DisconnectReason._(8, _omitEnumNames ? '' : 'MIGRATION');
+  static const DisconnectReason SIGNAL_CLOSE =
+      DisconnectReason._(9, _omitEnumNames ? '' : 'SIGNAL_CLOSE');
 
   static const $core.List<DisconnectReason> values = <DisconnectReason>[
     UNKNOWN_REASON,
@@ -217,6 +221,8 @@ class DisconnectReason extends $pb.ProtobufEnum {
     ROOM_DELETED,
     STATE_MISMATCH,
     JOIN_FAILURE,
+    MIGRATION,
+    SIGNAL_CLOSE,
   ];
 
   static final $core.Map<$core.int, DisconnectReason> _byValue =
@@ -272,6 +278,37 @@ class SubscriptionError extends $pb.ProtobufEnum {
   static SubscriptionError? valueOf($core.int value) => _byValue[value];
 
   const SubscriptionError._($core.int v, $core.String n) : super(v, n);
+}
+
+class AudioTrackFeature extends $pb.ProtobufEnum {
+  static const AudioTrackFeature TF_STEREO =
+      AudioTrackFeature._(0, _omitEnumNames ? '' : 'TF_STEREO');
+  static const AudioTrackFeature TF_NO_DTX =
+      AudioTrackFeature._(1, _omitEnumNames ? '' : 'TF_NO_DTX');
+  static const AudioTrackFeature TF_AUTO_GAIN_CONTROL =
+      AudioTrackFeature._(2, _omitEnumNames ? '' : 'TF_AUTO_GAIN_CONTROL');
+  static const AudioTrackFeature TF_ECHO_CANCELLATION =
+      AudioTrackFeature._(3, _omitEnumNames ? '' : 'TF_ECHO_CANCELLATION');
+  static const AudioTrackFeature TF_NOISE_SUPPRESSION =
+      AudioTrackFeature._(4, _omitEnumNames ? '' : 'TF_NOISE_SUPPRESSION');
+  static const AudioTrackFeature TF_ENHANCED_NOISE_CANCELLATION =
+      AudioTrackFeature._(
+          5, _omitEnumNames ? '' : 'TF_ENHANCED_NOISE_CANCELLATION');
+
+  static const $core.List<AudioTrackFeature> values = <AudioTrackFeature>[
+    TF_STEREO,
+    TF_NO_DTX,
+    TF_AUTO_GAIN_CONTROL,
+    TF_ECHO_CANCELLATION,
+    TF_NOISE_SUPPRESSION,
+    TF_ENHANCED_NOISE_CANCELLATION,
+  ];
+
+  static final $core.Map<$core.int, AudioTrackFeature> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static AudioTrackFeature? valueOf($core.int value) => _byValue[value];
+
+  const AudioTrackFeature._($core.int v, $core.String n) : super(v, n);
 }
 
 class ParticipantInfo_State extends $pb.ProtobufEnum {

@@ -32,6 +32,8 @@ class Room extends $pb.GeneratedMessage {
     $core.int? numParticipants,
     $core.bool? activeRecording,
     $core.int? numPublishers,
+    TimedVersion? version,
+    $core.int? departureTimeout,
   }) {
     final $result = create();
     if (sid != null) {
@@ -67,6 +69,12 @@ class Room extends $pb.GeneratedMessage {
     if (numPublishers != null) {
       $result.numPublishers = numPublishers;
     }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (departureTimeout != null) {
+      $result.departureTimeout = departureTimeout;
+    }
     return $result;
   }
   Room._() : super();
@@ -97,6 +105,10 @@ class Room extends $pb.GeneratedMessage {
     ..aOB(10, _omitFieldNames ? '' : 'activeRecording')
     ..a<$core.int>(
         11, _omitFieldNames ? '' : 'numPublishers', $pb.PbFieldType.OU3)
+    ..aOM<TimedVersion>(13, _omitFieldNames ? '' : 'version',
+        subBuilder: TimedVersion.create)
+    ..a<$core.int>(
+        14, _omitFieldNames ? '' : 'departureTimeout', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -242,6 +254,32 @@ class Room extends $pb.GeneratedMessage {
   $core.bool hasNumPublishers() => $_has(10);
   @$pb.TagNumber(11)
   void clearNumPublishers() => clearField(11);
+
+  @$pb.TagNumber(13)
+  TimedVersion get version => $_getN(11);
+  @$pb.TagNumber(13)
+  set version(TimedVersion v) {
+    setField(13, v);
+  }
+
+  @$pb.TagNumber(13)
+  $core.bool hasVersion() => $_has(11);
+  @$pb.TagNumber(13)
+  void clearVersion() => clearField(13);
+  @$pb.TagNumber(13)
+  TimedVersion ensureVersion() => $_ensure(11);
+
+  @$pb.TagNumber(14)
+  $core.int get departureTimeout => $_getIZ(12);
+  @$pb.TagNumber(14)
+  set departureTimeout($core.int v) {
+    $_setUnsignedInt32(12, v);
+  }
+
+  @$pb.TagNumber(14)
+  $core.bool hasDepartureTimeout() => $_has(12);
+  @$pb.TagNumber(14)
+  void clearDepartureTimeout() => clearField(14);
 }
 
 class Codec extends $pb.GeneratedMessage {
@@ -1483,24 +1521,38 @@ class VideoLayer extends $pb.GeneratedMessage {
   void clearSsrc() => clearField(5);
 }
 
-enum DataPacket_Value { user, speaker, notSet }
+enum DataPacket_Value { user, speaker, sipDtmf, notSet }
 
 /// new DataPacket API
 class DataPacket extends $pb.GeneratedMessage {
   factory DataPacket({
-    DataPacket_Kind? kind,
+    @$core.Deprecated('This field is deprecated.') DataPacket_Kind? kind,
     UserPacket? user,
-    ActiveSpeakerUpdate? speaker,
+    @$core.Deprecated('This field is deprecated.') ActiveSpeakerUpdate? speaker,
+    $core.String? participantIdentity,
+    $core.Iterable<$core.String>? destinationIdentities,
+    SipDTMF? sipDtmf,
   }) {
     final $result = create();
     if (kind != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.kind = kind;
     }
     if (user != null) {
       $result.user = user;
     }
     if (speaker != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.speaker = speaker;
+    }
+    if (participantIdentity != null) {
+      $result.participantIdentity = participantIdentity;
+    }
+    if (destinationIdentities != null) {
+      $result.destinationIdentities.addAll(destinationIdentities);
+    }
+    if (sipDtmf != null) {
+      $result.sipDtmf = sipDtmf;
     }
     return $result;
   }
@@ -1515,13 +1567,14 @@ class DataPacket extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
     2: DataPacket_Value.user,
     3: DataPacket_Value.speaker,
+    6: DataPacket_Value.sipDtmf,
     0: DataPacket_Value.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataPacket',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3])
+    ..oo(0, [2, 3, 6])
     ..e<DataPacket_Kind>(1, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE,
         defaultOrMaker: DataPacket_Kind.RELIABLE,
         valueOf: DataPacket_Kind.valueOf,
@@ -1530,6 +1583,10 @@ class DataPacket extends $pb.GeneratedMessage {
         subBuilder: UserPacket.create)
     ..aOM<ActiveSpeakerUpdate>(3, _omitFieldNames ? '' : 'speaker',
         subBuilder: ActiveSpeakerUpdate.create)
+    ..aOS(4, _omitFieldNames ? '' : 'participantIdentity')
+    ..pPS(5, _omitFieldNames ? '' : 'destinationIdentities')
+    ..aOM<SipDTMF>(6, _omitFieldNames ? '' : 'sipDtmf',
+        subBuilder: SipDTMF.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1556,15 +1613,19 @@ class DataPacket extends $pb.GeneratedMessage {
   DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
   void clearValue() => clearField($_whichOneof(0));
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   DataPacket_Kind get kind => $_getN(0);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   set kind(DataPacket_Kind v) {
     setField(1, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   $core.bool hasKind() => $_has(0);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   void clearKind() => clearField(1);
 
@@ -1582,19 +1643,55 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   UserPacket ensureUser() => $_ensure(1);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   ActiveSpeakerUpdate get speaker => $_getN(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   set speaker(ActiveSpeakerUpdate v) {
     setField(3, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.bool hasSpeaker() => $_has(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   void clearSpeaker() => clearField(3);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   ActiveSpeakerUpdate ensureSpeaker() => $_ensure(2);
+
+  /// participant identity of user that sent the message
+  @$pb.TagNumber(4)
+  $core.String get participantIdentity => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set participantIdentity($core.String v) {
+    $_setString(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasParticipantIdentity() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearParticipantIdentity() => clearField(4);
+
+  /// identities of participants who will receive the message (sent to all by default)
+  @$pb.TagNumber(5)
+  $core.List<$core.String> get destinationIdentities => $_getList(4);
+
+  @$pb.TagNumber(6)
+  SipDTMF get sipDtmf => $_getN(5);
+  @$pb.TagNumber(6)
+  set sipDtmf(SipDTMF v) {
+    setField(6, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasSipDtmf() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSipDtmf() => clearField(6);
+  @$pb.TagNumber(6)
+  SipDTMF ensureSipDtmf() => $_ensure(5);
 }
 
 class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
@@ -1748,30 +1845,37 @@ class SpeakerInfo extends $pb.GeneratedMessage {
 
 class UserPacket extends $pb.GeneratedMessage {
   factory UserPacket({
-    $core.String? participantSid,
+    @$core.Deprecated('This field is deprecated.') $core.String? participantSid,
     $core.List<$core.int>? payload,
+    @$core.Deprecated('This field is deprecated.')
     $core.Iterable<$core.String>? destinationSids,
     $core.String? topic,
+    @$core.Deprecated('This field is deprecated.')
     $core.String? participantIdentity,
+    @$core.Deprecated('This field is deprecated.')
     $core.Iterable<$core.String>? destinationIdentities,
   }) {
     final $result = create();
     if (participantSid != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.participantSid = participantSid;
     }
     if (payload != null) {
       $result.payload = payload;
     }
     if (destinationSids != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.destinationSids.addAll(destinationSids);
     }
     if (topic != null) {
       $result.topic = topic;
     }
     if (participantIdentity != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.participantIdentity = participantIdentity;
     }
     if (destinationIdentities != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.destinationIdentities.addAll(destinationIdentities);
     }
     return $result;
@@ -1819,15 +1923,19 @@ class UserPacket extends $pb.GeneratedMessage {
   static UserPacket? _defaultInstance;
 
   /// participant ID of user that sent the message
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   $core.String get participantSid => $_getSZ(0);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   set participantSid($core.String v) {
     $_setString(0, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   $core.bool hasParticipantSid() => $_has(0);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   void clearParticipantSid() => clearField(1);
 
@@ -1845,6 +1953,7 @@ class UserPacket extends $pb.GeneratedMessage {
   void clearPayload() => clearField(2);
 
   /// the ID of the participants who will receive the message (sent to all by default)
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.List<$core.String> get destinationSids => $_getList(2);
 
@@ -1861,21 +1970,102 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearTopic() => clearField(4);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.String get participantIdentity => $_getSZ(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   set participantIdentity($core.String v) {
     $_setString(4, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasParticipantIdentity() => $_has(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   void clearParticipantIdentity() => clearField(5);
 
   /// identities of participants who will receive the message (sent to all by default)
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.List<$core.String> get destinationIdentities => $_getList(5);
+}
+
+class SipDTMF extends $pb.GeneratedMessage {
+  factory SipDTMF({
+    $core.int? code,
+    $core.String? digit,
+  }) {
+    final $result = create();
+    if (code != null) {
+      $result.code = code;
+    }
+    if (digit != null) {
+      $result.digit = digit;
+    }
+    return $result;
+  }
+  SipDTMF._() : super();
+  factory SipDTMF.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SipDTMF.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SipDTMF',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'code', $pb.PbFieldType.OU3)
+    ..aOS(4, _omitFieldNames ? '' : 'digit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SipDTMF clone() => SipDTMF()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SipDTMF copyWith(void Function(SipDTMF) updates) =>
+      super.copyWith((message) => updates(message as SipDTMF)) as SipDTMF;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SipDTMF create() => SipDTMF._();
+  SipDTMF createEmptyInstance() => create();
+  static $pb.PbList<SipDTMF> createRepeated() => $pb.PbList<SipDTMF>();
+  @$core.pragma('dart2js:noInline')
+  static SipDTMF getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SipDTMF>(create);
+  static SipDTMF? _defaultInstance;
+
+  @$pb.TagNumber(3)
+  $core.int get code => $_getIZ(0);
+  @$pb.TagNumber(3)
+  set code($core.int v) {
+    $_setUnsignedInt32(0, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasCode() => $_has(0);
+  @$pb.TagNumber(3)
+  void clearCode() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get digit => $_getSZ(1);
+  @$pb.TagNumber(4)
+  set digit($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasDigit() => $_has(1);
+  @$pb.TagNumber(4)
+  void clearDigit() => clearField(4);
 }
 
 class ParticipantTracks extends $pb.GeneratedMessage {
@@ -2843,6 +3033,7 @@ class RTPStats extends $pb.GeneratedMessage {
     $fixnum.Int64? headerBytesPadding,
     RTPDrift? packetDrift,
     RTPDrift? reportDrift,
+    RTPDrift? rebasedReportDrift,
   }) {
     final $result = create();
     if (startTime != null) {
@@ -2974,6 +3165,9 @@ class RTPStats extends $pb.GeneratedMessage {
     if (reportDrift != null) {
       $result.reportDrift = reportDrift;
     }
+    if (rebasedReportDrift != null) {
+      $result.rebasedReportDrift = rebasedReportDrift;
+    }
     return $result;
   }
   RTPStats._() : super();
@@ -3068,6 +3262,8 @@ class RTPStats extends $pb.GeneratedMessage {
     ..aOM<RTPDrift>(44, _omitFieldNames ? '' : 'packetDrift',
         subBuilder: RTPDrift.create)
     ..aOM<RTPDrift>(45, _omitFieldNames ? '' : 'reportDrift',
+        subBuilder: RTPDrift.create)
+    ..aOM<RTPDrift>(46, _omitFieldNames ? '' : 'rebasedReportDrift',
         subBuilder: RTPDrift.create)
     ..hasRequiredFields = false;
 
@@ -3614,6 +3810,20 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearReportDrift() => clearField(45);
   @$pb.TagNumber(45)
   RTPDrift ensureReportDrift() => $_ensure(42);
+
+  @$pb.TagNumber(46)
+  RTPDrift get rebasedReportDrift => $_getN(43);
+  @$pb.TagNumber(46)
+  set rebasedReportDrift(RTPDrift v) {
+    setField(46, v);
+  }
+
+  @$pb.TagNumber(46)
+  $core.bool hasRebasedReportDrift() => $_has(43);
+  @$pb.TagNumber(46)
+  void clearRebasedReportDrift() => clearField(46);
+  @$pb.TagNumber(46)
+  RTPDrift ensureRebasedReportDrift() => $_ensure(43);
 }
 
 class TimedVersion extends $pb.GeneratedMessage {

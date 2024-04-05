@@ -36,6 +36,8 @@ enum SignalRequest_Message {
   ping,
   updateMetadata,
   pingReq,
+  updateAudioTrack,
+  updateVideoTrack,
   notSet
 }
 
@@ -56,6 +58,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     $fixnum.Int64? ping,
     UpdateParticipantMetadata? updateMetadata,
     Ping? pingReq,
+    UpdateLocalAudioTrack? updateAudioTrack,
+    UpdateLocalVideoTrack? updateVideoTrack,
   }) {
     final $result = create();
     if (offer != null) {
@@ -103,6 +107,12 @@ class SignalRequest extends $pb.GeneratedMessage {
     if (pingReq != null) {
       $result.pingReq = pingReq;
     }
+    if (updateAudioTrack != null) {
+      $result.updateAudioTrack = updateAudioTrack;
+    }
+    if (updateVideoTrack != null) {
+      $result.updateVideoTrack = updateVideoTrack;
+    }
     return $result;
   }
   SignalRequest._() : super();
@@ -130,13 +140,15 @@ class SignalRequest extends $pb.GeneratedMessage {
     14: SignalRequest_Message.ping,
     15: SignalRequest_Message.updateMetadata,
     16: SignalRequest_Message.pingReq,
+    17: SignalRequest_Message.updateAudioTrack,
+    18: SignalRequest_Message.updateVideoTrack,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SignalRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18])
     ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'offer',
         subBuilder: SessionDescription.create)
     ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer',
@@ -167,6 +179,10 @@ class SignalRequest extends $pb.GeneratedMessage {
         15, _omitFieldNames ? '' : 'updateMetadata',
         subBuilder: UpdateParticipantMetadata.create)
     ..aOM<Ping>(16, _omitFieldNames ? '' : 'pingReq', subBuilder: Ping.create)
+    ..aOM<UpdateLocalAudioTrack>(17, _omitFieldNames ? '' : 'updateAudioTrack',
+        subBuilder: UpdateLocalAudioTrack.create)
+    ..aOM<UpdateLocalVideoTrack>(18, _omitFieldNames ? '' : 'updateVideoTrack',
+        subBuilder: UpdateLocalVideoTrack.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -415,6 +431,36 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearPingReq() => clearField(16);
   @$pb.TagNumber(16)
   Ping ensurePingReq() => $_ensure(14);
+
+  /// Update local audio track settings
+  @$pb.TagNumber(17)
+  UpdateLocalAudioTrack get updateAudioTrack => $_getN(15);
+  @$pb.TagNumber(17)
+  set updateAudioTrack(UpdateLocalAudioTrack v) {
+    setField(17, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasUpdateAudioTrack() => $_has(15);
+  @$pb.TagNumber(17)
+  void clearUpdateAudioTrack() => clearField(17);
+  @$pb.TagNumber(17)
+  UpdateLocalAudioTrack ensureUpdateAudioTrack() => $_ensure(15);
+
+  /// Update local video track settings
+  @$pb.TagNumber(18)
+  UpdateLocalVideoTrack get updateVideoTrack => $_getN(16);
+  @$pb.TagNumber(18)
+  set updateVideoTrack(UpdateLocalVideoTrack v) {
+    setField(18, v);
+  }
+
+  @$pb.TagNumber(18)
+  $core.bool hasUpdateVideoTrack() => $_has(16);
+  @$pb.TagNumber(18)
+  void clearUpdateVideoTrack() => clearField(18);
+  @$pb.TagNumber(18)
+  UpdateLocalVideoTrack ensureUpdateVideoTrack() => $_ensure(16);
 }
 
 enum SignalResponse_Message {
@@ -2364,10 +2410,184 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   void clearPriority() => clearField(8);
 }
 
+class UpdateLocalAudioTrack extends $pb.GeneratedMessage {
+  factory UpdateLocalAudioTrack({
+    $core.String? trackSid,
+    $core.Iterable<$1.AudioTrackFeature>? features,
+  }) {
+    final $result = create();
+    if (trackSid != null) {
+      $result.trackSid = trackSid;
+    }
+    if (features != null) {
+      $result.features.addAll(features);
+    }
+    return $result;
+  }
+  UpdateLocalAudioTrack._() : super();
+  factory UpdateLocalAudioTrack.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UpdateLocalAudioTrack.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateLocalAudioTrack',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'trackSid')
+    ..pc<$1.AudioTrackFeature>(
+        2, _omitFieldNames ? '' : 'features', $pb.PbFieldType.KE,
+        valueOf: $1.AudioTrackFeature.valueOf,
+        enumValues: $1.AudioTrackFeature.values,
+        defaultEnumValue: $1.AudioTrackFeature.TF_STEREO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UpdateLocalAudioTrack clone() =>
+      UpdateLocalAudioTrack()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UpdateLocalAudioTrack copyWith(
+          void Function(UpdateLocalAudioTrack) updates) =>
+      super.copyWith((message) => updates(message as UpdateLocalAudioTrack))
+          as UpdateLocalAudioTrack;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UpdateLocalAudioTrack create() => UpdateLocalAudioTrack._();
+  UpdateLocalAudioTrack createEmptyInstance() => create();
+  static $pb.PbList<UpdateLocalAudioTrack> createRepeated() =>
+      $pb.PbList<UpdateLocalAudioTrack>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateLocalAudioTrack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateLocalAudioTrack>(create);
+  static UpdateLocalAudioTrack? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$1.AudioTrackFeature> get features => $_getList(1);
+}
+
+class UpdateLocalVideoTrack extends $pb.GeneratedMessage {
+  factory UpdateLocalVideoTrack({
+    $core.String? trackSid,
+    $core.int? width,
+    $core.int? height,
+  }) {
+    final $result = create();
+    if (trackSid != null) {
+      $result.trackSid = trackSid;
+    }
+    if (width != null) {
+      $result.width = width;
+    }
+    if (height != null) {
+      $result.height = height;
+    }
+    return $result;
+  }
+  UpdateLocalVideoTrack._() : super();
+  factory UpdateLocalVideoTrack.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UpdateLocalVideoTrack.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateLocalVideoTrack',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'trackSid')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  UpdateLocalVideoTrack clone() =>
+      UpdateLocalVideoTrack()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  UpdateLocalVideoTrack copyWith(
+          void Function(UpdateLocalVideoTrack) updates) =>
+      super.copyWith((message) => updates(message as UpdateLocalVideoTrack))
+          as UpdateLocalVideoTrack;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UpdateLocalVideoTrack create() => UpdateLocalVideoTrack._();
+  UpdateLocalVideoTrack createEmptyInstance() => create();
+  static $pb.PbList<UpdateLocalVideoTrack> createRepeated() =>
+      $pb.PbList<UpdateLocalVideoTrack>();
+  @$core.pragma('dart2js:noInline')
+  static UpdateLocalVideoTrack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateLocalVideoTrack>(create);
+  static UpdateLocalVideoTrack? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get width => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set width($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasWidth() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWidth() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get height => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set height($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasHeight() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHeight() => clearField(3);
+}
+
 class LeaveRequest extends $pb.GeneratedMessage {
   factory LeaveRequest({
     $core.bool? canReconnect,
     $1.DisconnectReason? reason,
+    LeaveRequest_Action? action,
+    RegionSettings? regions,
   }) {
     final $result = create();
     if (canReconnect != null) {
@@ -2375,6 +2595,12 @@ class LeaveRequest extends $pb.GeneratedMessage {
     }
     if (reason != null) {
       $result.reason = reason;
+    }
+    if (action != null) {
+      $result.action = action;
+    }
+    if (regions != null) {
+      $result.regions = regions;
     }
     return $result;
   }
@@ -2396,6 +2622,13 @@ class LeaveRequest extends $pb.GeneratedMessage {
         defaultOrMaker: $1.DisconnectReason.UNKNOWN_REASON,
         valueOf: $1.DisconnectReason.valueOf,
         enumValues: $1.DisconnectReason.values)
+    ..e<LeaveRequest_Action>(
+        3, _omitFieldNames ? '' : 'action', $pb.PbFieldType.OE,
+        defaultOrMaker: LeaveRequest_Action.DISCONNECT,
+        valueOf: LeaveRequest_Action.valueOf,
+        enumValues: LeaveRequest_Action.values)
+    ..aOM<RegionSettings>(4, _omitFieldNames ? '' : 'regions',
+        subBuilder: RegionSettings.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -2423,6 +2656,7 @@ class LeaveRequest extends $pb.GeneratedMessage {
 
   /// sent when server initiates the disconnect due to server-restart
   /// indicates clients should attempt full-reconnect sequence
+  /// NOTE: `can_reconnect` obsoleted by `action` starting in protocol version 13
   @$pb.TagNumber(1)
   $core.bool get canReconnect => $_getBF(0);
   @$pb.TagNumber(1)
@@ -2446,6 +2680,32 @@ class LeaveRequest extends $pb.GeneratedMessage {
   $core.bool hasReason() => $_has(1);
   @$pb.TagNumber(2)
   void clearReason() => clearField(2);
+
+  @$pb.TagNumber(3)
+  LeaveRequest_Action get action => $_getN(2);
+  @$pb.TagNumber(3)
+  set action(LeaveRequest_Action v) {
+    setField(3, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasAction() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearAction() => clearField(3);
+
+  @$pb.TagNumber(4)
+  RegionSettings get regions => $_getN(3);
+  @$pb.TagNumber(4)
+  set regions(RegionSettings v) {
+    setField(4, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasRegions() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRegions() => clearField(4);
+  @$pb.TagNumber(4)
+  RegionSettings ensureRegions() => $_ensure(3);
 }
 
 /// message to indicate published video track dimensions are changing
@@ -3626,6 +3886,7 @@ class SyncState extends $pb.GeneratedMessage {
     $core.Iterable<TrackPublishedResponse>? publishTracks,
     $core.Iterable<DataChannelInfo>? dataChannels,
     SessionDescription? offer,
+    $core.Iterable<$core.String>? trackSidsDisabled,
   }) {
     final $result = create();
     if (answer != null) {
@@ -3642,6 +3903,9 @@ class SyncState extends $pb.GeneratedMessage {
     }
     if (offer != null) {
       $result.offer = offer;
+    }
+    if (trackSidsDisabled != null) {
+      $result.trackSidsDisabled.addAll(trackSidsDisabled);
     }
     return $result;
   }
@@ -3669,6 +3933,7 @@ class SyncState extends $pb.GeneratedMessage {
         subBuilder: DataChannelInfo.create)
     ..aOM<SessionDescription>(5, _omitFieldNames ? '' : 'offer',
         subBuilder: SessionDescription.create)
+    ..pPS(6, _omitFieldNames ? '' : 'trackSidsDisabled')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -3741,6 +4006,9 @@ class SyncState extends $pb.GeneratedMessage {
   void clearOffer() => clearField(5);
   @$pb.TagNumber(5)
   SessionDescription ensureOffer() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  $core.List<$core.String> get trackSidsDisabled => $_getList(5);
 }
 
 class DataChannelInfo extends $pb.GeneratedMessage {
@@ -3848,6 +4116,8 @@ enum SimulateScenario_Scenario {
   serverLeave,
   switchCandidateProtocol,
   subscriberBandwidth,
+  disconnectSignalOnResume,
+  disconnectSignalOnResumeNoMessages,
   notSet
 }
 
@@ -3859,6 +4129,8 @@ class SimulateScenario extends $pb.GeneratedMessage {
     $core.bool? serverLeave,
     CandidateProtocol? switchCandidateProtocol,
     $fixnum.Int64? subscriberBandwidth,
+    $core.bool? disconnectSignalOnResume,
+    $core.bool? disconnectSignalOnResumeNoMessages,
   }) {
     final $result = create();
     if (speakerUpdate != null) {
@@ -3879,6 +4151,13 @@ class SimulateScenario extends $pb.GeneratedMessage {
     if (subscriberBandwidth != null) {
       $result.subscriberBandwidth = subscriberBandwidth;
     }
+    if (disconnectSignalOnResume != null) {
+      $result.disconnectSignalOnResume = disconnectSignalOnResume;
+    }
+    if (disconnectSignalOnResumeNoMessages != null) {
+      $result.disconnectSignalOnResumeNoMessages =
+          disconnectSignalOnResumeNoMessages;
+    }
     return $result;
   }
   SimulateScenario._() : super();
@@ -3897,13 +4176,15 @@ class SimulateScenario extends $pb.GeneratedMessage {
     4: SimulateScenario_Scenario.serverLeave,
     5: SimulateScenario_Scenario.switchCandidateProtocol,
     6: SimulateScenario_Scenario.subscriberBandwidth,
+    7: SimulateScenario_Scenario.disconnectSignalOnResume,
+    8: SimulateScenario_Scenario.disconnectSignalOnResumeNoMessages,
     0: SimulateScenario_Scenario.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SimulateScenario',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
     ..a<$core.int>(
         1, _omitFieldNames ? '' : 'speakerUpdate', $pb.PbFieldType.O3)
     ..aOB(2, _omitFieldNames ? '' : 'nodeFailure')
@@ -3915,6 +4196,8 @@ class SimulateScenario extends $pb.GeneratedMessage {
         valueOf: CandidateProtocol.valueOf,
         enumValues: CandidateProtocol.values)
     ..aInt64(6, _omitFieldNames ? '' : 'subscriberBandwidth')
+    ..aOB(7, _omitFieldNames ? '' : 'disconnectSignalOnResume')
+    ..aOB(8, _omitFieldNames ? '' : 'disconnectSignalOnResumeNoMessages')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -4022,6 +4305,32 @@ class SimulateScenario extends $pb.GeneratedMessage {
   $core.bool hasSubscriberBandwidth() => $_has(5);
   @$pb.TagNumber(6)
   void clearSubscriberBandwidth() => clearField(6);
+
+  /// disconnect signal on resume
+  @$pb.TagNumber(7)
+  $core.bool get disconnectSignalOnResume => $_getBF(6);
+  @$pb.TagNumber(7)
+  set disconnectSignalOnResume($core.bool v) {
+    $_setBool(6, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasDisconnectSignalOnResume() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearDisconnectSignalOnResume() => clearField(7);
+
+  /// disconnect signal on resume before sending any messages from server
+  @$pb.TagNumber(8)
+  $core.bool get disconnectSignalOnResumeNoMessages => $_getBF(7);
+  @$pb.TagNumber(8)
+  set disconnectSignalOnResumeNoMessages($core.bool v) {
+    $_setBool(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasDisconnectSignalOnResumeNoMessages() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearDisconnectSignalOnResumeNoMessages() => clearField(8);
 }
 
 class Ping extends $pb.GeneratedMessage {
