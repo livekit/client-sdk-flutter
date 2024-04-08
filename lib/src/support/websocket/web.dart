@@ -14,8 +14,9 @@
 
 import 'dart:async';
 import 'dart:js_interop';
-import 'package:web/web.dart' as web;
 import 'dart:typed_data';
+
+import 'package:web/web.dart' as web;
 
 import '../../extensions.dart';
 import '../../logger.dart';

@@ -13,11 +13,10 @@
 // limitations under the License.
 
 import 'dart:js_interop';
-
-import 'package:web/web.dart' as web;
 import 'dart:js_util' as jsutil;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:web/web.dart' as web;
 
 import '_audio_context.dart';
 
