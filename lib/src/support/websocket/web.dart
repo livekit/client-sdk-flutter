@@ -13,8 +13,10 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'dart:typed_data';
+
+import 'package:web/web.dart' as web;
 
 import '../../extensions.dart';
 import '../../logger.dart';
@@ -29,7 +31,7 @@ Future<LiveKitWebSocketWeb> lkWebSocketConnect(
     LiveKitWebSocketWeb.connect(uri, options);
 
 class LiveKitWebSocketWeb extends LiveKitWebSocket {
-  final html.WebSocket _ws;
+  final web.WebSocket _ws;
   final WebSocketEventHandlers? options;
   late final StreamSubscription _messageSubscription;
   late final StreamSubscription _closeSubscription;
@@ -44,7 +46,8 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      dynamic data = _.data is ByteBuffer ? _.data.asUint8List() : _.data;
+      dynamic data =
+          _.data is ByteBuffer ? (_.data as ByteBuffer).asUint8List() : _.data;
       options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {
@@ -54,21 +57,21 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
     });
 
     onDispose(() async {
-      if (_ws.readyState != html.WebSocket.CLOSED) {
+      if (_ws.readyState != web.WebSocket.CLOSED) {
         _ws.close();
       }
     });
   }
 
   @override
-  void send(List<int> data) => _ws.send(data);
+  void send(List<int> data) => _ws.send(Uint8List.fromList(data).toJS);
 
   static Future<LiveKitWebSocketWeb> connect(
     Uri uri, [
     WebSocketEventHandlers? options,
   ]) async {
     final completer = Completer<LiveKitWebSocketWeb>();
-    final ws = html.WebSocket(uri.toString());
+    final ws = web.WebSocket(uri.toString());
     ws.onOpen
         .listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
     ws.onError
