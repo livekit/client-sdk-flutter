@@ -24,7 +24,7 @@ import '../track/options.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 
-abstract class InternalEvent implements LiveKitEvent {}
+mixin InternalEvent implements LiveKitEvent {}
 
 @internal
 abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {

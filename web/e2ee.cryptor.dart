@@ -1,19 +1,17 @@
 import 'dart:async';
-
 import 'dart:js';
 import 'dart:js_interop';
+import 'dart:js_util' as jsutil;
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dart_webrtc/src/rtc_transform_stream.dart';
-import 'package:js/js_util.dart' as jsutil;
 import 'package:web/web.dart' as web;
 
+import 'crypto.dart' as crypto;
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
 import 'e2ee.sfi_guard.dart';
-
-final crypto = web.window.crypto.subtle;
 
 const IV_LENGTH = 12;
 
@@ -223,7 +221,7 @@ class FrameCryptor {
   }
 
   void postMessage(Object message) {
-    worker.postMessage(jsutil.jsify(message));
+    worker.postMessage(message.jsify());
   }
 
   Future<void> setupTransform({
@@ -339,13 +337,14 @@ class FrameCryptor {
       frameTrailer.setInt8(1, keyIndex);
 
       var cipherText = await jsutil.promiseToFuture<ByteBuffer>(crypto.encrypt(
-        web.AesGcmParams(
-          //name: 'AES-GCM',
-          iv: iv.toJS,
-          additionalData: buffer.sublist(0, headerLength).toJS,
+        crypto.AesGcmParams(
+          name: 'AES-GCM',
+          iv: crypto.jsArrayBufferFrom(iv),
+          additionalData:
+              crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
         ),
         secretKey,
-        buffer.sublist(headerLength, buffer.length).toJS,
+        crypto.jsArrayBufferFrom(buffer.sublist(headerLength, buffer.length)),
       ));
 
       logger.finer(
@@ -356,7 +355,7 @@ class FrameCryptor {
       finalBuffer.add(cipherText.asUint8List());
       finalBuffer.add(iv);
       finalBuffer.add(frameTrailer.buffer.asUint8List());
-      frame.data = finalBuffer.toBytes().buffer;
+      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
 
       controller.enqueue(frame);
 
@@ -425,7 +424,7 @@ class FrameCryptor {
             var finalBuffer = BytesBuilder();
             finalBuffer.add(Uint8List.fromList(
                 buffer.sublist(0, buffer.length - (magicBytes.length + 1))));
-            frame.data = finalBuffer.toBytes().buffer;
+            frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
             controller.enqueue(frame);
           } else {
             logger.finer('SIF limit reached, dropping frame');
@@ -471,17 +470,19 @@ class FrameCryptor {
       while (!endDecLoop) {
         try {
           decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
-            web.AesGcmParams(
-              //name: 'AES-GCM',
-              iv: iv.toJS,
-              additionalData: buffer.sublist(0, headerLength).toJS,
+            crypto.AesGcmParams(
+              name: 'AES-GCM',
+              iv: crypto.jsArrayBufferFrom(iv),
+              additionalData:
+                  crypto.jsArrayBufferFrom(buffer.sublist(0, headerLength)),
             ),
             currentkeySet.encryptionKey,
-            buffer.sublist(headerLength, buffer.length - ivLength - 2).toJS,
+            crypto.jsArrayBufferFrom(
+                buffer.sublist(headerLength, buffer.length - ivLength - 2)),
           ));
 
           if (currentkeySet != initialKeySet) {
-            logger.warning(
+            logger.fine(
                 'ratchetKey: decryption ok, reset state to kKeyRatcheted');
             await keyHandler.setKeySetFromMaterial(
                 currentkeySet, initialKeyIndex);
@@ -515,10 +516,10 @@ class FrameCryptor {
           if (endDecLoop) {
             rethrow;
           }
-          var newKeyBuffer = await keyHandler.ratchet(
-              currentkeySet.material, keyOptions.ratchetSalt);
+          var newKeyBuffer = crypto.jsArrayBufferFrom(await keyHandler.ratchet(
+              currentkeySet.material, keyOptions.ratchetSalt));
           var newMaterial = await keyHandler.ratchetMaterial(
-              currentkeySet.material, newKeyBuffer.buffer);
+              currentkeySet.material, newKeyBuffer);
           currentkeySet =
               await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
           ratchetCount++;
@@ -531,7 +532,7 @@ class FrameCryptor {
 
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
       finalBuffer.add(decrypted!.asUint8List());
-      frame.data = finalBuffer.toBytes().buffer;
+      frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
