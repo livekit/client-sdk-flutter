@@ -132,7 +132,10 @@ void main() async {
                 uncryptedMagicBytes: options['uncryptedMagicBytes'] != null
                     ? Uint8List.fromList(
                         base64Decode(options['uncryptedMagicBytes'] as String))
-                    : null);
+                    : null,
+                keyRingSze: options['keyRingSize'] ?? KEYRING_SIZE,
+                discardFrameWhenCryptorNotReady:
+                    options['discardFrameWhenCryptorNotReady'] ?? false);
             logger.config(
                 'Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
 

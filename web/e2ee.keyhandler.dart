@@ -22,6 +22,8 @@ import 'crypto.dart' as crypto;
 import 'e2ee.logger.dart';
 import 'e2ee.utils.dart';
 
+const KEYRING_SIZE = 16;
+
 class KeyOptions {
   KeyOptions({
     required this.sharedKey,
@@ -29,12 +31,16 @@ class KeyOptions {
     required this.ratchetWindowSize,
     this.uncryptedMagicBytes,
     this.failureTolerance = -1,
+    this.keyRingSze = KEYRING_SIZE,
+    this.discardFrameWhenCryptorNotReady = false,
   });
   bool sharedKey;
   Uint8List ratchetSalt;
   int ratchetWindowSize = 0;
   int failureTolerance;
   Uint8List? uncryptedMagicBytes;
+  int keyRingSze;
+  bool discardFrameWhenCryptorNotReady;
 
   @override
   String toString() {
@@ -91,8 +97,6 @@ class KeyProvider {
   }
 }
 
-const KEYRING_SIZE = 16;
-
 class KeySet {
   KeySet(this.material, this.encryptionKey);
   web.CryptoKey material;
@@ -104,10 +108,15 @@ class ParticipantKeyHandler {
     required this.worker,
     required this.keyOptions,
     required this.participantIdentity,
-  });
+  }) {
+    if (keyOptions.keyRingSze <= 0 || keyOptions.keyRingSze > 255) {
+      throw Exception('Invalid key ring size');
+    }
+    cryptoKeyRing = List.filled(keyOptions.keyRingSze, null);
+  }
   int currentKeyIndex = 0;
 
-  List<KeySet?> cryptoKeyRing = List.filled(KEYRING_SIZE, null);
+  late List<KeySet?> cryptoKeyRing;
 
   bool _hasValidKey = false;
 
