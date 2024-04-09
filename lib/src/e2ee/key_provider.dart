@@ -23,6 +23,8 @@ const defaultRatchetSalt = 'LKFrameEncryptionKey';
 const defaultMagicBytes = 'LK-ROCKS';
 const defaultRatchetWindowSize = 16;
 const defaultFailureTolerance = -1;
+const defaultKeyRingSize = 16;
+const defaultDiscardFrameWhenCryptorNotReady = false;
 
 class KeyInfo {
   final String participantId;
@@ -70,16 +72,20 @@ class BaseKeyProvider implements KeyProvider {
     String? uncryptedMagicBytes,
     int? ratchetWindowSize,
     int? failureTolerance,
+    int? keyRingSize,
+    bool? discardFrameWhenCryptorNotReady,
   }) async {
     rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
-      sharedKey: sharedKey,
-      ratchetSalt:
-          Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
-      ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
-      uncryptedMagicBytes: Uint8List.fromList(
-          (uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
-      failureTolerance: failureTolerance ?? defaultFailureTolerance,
-    );
+        sharedKey: sharedKey,
+        ratchetSalt:
+            Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
+        ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
+        uncryptedMagicBytes: Uint8List.fromList(
+            (uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
+        failureTolerance: failureTolerance ?? defaultFailureTolerance,
+        keyRingSize: keyRingSize ?? defaultKeyRingSize,
+        discardFrameWhenCryptorNotReady:
+            defaultDiscardFrameWhenCryptorNotReady);
     final keyProvider =
         await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.2
+
+* fix: Expose keyRingSize/discardFrameWhenCryptorNotReady parameters for KeyProvider
+
 ## 2.1.1
 
 * update to package:web (#484)
