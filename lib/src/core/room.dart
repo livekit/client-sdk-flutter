@@ -397,8 +397,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
       }
-      notifyListeners();
       events.emit(const RoomReconnectedEvent());
+      notifyListeners();
     })
     ..on<EngineResumingEvent>((event) async {
       await _sendSyncState();
