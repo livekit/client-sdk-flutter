@@ -90,8 +90,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     track.lastPublishOptions = publishOptions;
 
-    await track.start();
-
     final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
       sendEncodings: [
@@ -129,6 +127,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       participant: this,
       publication: pub,
     ));
+
+    await track.start();
 
     return pub;
   }
