@@ -555,10 +555,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       final isNew = !_remoteParticipants.containsKey(info.identity);
 
-      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED &&
-          !isNew) {
-        hasChanged = true;
-        await _handleParticipantDisconnect(info.identity);
+      if (info.state == lk_models.ParticipantInfo_State.DISCONNECTED) {
+        hasChanged = await _handleParticipantDisconnect(info.identity);
         continue;
       }
 
@@ -697,15 +695,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     events.emit(event);
   }
 
-  Future<void> _handleParticipantDisconnect(String identity) async {
+  Future<bool> _handleParticipantDisconnect(String identity) async {
     final participant = _remoteParticipants.remove(identity);
     if (participant == null) {
-      return;
+      return false;
     }
 
     await participant.removeAllPublishedTracks(notify: true);
 
     emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
+    return true;
   }
 
   Future<void> _sendSyncState() async {
