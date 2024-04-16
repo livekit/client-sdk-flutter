@@ -170,8 +170,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       throw UnexpectedStateException('Unknown track type');
     }
 
-    await track.start();
-
     /// Apply audio output selection for the web.
     if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
@@ -189,6 +187,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       track: track,
       publication: pub,
     ));
+
+    await track.start();
   }
 
   @override

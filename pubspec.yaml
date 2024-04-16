@@ -42,7 +42,7 @@ dependencies:
   device_info_plus: '>=8.0.0'
   js: ^0.6.4
   platform_detect: ^2.0.7
-  dart_webrtc: ^1.4.0
+  dart_webrtc: ^1.4.2
   sdp_transform: ^0.3.2
   web: ^0.5.1
 
