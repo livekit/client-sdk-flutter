@@ -15,5 +15,5 @@
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.1.2';
+  static const version = '2.1.3';
 }
