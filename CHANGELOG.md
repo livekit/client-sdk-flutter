@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.1.3
+
+* upgrade to connectivity plus 6.x.
+* bump dart_webrtc to 1.4.3.
+
 ## 2.1.2
 
 * fix: Expose keyRingSize/discardFrameWhenCryptorNotReady parameters for KeyProvider
