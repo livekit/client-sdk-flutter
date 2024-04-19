@@ -67,7 +67,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
-    return _connectivityResult.contains(ConnectivityResult.none);
+    return _connectivityResult.isNotEmpty &&
+        !_connectivityResult.contains(ConnectivityResult.none);
   }
 
   @internal
