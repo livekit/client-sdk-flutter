@@ -336,27 +336,20 @@ class Utils {
     var connectivityResult = await (Connectivity().checkConnectivity());
     // wifi, wired, cellular, vpn, empty if not known
     String networkType = 'empty';
-    switch (connectivityResult) {
-      case ConnectivityResult.mobile:
-        networkType = 'cellular';
-        break;
-      case ConnectivityResult.wifi:
-        networkType = 'wifi';
-        break;
-      case ConnectivityResult.bluetooth:
-        networkType = 'bluetooth';
-        break;
-      case ConnectivityResult.ethernet:
-        networkType = 'wired';
-        break;
-      case ConnectivityResult.other:
-      case ConnectivityResult.vpn:
-        //TODO: will livekit-server handle vpn and other types correctly?
-        //  networkType = 'vpn';
-        break;
-      case ConnectivityResult.none:
-        networkType = 'empty';
-        break;
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      networkType = 'empty';
+    } else if (connectivityResult.contains(ConnectivityResult.mobile)) {
+      networkType = 'cellular';
+    } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
+      networkType = 'wifi';
+    } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
+      networkType = 'wired';
+    } else if (connectivityResult.contains(ConnectivityResult.bluetooth)) {
+      networkType = 'bluetooth';
+    } else if (connectivityResult.contains(ConnectivityResult.other)) {
+      networkType = 'other';
+    } else if (connectivityResult.contains(ConnectivityResult.vpn)) {
+      networkType = 'vpn';
     }
     return networkType;
   }

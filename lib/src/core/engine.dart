@@ -687,7 +687,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('no internet connection, waiting...');
         await signalClient.events.waitFor<SignalConnectivityChangedEvent>(
           duration: connectOptions.timeouts.connection * 10,
-          filter: (event) => event.state != ConnectivityResult.none,
+          filter: (event) => !event.state.contains(ConnectivityResult.none),
           onTimeout: () => throw ConnectException(
               'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent'),
         );

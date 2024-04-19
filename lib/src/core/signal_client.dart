@@ -58,8 +58,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   int _pingCount = 0;
   String? participantSid;
 
-  ConnectivityResult? _connectivityResult;
-  StreamSubscription<ConnectivityResult>? connectivitySubscription;
+  List<ConnectivityResult> _connectivityResult = [];
+  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
 
   Future<bool> networkIsAvailable() async {
     // Skip check for web or flutter test
@@ -67,7 +67,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
-    return _connectivityResult != ConnectivityResult.none;
+    return _connectivityResult.isNotEmpty &&
+        !_connectivityResult.contains(ConnectivityResult.none);
   }
 
   @internal
@@ -95,27 +96,25 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }) async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
-      connectivitySubscription ??= Connectivity()
+      connectivitySubscription = Connectivity()
           .onConnectivityChanged
-          .listen((ConnectivityResult result) {
+          .listen((List<ConnectivityResult> result) {
         if (_connectivityResult != result) {
-          if (result == ConnectivityResult.none) {
+          if (result.contains(ConnectivityResult.none)) {
             logger.warning('lost connectivity');
           } else {
             logger.info(
-                'Connectivity changed, ${_connectivityResult!.name} => ${result.name}');
+                'Connectivity changed, ${_connectivityResult} => ${result}');
           }
-
           events.emit(SignalConnectivityChangedEvent(
-            oldState: _connectivityResult!,
+            oldState: _connectivityResult,
             state: result,
           ));
-
           _connectivityResult = result;
         }
       });
 
-      if (_connectivityResult == ConnectivityResult.none) {
+      if (_connectivityResult.contains(ConnectivityResult.none)) {
         logger.warning('no internet connection');
         events.emit(SignalDisconnectedEvent(
             reason: DisconnectReason.noInternetConnection));
