@@ -67,7 +67,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       return true;
     }
     _connectivityResult = await Connectivity().checkConnectivity();
-    return _connectivityResult != ConnectivityResult.none;
+    return _connectivityResult.contains(ConnectivityResult.none);
   }
 
   @internal
@@ -113,7 +113,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         }
       });
 
-      if (_connectivityResult == ConnectivityResult.none) {
+      if (_connectivityResult.contains(ConnectivityResult.none)) {
         logger.warning('no internet connection');
         events.emit(SignalDisconnectedEvent(
             reason: DisconnectReason.noInternetConnection));
