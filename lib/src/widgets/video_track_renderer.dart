@@ -53,6 +53,7 @@ class VideoTrackRenderer extends StatefulWidget {
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
+  rtc.RTCVideoPlatformViewController? _platformController;
   // for flutter web only.
   bool _rendererReadyForWeb = false;
   EventsListener<TrackEvent>? _listener;
@@ -68,9 +69,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   void disposeRenderer() {
     try {
-      _renderer?.srcObject = null;
+      _setSrcObject(null);
       _renderer?.dispose();
       _renderer = null;
+      _platformController?.dispose();
+      _platformController = null;
     } catch (e) {
       logger.warning('Got error disposing renderer: $e');
     }
@@ -96,13 +99,21 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.dispose();
   }
 
+  void _setSrcObject(rtc.MediaStream? stream) {
+    if (lkPlatformIs(PlatformType.iOS)) {
+      _platformController?.srcObject = stream;
+    } else {
+      _renderer?.srcObject = stream;
+    }
+  }
+
   Future<void> _attach() async {
-    _renderer?.srcObject = widget.track.mediaStream;
+    _setSrcObject(widget.track.mediaStream);
     await _listener?.dispose();
     _listener = widget.track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
         if (!mounted) return;
-        _renderer?.srcObject = event.stream;
+        _setSrcObject(event.stream);
       })
       ..on<LocalTrackOptionsUpdatedEvent>((event) {
         if (!mounted) return;
@@ -159,6 +170,16 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                   ?.addPostFrameCallback((timeStamp) {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
+              if (lkPlatformIs(PlatformType.iOS)) {
+                return rtc.RTCVideoPlatFormView(
+                  mirror: false,
+                  objectFit: widget.fit,
+                  onViewReady: (controller) {
+                    _platformController = controller;
+                    _platformController?.srcObject = widget.track.mediaStream;
+                  },
+                );
+              }
               return rtc.RTCVideoView(
                 _renderer!,
                 mirror: _shouldMirror(),
