@@ -6,8 +6,8 @@ class LKTextField extends StatelessWidget {
   const LKTextField({
     required this.label,
     this.ctrl,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) => Column(

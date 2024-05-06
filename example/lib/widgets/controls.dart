@@ -18,8 +18,8 @@ class ControlsWidget extends StatefulWidget {
   const ControlsWidget(
     this.room,
     this.participant, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _ControlsWidgetState();
@@ -340,7 +340,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                           ),
                           onTap: () => _selectAudioInput(device),
                         );
-                      }).toList()
+                      })
                   ];
                 },
               )
@@ -384,7 +384,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         ),
                         onTap: () => _selectAudioOutput(device),
                       );
-                    }).toList()
+                    })
                 ];
               },
             ),
@@ -433,7 +433,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         ),
                         onTap: () => _selectVideoInput(device),
                       );
-                    }).toList()
+                    })
                 ];
               },
             )

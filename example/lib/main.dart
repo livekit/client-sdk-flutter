@@ -18,7 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (lkPlatformIsDesktop()) {
-    FlutterWindowClose.setWindowShouldCloseHandler(() async {
+    await FlutterWindowClose.setWindowShouldCloseHandler(() async {
       await onWindowShouldClose?.call();
       return true;
     });
@@ -30,8 +30,8 @@ void main() async {
 class LiveKitExampleApp extends StatelessWidget {
   //
   const LiveKitExampleApp({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) => MaterialApp(

@@ -19,8 +19,8 @@ class RoomPage extends StatefulWidget {
   const RoomPage(
     this.room,
     this.listener, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _RoomPageState();

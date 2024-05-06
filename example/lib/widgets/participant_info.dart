@@ -25,8 +25,8 @@ class ParticipantInfoWidget extends StatelessWidget {
     this.connectionQuality = ConnectionQuality.unknown,
     this.isScreenShare = false,
     this.enabledE2EE = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
