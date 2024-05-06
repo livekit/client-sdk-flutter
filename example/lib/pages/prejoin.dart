@@ -36,8 +36,8 @@ class JoinArgs {
 class PreJoinPage extends StatefulWidget {
   const PreJoinPage({
     required this.args,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final JoinArgs args;
   @override
   State<StatefulWidget> createState() => _PreJoinPageState();

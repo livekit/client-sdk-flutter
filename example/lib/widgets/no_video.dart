@@ -5,7 +5,7 @@ import 'package:livekit_example/theme.dart';
 
 class NoVideoWidget extends StatelessWidget {
   //
-  const NoVideoWidget({Key? key}) : super(key: key);
+  const NoVideoWidget({super.key});
 
   @override
   Widget build(BuildContext context) => Container(

@@ -11,8 +11,8 @@ import '../exts.dart';
 class ConnectPage extends StatefulWidget {
   //
   const ConnectPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _ConnectPageState();
