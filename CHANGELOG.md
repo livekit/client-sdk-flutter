@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.4
+
+* bump version of flutter-webrtc with privacy manifest files
+
 ## 2.1.3
 
 * upgrade to connectivity plus 6.x.
