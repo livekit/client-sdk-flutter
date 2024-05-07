@@ -172,7 +172,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               });
               if (lkPlatformIs(PlatformType.iOS)) {
                 return rtc.RTCVideoPlatFormView(
-                  mirror: false,
+                  mirror: _shouldMirror(),
                   objectFit: widget.fit,
                   onViewReady: (controller) {
                     _platformController = controller;
