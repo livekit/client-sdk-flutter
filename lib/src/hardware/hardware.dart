@@ -29,7 +29,7 @@ class MediaDevice {
   final String deviceId;
   final String label;
   final String kind;
-  final String groupId;
+  final String? groupId;
 
   @override
   bool operator ==(covariant MediaDevice other) {
@@ -45,8 +45,7 @@ class MediaDevice {
   int get hashCode {
     return deviceId.hashCode ^
         kind.hashCode ^
-        label.hashCode ^
-        groupId.hashCode;
+        label.hashCode;
   }
 
   @override
@@ -87,7 +86,7 @@ class Hardware {
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
     var devices = infos
-        .map((e) => MediaDevice(e.deviceId, e.label, e.kind!, e.groupId!))
+        .map((e) => MediaDevice(e.deviceId, e.label, e.kind!, e.groupId))
         .toList();
     if (type != null && type.isNotEmpty) {
       devices = devices.where((d) => d.kind == type).toList();
