@@ -15,14 +15,12 @@ abstract class ParticipantWidget extends StatefulWidget {
     if (participantTrack.participant is LocalParticipant) {
       return LocalParticipantWidget(
           participantTrack.participant as LocalParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
+          participantTrack.type,
           showStatsLayer);
     } else if (participantTrack.participant is RemoteParticipant) {
       return RemoteParticipantWidget(
           participantTrack.participant as RemoteParticipant,
-          participantTrack.videoTrack,
-          participantTrack.isScreenShare,
+          participantTrack.type,
           showStatsLayer);
     }
     throw UnimplementedError('Unknown participant type');
@@ -30,8 +28,7 @@ abstract class ParticipantWidget extends StatefulWidget {
 
   // Must be implemented by child class
   abstract final Participant participant;
-  abstract final VideoTrack? videoTrack;
-  abstract final bool isScreenShare;
+  abstract final ParticipantTrackType type;
   abstract final bool showStatsLayer;
   final VideoQuality quality;
 
@@ -45,16 +42,13 @@ class LocalParticipantWidget extends ParticipantWidget {
   @override
   final LocalParticipant participant;
   @override
-  final VideoTrack? videoTrack;
-  @override
-  final bool isScreenShare;
+  final ParticipantTrackType type;
   @override
   final bool showStatsLayer;
 
   const LocalParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
+    this.type,
     this.showStatsLayer, {
     super.key,
   });
@@ -67,16 +61,13 @@ class RemoteParticipantWidget extends ParticipantWidget {
   @override
   final RemoteParticipant participant;
   @override
-  final VideoTrack? videoTrack;
-  @override
-  final bool isScreenShare;
+  final ParticipantTrackType type;
   @override
   final bool showStatsLayer;
 
   const RemoteParticipantWidget(
     this.participant,
-    this.videoTrack,
-    this.isScreenShare,
+    this.type,
     this.showStatsLayer, {
     super.key,
   });
@@ -87,11 +78,12 @@ class RemoteParticipantWidget extends ParticipantWidget {
 
 abstract class _ParticipantWidgetState<T extends ParticipantWidget>
     extends State<T> {
-  //
   bool _visible = true;
   VideoTrack? get activeVideoTrack;
+  AudioTrack? get activeAudioTrack;
   TrackPublication? get videoPublication;
-  TrackPublication? get firstAudioPublication;
+  TrackPublication? get audioPublication;
+  bool get isScreenShare => widget.type == ParticipantTrackType.kScreenShare;
 
   @override
   void initState() {
@@ -124,7 +116,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   @override
   Widget build(BuildContext ctx) => Container(
         foregroundDecoration: BoxDecoration(
-          border: widget.participant.isSpeaking && !widget.isScreenShare
+          border: widget.participant.isSpeaking && !isScreenShare
               ? Border.all(
                   width: 5,
                   color: LKColors.lkBlue,
@@ -160,15 +152,15 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ...extraWidgets(widget.isScreenShare),
+                  ...extraWidgets(isScreenShare),
                   ParticipantInfoWidget(
                     title: widget.participant.name.isNotEmpty
                         ? '${widget.participant.name} (${widget.participant.identity})'
                         : widget.participant.identity,
-                    audioAvailable: firstAudioPublication?.muted == false &&
-                        firstAudioPublication?.subscribed == true,
+                    audioAvailable: audioPublication?.muted == false &&
+                        audioPublication?.subscribed == true,
                     connectionQuality: widget.participant.connectionQuality,
-                    isScreenShare: widget.isScreenShare,
+                    isScreenShare: isScreenShare,
                     enabledE2EE: widget.participant.isEncrypted,
                   ),
                 ],
@@ -184,15 +176,20 @@ class _LocalParticipantWidgetState
   @override
   LocalTrackPublication<LocalVideoTrack>? get videoPublication =>
       widget.participant.videoTrackPublications
-          .where((element) => element.sid == widget.videoTrack?.sid)
+          .where((element) => element.source == widget.type.lkVideoSourceType)
           .firstOrNull;
 
   @override
-  LocalTrackPublication<LocalAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTrackPublications.firstOrNull;
+  LocalTrackPublication<LocalAudioTrack>? get audioPublication =>
+      widget.participant.audioTrackPublications
+          .where((element) => element.source == widget.type.lkAudioSourceType)
+          .firstOrNull;
 
   @override
-  VideoTrack? get activeVideoTrack => widget.videoTrack;
+  VideoTrack? get activeVideoTrack => videoPublication?.track;
+
+  @override
+  AudioTrack? get activeAudioTrack => audioPublication?.track;
 }
 
 class _RemoteParticipantWidgetState
@@ -200,15 +197,20 @@ class _RemoteParticipantWidgetState
   @override
   RemoteTrackPublication<RemoteVideoTrack>? get videoPublication =>
       widget.participant.videoTrackPublications
-          .where((element) => element.sid == widget.videoTrack?.sid)
+          .where((element) => element.source == widget.type.lkVideoSourceType)
           .firstOrNull;
 
   @override
-  RemoteTrackPublication<RemoteAudioTrack>? get firstAudioPublication =>
-      widget.participant.audioTrackPublications.firstOrNull;
+  RemoteTrackPublication<RemoteAudioTrack>? get audioPublication =>
+      widget.participant.audioTrackPublications
+          .where((element) => element.source == widget.type.lkAudioSourceType)
+          .firstOrNull;
 
   @override
-  VideoTrack? get activeVideoTrack => widget.videoTrack;
+  VideoTrack? get activeVideoTrack => videoPublication?.track;
+
+  @override
+  AudioTrack? get activeAudioTrack => audioPublication?.track;
 
   @override
   List<Widget> extraWidgets(bool isScreenShare) => [
@@ -217,9 +219,9 @@ class _RemoteParticipantWidgetState
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             // Menu for RemoteTrackPublication<RemoteAudioTrack>
-            if (firstAudioPublication != null && !isScreenShare)
+            if (audioPublication != null)
               RemoteTrackPublicationMenuWidget(
-                pub: firstAudioPublication!,
+                pub: audioPublication!,
                 icon: Icons.volume_up,
               ),
             // Menu for RemoteTrackPublication<RemoteVideoTrack>

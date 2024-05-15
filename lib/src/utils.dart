@@ -635,3 +635,21 @@ List<String> unpackStreamId(String packed) {
   }
   return [packed, ''];
 }
+
+String? buildStreamId(PublishOptions options, TrackSource source) {
+  if (options.stream == null) {
+    return null;
+  }
+  var streamId = options.stream!;
+  switch (source) {
+    case TrackSource.unknown:
+      break;
+    case TrackSource.camera:
+    case TrackSource.microphone:
+    case TrackSource.screenShareVideo:
+      streamId += 'screenshare_video';
+    case TrackSource.screenShareAudio:
+      streamId += 'screenshare_audio';
+  }
+  return streamId;
+}

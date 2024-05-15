@@ -81,7 +81,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      stream: publishOptions.stream,
+      stream: buildStreamId(publishOptions, track.source),
       kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dtx: publishOptions.dtx,
@@ -235,7 +235,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
-      stream: publishOptions.stream,
+      stream: buildStreamId(publishOptions, track.source),
       kind: track.kind.toPBType(),
       source: track.source.toPBType(),
       dimensions: dimensions,
@@ -713,7 +713,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       backupCodec,
     );
 
-    var cid = simulcastTrack.sender!.senderId;
+    final cid = simulcastTrack.sender!.senderId;
 
     final trackInfo = await room.engine.addTrack(
         cid: cid,
@@ -721,7 +721,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             (track.source == TrackSource.screenShareVideo
                 ? VideoPublishOptions.defaultScreenShareName
                 : VideoPublishOptions.defaultCameraName),
-        stream: options.stream,
+        stream: buildStreamId(options, track.source),
         kind: track.kind.toPBType(),
         source: track.source.toPBType(),
         dimensions: dimensions,
