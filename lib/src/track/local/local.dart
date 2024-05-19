@@ -91,11 +91,11 @@ abstract class LocalTrack extends Track {
   /// Mutes this [LocalTrack]. This will stop the sending of track data
   /// and notify the [RemoteParticipant] with [TrackMutedEvent].
   /// Returns true if muted, false if unchanged.
-  Future<bool> mute() async {
+  Future<bool> mute(bool stopOnMute) async {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return false; // already muted
     await disable();
-    if (!lkPlatformIs(PlatformType.windows)) {
+    if (!lkPlatformIs(PlatformType.windows) && stopOnMute) {
       await stop();
     }
     updateMuted(true, shouldSendSignal: true);
@@ -105,10 +105,10 @@ abstract class LocalTrack extends Track {
   /// Un-mutes this [LocalTrack]. This will re-start the sending of track data
   /// and notify the [RemoteParticipant] with [TrackUnmutedEvent].
   /// Returns true if un-muted, false if unchanged.
-  Future<bool> unmute() async {
+  Future<bool> unmute(bool stopOnMute) async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return false; // already un-muted
-    if (!lkPlatformIs(PlatformType.windows)) {
+    if (!lkPlatformIs(PlatformType.windows) && stopOnMute) {
       await restartTrack();
     }
     await enable();
