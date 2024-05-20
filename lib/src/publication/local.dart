@@ -41,10 +41,12 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   }
 
   /// Mute the track associated with this publication
-  Future<void> mute(bool stopOnMute) async => await track?.mute(stopOnMute);
+  Future<void> mute({bool stopOnMute = true}) async =>
+      await track?.mute(stopOnMute: stopOnMute);
 
   /// Unmute the track associated with this publication
-  Future<void> unmute(bool stopOnMute) async => await track?.unmute(stopOnMute);
+  Future<void> unmute({bool stopOnMute = true}) async =>
+      await track?.unmute(stopOnMute: stopOnMute);
 
   lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() =>
       lk_rtc.TrackPublishedResponse(

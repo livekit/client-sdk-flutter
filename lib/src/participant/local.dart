@@ -559,7 +559,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         _ => true,
       };
       if (enabled) {
-        await publication.unmute(stopOnMute);
+        await publication.unmute(stopOnMute: stopOnMute);
       } else {
         if (source == TrackSource.screenShareVideo) {
           await removePublishedTrack(publication.sid);
@@ -569,7 +569,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             await removePublishedTrack(screenAudio.sid);
           }
         } else {
-          await publication.mute(stopOnMute);
+          await publication.mute(stopOnMute: stopOnMute);
         }
       }
       await room.applyAudioSpeakerSettings();

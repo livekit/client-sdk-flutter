@@ -357,9 +357,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       };
 
       if (event.muted) {
-        await publication?.mute(stopOnMute);
+        await publication?.mute(stopOnMute: stopOnMute);
       } else {
-        await publication?.unmute(stopOnMute);
+        await publication?.unmute(stopOnMute: stopOnMute);
       }
     })
     ..on<SignalTrackUnpublishedEvent>((event) async {
