@@ -24,11 +24,12 @@ import '../support/platform.dart';
 import '../track/audio_management.dart';
 
 class MediaDevice {
-  const MediaDevice(this.deviceId, this.label, this.kind);
+  const MediaDevice(this.deviceId, this.label, this.kind, this.groupId);
 
   final String deviceId;
   final String label;
   final String kind;
+  final String? groupId;
 
   @override
   bool operator ==(covariant MediaDevice other) {
@@ -36,7 +37,8 @@ class MediaDevice {
 
     return other.deviceId == deviceId &&
         other.kind == kind &&
-        other.label == label;
+        other.label == label &&
+        other.groupId == groupId;
   }
 
   @override
@@ -46,7 +48,7 @@ class MediaDevice {
 
   @override
   String toString() {
-    return 'MediaDevice{deviceId: $deviceId, label: $label, kind: $kind}';
+    return 'MediaDevice{deviceId: $deviceId, label: $label, kind: $kind, groupId: $groupId}';
   }
 }
 
@@ -81,8 +83,9 @@ class Hardware {
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
-    var devices =
-        infos.map((e) => MediaDevice(e.deviceId, e.label, e.kind!)).toList();
+    var devices = infos
+        .map((e) => MediaDevice(e.deviceId, e.label, e.kind!, e.groupId))
+        .toList();
     if (type != null && type.isNotEmpty) {
       devices = devices.where((d) => d.kind == type).toList();
     }
