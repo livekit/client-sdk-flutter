@@ -510,6 +510,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Shortcut for publishing a [TrackSource.camera]
   Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
       {CameraCaptureOptions? cameraCaptureOptions}) async {
+    cameraCaptureOptions ??= room.roomOptions.defaultCameraCaptureOptions;
     return setSourceEnabled(TrackSource.camera, enabled,
         cameraCaptureOptions: cameraCaptureOptions);
   }
@@ -517,6 +518,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Shortcut for publishing a [TrackSource.microphone]
   Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled,
       {AudioCaptureOptions? audioCaptureOptions}) async {
+    audioCaptureOptions ??= room.roomOptions.defaultAudioCaptureOptions;
     return setSourceEnabled(TrackSource.microphone, enabled,
         audioCaptureOptions: audioCaptureOptions);
   }
@@ -525,6 +527,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
       {bool? captureScreenAudio,
       ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
+    screenShareCaptureOptions ??=
+        room.roomOptions.defaultScreenShareCaptureOptions;
     return setSourceEnabled(TrackSource.screenShareVideo, enabled,
         captureScreenAudio: captureScreenAudio,
         screenShareCaptureOptions: screenShareCaptureOptions);
@@ -547,8 +551,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
+      final stopOnMute = switch (publication.source) {
+        TrackSource.camera =>
+          cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
+        TrackSource.microphone =>
+          audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
+        _ => true,
+      };
       if (enabled) {
-        await publication.unmute();
+        await publication.unmute(stopOnMute: stopOnMute);
       } else {
         if (source == TrackSource.screenShareVideo) {
           await removePublishedTrack(publication.sid);
@@ -558,7 +569,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             await removePublishedTrack(screenAudio.sid);
           }
         } else {
-          await publication.mute();
+          await publication.mute(stopOnMute: stopOnMute);
         }
       }
       await room.applyAudioSpeakerSettings();

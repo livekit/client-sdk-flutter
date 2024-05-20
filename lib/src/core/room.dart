@@ -347,10 +347,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
+
+      final stopOnMute = switch (publication?.source) {
+        TrackSource.camera =>
+          roomOptions.defaultCameraCaptureOptions.stopCameraCaptureOnMute,
+        TrackSource.microphone =>
+          roomOptions.defaultAudioCaptureOptions.stopAudioCaptureOnMute,
+        _ => true,
+      };
+
       if (event.muted) {
-        await publication?.mute();
+        await publication?.mute(stopOnMute: stopOnMute);
       } else {
-        await publication?.unmute();
+        await publication?.unmute(stopOnMute: stopOnMute);
       }
     })
     ..on<SignalTrackUnpublishedEvent>((event) async {
