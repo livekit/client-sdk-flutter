@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
+enum ParticipantTrackType {
+  kUserMedia,
+  kScreenShare,
+}
+
+extension ParticipantTrackTypeExt on ParticipantTrackType {
+  TrackSource get lkVideoSourceType => {
+        ParticipantTrackType.kUserMedia: TrackSource.camera,
+        ParticipantTrackType.kScreenShare: TrackSource.screenShareVideo,
+      }[this]!;
+
+  TrackSource get lkAudioSourceType => {
+        ParticipantTrackType.kUserMedia: TrackSource.microphone,
+        ParticipantTrackType.kScreenShare: TrackSource.screenShareAudio,
+      }[this]!;
+}
+
 class ParticipantTrack {
   ParticipantTrack(
-      {required this.participant,
-      required this.videoTrack,
-      required this.isScreenShare});
-  VideoTrack? videoTrack;
+      {required this.participant, this.type = ParticipantTrackType.kUserMedia});
   Participant participant;
-  final bool isScreenShare;
+  final ParticipantTrackType type;
 }
 
 class ParticipantInfoWidget extends StatelessWidget {
-  //
   final String? title;
   final bool audioAvailable;
   final ConnectionQuality connectionQuality;
