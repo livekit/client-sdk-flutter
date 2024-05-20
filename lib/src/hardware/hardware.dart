@@ -43,9 +43,7 @@ class MediaDevice {
 
   @override
   int get hashCode {
-    return deviceId.hashCode ^
-        kind.hashCode ^
-        label.hashCode;
+    return deviceId.hashCode ^ kind.hashCode ^ label.hashCode;
   }
 
   @override
