@@ -62,7 +62,6 @@ class Hardware {
           devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??=
           devices.firstWhereOrNull((element) => element.kind == 'videoinput');
-      speakerOn = true;
     });
   }
 
@@ -162,6 +161,15 @@ class Hardware {
       }
     } else {
       logger.warning('setSpeakerphoneOn only support on iOS');
+    }
+  }
+
+  Future<void> setSpeakerphoneOnButPreferBluetooth() async {
+    if (lkPlatformIsMobile()) {
+      await rtc.Helper.setSpeakerphoneOnButPreferBluetooth();
+    } else {
+      logger.warning(
+          'setSpeakerphoneOnButPreferBluetooth only support on mobile');
     }
   }
 
