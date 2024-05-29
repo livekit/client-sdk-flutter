@@ -46,7 +46,7 @@ class _RoomPageState extends State<RoomPage> {
     });
 
     if (lkPlatformIsMobile()) {
-      //Hardware.instance.setSpeakerphoneOn(true);
+      Hardware.instance.setSpeakerphoneOn(true);
     }
 
     if (lkPlatformIs(PlatformType.iOS)) {
