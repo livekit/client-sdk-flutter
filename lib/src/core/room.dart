@@ -930,7 +930,8 @@ extension RoomHardwareManagementMethods on Room {
   @internal
   Future<void> applyAudioSpeakerSettings() async {
     if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
-      if (lkPlatformIsMobile()) {
+      if (lkPlatformIs(PlatformType.iOS) ||
+          lkPlatformIs(PlatformType.android)) {
         await Hardware.instance.setSpeakerphoneOn(
             roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
