@@ -187,10 +187,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
           dynacast: args.dynacast,
           defaultAudioPublishOptions: const AudioPublishOptions(
             name: 'custom_audio_track_name',
-            stream: 'custom_sync_stream_id',
           ),
           defaultVideoPublishOptions: VideoPublishOptions(
-            stream: 'custom_sync_stream_id',
             simulcast: args.simulcast,
             videoCodec: args.preferredCodec,
             backupVideoCodec: BackupVideoCodec(

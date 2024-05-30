@@ -33,17 +33,17 @@ class LiveKitTheme {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
             textStyle:
-                MaterialStateProperty.all<TextStyle>(GoogleFonts.montserrat(
+                WidgetStateProperty.all<TextStyle>(GoogleFonts.montserrat(
               fontSize: 15,
             )),
-            padding: MaterialStateProperty.all<EdgeInsets>(
+            padding: WidgetStateProperty.all<EdgeInsets>(
                 const EdgeInsets.symmetric(vertical: 20, horizontal: 25)),
-            shape: MaterialStateProperty.all<OutlinedBorder>(
+            shape: WidgetStateProperty.all<OutlinedBorder>(
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-            // backgroundColor: MaterialStateProperty.all<Color>(accentColor),
-            backgroundColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.disabled)) {
+            foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
+            // backgroundColor: WidgetStateProperty.all<Color>(accentColor),
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) {
                 return accentColor.withOpacity(0.5);
               }
               return accentColor;
@@ -51,18 +51,18 @@ class LiveKitTheme {
           ),
         ),
         checkboxTheme: CheckboxThemeData(
-          checkColor: MaterialStateProperty.all(Colors.white),
-          fillColor: MaterialStateProperty.all(accentColor),
+          checkColor: WidgetStateProperty.all(Colors.white),
+          fillColor: WidgetStateProperty.all(accentColor),
         ),
         switchTheme: SwitchThemeData(
-          trackColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
+          trackColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
               return accentColor;
             }
             return accentColor.withOpacity(0.3);
           }),
-          thumbColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return Colors.white.withOpacity(0.3);
@@ -94,7 +94,7 @@ class LiveKitTheme {
         ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.white,
-          background: bgColor,
+          surface: bgColor,
         ),
       );
 }

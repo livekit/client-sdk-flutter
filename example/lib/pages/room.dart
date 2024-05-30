@@ -169,15 +169,10 @@ class _RoomPageState extends State<RoomPage> {
         if (t.isScreenShare) {
           screenTracks.add(ParticipantTrack(
             participant: participant,
-            videoTrack: t.track,
-            isScreenShare: true,
+            type: ParticipantTrackType.kScreenShare,
           ));
         } else {
-          userMediaTracks.add(ParticipantTrack(
-            participant: participant,
-            videoTrack: t.track,
-            isScreenShare: false,
-          ));
+          userMediaTracks.add(ParticipantTrack(participant: participant));
         }
       }
     }
@@ -224,8 +219,7 @@ class _RoomPageState extends State<RoomPage> {
           }
           screenTracks.add(ParticipantTrack(
             participant: widget.room.localParticipant!,
-            videoTrack: t.track,
-            isScreenShare: true,
+            type: ParticipantTrackType.kScreenShare,
           ));
         } else {
           if (lkPlatformIs(PlatformType.iOS)) {
@@ -236,11 +230,8 @@ class _RoomPageState extends State<RoomPage> {
             }
           }
 
-          userMediaTracks.add(ParticipantTrack(
-            participant: widget.room.localParticipant!,
-            videoTrack: t.track,
-            isScreenShare: false,
-          ));
+          userMediaTracks.add(
+              ParticipantTrack(participant: widget.room.localParticipant!));
         }
       }
     }
