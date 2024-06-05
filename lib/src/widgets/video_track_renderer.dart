@@ -34,16 +34,24 @@ enum VideoViewMirrorMode {
   mirror,
 }
 
+enum VideoRenderMode {
+  auto,
+  texture,
+  platformView,
+}
+
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
+  final VideoRenderMode renderMode;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
+    this.renderMode = VideoRenderMode.auto,
     Key? key,
   }) : super(key: key);
 
@@ -52,15 +60,17 @@ class VideoTrackRenderer extends StatefulWidget {
 }
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
-  rtc.RTCVideoRenderer? _renderer;
-  rtc.RTCVideoPlatformViewController? _platformController;
+  rtc.VideoRenderer? _renderer;
   // for flutter web only.
   bool _rendererReadyForWeb = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
-  Future<rtc.RTCVideoRenderer> _initializeRenderer() async {
+  Future<rtc.VideoRenderer> _initializeRenderer() async {
+    if (widget.renderMode == VideoRenderMode.platformView) {
+      return Null as Future<rtc.VideoRenderer>;
+    }
     _renderer ??= rtc.RTCVideoRenderer();
     await _renderer!.initialize();
     await _attach();
@@ -69,11 +79,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   void disposeRenderer() {
     try {
-      _setSrcObject(null);
+      _renderer?.srcObject = null;
       _renderer?.dispose();
       _renderer = null;
-      _platformController?.dispose();
-      _platformController = null;
     } catch (e) {
       logger.warning('Got error disposing renderer: $e');
     }
@@ -99,21 +107,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.dispose();
   }
 
-  void _setSrcObject(rtc.MediaStream? stream) {
-    if (lkPlatformIs(PlatformType.iOS)) {
-      _platformController?.srcObject = stream;
-    } else {
-      _renderer?.srcObject = stream;
-    }
-  }
-
   Future<void> _attach() async {
-    _setSrcObject(widget.track.mediaStream);
+    _renderer?.srcObject = widget.track.mediaStream;
     await _listener?.dispose();
     _listener = widget.track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
         if (!mounted) return;
-        _setSrcObject(event.stream);
+        _renderer?.srcObject = event.stream;
       })
       ..on<LocalTrackOptionsUpdatedEvent>((event) {
         if (!mounted) return;
@@ -150,7 +150,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               widget.track.onVideoViewBuild?.call(_internalKey);
             });
             return rtc.RTCVideoView(
-              _renderer!,
+              _renderer! as rtc.RTCVideoRenderer,
               mirror: _shouldMirror(),
               filterQuality: FilterQuality.medium,
               objectFit: widget.fit,
@@ -161,7 +161,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForNative() => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
-        if (snapshot.hasData && _renderer != null) {
+        if ((snapshot.hasData && _renderer != null) ||
+            widget.renderMode == VideoRenderMode.platformView) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
@@ -170,18 +171,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                   ?.addPostFrameCallback((timeStamp) {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
-              if (lkPlatformIs(PlatformType.iOS)) {
+              if (lkPlatformIs(PlatformType.iOS) &&
+                  widget.renderMode == VideoRenderMode.platformView) {
                 return rtc.RTCVideoPlatFormView(
                   mirror: _shouldMirror(),
                   objectFit: widget.fit,
                   onViewReady: (controller) {
-                    _platformController = controller;
-                    _platformController?.srcObject = widget.track.mediaStream;
+                    _renderer = controller;
+                    _renderer?.srcObject = widget.track.mediaStream;
                   },
                 );
               }
               return rtc.RTCVideoView(
-                _renderer!,
+                _renderer! as rtc.RTCVideoRenderer,
                 mirror: _shouldMirror(),
                 filterQuality: FilterQuality.medium,
                 objectFit: widget.fit,
