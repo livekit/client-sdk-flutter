@@ -70,7 +70,7 @@ void unsetCryptorParticipant(String trackId) {
 
 void main() async {
   // configure logs for debugging
-  Logger.root.level = Level.WARNING;
+  Logger.root.level = Level.FINE;
   Logger.root.onRecord.listen((record) {
     print('[${record.loggerName}] ${record.level.name}: ${record.message}');
   });
