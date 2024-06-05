@@ -269,10 +269,12 @@ class AudioCaptureOptions extends LocalTrackOptions {
     if (!kIsWeb || (kIsWeb && deviceId == null)) {
       constraints['optional'] = <Map<String, dynamic>>[
         <String, dynamic>{'echoCancellation': echoCancellation},
+        <String, dynamic>{'noiseSuppression': noiseSuppression},
+        <String, dynamic>{'autoGainControl': autoGainControl},
+        <String, dynamic>{'voiceIsolation': noiseSuppression},
         <String, dynamic>{'googDAEchoCancellation': echoCancellation},
         <String, dynamic>{'googEchoCancellation': echoCancellation},
         <String, dynamic>{'googEchoCancellation2': echoCancellation},
-        <String, dynamic>{'noiseSuppression': noiseSuppression},
         <String, dynamic>{'googNoiseSuppression': noiseSuppression},
         <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
         <String, dynamic>{'googAutoGainControl': autoGainControl},
