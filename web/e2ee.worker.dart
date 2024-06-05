@@ -72,6 +72,7 @@ void main() async {
   // configure logs for debugging
   Logger.root.level = Level.FINE;
   Logger.root.onRecord.listen((record) {
+    // ignore: avoid_print
     print('[${record.loggerName}] ${record.level.name}: ${record.message}');
   });
 
