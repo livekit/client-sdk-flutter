@@ -251,3 +251,13 @@ extension DisconnectReasonExt on lk_models.DisconnectReason {
         lk_models.DisconnectReason.JOIN_FAILURE: DisconnectReason.joinFailure,
       }[this]!;
 }
+
+extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
+  ParticipantKind toLKType() => {
+        lk_models.ParticipantInfo_Kind.STANDARD: ParticipantKind.STANDARD,
+        lk_models.ParticipantInfo_Kind.INGRESS: ParticipantKind.INGRESS,
+        lk_models.ParticipantInfo_Kind.EGRESS: ParticipantKind.EGRESS,
+        lk_models.ParticipantInfo_Kind.SIP: ParticipantKind.SIP,
+        lk_models.ParticipantInfo_Kind.AGENT: ParticipantKind.AGENT,
+      }[this]!;
+}
