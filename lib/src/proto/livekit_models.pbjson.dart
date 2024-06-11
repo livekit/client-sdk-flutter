@@ -54,8 +54,8 @@ const ImageCodec$json = {
 };
 
 /// Descriptor for `ImageCodec`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List imageCodecDescriptor = $convert
-    .base64Decode('CgpJbWFnZUNvZGVjEg4KCklDX0RFRkFVTFQQABILCgdJQ19KUEVHEAE=');
+final $typed_data.Uint8List imageCodecDescriptor = $convert.base64Decode(
+    'CgpJbWFnZUNvZGVjEg4KCklDX0RFRkFVTFQQABILCgdJQ19KUEVHEAE=');
 
 @$core.Deprecated('Use trackTypeDescriptor instead')
 const TrackType$json = {
@@ -217,36 +217,16 @@ const Room$json = {
     {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'empty_timeout', '3': 3, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    {
-      '1': 'departure_timeout',
-      '3': 14,
-      '4': 1,
-      '5': 13,
-      '10': 'departureTimeout'
-    },
+    {'1': 'departure_timeout', '3': 14, '4': 1, '5': 13, '10': 'departureTimeout'},
     {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '10': 'maxParticipants'},
     {'1': 'creation_time', '3': 5, '4': 1, '5': 3, '10': 'creationTime'},
     {'1': 'turn_password', '3': 6, '4': 1, '5': 9, '10': 'turnPassword'},
-    {
-      '1': 'enabled_codecs',
-      '3': 7,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.Codec',
-      '10': 'enabledCodecs'
-    },
+    {'1': 'enabled_codecs', '3': 7, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'enabledCodecs'},
     {'1': 'metadata', '3': 8, '4': 1, '5': 9, '10': 'metadata'},
     {'1': 'num_participants', '3': 9, '4': 1, '5': 13, '10': 'numParticipants'},
     {'1': 'num_publishers', '3': 11, '4': 1, '5': 13, '10': 'numPublishers'},
     {'1': 'active_recording', '3': 10, '4': 1, '5': 8, '10': 'activeRecording'},
-    {
-      '1': 'version',
-      '3': 13,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TimedVersion',
-      '10': 'version'
-    },
+    {'1': 'version', '3': 13, '4': 1, '5': 11, '6': '.livekit.TimedVersion', '10': 'version'},
   ],
 };
 
@@ -299,23 +279,10 @@ const ParticipantPermission$json = {
     {'1': 'can_subscribe', '3': 1, '4': 1, '5': 8, '10': 'canSubscribe'},
     {'1': 'can_publish', '3': 2, '4': 1, '5': 8, '10': 'canPublish'},
     {'1': 'can_publish_data', '3': 3, '4': 1, '5': 8, '10': 'canPublishData'},
-    {
-      '1': 'can_publish_sources',
-      '3': 9,
-      '4': 3,
-      '5': 14,
-      '6': '.livekit.TrackSource',
-      '10': 'canPublishSources'
-    },
+    {'1': 'can_publish_sources', '3': 9, '4': 3, '5': 14, '6': '.livekit.TrackSource', '10': 'canPublishSources'},
     {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
     {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
-    {
-      '1': 'can_update_metadata',
-      '3': 10,
-      '4': 1,
-      '5': 8,
-      '10': 'canUpdateMetadata'
-    },
+    {'1': 'can_update_metadata', '3': 10, '4': 1, '5': 8, '10': 'canUpdateMetadata'},
     {'1': 'agent', '3': 11, '4': 1, '5': 8, '10': 'agent'},
   ],
 };
@@ -335,44 +302,16 @@ const ParticipantInfo$json = {
   '2': [
     {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
     {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
-    {
-      '1': 'state',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ParticipantInfo.State',
-      '10': 'state'
-    },
-    {
-      '1': 'tracks',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.TrackInfo',
-      '10': 'tracks'
-    },
+    {'1': 'state', '3': 3, '4': 1, '5': 14, '6': '.livekit.ParticipantInfo.State', '10': 'state'},
+    {'1': 'tracks', '3': 4, '4': 3, '5': 11, '6': '.livekit.TrackInfo', '10': 'tracks'},
     {'1': 'metadata', '3': 5, '4': 1, '5': 9, '10': 'metadata'},
     {'1': 'joined_at', '3': 6, '4': 1, '5': 3, '10': 'joinedAt'},
     {'1': 'name', '3': 9, '4': 1, '5': 9, '10': 'name'},
     {'1': 'version', '3': 10, '4': 1, '5': 13, '10': 'version'},
-    {
-      '1': 'permission',
-      '3': 11,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.ParticipantPermission',
-      '10': 'permission'
-    },
+    {'1': 'permission', '3': 11, '4': 1, '5': 11, '6': '.livekit.ParticipantPermission', '10': 'permission'},
     {'1': 'region', '3': 12, '4': 1, '5': 9, '10': 'region'},
     {'1': 'is_publisher', '3': 13, '4': 1, '5': 8, '10': 'isPublisher'},
-    {
-      '1': 'kind',
-      '3': 14,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ParticipantInfo.Kind',
-      '10': 'kind'
-    },
+    {'1': 'kind', '3': 14, '4': 1, '5': 14, '6': '.livekit.ParticipantInfo.Kind', '10': 'kind'},
   ],
   '4': [ParticipantInfo_State$json, ParticipantInfo_Kind$json],
 };
@@ -441,14 +380,7 @@ const SimulcastCodecInfo$json = {
     {'1': 'mime_type', '3': 1, '4': 1, '5': 9, '10': 'mimeType'},
     {'1': 'mid', '3': 2, '4': 1, '5': 9, '10': 'mid'},
     {'1': 'cid', '3': 3, '4': 1, '5': 9, '10': 'cid'},
-    {
-      '1': 'layers',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.VideoLayer',
-      '10': 'layers'
-    },
+    {'1': 'layers', '3': 4, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
   ],
 };
 
@@ -463,65 +395,24 @@ const TrackInfo$json = {
   '1': 'TrackInfo',
   '2': [
     {'1': 'sid', '3': 1, '4': 1, '5': 9, '10': 'sid'},
-    {
-      '1': 'type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.TrackType',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackType', '10': 'type'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     {'1': 'muted', '3': 4, '4': 1, '5': 8, '10': 'muted'},
     {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
     {'1': 'height', '3': 6, '4': 1, '5': 13, '10': 'height'},
     {'1': 'simulcast', '3': 7, '4': 1, '5': 8, '10': 'simulcast'},
     {'1': 'disable_dtx', '3': 8, '4': 1, '5': 8, '10': 'disableDtx'},
-    {
-      '1': 'source',
-      '3': 9,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.TrackSource',
-      '10': 'source'
-    },
-    {
-      '1': 'layers',
-      '3': 10,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.VideoLayer',
-      '10': 'layers'
-    },
+    {'1': 'source', '3': 9, '4': 1, '5': 14, '6': '.livekit.TrackSource', '10': 'source'},
+    {'1': 'layers', '3': 10, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
     {'1': 'mime_type', '3': 11, '4': 1, '5': 9, '10': 'mimeType'},
     {'1': 'mid', '3': 12, '4': 1, '5': 9, '10': 'mid'},
-    {
-      '1': 'codecs',
-      '3': 13,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.SimulcastCodecInfo',
-      '10': 'codecs'
-    },
+    {'1': 'codecs', '3': 13, '4': 3, '5': 11, '6': '.livekit.SimulcastCodecInfo', '10': 'codecs'},
     {'1': 'stereo', '3': 14, '4': 1, '5': 8, '10': 'stereo'},
     {'1': 'disable_red', '3': 15, '4': 1, '5': 8, '10': 'disableRed'},
-    {
-      '1': 'encryption',
-      '3': 16,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.Encryption.Type',
-      '10': 'encryption'
-    },
+    {'1': 'encryption', '3': 16, '4': 1, '5': 14, '6': '.livekit.Encryption.Type', '10': 'encryption'},
     {'1': 'stream', '3': 17, '4': 1, '5': 9, '10': 'stream'},
-    {
-      '1': 'version',
-      '3': 18,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TimedVersion',
-      '10': 'version'
-    },
+    {'1': 'version', '3': 18, '4': 1, '5': 11, '6': '.livekit.TimedVersion', '10': 'version'},
+    {'1': 'audio_features', '3': 19, '4': 3, '5': 14, '6': '.livekit.AudioTrackFeature', '10': 'audioFeatures'},
   ],
 };
 
@@ -537,20 +428,14 @@ final $typed_data.Uint8List trackInfoDescriptor = $convert.base64Decode(
     'VsY2FzdENvZGVjSW5mb1IGY29kZWNzEhYKBnN0ZXJlbxgOIAEoCFIGc3RlcmVvEh8KC2Rpc2Fi'
     'bGVfcmVkGA8gASgIUgpkaXNhYmxlUmVkEjgKCmVuY3J5cHRpb24YECABKA4yGC5saXZla2l0Lk'
     'VuY3J5cHRpb24uVHlwZVIKZW5jcnlwdGlvbhIWCgZzdHJlYW0YESABKAlSBnN0cmVhbRIvCgd2'
-    'ZXJzaW9uGBIgASgLMhUubGl2ZWtpdC5UaW1lZFZlcnNpb25SB3ZlcnNpb24=');
+    'ZXJzaW9uGBIgASgLMhUubGl2ZWtpdC5UaW1lZFZlcnNpb25SB3ZlcnNpb24SQQoOYXVkaW9fZm'
+    'VhdHVyZXMYEyADKA4yGi5saXZla2l0LkF1ZGlvVHJhY2tGZWF0dXJlUg1hdWRpb0ZlYXR1cmVz');
 
 @$core.Deprecated('Use videoLayerDescriptor instead')
 const VideoLayer$json = {
   '1': 'VideoLayer',
   '2': [
-    {
-      '1': 'quality',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.VideoQuality',
-      '10': 'quality'
-    },
+    {'1': 'quality', '3': 1, '4': 1, '5': 14, '6': '.livekit.VideoQuality', '10': 'quality'},
     {'1': 'width', '3': 2, '4': 1, '5': 13, '10': 'width'},
     {'1': 'height', '3': 3, '4': 1, '5': 13, '10': 'height'},
     {'1': 'bitrate', '3': 4, '4': 1, '5': 13, '10': 'bitrate'},
@@ -577,29 +462,9 @@ const DataPacket$json = {
       '8': {'3': true},
       '10': 'kind',
     },
-    {
-      '1': 'participant_identity',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '10': 'participantIdentity'
-    },
-    {
-      '1': 'destination_identities',
-      '3': 5,
-      '4': 3,
-      '5': 9,
-      '10': 'destinationIdentities'
-    },
-    {
-      '1': 'user',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.UserPacket',
-      '9': 0,
-      '10': 'user'
-    },
+    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {'1': 'destination_identities', '3': 5, '4': 3, '5': 9, '10': 'destinationIdentities'},
+    {'1': 'user', '3': 2, '4': 1, '5': 11, '6': '.livekit.UserPacket', '9': 0, '10': 'user'},
     {
       '1': 'speaker',
       '3': 3,
@@ -610,15 +475,8 @@ const DataPacket$json = {
       '9': 0,
       '10': 'speaker',
     },
-    {
-      '1': 'sip_dtmf',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.SipDTMF',
-      '9': 0,
-      '10': 'sipDtmf'
-    },
+    {'1': 'sip_dtmf', '3': 6, '4': 1, '5': 11, '6': '.livekit.SipDTMF', '9': 0, '10': 'sipDtmf'},
+    {'1': 'transcription', '3': 7, '4': 1, '5': 11, '6': '.livekit.Transcription', '9': 0, '10': 'transcription'},
   ],
   '4': [DataPacket_Kind$json],
   '8': [
@@ -642,21 +500,15 @@ final $typed_data.Uint8List dataPacketDescriptor = $convert.base64Decode(
     'dHkSNQoWZGVzdGluYXRpb25faWRlbnRpdGllcxgFIAMoCVIVZGVzdGluYXRpb25JZGVudGl0aW'
     'VzEikKBHVzZXIYAiABKAsyEy5saXZla2l0LlVzZXJQYWNrZXRIAFIEdXNlchI8CgdzcGVha2Vy'
     'GAMgASgLMhwubGl2ZWtpdC5BY3RpdmVTcGVha2VyVXBkYXRlQgIYAUgAUgdzcGVha2VyEi0KCH'
-    'NpcF9kdG1mGAYgASgLMhAubGl2ZWtpdC5TaXBEVE1GSABSB3NpcER0bWYiHwoES2luZBIMCghS'
-    'RUxJQUJMRRAAEgkKBUxPU1NZEAFCBwoFdmFsdWU=');
+    'NpcF9kdG1mGAYgASgLMhAubGl2ZWtpdC5TaXBEVE1GSABSB3NpcER0bWYSPgoNdHJhbnNjcmlw'
+    'dGlvbhgHIAEoCzIWLmxpdmVraXQuVHJhbnNjcmlwdGlvbkgAUg10cmFuc2NyaXB0aW9uIh8KBE'
+    'tpbmQSDAoIUkVMSUFCTEUQABIJCgVMT1NTWRABQgcKBXZhbHVl');
 
 @$core.Deprecated('Use activeSpeakerUpdateDescriptor instead')
 const ActiveSpeakerUpdate$json = {
   '1': 'ActiveSpeakerUpdate',
   '2': [
-    {
-      '1': 'speakers',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.SpeakerInfo',
-      '10': 'speakers'
-    },
+    {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
   ],
 };
 
@@ -718,9 +570,15 @@ const UserPacket$json = {
       '10': 'destinationIdentities',
     },
     {'1': 'topic', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'topic', '17': true},
+    {'1': 'id', '3': 8, '4': 1, '5': 9, '9': 1, '10': 'id', '17': true},
+    {'1': 'start_time', '3': 9, '4': 1, '5': 4, '9': 2, '10': 'startTime', '17': true},
+    {'1': 'end_time', '3': 10, '4': 1, '5': 4, '9': 3, '10': 'endTime', '17': true},
   ],
   '8': [
     {'1': '_topic'},
+    {'1': '_id'},
+    {'1': '_start_time'},
+    {'1': '_end_time'},
   ],
 };
 
@@ -730,8 +588,10 @@ final $typed_data.Uint8List userPacketDescriptor = $convert.base64Decode(
     'lkEjUKFHBhcnRpY2lwYW50X2lkZW50aXR5GAUgASgJQgIYAVITcGFydGljaXBhbnRJZGVudGl0'
     'eRIYCgdwYXlsb2FkGAIgASgMUgdwYXlsb2FkEi0KEGRlc3RpbmF0aW9uX3NpZHMYAyADKAlCAh'
     'gBUg9kZXN0aW5hdGlvblNpZHMSOQoWZGVzdGluYXRpb25faWRlbnRpdGllcxgGIAMoCUICGAFS'
-    'FWRlc3RpbmF0aW9uSWRlbnRpdGllcxIZCgV0b3BpYxgEIAEoCUgAUgV0b3BpY4gBAUIICgZfdG'
-    '9waWM=');
+    'FWRlc3RpbmF0aW9uSWRlbnRpdGllcxIZCgV0b3BpYxgEIAEoCUgAUgV0b3BpY4gBARITCgJpZB'
+    'gIIAEoCUgBUgJpZIgBARIiCgpzdGFydF90aW1lGAkgASgESAJSCXN0YXJ0VGltZYgBARIeCghl'
+    'bmRfdGltZRgKIAEoBEgDUgdlbmRUaW1liAEBQggKBl90b3BpY0IFCgNfaWRCDQoLX3N0YXJ0X3'
+    'RpbWVCCwoJX2VuZF90aW1l');
 
 @$core.Deprecated('Use sipDTMFDescriptor instead')
 const SipDTMF$json = {
@@ -745,6 +605,43 @@ const SipDTMF$json = {
 /// Descriptor for `SipDTMF`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List sipDTMFDescriptor = $convert.base64Decode(
     'CgdTaXBEVE1GEhIKBGNvZGUYAyABKA1SBGNvZGUSFAoFZGlnaXQYBCABKAlSBWRpZ2l0');
+
+@$core.Deprecated('Use transcriptionDescriptor instead')
+const Transcription$json = {
+  '1': 'Transcription',
+  '2': [
+    {'1': 'transcribed_participant_identity', '3': 2, '4': 1, '5': 9, '10': 'transcribedParticipantIdentity'},
+    {'1': 'track_id', '3': 3, '4': 1, '5': 9, '10': 'trackId'},
+    {'1': 'segments', '3': 4, '4': 3, '5': 11, '6': '.livekit.TranscriptionSegment', '10': 'segments'},
+  ],
+};
+
+/// Descriptor for `Transcription`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List transcriptionDescriptor = $convert.base64Decode(
+    'Cg1UcmFuc2NyaXB0aW9uEkgKIHRyYW5zY3JpYmVkX3BhcnRpY2lwYW50X2lkZW50aXR5GAIgAS'
+    'gJUh50cmFuc2NyaWJlZFBhcnRpY2lwYW50SWRlbnRpdHkSGQoIdHJhY2tfaWQYAyABKAlSB3Ry'
+    'YWNrSWQSOQoIc2VnbWVudHMYBCADKAsyHS5saXZla2l0LlRyYW5zY3JpcHRpb25TZWdtZW50Ug'
+    'hzZWdtZW50cw==');
+
+@$core.Deprecated('Use transcriptionSegmentDescriptor instead')
+const TranscriptionSegment$json = {
+  '1': 'TranscriptionSegment',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
+    {'1': 'text', '3': 2, '4': 1, '5': 9, '10': 'text'},
+    {'1': 'start_time', '3': 3, '4': 1, '5': 4, '10': 'startTime'},
+    {'1': 'end_time', '3': 4, '4': 1, '5': 4, '10': 'endTime'},
+    {'1': 'final', '3': 5, '4': 1, '5': 8, '10': 'final'},
+    {'1': 'language', '3': 6, '4': 1, '5': 9, '10': 'language'},
+  ],
+};
+
+/// Descriptor for `TranscriptionSegment`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List transcriptionSegmentDescriptor = $convert.base64Decode(
+    'ChRUcmFuc2NyaXB0aW9uU2VnbWVudBIOCgJpZBgBIAEoCVICaWQSEgoEdGV4dBgCIAEoCVIEdG'
+    'V4dBIdCgpzdGFydF90aW1lGAMgASgEUglzdGFydFRpbWUSGQoIZW5kX3RpbWUYBCABKARSB2Vu'
+    'ZFRpbWUSFAoFZmluYWwYBSABKAhSBWZpbmFsEhoKCGxhbmd1YWdlGAYgASgJUghsYW5ndWFnZQ'
+    '==');
 
 @$core.Deprecated('Use participantTracksDescriptor instead')
 const ParticipantTracks$json = {
@@ -764,19 +661,13 @@ final $typed_data.Uint8List participantTracksDescriptor = $convert.base64Decode(
 const ServerInfo$json = {
   '1': 'ServerInfo',
   '2': [
-    {
-      '1': 'edition',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ServerInfo.Edition',
-      '10': 'edition'
-    },
+    {'1': 'edition', '3': 1, '4': 1, '5': 14, '6': '.livekit.ServerInfo.Edition', '10': 'edition'},
     {'1': 'version', '3': 2, '4': 1, '5': 9, '10': 'version'},
     {'1': 'protocol', '3': 3, '4': 1, '5': 5, '10': 'protocol'},
     {'1': 'region', '3': 4, '4': 1, '5': 9, '10': 'region'},
     {'1': 'node_id', '3': 5, '4': 1, '5': 9, '10': 'nodeId'},
     {'1': 'debug_info', '3': 6, '4': 1, '5': 9, '10': 'debugInfo'},
+    {'1': 'agent_protocol', '3': 7, '4': 1, '5': 5, '10': 'agentProtocol'},
   ],
   '4': [ServerInfo_Edition$json],
 };
@@ -795,21 +686,14 @@ final $typed_data.Uint8List serverInfoDescriptor = $convert.base64Decode(
     'CgpTZXJ2ZXJJbmZvEjUKB2VkaXRpb24YASABKA4yGy5saXZla2l0LlNlcnZlckluZm8uRWRpdG'
     'lvblIHZWRpdGlvbhIYCgd2ZXJzaW9uGAIgASgJUgd2ZXJzaW9uEhoKCHByb3RvY29sGAMgASgF'
     'Ughwcm90b2NvbBIWCgZyZWdpb24YBCABKAlSBnJlZ2lvbhIXCgdub2RlX2lkGAUgASgJUgZub2'
-    'RlSWQSHQoKZGVidWdfaW5mbxgGIAEoCVIJZGVidWdJbmZvIiIKB0VkaXRpb24SDAoIU3RhbmRh'
-    'cmQQABIJCgVDbG91ZBAB');
+    'RlSWQSHQoKZGVidWdfaW5mbxgGIAEoCVIJZGVidWdJbmZvEiUKDmFnZW50X3Byb3RvY29sGAcg'
+    'ASgFUg1hZ2VudFByb3RvY29sIiIKB0VkaXRpb24SDAoIU3RhbmRhcmQQABIJCgVDbG91ZBAB');
 
 @$core.Deprecated('Use clientInfoDescriptor instead')
 const ClientInfo$json = {
   '1': 'ClientInfo',
   '2': [
-    {
-      '1': 'sdk',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ClientInfo.SDK',
-      '10': 'sdk'
-    },
+    {'1': 'sdk', '3': 1, '4': 1, '5': 14, '6': '.livekit.ClientInfo.SDK', '10': 'sdk'},
     {'1': 'version', '3': 2, '4': 1, '5': 9, '10': 'version'},
     {'1': 'protocol', '3': 3, '4': 1, '5': 5, '10': 'protocol'},
     {'1': 'os', '3': 4, '4': 1, '5': 9, '10': 'os'},
@@ -856,46 +740,11 @@ final $typed_data.Uint8List clientInfoDescriptor = $convert.base64Decode(
 const ClientConfiguration$json = {
   '1': 'ClientConfiguration',
   '2': [
-    {
-      '1': 'video',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.VideoConfiguration',
-      '10': 'video'
-    },
-    {
-      '1': 'screen',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.VideoConfiguration',
-      '10': 'screen'
-    },
-    {
-      '1': 'resume_connection',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ClientConfigSetting',
-      '10': 'resumeConnection'
-    },
-    {
-      '1': 'disabled_codecs',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.DisabledCodecs',
-      '10': 'disabledCodecs'
-    },
-    {
-      '1': 'force_relay',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ClientConfigSetting',
-      '10': 'forceRelay'
-    },
+    {'1': 'video', '3': 1, '4': 1, '5': 11, '6': '.livekit.VideoConfiguration', '10': 'video'},
+    {'1': 'screen', '3': 2, '4': 1, '5': 11, '6': '.livekit.VideoConfiguration', '10': 'screen'},
+    {'1': 'resume_connection', '3': 3, '4': 1, '5': 14, '6': '.livekit.ClientConfigSetting', '10': 'resumeConnection'},
+    {'1': 'disabled_codecs', '3': 4, '4': 1, '5': 11, '6': '.livekit.DisabledCodecs', '10': 'disabledCodecs'},
+    {'1': 'force_relay', '3': 5, '4': 1, '5': 14, '6': '.livekit.ClientConfigSetting', '10': 'forceRelay'},
   ],
 };
 
@@ -912,14 +761,7 @@ final $typed_data.Uint8List clientConfigurationDescriptor = $convert.base64Decod
 const VideoConfiguration$json = {
   '1': 'VideoConfiguration',
   '2': [
-    {
-      '1': 'hardware_encoder',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.ClientConfigSetting',
-      '10': 'hardwareEncoder'
-    },
+    {'1': 'hardware_encoder', '3': 1, '4': 1, '5': 14, '6': '.livekit.ClientConfigSetting', '10': 'hardwareEncoder'},
   ],
 };
 
@@ -932,22 +774,8 @@ final $typed_data.Uint8List videoConfigurationDescriptor = $convert.base64Decode
 const DisabledCodecs$json = {
   '1': 'DisabledCodecs',
   '2': [
-    {
-      '1': 'codecs',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.Codec',
-      '10': 'codecs'
-    },
-    {
-      '1': 'publish',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.Codec',
-      '10': 'publish'
-    },
+    {'1': 'codecs', '3': 1, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'codecs'},
+    {'1': 'publish', '3': 2, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'publish'},
   ],
 };
 
@@ -960,22 +788,8 @@ final $typed_data.Uint8List disabledCodecsDescriptor = $convert.base64Decode(
 const RTPDrift$json = {
   '1': 'RTPDrift',
   '2': [
-    {
-      '1': 'start_time',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'startTime'
-    },
-    {
-      '1': 'end_time',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'endTime'
-    },
+    {'1': 'start_time', '3': 1, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startTime'},
+    {'1': 'end_time', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endTime'},
     {'1': 'duration', '3': 3, '4': 1, '5': 1, '10': 'duration'},
     {'1': 'start_timestamp', '3': 4, '4': 1, '5': 4, '10': 'startTimestamp'},
     {'1': 'end_timestamp', '3': 5, '4': 1, '5': 4, '10': 'endTimestamp'},
@@ -1000,22 +814,8 @@ final $typed_data.Uint8List rTPDriftDescriptor = $convert.base64Decode(
 const RTPStats$json = {
   '1': 'RTPStats',
   '2': [
-    {
-      '1': 'start_time',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'startTime'
-    },
-    {
-      '1': 'end_time',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'endTime'
-    },
+    {'1': 'start_time', '3': 1, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startTime'},
+    {'1': 'end_time', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endTime'},
     {'1': 'duration', '3': 3, '4': 1, '5': 1, '10': 'duration'},
     {'1': 'packets', '3': 4, '4': 1, '5': 13, '10': 'packets'},
     {'1': 'packet_rate', '3': 5, '4': 1, '5': 1, '10': 'packetRate'},
@@ -1024,144 +824,40 @@ const RTPStats$json = {
     {'1': 'bitrate', '3': 7, '4': 1, '5': 1, '10': 'bitrate'},
     {'1': 'packets_lost', '3': 8, '4': 1, '5': 13, '10': 'packetsLost'},
     {'1': 'packet_loss_rate', '3': 9, '4': 1, '5': 1, '10': 'packetLossRate'},
-    {
-      '1': 'packet_loss_percentage',
-      '3': 10,
-      '4': 1,
-      '5': 2,
-      '10': 'packetLossPercentage'
-    },
-    {
-      '1': 'packets_duplicate',
-      '3': 11,
-      '4': 1,
-      '5': 13,
-      '10': 'packetsDuplicate'
-    },
-    {
-      '1': 'packet_duplicate_rate',
-      '3': 12,
-      '4': 1,
-      '5': 1,
-      '10': 'packetDuplicateRate'
-    },
+    {'1': 'packet_loss_percentage', '3': 10, '4': 1, '5': 2, '10': 'packetLossPercentage'},
+    {'1': 'packets_duplicate', '3': 11, '4': 1, '5': 13, '10': 'packetsDuplicate'},
+    {'1': 'packet_duplicate_rate', '3': 12, '4': 1, '5': 1, '10': 'packetDuplicateRate'},
     {'1': 'bytes_duplicate', '3': 13, '4': 1, '5': 4, '10': 'bytesDuplicate'},
-    {
-      '1': 'header_bytes_duplicate',
-      '3': 40,
-      '4': 1,
-      '5': 4,
-      '10': 'headerBytesDuplicate'
-    },
-    {
-      '1': 'bitrate_duplicate',
-      '3': 14,
-      '4': 1,
-      '5': 1,
-      '10': 'bitrateDuplicate'
-    },
+    {'1': 'header_bytes_duplicate', '3': 40, '4': 1, '5': 4, '10': 'headerBytesDuplicate'},
+    {'1': 'bitrate_duplicate', '3': 14, '4': 1, '5': 1, '10': 'bitrateDuplicate'},
     {'1': 'packets_padding', '3': 15, '4': 1, '5': 13, '10': 'packetsPadding'},
-    {
-      '1': 'packet_padding_rate',
-      '3': 16,
-      '4': 1,
-      '5': 1,
-      '10': 'packetPaddingRate'
-    },
+    {'1': 'packet_padding_rate', '3': 16, '4': 1, '5': 1, '10': 'packetPaddingRate'},
     {'1': 'bytes_padding', '3': 17, '4': 1, '5': 4, '10': 'bytesPadding'},
-    {
-      '1': 'header_bytes_padding',
-      '3': 41,
-      '4': 1,
-      '5': 4,
-      '10': 'headerBytesPadding'
-    },
+    {'1': 'header_bytes_padding', '3': 41, '4': 1, '5': 4, '10': 'headerBytesPadding'},
     {'1': 'bitrate_padding', '3': 18, '4': 1, '5': 1, '10': 'bitratePadding'},
-    {
-      '1': 'packets_out_of_order',
-      '3': 19,
-      '4': 1,
-      '5': 13,
-      '10': 'packetsOutOfOrder'
-    },
+    {'1': 'packets_out_of_order', '3': 19, '4': 1, '5': 13, '10': 'packetsOutOfOrder'},
     {'1': 'frames', '3': 20, '4': 1, '5': 13, '10': 'frames'},
     {'1': 'frame_rate', '3': 21, '4': 1, '5': 1, '10': 'frameRate'},
     {'1': 'jitter_current', '3': 22, '4': 1, '5': 1, '10': 'jitterCurrent'},
     {'1': 'jitter_max', '3': 23, '4': 1, '5': 1, '10': 'jitterMax'},
-    {
-      '1': 'gap_histogram',
-      '3': 24,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.RTPStats.GapHistogramEntry',
-      '10': 'gapHistogram'
-    },
+    {'1': 'gap_histogram', '3': 24, '4': 3, '5': 11, '6': '.livekit.RTPStats.GapHistogramEntry', '10': 'gapHistogram'},
     {'1': 'nacks', '3': 25, '4': 1, '5': 13, '10': 'nacks'},
     {'1': 'nack_acks', '3': 37, '4': 1, '5': 13, '10': 'nackAcks'},
     {'1': 'nack_misses', '3': 26, '4': 1, '5': 13, '10': 'nackMisses'},
     {'1': 'nack_repeated', '3': 38, '4': 1, '5': 13, '10': 'nackRepeated'},
     {'1': 'plis', '3': 27, '4': 1, '5': 13, '10': 'plis'},
-    {
-      '1': 'last_pli',
-      '3': 28,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastPli'
-    },
+    {'1': 'last_pli', '3': 28, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastPli'},
     {'1': 'firs', '3': 29, '4': 1, '5': 13, '10': 'firs'},
-    {
-      '1': 'last_fir',
-      '3': 30,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastFir'
-    },
+    {'1': 'last_fir', '3': 30, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastFir'},
     {'1': 'rtt_current', '3': 31, '4': 1, '5': 13, '10': 'rttCurrent'},
     {'1': 'rtt_max', '3': 32, '4': 1, '5': 13, '10': 'rttMax'},
     {'1': 'key_frames', '3': 33, '4': 1, '5': 13, '10': 'keyFrames'},
-    {
-      '1': 'last_key_frame',
-      '3': 34,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastKeyFrame'
-    },
+    {'1': 'last_key_frame', '3': 34, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastKeyFrame'},
     {'1': 'layer_lock_plis', '3': 35, '4': 1, '5': 13, '10': 'layerLockPlis'},
-    {
-      '1': 'last_layer_lock_pli',
-      '3': 36,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'lastLayerLockPli'
-    },
-    {
-      '1': 'packet_drift',
-      '3': 44,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.RTPDrift',
-      '10': 'packetDrift'
-    },
-    {
-      '1': 'report_drift',
-      '3': 45,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.RTPDrift',
-      '10': 'reportDrift'
-    },
-    {
-      '1': 'rebased_report_drift',
-      '3': 46,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.RTPDrift',
-      '10': 'rebasedReportDrift'
-    },
+    {'1': 'last_layer_lock_pli', '3': 36, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'lastLayerLockPli'},
+    {'1': 'packet_drift', '3': 44, '4': 1, '5': 11, '6': '.livekit.RTPDrift', '10': 'packetDrift'},
+    {'1': 'report_drift', '3': 45, '4': 1, '5': 11, '6': '.livekit.RTPDrift', '10': 'reportDrift'},
+    {'1': 'rebased_report_drift', '3': 46, '4': 1, '5': 11, '6': '.livekit.RTPDrift', '10': 'rebasedReportDrift'},
   ],
   '3': [RTPStats_GapHistogramEntry$json],
 };
@@ -1227,3 +923,4 @@ const TimedVersion$json = {
 final $typed_data.Uint8List timedVersionDescriptor = $convert.base64Decode(
     'CgxUaW1lZFZlcnNpb24SHQoKdW5peF9taWNybxgBIAEoA1IJdW5peE1pY3JvEhQKBXRpY2tzGA'
     'IgASgFUgV0aWNrcw==');
+
