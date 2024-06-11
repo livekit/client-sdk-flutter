@@ -495,18 +495,6 @@ extension SignalClientRequests on SignalClient {
       ));
 
   @internal
-  void sendUpdateVideoLayers(
-    String trackSid,
-    Iterable<lk_models.VideoLayer> layers,
-  ) =>
-      _sendRequest(lk_rtc.SignalRequest(
-        updateLayers: lk_rtc.UpdateVideoLayers(
-          trackSid: trackSid,
-          layers: layers,
-        ),
-      ));
-
-  @internal
   void sendUpdateSubscriptionPermissions({
     required bool allParticipants,
     required Iterable<lk_rtc.TrackPermission> trackPermissions,
