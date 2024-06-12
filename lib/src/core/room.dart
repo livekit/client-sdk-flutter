@@ -692,7 +692,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     final publication =
-        participant.trackPublications[event.transcription.trackId];
+        participant.getTrackPublicationBySid(event.transcription.trackId);
 
     var segments = event.transcription.segments.map((e) {
       return TranscriptionSegment(
