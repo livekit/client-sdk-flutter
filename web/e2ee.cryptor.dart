@@ -258,9 +258,11 @@ class FrameCryptor {
     }));
     try {
       readable.pipeThrough(transformer).pipeTo(writable);
-    } catch (e) {
-      logger.warning('e ${e.toString()}');
+    } catch (e, s) {
+      logger.warning('kInternalError: e ${e.toString()} s ${s.toString()}');
       if (lastError != CryptorError.kInternalError) {
+        logger.info(
+            'cryptorState changed from $lastError to kInternalError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kInternalError;
         postMessage({
           'type': 'cryptorState',
@@ -327,6 +329,7 @@ class FrameCryptor {
 
     if (secretKey == null) {
       if (lastError != CryptorError.kMissingKey) {
+        logger.info('cryptorState changed from $lastError to kMissingKey');
         lastError = CryptorError.kMissingKey;
         postMessage({
           'type': 'cryptorState',
@@ -377,6 +380,7 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
+        logger.info('cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -391,9 +395,11 @@ class FrameCryptor {
 
       logger.finer(
           'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, iv $iv');
-    } catch (e) {
-      logger.warning('encrypt: e ${e.toString()}');
+    } catch (e, s) {
+      logger.warning('kEncryptError: e ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kEncryptError) {
+        logger.info(
+            'cryptorState changed from $lastError to kEncryptError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kEncryptError;
         postMessage({
           'type': 'cryptorState',
@@ -460,14 +466,21 @@ class FrameCryptor {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
       var metaData = frame.getMetadata();
+      Uint8List frameTrailer, iv;
+      int ivLength, keyIndex;
+      try {
+        frameTrailer = buffer.sublist(buffer.length - 2);
+        ivLength = frameTrailer[0];
+        keyIndex = frameTrailer[1];
+        iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var frameTrailer = buffer.sublist(buffer.length - 2);
-      var ivLength = frameTrailer[0];
-      var keyIndex = frameTrailer[1];
-      var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
-
-      initialKeySet = keyHandler.getKeySet(keyIndex);
-      initialKeyIndex = keyIndex;
+        initialKeySet = keyHandler.getKeySet(keyIndex);
+        initialKeyIndex = keyIndex;
+      } catch (e) {
+        logger.finest(
+            'getting frameTrailer or iv failed, ignoring frame completely');
+        return;
+      }
 
       /// missingKey flow:
       /// tries to decrypt once, fails, tries to ratchet once and decrypt again,
@@ -477,6 +490,7 @@ class FrameCryptor {
       /// to throw missingkeys faster lower your failureTolerance
       if (initialKeySet == null || !keyHandler.hasValidKey) {
         if (lastError != CryptorError.kMissingKey) {
+          logger.info('cryptorState changed from $lastError to kMissingKey');
           lastError = CryptorError.kMissingKey;
           postMessage({
             'type': 'cryptorState',
@@ -526,6 +540,7 @@ class FrameCryptor {
           logger.finer(
               'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
 
+          logger.info('cryptorState changed from $lastError to kKeyRatcheted');
           lastError = CryptorError.kKeyRatcheted;
           postMessage({
             'type': 'cryptorState',
@@ -584,6 +599,7 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
+        logger.info('cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -598,8 +614,11 @@ class FrameCryptor {
 
       logger.finer(
           'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e) {
+    } catch (e, s) {
+      logger.warning('kDecryptError ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kDecryptError) {
+        logger.info(
+            'cryptorState changed from $lastError to kDecryptError ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kDecryptError;
         postMessage({
           'type': 'cryptorState',
