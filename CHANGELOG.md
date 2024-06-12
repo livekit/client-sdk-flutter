@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.0
+
+* feat: add Transcription Event. (#531)
+* feat: Expose Participant.Kind. (#532)
+* fix: ignore unable to parse frames completely (#530)
+
 ## 2.1.6
 
 * Framecryptor decrypting fixes (#520)
