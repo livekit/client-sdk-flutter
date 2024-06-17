@@ -45,6 +45,15 @@ enum ConnectionState {
   connected,
 }
 
+/// The type of participant.
+enum ParticipantKind {
+  STANDARD,
+  INGRESS,
+  EGRESS,
+  SIP,
+  AGENT,
+}
+
 /// The type of track.
 enum TrackType {
   AUDIO,

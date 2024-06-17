@@ -411,6 +411,22 @@ class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
+class EngineTranscriptionReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.Transcription transcription;
+  const EngineTranscriptionReceivedEvent({
+    required this.transcription,
+  });
+}
+
+@internal
+class EngineSipDtmfReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.SipDTMF dtmf;
+  const EngineSipDtmfReceivedEvent({
+    required this.dtmf,
+  });
+}
+
+@internal
 abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
   final bool isPrimary;
   final Reliability type;

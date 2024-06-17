@@ -51,6 +51,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     UpdateSubscription? subscription,
     UpdateTrackSettings? trackSetting,
     LeaveRequest? leave,
+    @$core.Deprecated('This field is deprecated.')
     UpdateVideoLayers? updateLayers,
     SubscriptionPermission? subscriptionPermission,
     SyncState? syncState,
@@ -87,6 +88,7 @@ class SignalRequest extends $pb.GeneratedMessage {
       $result.leave = leave;
     }
     if (updateLayers != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.updateLayers = updateLayers;
     }
     if (subscriptionPermission != null) {
@@ -331,17 +333,22 @@ class SignalRequest extends $pb.GeneratedMessage {
   LeaveRequest ensureLeave() => $_ensure(7);
 
   /// Update published video layers
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   UpdateVideoLayers get updateLayers => $_getN(8);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   set updateLayers(UpdateVideoLayers v) {
     setField(10, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   $core.bool hasUpdateLayers() => $_has(8);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   void clearUpdateLayers() => clearField(10);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   UpdateVideoLayers ensureUpdateLayers() => $_ensure(8);
 
@@ -4118,6 +4125,7 @@ enum SimulateScenario_Scenario {
   subscriberBandwidth,
   disconnectSignalOnResume,
   disconnectSignalOnResumeNoMessages,
+  leaveRequestFullReconnect,
   notSet
 }
 
@@ -4131,6 +4139,7 @@ class SimulateScenario extends $pb.GeneratedMessage {
     $fixnum.Int64? subscriberBandwidth,
     $core.bool? disconnectSignalOnResume,
     $core.bool? disconnectSignalOnResumeNoMessages,
+    $core.bool? leaveRequestFullReconnect,
   }) {
     final $result = create();
     if (speakerUpdate != null) {
@@ -4158,6 +4167,9 @@ class SimulateScenario extends $pb.GeneratedMessage {
       $result.disconnectSignalOnResumeNoMessages =
           disconnectSignalOnResumeNoMessages;
     }
+    if (leaveRequestFullReconnect != null) {
+      $result.leaveRequestFullReconnect = leaveRequestFullReconnect;
+    }
     return $result;
   }
   SimulateScenario._() : super();
@@ -4178,13 +4190,14 @@ class SimulateScenario extends $pb.GeneratedMessage {
     6: SimulateScenario_Scenario.subscriberBandwidth,
     7: SimulateScenario_Scenario.disconnectSignalOnResume,
     8: SimulateScenario_Scenario.disconnectSignalOnResumeNoMessages,
+    9: SimulateScenario_Scenario.leaveRequestFullReconnect,
     0: SimulateScenario_Scenario.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SimulateScenario',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..a<$core.int>(
         1, _omitFieldNames ? '' : 'speakerUpdate', $pb.PbFieldType.O3)
     ..aOB(2, _omitFieldNames ? '' : 'nodeFailure')
@@ -4198,6 +4211,7 @@ class SimulateScenario extends $pb.GeneratedMessage {
     ..aInt64(6, _omitFieldNames ? '' : 'subscriberBandwidth')
     ..aOB(7, _omitFieldNames ? '' : 'disconnectSignalOnResume')
     ..aOB(8, _omitFieldNames ? '' : 'disconnectSignalOnResumeNoMessages')
+    ..aOB(9, _omitFieldNames ? '' : 'leaveRequestFullReconnect')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -4331,6 +4345,19 @@ class SimulateScenario extends $pb.GeneratedMessage {
   $core.bool hasDisconnectSignalOnResumeNoMessages() => $_has(7);
   @$pb.TagNumber(8)
   void clearDisconnectSignalOnResumeNoMessages() => clearField(8);
+
+  /// full reconnect leave request
+  @$pb.TagNumber(9)
+  $core.bool get leaveRequestFullReconnect => $_getBF(8);
+  @$pb.TagNumber(9)
+  set leaveRequestFullReconnect($core.bool v) {
+    $_setBool(8, v);
+  }
+
+  @$pb.TagNumber(9)
+  $core.bool hasLeaveRequestFullReconnect() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearLeaveRequestFullReconnect() => clearField(9);
 }
 
 class Ping extends $pb.GeneratedMessage {

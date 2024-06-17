@@ -62,7 +62,6 @@ class Hardware {
           devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??=
           devices.firstWhereOrNull((element) => element.kind == 'videoinput');
-      speakerOn = true;
     });
   }
 
@@ -79,7 +78,7 @@ class Hardware {
 
   bool? speakerOn;
 
-  bool _preferSpeakerOutput = false;
+  bool _preferSpeakerOutput = true;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -105,8 +104,8 @@ class Hardware {
   }
 
   Future<void> selectAudioOutput(MediaDevice device) async {
-    if (lkPlatformIs(PlatformType.web)) {
-      logger.warning('selectAudioOutput not support on web');
+    if (!lkPlatformIsDesktop()) {
+      logger.warning('selectAudioOutput is only supported on Desktop');
       return;
     }
     selectedAudioOutput = device;
@@ -124,7 +123,7 @@ class Hardware {
   }
 
   Future<void> setPreferSpeakerOutput(bool enable) async {
-    if (lkPlatformIsMobile()) {
+    if (lkPlatformIs(PlatformType.iOS)) {
       if (_preferSpeakerOutput != enable) {
         NativeAudioConfiguration? config;
         if (lkPlatformIs(PlatformType.iOS)) {
@@ -140,20 +139,20 @@ class Hardware {
       }
       _preferSpeakerOutput = enable;
     } else {
-      logger.warning('setPreferSpeakerOutput only support on iOS/Android');
+      logger.warning('setPreferSpeakerOutput only support on iOS');
     }
   }
 
   bool get preferSpeakerOutput => _preferSpeakerOutput;
 
   bool get canSwitchSpeakerphone =>
-      lkPlatformIs(PlatformType.iOS) &&
-      !_preferSpeakerOutput &&
+      ((lkPlatformIs(PlatformType.iOS) && !_preferSpeakerOutput) ||
+          lkPlatformIs(PlatformType.android)) &&
       [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
           .contains(audioTrackState);
 
   Future<void> setSpeakerphoneOn(bool enable) async {
-    if (lkPlatformIs(PlatformType.iOS)) {
+    if (lkPlatformIsMobile()) {
       speakerOn = enable;
       if (canSwitchSpeakerphone) {
         await rtc.Helper.setSpeakerphoneOn(enable);
@@ -161,7 +160,7 @@ class Hardware {
         logger.warning('Can\'t switch speaker/earpiece');
       }
     } else {
-      logger.warning('setSpeakerphoneOn only support on iOS');
+      logger.warning('setSpeakerphoneOn only support on iOS/Android');
     }
   }
 

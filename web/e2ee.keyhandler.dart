@@ -38,6 +38,8 @@ class KeyOptions {
   Uint8List ratchetSalt;
   int ratchetWindowSize = 0;
   int failureTolerance;
+
+  /// usually automatically set by whatever livekit sends you in the JoinResponse
   Uint8List? uncryptedMagicBytes;
   int keyRingSze;
   bool discardFrameWhenCryptorNotReady;

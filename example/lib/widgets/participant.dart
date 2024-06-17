@@ -84,10 +84,18 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   TrackPublication? get videoPublication;
   TrackPublication? get audioPublication;
   bool get isScreenShare => widget.type == ParticipantTrackType.kScreenShare;
+  EventsListener<ParticipantEvent>? _listener;
 
   @override
   void initState() {
     super.initState();
+    _listener = widget.participant.createListener();
+    _listener?.on<TranscriptionEvent>((e) {
+      for (var seg in e.segments) {
+        print('Transcription: ${seg.text} ${seg.isFinal}');
+      }
+    });
+
     widget.participant.addListener(_onParticipantChanged);
     _onParticipantChanged();
   }
@@ -95,6 +103,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
   @override
   void dispose() {
     widget.participant.removeListener(_onParticipantChanged);
+    _listener?.dispose();
     super.dispose();
   }
 

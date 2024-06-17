@@ -27,6 +27,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  errors:
+    constant_identifier_names: ignore
   #
   # Enforce stricter type-checking
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
@@ -41,7 +43,7 @@ analyzer:
     - '**/*.pbenum.dart'
     - '**/*.pbjson.dart'
     - '**/*.pbserver.dart'
-    - 'web/*.dart'
+    # - 'web/*.dart'
 
 linter:
   rules:

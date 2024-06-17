@@ -616,6 +616,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         packet: dp.user,
         kind: dp.kind,
       ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.transcription) {
+      // Transcription packet
+      events.emit(EngineTranscriptionReceivedEvent(
+        transcription: dp.transcription,
+      ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.sipDtmf) {
+      // SIP DTMF packet
+      events.emit(EngineSipDtmfReceivedEvent(
+        dtmf: dp.sipDtmf,
+      ));
+    } else {
+      logger.warning('Unknown data packet type: ${dp.whichValue()}');
     }
   }
 
