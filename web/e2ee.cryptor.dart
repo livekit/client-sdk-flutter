@@ -262,7 +262,7 @@ class FrameCryptor {
       logger.warning('kInternalError: e ${e.toString()} s ${s.toString()}');
       if (lastError != CryptorError.kInternalError) {
         logger.info(
-            'cryptorState changed from $lastError to kInternalError because ${e.toString()}, ${s.toString()}');
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kInternalError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kInternalError;
         postMessage({
           'type': 'cryptorState',
@@ -329,7 +329,8 @@ class FrameCryptor {
 
     if (secretKey == null) {
       if (lastError != CryptorError.kMissingKey) {
-        logger.info('cryptorState changed from $lastError to kMissingKey');
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kMissingKey');
         lastError = CryptorError.kMissingKey;
         postMessage({
           'type': 'cryptorState',
@@ -380,7 +381,7 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
-        logger.info('cryptorState changed from $lastError to kOk');
+        logger.info('$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -399,7 +400,7 @@ class FrameCryptor {
       logger.warning('kEncryptError: e ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kEncryptError) {
         logger.info(
-            'cryptorState changed from $lastError to kEncryptError because ${e.toString()}, ${s.toString()}');
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kEncryptError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kEncryptError;
         postMessage({
           'type': 'cryptorState',
@@ -490,7 +491,7 @@ class FrameCryptor {
       /// to throw missingkeys faster lower your failureTolerance
       if (initialKeySet == null || !keyHandler.hasValidKey) {
         if (lastError != CryptorError.kMissingKey) {
-          logger.info('cryptorState changed from $lastError to kMissingKey');
+          logger.info('$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kMissingKey');
           lastError = CryptorError.kMissingKey;
           postMessage({
             'type': 'cryptorState',
@@ -540,7 +541,7 @@ class FrameCryptor {
           logger.finer(
               'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
 
-          logger.info('cryptorState changed from $lastError to kKeyRatcheted');
+          logger.info('$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kKeyRatcheted');
           lastError = CryptorError.kKeyRatcheted;
           postMessage({
             'type': 'cryptorState',
@@ -599,7 +600,7 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
-        logger.info('cryptorState changed from $lastError to kOk');
+        logger.info('$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -618,7 +619,7 @@ class FrameCryptor {
       logger.warning('kDecryptError ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kDecryptError) {
         logger.info(
-            'cryptorState changed from $lastError to kDecryptError ${e.toString()}, ${s.toString()}');
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kDecryptError ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kDecryptError;
         postMessage({
           'type': 'cryptorState',
