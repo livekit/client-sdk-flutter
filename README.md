@@ -221,7 +221,9 @@ room.localParticipant.setScreenShareEnabled(true);
 
 #### Android
 
-On Android, you would have to define a foreground service in your AndroidManifest.xml.
+On Android, you will have to use a [media projection foreground service](https://developer.android.com/develop/background-work/services/fg-service-types#media-projection).
+
+In our example, we use the `flutter_background` package to handle this. In the app's AndroidManifest.xml file, declare the service with the appropriate types and permissions as following:
 
 ```xml title="AndroidManifest.xml"
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -238,6 +240,8 @@ On Android, you would have to define a foreground service in your AndroidManifes
   </application>
 </manifest>
 ```
+
+Before starting the background service and enabling screen share, you **must** call `Helper.requestCapturePermission()` from `flutter_webrtc`, and only proceed if it returns true.
 
 #### iOS
 

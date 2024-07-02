@@ -156,6 +156,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (lkPlatformIs(PlatformType.android)) {
       // Android specific
+      bool hasCapturePermission = await Helper.requestCapturePermission();
+      if (!hasCapturePermission) {
+        return;
+      }
+
       requestBackgroundPermission([bool isRetry = false]) async {
         // Required for android screenshare.
         try {
