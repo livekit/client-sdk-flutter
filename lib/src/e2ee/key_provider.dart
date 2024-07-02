@@ -50,10 +50,11 @@ abstract class KeyProvider {
 }
 
 class BaseKeyProvider implements KeyProvider {
+  final Map<String, int> _latestSetIndex = {};
   final Map<String, Map<int, Uint8List>> _keys = {};
 
   int getLatestIndex(String participantId) {
-    return _keys[participantId]?.keys.last ?? 0;
+    return _latestSetIndex[participantId] ?? 0;
   }
 
   Uint8List? _sharedKey;
@@ -152,6 +153,7 @@ class BaseKeyProvider implements KeyProvider {
     logger.info(
         '_setKey for ${keyInfo.participantId}, idx: ${keyInfo.keyIndex}, key: ${base64Encode(keyInfo.key)}');
     _keys[keyInfo.participantId]![keyInfo.keyIndex] = keyInfo.key;
+    _latestSetIndex[keyInfo.participantId] = keyInfo.keyIndex;
     await _keyProvider.setKey(
       participantId: keyInfo.participantId,
       index: keyInfo.keyIndex,
