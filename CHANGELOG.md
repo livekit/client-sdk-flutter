@@ -4,6 +4,7 @@
 
 * fix: fix crash for windows
 * feat: bump version for flutter-webrtc.
+* fix: ratchet on a single frame until ratchetWindowSize (#544)
 
 ## 2.2.0
 
