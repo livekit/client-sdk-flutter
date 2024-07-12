@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.2.1
+
+* fix: fix crash for windows
+* feat: bump version for flutter-webrtc.
+* fix: ratchet on a single frame until ratchetWindowSize (#544)
+* fix: fix mediaStreamTrack.getSettings() on Flutter Web.
+
 ## 2.2.0
 
 * feat: add Transcription Event. (#531)

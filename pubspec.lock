@@ -141,10 +141,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_webrtc
-      sha256: d663abfe6ed95afadcb64083e364aa16dbeaadead193bb03047cf6913e57b65e
+      sha256: dc97a87e8d8c168fc5401ef18eaa0e06e1ac8fc099812de27a002860d021e227
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.6+hotfix.1"
+    version: "1.4.7"
   dbus:
     dependency: transitive
     description:
@@ -228,10 +228,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: a09adf01e8b760a9ca6418323786f51417fb75986f210513e83d4753686795f0
+      sha256: "994abcb8d919c03302e05b9402e7578562548ac92b65d65d498889b2765a034e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.1"
+    version: "0.11.3"
   glob:
     dependency: transitive
     description:
