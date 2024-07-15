@@ -296,15 +296,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       track.codec = publishOptions.videoCodec;
     }
 
-    // prefer to maintainResolution for screen share
-    if (track.source == TrackSource.screenShareVideo) {
-      var sender = track.transceiver!.sender;
-      var parameters = sender.parameters;
-      parameters.degradationPreference =
-          rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
-      await sender.setParameters(parameters);
-    }
-
     if ([TrackSource.camera, TrackSource.screenShareVideo]
         .contains(track.source)) {
       var degradationPreference = publishOptions.degradationPreference ??
