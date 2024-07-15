@@ -258,9 +258,11 @@ class FrameCryptor {
     }));
     try {
       readable.pipeThrough(transformer).pipeTo(writable);
-    } catch (e) {
-      logger.warning('e ${e.toString()}');
+    } catch (e, s) {
+      logger.warning('kInternalError: e ${e.toString()} s ${s.toString()}');
       if (lastError != CryptorError.kInternalError) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kInternalError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kInternalError;
         postMessage({
           'type': 'cryptorState',
@@ -312,21 +314,20 @@ class FrameCryptor {
   ) async {
     var buffer = frame.data.asUint8List();
 
-    if (!enabled ||
-        // skip for encryption for empty dtx frames
-        buffer.isEmpty) {
-      if (keyOptions.discardFrameWhenCryptorNotReady) {
-        return;
-      }
+    if (buffer.isEmpty) {
+      // skip for encryption for empty dtx frames
       controller.enqueue(frame);
       return;
     }
+    if (!enabled && keyOptions.discardFrameWhenCryptorNotReady) return;
 
     var secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
     var keyIndex = currentKeyIndex;
 
     if (secretKey == null) {
       if (lastError != CryptorError.kMissingKey) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kMissingKey');
         lastError = CryptorError.kMissingKey;
         postMessage({
           'type': 'cryptorState',
@@ -377,6 +378,8 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -391,9 +394,11 @@ class FrameCryptor {
 
       logger.finer(
           'encrypto kind $kind,codec $codec headerLength: $headerLength,  timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, encrypted length: ${finalBuffer.toBytes().length}, iv $iv');
-    } catch (e) {
-      logger.warning('encrypt: e ${e.toString()}');
+    } catch (e, s) {
+      logger.warning('kEncryptError: e ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kEncryptError) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kEncryptError because ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kEncryptError;
         postMessage({
           'type': 'cryptorState',
@@ -418,16 +423,14 @@ class FrameCryptor {
     KeySet? initialKeySet;
     var initialKeyIndex = currentKeyIndex;
 
-    if (!enabled ||
-        // skip for encryption for empty dtx frames
-        buffer.isEmpty) {
+    if (buffer.isEmpty) {
+      // skip for encryption for empty dtx frames
+      logger.fine('enqueing empty frame');
       sifGuard.recordUserFrame();
-      if (keyOptions.discardFrameWhenCryptorNotReady) {
-        return;
-      }
       controller.enqueue(frame);
       return;
     }
+    if (!enabled && keyOptions.discardFrameWhenCryptorNotReady) return;
 
     if (keyOptions.uncryptedMagicBytes != null) {
       var magicBytes = keyOptions.uncryptedMagicBytes!;
@@ -435,7 +438,7 @@ class FrameCryptor {
         var magicBytesBuffer = buffer.sublist(
             buffer.length - magicBytes.length - 1, buffer.length - 1);
         logger.finer(
-            'magicBytesBuffer $magicBytesBuffer, magicBytes $magicBytes, ');
+            'magicBytesBuffer $magicBytesBuffer, magicBytes $magicBytes');
         if (magicBytesBuffer.toString() == magicBytes.toString()) {
           sifGuard.recordSif();
           if (sifGuard.isSifAllowed()) {
@@ -445,6 +448,7 @@ class FrameCryptor {
             finalBuffer.add(Uint8List.fromList(
                 buffer.sublist(0, buffer.length - (magicBytes.length + 1))));
             frame.data = crypto.jsArrayBufferFrom(finalBuffer.toBytes());
+            logger.fine('enqueing silent frame');
             controller.enqueue(frame);
           } else {
             logger.finer('SIF limit reached, dropping frame');
@@ -460,17 +464,32 @@ class FrameCryptor {
       var headerLength =
           kind == 'video' ? getUnencryptedBytes(frame, codec) : 1;
       var metaData = frame.getMetadata();
+      Uint8List frameTrailer, iv;
+      int ivLength, keyIndex;
+      try {
+        frameTrailer = buffer.sublist(buffer.length - 2);
+        ivLength = frameTrailer[0];
+        keyIndex = frameTrailer[1];
+        iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
 
-      var frameTrailer = buffer.sublist(buffer.length - 2);
-      var ivLength = frameTrailer[0];
-      var keyIndex = frameTrailer[1];
-      var iv = buffer.sublist(buffer.length - ivLength - 2, buffer.length - 2);
+        initialKeySet = keyHandler.getKeySet(keyIndex);
+        initialKeyIndex = keyIndex;
+      } catch (e) {
+        logger.finest(
+            'getting frameTrailer or iv failed, ignoring frame completely');
+        return;
+      }
 
-      initialKeySet = keyHandler.getKeySet(keyIndex);
-      initialKeyIndex = keyIndex;
-
+      /// missingKey flow:
+      /// tries to decrypt once, fails, tries to ratchet once and decrypt again,
+      /// fails (does not save ratcheted key), bumps _decryptionFailureCount,
+      /// if higher than failuretolerance hasValidKey is set to false, on next
+      /// frame it fires a missingkey
+      /// to throw missingkeys faster lower your failureTolerance
       if (initialKeySet == null || !keyHandler.hasValidKey) {
         if (lastError != CryptorError.kMissingKey) {
+          logger.info(
+              '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kMissingKey');
           lastError = CryptorError.kMissingKey;
           postMessage({
             'type': 'cryptorState',
@@ -482,14 +501,13 @@ class FrameCryptor {
             'error': 'Missing key for track $trackId'
           });
         }
-        controller.enqueue(frame);
         return;
       }
-      var endDecLoop = false;
       var currentkeySet = initialKeySet;
-      while (!endDecLoop) {
-        try {
-          decrypted = await jsutil.promiseToFuture<ByteBuffer>(crypto.decrypt(
+
+      Future<void> decryptFrameInternal() async {
+        decrypted = await jsutil.promiseToFuture<ByteBuffer>(
+          crypto.decrypt(
             crypto.AesGcmParams(
               name: 'AES-GCM',
               iv: crypto.jsArrayBufferFrom(iv),
@@ -498,56 +516,88 @@ class FrameCryptor {
             ),
             currentkeySet.encryptionKey,
             crypto.jsArrayBufferFrom(
-                buffer.sublist(headerLength, buffer.length - ivLength - 2)),
-          ));
+              buffer.sublist(headerLength, buffer.length - ivLength - 2),
+            ),
+          ),
+        );
+        if (decrypted == null) {
+          throw Exception('[decryptFrameInternal] could not decrypt');
+        }
 
-          if (currentkeySet != initialKeySet) {
-            logger.fine(
-                'ratchetKey: decryption ok, reset state to kKeyRatcheted');
-            await keyHandler.setKeySetFromMaterial(
-                currentkeySet, initialKeyIndex);
-          }
+        if (currentkeySet != initialKeySet) {
+          logger.fine(
+              'ratchetKey: $participantIdentity trackId: $trackId kind: $kind decryption ok, newState: kKeyRatcheted');
+          await keyHandler.setKeySetFromMaterial(
+              currentkeySet, initialKeyIndex);
+        }
 
-          endDecLoop = true;
+        if (lastError != CryptorError.kOk &&
+            lastError != CryptorError.kKeyRatcheted &&
+            ratchetCount > 0) {
+          logger.finer(
+              'KeyRatcheted: ssrc ${metaData.synchronizationSource} timestamp ${frame.timestamp} ratchetCount $ratchetCount  participantId: $participantIdentity');
+          logger.finer(
+              'ratchetKey: $participantIdentity trackId: $trackId kind: $kind lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
 
-          if (lastError != CryptorError.kOk &&
-              lastError != CryptorError.kKeyRatcheted &&
-              ratchetCount > 0) {
-            logger.finer(
-                'KeyRatcheted: ssrc ${metaData.synchronizationSource} timestamp ${frame.timestamp} ratchetCount $ratchetCount  participantId: $participantIdentity');
-            logger.finer(
-                'ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted');
-
-            lastError = CryptorError.kKeyRatcheted;
-            postMessage({
-              'type': 'cryptorState',
-              'msgType': 'event',
-              'participantId': participantIdentity,
-              'trackId': trackId,
-              'kind': kind,
-              'state': 'keyRatcheted',
-              'error': 'Key ratcheted ok'
-            });
-          }
-        } catch (e) {
-          lastError = CryptorError.kInternalError;
-          endDecLoop = ratchetCount >= keyOptions.ratchetWindowSize ||
-              keyOptions.ratchetWindowSize <= 0;
-          if (endDecLoop) {
-            rethrow;
-          }
-          var newKeyBuffer = crypto.jsArrayBufferFrom(await keyHandler.ratchet(
-              currentkeySet.material, keyOptions.ratchetSalt));
-          var newMaterial = await keyHandler.ratchetMaterial(
-              currentkeySet.material, newKeyBuffer);
-          currentkeySet =
-              await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
-          ratchetCount++;
+          logger.info(
+              '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kKeyRatcheted');
+          lastError = CryptorError.kKeyRatcheted;
+          postMessage({
+            'type': 'cryptorState',
+            'msgType': 'event',
+            'participantId': participantIdentity,
+            'trackId': trackId,
+            'kind': kind,
+            'state': 'keyRatcheted',
+            'error': 'Key ratcheted ok'
+          });
         }
       }
 
+      Future<void> ratchedKeyInternal() async {
+        if (ratchetCount > keyOptions.ratchetWindowSize ||
+            keyOptions.ratchetWindowSize <= 0) {
+          throw Exception(
+              '[ratchedKeyInternal] cannot ratchet anymore $participantIdentity trackId: $trackId kind: $kind');
+        }
+
+        var newKeyBuffer = crypto.jsArrayBufferFrom(await keyHandler.ratchet(
+            currentkeySet.material, keyOptions.ratchetSalt));
+        var newMaterial = await keyHandler.ratchetMaterial(
+            currentkeySet.material, newKeyBuffer);
+        currentkeySet =
+            await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
+        ratchetCount++;
+        try {
+          /// keep trying to ratchet until ratchetWindowSize
+          await decryptFrameInternal();
+        } catch (e) {
+          lastError = CryptorError.kInternalError;
+          await ratchedKeyInternal();
+        }
+      }
+
+      try {
+        /// gets frame -> tries to decrypt -> tries to ratchet (does this failureTolerance
+        /// times, then says missing key)
+        /// we only save the new key after ratcheting if we were able to decrypt something
+        await decryptFrameInternal();
+      } catch (e) {
+        lastError = CryptorError.kInternalError;
+        await ratchedKeyInternal();
+      }
+
+      if (decrypted == null) {
+        throw Exception(
+            '[decodeFunction] decryption failed even after ratchting $participantIdentity trackId: $trackId kind: $kind');
+      }
+
+      // we can now be sure that decryption was a success
+      keyHandler.decryptionSuccess();
+
       logger.finer(
-          'buffer: ${buffer.length}, decrypted: ${decrypted?.asUint8List().length ?? 0}');
+          'buffer: ${buffer.length}, decrypted: ${decrypted!.asUint8List().length}');
+
       var finalBuffer = BytesBuilder();
 
       finalBuffer.add(Uint8List.fromList(buffer.sublist(0, headerLength)));
@@ -556,6 +606,8 @@ class FrameCryptor {
       controller.enqueue(frame);
 
       if (lastError != CryptorError.kOk) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kOk');
         lastError = CryptorError.kOk;
         postMessage({
           'type': 'cryptorState',
@@ -570,8 +622,11 @@ class FrameCryptor {
 
       logger.finer(
           'decrypto kind $kind,codec $codec headerLength: $headerLength, timestamp: ${frame.timestamp}, ssrc: ${metaData.synchronizationSource}, data length: ${buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e) {
+    } catch (e, s) {
+      logger.warning('kDecryptError ${e.toString()}, s: ${s.toString()}');
       if (lastError != CryptorError.kDecryptError) {
+        logger.info(
+            '$participantIdentity trackId: $trackId kind: $kind cryptorState changed from $lastError to kDecryptError ${e.toString()}, ${s.toString()}');
         lastError = CryptorError.kDecryptError;
         postMessage({
           'type': 'cryptorState',
@@ -584,15 +639,6 @@ class FrameCryptor {
         });
       }
 
-      /// Since the key it is first send and only afterwards actually used for encrypting, there were
-      /// situations when the decrypting failed due to the fact that the received frame was not encrypted
-      /// yet and ratcheting, of course, did not solve the problem. So if we fail RATCHET_WINDOW_SIZE times,
-      ///  we come back to the initial key.
-      if (initialKeySet != null) {
-        logger.warning(
-            'decryption failed, ratcheting back to initial key, keyIndex: $initialKeyIndex');
-        await keyHandler.setKeySetFromMaterial(initialKeySet, initialKeyIndex);
-      }
       keyHandler.decryptionFailure();
     }
   }

@@ -35,7 +35,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = false;
+  bool _speakerphoneOn = Hardware.instance.preferSpeakerOutput;
 
   @override
   void initState() {
@@ -46,7 +46,6 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       _loadDevices(devices);
     });
     Hardware.instance.enumerateDevices().then(_loadDevices);
-    _speakerphoneOn = Hardware.instance.speakerOn ?? false;
   }
 
   @override
@@ -157,6 +156,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (lkPlatformIs(PlatformType.android)) {
       // Android specific
+      bool hasCapturePermission = await Helper.requestCapturePermission();
+      if (!hasCapturePermission) {
+        return;
+      }
+
       requestBackgroundPermission([bool isRetry = false]) async {
         // Required for android screenshare.
         try {

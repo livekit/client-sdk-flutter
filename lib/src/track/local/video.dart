@@ -87,9 +87,16 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       num totalBitrate = 0;
       statsMap.forEach((key, s) {
         final prev = prevStats![key];
-        var bitRateForlayer = computeBitrateForSenderStats(s, prev).toInt();
-        _bitrateFoLayers[key] = bitRateForlayer;
-        totalBitrate += bitRateForlayer;
+        if (prev == null) {
+          return;
+        }
+        try {
+          var bitRateForlayer = computeBitrateForSenderStats(s, prev).toInt();
+          _bitrateFoLayers[key] = bitRateForlayer;
+          totalBitrate += bitRateForlayer;
+        } catch (e) {
+          logger.warning('Failed to compute bitrate for layer: $e');
+        }
       });
       _currentBitrate = totalBitrate;
       events.emit(VideoSenderStatsEvent(

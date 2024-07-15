@@ -62,6 +62,10 @@ abstract class Participant<T extends TrackPublication>
   /// Client-assigned metadata, opaque to livekit.
   String? metadata;
 
+  /// kind of [Participant]
+  ParticipantKind get kind => _kind;
+  ParticipantKind _kind = ParticipantKind.STANDARD;
+
   /// When the participant had last spoken.
   DateTime? lastSpokeAt;
 
@@ -186,6 +190,8 @@ abstract class Participant<T extends TrackPublication>
 
     identity = info.identity;
     sid = info.sid;
+    _kind = info.kind.toLKType();
+
     updateName(info.name);
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
