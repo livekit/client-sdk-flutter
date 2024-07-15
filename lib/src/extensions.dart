@@ -21,6 +21,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'e2ee/options.dart';
 import 'events.dart';
 import 'managers/event.dart';
+import 'options.dart';
 import 'proto/livekit_models.pb.dart' as lk_models;
 import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'types/other.dart';
@@ -259,5 +260,16 @@ extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
         lk_models.ParticipantInfo_Kind.EGRESS: ParticipantKind.EGRESS,
         lk_models.ParticipantInfo_Kind.SIP: ParticipantKind.SIP,
         lk_models.ParticipantInfo_Kind.AGENT: ParticipantKind.AGENT,
+      }[this]!;
+}
+
+extension DegradationPreferenceExt on DegradationPreference {
+  rtc.RTCDegradationPreference toRTCType() => {
+        DegradationPreference.disabled: rtc.RTCDegradationPreference.DISABLED,
+        DegradationPreference.maintainFramerate:
+            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
+        DegradationPreference.maintainResolution:
+            rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
+        DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
       }[this]!;
 }
