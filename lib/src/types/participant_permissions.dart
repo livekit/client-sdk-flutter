@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:livekit_client/src/proto/livekit_models.pbenum.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/src/proto/livekit_models.pbenum.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 @immutable
