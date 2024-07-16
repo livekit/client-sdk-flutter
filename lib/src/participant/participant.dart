@@ -78,6 +78,10 @@ abstract class Participant<T extends TrackPublication>
   ParticipantPermissions _permissions = const ParticipantPermissions();
   ParticipantPermissions get permissions => _permissions;
 
+  /// Attributes associated with the participant
+  Map<String, String> get attributes => _attributes;
+  Map<String, String> _attributes = {};
+
   /// when the participant joined the room
   DateTime get joinedAt {
     final pi = _participantInfo;
@@ -170,6 +174,17 @@ abstract class Participant<T extends TrackPublication>
     }
   }
 
+  void _setAttributes(Map<String, String> attrs) {
+    final changed = !const MapEquality().equals(_attributes, attrs);
+    _attributes = attrs;
+    if (changed) {
+      [events, room.events].emit(ParticipantAttributesChanged(
+        participant: this,
+        attributes: attrs,
+      ));
+    }
+  }
+
   @internal
   void updateConnectionQuality(ConnectionQuality quality) {
     if (_connectionQuality == quality) return;
@@ -196,6 +211,8 @@ abstract class Participant<T extends TrackPublication>
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
+
+    _setAttributes(info.attributes);
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
 
