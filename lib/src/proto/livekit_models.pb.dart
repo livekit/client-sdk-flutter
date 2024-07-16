@@ -459,10 +459,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.bool? canPublish,
     $core.bool? canPublishData,
     $core.bool? hidden,
-    $core.bool? recorder,
+    @$core.Deprecated('This field is deprecated.') $core.bool? recorder,
     $core.Iterable<TrackSource>? canPublishSources,
     $core.bool? canUpdateMetadata,
-    $core.bool? agent,
+    @$core.Deprecated('This field is deprecated.') $core.bool? agent,
   }) {
     final $result = create();
     if (canSubscribe != null) {
@@ -478,6 +478,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
       $result.hidden = hidden;
     }
     if (recorder != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.recorder = recorder;
     }
     if (canPublishSources != null) {
@@ -487,6 +488,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
       $result.canUpdateMetadata = canUpdateMetadata;
     }
     if (agent != null) {
+      // ignore: deprecated_member_use_from_same_package
       $result.agent = agent;
     }
     return $result;
@@ -595,15 +597,20 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   void clearHidden() => clearField(7);
 
   /// indicates it's a recorder instance
+  /// deprecated: use ParticipantInfo.kind instead
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool get recorder => $_getBF(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   set recorder($core.bool v) {
     $_setBool(4, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasRecorder() => $_has(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   void clearRecorder() => clearField(8);
 
@@ -611,7 +618,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.List<TrackSource> get canPublishSources => $_getList(5);
 
-  /// indicates that participant can update own metadata
+  /// indicates that participant can update own metadata and attributes
   @$pb.TagNumber(10)
   $core.bool get canUpdateMetadata => $_getBF(6);
   @$pb.TagNumber(10)
@@ -625,15 +632,20 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   void clearCanUpdateMetadata() => clearField(10);
 
   /// indicates that participant is an agent
+  /// deprecated: use ParticipantInfo.kind instead
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
   $core.bool get agent => $_getBF(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
   set agent($core.bool v) {
     $_setBool(7, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
   $core.bool hasAgent() => $_has(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
   void clearAgent() => clearField(11);
 }
@@ -652,6 +664,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.String? region,
     $core.bool? isPublisher,
     ParticipantInfo_Kind? kind,
+    $core.Map<$core.String, $core.String>? attributes,
   }) {
     final $result = create();
     if (sid != null) {
@@ -690,6 +703,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (kind != null) {
       $result.kind = kind;
     }
+    if (attributes != null) {
+      $result.attributes.addAll(attributes);
+    }
     return $result;
   }
   ParticipantInfo._() : super();
@@ -726,6 +742,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         defaultOrMaker: ParticipantInfo_Kind.STANDARD,
         valueOf: ParticipantInfo_Kind.valueOf,
         enumValues: ParticipantInfo_Kind.values)
+    ..m<$core.String, $core.String>(15, _omitFieldNames ? '' : 'attributes',
+        entryClassName: 'ParticipantInfo.AttributesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('livekit'))
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -890,6 +911,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasKind() => $_has(11);
   @$pb.TagNumber(14)
   void clearKind() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.Map<$core.String, $core.String> get attributes => $_getMap(12);
 }
 
 class Encryption extends $pb.GeneratedMessage {

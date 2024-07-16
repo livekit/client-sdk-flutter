@@ -308,7 +308,14 @@ const ParticipantPermission$json = {
       '10': 'canPublishSources'
     },
     {'1': 'hidden', '3': 7, '4': 1, '5': 8, '10': 'hidden'},
-    {'1': 'recorder', '3': 8, '4': 1, '5': 8, '10': 'recorder'},
+    {
+      '1': 'recorder',
+      '3': 8,
+      '4': 1,
+      '5': 8,
+      '8': {'3': true},
+      '10': 'recorder',
+    },
     {
       '1': 'can_update_metadata',
       '3': 10,
@@ -316,7 +323,14 @@ const ParticipantPermission$json = {
       '5': 8,
       '10': 'canUpdateMetadata'
     },
-    {'1': 'agent', '3': 11, '4': 1, '5': 8, '10': 'agent'},
+    {
+      '1': 'agent',
+      '3': 11,
+      '4': 1,
+      '5': 8,
+      '8': {'3': true},
+      '10': 'agent',
+    },
   ],
 };
 
@@ -326,8 +340,9 @@ final $typed_data.Uint8List participantPermissionDescriptor = $convert.base64Dec
     'NyaWJlEh8KC2Nhbl9wdWJsaXNoGAIgASgIUgpjYW5QdWJsaXNoEigKEGNhbl9wdWJsaXNoX2Rh'
     'dGEYAyABKAhSDmNhblB1Ymxpc2hEYXRhEkQKE2Nhbl9wdWJsaXNoX3NvdXJjZXMYCSADKA4yFC'
     '5saXZla2l0LlRyYWNrU291cmNlUhFjYW5QdWJsaXNoU291cmNlcxIWCgZoaWRkZW4YByABKAhS'
-    'BmhpZGRlbhIaCghyZWNvcmRlchgIIAEoCFIIcmVjb3JkZXISLgoTY2FuX3VwZGF0ZV9tZXRhZG'
-    'F0YRgKIAEoCFIRY2FuVXBkYXRlTWV0YWRhdGESFAoFYWdlbnQYCyABKAhSBWFnZW50');
+    'BmhpZGRlbhIeCghyZWNvcmRlchgIIAEoCEICGAFSCHJlY29yZGVyEi4KE2Nhbl91cGRhdGVfbW'
+    'V0YWRhdGEYCiABKAhSEWNhblVwZGF0ZU1ldGFkYXRhEhgKBWFnZW50GAsgASgIQgIYAVIFYWdl'
+    'bnQ=');
 
 @$core.Deprecated('Use participantInfoDescriptor instead')
 const ParticipantInfo$json = {
@@ -373,8 +388,27 @@ const ParticipantInfo$json = {
       '6': '.livekit.ParticipantInfo.Kind',
       '10': 'kind'
     },
+    {
+      '1': 'attributes',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo.AttributesEntry',
+      '10': 'attributes'
+    },
   ],
+  '3': [ParticipantInfo_AttributesEntry$json],
   '4': [ParticipantInfo_State$json, ParticipantInfo_Kind$json],
+};
+
+@$core.Deprecated('Use participantInfoDescriptor instead')
+const ParticipantInfo_AttributesEntry$json = {
+  '1': 'AttributesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
 };
 
 @$core.Deprecated('Use participantInfoDescriptor instead')
@@ -409,10 +443,12 @@ final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
     'bmFtZRgJIAEoCVIEbmFtZRIYCgd2ZXJzaW9uGAogASgNUgd2ZXJzaW9uEj4KCnBlcm1pc3Npb2'
     '4YCyABKAsyHi5saXZla2l0LlBhcnRpY2lwYW50UGVybWlzc2lvblIKcGVybWlzc2lvbhIWCgZy'
     'ZWdpb24YDCABKAlSBnJlZ2lvbhIhCgxpc19wdWJsaXNoZXIYDSABKAhSC2lzUHVibGlzaGVyEj'
-    'EKBGtpbmQYDiABKA4yHS5saXZla2l0LlBhcnRpY2lwYW50SW5mby5LaW5kUgRraW5kIj4KBVN0'
-    'YXRlEgsKB0pPSU5JTkcQABIKCgZKT0lORUQQARIKCgZBQ1RJVkUQAhIQCgxESVNDT05ORUNURU'
-    'QQAyJBCgRLaW5kEgwKCFNUQU5EQVJEEAASCwoHSU5HUkVTUxABEgoKBkVHUkVTUxACEgcKA1NJ'
-    'UBADEgkKBUFHRU5UEAQ=');
+    'EKBGtpbmQYDiABKA4yHS5saXZla2l0LlBhcnRpY2lwYW50SW5mby5LaW5kUgRraW5kEkgKCmF0'
+    'dHJpYnV0ZXMYDyADKAsyKC5saXZla2l0LlBhcnRpY2lwYW50SW5mby5BdHRyaWJ1dGVzRW50cn'
+    'lSCmF0dHJpYnV0ZXMaPQoPQXR0cmlidXRlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZh'
+    'bHVlGAIgASgJUgV2YWx1ZToCOAEiPgoFU3RhdGUSCwoHSk9JTklORxAAEgoKBkpPSU5FRBABEg'
+    'oKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBADIkEKBEtpbmQSDAoIU1RBTkRBUkQQABILCgdJ'
+    'TkdSRVNTEAESCgoGRUdSRVNTEAISBwoDU0lQEAMSCQoFQUdFTlQQBA==');
 
 @$core.Deprecated('Use encryptionDescriptor instead')
 const Encryption$json = {
