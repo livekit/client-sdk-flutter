@@ -162,6 +162,13 @@ class RoomOptions {
   }
 }
 
+enum DegradationPreference {
+  disabled,
+  maintainFramerate,
+  maintainResolution,
+  balanced,
+}
+
 class BackupVideoCodec {
   const BackupVideoCodec({
     this.enabled = true,
@@ -227,6 +234,8 @@ class VideoPublishOptions extends PublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
+  final DegradationPreference? degradationPreference;
+
   final List<VideoParameters> videoSimulcastLayers;
 
   final List<VideoParameters> screenShareSimulcastLayers;
@@ -235,17 +244,17 @@ class VideoPublishOptions extends PublishOptions {
 
   final BackupVideoCodec backupVideoCodec;
 
-  const VideoPublishOptions({
-    super.name,
-    super.stream,
-    this.videoCodec = defaultVideoCodec,
-    this.videoEncoding,
-    this.simulcast = true,
-    this.videoSimulcastLayers = const [],
-    this.screenShareSimulcastLayers = const [],
-    this.backupVideoCodec = defualtBackupVideoCodec,
-    this.scalabilityMode,
-  });
+  const VideoPublishOptions(
+      {super.name,
+      super.stream,
+      this.videoCodec = defaultVideoCodec,
+      this.videoEncoding,
+      this.simulcast = true,
+      this.videoSimulcastLayers = const [],
+      this.screenShareSimulcastLayers = const [],
+      this.backupVideoCodec = defualtBackupVideoCodec,
+      this.scalabilityMode,
+      this.degradationPreference});
 
   VideoPublishOptions copyWith({
     VideoEncoding? videoEncoding,
@@ -254,6 +263,7 @@ class VideoPublishOptions extends PublishOptions {
     List<VideoParameters>? screenShareSimulcastLayers,
     String? videoCodec,
     BackupVideoCodec? backupVideoCodec,
+    DegradationPreference? degradationPreference,
     String? scalabilityMode,
     String? name,
     String? stream,
@@ -266,6 +276,8 @@ class VideoPublishOptions extends PublishOptions {
             screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
         backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
+        degradationPreference:
+            degradationPreference ?? this.degradationPreference,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
         name: name ?? this.name,
         stream: stream ?? this.stream,

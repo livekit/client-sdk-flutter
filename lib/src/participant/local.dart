@@ -296,13 +296,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       track.codec = publishOptions.videoCodec;
     }
 
-    // prefer to maintainResolution for screen share
-    if (track.source == TrackSource.screenShareVideo) {
-      var sender = track.transceiver!.sender;
-      var parameters = sender.parameters;
-      parameters.degradationPreference =
-          rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION;
-      await sender.setParameters(parameters);
+    if ([TrackSource.camera, TrackSource.screenShareVideo]
+        .contains(track.source)) {
+      var degradationPreference = publishOptions.degradationPreference ??
+          getDefaultDegradationPreference(
+            track,
+          );
+      track.setDegradationPreference(degradationPreference);
     }
 
     if (kIsWeb &&
@@ -395,6 +395,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     await pub.dispose();
+  }
+
+  DegradationPreference getDefaultDegradationPreference(LocalVideoTrack track) {
+    // a few of reasons we have different default paths:
+    // 1. without this, Chrome seems to aggressively resize the SVC video stating `quality-limitation: bandwidth` even when BW isn't an issue
+    // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
+    VideoDimensions dimensions = track.currentOptions.params.dimensions;
+    if (track.source == TrackSource.screenShareVideo ||
+        dimensions.height >= 1080) {
+      return DegradationPreference.maintainResolution;
+    }
+    return DegradationPreference.balanced;
   }
 
   /// Convenience method to unpublish all tracks.

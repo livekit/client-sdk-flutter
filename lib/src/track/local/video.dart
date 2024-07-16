@@ -17,6 +17,7 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'package:livekit_client/src/extensions.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
 import '../../logger.dart';
@@ -489,5 +490,14 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     simulcastCodecs[codec] = simulcastCodecInfo;
     return simulcastCodecInfo;
+  }
+
+  void setDegradationPreference(DegradationPreference preference) {
+    final params = sender?.parameters;
+    if (params == null) {
+      return;
+    }
+    params.degradationPreference = preference.toRTCType();
+    sender?.setParameters(params);
   }
 }
