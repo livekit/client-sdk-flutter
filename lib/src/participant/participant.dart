@@ -79,7 +79,8 @@ abstract class Participant<T extends TrackPublication>
   ParticipantPermissions get permissions => _permissions;
 
   /// Attributes associated with the participant
-  Map<String, String> get attributes => _attributes;
+  UnmodifiableMapView<String, String> get attributes =>
+      UnmodifiableMapView(_attributes);
   Map<String, String> _attributes = {};
 
   /// when the participant joined the room
