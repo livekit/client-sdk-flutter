@@ -162,7 +162,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       future: _initializeRenderer(),
       builder: (context, snapshot) {
         if ((snapshot.hasData && _renderer != null) ||
-            widget.renderMode == VideoRenderMode.platformView) {
+            [VideoRenderMode.auto, VideoRenderMode.platformView]
+                .contains(widget.renderMode)) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
@@ -172,13 +173,15 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
               if (lkPlatformIs(PlatformType.iOS) &&
-                  widget.renderMode == VideoRenderMode.platformView) {
+                  [VideoRenderMode.auto, VideoRenderMode.platformView]
+                      .contains(widget.renderMode)) {
                 return rtc.RTCVideoPlatFormView(
                   mirror: _shouldMirror(),
                   objectFit: widget.fit,
                   onViewReady: (controller) {
                     _renderer = controller;
                     _renderer?.srcObject = widget.track.mediaStream;
+                    _attach();
                   },
                 );
               }

@@ -271,6 +271,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                               color: Colors.black54,
                               child: _videoTrack != null
                                   ? VideoTrackRenderer(
+                                      renderMode: VideoRenderMode.auto,
                                       _videoTrack!,
                                       fit: RTCVideoViewObjectFit
                                           .RTCVideoViewObjectFitContain,
