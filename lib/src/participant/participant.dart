@@ -26,6 +26,7 @@ import '../publication/track_publication.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
+import '../utils.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -176,13 +177,14 @@ abstract class Participant<T extends TrackPublication>
   }
 
   void _setAttributes(Map<String, String> attrs) {
-    final changed = !const MapEquality().equals(_attributes, attrs);
+    final diff = mapDiff(_attributes, attrs)
+        .map((k, v) => MapEntry(k as String, v as String));
     _attributes = attrs;
-    if (changed) {
-      [events, room.events].emit(ParticipantAttributesChanged(
-        participant: this,
-        attributes: attrs,
-      ));
+    if (diff.isNotEmpty) {
+      [
+        events,
+        room.events
+      ].emit(ParticipantAttributesChanged(participant: this, attributes: diff));
     }
   }
 

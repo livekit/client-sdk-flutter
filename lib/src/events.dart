@@ -117,7 +117,7 @@ class RoomMetadataChangedEvent with RoomEvent {
 
 /// Participant's attributes have changed.
 /// Emitted by [Room].
-class ParticipantAttributesChanged with RoomEvent {
+class ParticipantAttributesChanged with RoomEvent, ParticipantEvent {
   final Participant participant;
   final Map<String, String> attributes;
 
