@@ -178,8 +178,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // use constraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
 
-    if (kIsWeb) {
-      // getSettings() is only implemented for Web
+    if (kIsWeb || lkPlatformIsMobile()) {
+      // getSettings() is only implemented for Web & Mobile
       try {
         // try to use getSettings for more accurate resolution
         final settings = track.mediaStreamTrack.getSettings();
