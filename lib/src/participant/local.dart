@@ -466,6 +466,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     ));
   }
 
+  /// Sets and updates the attributes of the local participant.
+  /// @attributes key-value pairs to set
+  void setAttributes(Map<String, String> attributes) {
+    room.engine.signalClient
+        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+      attributes: attributes,
+    ));
+  }
+
   /// Sets and updates the name of the local participant.
   ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   ///  @param name

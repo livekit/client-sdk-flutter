@@ -410,7 +410,8 @@ class SignalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   void clearPing() => clearField(14);
 
-  /// update a participant's own metadata and/or name
+  /// update a participant's own metadata, name, or attributes
+  /// requires canUpdateOwnParticipantMetadata permission
   @$pb.TagNumber(15)
   UpdateParticipantMetadata get updateMetadata => $_getN(13);
   @$pb.TagNumber(15)
@@ -491,6 +492,7 @@ enum SignalResponse_Message {
   reconnect,
   pongResp,
   subscriptionResponse,
+  errorResponse,
   notSet
 }
 
@@ -516,6 +518,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     ReconnectResponse? reconnect,
     Pong? pongResp,
     SubscriptionResponse? subscriptionResponse,
+    ErrorResponse? errorResponse,
   }) {
     final $result = create();
     if (join != null) {
@@ -578,6 +581,9 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (subscriptionResponse != null) {
       $result.subscriptionResponse = subscriptionResponse;
     }
+    if (errorResponse != null) {
+      $result.errorResponse = errorResponse;
+    }
     return $result;
   }
   SignalResponse._() : super();
@@ -610,6 +616,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     19: SignalResponse_Message.reconnect,
     20: SignalResponse_Message.pongResp,
     21: SignalResponse_Message.subscriptionResponse,
+    22: SignalResponse_Message.errorResponse,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -636,7 +643,8 @@ class SignalResponse extends $pb.GeneratedMessage {
       18,
       19,
       20,
-      21
+      21,
+      22
     ])
     ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join',
         subBuilder: JoinResponse.create)
@@ -680,6 +688,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     ..aOM<SubscriptionResponse>(
         21, _omitFieldNames ? '' : 'subscriptionResponse',
         subBuilder: SubscriptionResponse.create)
+    ..aOM<ErrorResponse>(22, _omitFieldNames ? '' : 'errorResponse',
+        subBuilder: ErrorResponse.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1006,6 +1016,21 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearSubscriptionResponse() => clearField(21);
   @$pb.TagNumber(21)
   SubscriptionResponse ensureSubscriptionResponse() => $_ensure(19);
+
+  /// Errors relating to user inititated requests that carry a `request_id`
+  @$pb.TagNumber(22)
+  ErrorResponse get errorResponse => $_getN(20);
+  @$pb.TagNumber(22)
+  set errorResponse(ErrorResponse v) {
+    setField(22, v);
+  }
+
+  @$pb.TagNumber(22)
+  $core.bool hasErrorResponse() => $_has(20);
+  @$pb.TagNumber(22)
+  void clearErrorResponse() => clearField(22);
+  @$pb.TagNumber(22)
+  ErrorResponse ensureErrorResponse() => $_ensure(20);
 }
 
 class SimulcastCodec extends $pb.GeneratedMessage {
@@ -2790,6 +2815,8 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
   factory UpdateParticipantMetadata({
     $core.String? metadata,
     $core.String? name,
+    $core.Map<$core.String, $core.String>? attributes,
+    $core.int? requestId,
   }) {
     final $result = create();
     if (metadata != null) {
@@ -2797,6 +2824,12 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
     }
     if (name != null) {
       $result.name = name;
+    }
+    if (attributes != null) {
+      $result.attributes.addAll(attributes);
+    }
+    if (requestId != null) {
+      $result.requestId = requestId;
     }
     return $result;
   }
@@ -2814,6 +2847,12 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'metadata')
     ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..m<$core.String, $core.String>(3, _omitFieldNames ? '' : 'attributes',
+        entryClassName: 'UpdateParticipantMetadata.AttributesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('livekit'))
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'requestId', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -2864,6 +2903,23 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
   void clearName() => clearField(2);
+
+  /// attributes to update. it only updates attributes that have been set
+  /// to delete attributes, set the value to an empty string
+  @$pb.TagNumber(3)
+  $core.Map<$core.String, $core.String> get attributes => $_getMap(2);
+
+  @$pb.TagNumber(4)
+  $core.int get requestId => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set requestId($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasRequestId() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRequestId() => clearField(4);
 }
 
 class ICEServer extends $pb.GeneratedMessage {
@@ -4741,6 +4797,105 @@ class SubscriptionResponse extends $pb.GeneratedMessage {
   $core.bool hasErr() => $_has(1);
   @$pb.TagNumber(2)
   void clearErr() => clearField(2);
+}
+
+class ErrorResponse extends $pb.GeneratedMessage {
+  factory ErrorResponse({
+    $core.int? requestId,
+    ErrorResponse_Reason? reason,
+    $core.String? message,
+  }) {
+    final $result = create();
+    if (requestId != null) {
+      $result.requestId = requestId;
+    }
+    if (reason != null) {
+      $result.reason = reason;
+    }
+    if (message != null) {
+      $result.message = message;
+    }
+    return $result;
+  }
+  ErrorResponse._() : super();
+  factory ErrorResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ErrorResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ErrorResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'requestId', $pb.PbFieldType.OU3)
+    ..e<ErrorResponse_Reason>(
+        2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
+        defaultOrMaker: ErrorResponse_Reason.UNKNOWN,
+        valueOf: ErrorResponse_Reason.valueOf,
+        enumValues: ErrorResponse_Reason.values)
+    ..aOS(3, _omitFieldNames ? '' : 'message')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ErrorResponse clone() => ErrorResponse()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ErrorResponse copyWith(void Function(ErrorResponse) updates) =>
+      super.copyWith((message) => updates(message as ErrorResponse))
+          as ErrorResponse;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ErrorResponse create() => ErrorResponse._();
+  ErrorResponse createEmptyInstance() => create();
+  static $pb.PbList<ErrorResponse> createRepeated() =>
+      $pb.PbList<ErrorResponse>();
+  @$core.pragma('dart2js:noInline')
+  static ErrorResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ErrorResponse>(create);
+  static ErrorResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get requestId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set requestId($core.int v) {
+    $_setUnsignedInt32(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasRequestId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRequestId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  ErrorResponse_Reason get reason => $_getN(1);
+  @$pb.TagNumber(2)
+  set reason(ErrorResponse_Reason v) {
+    setField(2, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasReason() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReason() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get message => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set message($core.String v) {
+    $_setString(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasMessage() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMessage() => clearField(3);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
