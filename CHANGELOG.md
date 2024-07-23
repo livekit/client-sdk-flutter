@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.2.2
+
+* feat: expose DegradationPreference for publish options. (#556)
+* fix room.disconnect issue. (#559)
+* fix: use getSettings() to get actual dimensions for mobile (#560)
+* Add support for participant attributes (#558)
+
 ## 2.2.1
 
 * fix: fix crash for windows
