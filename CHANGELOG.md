@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.2.3
+
+* add PlatformView for iOS (#509)
+* update lints to 4.0.0. (#563)
+
+
 ## 2.2.2
 
 * feat: expose DegradationPreference for publish options. (#556)
