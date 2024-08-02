@@ -115,6 +115,21 @@ class RoomMetadataChangedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// Participant's attributes have changed.
+/// Emitted by [Room].
+class ParticipantAttributesChanged with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final Map<String, String> attributes;
+
+  const ParticipantAttributesChanged({
+    required this.participant,
+    required this.attributes,
+  });
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant})';
+}
+
 /// Room recording status has changed.
 /// Emitted by [Room].
 class RoomRecordingStatusChanged with RoomEvent {

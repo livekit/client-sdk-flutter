@@ -26,6 +26,7 @@ import '../publication/track_publication.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
+import '../utils.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -77,6 +78,11 @@ abstract class Participant<T extends TrackPublication>
 
   ParticipantPermissions _permissions = const ParticipantPermissions();
   ParticipantPermissions get permissions => _permissions;
+
+  /// Attributes associated with the participant
+  UnmodifiableMapView<String, String> get attributes =>
+      UnmodifiableMapView(_attributes);
+  Map<String, String> _attributes = {};
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -170,6 +176,18 @@ abstract class Participant<T extends TrackPublication>
     }
   }
 
+  void _setAttributes(Map<String, String> attrs) {
+    final diff = mapDiff(_attributes, attrs)
+        .map((k, v) => MapEntry(k as String, v as String));
+    _attributes = attrs;
+    if (diff.isNotEmpty) {
+      [
+        events,
+        room.events
+      ].emit(ParticipantAttributesChanged(participant: this, attributes: diff));
+    }
+  }
+
   @internal
   void updateConnectionQuality(ConnectionQuality quality) {
     if (_connectionQuality == quality) return;
@@ -196,6 +214,8 @@ abstract class Participant<T extends TrackPublication>
     if (info.metadata.isNotEmpty) {
       _setMetadata(info.metadata);
     }
+
+    _setAttributes(info.attributes);
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
 

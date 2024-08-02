@@ -154,14 +154,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
-  }) {
+  }) async {
     roomOptions ??= this.roomOptions;
     if (roomOptions.e2eeOptions != null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
       _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
-      _e2eeManager!.setup(this);
+      await _e2eeManager!.setup(this);
 
       // Disable backup codec when e2ee is enabled
       roomOptions = roomOptions.copyWith(
@@ -172,7 +172,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     }
 
-    return engine.connect(
+    await engine.connect(
       url,
       token,
       connectOptions: connectOptions,
@@ -491,11 +491,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    if (engine.isClosed) {
+    if (engine.isClosed &&
+        engine.connectionState == ConnectionState.disconnected) {
       events.emit(RoomDisconnectedEvent(reason: DisconnectReason.unknown));
       return;
     }
     await engine.disconnect();
+    await _engineListener.waitFor<EngineDisconnectedEvent>(
+        duration: const Duration(seconds: 10));
     await _cleanUp();
   }
 
