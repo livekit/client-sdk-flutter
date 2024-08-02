@@ -142,6 +142,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
               onTap: () => setState(() => _visible = !_visible),
               child: activeVideoTrack != null && !activeVideoTrack!.muted
                   ? VideoTrackRenderer(
+                      renderMode: VideoRenderMode.auto,
                       activeVideoTrack!,
                       fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
                     )

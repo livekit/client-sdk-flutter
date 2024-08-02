@@ -34,16 +34,24 @@ enum VideoViewMirrorMode {
   mirror,
 }
 
+enum VideoRenderMode {
+  auto,
+  texture,
+  platformView,
+}
+
 /// Widget that renders a [VideoTrack].
 class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
+  final VideoRenderMode renderMode;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
+    this.renderMode = VideoRenderMode.auto,
     Key? key,
   }) : super(key: key);
 
@@ -52,14 +60,17 @@ class VideoTrackRenderer extends StatefulWidget {
 }
 
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
-  rtc.RTCVideoRenderer? _renderer;
+  rtc.VideoRenderer? _renderer;
   // for flutter web only.
   bool _rendererReadyForWeb = false;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
-  Future<rtc.RTCVideoRenderer> _initializeRenderer() async {
+  Future<rtc.VideoRenderer> _initializeRenderer() async {
+    if (widget.renderMode == VideoRenderMode.platformView) {
+      return Null as Future<rtc.VideoRenderer>;
+    }
     _renderer ??= rtc.RTCVideoRenderer();
     await _renderer!.initialize();
     await _attach();
@@ -139,7 +150,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               widget.track.onVideoViewBuild?.call(_internalKey);
             });
             return rtc.RTCVideoView(
-              _renderer!,
+              _renderer! as rtc.RTCVideoRenderer,
               mirror: _shouldMirror(),
               filterQuality: FilterQuality.medium,
               objectFit: widget.fit,
@@ -150,7 +161,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForNative() => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
-        if (snapshot.hasData && _renderer != null) {
+        if ((snapshot.hasData && _renderer != null) ||
+            [VideoRenderMode.auto, VideoRenderMode.platformView]
+                .contains(widget.renderMode)) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
@@ -159,8 +172,21 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                   ?.addPostFrameCallback((timeStamp) {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
+              if (lkPlatformIs(PlatformType.iOS) &&
+                  [VideoRenderMode.auto, VideoRenderMode.platformView]
+                      .contains(widget.renderMode)) {
+                return rtc.RTCVideoPlatFormView(
+                  mirror: _shouldMirror(),
+                  objectFit: widget.fit,
+                  onViewReady: (controller) {
+                    _renderer = controller;
+                    _renderer?.srcObject = widget.track.mediaStream;
+                    _attach();
+                  },
+                );
+              }
               return rtc.RTCVideoView(
-                _renderer!,
+                _renderer! as rtc.RTCVideoRenderer,
                 mirror: _shouldMirror(),
                 filterQuality: FilterQuality.medium,
                 objectFit: widget.fit,
