@@ -13,6 +13,7 @@
 // limitations under the License.
 
 @Timeout(Duration(seconds: 5))
+library;
 
 import 'package:flutter_test/flutter_test.dart';
 

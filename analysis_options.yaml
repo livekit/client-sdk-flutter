@@ -24,11 +24,13 @@
 
 # https://pub.dev/packages/flutter_lints
 
-include: package:flutter_lints/flutter.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   errors:
     constant_identifier_names: ignore
+    no_wildcard_variable_uses: ignore
+    use_super_parameters: ignore
   #
   # Enforce stricter type-checking
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
