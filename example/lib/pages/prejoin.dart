@@ -165,10 +165,10 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     try {
       //create new room
-      final room = Room();
-
-      // Create a Listener before connecting
-      final listener = room.createListener();
+      var encoding = VideoEncoding(
+        maxBitrate: 5 * 1000 * 1000,
+        maxFramerate: 30,
+      );
 
       E2EEOptions? e2eeOptions;
       if (args.e2ee && args.e2eeKey != null) {
@@ -177,36 +177,38 @@ class _PreJoinPageState extends State<PreJoinPage> {
         await keyProvider.setKey(args.e2eeKey!);
       }
 
-      // Try to connect to the room
-      // This will throw an Exception if it fails for any reason.
-      await room.connect(
-        args.url,
-        args.token,
+      final room = Room(
         roomOptions: RoomOptions(
           adaptiveStream: args.adaptiveStream,
           dynacast: args.dynacast,
           defaultAudioPublishOptions: const AudioPublishOptions(
             name: 'custom_audio_track_name',
           ),
+          defaultCameraCaptureOptions: CameraCaptureOptions(
+              maxFrameRate: 30,
+              params: VideoParameters(
+                dimensions: const VideoDimensions(1280, 720),
+                encoding: encoding,
+              )),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: args.simulcast,
             videoCodec: args.preferredCodec,
             backupVideoCodec: BackupVideoCodec(
               enabled: args.enableBackupVideoCodec,
             ),
+            videoEncoding: encoding,
           ),
-          defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-              useiOSBroadcastExtension: true,
-              params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h1080_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 3 * 1000 * 1000,
-                    maxFramerate: 15,
-                  ))),
-          defaultCameraCaptureOptions: CameraCaptureOptions(
-              maxFrameRate: 30, params: _selectedVideoParameters),
           e2eeOptions: e2eeOptions,
         ),
+      );
+      // Create a Listener before connecting
+      final listener = room.createListener();
+
+      // Try to connect to the room
+      // This will throw an Exception if it fails for any reason.
+      await room.connect(
+        args.url,
+        args.token,
         fastConnectOptions: FastConnectOptions(
           microphone: TrackOption(track: _audioTrack),
           camera: TrackOption(track: _videoTrack),
