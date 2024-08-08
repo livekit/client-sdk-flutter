@@ -26,7 +26,7 @@ class VideoParameters implements Comparable<VideoParameters> {
   const VideoParameters({
     this.description,
     required this.dimensions,
-    required this.encoding,
+    this.encoding = VideoEncoding.defaults,
   });
 
   // ----------------------------------------------------------------------

@@ -26,6 +26,11 @@ class VideoEncoding implements Comparable<VideoEncoding> {
     required this.maxBitrate,
   });
 
+  static const VideoEncoding defaults = VideoEncoding(
+    maxFramerate: 30,
+    maxBitrate: 1500 * 1000,
+  );
+
   VideoEncoding copyWith({
     int? maxFramerate,
     int? maxBitrate,
