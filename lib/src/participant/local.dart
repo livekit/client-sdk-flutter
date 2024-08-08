@@ -148,6 +148,21 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions ??=
         track.lastPublishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
+    // if no encoding is specified, use the default encoding
+    if (publishOptions.videoEncoding == null) {
+      if (track.source == TrackSource.camera) {
+        publishOptions = publishOptions.copyWith(
+          videoEncoding:
+              room.roomOptions.defaultCameraCaptureOptions.params.encoding,
+        );
+      } else if (track.source == TrackSource.screenShareVideo) {
+        publishOptions = publishOptions.copyWith(
+          videoEncoding:
+              room.roomOptions.defaultScreenShareCaptureOptions.params.encoding,
+        );
+      }
+    }
+
     if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
         videoCodec: publishOptions.videoCodec.toLowerCase(),
