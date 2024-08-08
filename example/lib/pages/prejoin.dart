@@ -190,6 +190,14 @@ class _PreJoinPageState extends State<PreJoinPage> {
                 dimensions: const VideoDimensions(1280, 720),
                 encoding: encoding,
               )),
+          defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
+              useiOSBroadcastExtension: true,
+              params: VideoParameters(
+                  dimensions: VideoDimensionsPresets.h1080_169,
+                  encoding: VideoEncoding(
+                    maxBitrate: 3 * 1000 * 1000,
+                    maxFramerate: 15,
+                  ))),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: args.simulcast,
             videoCodec: args.preferredCodec,
