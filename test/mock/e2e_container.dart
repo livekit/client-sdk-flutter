@@ -31,7 +31,6 @@ class E2EContainer {
     engine = Engine(
       signalClient: client,
       peerConnectionCreate: MockPeerConnection.create,
-      connectOptions: const ConnectOptions(),
       roomOptions: const RoomOptions(),
     );
     room = Room(engine: engine);
