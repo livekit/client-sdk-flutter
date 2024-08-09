@@ -165,9 +165,14 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     try {
       //create new room
-      var encoding = VideoEncoding(
+      var cameraEncoding = VideoEncoding(
         maxBitrate: 5 * 1000 * 1000,
         maxFramerate: 30,
+      );
+
+      var screenEncoding = VideoEncoding(
+        maxBitrate: 3 * 1000 * 1000,
+        maxFramerate: 15,
       );
 
       E2EEOptions? e2eeOptions;
@@ -188,23 +193,20 @@ class _PreJoinPageState extends State<PreJoinPage> {
               maxFrameRate: 30,
               params: VideoParameters(
                 dimensions: const VideoDimensions(1280, 720),
-                encoding: encoding,
               )),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
               params: VideoParameters(
-                  dimensions: VideoDimensionsPresets.h1080_169,
-                  encoding: VideoEncoding(
-                    maxBitrate: 3 * 1000 * 1000,
-                    maxFramerate: 15,
-                  ))),
+                dimensions: VideoDimensionsPresets.h1080_169,
+              )),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: args.simulcast,
             videoCodec: args.preferredCodec,
             backupVideoCodec: BackupVideoCodec(
               enabled: args.enableBackupVideoCodec,
             ),
-            videoEncoding: encoding,
+            videoEncoding: cameraEncoding,
+            screenShareEncoding: screenEncoding,
           ),
           e2eeOptions: e2eeOptions,
         ),

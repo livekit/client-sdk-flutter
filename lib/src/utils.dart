@@ -240,9 +240,11 @@ class Utils {
         encoding: VideoEncoding(
           maxBitrate: math.max(
             150 * 1000,
-            (original.encoding.maxBitrate /
-                    (math.pow(scale, 2) *
-                        (original.encoding.maxFramerate / fps)))
+            (original.encoding?.maxBitrate ??
+                    VideoEncoding.defaults.maxBitrate /
+                        (math.pow(scale, 2) *
+                            (original.encoding?.maxFramerate ??
+                                VideoEncoding.defaults.maxFramerate / fps)))
                 .floor(),
           ),
           maxFramerate: fps,
@@ -274,7 +276,7 @@ class Utils {
     String? codec,
   }) {
     assert(presets.isNotEmpty, 'presets should not be empty');
-    VideoEncoding result = presets.first.encoding;
+    VideoEncoding? result = presets.first.encoding;
 
     // handle portrait by swapping dimensions
     final size = dimensions.max();
@@ -283,6 +285,8 @@ class Utils {
       result = preset.encoding;
       if (preset.dimensions.width >= size) break;
     }
+
+    result ??= VideoEncoding.defaults;
 
     // presets are based on the assumption of vp8 as a codec
     // for other codecs we adjust the maxBitrate if no specific videoEncoding has been provided
@@ -319,11 +323,12 @@ class Utils {
       }
       final size = dimensions.min();
       final rid = videoRids[i];
-
-      result.add(e.encoding.toRTCRtpEncoding(
-        rid: rid,
-        scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
-      ));
+      if (e.encoding != null) {
+        result.add(e.encoding!.toRTCRtpEncoding(
+          rid: rid,
+          scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
+        ));
+      }
     });
     return result;
   }
@@ -390,6 +395,11 @@ class Utils {
     options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
+
+    if (isScreenShare) {
+      videoEncoding = options.screenShareEncoding;
+    }
+
     var scalabilityMode = options.scalabilityMode;
 
     if ((videoEncoding == null &&
@@ -436,7 +446,8 @@ class Utils {
           encodings.add(rtc.RTCRtpEncoding(
             rid: videoRids[2 - i],
             maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
-            maxFramerate: original.encoding.maxFramerate,
+            maxFramerate: original.encoding?.maxFramerate ??
+                VideoEncoding.defaults.maxFramerate,
           ));
         }
       } else {
