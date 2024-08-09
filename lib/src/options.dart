@@ -229,6 +229,8 @@ class VideoPublishOptions extends PublishOptions {
   /// Defaults to null.
   final VideoEncoding? videoEncoding;
 
+  final VideoEncoding? screenShareEncoding;
+
   /// Whether to enable simulcast or not.
   /// https://blog.livekit.io/an-introduction-to-webrtc-simulcast-6c5f1f6402eb
   /// Defaults to true.
@@ -249,6 +251,7 @@ class VideoPublishOptions extends PublishOptions {
       super.stream,
       this.videoCodec = defaultVideoCodec,
       this.videoEncoding,
+      this.screenShareEncoding,
       this.simulcast = true,
       this.videoSimulcastLayers = const [],
       this.screenShareSimulcastLayers = const [],
@@ -258,6 +261,7 @@ class VideoPublishOptions extends PublishOptions {
 
   VideoPublishOptions copyWith({
     VideoEncoding? videoEncoding,
+    VideoEncoding? screenShareEncoding,
     bool? simulcast,
     List<VideoParameters>? videoSimulcastLayers,
     List<VideoParameters>? screenShareSimulcastLayers,
@@ -270,6 +274,7 @@ class VideoPublishOptions extends PublishOptions {
   }) =>
       VideoPublishOptions(
         videoEncoding: videoEncoding ?? this.videoEncoding,
+        screenShareEncoding: screenShareEncoding ?? this.screenShareEncoding,
         simulcast: simulcast ?? this.simulcast,
         videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
         screenShareSimulcastLayers:

@@ -111,12 +111,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late EventsListener<SignalEvent> _signalListener;
 
   Room({
+    @Deprecated('deprecated, please use connectOptions in room.connect()')
     ConnectOptions connectOptions = const ConnectOptions(),
     RoomOptions roomOptions = const RoomOptions(),
     Engine? engine,
   }) : engine = engine ??
             Engine(
-              connectOptions: connectOptions,
               roomOptions: roomOptions,
             ) {
     //
@@ -152,10 +152,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String url,
     String token, {
     ConnectOptions? connectOptions,
+    @Deprecated('deprecated, please use roomOptions in Room constructor')
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) async {
-    roomOptions ??= this.roomOptions;
+    var roomOptions = this.roomOptions;
+    connectOptions ??= ConnectOptions();
     if (roomOptions.e2eeOptions != null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');

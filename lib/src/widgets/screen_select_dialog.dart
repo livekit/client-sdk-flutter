@@ -302,7 +302,7 @@ class ScreenSelectDialog extends Dialog {
             ),
             SizedBox(
               width: double.infinity,
-              child: ButtonBar(
+              child: OverflowBar(
                 children: <Widget>[
                   MaterialButton(
                     child: const Text(

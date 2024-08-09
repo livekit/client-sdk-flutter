@@ -240,9 +240,9 @@ class Utils {
         encoding: VideoEncoding(
           maxBitrate: math.max(
             150 * 1000,
-            (original.encoding.maxBitrate /
+            (original.encoding!.maxBitrate /
                     (math.pow(scale, 2) *
-                        (original.encoding.maxFramerate / fps)))
+                        (original.encoding!.maxFramerate / fps)))
                 .floor(),
           ),
           maxFramerate: fps,
@@ -274,13 +274,13 @@ class Utils {
     String? codec,
   }) {
     assert(presets.isNotEmpty, 'presets should not be empty');
-    VideoEncoding result = presets.first.encoding;
+    VideoEncoding result = presets.first.encoding!;
 
     // handle portrait by swapping dimensions
     final size = dimensions.max();
 
     for (final preset in presets) {
-      result = preset.encoding;
+      result = preset.encoding!;
       if (preset.dimensions.width >= size) break;
     }
 
@@ -319,11 +319,12 @@ class Utils {
       }
       final size = dimensions.min();
       final rid = videoRids[i];
-
-      result.add(e.encoding.toRTCRtpEncoding(
-        rid: rid,
-        scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
-      ));
+      if (e.encoding != null) {
+        result.add(e.encoding!.toRTCRtpEncoding(
+          rid: rid,
+          scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
+        ));
+      }
     });
     return result;
   }
@@ -390,6 +391,11 @@ class Utils {
     options ??= const VideoPublishOptions();
 
     VideoEncoding? videoEncoding = options.videoEncoding;
+
+    if (isScreenShare) {
+      videoEncoding = options.screenShareEncoding;
+    }
+
     var scalabilityMode = options.scalabilityMode;
 
     if ((videoEncoding == null &&
@@ -436,7 +442,7 @@ class Utils {
           encodings.add(rtc.RTCRtpEncoding(
             rid: videoRids[2 - i],
             maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
-            maxFramerate: original.encoding.maxFramerate,
+            maxFramerate: original.encoding!.maxFramerate,
           ));
         }
       } else {

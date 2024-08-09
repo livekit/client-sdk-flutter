@@ -21,12 +21,12 @@ import 'video_encoding.dart';
 class VideoParameters implements Comparable<VideoParameters> {
   final String? description;
   final VideoDimensions dimensions;
-  final VideoEncoding encoding;
+  final VideoEncoding? encoding;
 
   const VideoParameters({
-    this.description,
     required this.dimensions,
-    required this.encoding,
+    this.description,
+    this.encoding,
   });
 
   // ----------------------------------------------------------------------
@@ -51,8 +51,8 @@ class VideoParameters implements Comparable<VideoParameters> {
     // compare by dimension's area
     final result = dimensions.area().compareTo(other.dimensions.area());
     // if dimensions have equal area, compare by encoding
-    if (result == 0) {
-      return encoding.compareTo(other.encoding);
+    if (result == 0 && encoding != null && other.encoding != null) {
+      return encoding!.compareTo(other.encoding!);
     }
 
     return result;
@@ -65,7 +65,7 @@ class VideoParameters implements Comparable<VideoParameters> {
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         'width': dimensions.width,
         'height': dimensions.height,
-        'frameRate': encoding.maxFramerate,
+        'frameRate': encoding?.maxFramerate ?? 30,
       };
 }
 
