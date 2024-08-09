@@ -65,8 +65,7 @@ class VideoParameters implements Comparable<VideoParameters> {
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
         'width': dimensions.width,
         'height': dimensions.height,
-        'frameRate':
-            encoding?.maxFramerate ?? VideoEncoding.defaults.maxFramerate,
+        'frameRate': encoding?.maxFramerate ?? 30,
       };
 }
 
