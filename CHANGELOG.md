@@ -1,10 +1,19 @@
 # CHANGELOG
 
+## 2.2.4
+
+* fix bug for PlatformView on iOS (#570)
+* Deprecated `connectOptions` in `Room` constructor.
+* Deprecated `roomOptions` int `room.connect`.
+* Added `screenShareEncoding` for `VideoPublishOptions`.
+* Change `CameraCaptureOptions.params.encoding` to optional.
+   It is recommended to use `VideoPublishOptions.videoEncoding/screenShareEncoding`
+   to control the video sending bitrate.
+
 ## 2.2.3
 
 * add PlatformView for iOS (#509)
 * update lints to 4.0.0. (#563)
-
 
 ## 2.2.2
 
