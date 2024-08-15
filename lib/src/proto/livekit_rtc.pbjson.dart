@@ -408,13 +408,22 @@ const SignalResponse$json = {
       '10': 'subscriptionResponse'
     },
     {
-      '1': 'error_response',
+      '1': 'request_response',
       '3': 22,
       '4': 1,
       '5': 11,
-      '6': '.livekit.ErrorResponse',
+      '6': '.livekit.RequestResponse',
       '9': 0,
-      '10': 'errorResponse'
+      '10': 'requestResponse'
+    },
+    {
+      '1': 'track_subscribed',
+      '3': 23,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackSubscribed',
+      '9': 0,
+      '10': 'trackSubscribed'
     },
   ],
   '8': [
@@ -447,8 +456,9 @@ final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
     'dmVraXQuUmVjb25uZWN0UmVzcG9uc2VIAFIJcmVjb25uZWN0EiwKCXBvbmdfcmVzcBgUIAEoCz'
     'INLmxpdmVraXQuUG9uZ0gAUghwb25nUmVzcBJUChVzdWJzY3JpcHRpb25fcmVzcG9uc2UYFSAB'
     'KAsyHS5saXZla2l0LlN1YnNjcmlwdGlvblJlc3BvbnNlSABSFHN1YnNjcmlwdGlvblJlc3Bvbn'
-    'NlEj8KDmVycm9yX3Jlc3BvbnNlGBYgASgLMhYubGl2ZWtpdC5FcnJvclJlc3BvbnNlSABSDWVy'
-    'cm9yUmVzcG9uc2VCCQoHbWVzc2FnZQ==');
+    'NlEkUKEHJlcXVlc3RfcmVzcG9uc2UYFiABKAsyGC5saXZla2l0LlJlcXVlc3RSZXNwb25zZUgA'
+    'Ug9yZXF1ZXN0UmVzcG9uc2USRQoQdHJhY2tfc3Vic2NyaWJlZBgXIAEoCzIYLmxpdmVraXQuVH'
+    'JhY2tTdWJzY3JpYmVkSABSD3RyYWNrU3Vic2NyaWJlZEIJCgdtZXNzYWdl');
 
 @$core.Deprecated('Use simulcastCodecDescriptor instead')
 const SimulcastCodec$json = {
@@ -547,13 +557,15 @@ const TrickleRequest$json = {
       '6': '.livekit.SignalTarget',
       '10': 'target'
     },
+    {'1': 'final', '3': 3, '4': 1, '5': 8, '10': 'final'},
   ],
 };
 
 /// Descriptor for `TrickleRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trickleRequestDescriptor = $convert.base64Decode(
     'Cg5Ucmlja2xlUmVxdWVzdBIkCg1jYW5kaWRhdGVJbml0GAEgASgJUg1jYW5kaWRhdGVJbml0Ei'
-    '0KBnRhcmdldBgCIAEoDjIVLmxpdmVraXQuU2lnbmFsVGFyZ2V0UgZ0YXJnZXQ=');
+    '0KBnRhcmdldBgCIAEoDjIVLmxpdmVraXQuU2lnbmFsVGFyZ2V0UgZ0YXJnZXQSFAoFZmluYWwY'
+    'AyABKAhSBWZpbmFs');
 
 @$core.Deprecated('Use muteTrackRequestDescriptor instead')
 const MuteTrackRequest$json = {
@@ -1461,9 +1473,9 @@ final $typed_data.Uint8List subscriptionResponseDescriptor = $convert.base64Deco
     'ChRTdWJzY3JpcHRpb25SZXNwb25zZRIbCgl0cmFja19zaWQYASABKAlSCHRyYWNrU2lkEiwKA2'
     'VychgCIAEoDjIaLmxpdmVraXQuU3Vic2NyaXB0aW9uRXJyb3JSA2Vycg==');
 
-@$core.Deprecated('Use errorResponseDescriptor instead')
-const ErrorResponse$json = {
-  '1': 'ErrorResponse',
+@$core.Deprecated('Use requestResponseDescriptor instead')
+const RequestResponse$json = {
+  '1': 'RequestResponse',
   '2': [
     {'1': 'request_id', '3': 1, '4': 1, '5': 13, '10': 'requestId'},
     {
@@ -1471,28 +1483,40 @@ const ErrorResponse$json = {
       '3': 2,
       '4': 1,
       '5': 14,
-      '6': '.livekit.ErrorResponse.Reason',
+      '6': '.livekit.RequestResponse.Reason',
       '10': 'reason'
     },
     {'1': 'message', '3': 3, '4': 1, '5': 9, '10': 'message'},
   ],
-  '4': [ErrorResponse_Reason$json],
+  '4': [RequestResponse_Reason$json],
 };
 
-@$core.Deprecated('Use errorResponseDescriptor instead')
-const ErrorResponse_Reason$json = {
+@$core.Deprecated('Use requestResponseDescriptor instead')
+const RequestResponse_Reason$json = {
   '1': 'Reason',
   '2': [
-    {'1': 'UNKNOWN', '2': 0},
+    {'1': 'OK', '2': 0},
     {'1': 'NOT_FOUND', '2': 1},
     {'1': 'NOT_ALLOWED', '2': 2},
-    {'1': 'INVALID_ARGUMENT', '2': 3},
+    {'1': 'LIMIT_EXCEEDED', '2': 3},
   ],
 };
 
-/// Descriptor for `ErrorResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List errorResponseDescriptor = $convert.base64Decode(
-    'Cg1FcnJvclJlc3BvbnNlEh0KCnJlcXVlc3RfaWQYASABKA1SCXJlcXVlc3RJZBI1CgZyZWFzb2'
-    '4YAiABKA4yHS5saXZla2l0LkVycm9yUmVzcG9uc2UuUmVhc29uUgZyZWFzb24SGAoHbWVzc2Fn'
-    'ZRgDIAEoCVIHbWVzc2FnZSJLCgZSZWFzb24SCwoHVU5LTk9XThAAEg0KCU5PVF9GT1VORBABEg'
-    '8KC05PVF9BTExPV0VEEAISFAoQSU5WQUxJRF9BUkdVTUVOVBAD');
+/// Descriptor for `RequestResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List requestResponseDescriptor = $convert.base64Decode(
+    'Cg9SZXF1ZXN0UmVzcG9uc2USHQoKcmVxdWVzdF9pZBgBIAEoDVIJcmVxdWVzdElkEjcKBnJlYX'
+    'NvbhgCIAEoDjIfLmxpdmVraXQuUmVxdWVzdFJlc3BvbnNlLlJlYXNvblIGcmVhc29uEhgKB21l'
+    'c3NhZ2UYAyABKAlSB21lc3NhZ2UiRAoGUmVhc29uEgYKAk9LEAASDQoJTk9UX0ZPVU5EEAESDw'
+    'oLTk9UX0FMTE9XRUQQAhISCg5MSU1JVF9FWENFRURFRBAD');
+
+@$core.Deprecated('Use trackSubscribedDescriptor instead')
+const TrackSubscribed$json = {
+  '1': 'TrackSubscribed',
+  '2': [
+    {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
+  ],
+};
+
+/// Descriptor for `TrackSubscribed`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List trackSubscribedDescriptor = $convert.base64Decode(
+    'Cg9UcmFja1N1YnNjcmliZWQSGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZA==');

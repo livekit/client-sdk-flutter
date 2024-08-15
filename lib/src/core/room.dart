@@ -230,6 +230,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       fastConnectOptions: fastConnectOptions,
+      regionUrlProvider: _regionUrlProvider,
     );
   }
 

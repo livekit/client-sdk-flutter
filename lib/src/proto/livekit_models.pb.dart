@@ -665,6 +665,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.bool? isPublisher,
     ParticipantInfo_Kind? kind,
     $core.Map<$core.String, $core.String>? attributes,
+    DisconnectReason? disconnectReason,
   }) {
     final $result = create();
     if (sid != null) {
@@ -705,6 +706,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (attributes != null) {
       $result.attributes.addAll(attributes);
+    }
+    if (disconnectReason != null) {
+      $result.disconnectReason = disconnectReason;
     }
     return $result;
   }
@@ -747,6 +751,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('livekit'))
+    ..e<DisconnectReason>(
+        16, _omitFieldNames ? '' : 'disconnectReason', $pb.PbFieldType.OE,
+        defaultOrMaker: DisconnectReason.UNKNOWN_REASON,
+        valueOf: DisconnectReason.valueOf,
+        enumValues: DisconnectReason.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -914,6 +923,18 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(15)
   $core.Map<$core.String, $core.String> get attributes => $_getMap(12);
+
+  @$pb.TagNumber(16)
+  DisconnectReason get disconnectReason => $_getN(13);
+  @$pb.TagNumber(16)
+  set disconnectReason(DisconnectReason v) {
+    setField(16, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasDisconnectReason() => $_has(13);
+  @$pb.TagNumber(16)
+  void clearDisconnectReason() => clearField(16);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -4195,6 +4216,511 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearRebasedReportDrift() => clearField(46);
   @$pb.TagNumber(46)
   RTPDrift ensureRebasedReportDrift() => $_ensure(43);
+}
+
+enum RTPForwarderState_CodecMunger { vp8Munger, notSet }
+
+class RTPForwarderState extends $pb.GeneratedMessage {
+  factory RTPForwarderState({
+    $core.bool? started,
+    $core.int? referenceLayerSpatial,
+    $fixnum.Int64? preStartTime,
+    $fixnum.Int64? extFirstTimestamp,
+    $fixnum.Int64? dummyStartTimestampOffset,
+    RTPMungerState? rtpMunger,
+    VP8MungerState? vp8Munger,
+  }) {
+    final $result = create();
+    if (started != null) {
+      $result.started = started;
+    }
+    if (referenceLayerSpatial != null) {
+      $result.referenceLayerSpatial = referenceLayerSpatial;
+    }
+    if (preStartTime != null) {
+      $result.preStartTime = preStartTime;
+    }
+    if (extFirstTimestamp != null) {
+      $result.extFirstTimestamp = extFirstTimestamp;
+    }
+    if (dummyStartTimestampOffset != null) {
+      $result.dummyStartTimestampOffset = dummyStartTimestampOffset;
+    }
+    if (rtpMunger != null) {
+      $result.rtpMunger = rtpMunger;
+    }
+    if (vp8Munger != null) {
+      $result.vp8Munger = vp8Munger;
+    }
+    return $result;
+  }
+  RTPForwarderState._() : super();
+  factory RTPForwarderState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPForwarderState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static const $core.Map<$core.int, RTPForwarderState_CodecMunger>
+      _RTPForwarderState_CodecMungerByTag = {
+    7: RTPForwarderState_CodecMunger.vp8Munger,
+    0: RTPForwarderState_CodecMunger.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RTPForwarderState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..oo(0, [7])
+    ..aOB(1, _omitFieldNames ? '' : 'started')
+    ..a<$core.int>(
+        2, _omitFieldNames ? '' : 'referenceLayerSpatial', $pb.PbFieldType.O3)
+    ..aInt64(3, _omitFieldNames ? '' : 'preStartTime')
+    ..a<$fixnum.Int64>(
+        4, _omitFieldNames ? '' : 'extFirstTimestamp', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'dummyStartTimestampOffset',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOM<RTPMungerState>(6, _omitFieldNames ? '' : 'rtpMunger',
+        subBuilder: RTPMungerState.create)
+    ..aOM<VP8MungerState>(7, _omitFieldNames ? '' : 'vp8Munger',
+        subBuilder: VP8MungerState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  RTPForwarderState clone() => RTPForwarderState()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  RTPForwarderState copyWith(void Function(RTPForwarderState) updates) =>
+      super.copyWith((message) => updates(message as RTPForwarderState))
+          as RTPForwarderState;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RTPForwarderState create() => RTPForwarderState._();
+  RTPForwarderState createEmptyInstance() => create();
+  static $pb.PbList<RTPForwarderState> createRepeated() =>
+      $pb.PbList<RTPForwarderState>();
+  @$core.pragma('dart2js:noInline')
+  static RTPForwarderState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RTPForwarderState>(create);
+  static RTPForwarderState? _defaultInstance;
+
+  RTPForwarderState_CodecMunger whichCodecMunger() =>
+      _RTPForwarderState_CodecMungerByTag[$_whichOneof(0)]!;
+  void clearCodecMunger() => clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  $core.bool get started => $_getBF(0);
+  @$pb.TagNumber(1)
+  set started($core.bool v) {
+    $_setBool(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasStarted() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStarted() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get referenceLayerSpatial => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set referenceLayerSpatial($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasReferenceLayerSpatial() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReferenceLayerSpatial() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get preStartTime => $_getI64(2);
+  @$pb.TagNumber(3)
+  set preStartTime($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasPreStartTime() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPreStartTime() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get extFirstTimestamp => $_getI64(3);
+  @$pb.TagNumber(4)
+  set extFirstTimestamp($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasExtFirstTimestamp() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearExtFirstTimestamp() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get dummyStartTimestampOffset => $_getI64(4);
+  @$pb.TagNumber(5)
+  set dummyStartTimestampOffset($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasDummyStartTimestampOffset() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearDummyStartTimestampOffset() => clearField(5);
+
+  @$pb.TagNumber(6)
+  RTPMungerState get rtpMunger => $_getN(5);
+  @$pb.TagNumber(6)
+  set rtpMunger(RTPMungerState v) {
+    setField(6, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasRtpMunger() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRtpMunger() => clearField(6);
+  @$pb.TagNumber(6)
+  RTPMungerState ensureRtpMunger() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  VP8MungerState get vp8Munger => $_getN(6);
+  @$pb.TagNumber(7)
+  set vp8Munger(VP8MungerState v) {
+    setField(7, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasVp8Munger() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearVp8Munger() => clearField(7);
+  @$pb.TagNumber(7)
+  VP8MungerState ensureVp8Munger() => $_ensure(6);
+}
+
+class RTPMungerState extends $pb.GeneratedMessage {
+  factory RTPMungerState({
+    $fixnum.Int64? extLastSequenceNumber,
+    $fixnum.Int64? extSecondLastSequenceNumber,
+    $fixnum.Int64? extLastTimestamp,
+    $fixnum.Int64? extSecondLastTimestamp,
+    $core.bool? lastMarker,
+    $core.bool? secondLastMarker,
+  }) {
+    final $result = create();
+    if (extLastSequenceNumber != null) {
+      $result.extLastSequenceNumber = extLastSequenceNumber;
+    }
+    if (extSecondLastSequenceNumber != null) {
+      $result.extSecondLastSequenceNumber = extSecondLastSequenceNumber;
+    }
+    if (extLastTimestamp != null) {
+      $result.extLastTimestamp = extLastTimestamp;
+    }
+    if (extSecondLastTimestamp != null) {
+      $result.extSecondLastTimestamp = extSecondLastTimestamp;
+    }
+    if (lastMarker != null) {
+      $result.lastMarker = lastMarker;
+    }
+    if (secondLastMarker != null) {
+      $result.secondLastMarker = secondLastMarker;
+    }
+    return $result;
+  }
+  RTPMungerState._() : super();
+  factory RTPMungerState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPMungerState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RTPMungerState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..a<$fixnum.Int64>(
+        1, _omitFieldNames ? '' : 'extLastSequenceNumber', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'extSecondLastSequenceNumber',
+        $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        3, _omitFieldNames ? '' : 'extLastTimestamp', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$fixnum.Int64>(
+        4, _omitFieldNames ? '' : 'extSecondLastTimestamp', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aOB(5, _omitFieldNames ? '' : 'lastMarker')
+    ..aOB(6, _omitFieldNames ? '' : 'secondLastMarker')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  RTPMungerState clone() => RTPMungerState()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  RTPMungerState copyWith(void Function(RTPMungerState) updates) =>
+      super.copyWith((message) => updates(message as RTPMungerState))
+          as RTPMungerState;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RTPMungerState create() => RTPMungerState._();
+  RTPMungerState createEmptyInstance() => create();
+  static $pb.PbList<RTPMungerState> createRepeated() =>
+      $pb.PbList<RTPMungerState>();
+  @$core.pragma('dart2js:noInline')
+  static RTPMungerState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RTPMungerState>(create);
+  static RTPMungerState? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get extLastSequenceNumber => $_getI64(0);
+  @$pb.TagNumber(1)
+  set extLastSequenceNumber($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasExtLastSequenceNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearExtLastSequenceNumber() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get extSecondLastSequenceNumber => $_getI64(1);
+  @$pb.TagNumber(2)
+  set extSecondLastSequenceNumber($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasExtSecondLastSequenceNumber() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearExtSecondLastSequenceNumber() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get extLastTimestamp => $_getI64(2);
+  @$pb.TagNumber(3)
+  set extLastTimestamp($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasExtLastTimestamp() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearExtLastTimestamp() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get extSecondLastTimestamp => $_getI64(3);
+  @$pb.TagNumber(4)
+  set extSecondLastTimestamp($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasExtSecondLastTimestamp() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearExtSecondLastTimestamp() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get lastMarker => $_getBF(4);
+  @$pb.TagNumber(5)
+  set lastMarker($core.bool v) {
+    $_setBool(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasLastMarker() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearLastMarker() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get secondLastMarker => $_getBF(5);
+  @$pb.TagNumber(6)
+  set secondLastMarker($core.bool v) {
+    $_setBool(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasSecondLastMarker() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSecondLastMarker() => clearField(6);
+}
+
+class VP8MungerState extends $pb.GeneratedMessage {
+  factory VP8MungerState({
+    $core.int? extLastPictureId,
+    $core.bool? pictureIdUsed,
+    $core.int? lastTl0PicIdx,
+    $core.bool? tl0PicIdxUsed,
+    $core.bool? tidUsed,
+    $core.int? lastKeyIdx,
+    $core.bool? keyIdxUsed,
+  }) {
+    final $result = create();
+    if (extLastPictureId != null) {
+      $result.extLastPictureId = extLastPictureId;
+    }
+    if (pictureIdUsed != null) {
+      $result.pictureIdUsed = pictureIdUsed;
+    }
+    if (lastTl0PicIdx != null) {
+      $result.lastTl0PicIdx = lastTl0PicIdx;
+    }
+    if (tl0PicIdxUsed != null) {
+      $result.tl0PicIdxUsed = tl0PicIdxUsed;
+    }
+    if (tidUsed != null) {
+      $result.tidUsed = tidUsed;
+    }
+    if (lastKeyIdx != null) {
+      $result.lastKeyIdx = lastKeyIdx;
+    }
+    if (keyIdxUsed != null) {
+      $result.keyIdxUsed = keyIdxUsed;
+    }
+    return $result;
+  }
+  VP8MungerState._() : super();
+  factory VP8MungerState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VP8MungerState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'VP8MungerState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..a<$core.int>(
+        1, _omitFieldNames ? '' : 'extLastPictureId', $pb.PbFieldType.O3)
+    ..aOB(2, _omitFieldNames ? '' : 'pictureIdUsed')
+    ..a<$core.int>(
+        3, _omitFieldNames ? '' : 'lastTl0PicIdx', $pb.PbFieldType.OU3)
+    ..aOB(4, _omitFieldNames ? '' : 'tl0PicIdxUsed')
+    ..aOB(5, _omitFieldNames ? '' : 'tidUsed')
+    ..a<$core.int>(6, _omitFieldNames ? '' : 'lastKeyIdx', $pb.PbFieldType.OU3)
+    ..aOB(7, _omitFieldNames ? '' : 'keyIdxUsed')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  VP8MungerState clone() => VP8MungerState()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  VP8MungerState copyWith(void Function(VP8MungerState) updates) =>
+      super.copyWith((message) => updates(message as VP8MungerState))
+          as VP8MungerState;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static VP8MungerState create() => VP8MungerState._();
+  VP8MungerState createEmptyInstance() => create();
+  static $pb.PbList<VP8MungerState> createRepeated() =>
+      $pb.PbList<VP8MungerState>();
+  @$core.pragma('dart2js:noInline')
+  static VP8MungerState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<VP8MungerState>(create);
+  static VP8MungerState? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get extLastPictureId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set extLastPictureId($core.int v) {
+    $_setSignedInt32(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasExtLastPictureId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearExtLastPictureId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get pictureIdUsed => $_getBF(1);
+  @$pb.TagNumber(2)
+  set pictureIdUsed($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasPictureIdUsed() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPictureIdUsed() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get lastTl0PicIdx => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set lastTl0PicIdx($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasLastTl0PicIdx() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLastTl0PicIdx() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get tl0PicIdxUsed => $_getBF(3);
+  @$pb.TagNumber(4)
+  set tl0PicIdxUsed($core.bool v) {
+    $_setBool(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasTl0PicIdxUsed() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearTl0PicIdxUsed() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get tidUsed => $_getBF(4);
+  @$pb.TagNumber(5)
+  set tidUsed($core.bool v) {
+    $_setBool(4, v);
+  }
+
+  @$pb.TagNumber(5)
+  $core.bool hasTidUsed() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearTidUsed() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get lastKeyIdx => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set lastKeyIdx($core.int v) {
+    $_setUnsignedInt32(5, v);
+  }
+
+  @$pb.TagNumber(6)
+  $core.bool hasLastKeyIdx() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearLastKeyIdx() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.bool get keyIdxUsed => $_getBF(6);
+  @$pb.TagNumber(7)
+  set keyIdxUsed($core.bool v) {
+    $_setBool(6, v);
+  }
+
+  @$pb.TagNumber(7)
+  $core.bool hasKeyIdxUsed() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearKeyIdxUsed() => clearField(7);
 }
 
 class TimedVersion extends $pb.GeneratedMessage {

@@ -211,6 +211,8 @@ class DisconnectReason extends $pb.ProtobufEnum {
       DisconnectReason._(8, _omitEnumNames ? '' : 'MIGRATION');
   static const DisconnectReason SIGNAL_CLOSE =
       DisconnectReason._(9, _omitEnumNames ? '' : 'SIGNAL_CLOSE');
+  static const DisconnectReason ROOM_CLOSED =
+      DisconnectReason._(10, _omitEnumNames ? '' : 'ROOM_CLOSED');
 
   static const $core.List<DisconnectReason> values = <DisconnectReason>[
     UNKNOWN_REASON,
@@ -223,6 +225,7 @@ class DisconnectReason extends $pb.ProtobufEnum {
     JOIN_FAILURE,
     MIGRATION,
     SIGNAL_CLOSE,
+    ROOM_CLOSED,
   ];
 
   static final $core.Map<$core.int, DisconnectReason> _byValue =

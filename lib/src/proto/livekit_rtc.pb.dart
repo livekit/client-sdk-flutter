@@ -492,7 +492,8 @@ enum SignalResponse_Message {
   reconnect,
   pongResp,
   subscriptionResponse,
-  errorResponse,
+  requestResponse,
+  trackSubscribed,
   notSet
 }
 
@@ -518,7 +519,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     ReconnectResponse? reconnect,
     Pong? pongResp,
     SubscriptionResponse? subscriptionResponse,
-    ErrorResponse? errorResponse,
+    RequestResponse? requestResponse,
+    TrackSubscribed? trackSubscribed,
   }) {
     final $result = create();
     if (join != null) {
@@ -581,8 +583,11 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (subscriptionResponse != null) {
       $result.subscriptionResponse = subscriptionResponse;
     }
-    if (errorResponse != null) {
-      $result.errorResponse = errorResponse;
+    if (requestResponse != null) {
+      $result.requestResponse = requestResponse;
+    }
+    if (trackSubscribed != null) {
+      $result.trackSubscribed = trackSubscribed;
     }
     return $result;
   }
@@ -616,7 +621,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     19: SignalResponse_Message.reconnect,
     20: SignalResponse_Message.pongResp,
     21: SignalResponse_Message.subscriptionResponse,
-    22: SignalResponse_Message.errorResponse,
+    22: SignalResponse_Message.requestResponse,
+    23: SignalResponse_Message.trackSubscribed,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -644,7 +650,8 @@ class SignalResponse extends $pb.GeneratedMessage {
       19,
       20,
       21,
-      22
+      22,
+      23
     ])
     ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join',
         subBuilder: JoinResponse.create)
@@ -688,8 +695,10 @@ class SignalResponse extends $pb.GeneratedMessage {
     ..aOM<SubscriptionResponse>(
         21, _omitFieldNames ? '' : 'subscriptionResponse',
         subBuilder: SubscriptionResponse.create)
-    ..aOM<ErrorResponse>(22, _omitFieldNames ? '' : 'errorResponse',
-        subBuilder: ErrorResponse.create)
+    ..aOM<RequestResponse>(22, _omitFieldNames ? '' : 'requestResponse',
+        subBuilder: RequestResponse.create)
+    ..aOM<TrackSubscribed>(23, _omitFieldNames ? '' : 'trackSubscribed',
+        subBuilder: TrackSubscribed.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1017,20 +1026,35 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   SubscriptionResponse ensureSubscriptionResponse() => $_ensure(19);
 
-  /// Errors relating to user inititated requests that carry a `request_id`
+  /// Response relating to user inititated requests that carry a `request_id`
   @$pb.TagNumber(22)
-  ErrorResponse get errorResponse => $_getN(20);
+  RequestResponse get requestResponse => $_getN(20);
   @$pb.TagNumber(22)
-  set errorResponse(ErrorResponse v) {
+  set requestResponse(RequestResponse v) {
     setField(22, v);
   }
 
   @$pb.TagNumber(22)
-  $core.bool hasErrorResponse() => $_has(20);
+  $core.bool hasRequestResponse() => $_has(20);
   @$pb.TagNumber(22)
-  void clearErrorResponse() => clearField(22);
+  void clearRequestResponse() => clearField(22);
   @$pb.TagNumber(22)
-  ErrorResponse ensureErrorResponse() => $_ensure(20);
+  RequestResponse ensureRequestResponse() => $_ensure(20);
+
+  /// notify to the publisher when a published track has been subscribed for the first time
+  @$pb.TagNumber(23)
+  TrackSubscribed get trackSubscribed => $_getN(21);
+  @$pb.TagNumber(23)
+  set trackSubscribed(TrackSubscribed v) {
+    setField(23, v);
+  }
+
+  @$pb.TagNumber(23)
+  $core.bool hasTrackSubscribed() => $_has(21);
+  @$pb.TagNumber(23)
+  void clearTrackSubscribed() => clearField(23);
+  @$pb.TagNumber(23)
+  TrackSubscribed ensureTrackSubscribed() => $_ensure(21);
 }
 
 class SimulcastCodec extends $pb.GeneratedMessage {
@@ -1417,6 +1441,7 @@ class TrickleRequest extends $pb.GeneratedMessage {
   factory TrickleRequest({
     $core.String? candidateInit,
     SignalTarget? target,
+    $core.bool? final_3,
   }) {
     final $result = create();
     if (candidateInit != null) {
@@ -1424,6 +1449,9 @@ class TrickleRequest extends $pb.GeneratedMessage {
     }
     if (target != null) {
       $result.target = target;
+    }
+    if (final_3 != null) {
+      $result.final_3 = final_3;
     }
     return $result;
   }
@@ -1444,6 +1472,7 @@ class TrickleRequest extends $pb.GeneratedMessage {
         defaultOrMaker: SignalTarget.PUBLISHER,
         valueOf: SignalTarget.valueOf,
         enumValues: SignalTarget.values)
+    ..aOB(3, _omitFieldNames ? '' : 'final')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1492,6 +1521,18 @@ class TrickleRequest extends $pb.GeneratedMessage {
   $core.bool hasTarget() => $_has(1);
   @$pb.TagNumber(2)
   void clearTarget() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get final_3 => $_getBF(2);
+  @$pb.TagNumber(3)
+  set final_3($core.bool v) {
+    $_setBool(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasFinal_3() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFinal_3() => clearField(3);
 }
 
 class MuteTrackRequest extends $pb.GeneratedMessage {
@@ -4799,10 +4840,10 @@ class SubscriptionResponse extends $pb.GeneratedMessage {
   void clearErr() => clearField(2);
 }
 
-class ErrorResponse extends $pb.GeneratedMessage {
-  factory ErrorResponse({
+class RequestResponse extends $pb.GeneratedMessage {
+  factory RequestResponse({
     $core.int? requestId,
-    ErrorResponse_Reason? reason,
+    RequestResponse_Reason? reason,
     $core.String? message,
   }) {
     final $result = create();
@@ -4817,49 +4858,49 @@ class ErrorResponse extends $pb.GeneratedMessage {
     }
     return $result;
   }
-  ErrorResponse._() : super();
-  factory ErrorResponse.fromBuffer($core.List<$core.int> i,
+  RequestResponse._() : super();
+  factory RequestResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory ErrorResponse.fromJson($core.String i,
+  factory RequestResponse.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'ErrorResponse',
+      _omitMessageNames ? '' : 'RequestResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'requestId', $pb.PbFieldType.OU3)
-    ..e<ErrorResponse_Reason>(
+    ..e<RequestResponse_Reason>(
         2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
-        defaultOrMaker: ErrorResponse_Reason.UNKNOWN,
-        valueOf: ErrorResponse_Reason.valueOf,
-        enumValues: ErrorResponse_Reason.values)
+        defaultOrMaker: RequestResponse_Reason.OK,
+        valueOf: RequestResponse_Reason.valueOf,
+        enumValues: RequestResponse_Reason.values)
     ..aOS(3, _omitFieldNames ? '' : 'message')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  ErrorResponse clone() => ErrorResponse()..mergeFromMessage(this);
+  RequestResponse clone() => RequestResponse()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  ErrorResponse copyWith(void Function(ErrorResponse) updates) =>
-      super.copyWith((message) => updates(message as ErrorResponse))
-          as ErrorResponse;
+  RequestResponse copyWith(void Function(RequestResponse) updates) =>
+      super.copyWith((message) => updates(message as RequestResponse))
+          as RequestResponse;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ErrorResponse create() => ErrorResponse._();
-  ErrorResponse createEmptyInstance() => create();
-  static $pb.PbList<ErrorResponse> createRepeated() =>
-      $pb.PbList<ErrorResponse>();
+  static RequestResponse create() => RequestResponse._();
+  RequestResponse createEmptyInstance() => create();
+  static $pb.PbList<RequestResponse> createRepeated() =>
+      $pb.PbList<RequestResponse>();
   @$core.pragma('dart2js:noInline')
-  static ErrorResponse getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<ErrorResponse>(create);
-  static ErrorResponse? _defaultInstance;
+  static RequestResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestResponse>(create);
+  static RequestResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.int get requestId => $_getIZ(0);
@@ -4874,9 +4915,9 @@ class ErrorResponse extends $pb.GeneratedMessage {
   void clearRequestId() => clearField(1);
 
   @$pb.TagNumber(2)
-  ErrorResponse_Reason get reason => $_getN(1);
+  RequestResponse_Reason get reason => $_getN(1);
   @$pb.TagNumber(2)
-  set reason(ErrorResponse_Reason v) {
+  set reason(RequestResponse_Reason v) {
     setField(2, v);
   }
 
@@ -4896,6 +4937,67 @@ class ErrorResponse extends $pb.GeneratedMessage {
   $core.bool hasMessage() => $_has(2);
   @$pb.TagNumber(3)
   void clearMessage() => clearField(3);
+}
+
+class TrackSubscribed extends $pb.GeneratedMessage {
+  factory TrackSubscribed({
+    $core.String? trackSid,
+  }) {
+    final $result = create();
+    if (trackSid != null) {
+      $result.trackSid = trackSid;
+    }
+    return $result;
+  }
+  TrackSubscribed._() : super();
+  factory TrackSubscribed.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TrackSubscribed.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrackSubscribed',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'trackSid')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  TrackSubscribed clone() => TrackSubscribed()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  TrackSubscribed copyWith(void Function(TrackSubscribed) updates) =>
+      super.copyWith((message) => updates(message as TrackSubscribed))
+          as TrackSubscribed;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static TrackSubscribed create() => TrackSubscribed._();
+  TrackSubscribed createEmptyInstance() => create();
+  static $pb.PbList<TrackSubscribed> createRepeated() =>
+      $pb.PbList<TrackSubscribed>();
+  @$core.pragma('dart2js:noInline')
+  static TrackSubscribed getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackSubscribed>(create);
+  static TrackSubscribed? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trackSid => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trackSid($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasTrackSid() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrackSid() => clearField(1);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
