@@ -223,15 +223,46 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         logger.warning('could not fetch region settings $e');
       }
     }
-
-    await engine.connect(
-      _regionUrl ?? url,
-      token,
-      connectOptions: connectOptions,
-      roomOptions: roomOptions,
-      fastConnectOptions: fastConnectOptions,
-      regionUrlProvider: _regionUrlProvider,
-    );
+    try {
+      await engine.connect(
+        _regionUrl ?? url,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        fastConnectOptions: fastConnectOptions,
+        regionUrlProvider: _regionUrlProvider,
+      );
+    } catch (e) {
+      logger.warning('could not connect to $url $e');
+      if (_regionUrlProvider != null &&
+          e is ConnectException &&
+          e.reason != ConnectionErrorReason.NotAllowed) {
+        String? nextUrl;
+        try {
+          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+        } catch (error) {
+          if (error is ConnectException && (error.statusCode == 401)) {
+            rethrow;
+          }
+        }
+        if (nextUrl != null) {
+          logger.fine(
+              'Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
+          await engine.connect(
+            nextUrl,
+            token,
+            connectOptions: connectOptions,
+            roomOptions: roomOptions,
+            fastConnectOptions: fastConnectOptions,
+            regionUrlProvider: _regionUrlProvider,
+          );
+        } else {
+          rethrow;
+        }
+      } else {
+        rethrow;
+      }
+    }
   }
 
   void _setUpSignalListeners() => _signalListener

@@ -200,7 +200,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await _signalListener.waitFor<SignalJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException(
-            'Timed out waiting for SignalJoinResponseEvent'),
+            'Timed out waiting for SignalJoinResponseEvent',
+            reason: ConnectionErrorReason.Timeout),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -713,7 +714,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           duration: connectOptions.timeouts.connection * 10,
           filter: (event) => !event.state.contains(ConnectivityResult.none),
           onTimeout: () => throw ConnectException(
-              'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent'),
+              'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent',
+              reason: ConnectionErrorReason.Timeout),
         );
       }
 
@@ -769,7 +771,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
       onTimeout: () => throw ConnectException(
-          'resumeConnection: Timed out waiting for SignalReconnectedEvent'),
+          'resumeConnection: Timed out waiting for SignalReconnectedEvent',
+          reason: ConnectionErrorReason.Timeout),
     );
 
     logger.fine('resumeConnection: reason: ${reason.name}');
