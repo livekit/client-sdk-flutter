@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:livekit_client/livekit_client.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../proto/livekit_rtc.pb.dart' as lk_models;
 
 class RegionUrlProvider {
