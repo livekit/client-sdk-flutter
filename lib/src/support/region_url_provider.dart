@@ -25,10 +25,7 @@ class RegionUrlProvider {
     this.token = token;
   }
 
-  bool isCloud() {
-    return serverUrl.host.endsWith('.livekit.cloud') ||
-        serverUrl.host.endsWith('.livekit.run');
-  }
+  bool isCloud() => isCloudUrl(serverUrl);
 
   Uri getServerUrl() {
     return serverUrl;
@@ -64,8 +61,8 @@ class RegionUrlProvider {
 
   /* @internal */
   Future<lk_models.RegionSettings> fetchRegionSettings() async {
-    http.Response regionSettingsResponse =
-        await http.get(Uri.parse(getCloudConfigUrl(serverUrl)), headers: {
+    http.Response regionSettingsResponse = await http
+        .get(Uri.parse('${getCloudConfigUrl(serverUrl)}/regions'), headers: {
       'authorization': 'Bearer $token',
     });
     if (regionSettingsResponse.statusCode == 200) {
@@ -105,4 +102,23 @@ extension RegionSettingsExtension on lk_models.RegionSettings {
             .map((region) => lk_models.RegionInfo.fromJson(region))
             .toList(),
       );
+}
+
+bool isCloudUrl(Uri url) {
+  return url.host.contains('.livekit.cloud') ||
+      url.host.contains('.livekit.run');
+}
+
+String toHttpUrl(String url) {
+  if (url.startsWith('ws')) {
+    return url.replaceAll('ws', 'http');
+  }
+  return url;
+}
+
+String toWebsocketUrl(String url) {
+  if (url.startsWith('http')) {
+    return url.replaceAll('http', 'ws');
+  }
+  return url;
 }
