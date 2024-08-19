@@ -219,6 +219,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // on subsequent runs
       try {
         await _regionUrlProvider?.fetchRegionSettings();
+        _regionUrl = await _regionUrlProvider!.getNextBestRegionUrl();
       } catch (e) {
         logger.warning('could not fetch region settings $e');
       }

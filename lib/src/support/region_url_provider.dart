@@ -1,8 +1,10 @@
-import 'dart:convert';
+import 'dart:convert' show json;
 
+import 'package:fixnum/fixnum.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:livekit_client/livekit_client.dart';
+import '../exceptions.dart';
+import '../logger.dart';
 import '../proto/livekit_rtc.pb.dart' as lk_models;
 
 class RegionUrlProvider {
@@ -61,13 +63,24 @@ class RegionUrlProvider {
 
   /* @internal */
   Future<lk_models.RegionSettings> fetchRegionSettings() async {
-    http.Response regionSettingsResponse = await http
-        .get(Uri.parse('${getCloudConfigUrl(serverUrl)}/regions'), headers: {
+    var url = '${getCloudConfigUrl(serverUrl)}/regions';
+    http.Response regionSettingsResponse =
+        await http.get(Uri.parse(url), headers: {
       'authorization': 'Bearer $token',
     });
     if (regionSettingsResponse.statusCode == 200) {
-      final regionSettings = lk_models.RegionSettings.fromJson(
-          jsonDecode(regionSettingsResponse.body));
+      var str = regionSettingsResponse.body;
+      print('Success: $str');
+      var mapData = json.decode(str);
+      var regions = (mapData['regions'] as List<dynamic>)
+          .map((region) => lk_models.RegionInfo(
+              distance: Int64(int.parse(region['distance'])),
+              region: region['region'],
+              url: region['url']))
+          .toList();
+      var regionSettings = lk_models.RegionSettings(
+        regions: regions,
+      );
       lastUpdateAt = DateTime.now().microsecondsSinceEpoch;
       return regionSettings;
     } else {
@@ -86,7 +99,7 @@ class RegionUrlProvider {
   }
 
   String getCloudConfigUrl(Uri serverUrl) {
-    return '${serverUrl.scheme.replaceAll('ws', 'http')}//${serverUrl.host}/settings';
+    return '${serverUrl.scheme.replaceAll('ws', 'http')}://${serverUrl.host}/settings';
   }
 }
 
