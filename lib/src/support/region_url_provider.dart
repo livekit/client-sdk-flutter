@@ -69,9 +69,7 @@ class RegionUrlProvider {
       'authorization': 'Bearer $token',
     });
     if (regionSettingsResponse.statusCode == 200) {
-      var str = regionSettingsResponse.body;
-      print('Success: $str');
-      var mapData = json.decode(str);
+      var mapData = json.decode(regionSettingsResponse.body);
       var regions = (mapData['regions'] as List<dynamic>)
           .map((region) => lk_models.RegionInfo(
               distance: Int64(int.parse(region['distance'])),
