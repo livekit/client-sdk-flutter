@@ -153,7 +153,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
   }
 
-  void prepareConnection(String url, String? token) async {
+  Future<void> prepareConnection(String url, String? token) async {
     if (engine.connectionState != ConnectionState.disconnected) {
       return;
     }
@@ -219,7 +219,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // on subsequent runs
       try {
         await _regionUrlProvider?.fetchRegionSettings();
-        _regionUrl = await _regionUrlProvider!.getNextBestRegionUrl();
       } catch (e) {
         logger.warning('could not fetch region settings $e');
       }
