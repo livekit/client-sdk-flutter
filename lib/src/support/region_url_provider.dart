@@ -119,21 +119,21 @@ extension RegionSettingsExtension on lk_models.RegionSettings {
       );
 }
 
-bool isCloudUrl(Uri url) {
-  return url.host.contains('.livekit.cloud') ||
-      url.host.contains('.livekit.run');
+bool isCloudUrl(Uri uri) {
+  return uri.host.contains('.livekit.cloud') ||
+      uri.host.contains('.livekit.run');
 }
 
 String toHttpUrl(String url) {
   if (url.startsWith('ws')) {
-    return url.replaceAll('ws', 'http');
+    return url.replaceFirst('ws', 'http');
   }
   return url;
 }
 
 String toWebsocketUrl(String url) {
   if (url.startsWith('http')) {
-    return url.replaceAll('http', 'ws');
+    return url.replaceFirst('http', 'ws');
   }
   return url;
 }
