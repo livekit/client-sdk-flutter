@@ -15,6 +15,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
@@ -40,6 +41,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
+import '../support/websocket.dart' show WebSocketException;
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
@@ -217,11 +219,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // trigger the first fetch without waiting for a response
       // if initial connection fails, this will speed up picking regional url
       // on subsequent runs
-      try {
-        await _regionUrlProvider?.fetchRegionSettings();
-      } catch (e) {
+      unawaited(_regionUrlProvider?.fetchRegionSettings().then((_) {
+        logger.fine('fetched region settings');
+      }).catchError((e) {
         logger.warning('could not fetch region settings $e');
-      }
+      }));
     }
     try {
       await engine.connect(
@@ -234,9 +236,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     } catch (e) {
       logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null &&
-          e is ConnectException &&
-          e.reason != ConnectionErrorReason.NotAllowed) {
+      if (_regionUrlProvider != null && e is WebSocketException ||
+          (e is ConnectException &&
+              e.reason != ConnectionErrorReason.NotAllowed)) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();

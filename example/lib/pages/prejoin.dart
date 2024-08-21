@@ -216,7 +216,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
       if (args.url.contains('.livekit.cloud') ||
           args.url.contains('.livekit.run')) {
-        await room.prepareConnection(args.url, args.token);
+        //await room.prepareConnection(args.url, args.token);
       }
 
       // Try to connect to the room
