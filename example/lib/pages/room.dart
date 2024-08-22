@@ -120,8 +120,8 @@ class _RoomPageState extends State<RoomPage> {
       String decoded = 'Failed to decode';
       try {
         decoded = utf8.decode(event.data);
-      } catch (_) {
-        print('Failed to decode: $_');
+      } catch (err) {
+        print('Failed to decode: $err');
       }
       context.showDataReceivedDialog(decoded);
     })
