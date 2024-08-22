@@ -15,7 +15,6 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
