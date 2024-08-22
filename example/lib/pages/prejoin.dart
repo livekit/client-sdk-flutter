@@ -214,10 +214,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       // Create a Listener before connecting
       final listener = room.createListener();
 
-      if (args.url.contains('.livekit.cloud') ||
-          args.url.contains('.livekit.run')) {
-        //await room.prepareConnection(args.url, args.token);
-      }
+      await room.prepareConnection(args.url, args.token);
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.

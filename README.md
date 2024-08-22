@@ -194,11 +194,8 @@ final roomOptions = RoomOptions(
 
 final room = Room();
 
-// if you are using livekit cloud, you can use `prepareConnection`
-// to speed up connection.
-if (url.endsWith('.livekit.cloud') || url.endsWith('.livekit.run')) {
-  await room.prepareConnection(url, token);
-}
+// you can use `prepareConnection` to speed up connection.
+await room.prepareConnection(url, token);
 
 await room.connect(url, token, roomOptions: roomOptions);
 

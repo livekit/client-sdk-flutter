@@ -154,6 +154,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
   }
 
+  /// prepareConnection should be called as soon as the page is loaded, in order
+  /// to speed up the connection attempt. This function will
+  /// - perform DNS resolution and pre-warm the DNS cache
+  /// - establish TLS connection and cache TLS keys
+  ///
+  /// With LiveKit Cloud, it will also determine the best edge data center for
+  /// the current client to connect to if a token is provided.
+
   Future<void> prepareConnection(String url, String? token) async {
     if (engine.connectionState != ConnectionState.disconnected) {
       return;
@@ -218,8 +226,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // trigger the first fetch without waiting for a response
       // if initial connection fails, this will speed up picking regional url
       // on subsequent runs
-      unawaited(_regionUrlProvider?.fetchRegionSettings().then((_) {
-        logger.fine('fetched region settings');
+      unawaited(_regionUrlProvider?.fetchRegionSettings().then((settings) {
+        _regionUrlProvider?.setServerReportedRegions(settings);
       }).catchError((e) {
         logger.warning('could not fetch region settings $e');
       }));
