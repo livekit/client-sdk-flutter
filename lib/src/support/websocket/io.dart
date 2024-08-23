@@ -78,9 +78,9 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
       final ws = await io.WebSocket.connect(uri.toString());
       logger.fine('[WebSocketIO] Connected');
       return LiveKitWebSocketIO._(ws, options);
-    } catch (_) {
-      logger.severe('[WebSocketIO] did throw ${_}');
-      throw WebSocketException.connect();
+    } catch (err) {
+      logger.severe('[WebSocketIO] did throw $err');
+      throw WebSocketException('Failed to connect', err);
     }
   }
 }

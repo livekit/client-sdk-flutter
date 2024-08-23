@@ -148,6 +148,7 @@ const DisconnectReason$json = {
     {'1': 'JOIN_FAILURE', '2': 7},
     {'1': 'MIGRATION', '2': 8},
     {'1': 'SIGNAL_CLOSE', '2': 9},
+    {'1': 'ROOM_CLOSED', '2': 10},
   ],
 };
 
@@ -156,7 +157,8 @@ final $typed_data.Uint8List disconnectReasonDescriptor = $convert.base64Decode(
     'ChBEaXNjb25uZWN0UmVhc29uEhIKDlVOS05PV05fUkVBU09OEAASFAoQQ0xJRU5UX0lOSVRJQV'
     'RFRBABEhYKEkRVUExJQ0FURV9JREVOVElUWRACEhMKD1NFUlZFUl9TSFVURE9XThADEhcKE1BB'
     'UlRJQ0lQQU5UX1JFTU9WRUQQBBIQCgxST09NX0RFTEVURUQQBRISCg5TVEFURV9NSVNNQVRDSB'
-    'AGEhAKDEpPSU5fRkFJTFVSRRAHEg0KCU1JR1JBVElPThAIEhAKDFNJR05BTF9DTE9TRRAJ');
+    'AGEhAKDEpPSU5fRkFJTFVSRRAHEg0KCU1JR1JBVElPThAIEhAKDFNJR05BTF9DTE9TRRAJEg8K'
+    'C1JPT01fQ0xPU0VEEAo=');
 
 @$core.Deprecated('Use reconnectReasonDescriptor instead')
 const ReconnectReason$json = {
@@ -396,6 +398,14 @@ const ParticipantInfo$json = {
       '6': '.livekit.ParticipantInfo.AttributesEntry',
       '10': 'attributes'
     },
+    {
+      '1': 'disconnect_reason',
+      '3': 16,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DisconnectReason',
+      '10': 'disconnectReason'
+    },
   ],
   '3': [ParticipantInfo_AttributesEntry$json],
   '4': [ParticipantInfo_State$json, ParticipantInfo_Kind$json],
@@ -445,10 +455,12 @@ final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
     'ZWdpb24YDCABKAlSBnJlZ2lvbhIhCgxpc19wdWJsaXNoZXIYDSABKAhSC2lzUHVibGlzaGVyEj'
     'EKBGtpbmQYDiABKA4yHS5saXZla2l0LlBhcnRpY2lwYW50SW5mby5LaW5kUgRraW5kEkgKCmF0'
     'dHJpYnV0ZXMYDyADKAsyKC5saXZla2l0LlBhcnRpY2lwYW50SW5mby5BdHRyaWJ1dGVzRW50cn'
-    'lSCmF0dHJpYnV0ZXMaPQoPQXR0cmlidXRlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZh'
-    'bHVlGAIgASgJUgV2YWx1ZToCOAEiPgoFU3RhdGUSCwoHSk9JTklORxAAEgoKBkpPSU5FRBABEg'
-    'oKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBADIkEKBEtpbmQSDAoIU1RBTkRBUkQQABILCgdJ'
-    'TkdSRVNTEAESCgoGRUdSRVNTEAISBwoDU0lQEAMSCQoFQUdFTlQQBA==');
+    'lSCmF0dHJpYnV0ZXMSRgoRZGlzY29ubmVjdF9yZWFzb24YECABKA4yGS5saXZla2l0LkRpc2Nv'
+    'bm5lY3RSZWFzb25SEGRpc2Nvbm5lY3RSZWFzb24aPQoPQXR0cmlidXRlc0VudHJ5EhAKA2tleR'
+    'gBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEiPgoFU3RhdGUSCwoHSk9JTklO'
+    'RxAAEgoKBkpPSU5FRBABEgoKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBADIkEKBEtpbmQSDA'
+    'oIU1RBTkRBUkQQABILCgdJTkdSRVNTEAESCgoGRUdSRVNTEAISBwoDU0lQEAMSCQoFQUdFTlQQ'
+    'BA==');
 
 @$core.Deprecated('Use encryptionDescriptor instead')
 const Encryption$json = {
@@ -1343,6 +1355,147 @@ final $typed_data.Uint8List rTPStatsDescriptor = $convert.base64Decode(
     'EkMKFHJlYmFzZWRfcmVwb3J0X2RyaWZ0GC4gASgLMhEubGl2ZWtpdC5SVFBEcmlmdFIScmViYX'
     'NlZFJlcG9ydERyaWZ0Gj8KEUdhcEhpc3RvZ3JhbUVudHJ5EhAKA2tleRgBIAEoBVIDa2V5EhQK'
     'BXZhbHVlGAIgASgNUgV2YWx1ZToCOAE=');
+
+@$core.Deprecated('Use rTPForwarderStateDescriptor instead')
+const RTPForwarderState$json = {
+  '1': 'RTPForwarderState',
+  '2': [
+    {'1': 'started', '3': 1, '4': 1, '5': 8, '10': 'started'},
+    {
+      '1': 'reference_layer_spatial',
+      '3': 2,
+      '4': 1,
+      '5': 5,
+      '10': 'referenceLayerSpatial'
+    },
+    {'1': 'pre_start_time', '3': 3, '4': 1, '5': 3, '10': 'preStartTime'},
+    {
+      '1': 'ext_first_timestamp',
+      '3': 4,
+      '4': 1,
+      '5': 4,
+      '10': 'extFirstTimestamp'
+    },
+    {
+      '1': 'dummy_start_timestamp_offset',
+      '3': 5,
+      '4': 1,
+      '5': 4,
+      '10': 'dummyStartTimestampOffset'
+    },
+    {
+      '1': 'rtp_munger',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RTPMungerState',
+      '10': 'rtpMunger'
+    },
+    {
+      '1': 'vp8_munger',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.VP8MungerState',
+      '9': 0,
+      '10': 'vp8Munger'
+    },
+  ],
+  '8': [
+    {'1': 'codec_munger'},
+  ],
+};
+
+/// Descriptor for `RTPForwarderState`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List rTPForwarderStateDescriptor = $convert.base64Decode(
+    'ChFSVFBGb3J3YXJkZXJTdGF0ZRIYCgdzdGFydGVkGAEgASgIUgdzdGFydGVkEjYKF3JlZmVyZW'
+    '5jZV9sYXllcl9zcGF0aWFsGAIgASgFUhVyZWZlcmVuY2VMYXllclNwYXRpYWwSJAoOcHJlX3N0'
+    'YXJ0X3RpbWUYAyABKANSDHByZVN0YXJ0VGltZRIuChNleHRfZmlyc3RfdGltZXN0YW1wGAQgAS'
+    'gEUhFleHRGaXJzdFRpbWVzdGFtcBI/ChxkdW1teV9zdGFydF90aW1lc3RhbXBfb2Zmc2V0GAUg'
+    'ASgEUhlkdW1teVN0YXJ0VGltZXN0YW1wT2Zmc2V0EjYKCnJ0cF9tdW5nZXIYBiABKAsyFy5saX'
+    'Zla2l0LlJUUE11bmdlclN0YXRlUglydHBNdW5nZXISOAoKdnA4X211bmdlchgHIAEoCzIXLmxp'
+    'dmVraXQuVlA4TXVuZ2VyU3RhdGVIAFIJdnA4TXVuZ2VyQg4KDGNvZGVjX211bmdlcg==');
+
+@$core.Deprecated('Use rTPMungerStateDescriptor instead')
+const RTPMungerState$json = {
+  '1': 'RTPMungerState',
+  '2': [
+    {
+      '1': 'ext_last_sequence_number',
+      '3': 1,
+      '4': 1,
+      '5': 4,
+      '10': 'extLastSequenceNumber'
+    },
+    {
+      '1': 'ext_second_last_sequence_number',
+      '3': 2,
+      '4': 1,
+      '5': 4,
+      '10': 'extSecondLastSequenceNumber'
+    },
+    {
+      '1': 'ext_last_timestamp',
+      '3': 3,
+      '4': 1,
+      '5': 4,
+      '10': 'extLastTimestamp'
+    },
+    {
+      '1': 'ext_second_last_timestamp',
+      '3': 4,
+      '4': 1,
+      '5': 4,
+      '10': 'extSecondLastTimestamp'
+    },
+    {'1': 'last_marker', '3': 5, '4': 1, '5': 8, '10': 'lastMarker'},
+    {
+      '1': 'second_last_marker',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '10': 'secondLastMarker'
+    },
+  ],
+};
+
+/// Descriptor for `RTPMungerState`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List rTPMungerStateDescriptor = $convert.base64Decode(
+    'Cg5SVFBNdW5nZXJTdGF0ZRI3ChhleHRfbGFzdF9zZXF1ZW5jZV9udW1iZXIYASABKARSFWV4dE'
+    'xhc3RTZXF1ZW5jZU51bWJlchJECh9leHRfc2Vjb25kX2xhc3Rfc2VxdWVuY2VfbnVtYmVyGAIg'
+    'ASgEUhtleHRTZWNvbmRMYXN0U2VxdWVuY2VOdW1iZXISLAoSZXh0X2xhc3RfdGltZXN0YW1wGA'
+    'MgASgEUhBleHRMYXN0VGltZXN0YW1wEjkKGWV4dF9zZWNvbmRfbGFzdF90aW1lc3RhbXAYBCAB'
+    'KARSFmV4dFNlY29uZExhc3RUaW1lc3RhbXASHwoLbGFzdF9tYXJrZXIYBSABKAhSCmxhc3RNYX'
+    'JrZXISLAoSc2Vjb25kX2xhc3RfbWFya2VyGAYgASgIUhBzZWNvbmRMYXN0TWFya2Vy');
+
+@$core.Deprecated('Use vP8MungerStateDescriptor instead')
+const VP8MungerState$json = {
+  '1': 'VP8MungerState',
+  '2': [
+    {
+      '1': 'ext_last_picture_id',
+      '3': 1,
+      '4': 1,
+      '5': 5,
+      '10': 'extLastPictureId'
+    },
+    {'1': 'picture_id_used', '3': 2, '4': 1, '5': 8, '10': 'pictureIdUsed'},
+    {'1': 'last_tl0_pic_idx', '3': 3, '4': 1, '5': 13, '10': 'lastTl0PicIdx'},
+    {'1': 'tl0_pic_idx_used', '3': 4, '4': 1, '5': 8, '10': 'tl0PicIdxUsed'},
+    {'1': 'tid_used', '3': 5, '4': 1, '5': 8, '10': 'tidUsed'},
+    {'1': 'last_key_idx', '3': 6, '4': 1, '5': 13, '10': 'lastKeyIdx'},
+    {'1': 'key_idx_used', '3': 7, '4': 1, '5': 8, '10': 'keyIdxUsed'},
+  ],
+};
+
+/// Descriptor for `VP8MungerState`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List vP8MungerStateDescriptor = $convert.base64Decode(
+    'Cg5WUDhNdW5nZXJTdGF0ZRItChNleHRfbGFzdF9waWN0dXJlX2lkGAEgASgFUhBleHRMYXN0UG'
+    'ljdHVyZUlkEiYKD3BpY3R1cmVfaWRfdXNlZBgCIAEoCFINcGljdHVyZUlkVXNlZBInChBsYXN0'
+    'X3RsMF9waWNfaWR4GAMgASgNUg1sYXN0VGwwUGljSWR4EicKEHRsMF9waWNfaWR4X3VzZWQYBC'
+    'ABKAhSDXRsMFBpY0lkeFVzZWQSGQoIdGlkX3VzZWQYBSABKAhSB3RpZFVzZWQSIAoMbGFzdF9r'
+    'ZXlfaWR4GAYgASgNUgpsYXN0S2V5SWR4EiAKDGtleV9pZHhfdXNlZBgHIAEoCFIKa2V5SWR4VX'
+    'NlZA==');
 
 @$core.Deprecated('Use timedVersionDescriptor instead')
 const TimedVersion$json = {

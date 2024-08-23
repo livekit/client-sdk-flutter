@@ -19,6 +19,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -38,6 +39,8 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../support/platform.dart';
+import '../support/region_url_provider.dart';
+import '../support/websocket.dart' show WebSocketException;
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
@@ -110,6 +113,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   //
   late EventsListener<SignalEvent> _signalListener;
 
+  RegionUrlProvider? _regionUrlProvider;
+  String? _regionUrl;
+
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -148,6 +154,39 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
   }
 
+  /// prepareConnection should be called as soon as the page is loaded, in order
+  /// to speed up the connection attempt. This function will
+  /// - perform DNS resolution and pre-warm the DNS cache
+  /// - establish TLS connection and cache TLS keys
+  ///
+  /// With LiveKit Cloud, it will also determine the best edge data center for
+  /// the current client to connect to if a token is provided.
+
+  Future<void> prepareConnection(String url, String? token) async {
+    if (engine.connectionState != ConnectionState.disconnected) {
+      return;
+    }
+    logger.info('prepareConnection to $url');
+    try {
+      if (isCloudUrl(Uri.parse(url)) && token != null) {
+        _regionUrlProvider = RegionUrlProvider(token: token, url: url);
+        final regionUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+        // we will not replace the regionUrl if an attempt had already started
+        // to avoid overriding regionUrl after a new connection attempt had started
+        if (regionUrl != null &&
+            connectionState == ConnectionState.disconnected) {
+          _regionUrl = regionUrl;
+          await http.head(Uri.parse(toHttpUrl(regionUrl)));
+          logger.fine('prepared connection to ${regionUrl}');
+        }
+      } else {
+        await http.head(Uri.parse(toHttpUrl(url)));
+      }
+    } catch (e) {
+      logger.warning('could not prepare connection');
+    }
+  }
+
   Future<void> connect(
     String url,
     String token, {
@@ -174,13 +213,65 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     }
 
-    await engine.connect(
-      url,
-      token,
-      connectOptions: connectOptions,
-      roomOptions: roomOptions,
-      fastConnectOptions: fastConnectOptions,
-    );
+    if (_regionUrlProvider?.getServerUrl().toString() != url) {
+      _regionUrl = null;
+      _regionUrlProvider = null;
+    }
+    if (isCloudUrl(Uri.parse(url))) {
+      if (_regionUrlProvider == null) {
+        _regionUrlProvider = RegionUrlProvider(url: url, token: token);
+      } else {
+        _regionUrlProvider?.updateToken(token);
+      }
+      // trigger the first fetch without waiting for a response
+      // if initial connection fails, this will speed up picking regional url
+      // on subsequent runs
+      unawaited(_regionUrlProvider?.fetchRegionSettings().then((settings) {
+        _regionUrlProvider?.setServerReportedRegions(settings);
+      }).catchError((e) {
+        logger.warning('could not fetch region settings $e');
+      }));
+    }
+    try {
+      await engine.connect(
+        _regionUrl ?? url,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        fastConnectOptions: fastConnectOptions,
+        regionUrlProvider: _regionUrlProvider,
+      );
+    } catch (e) {
+      logger.warning('could not connect to $url $e');
+      if (_regionUrlProvider != null && e is WebSocketException ||
+          (e is ConnectException &&
+              e.reason != ConnectionErrorReason.NotAllowed)) {
+        String? nextUrl;
+        try {
+          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+        } catch (error) {
+          if (error is ConnectException && (error.statusCode == 401)) {
+            rethrow;
+          }
+        }
+        if (nextUrl != null) {
+          logger.fine(
+              'Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
+          await engine.connect(
+            nextUrl,
+            token,
+            connectOptions: connectOptions,
+            roomOptions: roomOptions,
+            fastConnectOptions: fastConnectOptions,
+            regionUrlProvider: _regionUrlProvider,
+          );
+        } else {
+          rethrow;
+        }
+      } else {
+        rethrow;
+      }
+    }
   }
 
   void _setUpSignalListeners() => _signalListener

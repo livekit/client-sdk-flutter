@@ -92,28 +92,29 @@ class LeaveRequest_Action extends $pb.ProtobufEnum {
   const LeaveRequest_Action._($core.int v, $core.String n) : super(v, n);
 }
 
-class ErrorResponse_Reason extends $pb.ProtobufEnum {
-  static const ErrorResponse_Reason UNKNOWN =
-      ErrorResponse_Reason._(0, _omitEnumNames ? '' : 'UNKNOWN');
-  static const ErrorResponse_Reason NOT_FOUND =
-      ErrorResponse_Reason._(1, _omitEnumNames ? '' : 'NOT_FOUND');
-  static const ErrorResponse_Reason NOT_ALLOWED =
-      ErrorResponse_Reason._(2, _omitEnumNames ? '' : 'NOT_ALLOWED');
-  static const ErrorResponse_Reason INVALID_ARGUMENT =
-      ErrorResponse_Reason._(3, _omitEnumNames ? '' : 'INVALID_ARGUMENT');
+class RequestResponse_Reason extends $pb.ProtobufEnum {
+  static const RequestResponse_Reason OK =
+      RequestResponse_Reason._(0, _omitEnumNames ? '' : 'OK');
+  static const RequestResponse_Reason NOT_FOUND =
+      RequestResponse_Reason._(1, _omitEnumNames ? '' : 'NOT_FOUND');
+  static const RequestResponse_Reason NOT_ALLOWED =
+      RequestResponse_Reason._(2, _omitEnumNames ? '' : 'NOT_ALLOWED');
+  static const RequestResponse_Reason LIMIT_EXCEEDED =
+      RequestResponse_Reason._(3, _omitEnumNames ? '' : 'LIMIT_EXCEEDED');
 
-  static const $core.List<ErrorResponse_Reason> values = <ErrorResponse_Reason>[
-    UNKNOWN,
+  static const $core.List<RequestResponse_Reason> values =
+      <RequestResponse_Reason>[
+    OK,
     NOT_FOUND,
     NOT_ALLOWED,
-    INVALID_ARGUMENT,
+    LIMIT_EXCEEDED,
   ];
 
-  static final $core.Map<$core.int, ErrorResponse_Reason> _byValue =
+  static final $core.Map<$core.int, RequestResponse_Reason> _byValue =
       $pb.ProtobufEnum.initByValue(values);
-  static ErrorResponse_Reason? valueOf($core.int value) => _byValue[value];
+  static RequestResponse_Reason? valueOf($core.int value) => _byValue[value];
 
-  const ErrorResponse_Reason._($core.int v, $core.String n) : super(v, n);
+  const RequestResponse_Reason._($core.int v, $core.String n) : super(v, n);
 }
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -118,7 +118,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         logger.warning('no internet connection');
         events.emit(SignalDisconnectedEvent(
             reason: DisconnectReason.noInternetConnection));
-        throw ConnectException('no internet connection');
+        throw ConnectException('no internet connection',
+            reason: ConnectionErrorReason.InternalError, statusCode: 503);
       }
     }
 
@@ -176,7 +177,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
         final validateResponse = await http.get(validateUri);
         if (validateResponse.statusCode != 200) {
-          finalError = ConnectException(validateResponse.body);
+          finalError = ConnectException(validateResponse.body,
+              reason: validateResponse.statusCode >= 400
+                  ? ConnectionErrorReason.NotAllowed
+                  : ConnectionErrorReason.InternalError,
+              statusCode: validateResponse.statusCode);
         }
       } catch (error) {
         if (socketError.runtimeType != error.runtimeType) {
@@ -289,8 +294,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         ));
         break;
       case lk_rtc.SignalResponse_Message.leave:
-        events.emit(SignalLeaveEvent(
-            canReconnect: msg.leave.canReconnect, reason: msg.leave.reason));
+        events.emit(SignalLeaveEvent(request: msg.leave));
         break;
       case lk_rtc.SignalResponse_Message.mute:
         events.emit(SignalRemoteMuteTrackEvent(

@@ -194,6 +194,9 @@ final roomOptions = RoomOptions(
 
 final room = Room();
 
+// you can use `prepareConnection` to speed up connection.
+await room.prepareConnection(url, token);
+
 await room.connect(url, token, roomOptions: roomOptions);
 
 try {

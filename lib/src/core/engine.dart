@@ -36,6 +36,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
+import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
@@ -130,6 +131,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool attemptingReconnect = false;
 
+  RegionUrlProvider? _regionUrlProvider;
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -171,6 +174,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ConnectOptions? connectOptions,
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
+    RegionUrlProvider? regionUrlProvider,
   }) async {
     this.url = url;
     this.token = token;
@@ -178,6 +182,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     this.connectOptions = connectOptions ?? this.connectOptions;
     this.roomOptions = roomOptions ?? this.roomOptions;
     this.fastConnectOptions = fastConnectOptions;
+
+    if (regionUrlProvider != null) {
+      _regionUrlProvider = regionUrlProvider;
+    }
 
     try {
       // wait for socket to connect rtc server
@@ -192,7 +200,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await _signalListener.waitFor<SignalJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException(
-            'Timed out waiting for SignalJoinResponseEvent'),
+            'Timed out waiting for SignalJoinResponseEvent',
+            reason: ConnectionErrorReason.Timeout),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -663,6 +672,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ));
 
     clearReconnectTimeout();
+    if (token != null && _regionUrlProvider != null) {
+      // token may have been refreshed, we do not want to recreate the regionUrlProvider
+      // since the current engine may have inherited a regional url
+      _regionUrlProvider!.updateToken(token!);
+    }
     logger.fine(
         'WebSocket reconnecting in $delay ms, retry times $reconnectAttempts');
     reconnectTimeout = Timer(Duration(milliseconds: delay), () async {
@@ -700,7 +714,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           duration: connectOptions.timeouts.connection * 10,
           filter: (event) => !event.state.contains(ConnectivityResult.none),
           onTimeout: () => throw ConnectException(
-              'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent'),
+              'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent',
+              reason: ConnectionErrorReason.Timeout),
         );
       }
 
@@ -756,7 +771,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
       onTimeout: () => throw ConnectException(
-          'resumeConnection: Timed out waiting for SignalReconnectedEvent'),
+          'resumeConnection: Timed out waiting for SignalReconnectedEvent',
+          reason: ConnectionErrorReason.Timeout),
     );
 
     logger.fine('resumeConnection: reason: ${reason.name}');
@@ -789,53 +805,65 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  Future<void> restartConnection([bool signalEvents = false]) async {
+  Future<void> restartConnection({String? regionUrl}) async {
     if (_isClosed) {
       return;
     }
 
-    events.emit(const EngineFullRestartingEvent());
+    try {
+      events.emit(const EngineFullRestartingEvent());
 
-    if (signalClient.connectionState == ConnectionState.connected) {
-      await signalClient.sendLeave();
-    }
+      if (signalClient.connectionState == ConnectionState.connected) {
+        await signalClient.sendLeave();
+      }
 
-    await publisher?.dispose();
-    publisher = null;
+      await publisher?.dispose();
+      publisher = null;
 
-    await subscriber?.dispose();
-    subscriber = null;
+      await subscriber?.dispose();
+      subscriber = null;
 
-    _reliableDCSub = null;
-    _reliableDCPub = null;
-    _lossyDCSub = null;
-    _lossyDCPub = null;
+      _reliableDCSub = null;
+      _reliableDCPub = null;
+      _lossyDCSub = null;
+      _lossyDCPub = null;
 
-    await _signalListener.cancelAll();
+      await _signalListener.cancelAll();
 
-    _signalListener = signalClient.createListener(synchronized: true);
-    _setUpSignalListeners();
+      _signalListener = signalClient.createListener(synchronized: true);
+      _setUpSignalListeners();
 
-    await connect(
-      url!,
-      token!,
-      roomOptions: roomOptions,
-      connectOptions: connectOptions,
-      fastConnectOptions: fastConnectOptions,
-    );
-
-    if (_hasPublished) {
-      await negotiate();
-      logger.fine('restartConnection: Waiting for publisher to ice-connect...');
-      await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
-        filter: (event) => event.state.isConnected(),
-        duration: connectOptions.timeouts.peerConnection,
+      await connect(
+        regionUrl ?? url!,
+        token!,
+        roomOptions: roomOptions,
+        connectOptions: connectOptions,
+        fastConnectOptions: fastConnectOptions,
       );
+
+      if (_hasPublished) {
+        await negotiate();
+        logger
+            .fine('restartConnection: Waiting for publisher to ice-connect...');
+        await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+          filter: (event) => event.state.isConnected(),
+          duration: connectOptions.timeouts.peerConnection,
+        );
+      }
+      fullReconnectOnNext = false;
+      _regionUrlProvider?.resetAttempts();
+      events.emit(const EngineRestartedEvent());
+    } catch (error) {
+      final nextRegionUrl = await _regionUrlProvider?.getNextBestRegionUrl();
+      if (nextRegionUrl != null) {
+        await restartConnection(regionUrl: nextRegionUrl);
+        return;
+      } else {
+        // no more regions to try (or we're not on cloud)
+        _regionUrlProvider?.resetAttempts();
+        rethrow;
+      }
     }
-
-    fullReconnectOnNext = false;
-
-    events.emit(const EngineRestartedEvent());
   }
 
   @internal
@@ -992,19 +1020,32 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       token = event.token;
     })
     ..on<SignalLeaveEvent>((event) async {
-      if (event.canReconnect) {
-        fullReconnectOnNext = true;
-        // reconnect immediately instead of waiting for next attempt
-        await handleDisconnect(ClientDisconnectReason.leaveReconnect);
-      } else {
-        if (connectionState == ConnectionState.reconnecting) {
-          logger.warning(
-              '[Signal] Received Leave while engine is reconnecting, ignoring...');
-          return;
-        }
-        await signalClient.cleanUp();
-        await cleanUp();
-        events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
+      if (event.regions != null && _regionUrlProvider != null) {
+        logger.fine('updating regions');
+        _regionUrlProvider?.setServerReportedRegions(event.regions!);
+      }
+      switch (event.action) {
+        case lk_rtc.LeaveRequest_Action.DISCONNECT:
+          if (connectionState == ConnectionState.reconnecting) {
+            logger.warning(
+                '[Signal] Received Leave while engine is reconnecting, ignoring...');
+            return;
+          }
+          await signalClient.cleanUp();
+          await cleanUp();
+          events
+              .emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
+          break;
+        case lk_rtc.LeaveRequest_Action.RECONNECT:
+          fullReconnectOnNext = true;
+          // reconnect immediately instead of waiting for next attempt
+          await handleDisconnect(ClientDisconnectReason.leaveReconnect);
+          break;
+        case lk_rtc.LeaveRequest_Action.RESUME:
+          // reconnect immediately instead of waiting for next attempt
+          await handleDisconnect(ClientDisconnectReason.leaveReconnect);
+        default:
+          break;
       }
     });
 
@@ -1015,6 +1056,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } else {
       await cleanUp();
     }
+  }
+
+  void setRegionUrlProvider(RegionUrlProvider provider) {
+    _regionUrlProvider = provider;
   }
 }
 

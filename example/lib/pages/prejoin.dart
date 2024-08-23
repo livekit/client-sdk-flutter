@@ -165,12 +165,12 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     try {
       //create new room
-      var cameraEncoding = VideoEncoding(
+      var cameraEncoding = const VideoEncoding(
         maxBitrate: 5 * 1000 * 1000,
         maxFramerate: 30,
       );
 
-      var screenEncoding = VideoEncoding(
+      var screenEncoding = const VideoEncoding(
         maxBitrate: 3 * 1000 * 1000,
         maxFramerate: 15,
       );
@@ -189,10 +189,10 @@ class _PreJoinPageState extends State<PreJoinPage> {
           defaultAudioPublishOptions: const AudioPublishOptions(
             name: 'custom_audio_track_name',
           ),
-          defaultCameraCaptureOptions: CameraCaptureOptions(
+          defaultCameraCaptureOptions: const CameraCaptureOptions(
               maxFrameRate: 30,
               params: VideoParameters(
-                dimensions: const VideoDimensions(1280, 720),
+                dimensions: VideoDimensions(1280, 720),
               )),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
               useiOSBroadcastExtension: true,
@@ -213,6 +213,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
       );
       // Create a Listener before connecting
       final listener = room.createListener();
+
+      await room.prepareConnection(args.url, args.token);
 
       // Try to connect to the room
       // This will throw an Exception if it fails for any reason.

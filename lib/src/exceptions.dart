@@ -21,13 +21,25 @@ abstract class LiveKitException implements Exception {
   String toString() => 'LiveKit Exception: [$runtimeType] $message';
 }
 
+enum ConnectionErrorReason {
+  NotAllowed,
+  InternalError,
+  Timeout,
+}
+
 /// An exception occured while attempting to connect.
 /// Common reasons:
 /// - Invalid token (make sure your token is generated correctly)
 /// - Network condition is not good
 /// - Server not set up correctly (not responding)
 class ConnectException extends LiveKitException {
-  ConnectException([String msg = 'Failed to connect to server']) : super._(msg);
+  final ConnectionErrorReason reason;
+  final int statusCode;
+  ConnectException(
+    String msg, {
+    required this.reason,
+    this.statusCode = 0,
+  }) : super._(msg);
 }
 
 /// An exception occured while attempting to disconnect.

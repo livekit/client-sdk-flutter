@@ -16,17 +16,9 @@ import '../support/disposable.dart';
 import 'websocket/io.dart' if (dart.library.html) 'websocket/web.dart';
 
 class WebSocketException implements Exception {
-  final int code;
-  const WebSocketException._(this.code);
-
-  static WebSocketException unknown() => const WebSocketException._(0);
-  static WebSocketException connect() => const WebSocketException._(1);
-
-  @override
-  String toString() => {
-        WebSocketException.unknown(): 'Unknown error',
-        WebSocketException.connect(): 'Failed to connect',
-      }[this]!;
+  final String message;
+  final dynamic error;
+  const WebSocketException(this.message, [this.error]);
 }
 
 typedef WebSocketOnData = Function(dynamic data);

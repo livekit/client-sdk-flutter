@@ -326,11 +326,14 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
 
 @internal
 class SignalLeaveEvent with SignalEvent, InternalEvent {
-  final bool canReconnect;
-  final lk_models.DisconnectReason reason;
+  bool get canReconnect => request.canReconnect;
+  lk_rtc.LeaveRequest_Action get action => request.action;
+  lk_models.DisconnectReason get reason => request.reason;
+  lk_rtc.RegionSettings? get regions =>
+      request.hasReason() ? request.regions : null;
+  final lk_rtc.LeaveRequest request;
   const SignalLeaveEvent({
-    required this.canReconnect,
-    required this.reason,
+    required this.request,
   });
 }
 
