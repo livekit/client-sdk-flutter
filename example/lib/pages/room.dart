@@ -99,6 +99,9 @@ class _RoomPageState extends State<RoomPage> {
           'Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
           '(${event.nextRetryDelaysInMs}ms delay until next attempt)');
     })
+    ..on<LocalTrackSubscribedEvent>((event) {
+      print('Local track subscribed: ${event.trackSid}');
+    })
     ..on<LocalTrackPublishedEvent>((_) => _sortParticipants())
     ..on<LocalTrackUnpublishedEvent>((_) => _sortParticipants())
     ..on<TrackSubscribedEvent>((_) => _sortParticipants())
