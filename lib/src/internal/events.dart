@@ -170,6 +170,14 @@ class EngineDisconnectedEvent with InternalEvent, EngineEvent {
 }
 
 @internal
+class EngineLocalTrackSubscribedEvent with InternalEvent, EngineEvent {
+  final String trackSid;
+  const EngineLocalTrackSubscribedEvent({
+    required this.trackSid,
+  });
+}
+
+@internal
 class EngineFullRestartingEvent with InternalEvent, EngineEvent {
   const EngineFullRestartingEvent();
 }
@@ -293,6 +301,15 @@ class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
   final String trackSid;
 
   const SignalTrackUnpublishedEvent({
+    required this.trackSid,
+  });
+}
+
+@internal
+class SignalLocalTrackSubscribedEvent with SignalEvent, InternalEvent {
+  final String trackSid;
+
+  const SignalLocalTrackSubscribedEvent({
     required this.trackSid,
   });
 }

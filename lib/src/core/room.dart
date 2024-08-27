@@ -526,6 +526,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         notifyListeners();
       }
     })
+    ..on<EngineLocalTrackSubscribedEvent>(
+      (event) => events.emit(
+        LocalTrackSubscribedEvent(
+          trackSid: event.trackSid,
+        ),
+      ),
+    )
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)

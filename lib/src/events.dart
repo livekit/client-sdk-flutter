@@ -228,6 +228,17 @@ class LocalTrackPublishedEvent with RoomEvent, ParticipantEvent {
       '(participant: ${participant}, publication: ${publication})';
 }
 
+class LocalTrackSubscribedEvent with RoomEvent, ParticipantEvent {
+  final String trackSid;
+  const LocalTrackSubscribedEvent({
+    required this.trackSid,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(trakSid: ${trackSid}})';
+}
+
 /// The local participant has unpublished one of their [Track].
 /// Emitted by [Room] and [LocalParticipant].
 class LocalTrackUnpublishedEvent with RoomEvent, ParticipantEvent {

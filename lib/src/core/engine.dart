@@ -1015,6 +1015,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await publisher!.addIceCandidate(event.candidate);
       }
     })
+    ..on<SignalLocalTrackSubscribedEvent>((event) async {
+      events.emit(EngineLocalTrackSubscribedEvent(
+        trackSid: event.trackSid,
+      ));
+    })
     ..on<SignalTokenUpdatedEvent>((event) {
       logger.fine('Server refreshed the token');
       token = event.token;
