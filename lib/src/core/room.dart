@@ -116,6 +116,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   RegionUrlProvider? _regionUrlProvider;
   String? _regionUrl;
 
+  // Agents
+  final Map<String, DateTime> _transcriptionReceivedTimes = {};
+
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -790,23 +793,30 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onTranscriptionEvent(EngineTranscriptionReceivedEvent event) {
     final participant = getParticipantByIdentity(
         event.transcription.transcribedParticipantIdentity);
-    if (participant == null) {
+    if (participant == null || event.transcription.segments.isEmpty) {
       return;
     }
 
     final publication =
         participant.getTrackPublicationBySid(event.transcription.trackId);
 
-    var segments = event.transcription.segments.map((e) {
+    var segments = event.transcription.segments.map((segment) {
       return TranscriptionSegment(
-        text: e.text,
-        id: e.id,
-        startTime: DateTime.fromMillisecondsSinceEpoch(e.startTime.toInt()),
-        endTime: DateTime.fromMillisecondsSinceEpoch(e.endTime.toInt()),
-        isFinal: e.final_5,
-        language: e.language,
+        text: segment.text,
+        id: segment.id,
+        firstReceivedTime:
+            _transcriptionReceivedTimes[segment.id] ?? DateTime.now(),
+        lastReceivedTime: DateTime.now(),
+        isFinal: segment.final_5,
+        language: segment.language,
       );
     }).toList();
+
+    for (var segment in segments) {
+      segment.isFinal
+          ? _transcriptionReceivedTimes.remove(segment.id)
+          : _transcriptionReceivedTimes[segment.id] = DateTime.now();
+    }
 
     final transcription = TranscriptionEvent(
       participant: participant,

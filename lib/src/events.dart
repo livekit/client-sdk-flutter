@@ -462,15 +462,15 @@ class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
 class TranscriptionSegment {
   final String id;
   final String text;
-  final DateTime startTime;
-  final DateTime endTime;
+  final DateTime firstReceivedTime;
+  final DateTime lastReceivedTime;
   final bool isFinal;
   final String language;
   const TranscriptionSegment({
     required this.id,
     required this.text,
-    required this.startTime,
-    required this.endTime,
+    required this.firstReceivedTime,
+    required this.lastReceivedTime,
     required this.isFinal,
     required this.language,
   });
