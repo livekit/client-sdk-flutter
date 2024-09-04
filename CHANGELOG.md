@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.2.5
+
+* upgrade flutter-webrtc to 0.11.7
+* upgrade web to 1.0.0
+* feat: Add timestamps to TranscriptionSegment. (#577)
+* feat: Prepare connection/region pinning. (#574)
+
 ## 2.2.4
 
 * fix bug for PlatformView on iOS (#570)
