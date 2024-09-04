@@ -93,7 +93,3 @@ void setSinkId(String id, String deviceId) {
     audioElement.setSinkId(deviceId);
   }
 }
-
-extension _SetSinkId on web.HTMLMediaElement {
-  external JSPromise setSinkId(String sinkId);
-}
