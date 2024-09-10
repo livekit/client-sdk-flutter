@@ -22,6 +22,7 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
@@ -55,17 +56,14 @@ const defaultRetryDelaysInMs = [
   2 * 2 * 300,
   3 * 3 * 300,
   4 * 4 * 300,
-  maxRetryDelay,
-  maxRetryDelay,
-  maxRetryDelay,
-  maxRetryDelay,
-  maxRetryDelay,
 ];
 
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   final SignalClient signalClient;
+  bool _isReconnecting = false;
+  final _reconnectLock = Lock();
 
   final PeerConnectionCreate _peerConnectionCreate;
 
@@ -127,7 +125,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool get isClosed => _isClosed;
 
-  final int _reconnectCount = defaultRetryDelaysInMs.length;
+  final int _maxRetryAttempts;
 
   bool attemptingReconnect = false;
 
@@ -149,9 +147,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
+    int maxRetryAttempts = 9999,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
         _peerConnectionCreate =
-            peerConnectionCreate ?? rtc.createPeerConnection {
+            peerConnectionCreate ?? rtc.createPeerConnection,
+        _maxRetryAttempts = maxRetryAttempts {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -652,7 +652,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       reconnectStart = DateTime.now();
     }
 
-    if (reconnectAttempts! >= _reconnectCount) {
+    if (reconnectAttempts! >= _maxRetryAttempts) {
       logger.fine('reconnectAttempts exceeded, disconnecting...');
       _isClosed = true;
       await cleanUp();
@@ -667,7 +667,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     events.emit(EngineAttemptReconnectEvent(
       attempt: reconnectAttempts! + 1,
-      maxAttempts: _reconnectCount,
+      maxAttempts: _maxRetryAttempts,
       nextRetryDelaysInMs: delay,
     ));
 
