@@ -47,7 +47,7 @@ import 'room.dart';
 import 'signal_client.dart';
 import 'transport.dart';
 
-const maxRetryDelay = 7000;
+const maxRetryDelay = 5000;
 
 const defaultRetryDelaysInMs = [
   0,
@@ -660,7 +660,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    var delay = defaultRetryDelaysInMs[reconnectAttempts!];
+    var delay = reconnectAttempts! < defaultRetryDelaysInMs.length
+        ? defaultRetryDelaysInMs[reconnectAttempts!]
+        : maxRetryDelay;
 
     events.emit(EngineAttemptReconnectEvent(
       attempt: reconnectAttempts! + 1,
