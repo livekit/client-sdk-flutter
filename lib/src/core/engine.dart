@@ -22,7 +22,6 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:synchronized/synchronized.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
@@ -62,8 +61,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
   final SignalClient signalClient;
-  bool _isReconnecting = false;
-  final _reconnectLock = Lock();
 
   final PeerConnectionCreate _peerConnectionCreate;
 
