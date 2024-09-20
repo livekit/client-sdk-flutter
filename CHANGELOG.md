@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.2.6
+
+* fix: android build failure. (#587)
+* Update README.md for Android Screenshare (#583)
+
 ## 2.2.5
 
 * upgrade flutter-webrtc to 0.11.7
