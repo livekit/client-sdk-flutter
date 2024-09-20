@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:js' as js;
+import 'package:livekit_client/src/track/web/_audio_html.dart';
+import 'package:web/web.dart';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
 
@@ -32,12 +35,15 @@ bool lkE2EESupportedImplementation() {
 }
 
 bool isScriptTransformSupported() {
-  return js.context['RTCRtpScriptTransform'] != null;
+  return window.hasProperty('RTCRtpScriptTransform'.toJS).isDefinedAndNotNull;
 }
 
 bool isInsertableStreamSupported() {
-  return js.context['RTCRtpSender'] != null &&
-      js.context['RTCRtpSender']['prototype']['createEncodedStreams'] != null;
+  return window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
+      ((window.getProperty('RTCRtpSender'.toJS) as JSObject)
+              .getProperty('prototype'.toJS) as JSObject)
+          .getProperty('createEncodedStreams'.toJS)
+          .isDefinedAndNotNull;
 }
 
 BrowserType lkBrowserImplementation() {
