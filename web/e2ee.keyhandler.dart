@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:dart_webrtc/src/frame_cryptor_impl.dart';
 import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'crypto.dart' as crypto;
 import 'e2ee.logger.dart';
 import 'e2ee.utils.dart';
 
@@ -235,9 +233,9 @@ class ParticipantKeyHandler {
     var algorithmOptions = getAlgoOptions('PBKDF2', salt);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
-    var newKey = (await web.window.crypto.subtle
+    var newKey = await web.window.crypto.subtle
         .deriveBits(algorithmOptions.jsify(), material, 256)
-        .toDart) as JSArrayBuffer;
+        .toDart;
     return newKey.toDart.asUint8List();
   }
 }

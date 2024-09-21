@@ -4,11 +4,9 @@ import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
-import 'package:dart_webrtc/src/frame_cryptor_impl.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
 
-import 'package:dart_webrtc/src/rtc_transform_stream.dart';
 import 'e2ee.cryptor.dart';
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
@@ -63,7 +61,7 @@ void main() async {
     logger.info('setup RTCTransformEvent event handler');
     self.onrtctransform = (web.RTCTransformEvent event) {
       logger.info('Got onrtctransform event');
-      var transformer = (event as web.RTCTransformEvent).transformer;
+      var transformer = event.transformer;
 
       transformer.setProperty('handled'.toJS, true.toJS);
 
@@ -73,9 +71,9 @@ void main() async {
       var trackId = options.getProperty('trackId'.toJS) as JSString;
       var codec = options.getProperty('codec'.toJS) as JSString;
       var msgType = options.getProperty('msgType'.toJS) as JSString;
-      var keyProviderId = options.getProperty('keyProviderId'.toJS);
+      var keyProviderId = options.getProperty('keyProviderId'.toJS) as JSString;
 
-      var keyProvider = keyProviders[keyProviderId];
+      var keyProvider = keyProviders[keyProviderId.toDart];
 
       if (keyProvider == null) {
         logger.warning('KeyProvider not found for $keyProviderId');

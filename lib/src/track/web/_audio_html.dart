@@ -17,9 +17,6 @@ import 'dart:js_interop_unsafe';
 import 'package:web/web.dart' as web;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:web/web.dart' as web;
-
-import '_audio_context.dart';
 
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter: keep
@@ -60,7 +57,7 @@ Future<bool> startAllAudioElement() async {
       await element.play().toDart;
     }
   }
-  return _audioContext.state == AudioContextState.running;
+  return _audioContext.state == 'running';
 }
 
 void stopAudio(String id) {
@@ -93,8 +90,4 @@ void setSinkId(String id, String deviceId) {
       audioElement.hasProperty('setSinkId'.toJS).toDart) {
     audioElement.setSinkId(deviceId);
   }
-}
-
-extension _SetSinkId on web.HTMLMediaElement {
-  external JSPromise setSinkId(String sinkId);
 }
