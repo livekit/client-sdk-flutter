@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
-import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
+
 import 'e2ee.logger.dart';
 import 'e2ee.utils.dart';
 
