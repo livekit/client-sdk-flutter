@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:web/web.dart';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
 
 import 'package:platform_detect/platform_detect.dart';
+import 'package:web/web.dart';
 
 import '../platform.dart';
 

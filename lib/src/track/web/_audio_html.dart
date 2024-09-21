@@ -14,9 +14,9 @@
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'package:web/web.dart' as web;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:web/web.dart' as web;
 
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter: keep
