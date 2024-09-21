@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
-import 'package:dart_webrtc/src/e2ee.worker/crypto.dart';
+import 'crypto.dart';
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
 import 'e2ee.sfi_guard.dart';
