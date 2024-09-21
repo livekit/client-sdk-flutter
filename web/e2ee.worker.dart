@@ -65,7 +65,7 @@ void main() async {
       logger.info('Got onrtctransform event');
       var transformer = (event as web.RTCTransformEvent).transformer;
 
-      transformer.handled = true;
+      transformer.setProperty('handled'.toJS, true.toJS);
 
       var options = transformer.options as JSObject;
       var kind = options.getProperty('kind'.toJS) as JSString;
