@@ -1037,7 +1037,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             return;
           }
           await signalClient.cleanUp();
-          await cleanUp();
+          fullReconnectOnNext = false;
+          await disconnect();
           events
               .emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
           break;
