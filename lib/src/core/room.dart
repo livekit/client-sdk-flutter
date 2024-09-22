@@ -518,17 +518,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
-      if (!engine.fullReconnectOnNext &&
-          [
-            DisconnectReason.signalingConnectionFailure,
-            DisconnectReason.joinFailure,
-            DisconnectReason.duplicateIdentity,
-            DisconnectReason.participantRemoved,
-            DisconnectReason.roomDeleted,
-            DisconnectReason.stateMismatch,
-            DisconnectReason.serverShutdown,
-            DisconnectReason.noInternetConnection
-          ].contains(event.reason)) {
+      if (!engine.fullReconnectOnNext) {
         await _cleanUp();
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
