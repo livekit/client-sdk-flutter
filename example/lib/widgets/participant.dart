@@ -148,13 +148,6 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                     )
                   : const NoVideoWidget(),
             ),
-            if (widget.showStatsLayer)
-              Positioned(
-                  top: 30,
-                  right: 30,
-                  child: ParticipantStatsWidget(
-                    participant: widget.participant,
-                  )),
             // Bottom bar
             Align(
               alignment: Alignment.bottomCenter,
@@ -176,6 +169,13 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 ],
               ),
             ),
+            if (widget.showStatsLayer)
+              Positioned(
+                  top: 130,
+                  right: 30,
+                  child: ParticipantStatsWidget(
+                    participant: widget.participant,
+                  )),
           ],
         ),
       );
