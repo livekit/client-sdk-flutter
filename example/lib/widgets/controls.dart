@@ -312,6 +312,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             else
               PopupMenuButton<MediaDevice>(
                 icon: const Icon(Icons.settings_voice),
+                offset: Offset(0, -90),
                 itemBuilder: (BuildContext context) {
                   return [
                     PopupMenuItem<MediaDevice>(
