@@ -38,8 +38,10 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
               event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
           if (firstStats != null) {
             stats['encoder'] = firstStats.encoderImplementation ?? '';
-            stats['codec'] =
-                '${firstStats.mimeType!.split('/')[1]}/${firstStats.clockRate}';
+            if (firstStats.mimeType != null) {
+              stats['codec'] =
+                  '${firstStats.mimeType!.split('/')[1]}/${firstStats.clockRate}';
+            }
             stats['payload'] = '${firstStats.payloadType}';
             stats['qualityLimitationReason'] =
                 firstStats.qualityLimitationReason ?? '';
@@ -54,8 +56,10 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         Map<String, String> stats = {};
         setState(() {
           stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
-          stats['codec'] =
-              '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}';
+          if (event.stats.mimeType != null) {
+            stats['codec'] =
+                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}';
+          }
           stats['payload'] = '${event.stats.payloadType}';
           stats['size/fps'] =
               '${event.stats.frameWidth}x${event.stats.frameHeight} ${event.stats.framesPerSecond?.toDouble()}fps';
@@ -76,8 +80,10 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         Map<String, String> stats = {};
         setState(() {
           stats['tx'] = '${event.currentBitrate.toInt()} kpbs';
-          stats['codec'] =
-              '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+          if (event.stats.mimeType != null) {
+            stats['codec'] =
+                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+          }
           stats['payload'] = '${event.stats.payloadType}';
           this.stats['audio']!.addEntries(stats.entries);
         });
@@ -88,8 +94,10 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         Map<String, String> stats = {};
         setState(() {
           stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
-          stats['codec'] =
-              '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+          if (event.stats.mimeType != null) {
+            stats['codec'] =
+                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+          }
           stats['payload'] = '${event.stats.payloadType}';
           stats['jitter'] = '${event.stats.jitter} s';
           //stats['concealed samples'] =
