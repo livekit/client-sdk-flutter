@@ -140,7 +140,7 @@ abstract class Participant<T extends TrackPublication>
   }) : _name = name {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('[ParticipantEvent] $event, will notifyListeners()');
+      logger.finer('[ParticipantEvent] $event, will notifyListeners()');
       notifyListeners();
     });
 

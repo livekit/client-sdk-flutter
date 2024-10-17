@@ -63,7 +63,7 @@ abstract class Track extends DisposableChangeNotifier
       {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('[TrackEvent] $event, will notifyListeners()');
+      logger.finer('[TrackEvent] $event, will notifyListeners()');
       notifyListeners();
     });
 

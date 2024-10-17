@@ -213,7 +213,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
         );
 
         newValue.onVideoViewBuild = (_) {
-          logger.fine('[Visibility] VideoView did build');
+          logger.finer('[Visibility] VideoView did build');
           if (_lastSentTrackSettings?.disabled == true) {
             // quick enable
             _cancelPendingTrackSettingsUpdateRequest?.call();
