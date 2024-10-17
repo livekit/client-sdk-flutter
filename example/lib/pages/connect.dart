@@ -45,7 +45,7 @@ class _ConnectPageState extends State<ConnectPage> {
     super.initState();
     _readPrefs();
     if (lkPlatformIs(PlatformType.android)) {
-      _checkPremissions();
+      _checkPermissions();
     }
   }
 
@@ -56,7 +56,7 @@ class _ConnectPageState extends State<ConnectPage> {
     super.dispose();
   }
 
-  Future<void> _checkPremissions() async {
+  Future<void> _checkPermissions() async {
     var status = await Permission.bluetooth.request();
     if (status.isPermanentlyDenied) {
       print('Bluetooth Permission disabled');
