@@ -16,8 +16,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
-
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -155,14 +153,13 @@ class RemoteTrackPublication<T extends RemoteTrack>
     // filter visible build contexts
     final viewSizes = videoTrack.viewKeys
         .map((e) => e.currentContext)
-        .whereNotNull()
+        .nonNulls
         .map((e) => e.findRenderObject() as RenderBox?)
-        .whereNotNull()
+        .nonNulls
         .where((e) => e.hasSize)
         .map((e) => e.size);
 
-    logger.finer(
-        '[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+    logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
     if (viewSizes.isNotEmpty) {
       // compute largest size
@@ -187,8 +184,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     }
   }
 
-  void _sendPendingTrackSettingsUpdateRequest(
-      lk_rtc.UpdateTrackSettings settings) {
+  void _sendPendingTrackSettingsUpdateRequest(lk_rtc.UpdateTrackSettings settings) {
     logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }

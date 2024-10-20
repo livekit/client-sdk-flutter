@@ -1084,7 +1084,7 @@ extension EngineInternalMethods on Engine {
   @internal
   List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
       [_reliableDCPub, _lossyDCPub]
-          .whereNotNull()
+          .nonNulls
           .where((e) => e.id != -1)
           .map((e) => e.toLKInfoType())
           .toList();

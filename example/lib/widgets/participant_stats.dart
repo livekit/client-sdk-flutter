@@ -34,8 +34,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
             stats['layer-$key'] =
                 '${value.frameWidth ?? 0}x${value.frameHeight ?? 0} ${value.framesPerSecond?.toDouble() ?? 0} fps, ${event.bitrateForLayers[key] ?? 0} kbps';
           });
-          var firstStats =
-              event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
+          var firstStats = event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
           if (firstStats != null) {
             stats['encoder'] = firstStats.encoderImplementation ?? '';
             if (firstStats.mimeType != null) {
@@ -43,8 +42,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
                   '${firstStats.mimeType!.split('/')[1]}/${firstStats.clockRate}';
             }
             stats['payload'] = '${firstStats.payloadType}';
-            stats['qualityLimitationReason'] =
-                firstStats.qualityLimitationReason ?? '';
+            stats['qualityLimitationReason'] = firstStats.qualityLimitationReason ?? '';
           }
 
           this.stats['video']!.addEntries(stats.entries);
@@ -148,7 +146,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.3),
+      color: Colors.black.withValues(alpha: 0.3),
       padding: const EdgeInsets.symmetric(
         vertical: 8,
         horizontal: 8,

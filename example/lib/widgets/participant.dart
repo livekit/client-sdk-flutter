@@ -13,15 +13,11 @@ abstract class ParticipantWidget extends StatefulWidget {
   static ParticipantWidget widgetFor(ParticipantTrack participantTrack,
       {bool showStatsLayer = false}) {
     if (participantTrack.participant is LocalParticipant) {
-      return LocalParticipantWidget(
-          participantTrack.participant as LocalParticipant,
-          participantTrack.type,
-          showStatsLayer);
+      return LocalParticipantWidget(participantTrack.participant as LocalParticipant,
+          participantTrack.type, showStatsLayer);
     } else if (participantTrack.participant is RemoteParticipant) {
-      return RemoteParticipantWidget(
-          participantTrack.participant as RemoteParticipant,
-          participantTrack.type,
-          showStatsLayer);
+      return RemoteParticipantWidget(participantTrack.participant as RemoteParticipant,
+          participantTrack.type, showStatsLayer);
     }
     throw UnimplementedError('Unknown participant type');
   }
@@ -76,8 +72,7 @@ class RemoteParticipantWidget extends ParticipantWidget {
   State<StatefulWidget> createState() => _RemoteParticipantWidgetState();
 }
 
-abstract class _ParticipantWidgetState<T extends ParticipantWidget>
-    extends State<T> {
+abstract class _ParticipantWidgetState<T extends ParticipantWidget> extends State<T> {
   bool _visible = true;
   VideoTrack? get activeVideoTrack;
   AudioTrack? get activeAudioTrack;
@@ -266,7 +261,7 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Subscribe menu',
           icon: Icon(icon,
@@ -304,7 +299,7 @@ class RemoteTrackFPSMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Preferred FPS',
           icon: Icon(icon, color: Colors.white),
@@ -338,7 +333,7 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Preferred Quality',
           icon: Icon(icon, color: Colors.white),
