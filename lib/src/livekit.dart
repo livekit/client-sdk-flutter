@@ -14,17 +14,22 @@
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'package:livekit_client/livekit_client.dart';
+
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.2.6';
+  static const version = '2.2.7';
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
   /// This method must be called before calling any LiveKit SDK API.
   static Future<void> initialize({bool bypassVoiceProcessing = false}) async {
-    await rtc.WebRTC.initialize(options: {
-      if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
-    });
+    if (lkPlatformIsMobile()) {
+      await rtc.WebRTC.initialize(options: {
+        if (bypassVoiceProcessing)
+          'bypassVoiceProcessing': bypassVoiceProcessing,
+      });
+    }
   }
 }
