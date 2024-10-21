@@ -137,7 +137,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('[RoomEvent] $event, will notifyListeners()');
+      logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
 
