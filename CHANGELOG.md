@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.2.7
+
+* feat: support bypass voice processing. (#595)
+* fix: Dispose LocalParticipant when room.disconnect. (#609)
+* Fix spelling error in method name: _checkPremissions to _checkPermissions (#605)
+* fix: fix speaker switching behavior for android. (#604)
+* fix: Optimize stats display (#602)
+* fix: Handle disconnect reasons correctly. (#594)
+
 ## 2.2.6
 
 * fix: android build failure. (#587)
