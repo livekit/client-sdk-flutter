@@ -47,6 +47,10 @@ class _ConnectPageState extends State<ConnectPage> {
     if (lkPlatformIs(PlatformType.android)) {
       _checkPermissions();
     }
+
+    if (lkPlatformIsMobile()) {
+      LiveKitClient.initialize(bypassVoiceProcessing: true);
+    }
   }
 
   @override
