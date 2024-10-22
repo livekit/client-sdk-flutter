@@ -769,8 +769,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onSignalStreamStateUpdateEvent(
       List<lk_rtc.StreamStateInfo> updates) async {
     for (final update in updates) {
+      var identity = _sidToIdentity[update.participantSid];
+      if (identity == null) {
+        logger
+            .warning('participant not found for sid ${update.participantSid}');
+        continue;
+      }
       // try to find RemoteParticipant
-      final participant = remoteParticipants[update.participantSid];
+      final participant = remoteParticipants[identity];
       if (participant == null) continue;
       // try to find RemoteTrackPublication
       final trackPublication = participant.trackPublications[update.trackSid];
