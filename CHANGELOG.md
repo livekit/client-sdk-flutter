@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.2.8
+
+* Fix TrackStreamStateUpdatedEvent not emitted. (#612)
+
 ## 2.2.7
 
 * feat: support bypass voice processing. (#595)
