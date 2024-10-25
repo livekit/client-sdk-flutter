@@ -295,11 +295,11 @@ class VideoPublishOptions extends PublishOptions {
 
 class AudioPreset {
   static const telephone = 12000;
-  static const speech = 20000;
-  static const music = 32000;
-  static const musicStereo = 48000;
-  static const musicHighQuality = 64000;
-  static const musicHighQualityStereo = 96000;
+  static const speech = 24000;
+  static const music = 48000;
+  static const musicStereo = 64000;
+  static const musicHighQuality = 96000;
+  static const musicHighQualityStereo = 128000;
 }
 
 /// Options used when publishing audio.
