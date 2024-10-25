@@ -78,7 +78,7 @@ class Hardware {
 
   bool? speakerOn;
 
-  bool _preferSpeakerOutput = true;
+  bool _preferSpeakerOutput = false;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
