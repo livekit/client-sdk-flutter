@@ -48,10 +48,10 @@ jobs:
           flutter: true
           skipTests: true
           force: true
-      - run: flutter pub global activate dartdoc
+      - run: dart pub global activate dartdoc
 
       # Generate docs
-      - run: dartdoc
+      - run: dart doc .
 
       # Upload docs to S3
       - name: S3 Upload
