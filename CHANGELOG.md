@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.0
+
+* fix: Fixed speaker cannot be switched on iOS. (#617)
+* feat: Increase default audio bitrate. (#616)
+
 ## 2.2.8
 
 * Fix TrackStreamStateUpdatedEvent not emitted. (#612)
