@@ -210,7 +210,8 @@ abstract class EventsListenable<T> extends Disposable {
       // wait to complete with timeout
       return await completer.future.timeout(
         duration,
-        onTimeout: onTimeout ?? () => throw TimeoutException(),
+        onTimeout:
+            onTimeout ?? () => throw TimeoutException('waitFor<${E}> timed out'),
       );
       // do not catch exceptions and pass it up
     } finally {
