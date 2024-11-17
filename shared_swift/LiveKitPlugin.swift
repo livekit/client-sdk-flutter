@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import WebRTC
+import flutter_webrtc
 
 #if os(macOS)
 import Cocoa

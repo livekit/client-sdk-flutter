@@ -39,6 +39,22 @@ class Native {
     }
   }
 
+  @internal
+  static Future<bool> startVisualizer(String trackId) async {
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'startVisualizer',
+        <String, dynamic>{
+          'trackId': trackId,
+        },
+      );
+      return result == true;
+    } catch (error) {
+      logger.warning('startNativeAudio did throw $error');
+      return false;
+    }
+  }
+
   /// Returns OS's version as a string
   /// Currently only for iOS, macOS
   @internal
