@@ -50,8 +50,22 @@ class Native {
       );
       return result == true;
     } catch (error) {
-      logger.warning('startNativeAudio did throw $error');
+      logger.warning('startVisualizer did throw $error');
       return false;
+    }
+  }
+
+  @internal
+  static Future<void> stopVisualizer(String trackId) async {
+    try {
+      await channel.invokeMethod<void>(
+        'stopVisualizer',
+        <String, dynamic>{
+          'trackId': trackId,
+        },
+      );
+    } catch (error) {
+      logger.warning('stopVisualizer did throw $error');
     }
   }
 

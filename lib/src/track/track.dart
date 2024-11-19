@@ -25,6 +25,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../stats/stats.dart';
 import '../support/disposable.dart';
+import '../support/native.dart';
 import '../types/other.dart';
 
 /// Wrapper around a MediaStreamTrack with additional metadata.
@@ -108,6 +109,10 @@ abstract class Track extends DisposableChangeNotifier
 
     logger.fine('$objectId.start()');
 
+    if(source == TrackSource.microphone) {
+        await Native.startVisualizer(mediaStreamTrack.id!);
+    }
+  
     startMonitor();
 
     _active = true;
@@ -121,6 +126,10 @@ abstract class Track extends DisposableChangeNotifier
     if (!_active) {
       // already stopped
       return false;
+    }
+
+    if(source == TrackSource.microphone) {
+      await Native.stopVisualizer(mediaStreamTrack.id!);
     }
 
     stopMonitor();

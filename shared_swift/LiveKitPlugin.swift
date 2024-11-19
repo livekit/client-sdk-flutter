@@ -24,6 +24,8 @@ import UIKit
 #endif
 
 public class LiveKitPlugin: NSObject, FlutterPlugin {
+    
+    private var processor: AudioProcessor? = nil
 
     public static func register(with registrar: FlutterPluginRegistrar) {
 
@@ -85,6 +87,33 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         return result
     }
     #endif
+    
+    public func handleStartAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
+        let webrtc = FlutterWebRTCPlugin.sharedSingleton()
+        
+        let trackId = args["trackId"] as? String
+        
+        if let unwrappedTrackId = trackId {
+            let track = webrtc?.track(forId: unwrappedTrackId, peerConnectionId: nil)
+            if let audioTrack = track as? RTCAudioTrack {
+                if processor == nil {
+                    processor = AudioProcessor(track: audioTrack)
+                }
+            }
+        }
+        
+        let audioManager = webrtc?.audioManager
+        
+        if audioManager != nil && processor != nil {
+            //audioManager?.addLocalAudioRenderer(processor!)
+        }
+        
+        result(true)
+    }
+    
+    public func handleStopAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
+        result(true)
+    }
 
     public func handleConfigureNativeAudio(args: [String: Any?], result: @escaping FlutterResult) {
 
@@ -182,6 +211,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "configureNativeAudio":
             handleConfigureNativeAudio(args: args, result: result)
+        case "startVisualizer":
+            handleStartAudioVisualizer(args: args, result: result)
+        case "stopVisualizer":
+            handleStopAudioVisualizer(args: args, result: result)
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         default:
