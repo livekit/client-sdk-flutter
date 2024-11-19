@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -111,6 +112,7 @@ abstract class Track extends DisposableChangeNotifier
 
     if(source == TrackSource.microphone) {
         await Native.startVisualizer(mediaStreamTrack.id!);
+        listenVisualizerEvent();
     }
   
     startMonitor();
@@ -130,6 +132,7 @@ abstract class Track extends DisposableChangeNotifier
 
     if(source == TrackSource.microphone) {
       await Native.stopVisualizer(mediaStreamTrack.id!);
+      stopVisualizerEventListen();
     }
 
     stopMonitor();
@@ -138,6 +141,29 @@ abstract class Track extends DisposableChangeNotifier
 
     _active = false;
     return true;
+  }
+
+
+  EventChannel? _eventChannel ;
+  StreamSubscription? _streamSubscription;
+
+  @internal
+  void listenVisualizerEvent() {
+    _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
+
+    _eventChannel?.receiveBroadcastStream().listen((event) {
+      logger.fine('[$objectId] visualizer event(${event})');
+      events.emit(AudioVisualizerEvent(
+        track: this,
+        event: event,
+      ));
+    });
+  }
+
+@internal
+  void stopVisualizerEventListen() {
+    _streamSubscription?.cancel();
+    _eventChannel = null;
   }
 
   Future<void> enable() async {

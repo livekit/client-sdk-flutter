@@ -565,3 +565,16 @@ class VideoReceiverStatsEvent with TrackEvent {
   String toString() => '${runtimeType}'
       'stats: ${stats})';
 }
+
+class AudioVisualizerEvent with TrackEvent {
+  final Track track;
+  final List<Object?> event;
+  const AudioVisualizerEvent({
+    required this.track,
+    required this.event,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'track: ${track})';
+}

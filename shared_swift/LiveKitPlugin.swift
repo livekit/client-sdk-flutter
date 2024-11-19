@@ -24,8 +24,10 @@ import UIKit
 #endif
 
 public class LiveKitPlugin: NSObject, FlutterPlugin {
+
+    var processers: Dictionary<Track, AudioProcessor> = [:]
     
-    private var processor: AudioProcessor? = nil
+    var binaryMessenger: FlutterBinaryMessenger?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
 
@@ -37,6 +39,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: messenger)
         let instance = LiveKitPlugin()
+        instance.binaryMessenger = messenger
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
@@ -94,24 +97,35 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let trackId = args["trackId"] as? String
         
         if let unwrappedTrackId = trackId {
-            let track = webrtc?.track(forId: unwrappedTrackId, peerConnectionId: nil)
+            
+            let localTrack = webrtc?.localTracks![unwrappedTrackId]
+            if let audioTrack = localTrack as? LocalAudioTrack {
+                let lkLocalTrack = LKLocalAudioTrack(name: unwrappedTrackId, track: audioTrack);
+                let processor = AudioProcessor(track: lkLocalTrack, binaryMessenger: self.binaryMessenger!)
+                processers[lkLocalTrack] = processor
+            }
+             
+            let track = webrtc?.remoteTrack(forId: unwrappedTrackId)
             if let audioTrack = track as? RTCAudioTrack {
-                if processor == nil {
-                    processor = AudioProcessor(track: audioTrack)
-                }
+                let lkLocalTrack = LKRemoteAudioTrack(name: unwrappedTrackId, track: audioTrack);
+                let processor = AudioProcessor(track: lkLocalTrack, binaryMessenger: self.binaryMessenger!)
+                processers[lkLocalTrack] = processor
             }
         }
         
-        let audioManager = webrtc?.audioManager
-        
-        if audioManager != nil && processor != nil {
-            //audioManager?.addLocalAudioRenderer(processor!)
-        }
         
         result(true)
     }
     
     public func handleStopAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
+        let trackId = args["trackId"] as? String
+        if let unwrappedTrackId = trackId {
+            for key in processers.keys {
+                if key.mediaTrack.trackId == unwrappedTrackId {
+                    processers.removeValue(forKey: key)
+                }
+            }
+        }
         result(true)
     }
 

@@ -20,7 +20,6 @@ import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
-import '../../support/native.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../local/local.dart';

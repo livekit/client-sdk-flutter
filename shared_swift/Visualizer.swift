@@ -17,16 +17,40 @@
 import AVFoundation
 import WebRTC
 
-public class AudioProcessor: NSObject, RTCAudioRenderer {
+#if os(macOS)
+import Cocoa
+import FlutterMacOS
+#else
+import Flutter
+import UIKit
+#endif
+
+public class AudioProcessor: NSObject, RTCAudioRenderer, FlutterStreamHandler {
+    
+    private var eventSink: FlutterEventSink?
+    
+    private var channel: FlutterEventChannel?
+    
+    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        self.eventSink = events
+        return nil
+    }
+    
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        eventSink = nil
+        return nil
+    }
+    
     public let isCentered: Bool
     public let smoothingFactor: Float
 
     public var bands: [Float]
 
     private let _processor: AudioVisualizeProcessor
-    private weak var _track: RTCAudioTrack?
+    private weak var _track: AudioTrack?
 
-    public init(track: RTCAudioTrack?,
+    public init(track: AudioTrack?,
+                binaryMessenger: FlutterBinaryMessenger,
                 bandCount: Int = 7,
                 isCentered: Bool = true,
                 smoothingFactor: Float = 0.3)
@@ -34,15 +58,18 @@ public class AudioProcessor: NSObject, RTCAudioRenderer {
         self.isCentered = isCentered
         self.smoothingFactor = smoothingFactor
         bands = Array(repeating: 0.0, count: bandCount)
-
         _processor = AudioVisualizeProcessor(bandsCount: bandCount)
         _track = track
         super.init()
-        _track?.add(self)
+        _track?.add(audioRenderer: self)
+        let channelName = "io.livekit.audio.visualizer/eventChannel-" + (track?.mediaTrack.trackId ?? "")
+        channel = FlutterEventChannel(name: channelName, binaryMessenger: binaryMessenger)
+        channel?.setStreamHandler(self)
     }
 
     deinit {
-        _track?.remove(self)
+        _track?.remove(audioRenderer: self)
+        channel?.setStreamHandler(nil)
     }
 
     public func render(pcmBuffer: AVAudioPCMBuffer) {
@@ -57,7 +84,7 @@ public class AudioProcessor: NSObject, RTCAudioRenderer {
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-
+            eventSink?(newBands)
             self.bands = zip(self.bands, newBands).map { old, new in
                 self._smoothTransition(from: old, to: new, factor: self.smoothingFactor)
             }
