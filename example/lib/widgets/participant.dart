@@ -175,7 +175,18 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   right: 30,
                   child: ParticipantStatsWidget(
                     participant: widget.participant,
-                  )),
+                  )), 
+           Positioned(
+            top: 10,
+            right: 10,
+            left: 10,
+            bottom: 10,
+            child: SoundWaveformWidget(
+              participant: widget.participant,
+              width: 8,
+            ),
+          ),
+          
           ],
         ),
       );
@@ -359,4 +370,108 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
           ],
         ),
       );
+}
+
+class SoundWaveformWidget extends StatefulWidget {
+  final int count;
+  final double width;
+  final double minHeight;
+  final double maxHeight;
+  final int durationInMilliseconds;
+  const SoundWaveformWidget({
+    super.key,
+    this.participant,
+    this.count = 7,
+    this.width = 5,
+    this.minHeight = 8,
+    this.maxHeight = 100,
+    this.durationInMilliseconds = 500,
+  });
+  final Participant? participant;
+  @override
+  State<SoundWaveformWidget> createState() => _SoundWaveformWidgetState();
+}
+
+class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
+    with TickerProviderStateMixin {
+  late AnimationController controller;
+  List<double> samples = [0,0,0,0,0,0,0];
+ EventsListener<TrackEvent>? _listener;
+ 
+  _onParticipantChanged() {
+    for( var track in widget.participant?.audioTrackPublications ?? []) {
+      if (track.track != null) {
+        _setUpListener(track.track as AudioTrack);
+      }
+    }
+  }
+
+  void _setUpListener(AudioTrack track) {
+    _listener?.dispose();
+    _listener = track.createListener();
+    _listener?.on<AudioVisualizerEvent>((e) {
+      setState(() {
+        samples = e.event.map((e) =>  ((e as num) * 100).toDouble()).toList();
+      });
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+
+  widget.participant?.addListener(_onParticipantChanged);
+
+
+    controller = AnimationController(
+        vsync: this,
+        duration: Duration(
+          milliseconds: widget.durationInMilliseconds,
+        ))
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    widget.participant?.removeListener(_onParticipantChanged);
+    _listener?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.count;
+    final minHeight = widget.minHeight;
+    final maxHeight = widget.maxHeight;
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (c, child) {
+        //double t = controller.value;
+        //int current = (samples.length * t).floor();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(
+            count,
+            (i) => AnimatedContainer(
+              duration: Duration(
+                  milliseconds: widget.durationInMilliseconds ~/ count),
+              margin: i == (samples.length - 1)
+                  ? EdgeInsets.zero
+                  : const EdgeInsets.only(right: 5),
+              height: samples[i] < minHeight
+                  ? minHeight
+                  : samples[i] > maxHeight
+                      ? maxHeight
+                      : samples[i],
+              width: widget.width,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(9999),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

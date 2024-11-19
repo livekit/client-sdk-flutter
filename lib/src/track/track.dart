@@ -152,7 +152,7 @@ abstract class Track extends DisposableChangeNotifier
     _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
 
     _eventChannel?.receiveBroadcastStream().listen((event) {
-      logger.fine('[$objectId] visualizer event(${event})');
+      //logger.fine('[$objectId] visualizer event(${event})');
       events.emit(AudioVisualizerEvent(
         track: this,
         event: event,

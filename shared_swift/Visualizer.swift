@@ -84,10 +84,11 @@ public class AudioProcessor: NSObject, RTCAudioRenderer, FlutterStreamHandler {
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            eventSink?(newBands)
+            
             self.bands = zip(self.bands, newBands).map { old, new in
                 self._smoothTransition(from: old, to: new, factor: self.smoothingFactor)
             }
+            eventSink?(self.bands)
         }
     }
 
