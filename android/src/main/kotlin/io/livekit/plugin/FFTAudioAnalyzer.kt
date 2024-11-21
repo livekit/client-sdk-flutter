@@ -42,9 +42,6 @@ package io.livekit.plugin
 
 import android.media.AudioTrack
 import com.paramsen.noise.Noise
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.TimeUnit
@@ -58,8 +55,6 @@ import kotlin.math.max
  * to receive the analyzed frequencies.
  */
 class FFTAudioAnalyzer {
-
-    data class AudioFormat(val bitsPerSample: Int, val sampleRate: Int, val numberOfChannels: Int)
 
     companion object {
         const val SAMPLE_SIZE = 512
@@ -86,12 +81,11 @@ class FFTAudioAnalyzer {
     private val tempShortArray = ShortArray(SAMPLE_SIZE)
     private val src = FloatArray(SAMPLE_SIZE)
 
-    private val mutableFftFlow = MutableSharedFlow<FloatArray>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-
     /**
      * A flow of frequencies for the audio bytes given through [queueInput].
      */
-    val fftFlow: Flow<FloatArray> = mutableFftFlow
+    var fft: FloatArray? = null
+        private set
 
     fun configure(inputAudioFormat: AudioFormat) {
         this.inputAudioFormat = inputAudioFormat
@@ -130,13 +124,14 @@ class FFTAudioAnalyzer {
 
         // Process inputBuffer
         while (position < limit) {
-            var summedUp = 0
+            var summedUp: Short = 0
             for (channelIndex in 0 until inputAudioFormat.numberOfChannels) {
-                val current = inputBuffer.getShort(position + 2 * channelIndex)
-                summedUp += current
+                if( channelIndex == 0) {
+                    val current = inputBuffer.getShort(position + 2 * channelIndex)
+                    summedUp = (summedUp + current).toShort()
+                }
             }
-            // For the FFT, we use an average of all the channels and put into a single short.
-            fftBuffer.putShort((summedUp / inputAudioFormat.numberOfChannels).toShort())
+            fftBuffer.putShort(summedUp)
             position += inputAudioFormat.numberOfChannels * 2
         }
 
@@ -172,7 +167,7 @@ class FFTAudioAnalyzer {
             val dst = FloatArray(SAMPLE_SIZE + 2)
             val fft = noise?.fft(src, dst)!!
 
-            mutableFftFlow.tryEmit(fft)
+            this.fft = fft
         }
     }
 
@@ -216,3 +211,5 @@ class FFTAudioAnalyzer {
         return bufferSizeInFrames * outputPcmFrameSize
     }
 }
+
+data class AudioFormat(val bitsPerSample: Int, val sampleRate: Int, val numberOfChannels: Int)
