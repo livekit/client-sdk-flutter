@@ -40,12 +40,17 @@ class Native {
   }
 
   @internal
-  static Future<bool> startVisualizer(String trackId) async {
+  static Future<bool> startVisualizer(String trackId, {
+    bool isCentered = true,
+    int barCount = 7,
+  }) async {
     try {
       final result = await channel.invokeMethod<bool>(
         'startVisualizer',
         <String, dynamic>{
           'trackId': trackId,
+          'isCentered': isCentered,
+          'barCount': barCount,
         },
       );
       return result == true;

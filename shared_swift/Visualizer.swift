@@ -25,7 +25,7 @@ import Flutter
 import UIKit
 #endif
 
-public class AudioProcessor: NSObject, RTCAudioRenderer, FlutterStreamHandler {
+public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
     
     private var eventSink: FlutterEventSink?
     

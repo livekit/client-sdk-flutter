@@ -25,7 +25,7 @@ import UIKit
 
 public class LiveKitPlugin: NSObject, FlutterPlugin {
 
-    var processers: Dictionary<Track, AudioProcessor> = [:]
+    var processers: Dictionary<Track, Visualizer> = [:]
     
     var binaryMessenger: FlutterBinaryMessenger?
 
@@ -95,20 +95,28 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let webrtc = FlutterWebRTCPlugin.sharedSingleton()
         
         let trackId = args["trackId"] as? String
+        let barCount = args["barCount"] as? Int ?? 7
+        let isCentered = args["isCentered"] as? Bool ?? true
         
         if let unwrappedTrackId = trackId {
             
             let localTrack = webrtc?.localTracks![unwrappedTrackId]
             if let audioTrack = localTrack as? LocalAudioTrack {
                 let lkLocalTrack = LKLocalAudioTrack(name: unwrappedTrackId, track: audioTrack);
-                let processor = AudioProcessor(track: lkLocalTrack, binaryMessenger: self.binaryMessenger!)
+                let processor = Visualizer(track: lkLocalTrack,
+                                               binaryMessenger: self.binaryMessenger!,
+                                               bandCount: barCount,
+                                               isCentered: isCentered)
                 processers[lkLocalTrack] = processor
             }
              
             let track = webrtc?.remoteTrack(forId: unwrappedTrackId)
             if let audioTrack = track as? RTCAudioTrack {
                 let lkLocalTrack = LKRemoteAudioTrack(name: unwrappedTrackId, track: audioTrack);
-                let processor = AudioProcessor(track: lkLocalTrack, binaryMessenger: self.binaryMessenger!)
+                let processor = Visualizer(track: lkLocalTrack,
+                                               binaryMessenger: self.binaryMessenger!,
+                                               bandCount: barCount,
+                                               isCentered: isCentered)
                 processers[lkLocalTrack] = processor
             }
         }

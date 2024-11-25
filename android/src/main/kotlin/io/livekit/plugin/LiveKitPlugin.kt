@@ -55,6 +55,10 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
     }
     var audioTrack: LKAudioTrack? = null
 
+    var barCount = call.argument<Int>("barCount") ?: 7
+
+    var isCentered = call.argument<Boolean>("isCentered") ?: true
+
     var track = flutterWebRTCPlugin.getLocalTrack(trackId)
     if (track != null) {
       audioTrack = LKLocalAudioTrack(track as LocalAudioTrack)
@@ -70,7 +74,10 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
       return
     }
 
-    var visualizer = Visualizer(audioTrack = audioTrack!!, binaryMessenger = binaryMessenger!!)
+    var visualizer = Visualizer(
+      barCount = barCount, isCentered = isCentered,
+      audioTrack = audioTrack!!, binaryMessenger = binaryMessenger!!)
+
     processors[audioTrack] = visualizer
     result.success(null)
   }

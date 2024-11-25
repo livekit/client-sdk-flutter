@@ -23,12 +23,17 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
     private var barCount: Int = 7
     private var loPass: Int = 1
     private var hiPass: Int = 120
+    private var isCentered: Boolean = true
 
     private var audioFormat = AudioFormat(16, 48000, 1)
 
     constructor(
+        barCount: Int,
+        isCentered: Boolean,
         audioTrack: LKAudioTrack,
         binaryMessenger: BinaryMessenger) {
+        this.barCount = barCount
+        this.isCentered = isCentered
         this.audioTrack = audioTrack
         eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id())
         eventChannel?.setStreamHandler(this)
