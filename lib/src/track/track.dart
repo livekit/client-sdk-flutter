@@ -107,8 +107,10 @@ abstract class Track extends DisposableChangeNotifier
     }
 
     logger.fine('$objectId.start()');
-  
+
     startMonitor();
+
+    await onStarted();
 
     _active = true;
     return true;
@@ -124,6 +126,8 @@ abstract class Track extends DisposableChangeNotifier
     }
 
     stopMonitor();
+
+    await onStopped();
 
     logger.fine('$objectId.stop()');
 
@@ -160,6 +164,12 @@ abstract class Track extends DisposableChangeNotifier
 
   @internal
   Future<bool> monitorStats();
+
+  @internal
+  Future<void> onStarted() async {}
+
+  @internal
+  Future<void> onStopped() async {}
 
   @internal
   void startMonitor() {

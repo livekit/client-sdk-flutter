@@ -60,19 +60,26 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
-
-  EventChannel? _eventChannel ;
+  EventChannel? _eventChannel;
   StreamSubscription? _streamSubscription;
 
+  @override
+  Future<void> onStarted() => startVisualizer();
+
+  @override
+  Future<void> onStopped() => stopVisualizer();
+
   Future<void> startVisualizer() async {
-    if(_eventChannel != null) {
+    if (_eventChannel != null) {
       return;
     }
 
     await Native.startVisualizer(mediaStreamTrack.id!);
 
-    _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
-    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
+    _eventChannel = EventChannel(
+        'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
+    _streamSubscription =
+        _eventChannel?.receiveBroadcastStream().listen((event) {
       //logger.fine('[$objectId] visualizer event(${event})');
       events.emit(AudioVisualizerEvent(
         track: this,
@@ -82,7 +89,7 @@ mixin AudioTrack on Track {
   }
 
   Future<void> stopVisualizer() async {
-    if(_eventChannel == null) {
+    if (_eventChannel == null) {
       return;
     }
     await Native.stopVisualizer(mediaStreamTrack.id!);

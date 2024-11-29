@@ -1,8 +1,5 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_example/theme.dart';
 
 class SoundWaveformWidget extends StatefulWidget {
   final int count;
@@ -27,25 +24,23 @@ class SoundWaveformWidget extends StatefulWidget {
 class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
     with TickerProviderStateMixin {
   late AnimationController controller;
-  List<double> samples = [0,0,0,0,0,0,0];
- EventsListener<TrackEvent>? _listener;
+  List<double> samples = [0, 0, 0, 0, 0, 0, 0];
+  EventsListener<TrackEvent>? _listener;
 
   void _startVisualizer(AudioTrack track) async {
-    await widget.audioTrack.startVisualizer();
-    _listener?.dispose();
+    await _listener?.dispose();
     _listener = track.createListener();
     _listener?.on<AudioVisualizerEvent>((e) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
-          samples = e.event.map((e) =>  ((e as num) * 100).toDouble()).toList();
+          samples = e.event.map((e) => ((e as num) * 100).toDouble()).toList();
         });
       }
     });
   }
 
   void _stopVisualizer(AudioTrack track) async {
-    await widget.audioTrack.stopVisualizer();
-    _listener?.dispose();
+    await _listener?.dispose();
   }
 
   @override
