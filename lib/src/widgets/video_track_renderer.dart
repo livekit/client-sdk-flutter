@@ -212,6 +212,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.mirrorMode == VideoViewMirrorMode.auto) {
       final track = widget.track;
       if (track is LocalVideoTrack) {
+        final settings = track.mediaStreamTrack.getSettings();
+        final facingMode = settings['facingMode'];
+        if (facingMode != null) {
+          return facingMode == 'user';
+        }
         final options = track.currentOptions;
         if (options is CameraCaptureOptions) {
           // mirror if front camera
