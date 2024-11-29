@@ -40,7 +40,8 @@ class Native {
   }
 
   @internal
-  static Future<bool> startVisualizer(String trackId, {
+  static Future<bool> startVisualizer(
+    String trackId, {
     bool isCentered = true,
     int barCount = 7,
   }) async {
