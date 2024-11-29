@@ -177,13 +177,14 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   child: ParticipantStatsWidget(
                     participant: widget.participant,
                   )), 
-           Positioned(
+           if(activeAudioTrack != null && !activeAudioTrack!.muted) Positioned(
             top: 10,
             right: 10,
             left: 10,
             bottom: 10,
             child: SoundWaveformWidget(
-              participant: widget.participant,
+              key: ValueKey(activeAudioTrack!.hashCode),
+              audioTrack: activeAudioTrack!,
               width: 8,
             ),
           ),

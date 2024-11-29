@@ -27,6 +27,7 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
+import '../../support/native.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -58,7 +59,38 @@ mixin VideoTrack on Track {
 }
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
-mixin AudioTrack on Track {}
+mixin AudioTrack on Track {
+
+  EventChannel? _eventChannel ;
+  StreamSubscription? _streamSubscription;
+
+  Future<void> startVisualizer() async {
+    if(_eventChannel != null) {
+      return;
+    }
+
+    await Native.startVisualizer(mediaStreamTrack.id!);
+
+    _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
+    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
+      //logger.fine('[$objectId] visualizer event(${event})');
+      events.emit(AudioVisualizerEvent(
+        track: this,
+        event: event,
+      ));
+    });
+  }
+
+  Future<void> stopVisualizer() async {
+    if(_eventChannel == null) {
+      return;
+    }
+    await Native.stopVisualizer(mediaStreamTrack.id!);
+    await _streamSubscription?.cancel();
+    _streamSubscription = null;
+    _eventChannel = null;
+  }
+}
 
 /// Base class for [LocalAudioTrack] and [LocalVideoTrack].
 abstract class LocalTrack extends Track {
