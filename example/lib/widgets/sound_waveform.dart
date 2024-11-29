@@ -72,8 +72,6 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
     return AnimatedBuilder(
       animation: controller,
       builder: (c, child) {
-        //double t = controller.value;
-        //int current = (samples.length * t).floor();
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(
