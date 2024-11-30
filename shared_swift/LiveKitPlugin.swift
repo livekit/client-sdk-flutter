@@ -112,12 +112,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
              
             let track = webrtc?.remoteTrack(forId: unwrappedTrackId)
             if let audioTrack = track as? RTCAudioTrack {
-                let lkLocalTrack = LKRemoteAudioTrack(name: unwrappedTrackId, track: audioTrack);
-                let processor = Visualizer(track: lkLocalTrack,
+                let lkRemoteTrack = LKRemoteAudioTrack(name: unwrappedTrackId, track: audioTrack);
+                let processor = Visualizer(track: lkRemoteTrack,
                                                binaryMessenger: self.binaryMessenger!,
                                                bandCount: barCount,
                                                isCentered: isCentered)
-                processers[lkLocalTrack] = processor
+                processers[lkRemoteTrack] = processor
             }
         }
         
