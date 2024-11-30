@@ -64,10 +64,18 @@ mixin AudioTrack on Track {
   StreamSubscription? _streamSubscription;
 
   @override
-  Future<void> onStarted() => startVisualizer();
+  Future<void> onStarted() async {
+    if (enableVisualizer == true) {
+      await startVisualizer();
+    }
+  }
 
   @override
-  Future<void> onStopped() => stopVisualizer();
+  Future<void> onStopped() async {
+    if (enableVisualizer == true) {
+      await stopVisualizer();
+    }
+  }
 
   Future<void> startVisualizer() async {
     if (_eventChannel != null) {
@@ -115,12 +123,14 @@ abstract class LocalTrack extends Track {
     TrackType kind,
     TrackSource source,
     rtc.MediaStream mediaStream,
-    rtc.MediaStreamTrack mediaStreamTrack,
-  ) : super(
+    rtc.MediaStreamTrack mediaStreamTrack, {
+    bool? enableVisualizer,
+  }) : super(
           kind,
           source,
           mediaStream,
           mediaStreamTrack,
+          enableVisualizer: enableVisualizer,
         ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');

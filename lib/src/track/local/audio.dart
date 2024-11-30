@@ -118,17 +118,20 @@ class LocalAudioTrack extends LocalTrack
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
-    this.currentOptions,
-  ) : super(
+    this.currentOptions, {
+    bool? enableVisualizer,
+  }) : super(
           TrackType.AUDIO,
           source,
           stream,
           track,
+          enableVisualizer: enableVisualizer,
         );
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
     AudioCaptureOptions? options,
+    bool? enableVisualizer,
   ]) async {
     options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
@@ -138,6 +141,7 @@ class LocalAudioTrack extends LocalTrack
       stream,
       stream.getAudioTracks().first,
       options,
+      enableVisualizer: enableVisualizer,
     );
   }
 }
