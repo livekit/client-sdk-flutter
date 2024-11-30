@@ -16,6 +16,7 @@
 
 package io.livekit.plugin
 
+import android.annotation.SuppressLint
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -46,24 +47,22 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
     binaryMessenger = flutterPluginBinding.binaryMessenger
   }
 
-  fun handleStartVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
-
-    var trackId = call.argument<String>("trackId")
+  @SuppressLint("SuspiciousIndentation")
+  private fun handleStartVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
+    val trackId = call.argument<String>("trackId")
     if (trackId == null) {
       result.error("INVALID_ARGUMENT", "trackId is required", null)
       return
     }
     var audioTrack: LKAudioTrack? = null
+    val barCount = call.argument<Int>("barCount") ?: 7
+    val isCentered = call.argument<Boolean>("isCentered") ?: true
 
-    var barCount = call.argument<Int>("barCount") ?: 7
-
-    var isCentered = call.argument<Boolean>("isCentered") ?: true
-
-    var track = flutterWebRTCPlugin.getLocalTrack(trackId)
+    val track = flutterWebRTCPlugin.getLocalTrack(trackId)
     if (track != null) {
       audioTrack = LKLocalAudioTrack(track as LocalAudioTrack)
     } else {
-      var remoteTrack = flutterWebRTCPlugin.getRemoteTrack(trackId)
+      val remoteTrack = flutterWebRTCPlugin.getRemoteTrack(trackId)
         if (remoteTrack != null) {
             audioTrack = LKRemoteAudioTrack(remoteTrack as AudioTrack)
         }
@@ -74,16 +73,16 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
       return
     }
 
-    var visualizer = Visualizer(
+    val visualizer = Visualizer(
       barCount = barCount, isCentered = isCentered,
-      audioTrack = audioTrack!!, binaryMessenger = binaryMessenger!!)
+      audioTrack = audioTrack, binaryMessenger = binaryMessenger!!)
 
     processors[audioTrack] = visualizer
     result.success(null)
   }
 
-  fun handleStopVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
-    var trackId = call.argument<String>("trackId")
+  private fun handleStopVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
+    val trackId = call.argument<String>("trackId")
     if (trackId == null) {
       result.error("INVALID_ARGUMENT", "trackId is required", null)
       return
