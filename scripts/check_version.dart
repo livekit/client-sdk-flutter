@@ -5,7 +5,19 @@ import 'package:yaml/yaml.dart';
 void main() {
   File pubspec = File('pubspec.yaml');
   var doc = loadYaml(pubspec.readAsStringSync());
-  var version = doc['version'];
+  var versionStr = doc['version'];
+
+  RegExpMatch? match = RegExp(r'(\d+\.\d+\.\d+)').firstMatch(versionStr);
+
+  var version = match?[0];
+
+  if (version == null) {
+    // ignore: avoid_print
+    print('Could not find version in pubspec.yaml');
+    exit(1);
+  }
+
+  print('Checking version $version');
 
   var files = [
     'ios/livekit_client.podspec',

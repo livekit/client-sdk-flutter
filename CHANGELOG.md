@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.1+hotfix.1
+
+* Fix version mismatch for CocoaPods (#648)
+* Android AGP upgrade (#649)
+
 ## 2.3.0
 
 * fix: Fixed speaker cannot be switched on iOS. (#617)
