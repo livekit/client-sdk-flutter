@@ -46,8 +46,9 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      dynamic data =
-          _.data is ByteBuffer ? (_.data as ByteBuffer).asUint8List() : _.data;
+      dynamic data = _.data.instanceOfString('ArrayBuffer')
+          ? (_.data as JSArrayBuffer).toDart.asUint8List()
+          : _.data;
       options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {
@@ -64,7 +65,9 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
   }
 
   @override
-  void send(List<int> data) => _ws.send(Uint8List.fromList(data).toJS);
+  void send(List<int> data) {
+    _ws.send(Uint8List.fromList(data).toJS);
+  }
 
   static Future<LiveKitWebSocketWeb> connect(
     Uri uri, [

@@ -27,7 +27,7 @@ enum LoggerLevel {
   kOFF
 }
 
-final logger = Logger('VOIP E2EE.Worker');
+final logger = Logger('E2EE.Worker');
 
 /// disable logging
 void disableLogging() {
