@@ -814,7 +814,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(const EngineFullRestartingEvent());
 
       if (signalClient.connectionState == ConnectionState.connected) {
-        await signalClient.sendLeave();
+        await signalClient.cleanUp();
       }
 
       await publisher?.dispose();
