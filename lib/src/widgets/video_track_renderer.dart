@@ -51,7 +51,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
-    this.renderMode = VideoRenderMode.auto,
+    this.renderMode = VideoRenderMode.texture,
     Key? key,
   }) : super(key: key);
 
