@@ -115,7 +115,12 @@ class RoomOptions {
   /// Options for end-to-end encryption.
   final E2EEOptions? e2eeOptions;
 
-  /// Enable visualizer for audio tracks. Defaults to true.
+  /// audio visualizer is disabled by default
+  /// When enabled, the native layer will register an FFI audio analyzer
+  /// and will emit AudioVisualizerEvent events from AudioTrack.
+  /// You can use SoundWaveformWidget (example/lib/widgets/sound_waveform.dart)
+  /// to display the audio wave. Or write a custom widget to visualize the audio
+  /// wave.
   final bool enableVisualizer;
 
   const RoomOptions({
@@ -129,7 +134,7 @@ class RoomOptions {
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
     this.e2eeOptions,
-    this.enableVisualizer = true,
+    this.enableVisualizer = false,
   });
 
   RoomOptions copyWith({

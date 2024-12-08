@@ -212,6 +212,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
             screenShareEncoding: screenEncoding,
           ),
           e2eeOptions: e2eeOptions,
+          enableVisualizer: true,
         ),
       );
       // Create a Listener before connecting
