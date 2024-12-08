@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.2
+
+* Add support for audio visualizer.
+
 ## 2.3.1+hotfix.1
 
 * Fix version mismatch for CocoaPods (#648)
