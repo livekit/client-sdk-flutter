@@ -7,6 +7,7 @@ import 'package:livekit_example/theme.dart';
 import 'no_video.dart';
 import 'participant_info.dart';
 import 'participant_stats.dart';
+import 'sound_waveform.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
@@ -175,7 +176,19 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   right: 30,
                   child: ParticipantStatsWidget(
                     participant: widget.participant,
-                  )),
+                  )), 
+           if(activeAudioTrack != null && !activeAudioTrack!.muted) Positioned(
+            top: 10,
+            right: 10,
+            left: 10,
+            bottom: 10,
+            child: SoundWaveformWidget(
+              key: ValueKey(activeAudioTrack!.hashCode),
+              audioTrack: activeAudioTrack!,
+              width: 8,
+            ),
+          ),
+          
           ],
         ),
       );
@@ -360,3 +373,4 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
         ),
       );
 }
+

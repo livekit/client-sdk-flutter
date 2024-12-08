@@ -33,13 +33,14 @@ class RemoteAudioTrack extends RemoteTrack
   String? _deviceId;
   RemoteAudioTrack(
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
-      {rtc.RTCRtpReceiver? receiver})
+      {rtc.RTCRtpReceiver? receiver, bool? enableVisualizer})
       : super(
           TrackType.AUDIO,
           source,
           stream,
           track,
           receiver: receiver,
+          enableVisualizer: enableVisualizer,
         );
 
   @override

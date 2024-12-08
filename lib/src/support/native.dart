@@ -39,6 +39,42 @@ class Native {
     }
   }
 
+  @internal
+  static Future<bool> startVisualizer(
+    String trackId, {
+    bool isCentered = true,
+    int barCount = 7,
+  }) async {
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'startVisualizer',
+        <String, dynamic>{
+          'trackId': trackId,
+          'isCentered': isCentered,
+          'barCount': barCount,
+        },
+      );
+      return result == true;
+    } catch (error) {
+      logger.warning('startVisualizer did throw $error');
+      return false;
+    }
+  }
+
+  @internal
+  static Future<void> stopVisualizer(String trackId) async {
+    try {
+      await channel.invokeMethod<void>(
+        'stopVisualizer',
+        <String, dynamic>{
+          'trackId': trackId,
+        },
+      );
+    } catch (error) {
+      logger.warning('stopVisualizer did throw $error');
+    }
+  }
+
   /// Returns OS's version as a string
   /// Currently only for iOS, macOS
   @internal

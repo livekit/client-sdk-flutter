@@ -16,6 +16,7 @@
 
 package io.livekit.plugin
 
+import android.annotation.SuppressLint
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -24,8 +25,16 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
+import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin
+import com.cloudwebrtc.webrtc.audio.LocalAudioTrack
+import io.flutter.plugin.common.BinaryMessenger
+import org.webrtc.AudioTrack
+
 /** LiveKitPlugin */
 class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
+  private var processors = mutableMapOf<LKAudioTrack, Visualizer>()
+  private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
+  private var binaryMessenger: BinaryMessenger? = null
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -35,9 +44,67 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "livekit_client")
     channel.setMethodCallHandler(this)
+    binaryMessenger = flutterPluginBinding.binaryMessenger
+  }
+
+  @SuppressLint("SuspiciousIndentation")
+  private fun handleStartVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
+    val trackId = call.argument<String>("trackId")
+    if (trackId == null) {
+      result.error("INVALID_ARGUMENT", "trackId is required", null)
+      return
+    }
+    var audioTrack: LKAudioTrack? = null
+    val barCount = call.argument<Int>("barCount") ?: 7
+    val isCentered = call.argument<Boolean>("isCentered") ?: true
+
+    val track = flutterWebRTCPlugin.getLocalTrack(trackId)
+    if (track != null) {
+      audioTrack = LKLocalAudioTrack(track as LocalAudioTrack)
+    } else {
+      val remoteTrack = flutterWebRTCPlugin.getRemoteTrack(trackId)
+        if (remoteTrack != null) {
+            audioTrack = LKRemoteAudioTrack(remoteTrack as AudioTrack)
+        }
+    }
+
+    if(audioTrack == null) {
+      result.error("INVALID_ARGUMENT", "track not found", null)
+      return
+    }
+
+    val visualizer = Visualizer(
+      barCount = barCount, isCentered = isCentered,
+      audioTrack = audioTrack, binaryMessenger = binaryMessenger!!)
+
+    processors[audioTrack] = visualizer
+    result.success(null)
+  }
+
+  private fun handleStopVisualizer(@NonNull call: MethodCall, @NonNull result: Result) {
+    val trackId = call.argument<String>("trackId")
+    if (trackId == null) {
+      result.error("INVALID_ARGUMENT", "trackId is required", null)
+      return
+    }
+    processors.entries.removeAll { (k, v) ->
+      if (k.id() == trackId) {
+        v.stop()
+        true
+      }
+      false
+    }
+    result.success(null)
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    if(call.method == "startVisualizer") {
+      handleStartVisualizer(call, result)
+      return
+    } else if(call.method == "stopVisualizer") {
+      handleStopVisualizer(call, result)
+      return
+    }
     // no-op for now
     result.notImplemented()
   }
