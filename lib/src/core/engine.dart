@@ -814,7 +814,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(const EngineFullRestartingEvent());
 
       if (signalClient.connectionState == ConnectionState.connected) {
-        await signalClient.sendLeave();
+        await signalClient.cleanUp();
       }
 
       await publisher?.dispose();
@@ -964,7 +964,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
+      if ((event.reason == DisconnectReason.disconnected ||
+              event.reason == DisconnectReason.noInternetConnection) &&
+          !_isClosed) {
         await handleDisconnect(ClientDisconnectReason.signal);
       } else {
         events.emit(EngineDisconnectedEvent(
