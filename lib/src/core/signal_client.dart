@@ -59,7 +59,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   String? participantSid;
 
   List<ConnectivityResult> _connectivityResult = [];
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   Future<bool> networkIsAvailable() async {
     // Skip check for web or flutter test
@@ -81,7 +81,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       await cleanUp();
       await events.dispose();
       if (!kIsWeb && !lkPlatformIsTest()) {
-        await connectivitySubscription?.cancel();
+        await _connectivitySubscription?.cancel();
+        _connectivitySubscription = null;
       }
     });
   }
@@ -96,7 +97,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }) async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
-      connectivitySubscription = Connectivity()
+      await _connectivitySubscription?.cancel();
+      _connectivitySubscription = Connectivity()
           .onConnectivityChanged
           .listen((List<ConnectivityResult> result) {
         if (_connectivityResult != result) {
@@ -116,8 +118,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
       if (_connectivityResult.contains(ConnectivityResult.none)) {
         logger.warning('no internet connection');
-        events.emit(SignalDisconnectedEvent(
-            reason: DisconnectReason.noInternetConnection));
         throw ConnectException('no internet connection',
             reason: ConnectionErrorReason.InternalError, statusCode: 503);
       }
