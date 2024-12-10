@@ -115,7 +115,6 @@ enum DisconnectReason {
   joinFailure,
   disconnected,
   signalingConnectionFailure,
-  noInternetConnection,
   reconnectAttemptsExceeded,
 }
 

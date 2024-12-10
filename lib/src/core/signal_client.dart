@@ -116,17 +116,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         }
       });
 
-      /// If there is no internet connection, emit [SignalDisconnectedEvent]
       if (_connectivityResult.contains(ConnectivityResult.none)) {
         logger.warning('no internet connection');
-        events.emit(SignalDisconnectedEvent(
-            reason: DisconnectReason.noInternetConnection));
-        if (!reconnect) {
-          throw ConnectException('no internet connection',
-              reason: ConnectionErrorReason.InternalError, statusCode: 503);
-        } else {
-          return;
-        }
+        throw ConnectException('no internet connection',
+            reason: ConnectionErrorReason.InternalError, statusCode: 503);
       }
     }
 

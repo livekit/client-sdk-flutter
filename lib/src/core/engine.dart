@@ -964,9 +964,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if ((event.reason == DisconnectReason.disconnected ||
-              event.reason == DisconnectReason.noInternetConnection) &&
-          !_isClosed) {
+      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleDisconnect(ClientDisconnectReason.signal);
       } else {
         events.emit(EngineDisconnectedEvent(
