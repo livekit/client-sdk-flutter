@@ -18,6 +18,7 @@ import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';
+import 'processor.dart';
 
 /// A type that represents front or back of the camera.
 enum CameraPosition {
@@ -202,10 +203,14 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   // Limit the maximum frameRate of the capture device.
   final double? maxFrameRate;
 
+  /// A processor to apply to the video track.
+  final TrackProcessor<VideoProcessorOptions>? processor;
+
   const VideoCaptureOptions({
     this.params = VideoParametersPresets.h540_169,
     this.deviceId,
     this.maxFrameRate,
+    this.processor,
   });
 
   @override
@@ -250,6 +255,9 @@ class AudioCaptureOptions extends LocalTrackOptions {
   /// set to false to only toggle enabled instead of stop/replaceTrack for muting
   final bool stopAudioCaptureOnMute;
 
+  /// A processor to apply to the audio track.
+  final TrackProcessor<AudioProcessorOptions>? processor;
+
   const AudioCaptureOptions({
     this.deviceId,
     this.noiseSuppression = true,
@@ -258,6 +266,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
     this.highPassFilter = false,
     this.typingNoiseDetection = true,
     this.stopAudioCaptureOnMute = true,
+    this.processor,
   });
 
   @override
