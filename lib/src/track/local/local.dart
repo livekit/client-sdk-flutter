@@ -318,7 +318,6 @@ abstract class LocalTrack extends Track {
     if (_processor == null) return;
 
     logger.fine('stopping processor');
-    await _processor?.processedTrack?.stop();
     await _processor?.destroy();
     _processor = null;
 

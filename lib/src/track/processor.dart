@@ -33,9 +33,6 @@ abstract class TrackProcessor<T extends ProcessorOptions> {
 
   Future<void> destroy();
 
-  /// for flutter web only
-  MediaStreamTrack? get processedTrack;
-
   Future<void> onPublish(Room room);
 
   Future<void> onUnpublish();
