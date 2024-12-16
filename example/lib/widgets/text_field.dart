@@ -31,7 +31,7 @@ class LKTextField extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(
                 width: 1,
-                color: Colors.white.withOpacity(.3),
+                color: Colors.white.withValues(alpha: .3),
               ),
               borderRadius: BorderRadius.circular(8),
             ),
