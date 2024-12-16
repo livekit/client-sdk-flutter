@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'package:livekit_client/src/track/processor.dart';
-
 import 'core/engine.dart';
 import 'core/room.dart';
 import 'core/signal_client.dart';
