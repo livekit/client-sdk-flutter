@@ -18,7 +18,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:livekit_client/src/track/processor.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
