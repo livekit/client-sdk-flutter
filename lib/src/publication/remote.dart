@@ -17,7 +17,6 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -155,9 +154,9 @@ class RemoteTrackPublication<T extends RemoteTrack>
     // filter visible build contexts
     final viewSizes = videoTrack.viewKeys
         .map((e) => e.currentContext)
-        .whereNotNull()
+        .nonNulls
         .map((e) => e.findRenderObject() as RenderBox?)
-        .whereNotNull()
+        .nonNulls
         .where((e) => e.hasSize)
         .map((e) => e.size);
 

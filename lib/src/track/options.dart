@@ -25,6 +25,10 @@ enum CameraPosition {
   back,
 }
 
+enum CameraFocusMode { auto, locked }
+
+enum CameraExposureMode { auto, locked }
+
 /// Convenience extension for [CameraPosition].
 extension CameraPositionExt on CameraPosition {
   /// Return a [CameraPosition] which front and back is switched.
@@ -41,8 +45,16 @@ class CameraCaptureOptions extends VideoCaptureOptions {
   /// set to false to only toggle enabled instead of stop/replaceTrack for muting
   final bool stopCameraCaptureOnMute;
 
+  /// The focus mode to use for the camera.
+  final CameraFocusMode focusMode;
+
+  /// The exposure mode to use for the camera.
+  final CameraExposureMode exposureMode;
+
   const CameraCaptureOptions({
     this.cameraPosition = CameraPosition.front,
+    this.focusMode = CameraFocusMode.auto,
+    this.exposureMode = CameraExposureMode.auto,
     String? deviceId,
     double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.h720_169,
@@ -55,6 +67,8 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
       : cameraPosition = CameraPosition.front,
+        focusMode = CameraFocusMode.auto,
+        exposureMode = CameraExposureMode.auto,
         stopCameraCaptureOnMute = true,
         super(
           params: captureOptions.params,
