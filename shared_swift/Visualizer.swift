@@ -88,7 +88,7 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
             self.bands = zip(self.bands, newBands).map { old, new in
                 self._smoothTransition(from: old, to: new, factor: self.smoothingFactor)
             }
-            eventSink?(self.bands)
+            self.eventSink?(self.bands)
         }
     }
 
