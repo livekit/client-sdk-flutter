@@ -1082,12 +1082,10 @@ extension EnginePrivateMethods on Engine {
 
 extension EngineInternalMethods on Engine {
   @internal
-  List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
-      [_reliableDCPub, _lossyDCPub]
-          .whereNotNull()
-          .where((e) => e.id != -1)
-          .map((e) => e.toLKInfoType())
-          .toList();
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
   @internal
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,
