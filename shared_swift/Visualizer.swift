@@ -69,7 +69,6 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
 
     deinit {
         _track?.remove(audioRenderer: self)
-        channel?.setStreamHandler(nil)
     }
 
     public func render(pcmBuffer: AVAudioPCMBuffer) {
