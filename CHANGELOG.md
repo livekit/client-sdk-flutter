@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.3.3
+
+* Support FocusMode/ExposureMode for camera capture options. (#658)
+* Fix Swift compilation errors (#662)
+* Improve reconnect logic. (#654)
+* Fixed bug for Screen Share on iOS/Android.
+
 ## 2.3.2
 
 * Add support for audio visualizer.
