@@ -16,6 +16,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'package:livekit_client/livekit_client.dart';
 
+import 'support/native.dart';
+
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
@@ -30,6 +32,8 @@ class LiveKitClient {
         if (bypassVoiceProcessing)
           'bypassVoiceProcessing': bypassVoiceProcessing,
       });
+
+      Native.bypassVoiceProcessing = bypassVoiceProcessing;
     }
   }
 }
