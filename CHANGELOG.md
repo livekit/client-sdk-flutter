@@ -5,7 +5,7 @@
 * Support FocusMode/ExposureMode for camera capture options. (#658)
 * Fix Swift compilation errors (#662)
 * Improve reconnect logic. (#654)
-* Fixed buf for Screen Capture on iOS/Android.
+* Fixed bug for Screen Share on iOS/Android.
 
 ## 2.3.2
 
