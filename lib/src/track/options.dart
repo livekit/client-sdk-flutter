@@ -48,10 +48,12 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.h720_169,
     this.stopCameraCaptureOnMute = true,
+    TrackProcessor<VideoProcessorOptions>? processor,
   }) : super(
           params: params,
           deviceId: deviceId,
           maxFrameRate: maxFrameRate,
+          processor: processor,
         );
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
