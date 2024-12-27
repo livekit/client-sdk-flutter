@@ -32,7 +32,7 @@ import org.webrtc.AudioTrack
 
 /** LiveKitPlugin */
 class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
-  private var processors = mutableMapOf<LKAudioTrack, Visualizer>()
+  private var processors = mutableMapOf<String, Visualizer>()
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
   /// The MethodChannel that will the communication between Flutter and native Android
@@ -77,7 +77,7 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
       barCount = barCount, isCentered = isCentered,
       audioTrack = audioTrack, binaryMessenger = binaryMessenger!!)
 
-    processors[audioTrack] = visualizer
+    processors[trackId] = visualizer
     result.success(null)
   }
 
@@ -87,13 +87,7 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
       result.error("INVALID_ARGUMENT", "trackId is required", null)
       return
     }
-    processors.entries.removeAll { (k, v) ->
-      if (k.id() == trackId) {
-        v.stop()
-        true
-      }
-      false
-    }
+    processors.entries.removeAll { (k, v) -> k == trackId }
     result.success(null)
   }
 

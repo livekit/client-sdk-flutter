@@ -25,9 +25,17 @@ class Native {
   static const channel = MethodChannel('livekit_client');
 
   @internal
+  static bool bypassVoiceProcessing = false;
+
+  @internal
   static Future<bool> configureAudio(
       NativeAudioConfiguration configuration) async {
     try {
+      if (bypassVoiceProcessing) {
+        /// skip configuring audio if bypassVoiceProcessing
+        /// is enabled
+        return false;
+      }
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
         configuration.toMap(),

@@ -14,6 +14,7 @@
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../support/native.dart';
 import '../support/platform.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -261,6 +262,10 @@ class AudioCaptureOptions extends LocalTrackOptions {
   /// Defaults to true.
   final bool typingNoiseDetection;
 
+  /// Attempt to use voiceIsolation option (if supported by the platform)
+  /// Defaults to true.
+  final bool voiceIsolation;
+
   /// set to false to only toggle enabled instead of stop/replaceTrack for muting
   final bool stopAudioCaptureOnMute;
 
@@ -270,6 +275,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
     this.echoCancellation = true,
     this.autoGainControl = true,
     this.highPassFilter = false,
+    this.voiceIsolation = true,
     this.typingNoiseDetection = true,
     this.stopAudioCaptureOnMute = true,
   });
@@ -278,23 +284,40 @@ class AudioCaptureOptions extends LocalTrackOptions {
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = <String, dynamic>{};
 
-    /// in we platform it's not possible to provide optional and mandatory parameters.
-    /// deviceId is a mandatory parameter
-    if (!kIsWeb || (kIsWeb && deviceId == null)) {
+    if (Native.bypassVoiceProcessing) {
       constraints['optional'] = <Map<String, dynamic>>[
-        <String, dynamic>{'echoCancellation': echoCancellation},
-        <String, dynamic>{'noiseSuppression': noiseSuppression},
-        <String, dynamic>{'autoGainControl': autoGainControl},
-        <String, dynamic>{'voiceIsolation': noiseSuppression},
-        <String, dynamic>{'googDAEchoCancellation': echoCancellation},
-        <String, dynamic>{'googEchoCancellation': echoCancellation},
-        <String, dynamic>{'googEchoCancellation2': echoCancellation},
-        <String, dynamic>{'googNoiseSuppression': noiseSuppression},
-        <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
-        <String, dynamic>{'googAutoGainControl': autoGainControl},
-        <String, dynamic>{'googHighpassFilter': highPassFilter},
-        <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+        <String, dynamic>{'googEchoCancellation': false},
+        <String, dynamic>{'googEchoCancellation2': false},
+        <String, dynamic>{'googNoiseSuppression': false},
+        <String, dynamic>{'googNoiseSuppression2': false},
+        <String, dynamic>{'googAutoGainControl': false},
+        <String, dynamic>{'googHighpassFilter': false},
+        <String, dynamic>{'googTypingNoiseDetection': false},
+        <String, dynamic>{'noiseSuppression': false},
+        <String, dynamic>{'echoCancellation': false},
+        <String, dynamic>{'autoGainControl': false},
+        <String, dynamic>{'voiceIsolation': false},
+        <String, dynamic>{'googDAEchoCancellation': false},
       ];
+    } else {
+      /// in we platform it's not possible to provide optional and mandatory parameters.
+      /// deviceId is a mandatory parameter
+      if (!kIsWeb || (kIsWeb && deviceId == null)) {
+        constraints['optional'] = <Map<String, dynamic>>[
+          <String, dynamic>{'echoCancellation': echoCancellation},
+          <String, dynamic>{'noiseSuppression': noiseSuppression},
+          <String, dynamic>{'autoGainControl': autoGainControl},
+          <String, dynamic>{'voiceIsolation': noiseSuppression},
+          <String, dynamic>{'googDAEchoCancellation': echoCancellation},
+          <String, dynamic>{'googEchoCancellation': echoCancellation},
+          <String, dynamic>{'googEchoCancellation2': echoCancellation},
+          <String, dynamic>{'googNoiseSuppression': noiseSuppression},
+          <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
+          <String, dynamic>{'googAutoGainControl': autoGainControl},
+          <String, dynamic>{'googHighpassFilter': highPassFilter},
+          <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+        ];
+      }
     }
 
     if (deviceId != null) {
