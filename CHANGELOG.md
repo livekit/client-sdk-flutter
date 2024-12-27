@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.3.4
+
+* fix bypass voice processing not work. (#668)
+* fix track.stop for remote track. (#669)
+* fix Visualizer block UI. (#667)
+
 ## 2.3.3
 
 * Support FocusMode/ExposureMode for camera capture options. (#658)
