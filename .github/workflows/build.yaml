@@ -36,8 +36,6 @@ jobs:
           channel: 'stable'
       - name: Install project dependencies
         run: flutter pub get
-      - name: Upgrade to major versions
-        run: flutter pub upgrade --major-versions
       - name: Dart Format Check
         run: dart format lib/ test/ --set-exit-if-changed
       - name: Import Sorter Check

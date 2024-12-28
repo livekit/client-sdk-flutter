@@ -137,7 +137,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('[RoomEvent] $event, will notifyListeners()');
+      logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
 
@@ -518,13 +518,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
-      if (!engine.fullReconnectOnNext &&
-          ![
-            DisconnectReason.signalingConnectionFailure,
-            DisconnectReason.joinFailure,
-            DisconnectReason.noInternetConnection
-          ].contains(event.reason)) {
-        await _cleanUp();
+      if (!engine.fullReconnectOnNext) {
+        await _cleanUp(disposeLocalParticipant: false);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -581,6 +576,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           trackSid,
           receiver: event.receiver,
           audioOutputOptions: roomOptions.defaultAudioOutputOptions,
+          enableVisualizer: roomOptions.enableVisualizer,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.severe('addSubscribedMediaTrack() throwed ${event}');
@@ -774,8 +770,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onSignalStreamStateUpdateEvent(
       List<lk_rtc.StreamStateInfo> updates) async {
     for (final update in updates) {
+      var identity = _sidToIdentity[update.participantSid];
+      if (identity == null) {
+        logger
+            .warning('participant not found for sid ${update.participantSid}');
+        continue;
+      }
       // try to find RemoteParticipant
-      final participant = remoteParticipants[update.participantSid];
+      final participant = remoteParticipants[identity];
       if (participant == null) continue;
       // try to find RemoteTrackPublication
       final trackPublication = participant.trackPublications[update.trackSid];
@@ -892,7 +894,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp() async {
+  Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
@@ -907,6 +909,11 @@ extension RoomPrivateMethods on Room {
 
     // clean up LocalParticipant
     await localParticipant?.unpublishAllTracks();
+
+    if (disposeLocalParticipant) {
+      await localParticipant?.dispose();
+      _localParticipant = null;
+    }
 
     _activeSpeakers.clear();
 

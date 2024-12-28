@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## 2.3.4
+
+* fix bypass voice processing not work. (#668)
+* fix track.stop for remote track. (#669)
+* fix Visualizer block UI. (#667)
+
+## 2.3.3
+
+* Support FocusMode/ExposureMode for camera capture options. (#658)
+* Fix Swift compilation errors (#662)
+* Improve reconnect logic. (#654)
+* Fixed bug for Screen Share on iOS/Android.
+
+## 2.3.2
+
+* Add support for audio visualizer.
+
+## 2.3.1+hotfix.1
+
+* Fix version mismatch for CocoaPods (#648)
+* Android AGP upgrade (#649)
+
+## 2.3.0
+
+* fix: Fixed speaker cannot be switched on iOS. (#617)
+* feat: Increase default audio bitrate. (#616)
+
+## 2.2.8
+
+* Fix TrackStreamStateUpdatedEvent not emitted. (#612)
+
+## 2.2.7
+
+* feat: support bypass voice processing. (#595)
+* fix: Dispose LocalParticipant when room.disconnect. (#609)
+* Fix spelling error in method name: _checkPremissions to _checkPermissions (#605)
+* fix: fix speaker switching behavior for android. (#604)
+* fix: Optimize stats display (#602)
+* fix: Handle disconnect reasons correctly. (#594)
+
+## 2.2.6
+
+* fix: android build failure. (#587)
+* Update README.md for Android Screenshare (#583)
+
 ## 2.2.5
 
 * upgrade flutter-webrtc to 0.11.7

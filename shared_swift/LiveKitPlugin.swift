@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import WebRTC
+import flutter_webrtc
 
 #if os(macOS)
 import Cocoa
@@ -24,6 +25,10 @@ import UIKit
 
 public class LiveKitPlugin: NSObject, FlutterPlugin {
 
+    var processers: Dictionary<Track, Visualizer> = [:]
+    
+    var binaryMessenger: FlutterBinaryMessenger?
+
     public static func register(with registrar: FlutterPluginRegistrar) {
 
         #if os(macOS)
@@ -34,6 +39,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: messenger)
         let instance = LiveKitPlugin()
+        instance.binaryMessenger = messenger
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
@@ -84,6 +90,52 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         return result
     }
     #endif
+    
+    public func handleStartAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
+        let webrtc = FlutterWebRTCPlugin.sharedSingleton()
+        
+        let trackId = args["trackId"] as? String
+        let barCount = args["barCount"] as? Int ?? 7
+        let isCentered = args["isCentered"] as? Bool ?? true
+        
+        if let unwrappedTrackId = trackId {
+            
+            let localTrack = webrtc?.localTracks![unwrappedTrackId]
+            if let audioTrack = localTrack as? LocalAudioTrack {
+                let lkLocalTrack = LKLocalAudioTrack(name: unwrappedTrackId, track: audioTrack);
+                let processor = Visualizer(track: lkLocalTrack,
+                                               binaryMessenger: self.binaryMessenger!,
+                                               bandCount: barCount,
+                                               isCentered: isCentered)
+                processers[lkLocalTrack] = processor
+            }
+             
+            let track = webrtc?.remoteTrack(forId: unwrappedTrackId)
+            if let audioTrack = track as? RTCAudioTrack {
+                let lkRemoteTrack = LKRemoteAudioTrack(name: unwrappedTrackId, track: audioTrack);
+                let processor = Visualizer(track: lkRemoteTrack,
+                                               binaryMessenger: self.binaryMessenger!,
+                                               bandCount: barCount,
+                                               isCentered: isCentered)
+                processers[lkRemoteTrack] = processor
+            }
+        }
+        
+        
+        result(true)
+    }
+    
+    public func handleStopAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
+        let trackId = args["trackId"] as? String
+        if let unwrappedTrackId = trackId {
+            for key in processers.keys {
+                if key.mediaTrack.trackId == unwrappedTrackId {
+                    processers.removeValue(forKey: key)
+                }
+            }
+        }
+        result(true)
+    }
 
     public func handleConfigureNativeAudio(args: [String: Any?], result: @escaping FlutterResult) {
 
@@ -181,6 +233,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "configureNativeAudio":
             handleConfigureNativeAudio(args: args, result: result)
+        case "startVisualizer":
+            handleStartAudioVisualizer(args: args, result: result)
+        case "stopVisualizer":
+            handleStopAudioVisualizer(args: args, result: result)
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         default:

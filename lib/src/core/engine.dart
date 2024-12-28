@@ -813,7 +813,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(const EngineFullRestartingEvent());
 
       if (signalClient.connectionState == ConnectionState.connected) {
-        await signalClient.sendLeave();
+        await signalClient.cleanUp();
       }
 
       await publisher?.dispose();
@@ -1036,7 +1036,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             return;
           }
           await signalClient.cleanUp();
-          await cleanUp();
+          fullReconnectOnNext = false;
+          await disconnect();
           events
               .emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
           break;
@@ -1080,12 +1081,10 @@ extension EnginePrivateMethods on Engine {
 
 extension EngineInternalMethods on Engine {
   @internal
-  List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
-      [_reliableDCPub, _lossyDCPub]
-          .whereNotNull()
-          .where((e) => e.id != -1)
-          .map((e) => e.toLKInfoType())
-          .toList();
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
   @internal
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,
