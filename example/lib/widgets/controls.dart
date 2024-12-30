@@ -35,7 +35,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = Hardware.instance.preferSpeakerOutput;
+  bool _speakerphoneOn = Hardware.instance.speakerOn ?? false;
 
   @override
   void initState() {
@@ -396,9 +396,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           if (!kIsWeb && lkPlatformIsMobile())
             IconButton(
               disabledColor: Colors.grey,
-              onPressed: Hardware.instance.canSwitchSpeakerphone
-                  ? _setSpeakerphoneOn
-                  : null,
+              onPressed: _setSpeakerphoneOn,
               icon: Icon(
                   _speakerphoneOn ? Icons.speaker_phone : Icons.phone_android),
               tooltip: 'Switch SpeakerPhone',

@@ -24,6 +24,13 @@ void main() async {
     });
   }
 
+  /// for livestreaming app, you can initialize the bypassVoiceProcessing = true
+  /// here to get better audio quality
+  ///
+  /// await LiveKitClient.initialize(
+  ///  bypassVoiceProcessing: lkPlatformIsMobile(),
+  /// );
+
   runApp(const LiveKitExampleApp());
 }
 
