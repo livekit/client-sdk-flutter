@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.4+hotfix.1
+
+* fix: bug for speakerPhone switch. (#672)
+
 ## 2.3.4
 
 * fix bypass voice processing not work. (#668)
