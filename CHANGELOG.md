@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.3.4+hotfix.2
+
+* fix: side effects for stop remote track.
+
 ## 2.3.4+hotfix.1
 
 * fix: bug for speakerPhone switch. (#672)
