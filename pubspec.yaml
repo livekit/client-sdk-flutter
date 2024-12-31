@@ -44,6 +44,7 @@ dependencies:
   dart_webrtc: ^1.4.9
   sdp_transform: ^0.3.2
   web: ^1.0.0
+  cryptography: ^2.7.0
 
 dev_dependencies:
   flutter_test:
