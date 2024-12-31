@@ -155,6 +155,7 @@ abstract class Track extends DisposableChangeNotifier
     try {
       if (_active || !_muted) {
         mediaStreamTrack.enabled = false;
+        if (!_muted) _muted = true;
       }
     } catch (_) {
       logger.warning(
