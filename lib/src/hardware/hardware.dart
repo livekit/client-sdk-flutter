@@ -78,7 +78,7 @@ class Hardware {
 
   bool? speakerOn;
 
-  bool _preferSpeakerOutput = true;
+  bool _preferSpeakerOutput = false;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -146,8 +146,7 @@ class Hardware {
   bool get preferSpeakerOutput => _preferSpeakerOutput;
 
   bool get canSwitchSpeakerphone =>
-      ((lkPlatformIs(PlatformType.iOS) && !_preferSpeakerOutput) ||
-          lkPlatformIs(PlatformType.android)) &&
+      (lkPlatformIsMobile()) &&
       [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
           .contains(audioTrackState);
 

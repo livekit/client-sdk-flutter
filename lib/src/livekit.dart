@@ -15,11 +15,12 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'package:livekit_client/livekit_client.dart';
+import 'support/native.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.3.2';
+  static const version = '2.3.4';
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
@@ -30,6 +31,8 @@ class LiveKitClient {
         if (bypassVoiceProcessing)
           'bypassVoiceProcessing': bypassVoiceProcessing,
       });
+
+      Native.bypassVoiceProcessing = bypassVoiceProcessing;
     }
   }
 }

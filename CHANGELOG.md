@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 2.3.4+hotfix.2
+
+* fix: side effects for stop remote track.
+
+## 2.3.4+hotfix.1
+
+* fix: bug for speakerPhone switch. (#672)
+
+## 2.3.4
+
+* fix bypass voice processing not work. (#668)
+* fix track.stop for remote track. (#669)
+* fix Visualizer block UI. (#667)
+
+## 2.3.3
+
+* Support FocusMode/ExposureMode for camera capture options. (#658)
+* Fix Swift compilation errors (#662)
+* Improve reconnect logic. (#654)
+* Fixed bug for Screen Share on iOS/Android.
+
 ## 2.3.2
 
 * Add support for audio visualizer.
