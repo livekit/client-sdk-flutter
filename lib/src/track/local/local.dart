@@ -31,6 +31,7 @@ import '../../support/native.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
+import '../processor.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
@@ -118,6 +119,10 @@ abstract class LocalTrack extends Track {
   String? codec;
 
   bool _stopped = false;
+
+  TrackProcessor? _processor;
+
+  TrackProcessor? get processor => _processor;
 
   LocalTrack(
     TrackType kind,
@@ -253,6 +258,10 @@ abstract class LocalTrack extends Track {
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
+    var processor = _processor;
+
+    await stopProcessor();
+
     // replace track on sender
     try {
       await sender?.replaceTrack(newTrack);
@@ -267,6 +276,10 @@ abstract class LocalTrack extends Track {
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
 
+    if (processor != null) {
+      await setProcessor(processor);
+    }
+
     // mark as started
     await start();
 
@@ -275,6 +288,50 @@ abstract class LocalTrack extends Track {
       track: this,
       options: currentOptions,
     ));
+  }
+
+  Future<void> setProcessor(TrackProcessor? processor) async {
+    if (processor == null) {
+      return;
+    }
+
+    if (_processor != null) {
+      await stopProcessor();
+    }
+
+    _processor = processor;
+
+    var processorOptions = ProcessorOptions(
+      kind: kind,
+      track: mediaStreamTrack,
+    );
+
+    await _processor!.init(processorOptions);
+
+    logger.fine('processor initialized');
+
+    events.emit(TrackProcessorUpdateEvent(track: this, processor: _processor));
+  }
+
+  @internal
+  Future<void> stopProcessor({bool keepElement = false}) async {
+    if (_processor == null) return;
+
+    logger.fine('stopping processor');
+    await _processor?.destroy();
+    _processor = null;
+
+    if (!keepElement) {
+      // processorElement?.remove();
+      // processorElement = null;
+    }
+
+    // apply original track constraints in case the processor changed them
+    //await this._mediaStreamTrack.applyConstraints(this._constraints);
+    // force re-setting of the mediaStreamTrack on the sender
+    //await this.setMediaStreamTrack(this._mediaStreamTrack, true);
+
+    events.emit(TrackProcessorUpdateEvent(track: this));
   }
 
   @internal
