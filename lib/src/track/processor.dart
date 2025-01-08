@@ -29,7 +29,7 @@ abstract class TrackProcessor<T extends ProcessorOptions> {
 
   Future<void> init(T options);
 
-  Future<void> restart();
+  Future<void> restart(T options);
 
   Future<void> destroy();
 
