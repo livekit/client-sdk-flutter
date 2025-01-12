@@ -534,6 +534,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>(
         (event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
+    ..on<EngineRPCRequestReceivedEvent>((event) {
+      localParticipant?.events.emit(event);
+    })
+    ..on<EngineRPCResponseReceivedEvent>((event) {
+      localParticipant?.events.emit(event);
+    })
+    ..on<EngineRPCAckReceivedEvent>((event) {
+      localParticipant?.events.emit(event);
+    })
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
     ..on<AudioPlaybackStarted>((event) {
       _handleAudioPlaybackStarted();
