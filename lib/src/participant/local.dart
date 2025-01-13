@@ -609,6 +609,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         filter: (p0) => p0.requestId == requestId,
       );
 
+      if (response.error != null) {
+        throw Exception(response.error!.message);
+      }
+
       completer.complete(response.response.payload);
     } catch (e) {
       completer.completeError(e);

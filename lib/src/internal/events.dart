@@ -464,6 +464,7 @@ class EngineRPCResponseReceivedEvent
   final lk_models.RpcResponse response;
   String get requestId => response.requestId;
   final String identity;
+  lk_models.RpcError? get error => response.error;
   const EngineRPCResponseReceivedEvent({
     required this.response,
     required this.identity,

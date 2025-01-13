@@ -14,8 +14,8 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'google/protobuf/timestamp.pb.dart' as $1;
-import 'livekit_metrics.pb.dart' as $0;
+import 'google/protobuf/timestamp.pb.dart' as $0;
+import 'livekit_metrics.pb.dart' as $1;
 import 'livekit_models.pbenum.dart';
 
 export 'livekit_models.pbenum.dart';
@@ -1623,7 +1623,7 @@ class DataPacket extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? destinationIdentities,
     SipDTMF? sipDtmf,
     Transcription? transcription,
-    $0.MetricsBatch? metrics,
+    $1.MetricsBatch? metrics,
     ChatMessage? chatMessage,
     RpcRequest? rpcRequest,
     RpcAck? rpcAck,
@@ -1724,8 +1724,8 @@ class DataPacket extends $pb.GeneratedMessage {
         subBuilder: SipDTMF.create)
     ..aOM<Transcription>(7, _omitFieldNames ? '' : 'transcription',
         subBuilder: Transcription.create)
-    ..aOM<$0.MetricsBatch>(8, _omitFieldNames ? '' : 'metrics',
-        subBuilder: $0.MetricsBatch.create)
+    ..aOM<$1.MetricsBatch>(8, _omitFieldNames ? '' : 'metrics',
+        subBuilder: $1.MetricsBatch.create)
     ..aOM<ChatMessage>(9, _omitFieldNames ? '' : 'chatMessage',
         subBuilder: ChatMessage.create)
     ..aOM<RpcRequest>(10, _omitFieldNames ? '' : 'rpcRequest',
@@ -1861,9 +1861,9 @@ class DataPacket extends $pb.GeneratedMessage {
   Transcription ensureTranscription() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $0.MetricsBatch get metrics => $_getN(7);
+  $1.MetricsBatch get metrics => $_getN(7);
   @$pb.TagNumber(8)
-  set metrics($0.MetricsBatch v) {
+  set metrics($1.MetricsBatch v) {
     setField(8, v);
   }
 
@@ -1872,7 +1872,7 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   void clearMetrics() => clearField(8);
   @$pb.TagNumber(8)
-  $0.MetricsBatch ensureMetrics() => $_ensure(7);
+  $1.MetricsBatch ensureMetrics() => $_ensure(7);
 
   @$pb.TagNumber(9)
   ChatMessage get chatMessage => $_getN(8);
@@ -3929,8 +3929,8 @@ class DisabledCodecs extends $pb.GeneratedMessage {
 
 class RTPDrift extends $pb.GeneratedMessage {
   factory RTPDrift({
-    $1.Timestamp? startTime,
-    $1.Timestamp? endTime,
+    $0.Timestamp? startTime,
+    $0.Timestamp? endTime,
     $core.double? duration,
     $fixnum.Int64? startTimestamp,
     $fixnum.Int64? endTimestamp,
@@ -3981,10 +3981,10 @@ class RTPDrift extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RTPDrift',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..aOM<$1.Timestamp>(1, _omitFieldNames ? '' : 'startTime',
-        subBuilder: $1.Timestamp.create)
-    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'endTime',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
     ..a<$fixnum.Int64>(
         4, _omitFieldNames ? '' : 'startTimestamp', $pb.PbFieldType.OU6,
@@ -4022,9 +4022,9 @@ class RTPDrift extends $pb.GeneratedMessage {
   static RTPDrift? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.Timestamp get startTime => $_getN(0);
+  $0.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($1.Timestamp v) {
+  set startTime($0.Timestamp v) {
     setField(1, v);
   }
 
@@ -4033,12 +4033,12 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearStartTime() => clearField(1);
   @$pb.TagNumber(1)
-  $1.Timestamp ensureStartTime() => $_ensure(0);
+  $0.Timestamp ensureStartTime() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $1.Timestamp get endTime => $_getN(1);
+  $0.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($1.Timestamp v) {
+  set endTime($0.Timestamp v) {
     setField(2, v);
   }
 
@@ -4047,7 +4047,7 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearEndTime() => clearField(2);
   @$pb.TagNumber(2)
-  $1.Timestamp ensureEndTime() => $_ensure(1);
+  $0.Timestamp ensureEndTime() => $_ensure(1);
 
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
@@ -4136,8 +4136,8 @@ class RTPDrift extends $pb.GeneratedMessage {
 
 class RTPStats extends $pb.GeneratedMessage {
   factory RTPStats({
-    $1.Timestamp? startTime,
-    $1.Timestamp? endTime,
+    $0.Timestamp? startTime,
+    $0.Timestamp? endTime,
     $core.double? duration,
     $core.int? packets,
     $core.double? packetRate,
@@ -4163,15 +4163,15 @@ class RTPStats extends $pb.GeneratedMessage {
     $core.int? nacks,
     $core.int? nackMisses,
     $core.int? plis,
-    $1.Timestamp? lastPli,
+    $0.Timestamp? lastPli,
     $core.int? firs,
-    $1.Timestamp? lastFir,
+    $0.Timestamp? lastFir,
     $core.int? rttCurrent,
     $core.int? rttMax,
     $core.int? keyFrames,
-    $1.Timestamp? lastKeyFrame,
+    $0.Timestamp? lastKeyFrame,
     $core.int? layerLockPlis,
-    $1.Timestamp? lastLayerLockPli,
+    $0.Timestamp? lastLayerLockPli,
     $core.int? nackAcks,
     $core.int? nackRepeated,
     $fixnum.Int64? headerBytes,
@@ -4332,10 +4332,10 @@ class RTPStats extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'RTPStats',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..aOM<$1.Timestamp>(1, _omitFieldNames ? '' : 'startTime',
-        subBuilder: $1.Timestamp.create)
-    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'endTime',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'packets', $pb.PbFieldType.OU3)
     ..a<$core.double>(
@@ -4383,20 +4383,20 @@ class RTPStats extends $pb.GeneratedMessage {
     ..a<$core.int>(25, _omitFieldNames ? '' : 'nacks', $pb.PbFieldType.OU3)
     ..a<$core.int>(26, _omitFieldNames ? '' : 'nackMisses', $pb.PbFieldType.OU3)
     ..a<$core.int>(27, _omitFieldNames ? '' : 'plis', $pb.PbFieldType.OU3)
-    ..aOM<$1.Timestamp>(28, _omitFieldNames ? '' : 'lastPli',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(28, _omitFieldNames ? '' : 'lastPli',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.int>(29, _omitFieldNames ? '' : 'firs', $pb.PbFieldType.OU3)
-    ..aOM<$1.Timestamp>(30, _omitFieldNames ? '' : 'lastFir',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(30, _omitFieldNames ? '' : 'lastFir',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.int>(31, _omitFieldNames ? '' : 'rttCurrent', $pb.PbFieldType.OU3)
     ..a<$core.int>(32, _omitFieldNames ? '' : 'rttMax', $pb.PbFieldType.OU3)
     ..a<$core.int>(33, _omitFieldNames ? '' : 'keyFrames', $pb.PbFieldType.OU3)
-    ..aOM<$1.Timestamp>(34, _omitFieldNames ? '' : 'lastKeyFrame',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(34, _omitFieldNames ? '' : 'lastKeyFrame',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.int>(
         35, _omitFieldNames ? '' : 'layerLockPlis', $pb.PbFieldType.OU3)
-    ..aOM<$1.Timestamp>(36, _omitFieldNames ? '' : 'lastLayerLockPli',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$0.Timestamp>(36, _omitFieldNames ? '' : 'lastLayerLockPli',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.int>(37, _omitFieldNames ? '' : 'nackAcks', $pb.PbFieldType.OU3)
     ..a<$core.int>(
         38, _omitFieldNames ? '' : 'nackRepeated', $pb.PbFieldType.OU3)
@@ -4441,9 +4441,9 @@ class RTPStats extends $pb.GeneratedMessage {
   static RTPStats? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.Timestamp get startTime => $_getN(0);
+  $0.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($1.Timestamp v) {
+  set startTime($0.Timestamp v) {
     setField(1, v);
   }
 
@@ -4452,12 +4452,12 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearStartTime() => clearField(1);
   @$pb.TagNumber(1)
-  $1.Timestamp ensureStartTime() => $_ensure(0);
+  $0.Timestamp ensureStartTime() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $1.Timestamp get endTime => $_getN(1);
+  $0.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($1.Timestamp v) {
+  set endTime($0.Timestamp v) {
     setField(2, v);
   }
 
@@ -4466,7 +4466,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearEndTime() => clearField(2);
   @$pb.TagNumber(2)
-  $1.Timestamp ensureEndTime() => $_ensure(1);
+  $0.Timestamp ensureEndTime() => $_ensure(1);
 
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
@@ -4760,9 +4760,9 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearPlis() => clearField(27);
 
   @$pb.TagNumber(28)
-  $1.Timestamp get lastPli => $_getN(27);
+  $0.Timestamp get lastPli => $_getN(27);
   @$pb.TagNumber(28)
-  set lastPli($1.Timestamp v) {
+  set lastPli($0.Timestamp v) {
     setField(28, v);
   }
 
@@ -4771,7 +4771,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   void clearLastPli() => clearField(28);
   @$pb.TagNumber(28)
-  $1.Timestamp ensureLastPli() => $_ensure(27);
+  $0.Timestamp ensureLastPli() => $_ensure(27);
 
   @$pb.TagNumber(29)
   $core.int get firs => $_getIZ(28);
@@ -4786,9 +4786,9 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearFirs() => clearField(29);
 
   @$pb.TagNumber(30)
-  $1.Timestamp get lastFir => $_getN(29);
+  $0.Timestamp get lastFir => $_getN(29);
   @$pb.TagNumber(30)
-  set lastFir($1.Timestamp v) {
+  set lastFir($0.Timestamp v) {
     setField(30, v);
   }
 
@@ -4797,7 +4797,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   void clearLastFir() => clearField(30);
   @$pb.TagNumber(30)
-  $1.Timestamp ensureLastFir() => $_ensure(29);
+  $0.Timestamp ensureLastFir() => $_ensure(29);
 
   @$pb.TagNumber(31)
   $core.int get rttCurrent => $_getIZ(30);
@@ -4836,9 +4836,9 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearKeyFrames() => clearField(33);
 
   @$pb.TagNumber(34)
-  $1.Timestamp get lastKeyFrame => $_getN(33);
+  $0.Timestamp get lastKeyFrame => $_getN(33);
   @$pb.TagNumber(34)
-  set lastKeyFrame($1.Timestamp v) {
+  set lastKeyFrame($0.Timestamp v) {
     setField(34, v);
   }
 
@@ -4847,7 +4847,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(34)
   void clearLastKeyFrame() => clearField(34);
   @$pb.TagNumber(34)
-  $1.Timestamp ensureLastKeyFrame() => $_ensure(33);
+  $0.Timestamp ensureLastKeyFrame() => $_ensure(33);
 
   @$pb.TagNumber(35)
   $core.int get layerLockPlis => $_getIZ(34);
@@ -4862,9 +4862,9 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearLayerLockPlis() => clearField(35);
 
   @$pb.TagNumber(36)
-  $1.Timestamp get lastLayerLockPli => $_getN(35);
+  $0.Timestamp get lastLayerLockPli => $_getN(35);
   @$pb.TagNumber(36)
-  set lastLayerLockPli($1.Timestamp v) {
+  set lastLayerLockPli($0.Timestamp v) {
     setField(36, v);
   }
 
@@ -4873,7 +4873,7 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(36)
   void clearLastLayerLockPli() => clearField(36);
   @$pb.TagNumber(36)
-  $1.Timestamp ensureLastLayerLockPli() => $_ensure(35);
+  $0.Timestamp ensureLastLayerLockPli() => $_ensure(35);
 
   @$pb.TagNumber(37)
   $core.int get nackAcks => $_getIZ(36);
