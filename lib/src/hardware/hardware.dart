@@ -76,9 +76,13 @@ class Hardware {
 
   MediaDevice? selectedVideoInput;
 
-  bool? speakerOn;
+  bool? _speakerOn;
+
+  bool? get speakerOn => _speakerOn;
 
   bool _preferSpeakerOutput = false;
+
+  bool get preferSpeakerOutput => _preferSpeakerOutput;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -143,21 +147,12 @@ class Hardware {
     }
   }
 
-  bool get preferSpeakerOutput => _preferSpeakerOutput;
-
-  bool get canSwitchSpeakerphone =>
-      (lkPlatformIsMobile()) &&
-      [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
-          .contains(audioTrackState);
+  bool get canSwitchSpeakerphone => lkPlatformIsMobile();
 
   Future<void> setSpeakerphoneOn(bool enable) async {
-    if (lkPlatformIsMobile()) {
-      speakerOn = enable;
-      if (canSwitchSpeakerphone) {
-        await rtc.Helper.setSpeakerphoneOn(enable);
-      } else {
-        logger.warning('Can\'t switch speaker/earpiece');
-      }
+    if (canSwitchSpeakerphone) {
+      _speakerOn = enable;
+      await rtc.Helper.setSpeakerphoneOn(enable);
     } else {
       logger.warning('setSpeakerphoneOn only support on iOS/Android');
     }
