@@ -1,0 +1,186 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart';
+import 'package:get/get.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/theme.dart';
+import 'package:logging/logging.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+import 'pages/connect.dart';
+import 'utils.dart';
+
+void main() async {
+  final format = DateFormat('HH:mm:ss');
+  // configure logs for debugging
+  Logger.root.level = Level.FINE;
+  Logger.root.onRecord.listen((record) {
+    print('${format.format(record.time)}: ${record.message}');
+  });
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (lkPlatformIsDesktop()) {
+    await FlutterWindowClose.setWindowShouldCloseHandler(() async {
+      await onWindowShouldClose?.call();
+      return true;
+    });
+  }
+
+  const url = /*String.fromEnvironment('URL') ??*/
+      'wss://duansapp.livekit.cloud';
+  const token = /*String.fromEnvironment('TOKEN') ??*/
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTMxMTEwMjksImlzcyI6IkFQSVFaaFRwRVBNQ3NNRyIsIm5hbWUiOiJpcDE2IiwibmJmIjoxNzM1MTExMDI5LCJzdWIiOiJpcDE2IiwidmlkZW8iOnsicm9vbSI6ImxpdmUiLCJyb29tSm9pbiI6dHJ1ZX19.r-FsFl8cnk8qHZcAh-gq9TMcxOeWJyUmSRHYytDY9Vo';
+
+  runApp(const LiveKitTestPage(
+    url: url,
+    token: token,
+  ));
+}
+
+class LiveKitTestPage extends StatefulWidget {
+  final String url;
+  final String token;
+  const LiveKitTestPage({super.key, required this.url, required this.token});
+
+  @override
+  State<LiveKitTestPage> createState() => _LiveKitTestPageState();
+}
+
+class _LiveKitTestPageState extends State<LiveKitTestPage> {
+  final Rx<Room?> _roomState = Rx<Room?>(null);
+
+  Timer? _timer;
+
+  final RxInt _seconds = 0.obs;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _seconds.value++;
+    });
+  }
+
+  @override
+  void dispose() {
+    _disconnect();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _connect() async {
+    _roomState.value = Room(
+        roomOptions: const RoomOptions(
+            enableVisualizer: true, adaptiveStream: true, dynacast: true));
+    await _roomState.value!.connect(widget.url, widget.token);
+    await _roomState.value!.localParticipant?.setMicrophoneEnabled(true);
+  }
+
+  Future<void> _disconnect() async {
+    await _roomState.value?.disconnect();
+    await _roomState.value?.dispose();
+  }
+
+  Future<void> _reconnect() async {
+    await _disconnect();
+    //await _requestToken(resume: true);
+    await _connect();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.black,
+          body: _mainView(),
+        ));
+  }
+
+  Widget _mainView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Obx(() {
+            return Text(
+              '${_seconds.value.toString()}s',
+              style: const TextStyle(color: Colors.white),
+            );
+          }),
+          const SizedBox(height: 100),
+          Obx(() {
+            if (_roomState.value == null) {
+              return GestureContainer(
+                onTap: () {
+                  showTipsToast('on tap connect');
+                  _connect();
+                },
+                color: Colors.greenAccent,
+                child: const Text(
+                  'connect',
+                ),
+              );
+            }
+            return const LoadingView();
+          }),
+          const SizedBox(height: 100),
+          GestureContainer(
+            onTap: () {
+              //showTipsToast("on tap reconnect");
+              _reconnect();
+            },
+            color: Colors.greenAccent,
+            child: const Text(
+              'reconnect',
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void showTipsToast(String s) {
+    print(s);
+  }
+}
+
+class GestureContainer extends StatelessWidget {
+  final Widget child;
+  final Color color;
+  final VoidCallback onTap;
+  const GestureContainer(
+      {super.key,
+      required this.child,
+      required this.color,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class LoadingView extends StatelessWidget {
+  const LoadingView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+}

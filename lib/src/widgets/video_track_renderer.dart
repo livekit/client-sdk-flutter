@@ -70,11 +70,14 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   late GlobalKey _internalKey;
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (widget.renderMode == VideoRenderMode.platformView) {
+    if (lkPlatformIs(PlatformType.iOS) &&
+        widget.renderMode == VideoRenderMode.platformView) {
       return Null as Future<rtc.VideoRenderer>;
     }
-    _renderer ??= rtc.RTCVideoRenderer();
-    await _renderer!.initialize();
+    if (_renderer == null) {
+      _renderer = rtc.RTCVideoRenderer();
+      await _renderer!.initialize();
+    }
     await _attach();
     return _renderer!;
   }
@@ -181,8 +184,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   Widget _videoRendererView() {
     if (lkPlatformIs(PlatformType.iOS) &&
-        [VideoRenderMode.auto, VideoRenderMode.platformView]
-            .contains(widget.renderMode)) {
+        widget.renderMode == VideoRenderMode.platformView) {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit,
@@ -205,8 +207,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       future: _initializeRenderer(),
       builder: (context, snapshot) {
         if ((snapshot.hasData && _renderer != null) ||
-            [VideoRenderMode.auto, VideoRenderMode.platformView]
-                .contains(widget.renderMode)) {
+            (lkPlatformIs(PlatformType.iOS) &&
+                widget.renderMode == VideoRenderMode.platformView)) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
