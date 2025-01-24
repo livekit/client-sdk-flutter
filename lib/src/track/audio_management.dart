@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../hardware/hardware.dart';
@@ -114,6 +113,14 @@ Future<void> _onAudioTrackCountDidChange() async {
     if (lkPlatformIs(PlatformType.iOS)) {
       // Only iOS for now...
       config = await onConfigureNativeAudio.call(_audioTrackState);
+
+      if (Hardware.instance.forceSpeakerOutput) {
+        config = config.copyWith(
+          appleAudioCategoryOptions: {
+            AppleAudioCategoryOption.defaultToSpeaker,
+          },
+        );
+      }
     }
 
     if (config != null) {
@@ -122,13 +129,6 @@ Future<void> _onAudioTrackCountDidChange() async {
         await Native.configureAudio(config);
       } catch (error) {
         logger.warning('failed to configure ${error}');
-      }
-    }
-
-    if (lkPlatformIs(PlatformType.iOS)) {
-      if (Hardware.instance.speakerOn != null &&
-          Hardware.instance.canSwitchSpeakerphone) {
-        await rtc.Helper.setSpeakerphoneOn(Hardware.instance.speakerOn!);
       }
     }
   }
@@ -148,38 +148,14 @@ AudioTrackState _computeAudioTrackState() {
 
 Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
     AudioTrackState state) async {
-  //
-  if (state == AudioTrackState.remoteOnly &&
+  if (state == AudioTrackState.none) {
+    return NativeAudioConfiguration.soloAmbient;
+  } else if (state == AudioTrackState.remoteOnly &&
       Hardware.instance.preferSpeakerOutput) {
-    return NativeAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playback,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.mixWithOthers,
-      },
-      appleAudioMode: AppleAudioMode.spokenAudio,
-    );
-  } else if ([
-        AudioTrackState.localOnly,
-        AudioTrackState.localAndRemote,
-      ].contains(state) ||
-      (state == AudioTrackState.remoteOnly &&
-          !Hardware.instance.preferSpeakerOutput)) {
-    return NativeAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playAndRecord,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.allowBluetooth,
-        AppleAudioCategoryOption.allowBluetoothA2DP,
-        AppleAudioCategoryOption.allowAirPlay,
-      },
-      appleAudioMode: Hardware.instance.preferSpeakerOutput
-          ? AppleAudioMode.videoChat
-          : AppleAudioMode.voiceChat,
-    );
+    return NativeAudioConfiguration.playback;
   }
 
-  return NativeAudioConfiguration(
-    appleAudioCategory: AppleAudioCategory.soloAmbient,
-    appleAudioCategoryOptions: {},
-    appleAudioMode: AppleAudioMode.default_,
-  );
+  return Hardware.instance.preferSpeakerOutput
+      ? NativeAudioConfiguration.playAndRecordSpeaker
+      : NativeAudioConfiguration.playAndRecordReceiver;
 }
