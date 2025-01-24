@@ -133,6 +133,8 @@ abstract class Track extends DisposableChangeNotifier
 
     logger.fine('$objectId.stop()');
 
+    await mediaStreamTrack.stop();
+
     _active = false;
     return true;
   }
