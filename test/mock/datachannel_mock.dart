@@ -12,20 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class MockDataChannel extends RTCDataChannel {
   final String? _label;
   final int _id;
   RTCDataChannelState? _state = RTCDataChannelState.RTCDataChannelOpen;
-
-  MockDataChannel(this._id, this._label);
+  Function(RTCDataChannelMessage data)? onMessageSend;
+  late StreamController<RTCDataChannelState> stateChangeStreamController;
+  MockDataChannel(this._id, this._label) {
+    stateChangeStreamController =
+        StreamController<RTCDataChannelState>.broadcast();
+  }
 
   @override
   String? get label => _label;
 
   @override
-  Future<void> send(RTCDataChannelMessage message) async {}
+  Future<void> send(RTCDataChannelMessage message) async {
+    onMessageSend?.call(message);
+  }
 
   @override
   RTCDataChannelState? get state => _state;
