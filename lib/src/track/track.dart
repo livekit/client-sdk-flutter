@@ -153,9 +153,8 @@ abstract class Track extends DisposableChangeNotifier
     logger
         .fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
-      if (_active || !_muted) {
+      if (_active) {
         mediaStreamTrack.enabled = false;
-        if (!_muted) _muted = true;
       }
     } catch (_) {
       logger.warning(

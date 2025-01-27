@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.5
+
+* feat: add TrackProcessor support. (#657)
+* fix: bug for mute/unmute and speaker switch. (#684)
+
 ## 2.3.4+hotfix.2
 
 * fix: side effects for stop remote track.
