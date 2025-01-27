@@ -486,6 +486,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         payload: payload,
         responseTimeoutMs: responseTimeoutMs.toInt(),
       ),
+      participantIdentity: identity,
       destinationIdentities: [destinationIdentity],
     );
 
@@ -507,6 +508,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         error: error,
       ),
       destinationIdentities: [destinationIdentity],
+      participantIdentity: identity,
     );
 
     await room.engine.sendDataPacket(packet);
@@ -523,6 +525,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         requestId: requestId,
       ),
       destinationIdentities: [destinationIdentity],
+      participantIdentity: identity,
     );
 
     await room.engine.sendDataPacket(packet);
@@ -541,8 +544,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           rpcHandlers.keys.contains(event.request.method)) {
         try {
           final payload = await handler(
-            event.request.id,
             event.requestId,
+            event.identity,
             event.request.payload,
             event.request.responseTimeoutMs,
           );
@@ -566,6 +569,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           duration: Duration(milliseconds: event.request.responseTimeoutMs),
           filter: (p0) => p0.requestId == event.request.id,
         );
+
+        logger.fine('RPC request ${event.request.method} handled');
       } else {
         logger.warning('No handler for method ${event.request.method}');
         await publishRpcResponse(
@@ -613,16 +618,22 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         payload: payload,
         responseTimeoutMs: responseTimeoutMs,
       );
+
       var response = await events.waitFor<EngineRPCResponseReceivedEvent>(
         duration: Duration(milliseconds: responseTimeoutMs.toInt()),
         filter: (p0) => p0.requestId == requestId,
       );
 
-      if (response.error != null) {
+      if (response.response.payload.isEmpty && response.error != null) {
         throw Exception(response.error!.message);
       }
 
       completer.complete(response.response.payload);
+
+      await publishRpcAck(
+        destinationIdentity: destinationIdentity,
+        requestId: requestId,
+      );
     } catch (e) {
       completer.completeError(e);
     }

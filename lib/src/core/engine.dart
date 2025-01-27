@@ -343,12 +343,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           await negotiate();
         }
-
+        /*
         logger.fine('Waiting for publisher to ice-connect...');
         await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
           filter: (event) => event.state.isConnected(),
           duration: connectOptions.timeouts.peerConnection,
         );
+        */
       }
 
       // wait for data channel to open (if not already)
