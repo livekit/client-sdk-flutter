@@ -48,12 +48,14 @@ class VideoTrackRenderer extends StatefulWidget {
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
   final VideoRenderMode renderMode;
+  final bool preferFixHeight;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
     this.renderMode = VideoRenderMode.texture,
+    this.preferFixHeight = true,
     Key? key,
   }) : super(key: key);
 
@@ -65,6 +67,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.VideoRenderer? _renderer;
   // for flutter web only.
   bool _rendererReadyForWeb = false;
+  double? _aspectRatio;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
   late GlobalKey _internalKey;
@@ -100,6 +103,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   void disposeRenderer() {
     try {
+      _renderer?.onResize = null;
       _renderer?.srcObject = null;
       _renderer?.dispose();
       _renderer = null;
@@ -141,6 +145,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         // force recompute of mirror mode
         setState(() {});
       });
+    _renderer?.onResize = () {
+      if (mounted) {
+        setState(() {
+          _aspectRatio = _renderer?.videoValue.aspectRatio;
+        });
+      }
+    };
   }
 
   @override
@@ -216,22 +227,43 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
 
-              if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
-                return _videoRendererView();
-              }
               return LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  return GestureDetector(
-                    onScaleStart: (details) {},
-                    onScaleUpdate: (details) {
-                      if (details.scale != 1.0) {
-                        setZoom(details.scale);
-                      }
-                    },
-                    onTapDown: (TapDownDetails details) =>
-                        onViewFinderTap(details, constraints),
-                    child: _videoRendererView(),
-                  );
+                  final bool fixHeight = (widget.preferFixHeight &&
+                          constraints.hasBoundedHeight) ||
+                      !constraints.hasBoundedWidth;
+                  final Widget child;
+                  if (!lkPlatformIsMobile() ||
+                      widget.track is! LocalVideoTrack) {
+                    child = _videoRendererView();
+                  } else {
+                    child = GestureDetector(
+                      onScaleStart: (details) {},
+                      onScaleUpdate: (details) {
+                        if (details.scale != 1.0) {
+                          setZoom(details.scale);
+                        }
+                      },
+                      onTapDown: (TapDownDetails details) =>
+                          onViewFinderTap(details, constraints),
+                      child: _videoRendererView(),
+                    );
+                  }
+                  final double? aspectRatio = _aspectRatio;
+                  final double width;
+                  final double height;
+                  if (aspectRatio != null) {
+                    if (fixHeight) {
+                      height = constraints.maxHeight;
+                      width = height * aspectRatio;
+                    } else {
+                      width = constraints.maxWidth;
+                      height = width / aspectRatio;
+                    }
+                    return SizedBox(width: width, height: height, child: child);
+                  } else {
+                    return child;
+                  }
                 },
               );
             },
