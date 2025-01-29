@@ -48,14 +48,12 @@ class VideoTrackRenderer extends StatefulWidget {
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
   final VideoRenderMode renderMode;
-  final bool preferFixHeight;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
     this.renderMode = VideoRenderMode.texture,
-    this.preferFixHeight = true,
     Key? key,
   }) : super(key: key);
 
@@ -227,45 +225,23 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
 
+              if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
+                return _videoRendererView();
+              }
               return LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final bool fixHeight = (widget.preferFixHeight &&
-                          constraints.hasBoundedHeight) ||
-                      !constraints.hasBoundedWidth;
-                  final Widget child;
-                  if (!lkPlatformIsMobile() ||
-                      widget.track is! LocalVideoTrack) {
-                    child = _videoRendererView();
-                  } else {
-                    child = GestureDetector(
-                      onScaleStart: (details) {},
-                      onScaleUpdate: (details) {
-                        if (details.scale != 1.0) {
-                          setZoom(details.scale);
-                        }
-                      },
-                      onTapDown: (TapDownDetails details) =>
-                          onViewFinderTap(details, constraints),
-                      child: _videoRendererView(),
-                    );
-                  }
-                  final double? aspectRatio = _aspectRatio;
-                  final double width;
-                  final double height;
-                  if (aspectRatio != null) {
-                    if (fixHeight) {
-                      height = constraints.maxHeight;
-                      width = height * aspectRatio;
-                    } else {
-                      width = constraints.maxWidth;
-                      height = width / aspectRatio;
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                return GestureDetector(
+                  onScaleStart: (details) {},
+                  onScaleUpdate: (details) {
+                    if (details.scale != 1.0) {
+                      setZoom(details.scale);
                     }
-                    return SizedBox(width: width, height: height, child: child);
-                  } else {
-                    return child;
-                  }
-                },
-              );
+                  },
+                  onTapDown: (TapDownDetails details) =>
+                      onViewFinderTap(details, constraints),
+                  child: _videoRendererView(),
+                );
+              });
             },
           );
         }
@@ -275,8 +251,42 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // FutureBuilder will cause flickering for flutter web. so using
   // different rendering methods for web and native.
   @override
-  Widget build(BuildContext context) =>
-      kIsWeb ? _videoViewForWeb() : _videoViewForNative();
+  Widget build(BuildContext context) {
+    final child = kIsWeb ? _videoViewForWeb() : _videoViewForNative();
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) {
+          return child;
+        }
+        if (_aspectRatio == null) {
+          return child;
+        }
+
+        bool fixHeight;
+        if (!constraints.hasBoundedWidth) {
+          fixHeight = true;
+        } else if (!constraints.hasBoundedHeight) {
+          fixHeight = false;
+        } else {
+          // both width and height are bound, figure out which to fix based on aspect ratios
+          final constraintsAspectRatio =
+              constraints.maxWidth / constraints.maxHeight;
+          fixHeight = constraintsAspectRatio > _aspectRatio!;
+        }
+        final double width;
+        final double height;
+        if (fixHeight) {
+          height = constraints.maxHeight;
+          width = height * _aspectRatio!;
+        } else {
+          width = constraints.maxWidth;
+          height = width / _aspectRatio!;
+        }
+        return SizedBox(width: width, height: height, child: child);
+      },
+    );
+  }
 
   bool _shouldMirror() {
     // off for screen share
