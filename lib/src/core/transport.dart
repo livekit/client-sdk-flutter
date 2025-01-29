@@ -85,15 +85,15 @@ class Transport extends Disposable {
       List<rtc.RTCRtpSender> senders = [];
       try {
         senders = await pc.getSenders();
-      } catch (_) {
-        logger.warning('getSenders() failed with error: $_');
+      } catch (err) {
+        logger.warning('getSenders() failed with error: $err');
       }
 
       for (final e in senders) {
         try {
           await pc.removeTrack(e);
-        } catch (_) {
-          logger.warning('removeTrack() failed with error: $_');
+        } catch (err) {
+          logger.warning('removeTrack() failed with error: $err');
         }
       }
 
@@ -261,8 +261,8 @@ class Transport extends Disposable {
     try {
       final result = await pc.getRemoteDescription();
       return result;
-    } catch (_) {
-      logger.warning('pc.getRemoteDescription failed with error: $_');
+    } catch (err) {
+      logger.warning('pc.getRemoteDescription failed with error: $err');
     }
     return null;
   }
