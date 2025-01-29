@@ -229,19 +229,20 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                 return _videoRendererView();
               }
               return LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                return GestureDetector(
-                  onScaleStart: (details) {},
-                  onScaleUpdate: (details) {
-                    if (details.scale != 1.0) {
-                      setZoom(details.scale);
-                    }
-                  },
-                  onTapDown: (TapDownDetails details) =>
-                      onViewFinderTap(details, constraints),
-                  child: _videoRendererView(),
-                );
-              });
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return GestureDetector(
+                    onScaleStart: (details) {},
+                    onScaleUpdate: (details) {
+                      if (details.scale != 1.0) {
+                        setZoom(details.scale);
+                      }
+                    },
+                    onTapDown: (TapDownDetails details) =>
+                        onViewFinderTap(details, constraints),
+                    child: _videoRendererView(),
+                  );
+                },
+              );
             },
           );
         }
