@@ -107,14 +107,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     setState(() {});
   }
 
-  void _setSpeakerphoneOn() {
+  void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    Hardware.instance.setSpeakerphoneOn(_speakerphoneOn);
+    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
     setState(() {});
   }
 
   void _toggleCamera() async {
-    //
     final track = participant.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
 
