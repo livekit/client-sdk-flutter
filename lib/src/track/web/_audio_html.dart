@@ -13,12 +13,10 @@
 // limitations under the License.
 
 import 'dart:js_interop';
-import 'dart:js_util' as jsutil;
+import 'dart:js_interop_unsafe';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:web/web.dart' as web;
-
-import '_audio_context.dart';
 
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter: keep
@@ -26,7 +24,7 @@ import 'package:dart_webrtc/src/media_stream_track_impl.dart'; // import_sorter:
 const audioContainerId = 'livekit_audio_container';
 const audioPrefix = 'livekit_audio_';
 
-AudioContext _audioContext = AudioContext();
+web.AudioContext _audioContext = web.AudioContext();
 Map<String, web.Element> _audioElements = {};
 
 Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
@@ -59,7 +57,7 @@ Future<bool> startAllAudioElement() async {
       await element.play().toDart;
     }
   }
-  return _audioContext.state == AudioContextState.running;
+  return _audioContext.state == 'running';
 }
 
 void stopAudio(String id) {
@@ -89,7 +87,7 @@ web.HTMLDivElement findOrCreateAudioContainer() {
 void setSinkId(String id, String deviceId) {
   final audioElement = web.document.getElementById(audioPrefix + id);
   if (audioElement is web.HTMLAudioElement &&
-      jsutil.hasProperty(audioElement, 'setSinkId')) {
+      audioElement.hasProperty('setSinkId'.toJS).toDart) {
     audioElement.setSinkId(deviceId);
   }
 }
