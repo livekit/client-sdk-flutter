@@ -101,7 +101,7 @@ mixin AudioTrack on Track {
     if (_eventChannel == null) {
       return;
     }
-    
+
     await Native.stopVisualizer(mediaStreamTrack.id!);
     events.emit(AudioVisualizerEvent(
       track: this,
