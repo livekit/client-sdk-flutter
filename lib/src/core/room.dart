@@ -46,6 +46,7 @@ import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
 import '../types/other.dart';
+import '../types/rpc.dart';
 import '../utils.dart';
 import 'engine.dart';
 
@@ -1134,8 +1135,7 @@ extension RoomHardwareManagementMethods on Room {
   }
 }
 
-typedef RpcRequestHandler = Future<String> Function(String requestId,
-    String callerIdentity, String payload, int responseTimeoutMs);
+typedef RpcRequestHandler = Future<String> Function(RpcInvocationData data);
 
 extension RoomRPCMethods on Room {
   @internal
@@ -1153,6 +1153,7 @@ extension RoomRPCMethods on Room {
         method: method,
         payload: payload,
         responseTimeoutMs: responseTimeoutMs.toInt(),
+        version: kRpcVesion,
       ),
       participantIdentity: localParticipant?.identity,
       destinationIdentities: [destinationIdentity],
@@ -1210,13 +1211,25 @@ extension RoomRPCMethods on Room {
     _engineListener.on<EngineRPCRequestReceivedEvent>((event) async {
       if (event.request.method == event.request.method &&
           rpcHandlers.keys.contains(event.request.method)) {
+        await publishRpcAck(
+          destinationIdentity: event.identity,
+          requestId: event.request.id,
+        );
         try {
-          final payload = await handler(
-            event.requestId,
-            event.identity,
-            event.request.payload,
-            event.request.responseTimeoutMs,
-          );
+          if (event.request.version != kRpcVesion) {
+            await publishRpcResponse(
+              destinationIdentity: event.identity,
+              requestId: event.request.id,
+              error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
+            );
+            return;
+          }
+
+          final payload = await handler(RpcInvocationData(
+              requestId: event.requestId,
+              callerIdentity: event.identity,
+              payload: event.request.payload,
+              responseTimeoutMs: event.request.responseTimeoutMs));
           await publishRpcResponse(
             destinationIdentity: event.identity,
             requestId: event.requestId,
@@ -1226,10 +1239,7 @@ extension RoomRPCMethods on Room {
           await publishRpcResponse(
             destinationIdentity: event.identity,
             requestId: event.request.id,
-            error: lk_models.RpcError(
-              code: 500,
-              message: e.toString(),
-            ),
+            error: RpcError(code: 500, message: e.toString()).toProto(),
           );
         }
 
@@ -1244,10 +1254,7 @@ extension RoomRPCMethods on Room {
         await publishRpcResponse(
           destinationIdentity: event.identity,
           requestId: event.request.id,
-          error: lk_models.RpcError(
-            code: 500,
-            message: 'No handler for method ${event.request.method}',
-          ),
+          error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
         );
       }
     });
@@ -1267,27 +1274,22 @@ extension RoomRPCMethods on Room {
   /// @returns A promise that resolves with the response payload or rejects with an error.
   /// @throws Error on failure. Details in `message`.
 
-  Future<String> performRpc({
-    required String destinationIdentity,
-    required String method,
-    required String payload,
-    num responseTimeoutMs = 10000,
-  }) async {
+  Future<String> performRpc(PerformRpcParams params) async {
     final requestId = Uuid().v4();
     final completer = Completer<String>();
 
     try {
       await publishRpcRequest(
-        destinationIdentity: destinationIdentity,
+        destinationIdentity: params.destinationIdentity,
         requestId: requestId,
-        method: method,
-        payload: payload,
-        responseTimeoutMs: responseTimeoutMs,
+        method: params.method,
+        payload: params.payload,
+        responseTimeoutMs: params.responseTimeoutMs,
       );
 
       var response =
           await _engineListener.waitFor<EngineRPCResponseReceivedEvent>(
-        duration: Duration(milliseconds: responseTimeoutMs.toInt()),
+        duration: Duration(milliseconds: params.responseTimeoutMs.toInt()),
         filter: (p0) => p0.requestId == requestId,
       );
 
@@ -1296,11 +1298,6 @@ extension RoomRPCMethods on Room {
       }
 
       completer.complete(response.response.payload);
-
-      await publishRpcAck(
-        destinationIdentity: destinationIdentity,
-        requestId: requestId,
-      );
     } catch (e) {
       completer.completeError(e);
     }

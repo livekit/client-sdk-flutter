@@ -30,15 +30,18 @@ void main() {
       room = container!.room;
       await container!.connectRoom();
 
-      room.registerRpcHandler('echo', (String requestId, String callerIdentity,
-          String payload, int responseTimeoutMs) async {
-        return 'echo: => $callerIdentity $payload';
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
       expect(room.rpcHandlers.keys.first, 'echo');
 
-      var response = await room.rpcHandlers['echo']!(
-          '1', room.localParticipant!.identity, 'hello', 1000);
+      var response = await room.rpcHandlers['echo']!(RpcInvocationData(
+        requestId: '1',
+        callerIdentity: room.localParticipant!.identity,
+        payload: 'hello',
+        responseTimeoutMs: 10000,
+      ));
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
@@ -48,17 +51,17 @@ void main() {
     });
 
     test('rpc perform', () async {
-      room.registerRpcHandler('echo', (String requestId, String callerIdentity,
-          String payload, int responseTimeoutMs) async {
-        return 'echo: => $callerIdentity $payload';
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
       expect(room.rpcHandlers.keys.first, 'echo');
 
-      var response = await room.performRpc(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello');
+      var response = await room.performRpc(PerformRpcParams(
+        destinationIdentity: room.localParticipant!.identity,
+        method: 'echo',
+        payload: 'hello',
+      ));
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
     });
