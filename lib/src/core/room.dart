@@ -1147,6 +1147,7 @@ extension RoomRPCMethods on Room {
     required String method,
     required String payload,
     required num responseTimeoutMs,
+    int? version,
   }) async {
     if (payload.length > kRpcMaxPayloadBytes) {
       throw RpcError.builtIn(RpcError.requestPayloadTooLarge);
@@ -1164,7 +1165,7 @@ extension RoomRPCMethods on Room {
         method: method,
         payload: payload,
         responseTimeoutMs: responseTimeoutMs.toInt(),
-        version: kRpcVesion,
+        version: version ?? kRpcVesion,
       ),
       participantIdentity: localParticipant?.identity,
       destinationIdentities: [destinationIdentity],
@@ -1307,6 +1308,8 @@ extension RoomRPCMethods on Room {
     final requestId = Uuid().v4();
     final completer = Completer<String>();
 
+    final maxRoundTripLatency = 2000;
+
     try {
       await publishRpcRequest(
         destinationIdentity: params.destinationIdentity,
@@ -1314,12 +1317,26 @@ extension RoomRPCMethods on Room {
         method: params.method,
         payload: params.payload,
         responseTimeoutMs: params.responseTimeoutMs,
+        version: params.version,
       );
+
+      unawaited(() async {
+        await _engineListener.waitFor<EngineRPCAckReceivedEvent>(
+          duration: Duration(milliseconds: params.responseTimeoutMs.toInt()),
+          filter: (p0) => p0.requestId == requestId,
+          onTimeout: () {
+            throw RpcError.builtIn(RpcError.connectionTimeout);
+          },
+        );
+      }());
 
       var response =
           await _engineListener.waitFor<EngineRPCResponseReceivedEvent>(
         duration: Duration(milliseconds: params.responseTimeoutMs.toInt()),
         filter: (p0) => p0.requestId == requestId,
+        onTimeout: () {
+          throw RpcError.builtIn(RpcError.responseTimeout);
+        },
       );
 
       if (response.response.payload.isEmpty && response.error != null) {

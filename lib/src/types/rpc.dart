@@ -13,11 +13,15 @@ class PerformRpcParams {
   /// The maximum time the caller will wait for a response.
   int responseTimeoutMs;
 
+  /// The version of the RPC protocol to use. Defaults to 1.
+  int? version;
+
   PerformRpcParams({
     required this.destinationIdentity,
     required this.method,
     required this.payload,
     this.responseTimeoutMs = 10000,
+    this.version,
   });
 }
 
@@ -110,4 +114,4 @@ class RpcError implements Exception {
 /// the RPC call will fail with a REQUEST_PAYLOAD_TOO_LARGE(1402) or RESPONSE_PAYLOAD_TOO_LARGE(1504) error.
 final kRpcMaxPayloadBytes = 15360; // 15 KB
 
-final kRpcVesion = 1;
+final int kRpcVesion = 1;

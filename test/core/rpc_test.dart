@@ -15,9 +15,12 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import '../mock/e2e_container.dart';
 
 void main() {
@@ -81,6 +84,20 @@ void main() {
 
           /// set back to supported version
           room.engine.serverInfo?.version = '1.8.0';
+        }
+      }
+
+      /// test unsupported rpc version
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+          version: 2,
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.unsupportedVersion);
         }
       }
     });
@@ -169,6 +186,25 @@ void main() {
       } catch (e) {
         if (e is RpcError) {
           expect(e.code, RpcError.applicationError);
+        }
+      }
+    });
+    test('test response timeout', () async {
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        await Future.delayed(Duration(seconds: 10));
+        return 'echo: => ${data.callerIdentity} ${data.payload}';
+      });
+
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+          responseTimeoutMs: 1000,
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.responseTimeout);
         }
       }
     });
