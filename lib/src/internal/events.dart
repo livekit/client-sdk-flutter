@@ -447,8 +447,7 @@ class EngineSipDtmfReceivedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class EngineRPCRequestReceivedEvent
-    with EngineEvent, ParticipantEvent, InternalEvent {
+class EngineRPCRequestReceivedEvent with EngineEvent, InternalEvent {
   final lk_models.RpcRequest request;
   String get requestId => request.id;
   final String identity;
@@ -459,8 +458,7 @@ class EngineRPCRequestReceivedEvent
 }
 
 @internal
-class EngineRPCResponseReceivedEvent
-    with EngineEvent, ParticipantEvent, InternalEvent {
+class EngineRPCResponseReceivedEvent with EngineEvent, InternalEvent {
   final lk_models.RpcResponse response;
   String get requestId => response.requestId;
   final String identity;
@@ -472,8 +470,7 @@ class EngineRPCResponseReceivedEvent
 }
 
 @internal
-class EngineRPCAckReceivedEvent
-    with EngineEvent, ParticipantEvent, InternalEvent {
+class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
   final lk_models.RpcAck ack;
   String get requestId => ack.requestId;
   final String identity;
