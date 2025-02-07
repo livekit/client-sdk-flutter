@@ -1146,6 +1146,9 @@ extension RoomRPCMethods on Room {
     required String payload,
     required num responseTimeoutMs,
   }) async {
+    if (payload.length > kRpcMaxPayloadBytes) {
+      throw RpcError.builtIn(RpcError.requestPayloadTooLarge);
+    }
     final packet = lk_models.DataPacket(
       kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcRequest: lk_models.RpcRequest(
@@ -1173,7 +1176,7 @@ extension RoomRPCMethods on Room {
       kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcResponse: lk_models.RpcResponse(
         requestId: requestId,
-        payload: payload,
+        payload: error == null ? payload : null,
         error: error,
       ),
       destinationIdentities: [destinationIdentity],
@@ -1215,6 +1218,10 @@ extension RoomRPCMethods on Room {
           destinationIdentity: event.identity,
           requestId: event.request.id,
         );
+
+        RpcError? responseError;
+        String? responsePayload;
+
         try {
           if (event.request.version != kRpcVesion) {
             await publishRpcResponse(
@@ -1230,22 +1237,28 @@ extension RoomRPCMethods on Room {
               callerIdentity: event.identity,
               payload: event.request.payload,
               responseTimeoutMs: event.request.responseTimeoutMs));
-          await publishRpcResponse(
-            destinationIdentity: event.identity,
-            requestId: event.requestId,
-            payload: payload,
-          );
-        } catch (e) {
-          await publishRpcResponse(
-            destinationIdentity: event.identity,
-            requestId: event.request.id,
-            error: RpcError(code: 500, message: e.toString()).toProto(),
-          );
+
+          if (payload.length > kRpcMaxPayloadBytes) {
+            responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
+            logger.warning('RPC Response payload too large for $method');
+          } else {
+            responsePayload = payload;
+          }
+        } catch (error) {
+          if (error is RpcError) {
+            responseError = error;
+          } else {
+            logger.warning(
+                'Uncaught error returned by RPC handler for ${method}. Returning APPLICATION_ERROR instead. $error');
+            responseError = RpcError.builtIn(RpcError.applicationError);
+          }
         }
 
-        await _engineListener.waitFor<EngineRPCAckReceivedEvent>(
-          duration: Duration(milliseconds: event.request.responseTimeoutMs),
-          filter: (p0) => p0.requestId == event.request.id,
+        await publishRpcResponse(
+          destinationIdentity: event.identity,
+          requestId: event.requestId,
+          payload: responsePayload,
+          error: responseError?.toProto(),
         );
 
         logger.fine('RPC request ${event.request.method} handled');
@@ -1294,7 +1307,7 @@ extension RoomRPCMethods on Room {
       );
 
       if (response.response.payload.isEmpty && response.error != null) {
-        throw Exception(response.error!.message);
+        throw RpcError.fromProto(response.error!);
       }
 
       completer.complete(response.response.payload);
