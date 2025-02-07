@@ -30,31 +30,32 @@ void main() {
       room = container!.room;
       await container!.connectRoom();
 
-      room.localParticipant?.registerRpcHandler('echo', (String requestId,
-          String callerIdentity, String payload, int responseTimeoutMs) async {
+      room.registerRpcHandler('echo', (String requestId, String callerIdentity,
+          String payload, int responseTimeoutMs) async {
         return 'echo: => $callerIdentity $payload';
       });
 
-      expect(room.localParticipant!.rpcHandlers.keys.first, 'echo');
+      expect(room.rpcHandlers.keys.first, 'echo');
 
-      var response = await room.localParticipant?.rpcHandlers['echo']!(
+      var response = await room.rpcHandlers['echo']!(
           '1', room.localParticipant!.identity, 'hello', 1000);
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
-      room.localParticipant?.unregisterRpcHandler('echo');
+      room.unregisterRpcHandler('echo');
 
-      expect(room.localParticipant!.rpcHandlers.keys.length, 0);
+      expect(room.rpcHandlers.keys.length, 0);
     });
+
     test('rpc perform', () async {
-      room.localParticipant?.registerRpcHandler('echo', (String requestId,
-          String callerIdentity, String payload, int responseTimeoutMs) async {
+      room.registerRpcHandler('echo', (String requestId, String callerIdentity,
+          String payload, int responseTimeoutMs) async {
         return 'echo: => $callerIdentity $payload';
       });
 
-      expect(room.localParticipant!.rpcHandlers.keys.first, 'echo');
+      expect(room.rpcHandlers.keys.first, 'echo');
 
-      var response = await room.localParticipant?.performRpc(
+      var response = await room.performRpc(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello');

@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../core/signal_client.dart';
 import '../e2ee/e2ee_manager.dart';
@@ -118,6 +119,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // Agents
   final Map<String, DateTime> _transcriptionReceivedTimes = {};
+
+  // RPC Handlers
+  final Map<String, RpcRequestHandler> rpcHandlers = {};
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -1136,5 +1140,180 @@ extension RoomHardwareManagementMethods on Room {
     }
     _audioEnabled = false;
     events.emit(const AudioPlaybackStatusChanged(isPlaying: false));
+  }
+}
+
+typedef RpcRequestHandler = Future<String> Function(String requestId,
+    String callerIdentity, String payload, int responseTimeoutMs);
+
+extension RoomRPCMethods on Room {
+  @internal
+  Future<void> publishRpcRequest({
+    required String destinationIdentity,
+    required String requestId,
+    required String method,
+    required String payload,
+    required num responseTimeoutMs,
+  }) async {
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcRequest: lk_models.RpcRequest(
+        id: requestId,
+        method: method,
+        payload: payload,
+        responseTimeoutMs: responseTimeoutMs.toInt(),
+      ),
+      participantIdentity: localParticipant?.identity,
+      destinationIdentities: [destinationIdentity],
+    );
+
+    await engine.sendDataPacket(packet);
+  }
+
+  @internal
+  Future<void> publishRpcResponse({
+    required String destinationIdentity,
+    required String requestId,
+    String? payload,
+    lk_models.RpcError? error,
+  }) async {
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcResponse: lk_models.RpcResponse(
+        requestId: requestId,
+        payload: payload,
+        error: error,
+      ),
+      destinationIdentities: [destinationIdentity],
+      participantIdentity: localParticipant?.identity,
+    );
+
+    await engine.sendDataPacket(packet);
+  }
+
+  @internal
+  Future<void> publishRpcAck({
+    required String destinationIdentity,
+    required String requestId,
+  }) async {
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcAck: lk_models.RpcAck(
+        requestId: requestId,
+      ),
+      destinationIdentities: [destinationIdentity],
+      participantIdentity: localParticipant?.identity,
+    );
+
+    await engine.sendDataPacket(packet);
+  }
+
+  /// Register a handler for incoming RPC requests.
+  /// @param method, the method name to listen for.
+  /// When a request with this method name is received, the handler will be called.
+  /// The handler should return a string payload to send back to the caller.
+  /// If the handler returns null, an error will be sent back to the caller.
+  void registerRpcHandler(String method, RpcRequestHandler handler) {
+    rpcHandlers[method] = handler;
+    // listen for incoming requests
+    _engineListener.on<EngineRPCRequestReceivedEvent>((event) async {
+      if (event.request.method == event.request.method &&
+          rpcHandlers.keys.contains(event.request.method)) {
+        try {
+          final payload = await handler(
+            event.requestId,
+            event.identity,
+            event.request.payload,
+            event.request.responseTimeoutMs,
+          );
+          await publishRpcResponse(
+            destinationIdentity: event.identity,
+            requestId: event.requestId,
+            payload: payload,
+          );
+        } catch (e) {
+          await publishRpcResponse(
+            destinationIdentity: event.identity,
+            requestId: event.request.id,
+            error: lk_models.RpcError(
+              code: 500,
+              message: e.toString(),
+            ),
+          );
+        }
+
+        await _engineListener.waitFor<EngineRPCAckReceivedEvent>(
+          duration: Duration(milliseconds: event.request.responseTimeoutMs),
+          filter: (p0) => p0.requestId == event.request.id,
+        );
+
+        logger.fine('RPC request ${event.request.method} handled');
+      } else {
+        logger.warning('No handler for method ${event.request.method}');
+        await publishRpcResponse(
+          destinationIdentity: event.identity,
+          requestId: event.request.id,
+          error: lk_models.RpcError(
+            code: 500,
+            message: 'No handler for method ${event.request.method}',
+          ),
+        );
+      }
+    });
+  }
+
+  /// Unregister a handler for incoming RPC requests.
+  /// @param method, the method name to unregister.
+  void unregisterRpcHandler(String method) {
+    rpcHandlers.remove(method);
+  }
+
+  /// Initiate an RPC call to a remote participant.
+  /// @param destinationIdentity - The `identity` of the destination participant
+  /// @param method - The method name to call
+  /// @param payload - The method payload
+  /// @param responseTimeoutMs - Timeout for receiving a response after initial connection
+  /// @returns A promise that resolves with the response payload or rejects with an error.
+  /// @throws Error on failure. Details in `message`.
+
+  Future<String> performRpc({
+    required String destinationIdentity,
+    required String method,
+    required String payload,
+    num responseTimeoutMs = 10000,
+  }) async {
+    final requestId = Uuid().v4();
+    final completer = Completer<String>();
+
+    try {
+      await publishRpcRequest(
+        destinationIdentity: destinationIdentity,
+        requestId: requestId,
+        method: method,
+        payload: payload,
+        responseTimeoutMs: responseTimeoutMs,
+      );
+
+      var response =
+          await _engineListener.waitFor<EngineRPCResponseReceivedEvent>(
+        duration: Duration(milliseconds: responseTimeoutMs.toInt()),
+        filter: (p0) => p0.requestId == requestId,
+      );
+
+      if (response.response.payload.isEmpty && response.error != null) {
+        throw Exception(response.error!.message);
+      }
+
+      completer.complete(response.response.payload);
+
+      await publishRpcAck(
+        destinationIdentity: destinationIdentity,
+        requestId: requestId,
+      );
+    } catch (e) {
+      completer.completeError(e);
+    }
+
+    return completer.future;
   }
 }
