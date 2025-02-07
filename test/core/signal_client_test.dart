@@ -94,6 +94,9 @@ final lk_rtc.SignalResponse joinResponse = lk_rtc.SignalResponse(
     participant: localParticipantData,
     subscriberPrimary: true,
     serverVersion: '99.999',
+    serverInfo: lk_models.ServerInfo(
+      version: '1.8.0',
+    ),
   ),
 );
 

@@ -146,6 +146,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     });
 
+    _setupRpcListeners();
+
     onDispose(() async {
       // clean up routine
       await _cleanUp();
@@ -1149,6 +1151,12 @@ extension RoomRPCMethods on Room {
     if (payload.length > kRpcMaxPayloadBytes) {
       throw RpcError.builtIn(RpcError.requestPayloadTooLarge);
     }
+
+    if ((engine.serverInfo?.version.isNotEmpty ?? false) &&
+        compareVersions(engine.serverInfo!.version, '1.8.0') < 0) {
+      throw RpcError.builtIn(RpcError.unsupportedServer);
+    }
+
     final packet = lk_models.DataPacket(
       kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcRequest: lk_models.RpcRequest(
@@ -1203,6 +1211,75 @@ extension RoomRPCMethods on Room {
     await engine.sendDataPacket(packet);
   }
 
+  void _setupRpcListeners() {
+    // listen for incoming requests
+    _engineListener.on<EngineRPCRequestReceivedEvent>((event) async {
+      final method = event.request.method;
+      final requestId = event.request.id;
+      final requestPayload = event.request.payload;
+      final callerIdentity = event.identity;
+
+      await publishRpcAck(
+        destinationIdentity: callerIdentity,
+        requestId: requestId,
+      );
+
+      RpcError? responseError;
+      String? responsePayload;
+
+      try {
+        if (event.request.version != kRpcVesion) {
+          await publishRpcResponse(
+            destinationIdentity: callerIdentity,
+            requestId: requestId,
+            error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
+          );
+          return;
+        }
+
+        var handler = rpcHandlers[method];
+        if (handler == null) {
+          await publishRpcResponse(
+            destinationIdentity: callerIdentity,
+            requestId: requestId,
+            error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
+          );
+          return;
+        }
+
+        final response = await handler(RpcInvocationData(
+            requestId: requestId,
+            callerIdentity: callerIdentity,
+            payload: requestPayload,
+            responseTimeoutMs: event.request.responseTimeoutMs));
+
+        if (response.length > kRpcMaxPayloadBytes) {
+          responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
+          logger.warning('RPC Response payload too large for $method');
+        } else {
+          responsePayload = response;
+        }
+      } catch (error) {
+        if (error is RpcError) {
+          responseError = error;
+        } else {
+          logger.warning(
+              'Uncaught error returned by RPC handler for ${method}. Returning APPLICATION_ERROR instead. $error');
+          responseError = RpcError.builtIn(RpcError.applicationError);
+        }
+      }
+
+      await publishRpcResponse(
+        destinationIdentity: callerIdentity,
+        requestId: requestId,
+        payload: responsePayload,
+        error: responseError?.toProto(),
+      );
+
+      logger.fine('RPC request ${method} handled');
+    });
+  }
+
   /// Register a handler for incoming RPC requests.
   /// @param method, the method name to listen for.
   /// When a request with this method name is received, the handler will be called.
@@ -1210,67 +1287,6 @@ extension RoomRPCMethods on Room {
   /// If the handler returns null, an error will be sent back to the caller.
   void registerRpcHandler(String method, RpcRequestHandler handler) {
     rpcHandlers[method] = handler;
-    // listen for incoming requests
-    _engineListener.on<EngineRPCRequestReceivedEvent>((event) async {
-      if (event.request.method == event.request.method &&
-          rpcHandlers.keys.contains(event.request.method)) {
-        await publishRpcAck(
-          destinationIdentity: event.identity,
-          requestId: event.request.id,
-        );
-
-        RpcError? responseError;
-        String? responsePayload;
-
-        try {
-          if (event.request.version != kRpcVesion) {
-            await publishRpcResponse(
-              destinationIdentity: event.identity,
-              requestId: event.request.id,
-              error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
-            );
-            return;
-          }
-
-          final payload = await handler(RpcInvocationData(
-              requestId: event.requestId,
-              callerIdentity: event.identity,
-              payload: event.request.payload,
-              responseTimeoutMs: event.request.responseTimeoutMs));
-
-          if (payload.length > kRpcMaxPayloadBytes) {
-            responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
-            logger.warning('RPC Response payload too large for $method');
-          } else {
-            responsePayload = payload;
-          }
-        } catch (error) {
-          if (error is RpcError) {
-            responseError = error;
-          } else {
-            logger.warning(
-                'Uncaught error returned by RPC handler for ${method}. Returning APPLICATION_ERROR instead. $error');
-            responseError = RpcError.builtIn(RpcError.applicationError);
-          }
-        }
-
-        await publishRpcResponse(
-          destinationIdentity: event.identity,
-          requestId: event.requestId,
-          payload: responsePayload,
-          error: responseError?.toProto(),
-        );
-
-        logger.fine('RPC request ${event.request.method} handled');
-      } else {
-        logger.warning('No handler for method ${event.request.method}');
-        await publishRpcResponse(
-          destinationIdentity: event.identity,
-          requestId: event.request.id,
-          error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
-        );
-      }
-    });
   }
 
   /// Unregister a handler for incoming RPC requests.

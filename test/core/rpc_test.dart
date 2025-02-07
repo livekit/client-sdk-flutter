@@ -24,8 +24,8 @@ void main() {
   E2EContainer? container;
   late Room room;
 
-  group('rpc', () {
-    test('rpc handler register', () async {
+  group('rpc tests', () {
+    test('test rpc handler register', () async {
       container = E2EContainer();
       room = container!.room;
       await container!.connectRoom();
@@ -50,13 +50,14 @@ void main() {
       expect(room.rpcHandlers.keys.length, 0);
     });
 
-    test('rpc perform', () async {
+    test('test rpc perform', () async {
       room.registerRpcHandler('echo', (RpcInvocationData data) async {
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
       expect(room.rpcHandlers.keys.first, 'echo');
 
+      /// test performRpc
       var response = await room.performRpc(PerformRpcParams(
         destinationIdentity: room.localParticipant!.identity,
         method: 'echo',
@@ -64,6 +65,112 @@ void main() {
       ));
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
+
+      /// test unsupported server version
+      try {
+        room.engine.serverInfo?.version = '1.7.9';
+
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.unsupportedServer);
+
+          /// set back to supported version
+          room.engine.serverInfo?.version = '1.8.0';
+        }
+      }
+    });
+
+    test('test rpc perform with error', () async {
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        return throw RpcError(
+          message: 'error',
+          code: 1,
+          data: 'error data',
+        );
+      });
+
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, 1);
+          expect(e.message, 'error');
+          expect(e.data, 'error data');
+        }
+      }
+    });
+
+    test('test unpupported method error', () async {
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'no_method',
+          payload: 'hello',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.unsupportedMethod);
+        }
+      }
+    });
+
+    test('test request playload too large', () async {
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'a' * 1024 * 1024,
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.requestPayloadTooLarge);
+        }
+      }
+    });
+
+    test('test response playload too large', () async {
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        return 'a' * 1024 * 1024;
+      });
+
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.responsePayloadTooLarge);
+        }
+      }
+    });
+
+    test('test application error', () async {
+      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+        throw Exception('application error');
+      });
+
+      try {
+        await room.performRpc(PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          expect(e.code, RpcError.applicationError);
+        }
+      }
     });
   });
 }
