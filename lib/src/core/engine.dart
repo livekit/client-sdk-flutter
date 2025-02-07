@@ -542,8 +542,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 type: Reliability.lossy,
               )));
       // _onDCStateUpdated(Reliability.lossy, state)
-    } catch (_) {
-      logger.severe('[$objectId] createDataChannel() did throw $_');
+    } catch (err) {
+      logger.severe('[$objectId] createDataChannel() did throw $err');
     }
 
     try {
@@ -559,8 +559,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 state: state,
                 type: Reliability.reliable,
               )));
-    } catch (_) {
-      logger.severe('[$objectId] createDataChannel() did throw $_');
+    } catch (err) {
+      logger.severe('[$objectId] createDataChannel() did throw $err');
     }
   }
 

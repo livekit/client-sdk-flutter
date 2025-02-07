@@ -31,11 +31,6 @@ class Native {
   static Future<bool> configureAudio(
       NativeAudioConfiguration configuration) async {
     try {
-      if (bypassVoiceProcessing) {
-        /// skip configuring audio if bypassVoiceProcessing
-        /// is enabled
-        return false;
-      }
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
         configuration.toMap(),

@@ -1075,9 +1075,15 @@ extension RoomHardwareManagementMethods on Room {
     );
   }
 
-  Future<void> setSpeakerOn(bool speakerOn) async {
-    if (lkPlatformIs(PlatformType.iOS) || lkPlatformIs(PlatformType.android)) {
-      await Hardware.instance.setSpeakerphoneOn(speakerOn);
+  /// [speakerOn] set speakerphone on or off, by default wired/bluetooth headsets will still
+  /// be prioritized even if set to true.
+  /// [forceSpeakerOutput] if true, will force speaker output even if headphones
+  /// or bluetooth is connected, only supported on iOS for now
+  Future<void> setSpeakerOn(bool speakerOn,
+      {bool forceSpeakerOutput = false}) async {
+    if (lkPlatformIsMobile()) {
+      await Hardware.instance
+          .setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
       engine.roomOptions = engine.roomOptions.copyWith(
         defaultAudioOutputOptions:
             roomOptions.defaultAudioOutputOptions.copyWith(
@@ -1091,8 +1097,7 @@ extension RoomHardwareManagementMethods on Room {
   @internal
   Future<void> applyAudioSpeakerSettings() async {
     if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
-      if (lkPlatformIs(PlatformType.iOS) ||
-          lkPlatformIs(PlatformType.android)) {
+      if (lkPlatformIsMobile()) {
         await Hardware.instance.setSpeakerphoneOn(
             roomOptions.defaultAudioOutputOptions.speakerOn!);
       }

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.6
+
+* Emit a final empty AudioVisualizerEvent after track stops (#701)
+* fix: Improve speaker switching logic for iOS. (#692)
+
 ## 2.3.5
 
 * feat: add TrackProcessor support. (#657)
