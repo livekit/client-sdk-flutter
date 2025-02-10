@@ -69,6 +69,8 @@ void main() {
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
+      RpcError? error;
+
       /// test unsupported server version
       try {
         room.engine.serverInfo?.version = '1.7.9';
@@ -80,12 +82,17 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.unsupportedServer);
+          error = e;
 
           /// set back to supported version
           room.engine.serverInfo?.version = '1.8.0';
         }
       }
+
+      expect(
+        RpcError.unsupportedServer,
+        error?.code,
+      );
 
       /// test unsupported rpc version
       try {
@@ -97,9 +104,14 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.unsupportedVersion);
+          error = e;
         }
       }
+
+      expect(
+        RpcError.unsupportedVersion,
+        error?.code,
+      );
     });
 
     test('test rpc perform with error', () async {
@@ -110,7 +122,7 @@ void main() {
           data: 'error data',
         );
       });
-
+      RpcError? error;
       try {
         await room.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
@@ -119,14 +131,18 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, 1);
-          expect(e.message, 'error');
-          expect(e.data, 'error data');
+          error = e;
         }
       }
+
+      expect(error!.code, 1);
+      expect(error.message, 'error');
+      expect(error.data, 'error data');
     });
 
     test('test unpupported method error', () async {
+      RpcError? error;
+
       try {
         await room.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
@@ -135,12 +151,18 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.unsupportedMethod);
+          error = e;
         }
       }
+
+      expect(
+        RpcError.unsupportedMethod,
+        error?.code,
+      );
     });
 
     test('test request playload too large', () async {
+      RpcError? error;
       try {
         await room.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
@@ -149,16 +171,21 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.requestPayloadTooLarge);
+          error = e;
         }
       }
+
+      expect(
+        RpcError.requestPayloadTooLarge,
+        error?.code,
+      );
     });
 
     test('test response playload too large', () async {
       room.registerRpcHandler('echo', (RpcInvocationData data) async {
         return 'a' * 1024 * 1024;
       });
-
+      RpcError? error;
       try {
         await room.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
@@ -167,12 +194,15 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.responsePayloadTooLarge);
+          error = e;
         }
       }
+
+      expect(error!.code, RpcError.responsePayloadTooLarge);
     });
 
     test('test application error', () async {
+      RpcError? error;
       room.registerRpcHandler('echo', (RpcInvocationData data) async {
         throw Exception('application error');
       });
@@ -185,16 +215,21 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.applicationError);
+          error = e;
         }
       }
+
+      expect(
+        RpcError.applicationError,
+        error?.code,
+      );
     });
     test('test response timeout', () async {
       room.registerRpcHandler('echo', (RpcInvocationData data) async {
         await Future.delayed(Duration(seconds: 10));
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
-
+      RpcError? error;
       try {
         await room.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
@@ -204,9 +239,14 @@ void main() {
         ));
       } catch (e) {
         if (e is RpcError) {
-          expect(e.code, RpcError.responseTimeout);
+          error = e;
         }
       }
+
+      expect(
+        RpcError.responseTimeout,
+        error?.code,
+      );
     });
   });
 }
