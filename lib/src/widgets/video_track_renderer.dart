@@ -257,6 +257,10 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget build(BuildContext context) {
     final child = kIsWeb ? _videoViewForWeb() : _videoViewForNative();
 
+    if (widget.fit == rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitCover) {
+      return child;
+    }
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         if (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) {
