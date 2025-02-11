@@ -124,6 +124,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // RPC Handlers
   final Map<String, RpcRequestHandler> rpcHandlers = {};
 
+  // RPC Pending Acks
+  final Map<String, Function(String participantIdentity)> rpcPendingAcks = {};
+
+  // RPC Pending Responses
+  final Map<String, Function(String? payload, RpcError? error)>
+      rpcPendingResponses = {};
+
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -1214,71 +1221,32 @@ extension RoomRPCMethods on Room {
 
   void _setupRpcListeners() {
     // listen for incoming requests
-    _engineListener.on<EngineRPCRequestReceivedEvent>((event) async {
-      final method = event.request.method;
-      final requestId = event.request.id;
-      final requestPayload = event.request.payload;
-      final callerIdentity = event.identity;
+    _engineListener
+      ..on<EngineRPCRequestReceivedEvent>((event) async {
+        final request = event.request;
+        await handleIncomingRpcRequest(
+          event.identity,
+          request.id,
+          request.method,
+          request.payload,
+          request.responseTimeoutMs,
+          request.version,
+        );
+      })
+      ..on<EngineRPCAckReceivedEvent>((event) {
+        handleIncomingRpcAck(event.requestId);
+      })
+      ..on<EngineRPCResponseReceivedEvent>((event) {
+        String? payload;
+        RpcError? error;
 
-      await publishRpcAck(
-        destinationIdentity: callerIdentity,
-        requestId: requestId,
-      );
-
-      RpcError? responseError;
-      String? responsePayload;
-
-      try {
-        if (event.request.version != kRpcVesion) {
-          await publishRpcResponse(
-            destinationIdentity: callerIdentity,
-            requestId: requestId,
-            error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
-          );
-          return;
+        if (event.payload.isNotEmpty) {
+          payload = event.response.payload;
+        } else if (event.error != null) {
+          error = RpcError.fromProto(event.error!);
         }
-
-        var handler = rpcHandlers[method];
-        if (handler == null) {
-          await publishRpcResponse(
-            destinationIdentity: callerIdentity,
-            requestId: requestId,
-            error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
-          );
-          return;
-        }
-
-        final response = await handler(RpcInvocationData(
-            requestId: requestId,
-            callerIdentity: callerIdentity,
-            payload: requestPayload,
-            responseTimeoutMs: event.request.responseTimeoutMs));
-
-        if (response.length > kRpcMaxPayloadBytes) {
-          responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
-          logger.warning('RPC Response payload too large for $method');
-        } else {
-          responsePayload = response;
-        }
-      } catch (error) {
-        if (error is RpcError) {
-          responseError = error;
-        } else {
-          logger.warning(
-              'Uncaught error returned by RPC handler for ${method}. Returning APPLICATION_ERROR instead. $error');
-          responseError = RpcError.builtIn(RpcError.applicationError);
-        }
-      }
-
-      await publishRpcResponse(
-        destinationIdentity: callerIdentity,
-        requestId: requestId,
-        payload: responsePayload,
-        error: responseError?.toProto(),
-      );
-
-      logger.fine('RPC request ${method} handled');
-    });
+        handleIncomingRpcResponse(event.requestId, payload, error);
+      });
   }
 
   /// Register a handler for incoming RPC requests.
@@ -1286,14 +1254,107 @@ extension RoomRPCMethods on Room {
   /// When a request with this method name is received, the handler will be called.
   /// The handler should return a string payload to send back to the caller.
   /// If the handler returns null, an error will be sent back to the caller.
-  void registerRpcHandler(String method, RpcRequestHandler handler) {
+  void registerRpcMethod(String method, RpcRequestHandler handler) {
     rpcHandlers[method] = handler;
   }
 
   /// Unregister a handler for incoming RPC requests.
   /// @param method, the method name to unregister.
-  void unregisterRpcHandler(String method) {
+  void unregisterRpcMethod(String method) {
     rpcHandlers.remove(method);
+  }
+
+  void handleIncomingRpcAck(String requestId) {
+    final handler = rpcPendingAcks[requestId];
+    if (handler != null) {
+      handler(requestId);
+      rpcPendingAcks.remove(requestId);
+    } else {
+      logger.warning('Ack received for unexpected RPC request $requestId');
+    }
+  }
+
+  void handleIncomingRpcResponse(
+    String requestId,
+    String? payload,
+    RpcError? error,
+  ) {
+    final handler = rpcPendingResponses[requestId];
+    if (handler != null) {
+      handler(payload, error);
+      rpcPendingResponses.remove(requestId);
+    } else {
+      logger.warning('Response received for unexpected RPC request $requestId');
+    }
+  }
+
+  Future<void> handleIncomingRpcRequest(
+    String callerIdentity,
+    String requestId,
+    String method,
+    String payload,
+    num responseTimeoutMs,
+    num version,
+  ) async {
+    await publishRpcAck(
+      destinationIdentity: callerIdentity,
+      requestId: requestId,
+    );
+
+    RpcError? responseError;
+    String? responsePayload;
+
+    try {
+      if (version != kRpcVesion) {
+        await publishRpcResponse(
+          destinationIdentity: callerIdentity,
+          requestId: requestId,
+          error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
+        );
+        return;
+      }
+
+      var handler = rpcHandlers[method];
+      if (handler == null) {
+        await publishRpcResponse(
+          destinationIdentity: callerIdentity,
+          requestId: requestId,
+          error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
+        );
+        return;
+      }
+
+      final response = await handler(RpcInvocationData(
+          requestId: requestId,
+          callerIdentity: callerIdentity,
+          payload: payload,
+          responseTimeoutMs: responseTimeoutMs.toInt()));
+
+      if (response.length > kRpcMaxPayloadBytes) {
+        responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
+        logger.warning('RPC Response payload too large for $method');
+      } else {
+        responsePayload = response;
+      }
+    } catch (error) {
+      if (error is RpcError) {
+        responseError = error;
+      } else {
+        logger.warning(
+            'Uncaught error returned by RPC handler for ${method}. Returning RpcError.applicationError instead. $error');
+        responseError = RpcError(
+            code: RpcError.applicationError, message: error.toString());
+      }
+    }
+
+    await publishRpcResponse(
+      destinationIdentity: callerIdentity,
+      requestId: requestId,
+      payload: responsePayload,
+      error: responseError?.toProto(),
+    );
+
+    logger.fine('RPC request ${method} handled');
   }
 
   /// Initiate an RPC call to a remote participant.
@@ -1303,7 +1364,6 @@ extension RoomRPCMethods on Room {
   /// @param responseTimeoutMs - Timeout for receiving a response after initial connection
   /// @returns A promise that resolves with the response payload or rejects with an error.
   /// @throws Error on failure. Details in `message`.
-
   Future<String> performRpc(PerformRpcParams params) async {
     final requestId = Uuid().v4();
     final completer = Completer<String>();
@@ -1316,36 +1376,39 @@ extension RoomRPCMethods on Room {
         requestId: requestId,
         method: params.method,
         payload: params.payload,
-        responseTimeoutMs: params.responseTimeoutMs,
+        responseTimeoutMs: params.responseTimeoutMs - maxRoundTripLatency,
         version: params.version,
       );
 
-      unawaited(() async {
-        await _engineListener.waitFor<EngineRPCAckReceivedEvent>(
-          duration: Duration(milliseconds: params.responseTimeoutMs.toInt()),
-          filter: (p0) => p0.requestId == requestId,
-          onTimeout: () {
-            throw RpcError.builtIn(RpcError.connectionTimeout);
-          },
-        );
-      }());
+      final ackTimer = Timer(Duration(milliseconds: maxRoundTripLatency), () {
+        completer.completeError(RpcError.builtIn(RpcError.connectionTimeout));
+        rpcPendingResponses.remove(requestId);
+      });
 
-      var response =
-          await _engineListener.waitFor<EngineRPCResponseReceivedEvent>(
-        duration: Duration(milliseconds: params.responseTimeoutMs.toInt()),
-        filter: (p0) => p0.requestId == requestId,
-        onTimeout: () {
-          throw RpcError.builtIn(RpcError.responseTimeout);
-        },
-      );
+      rpcPendingAcks[requestId] = (id) {
+        ackTimer.cancel();
+      };
 
-      if (response.response.payload.isEmpty && response.error != null) {
-        throw RpcError.fromProto(response.error!);
-      }
+      final responseTimer =
+          Timer(Duration(milliseconds: params.responseTimeoutMs), () {
+        completer.completeError(RpcError.builtIn(RpcError.responseTimeout));
+        rpcPendingResponses.remove(requestId);
+      });
 
-      completer.complete(response.response.payload);
+      rpcPendingResponses[requestId] = (String? response, RpcError? error) {
+        responseTimer.cancel();
+        if (error != null) {
+          completer.completeError(error);
+        } else {
+          completer.complete(response!);
+        }
+        ackTimer.cancel();
+        rpcPendingAcks.remove(requestId);
+      };
     } catch (e) {
-      completer.completeError(e);
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
     }
 
     return completer.future;

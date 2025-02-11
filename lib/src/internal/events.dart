@@ -463,6 +463,7 @@ class EngineRPCResponseReceivedEvent with EngineEvent, InternalEvent {
   String get requestId => response.requestId;
   final String identity;
   lk_models.RpcError? get error => response.error;
+  String get payload => response.payload;
   const EngineRPCResponseReceivedEvent({
     required this.response,
     required this.identity,

@@ -33,7 +33,7 @@ void main() {
       room = container!.room;
       await container!.connectRoom();
 
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
@@ -48,13 +48,13 @@ void main() {
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
-      room.unregisterRpcHandler('echo');
+      room.unregisterRpcMethod('echo');
 
       expect(room.rpcHandlers.keys.length, 0);
     });
 
     test('test rpc perform', () async {
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
@@ -115,7 +115,7 @@ void main() {
     });
 
     test('test rpc perform with error', () async {
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         return throw RpcError(
           message: 'error',
           code: 1,
@@ -182,7 +182,7 @@ void main() {
     });
 
     test('test response playload too large', () async {
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         return 'a' * 1024 * 1024;
       });
       RpcError? error;
@@ -203,7 +203,7 @@ void main() {
 
     test('test application error', () async {
       RpcError? error;
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         throw Exception('application error');
       });
 
@@ -225,7 +225,7 @@ void main() {
       );
     });
     test('test response timeout', () async {
-      room.registerRpcHandler('echo', (RpcInvocationData data) async {
+      room.registerRpcMethod('echo', (RpcInvocationData data) async {
         await Future.delayed(Duration(seconds: 10));
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
@@ -235,7 +235,7 @@ void main() {
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
-          responseTimeoutMs: 1000,
+          responseTimeoutMs: 2000,
         ));
       } catch (e) {
         if (e is RpcError) {
