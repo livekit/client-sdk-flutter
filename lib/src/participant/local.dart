@@ -28,6 +28,7 @@ import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
+import '../managers/broadcast_manager.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -58,9 +59,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         ) {
     updateFromInfo(info);
 
+    if (lkPlatformIs(PlatformType.iOS)) {
+      BroadcastManager().addListener(_broadcastStateChanged);
+    }
+
     onDispose(() async {
+      BroadcastManager().removeListener(_broadcastStateChanged);
       await unpublishAllTracks();
     });
+  }
+
+  /// Handle broadcast state change (iOS only)
+  void _broadcastStateChanged() {
+    final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
+    setScreenShareEnabled(isEnabled);
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -619,6 +631,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
             room.roomOptions.defaultScreenShareCaptureOptions;
+
+        if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
+          // Wait until broadcasting to publish track
+          BroadcastManager().requestActivation();
+          return null;
+        }
 
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
