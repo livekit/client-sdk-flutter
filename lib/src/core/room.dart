@@ -1255,6 +1255,9 @@ extension RoomRPCMethods on Room {
   /// The handler should return a string payload to send back to the caller.
   /// If the handler returns null, an error will be sent back to the caller.
   void registerRpcMethod(String method, RpcRequestHandler handler) {
+    if (rpcHandlers.containsKey(method)) {
+      throw Exception('Method $method already registered');
+    }
     rpcHandlers[method] = handler;
   }
 
