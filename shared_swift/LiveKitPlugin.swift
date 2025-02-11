@@ -23,6 +23,7 @@ import Flutter
 import UIKit
 #endif
 
+@available(iOS 13.0, *)
 public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     var processers: Dictionary<Track, Visualizer> = [:]
