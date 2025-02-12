@@ -111,7 +111,7 @@ class Native {
         return null;
       default:
         logger.warning('Method ${call.method} is not implemented.');
-      return null;
+        return null;
     }
   }
 

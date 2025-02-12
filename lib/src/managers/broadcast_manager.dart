@@ -18,7 +18,6 @@ import '../support/native.dart';
 
 /// Manages broadcast state and track publication for screen sharing on iOS.
 class BroadcastManager extends ChangeNotifier {
-
   static final BroadcastManager _instance = BroadcastManager._internal();
   BroadcastManager._internal();
   factory BroadcastManager() {

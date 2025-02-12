@@ -71,7 +71,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Handle broadcast state change (iOS only)
   void _broadcastStateChanged() {
-    final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
+    final isEnabled = BroadcastManager().isBroadcasting &&
+        BroadcastManager().shouldPublishTrack;
     setScreenShareEnabled(isEnabled);
   }
 
@@ -632,7 +633,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
             room.roomOptions.defaultScreenShareCaptureOptions;
 
-        if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
+        if (lkPlatformIs(PlatformType.iOS) &&
+            !BroadcastManager().isBroadcasting) {
           // Wait until broadcasting to publish track
           BroadcastManager().requestActivation();
           return null;
