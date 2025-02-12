@@ -11,17 +11,13 @@ class PerformRpcParams {
   String payload;
 
   /// The maximum time the caller will wait for a response.
-  int responseTimeoutMs;
-
-  /// The version of the RPC protocol to use. Defaults to 1.
-  int? version;
+  Duration responseTimeoutMs;
 
   PerformRpcParams({
     required this.destinationIdentity,
     required this.method,
     required this.payload,
-    this.responseTimeoutMs = 10000,
-    this.version,
+    this.responseTimeoutMs = const Duration(milliseconds: 10000),
   });
 }
 
@@ -45,6 +41,8 @@ class RpcInvocationData {
     required this.responseTimeoutMs,
   });
 }
+
+typedef RpcRequestHandler = Future<String> Function(RpcInvocationData data);
 
 class RpcError implements Exception {
   final String message;

@@ -56,7 +56,7 @@ void main() {
       });
 
       /// test performRpc
-      var response = await room.performRpc(PerformRpcParams(
+      var response = await room.localParticipant?.performRpc(PerformRpcParams(
         destinationIdentity: room.localParticipant!.identity,
         method: 'echo',
         payload: 'hello',
@@ -70,7 +70,7 @@ void main() {
       try {
         room.engine.serverInfo?.version = '1.7.9';
 
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
@@ -89,27 +89,6 @@ void main() {
         RpcError.unsupportedServer,
         error?.code,
       );
-
-      /// test unsupported rpc version
-      try {
-        await room.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-          version: 2,
-        ));
-      } catch (e) {
-        if (e is RpcError) {
-          error = e;
-        }
-      }
-
-      expect(
-        RpcError.unsupportedVersion,
-        error?.code,
-      );
-
-      room.unregisterRpcMethod('echo');
     });
 
     test('test rpc perform with error', () async {
@@ -122,7 +101,7 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
@@ -144,7 +123,7 @@ void main() {
       RpcError? error;
 
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'no_method',
           payload: 'hello',
@@ -164,7 +143,7 @@ void main() {
     test('test request playload too large', () async {
       RpcError? error;
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'a' * 1024 * 1024,
@@ -187,7 +166,7 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
@@ -210,7 +189,7 @@ void main() {
       });
 
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
@@ -235,11 +214,11 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.performRpc(PerformRpcParams(
+        await room.localParticipant?.performRpc(PerformRpcParams(
           destinationIdentity: room.localParticipant!.identity,
           method: 'echo',
           payload: 'hello',
-          responseTimeoutMs: 2000,
+          responseTimeoutMs: Duration(seconds: 2),
         ));
       } catch (e) {
         if (e is RpcError) {
