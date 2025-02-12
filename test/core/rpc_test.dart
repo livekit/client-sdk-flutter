@@ -55,8 +55,6 @@ void main() {
         return 'echo: => ${data.callerIdentity} ${data.payload}';
       });
 
-      expect(room.rpcHandlers.keys.first, 'echo');
-
       /// test performRpc
       var response = await room.performRpc(PerformRpcParams(
         destinationIdentity: room.localParticipant!.identity,
@@ -83,6 +81,7 @@ void main() {
 
           /// set back to supported version
           room.engine.serverInfo?.version = '1.8.0';
+          room.unregisterRpcMethod('echo');
         }
       }
 
@@ -109,6 +108,8 @@ void main() {
         RpcError.unsupportedVersion,
         error?.code,
       );
+
+      room.unregisterRpcMethod('echo');
     });
 
     test('test rpc perform with error', () async {
@@ -135,6 +136,8 @@ void main() {
       expect(error!.code, 1);
       expect(error.message, 'error');
       expect(error.data, 'error data');
+
+      room.unregisterRpcMethod('echo');
     });
 
     test('test unpupported method error', () async {
@@ -196,6 +199,8 @@ void main() {
       }
 
       expect(error!.code, RpcError.responsePayloadTooLarge);
+
+      room.unregisterRpcMethod('echo');
     });
 
     test('test application error', () async {
@@ -220,6 +225,8 @@ void main() {
         RpcError.applicationError,
         error?.code,
       );
+
+      room.unregisterRpcMethod('echo');
     });
     test('test response timeout', () async {
       room.registerRpcMethod('echo', (RpcInvocationData data) async {

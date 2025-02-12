@@ -122,14 +122,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Map<String, DateTime> _transcriptionReceivedTimes = {};
 
   // RPC Handlers
-  final Map<String, RpcRequestHandler> rpcHandlers = {};
+  final Map<String, RpcRequestHandler> _rpcHandlers = {};
+
+  // for testing
+  Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
 
   // RPC Pending Acks
-  final Map<String, Function(String participantIdentity)> rpcPendingAcks = {};
+  final Map<String, Function(String participantIdentity)> _pendingAcks = {};
 
   // RPC Pending Responses
   final Map<String, Function(String? payload, RpcError? error)>
-      rpcPendingResponses = {};
+      _pendingResponses = {};
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -1255,23 +1258,23 @@ extension RoomRPCMethods on Room {
   /// The handler should return a string payload to send back to the caller.
   /// If the handler returns null, an error will be sent back to the caller.
   void registerRpcMethod(String method, RpcRequestHandler handler) {
-    if (rpcHandlers.containsKey(method)) {
+    if (_rpcHandlers.containsKey(method)) {
       throw Exception('Method $method already registered');
     }
-    rpcHandlers[method] = handler;
+    _rpcHandlers[method] = handler;
   }
 
   /// Unregister a handler for incoming RPC requests.
   /// @param method, the method name to unregister.
   void unregisterRpcMethod(String method) {
-    rpcHandlers.remove(method);
+    _rpcHandlers.remove(method);
   }
 
   void handleIncomingRpcAck(String requestId) {
-    final handler = rpcPendingAcks[requestId];
+    final handler = _pendingAcks[requestId];
     if (handler != null) {
       handler(requestId);
-      rpcPendingAcks.remove(requestId);
+      _pendingAcks.remove(requestId);
     } else {
       logger.warning('Ack received for unexpected RPC request $requestId');
     }
@@ -1282,10 +1285,10 @@ extension RoomRPCMethods on Room {
     String? payload,
     RpcError? error,
   ) {
-    final handler = rpcPendingResponses[requestId];
+    final handler = _pendingResponses[requestId];
     if (handler != null) {
       handler(payload, error);
-      rpcPendingResponses.remove(requestId);
+      _pendingResponses.remove(requestId);
     } else {
       logger.warning('Response received for unexpected RPC request $requestId');
     }
@@ -1317,7 +1320,7 @@ extension RoomRPCMethods on Room {
         return;
       }
 
-      var handler = rpcHandlers[method];
+      var handler = _rpcHandlers[method];
       if (handler == null) {
         await publishRpcResponse(
           destinationIdentity: callerIdentity,
@@ -1361,10 +1364,7 @@ extension RoomRPCMethods on Room {
   }
 
   /// Initiate an RPC call to a remote participant.
-  /// @param destinationIdentity - The `identity` of the destination participant
-  /// @param method - The method name to call
-  /// @param payload - The method payload
-  /// @param responseTimeoutMs - Timeout for receiving a response after initial connection
+  /// @param [params] - RPC call parameters.
   /// @returns A promise that resolves with the response payload or rejects with an error.
   /// @throws Error on failure. Details in `message`.
   Future<String> performRpc(PerformRpcParams params) async {
@@ -1385,20 +1385,20 @@ extension RoomRPCMethods on Room {
 
       final ackTimer = Timer(Duration(milliseconds: maxRoundTripLatency), () {
         completer.completeError(RpcError.builtIn(RpcError.connectionTimeout));
-        rpcPendingResponses.remove(requestId);
+        _pendingResponses.remove(requestId);
       });
 
-      rpcPendingAcks[requestId] = (id) {
+      _pendingAcks[requestId] = (id) {
         ackTimer.cancel();
       };
 
       final responseTimer =
           Timer(Duration(milliseconds: params.responseTimeoutMs), () {
         completer.completeError(RpcError.builtIn(RpcError.responseTimeout));
-        rpcPendingResponses.remove(requestId);
+        _pendingResponses.remove(requestId);
       });
 
-      rpcPendingResponses[requestId] = (String? response, RpcError? error) {
+      _pendingResponses[requestId] = (String? response, RpcError? error) {
         responseTimer.cancel();
         if (error != null) {
           completer.completeError(error);
@@ -1406,7 +1406,7 @@ extension RoomRPCMethods on Room {
           completer.complete(response!);
         }
         ackTimer.cancel();
-        rpcPendingAcks.remove(requestId);
+        _pendingAcks.remove(requestId);
       };
     } catch (e) {
       if (!completer.isCompleted) {
