@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 import 'package:meta/meta.dart';
-import 'package:web/web.dart' as web;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:web/web.dart' as web;
+
 import 'navigator.dart';
 
 /// Matches a browser name with how it is represented in window.navigator
