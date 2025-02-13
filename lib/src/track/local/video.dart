@@ -67,7 +67,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   @override
   Future<bool> monitorStats() async {
-    if (sender == null || events.isDisposed || !isActive) {
+    if (events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
@@ -162,12 +162,9 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   }
 
   // Private constructor
-  LocalVideoTrack._(
-    TrackSource source,
-    rtc.MediaStream stream,
-    rtc.MediaStreamTrack track,
-    this.currentOptions,
-  ) : super(
+  LocalVideoTrack._(TrackSource source, rtc.MediaStream stream,
+      rtc.MediaStreamTrack track, this.currentOptions)
+      : super(
           TrackType.VIDEO,
           source,
           stream,
@@ -181,12 +178,18 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     options ??= const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
-    return LocalVideoTrack._(
+    var track = LocalVideoTrack._(
       TrackSource.camera,
       stream,
       stream.getVideoTracks().first,
       options,
     );
+
+    if (options.processor != null) {
+      await track.setProcessor(options.processor);
+    }
+
+    return track;
   }
 
   /// Creates a LocalVideoTrack from the display.

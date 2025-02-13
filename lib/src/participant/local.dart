@@ -115,6 +115,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+    await track.processor?.onPublish(room);
+
     await room.applyAudioSpeakerSettings();
 
     var listener = track.createListener();
@@ -330,6 +332,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     // did publish
     await track.onPublish();
+    await track.processor?.onPublish(room);
 
     var listener = track.createListener();
     listener.on((TrackEndedEvent event) {
@@ -384,6 +387,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       // did unpublish
       await track.onUnpublish();
+
+      if (track.processor != null) {
+        await track.processor?.onUnpublish();
+        await track.stopProcessor();
+      }
+
       await room.applyAudioSpeakerSettings();
     }
 
@@ -604,7 +613,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else if (source == TrackSource.microphone) {
         AudioCaptureOptions captureOptions =
             audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(captureOptions);
+        final track = await LocalAudioTrack.create(
+            captureOptions, room.roomOptions.enableVisualizer);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??

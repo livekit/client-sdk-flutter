@@ -23,7 +23,6 @@ import 'dart:core' as $core;
 
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
-
 import 'package:protobuf/src/protobuf/mixins/well_known.dart' as $mixin;
 
 class Timestamp extends $pb.GeneratedMessage with $mixin.TimestampMixin {

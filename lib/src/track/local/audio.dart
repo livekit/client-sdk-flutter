@@ -52,7 +52,7 @@ class LocalAudioTrack extends LocalTrack
 
   @override
   Future<bool> monitorStats() async {
-    if (sender == null || events.isDisposed || !isActive) {
+    if (events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
@@ -118,26 +118,36 @@ class LocalAudioTrack extends LocalTrack
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
-    this.currentOptions,
-  ) : super(
+    this.currentOptions, {
+    bool? enableVisualizer,
+  }) : super(
           TrackType.AUDIO,
           source,
           stream,
           track,
+          enableVisualizer: enableVisualizer,
         );
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
     AudioCaptureOptions? options,
+    bool? enableVisualizer,
   ]) async {
     options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
-    return LocalAudioTrack(
+    var track = LocalAudioTrack(
       TrackSource.microphone,
       stream,
       stream.getAudioTracks().first,
       options,
+      enableVisualizer: enableVisualizer,
     );
+
+    if (options.processor != null) {
+      await track.setProcessor(options.processor);
+    }
+
+    return track;
   }
 }

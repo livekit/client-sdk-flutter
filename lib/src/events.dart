@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:livekit_client/src/track/processor.dart';
 import 'core/engine.dart';
 import 'core/room.dart';
 import 'core/signal_client.dart';
@@ -564,4 +565,30 @@ class VideoReceiverStatsEvent with TrackEvent {
   @override
   String toString() => '${runtimeType}'
       'stats: ${stats})';
+}
+
+class AudioVisualizerEvent with TrackEvent {
+  final Track track;
+  final List<Object?> event;
+  const AudioVisualizerEvent({
+    required this.track,
+    required this.event,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'track: ${track})';
+}
+
+class TrackProcessorUpdateEvent with TrackEvent {
+  final Track track;
+  final TrackProcessor? processor;
+  const TrackProcessorUpdateEvent({
+    required this.track,
+    this.processor,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      'track: ${track})';
 }

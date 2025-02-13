@@ -35,7 +35,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = Hardware.instance.preferSpeakerOutput;
+  bool _speakerphoneOn = Hardware.instance.speakerOn ?? false;
 
   @override
   void initState() {
@@ -107,14 +107,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     setState(() {});
   }
 
-  void _setSpeakerphoneOn() {
+  void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    Hardware.instance.setSpeakerphoneOn(_speakerphoneOn);
+    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
     setState(() {});
   }
 
   void _toggleCamera() async {
-    //
     final track = participant.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
 
@@ -312,6 +311,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             else
               PopupMenuButton<MediaDevice>(
                 icon: const Icon(Icons.settings_voice),
+                offset: const Offset(0, -90),
                 itemBuilder: (BuildContext context) {
                   return [
                     PopupMenuItem<MediaDevice>(
@@ -354,7 +354,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               icon: const Icon(Icons.mic_off),
               tooltip: 'un-mute audio',
             ),
-          if (!lkPlatformIs(PlatformType.iOS))
+          if (!lkPlatformIsMobile())
             PopupMenuButton<MediaDevice>(
               icon: const Icon(Icons.volume_up),
               itemBuilder: (BuildContext context) {
@@ -392,12 +392,10 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                 ];
               },
             ),
-          if (!kIsWeb && lkPlatformIs(PlatformType.iOS))
+          if (!kIsWeb && lkPlatformIsMobile())
             IconButton(
               disabledColor: Colors.grey,
-              onPressed: Hardware.instance.canSwitchSpeakerphone
-                  ? _setSpeakerphoneOn
-                  : null,
+              onPressed: _setSpeakerphoneOn,
               icon: Icon(
                   _speakerphoneOn ? Icons.speaker_phone : Icons.phone_android),
               tooltip: 'Switch SpeakerPhone',

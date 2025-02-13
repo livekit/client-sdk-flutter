@@ -76,9 +76,17 @@ class Hardware {
 
   MediaDevice? selectedVideoInput;
 
-  bool? speakerOn;
+  bool? get speakerOn => _preferSpeakerOutput;
 
   bool _preferSpeakerOutput = true;
+
+  bool get preferSpeakerOutput => _preferSpeakerOutput;
+
+  bool _forceSpeakerOutput = false;
+
+  /// if true, will force speaker output even if headphones or bluetooth is connected
+  /// only supported on iOS for now
+  bool get forceSpeakerOutput => _forceSpeakerOutput && _preferSpeakerOutput;
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
@@ -122,13 +130,32 @@ class Hardware {
     await rtc.Helper.selectAudioInput(device.deviceId);
   }
 
-  Future<void> setPreferSpeakerOutput(bool enable) async {
-    if (lkPlatformIs(PlatformType.iOS)) {
-      if (_preferSpeakerOutput != enable) {
+  @Deprecated('use setSpeakerphoneOn')
+  Future<void> setPreferSpeakerOutput(bool enable) => setSpeakerphoneOn(enable);
+
+  bool get canSwitchSpeakerphone => lkPlatformIsMobile();
+
+  /// [enable] set speakerphone on or off, by default wired/bluetooth headsets will still
+  /// be prioritized even if set to true.
+  /// [forceSpeakerOutput] if true, will force speaker output even if headphones
+  /// or bluetooth is connected, only supported on iOS for now
+  Future<void> setSpeakerphoneOn(bool enable,
+      {bool forceSpeakerOutput = false}) async {
+    if (canSwitchSpeakerphone) {
+      _preferSpeakerOutput = enable;
+      _forceSpeakerOutput = forceSpeakerOutput;
+      if (lkPlatformIs(PlatformType.iOS)) {
         NativeAudioConfiguration? config;
         if (lkPlatformIs(PlatformType.iOS)) {
           // Only iOS for now...
           config = await onConfigureNativeAudio.call(audioTrackState);
+          if (_preferSpeakerOutput && _forceSpeakerOutput) {
+            config = config.copyWith(
+              appleAudioCategoryOptions: {
+                AppleAudioCategoryOption.defaultToSpeaker,
+              },
+            );
+          }
           logger.fine('configuring for ${audioTrackState} using ${config}...');
           try {
             await Native.configureAudio(config);
@@ -136,28 +163,8 @@ class Hardware {
             logger.warning('failed to configure ${error}');
           }
         }
-      }
-      _preferSpeakerOutput = enable;
-    } else {
-      logger.warning('setPreferSpeakerOutput only support on iOS');
-    }
-  }
-
-  bool get preferSpeakerOutput => _preferSpeakerOutput;
-
-  bool get canSwitchSpeakerphone =>
-      ((lkPlatformIs(PlatformType.iOS) && !_preferSpeakerOutput) ||
-          lkPlatformIs(PlatformType.android)) &&
-      [AudioTrackState.localOnly, AudioTrackState.localAndRemote]
-          .contains(audioTrackState);
-
-  Future<void> setSpeakerphoneOn(bool enable) async {
-    if (lkPlatformIsMobile()) {
-      speakerOn = enable;
-      if (canSwitchSpeakerphone) {
-        await rtc.Helper.setSpeakerphoneOn(enable);
       } else {
-        logger.warning('Can\'t switch speaker/earpiece');
+        await rtc.Helper.setSpeakerphoneOn(enable);
       }
     } else {
       logger.warning('setSpeakerphoneOn only support on iOS/Android');

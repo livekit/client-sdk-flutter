@@ -133,6 +133,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   RegionUrlProvider? _regionUrlProvider;
 
+  lk_models.ServerInfo? _serverInfo;
+
+  lk_models.ServerInfo? get serverInfo => _serverInfo;
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -537,8 +541,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 type: Reliability.lossy,
               )));
       // _onDCStateUpdated(Reliability.lossy, state)
-    } catch (_) {
-      logger.severe('[$objectId] createDataChannel() did throw $_');
+    } catch (err) {
+      logger.severe('[$objectId] createDataChannel() did throw $err');
     }
 
     try {
@@ -554,8 +558,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 state: state,
                 type: Reliability.reliable,
               )));
-    } catch (_) {
-      logger.severe('[$objectId] createDataChannel() did throw $_');
+    } catch (err) {
+      logger.severe('[$objectId] createDataChannel() did throw $err');
     }
   }
 
@@ -814,7 +818,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(const EngineFullRestartingEvent());
 
       if (signalClient.connectionState == ConnectionState.connected) {
-        await signalClient.sendLeave();
+        await signalClient.cleanUp();
       }
 
       await publisher?.dispose();
@@ -893,6 +897,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
+      _serverInfo = event.response.serverInfo;
       var iceServersFromServer =
           event.response.iceServers.map((e) => e.toSDKType()).toList();
 
@@ -1037,7 +1042,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             return;
           }
           await signalClient.cleanUp();
-          await cleanUp();
+          fullReconnectOnNext = false;
+          await disconnect();
           events
               .emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
           break;
@@ -1081,12 +1087,10 @@ extension EnginePrivateMethods on Engine {
 
 extension EngineInternalMethods on Engine {
   @internal
-  List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
-      [_reliableDCPub, _lossyDCPub]
-          .whereNotNull()
-          .where((e) => e.id != -1)
-          .map((e) => e.toLKInfoType())
-          .toList();
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
   @internal
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,

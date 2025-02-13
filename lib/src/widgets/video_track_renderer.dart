@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -51,7 +53,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
-    this.renderMode = VideoRenderMode.auto,
+    this.renderMode = VideoRenderMode.texture,
     Key? key,
   }) : super(key: key);
 
@@ -68,13 +70,35 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   late GlobalKey _internalKey;
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (widget.renderMode == VideoRenderMode.platformView) {
+    if (lkPlatformIs(PlatformType.iOS) &&
+        widget.renderMode == VideoRenderMode.platformView) {
       return Null as Future<rtc.VideoRenderer>;
     }
-    _renderer ??= rtc.RTCVideoRenderer();
-    await _renderer!.initialize();
+    if (_renderer == null) {
+      _renderer = rtc.RTCVideoRenderer();
+      await _renderer!.initialize();
+    }
     await _attach();
     return _renderer!;
+  }
+
+  void setZoom(double zoomLevel) async {
+    final videoTrack = _renderer?.srcObject!.getVideoTracks().first;
+    if (videoTrack == null) return;
+    await rtc.Helper.setZoom(videoTrack, zoomLevel);
+  }
+
+  void onViewFinderTap(TapDownDetails details, BoxConstraints constraints) {
+    final videoTrack = _renderer?.srcObject!.getVideoTracks().first;
+    if (videoTrack == null) return;
+
+    final point = Point<double>(
+      details.localPosition.dx / constraints.maxWidth,
+      details.localPosition.dy / constraints.maxHeight,
+    );
+
+    rtc.Helper.setFocusPoint(videoTrack, point);
+    rtc.Helper.setExposurePoint(videoTrack, point);
   }
 
   void disposeRenderer() {
@@ -158,12 +182,33 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           },
         );
 
+  Widget _videoRendererView() {
+    if (lkPlatformIs(PlatformType.iOS) &&
+        widget.renderMode == VideoRenderMode.platformView) {
+      return rtc.RTCVideoPlatFormView(
+        mirror: _shouldMirror(),
+        objectFit: widget.fit,
+        onViewReady: (controller) {
+          _renderer = controller;
+          _renderer?.srcObject = widget.track.mediaStream;
+          _attach();
+        },
+      );
+    }
+    return rtc.RTCVideoView(
+      _renderer! as rtc.RTCVideoRenderer,
+      mirror: _shouldMirror(),
+      filterQuality: FilterQuality.medium,
+      objectFit: widget.fit,
+    );
+  }
+
   Widget _videoViewForNative() => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
         if ((snapshot.hasData && _renderer != null) ||
-            [VideoRenderMode.auto, VideoRenderMode.platformView]
-                .contains(widget.renderMode)) {
+            (lkPlatformIs(PlatformType.iOS) &&
+                widget.renderMode == VideoRenderMode.platformView)) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
@@ -172,24 +217,24 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                   ?.addPostFrameCallback((timeStamp) {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
-              if (lkPlatformIs(PlatformType.iOS) &&
-                  [VideoRenderMode.auto, VideoRenderMode.platformView]
-                      .contains(widget.renderMode)) {
-                return rtc.RTCVideoPlatFormView(
-                  mirror: _shouldMirror(),
-                  objectFit: widget.fit,
-                  onViewReady: (controller) {
-                    _renderer = controller;
-                    _renderer?.srcObject = widget.track.mediaStream;
-                    _attach();
-                  },
-                );
+
+              if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
+                return _videoRendererView();
               }
-              return rtc.RTCVideoView(
-                _renderer! as rtc.RTCVideoRenderer,
-                mirror: _shouldMirror(),
-                filterQuality: FilterQuality.medium,
-                objectFit: widget.fit,
+              return LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return GestureDetector(
+                    onScaleStart: (details) {},
+                    onScaleUpdate: (details) {
+                      if (details.scale != 1.0) {
+                        setZoom(details.scale);
+                      }
+                    },
+                    onTapDown: (TapDownDetails details) =>
+                        onViewFinderTap(details, constraints),
+                    child: _videoRendererView(),
+                  );
+                },
               );
             },
           );
@@ -212,6 +257,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.mirrorMode == VideoViewMirrorMode.auto) {
       final track = widget.track;
       if (track is LocalVideoTrack) {
+        final settings = track.mediaStreamTrack.getSettings();
+        final facingMode = settings['facingMode'];
+        if (facingMode != null) {
+          return facingMode == 'user';
+        }
         final options = track.currentOptions;
         if (options is CameraCaptureOptions) {
           // mirror if front camera

@@ -7,6 +7,7 @@ import 'package:livekit_example/theme.dart';
 import 'no_video.dart';
 import 'participant_info.dart';
 import 'participant_stats.dart';
+import 'sound_waveform.dart';
 
 abstract class ParticipantWidget extends StatefulWidget {
   // Convenience method to return relevant widget for participant
@@ -148,13 +149,6 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                     )
                   : const NoVideoWidget(),
             ),
-            if (widget.showStatsLayer)
-              Positioned(
-                  top: 30,
-                  right: 30,
-                  child: ParticipantStatsWidget(
-                    participant: widget.participant,
-                  )),
             // Bottom bar
             Align(
               alignment: Alignment.bottomCenter,
@@ -176,6 +170,25 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                 ],
               ),
             ),
+            if (widget.showStatsLayer)
+              Positioned(
+                  top: 130,
+                  right: 30,
+                  child: ParticipantStatsWidget(
+                    participant: widget.participant,
+                  )),
+            if (activeAudioTrack != null && !activeAudioTrack!.muted)
+              Positioned(
+                top: 10,
+                right: 10,
+                left: 10,
+                bottom: 10,
+                child: SoundWaveformWidget(
+                  key: ValueKey(activeAudioTrack!.hashCode),
+                  audioTrack: activeAudioTrack!,
+                  width: 8,
+                ),
+              ),
           ],
         ),
       );
@@ -266,7 +279,7 @@ class RemoteTrackPublicationMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Subscribe menu',
           icon: Icon(icon,
@@ -304,7 +317,7 @@ class RemoteTrackFPSMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Preferred FPS',
           icon: Icon(icon, color: Colors.white),
@@ -338,7 +351,7 @@ class RemoteTrackQualityMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         child: PopupMenuButton<Function>(
           tooltip: 'Preferred Quality',
           icon: Icon(icon, color: Colors.white),

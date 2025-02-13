@@ -59,11 +59,13 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpReceiver? receiver;
 
+  final bool? enableVisualizer;
+
   Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack,
-      {this.receiver}) {
+      {this.receiver, this.enableVisualizer}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
-      logger.fine('[TrackEvent] $event, will notifyListeners()');
+      logger.finer('[TrackEvent] $event, will notifyListeners()');
       notifyListeners();
     });
 
@@ -110,6 +112,8 @@ abstract class Track extends DisposableChangeNotifier
 
     startMonitor();
 
+    await onStarted();
+
     _active = true;
     return true;
   }
@@ -125,7 +129,11 @@ abstract class Track extends DisposableChangeNotifier
 
     stopMonitor();
 
+    await onStopped();
+
     logger.fine('$objectId.stop()');
+
+    await mediaStreamTrack.stop();
 
     _active = false;
     return true;
@@ -158,7 +166,14 @@ abstract class Track extends DisposableChangeNotifier
 
   Timer? _monitorTimer;
 
+  @internal
   Future<bool> monitorStats();
+
+  @internal
+  Future<void> onStarted() async {}
+
+  @internal
+  Future<void> onStopped() async {}
 
   @internal
   void startMonitor() {

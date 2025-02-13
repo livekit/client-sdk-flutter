@@ -87,7 +87,6 @@ class _RoomPageState extends State<RoomPage> {
           (timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
     })
     ..on<ParticipantEvent>((event) {
-      print('Participant event');
       // sort participants on many track events as noted in documentation linked above
       _sortParticipants();
     })
