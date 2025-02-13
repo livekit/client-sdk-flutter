@@ -17,10 +17,10 @@ import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:platform_detect/platform_detect.dart';
-import 'package:web/web.dart';
+import 'package:web/web.dart' as web;
 
 import '../platform.dart';
+import 'browser_detect/browser.dart';
 
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
@@ -34,12 +34,14 @@ bool lkE2EESupportedImplementation() {
 }
 
 bool isScriptTransformSupported() {
-  return window.hasProperty('RTCRtpScriptTransform'.toJS).isDefinedAndNotNull;
+  return web.window
+      .hasProperty('RTCRtpScriptTransform'.toJS)
+      .isDefinedAndNotNull;
 }
 
 bool isInsertableStreamSupported() {
-  return window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
-      ((window.getProperty('RTCRtpSender'.toJS) as JSObject)
+  return web.window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
+      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject)
               .getProperty('prototype'.toJS) as JSObject)
           .getProperty('createEncodedStreams'.toJS)
           .isDefinedAndNotNull;
