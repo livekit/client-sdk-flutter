@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import 'package:flutter/foundation.dart';
+
 import 'package:meta/meta.dart';
+
 import '../support/native.dart';
 
 /// Manages broadcast state and track publication for screen sharing on iOS.
