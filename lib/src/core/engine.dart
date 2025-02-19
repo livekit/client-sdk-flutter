@@ -36,6 +36,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
+import '../support/platform.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
 import '../track/local/video.dart';
@@ -343,12 +344,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
           await negotiate();
         }
-
-        logger.fine('Waiting for publisher to ice-connect...');
-        await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
-          filter: (event) => event.state.isConnected(),
-          duration: connectOptions.timeouts.peerConnection,
-        );
+        if (!lkPlatformIsTest()) {
+          logger.fine('Waiting for publisher to ice-connect...');
+          await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+            filter: (event) => event.state.isConnected(),
+            duration: connectOptions.timeouts.peerConnection,
+          );
+        }
       }
 
       // wait for data channel to open (if not already)
@@ -637,6 +639,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // SIP DTMF packet
       events.emit(EngineSipDtmfReceivedEvent(
         dtmf: dp.sipDtmf,
+      ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
+      // RPC Request
+      events.emit(EngineRPCRequestReceivedEvent(
+        request: dp.rpcRequest,
+        identity: dp.participantIdentity,
+      ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcResponse) {
+      // RPC Response
+      events.emit(EngineRPCResponseReceivedEvent(
+        response: dp.rpcResponse,
+        identity: dp.participantIdentity,
+      ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcAck) {
+      // RPC Ack
+      events.emit(EngineRPCAckReceivedEvent(
+        ack: dp.rpcAck,
+        identity: dp.participantIdentity,
       ));
     } else {
       logger.warning('Unknown data packet type: ${dp.whichValue()}');

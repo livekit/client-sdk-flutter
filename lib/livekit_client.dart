@@ -50,5 +50,6 @@ export 'src/types/participant_permissions.dart';
 export 'src/types/video_dimensions.dart';
 export 'src/types/video_encoding.dart';
 export 'src/types/video_parameters.dart';
+export 'src/types/rpc.dart';
 export 'src/widgets/screen_select_dialog.dart';
 export 'src/widgets/video_track_renderer.dart';
