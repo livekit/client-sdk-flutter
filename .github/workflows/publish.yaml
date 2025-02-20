@@ -12,52 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Publish build
+name: Publish to pub.dev
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
-      - name: Dart Format Check
-        run: dart format lib/ test/ --set-exit-if-changed
-      - name: Import Sorter Check
-        run: dart run import_sorter:main --no-comments --exit-if-changed
-      - name: Dart Analyze Check
-        run: flutter analyze
-      - name: Dart Test Check
-        run: flutter test
-      - name: Check version consistency
-        run: dart run scripts/check_version.dart
-      #- name: Check Publish Warnings
-      #  run: dart pub publish --dry-run
-      - name: Publish
-        uses: k-paxian/dart-package-publisher@v1.5.1
-        with:
-          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          flutter: true
-          skipTests: true
-          force: true
-      - run: dart pub global activate dartdoc
-
-      # Generate docs
-      - run: dart doc .
-
-      # Upload docs to S3
-      - name: S3 Upload
-        run: aws s3 cp doc/api s3://livekit-docs/client-sdk-flutter --recursive
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
-          AWS_DEFAULT_REGION: "us-east-1"
-
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    # with:
+    #   working-directory: path/to/package/within/repository
