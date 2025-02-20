@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2017 Workiva Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-enum AudioContextState {
-  suspended('suspended'),
-  running('running'),
-  closed('closed');
+/// Abstraction over window.navigator so we can run tests in the VM
+abstract class NavigatorProvider {
+  String get vendor;
+  String get appVersion;
+  String get appName;
+  String get userAgent;
+}
 
-  final String value;
-  static AudioContextState fromValue(String value) =>
-      values.firstWhere((e) => e.value == value);
-  static Iterable<AudioContextState> fromValues(Iterable<String> values) =>
-      values.map(fromValue);
-  const AudioContextState(this.value);
+/// Simple implementation that enables ease of unit testing
+class TestNavigator implements NavigatorProvider {
+  @override
+  String vendor = '';
+  @override
+  String appVersion = '';
+  @override
+  String appName = '';
+  @override
+  String userAgent = '';
 }

@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:js' as js;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:platform_detect/platform_detect.dart';
+import 'package:web/web.dart' as web;
 
 import '../platform.dart';
+import 'browser_detect/browser.dart';
 
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
@@ -32,12 +34,17 @@ bool lkE2EESupportedImplementation() {
 }
 
 bool isScriptTransformSupported() {
-  return js.context['RTCRtpScriptTransform'] != null;
+  return web.window
+      .hasProperty('RTCRtpScriptTransform'.toJS)
+      .isDefinedAndNotNull;
 }
 
 bool isInsertableStreamSupported() {
-  return js.context['RTCRtpSender'] != null &&
-      js.context['RTCRtpSender']['prototype']['createEncodedStreams'] != null;
+  return web.window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
+      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject)
+              .getProperty('prototype'.toJS) as JSObject)
+          .getProperty('createEncodedStreams'.toJS)
+          .isDefinedAndNotNull;
 }
 
 BrowserType lkBrowserImplementation() {
