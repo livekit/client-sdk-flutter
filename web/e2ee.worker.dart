@@ -92,7 +92,7 @@ void main() async {
     }.toJS;
   }
 
-  var handleMessage = (web.MessageEvent e) async {
+  handleMessage(web.MessageEvent e) async {
     var msg = e.data.dartify() as Map;
     var msgType = msg['msgType'];
     var msgId = msg['msgId'] as String?;
@@ -439,7 +439,7 @@ void main() async {
       default:
         logger.warning('Unknown message kind $msg');
     }
-  };
+  }
 
   self.onmessage = (web.MessageEvent e) {
     handleMessage(e);

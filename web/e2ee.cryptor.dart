@@ -4,7 +4,6 @@ import 'dart:js_interop_unsafe';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:js/js.dart';
 import 'package:web/web.dart' as web;
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
@@ -249,8 +248,7 @@ class FrameCryptor {
       this.codec = codec;
     }
     var transformer = web.TransformStream({
-      'transform':
-          allowInterop(operation == 'encode' ? encodeFunction : decodeFunction)
+      'transform': operation == 'encode' ? encodeFunction : decodeFunction
     }.jsify() as JSObject);
     try {
       readable
@@ -273,7 +271,7 @@ class FrameCryptor {
   }
 
   int getUnencryptedBytes(JSObject obj, String? codec) {
-    var data;
+    Uint8List data = Uint8List(0);
     var frameType = '';
     if (obj is web.RTCEncodedVideoFrame) {
       data = obj.data.toDart.asUint8List();
