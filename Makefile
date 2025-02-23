@@ -13,6 +13,6 @@ proto:
 format:
 	dart format lib/src/proto
 
-e2ee: dart compile js .\web\e2ee.worker.dart -o .\example\web\e2ee.worker.dart.js
+e2ee: dart compile js ./web/e2ee.worker.dart -o ./example/web/e2ee.worker.dart.js
 
 .PHONY: proto format

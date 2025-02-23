@@ -16,11 +16,9 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
-
 import 'package:web/web.dart' as web;
 
 import '../platform.dart';
-import 'browser_detect/browser.dart';
 
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
@@ -48,13 +46,29 @@ bool isInsertableStreamSupported() {
 }
 
 BrowserType lkBrowserImplementation() {
-  if (browser.isChrome) return BrowserType.chrome;
-  if (browser.isFirefox) return BrowserType.firefox;
-  if (browser.isSafari) return BrowserType.safari;
-  if (browser.isInternetExplorer) return BrowserType.internetExplorer;
-  if (browser.isWKWebView) return BrowserType.wkWebView;
+  var ua = web.window.navigator.userAgent;
+  var vendor = web.window.navigator.vendor;
+  var appVersion = web.window.navigator.appVersion;
+  if (web.window.navigator.vendor.contains('Google')) {
+    return BrowserType.chrome;
+  }
+  if (ua.contains('Firefox')) return BrowserType.firefox;
+  if (vendor.contains('Apple') && appVersion.contains('Version')) {
+    return BrowserType.safari;
+  }
+  if (web.Device.isIE) return BrowserType.internetExplorer;
+  if (ua.contains('Edg/')) return BrowserType.edge;
+  if (web.Device.isWebKit) return BrowserType.wkWebView;
   return BrowserType.unknown;
 }
 
-BrowserVersion lkBrowserVersionImplementation() => BrowserVersion(
-    browser.version.major, browser.version.minor, browser.version.patch);
+BrowserVersion lkBrowserVersionImplementation() {
+  var appVersion = web.window.navigator.appVersion;
+  Match match =
+      RegExp(r'Version/(\d+)(\.(\d+))?(\.(\d+))?').firstMatch(appVersion)!;
+  var major = int.parse(match.group(1)!);
+  var minor = int.parse(match.group(3) ?? '0');
+  var patch = int.parse(match.group(5) ?? '0');
+
+  return BrowserVersion(major, minor, patch);
+}

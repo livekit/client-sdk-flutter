@@ -1,7 +1,8 @@
-import 'dart:js' as js;
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
+import 'package:js/js_util.dart';
 import 'package:web/web.dart' as web;
 
 bool isE2EESupported() {
@@ -9,59 +10,43 @@ bool isE2EESupported() {
 }
 
 bool isScriptTransformSupported() {
-  return js.context['RTCRtpScriptTransform'] != null;
+  return web.window.hasProperty('RTCRtpScriptTransform'.toJS).toDart;
 }
 
 bool isInsertableStreamSupported() {
-  return js.context['RTCRtpSender'] != null &&
-      js.context['RTCRtpSender']['prototype']['createEncodedStreams'] != null;
-}
-
-Future<web.CryptoKey> importKey(
-    Uint8List keyBytes, String algorithm, String usage) {
-  // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-  return web.window.crypto.subtle
-      .importKey(
-        'raw',
-        keyBytes.toJS,
-        {'name': algorithm}.jsify() as JSAny,
-        false,
-        (usage == 'derive'
-                ? ['deriveBits', 'deriveKey']
-                : ['encrypt', 'decrypt'])
-            .jsify() as JSArray<JSString>,
-      )
-      .toDart;
+  return web.window.hasProperty('RTCRtpSender'.toJS).toDart &&
+      web.window
+          .getProperty<web.RTCRtpSender>('RTCRtpSender'.toJS)
+          .hasProperty('createEncodedStreams'.toJS)
+          .toDart;
 }
 
 Future<web.CryptoKey> createKeyMaterialFromString(
     Uint8List keyBytes, String algorithm, String usage) {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-  return web.window.crypto.subtle
-      .importKey(
-        'raw',
-        keyBytes.toJS,
-        {'name': 'PBKDF2'}.jsify() as JSAny,
-        false,
-        ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>,
-      )
-      .toDart;
+  return promiseToFuture<web.CryptoKey>(web.window.crypto.subtle.importKey(
+    'raw',
+    keyBytes.toJS,
+    {'name': 'PBKDF2'}.jsify() as web.AlgorithmIdentifier,
+    false,
+    ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>,
+  ));
 }
 
-dynamic getAlgoOptions(String algorithmName, Uint8List salt) {
+Map<String, dynamic> getAlgoOptions(String algorithmName, Uint8List salt) {
   switch (algorithmName) {
     case 'HKDF':
       return {
         'name': 'HKDF',
-        'salt': salt.toJS,
+        'salt': salt,
         'hash': 'SHA-256',
-        'info': Uint8List(128).toJS,
+        'info': Uint8List(128),
       };
     case 'PBKDF2':
       {
         return {
           'name': 'PBKDF2',
-          'salt': salt.toJS,
+          'salt': salt,
           'hash': 'SHA-256',
           'iterations': 100000,
         };

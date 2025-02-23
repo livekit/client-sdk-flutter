@@ -37,10 +37,10 @@ dependencies:
   uuid: '>=3.0.6'
   synchronized: ^3.0.0+3
   protobuf: ^3.0.0
-  flutter_webrtc: ^0.12.9
+  flutter_webrtc: ^0.12.11
   device_info_plus: '>=8.0.0'
   js: '>=0.6.4'
-  dart_webrtc: ^1.5.0
+  dart_webrtc: ^1.5.2+hotfix.1
   sdp_transform: ^0.3.2
   web: ^1.0.0
 

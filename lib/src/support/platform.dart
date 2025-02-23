@@ -63,6 +63,7 @@ enum BrowserType {
   safari,
   internetExplorer,
   wkWebView,
+  edge,
   unknown,
 }
 

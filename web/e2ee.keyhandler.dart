@@ -145,9 +145,9 @@ class ParticipantKeyHandler {
       return null;
     }
     try {
-      var key = (await web.window.crypto.subtle
+      var key = await worker.crypto.subtle
           .exportKey('raw', currentMaterial)
-          .toDart) as JSArrayBuffer;
+          .toDart as JSArrayBuffer;
       return key.toDart.asUint8List();
     } catch (e) {
       logger.warning('exportKey: $e');
@@ -169,7 +169,7 @@ class ParticipantKeyHandler {
 
   Future<web.CryptoKey> ratchetMaterial(
       web.CryptoKey currentMaterial, ByteBuffer newKeyBuffer) async {
-    var newMaterial = await web.window.crypto.subtle
+    var newMaterial = await worker.crypto.subtle
         .importKey(
           'raw',
           newKeyBuffer.toJS,
@@ -186,10 +186,11 @@ class ParticipantKeyHandler {
   }
 
   Future<void> setKey(Uint8List key, {int keyIndex = 0}) async {
-    var keyMaterial = await web.window.crypto.subtle
-        .importKey('raw', key.toJS, 'PBKDF2'.toJS, true,
-            ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
+    var keyMaterial = await worker.crypto.subtle
+        .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny,
+            false, ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
         .toDart;
+
     var keySet = await deriveKeys(
       keyMaterial,
       keyOptions.ratchetSalt,
@@ -209,16 +210,15 @@ class ParticipantKeyHandler {
   /// Derives a set of keys from the master key.
   /// See https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.1
   Future<KeySet> deriveKeys(web.CryptoKey material, Uint8List salt) async {
-    var algorithmOptions = getAlgoOptions(
-        (material.algorithm.getProperty('name'.toJS) as JSString).toDart, salt);
-
+    var algorithmName = material.algorithm.getProperty('name'.toJS) as JSString;
+    var algorithmOptions = getAlgoOptions(algorithmName.toDart, salt);
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
     // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams
-    var encryptionKey = await web.window.crypto.subtle
+    var encryptionKey = await worker.crypto.subtle
         .deriveKey(
-          algorithmOptions.jsify(),
+          algorithmOptions.jsify() as web.AlgorithmIdentifier,
           material,
-          {'name': 'AES-GCM', 'length': 128}.jsify() as JSAny,
+          {'name': 'AES-GCM', 'length': 128}.jsify() as web.AlgorithmIdentifier,
           false,
           ['encrypt', 'decrypt'].jsify() as JSArray<JSString>,
         )
@@ -234,8 +234,9 @@ class ParticipantKeyHandler {
     var algorithmOptions = getAlgoOptions('PBKDF2', salt);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
-    var newKey = await web.window.crypto.subtle
-        .deriveBits(algorithmOptions.jsify(), material, 256)
+    var newKey = await worker.crypto.subtle
+        .deriveBits(
+            algorithmOptions.jsify() as web.AlgorithmIdentifier, material, 256)
         .toDart;
     return newKey.toDart.asUint8List();
   }
