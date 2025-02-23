@@ -24,6 +24,7 @@ dependencies:
 
   livekit_client:
     path: ../
+  flutter_window_close: ^1.2.0
 
 dev_dependencies:
   flutter_test:

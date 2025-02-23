@@ -1,5 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_window_close/flutter_window_close.dart'
+    show FlutterWindowClose;
+import 'package:livekit_client/livekit_client.dart' show lkPlatformIsDesktop;
 import 'package:livekit_example/theme.dart';
+import 'package:livekit_example/utils.dart' show onWindowShouldClose;
 import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
 import 'pages/connect.dart';
@@ -13,7 +18,19 @@ void main() async {
   });
 
   WidgetsFlutterBinding.ensureInitialized();
+  if (lkPlatformIsDesktop() && !kIsWasm) {
+    await FlutterWindowClose.setWindowShouldCloseHandler(() async {
+      await onWindowShouldClose?.call();
+      return true;
+    });
+  }
 
+  /// for livestreaming app, you can initialize the bypassVoiceProcessing = true
+  /// here to get better audio quality
+  ///
+  /// await LiveKitClient.initialize(
+  ///  bypassVoiceProcessing: lkPlatformIsMobile(),
+  /// );
   runApp(const LiveKitExampleApp());
 }
 
