@@ -186,7 +186,7 @@ private fun calculateAmplitudeBarsFromFFT(
             accum = 0.0f
         }
 
-        val smoothingFactor = 0.5f
+        val smoothingFactor = 1f
         var avg = averages[barIndex]
         avg += (accum - avg / smoothingFactor)
         averages[barIndex] = avg
