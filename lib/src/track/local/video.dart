@@ -117,9 +117,6 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
 
     final stats = await sender!.getStats();
-    print(
-        'sender stats: ${stats.map((e) => 'id: ${e.id}, type:  ${e.type}, timestamp: ${e.timestamp}, values: ${e.values.toString()} ')}');
-    print('sender stats: ${stats.map((e) => e.values.toString())}');
     List<VideoSenderStats> items = [];
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
