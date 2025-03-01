@@ -1,17 +1,16 @@
 import 'package:livekit_client/src/support/disposable.dart';
+import '../events.dart' show AudioVisualizerEvent;
+import '../managers/event.dart' show EventsEmittable;
+import 'local/local.dart' show AudioTrack;
 
-import '../../events.dart' show AudioVisualizerEvent;
-import '../../managers/event.dart' show EventsEmittable;
-import 'local.dart' show AudioTrack;
-
-import '../visualizer_native.dart'
-    if (dart.library.js_interop) '../visualizer_web.dart';
+import 'visualizer_native.dart'
+    if (dart.library.js_interop) 'visualizer_web.dart';
 
 class VisualizerOptions {
-  final bool isCentered;
+  final bool centeredBands;
   final int barCount;
   const VisualizerOptions({
-    this.isCentered = true,
+    this.centeredBands = true,
     this.barCount = 7,
   });
 }

@@ -25,7 +25,6 @@ import '../../exceptions.dart';
 import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
-import '../../managers/event.dart' show EventsListener;
 import '../../participant/remote.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
@@ -36,7 +35,6 @@ import '../remote/video.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
-import 'visualizer.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {

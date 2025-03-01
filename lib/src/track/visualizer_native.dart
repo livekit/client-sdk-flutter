@@ -7,7 +7,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 import 'package:livekit_client/src/track/local/local.dart';
 import '../support/native.dart' show Native;
-import 'local/visualizer.dart';
+import 'visualizer.dart';
 
 class VisualizerNative extends Visualizer {
   final String visualizerId = '${DateTime.now().millisecondsSinceEpoch}';
@@ -30,7 +30,7 @@ class VisualizerNative extends Visualizer {
 
     await Native.startVisualizer(
       mediaStreamTrack.id!,
-      isCentered: visualizerOptions.isCentered,
+      isCentered: visualizerOptions.centeredBands,
       barCount: visualizerOptions.barCount,
       visualizerId: visualizerId,
     );
