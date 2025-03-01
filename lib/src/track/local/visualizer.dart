@@ -1,7 +1,8 @@
 import '../../events.dart' show AudioVisualizerEvent;
+import 'local.dart' show AudioTrack;
+
 import '../visualizer_native.dart'
     if (dart.library.js_interop) '../visualizer_web.dart';
-import 'local.dart' show AudioTrack;
 
 abstract class Visualizer {
   Stream<AudioVisualizerEvent> get events;

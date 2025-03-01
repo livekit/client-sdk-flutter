@@ -4,11 +4,10 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 
+import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 import 'local/local.dart' show AudioTrack;
 import 'local/visualizer.dart';
-
 import 'web/_audio_analyser.dart';
 
 class VisualizerWeb implements Visualizer {

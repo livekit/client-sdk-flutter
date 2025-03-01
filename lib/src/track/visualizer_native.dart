@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+
 import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 import 'package:livekit_client/src/track/local/local.dart';
-
 import '../support/native.dart' show Native;
 import 'local/visualizer.dart';
 

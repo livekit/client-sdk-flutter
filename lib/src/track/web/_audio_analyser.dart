@@ -3,13 +3,15 @@ import 'dart:js_interop_unsafe';
 import 'dart:math' as math;
 
 import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamWeb;
+import 'package:web/web.dart' as web;
+
+import '../../track/local/local.dart' show AudioTrack;
+
 // ignore: implementation_imports
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'
     show MediaStreamTrackWeb;
 
-import 'package:web/web.dart' as web;
 
-import '../../track/local/local.dart' show AudioTrack;
 
 class AudioAnalyser {
   final double Function() calculateVolume;
