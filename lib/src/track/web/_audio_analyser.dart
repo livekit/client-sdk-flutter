@@ -1,7 +1,6 @@
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamWeb;
 // ignore: implementation_imports
