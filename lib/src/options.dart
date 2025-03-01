@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:livekit_client/src/track/local/visualizer.dart'
+    show VisualizerOptions;
+
 import 'constants.dart';
 import 'e2ee/options.dart';
 import 'proto/livekit_models.pb.dart';

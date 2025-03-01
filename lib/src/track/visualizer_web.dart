@@ -11,26 +11,23 @@ import 'local/local.dart' show AudioTrack;
 import 'local/visualizer.dart';
 import 'web/_audio_analyser.dart';
 
-class VisualizerWeb implements Visualizer {
-  final _events = StreamController<AudioVisualizerEvent>.broadcast(sync: true);
-  @override
-  Stream<AudioVisualizerEvent> get events => _events.stream;
-
+class VisualizerWeb extends Visualizer {
   AudioAnalyser? _audioAnalyser;
-
   MultiBandTrackVolumeOptions options = MultiBandTrackVolumeOptions();
-
   Timer? _timer;
-
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
 
   final VisualizerOptions visualizerOptions;
 
-  VisualizerWeb(this._audioTrack, {required this.visualizerOptions});
+  VisualizerWeb(this._audioTrack, {required this.visualizerOptions}) {
+    onDispose(() async {
+      await events.dispose();
+    });
+  }
 
   @override
-  Future<void> startVisualizer() async {
+  Future<void> start() async {
     if (_audioAnalyser != null) {
       return;
     }
@@ -72,7 +69,7 @@ class VisualizerWeb implements Visualizer {
             chunks = centerBands(chunks);
           }
 
-          _events.add(AudioVisualizerEvent(
+          events.emit(AudioVisualizerEvent(
             track: _audioTrack,
             event: chunks,
           ));
@@ -105,10 +102,15 @@ class VisualizerWeb implements Visualizer {
   }
 
   @override
-  Future<void> stopVisualizer() async {
+  Future<void> stop() async {
     if (_audioAnalyser == null) {
       return;
     }
+
+    events.emit(AudioVisualizerEvent(
+      track: _audioTrack!,
+      event: [],
+    ));
 
     _timer?.cancel();
     _timer = null;

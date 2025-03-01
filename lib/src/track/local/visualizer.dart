@@ -1,22 +1,25 @@
+import 'package:livekit_client/src/support/disposable.dart';
+
 import '../../events.dart' show AudioVisualizerEvent;
+import '../../managers/event.dart' show EventsEmittable;
 import 'local.dart' show AudioTrack;
 
 import '../visualizer_native.dart'
     if (dart.library.js_interop) '../visualizer_web.dart';
 
 class VisualizerOptions {
-  bool isCentered;
-  int barCount;
-  VisualizerOptions({
+  final bool isCentered;
+  final int barCount;
+  const VisualizerOptions({
     this.isCentered = true,
     this.barCount = 7,
   });
 }
 
-abstract class Visualizer {
-  Stream<AudioVisualizerEvent> get events;
-  Future<void> startVisualizer();
-  Future<void> stopVisualizer();
+abstract class Visualizer extends DisposableChangeNotifier
+    with EventsEmittable<AudioVisualizerEvent> {
+  Future<void> start();
+  Future<void> stop();
 }
 
 Visualizer createVisualizer(AudioTrack track, {VisualizerOptions? options}) =>

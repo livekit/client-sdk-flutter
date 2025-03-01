@@ -25,6 +25,7 @@ import '../../exceptions.dart';
 import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
+import '../../managers/event.dart' show EventsListener;
 import '../../participant/remote.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
@@ -61,22 +62,27 @@ mixin VideoTrack on Track {
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
   Visualizer? _visualizer;
+  late EventsListener<AudioVisualizerEvent> _listener;
 
   @override
   Future<void> onStarted() async {
-    if (enableVisualizer == true) {
+    if (enableVisualizer == true && _visualizer == null) {
       _visualizer = createVisualizer(this);
-      _visualizer?.events.listen((event) {
+      _listener = _visualizer!.createListener();
+      _listener.on<AudioVisualizerEvent>((event) {
         events.emit(event);
       });
-      await _visualizer?.startVisualizer();
+      await _visualizer?.start();
     }
   }
 
   @override
   Future<void> onStopped() async {
-    if (enableVisualizer == true) {
-      await _visualizer?.stopVisualizer();
+    if (enableVisualizer == true && _visualizer != null) {
+      await _visualizer?.stop();
+      await _listener.dispose();
+      await _visualizer?.dispose();
+      _visualizer = null;
     }
   }
 }

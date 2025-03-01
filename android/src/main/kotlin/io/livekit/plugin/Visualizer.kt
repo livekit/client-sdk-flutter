@@ -34,7 +34,7 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
     private var audioTrack: LKAudioTrack? = null
 
     private var amplitudes: FloatArray = FloatArray(0)
-    private var bands: FloatArray = FloatArray(7)
+    private var bands: FloatArray
 
     private var barCount: Int = 7
     private var loPass: Int = 1
@@ -51,6 +51,7 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
         this.barCount = barCount
         this.isCentered = isCentered
         this.audioTrack = audioTrack
+        this.bands = FloatArray(barCount)
         eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id())
         eventChannel?.setStreamHandler(this)
         ffiAudioAnalyzer.configure(audioFormat)
@@ -79,8 +80,6 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
 
         ffiAudioAnalyzer.queueInput(audioData)
         var fft: FloatArray? = ffiAudioAnalyzer.fft ?: return
-
-
 
         val averages = FloatArray(barCount)
 

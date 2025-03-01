@@ -9,20 +9,21 @@ import 'package:livekit_client/src/track/local/local.dart';
 import '../support/native.dart' show Native;
 import 'local/visualizer.dart';
 
-class VisualizerNative implements Visualizer {
-  final _events = StreamController<AudioVisualizerEvent>.broadcast(sync: true);
-  @override
-  Stream<AudioVisualizerEvent> get events => _events.stream;
+class VisualizerNative extends Visualizer {
   EventChannel? _eventChannel;
   StreamSubscription? _streamSubscription;
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
 
   final VisualizerOptions visualizerOptions;
-  VisualizerNative(this._audioTrack, {required this.visualizerOptions});
+  VisualizerNative(this._audioTrack, {required this.visualizerOptions}) {
+    onDispose(() async {
+      await events.dispose();
+    });
+  }
 
   @override
-  Future<void> startVisualizer() async {
+  Future<void> start() async {
     if (_eventChannel != null) {
       return;
     }
@@ -38,7 +39,7 @@ class VisualizerNative implements Visualizer {
     _streamSubscription =
         _eventChannel?.receiveBroadcastStream().listen((event) {
       //logger.fine('[$objectId] visualizer event(${event})');
-      _events.add(AudioVisualizerEvent(
+      events.emit(AudioVisualizerEvent(
         track: _audioTrack!,
         event: event,
       ));
@@ -46,14 +47,14 @@ class VisualizerNative implements Visualizer {
   }
 
   @override
-  Future<void> stopVisualizer() async {
+  Future<void> stop() async {
     if (_eventChannel == null) {
       return;
     }
 
     await Native.stopVisualizer(mediaStreamTrack.id!);
 
-    _events.add(AudioVisualizerEvent(
+    events.emit(AudioVisualizerEvent(
       track: _audioTrack!,
       event: [],
     ));
@@ -61,7 +62,6 @@ class VisualizerNative implements Visualizer {
     await _streamSubscription?.cancel();
     _streamSubscription = null;
     _eventChannel = null;
-    await _events.close();
   }
 }
 
