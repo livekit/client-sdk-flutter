@@ -11,8 +11,6 @@ import '../../track/local/local.dart' show AudioTrack;
 import 'package:dart_webrtc/src/media_stream_track_impl.dart'
     show MediaStreamTrackWeb;
 
-
-
 class AudioAnalyser {
   final double Function() calculateVolume;
   final web.AnalyserNode analyser;
