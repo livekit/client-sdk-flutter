@@ -61,29 +61,14 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
-  Visualizer? _visualizer;
-  late EventsListener<AudioVisualizerEvent> _listener;
-
   @override
   Future<void> onStarted() async {
-    if (enableVisualizer == true && _visualizer == null) {
-      _visualizer = createVisualizer(this);
-      _listener = _visualizer!.createListener();
-      _listener.on<AudioVisualizerEvent>((event) {
-        events.emit(event);
-      });
-      await _visualizer?.start();
-    }
+    logger.fine('AudioTrack.onStarted()');
   }
 
   @override
   Future<void> onStopped() async {
-    if (enableVisualizer == true && _visualizer != null) {
-      await _visualizer?.stop();
-      await _listener.dispose();
-      await _visualizer?.dispose();
-      _visualizer = null;
-    }
+    logger.fine('AudioTrack.onStopped()');
   }
 }
 
@@ -103,18 +88,13 @@ abstract class LocalTrack extends Track {
 
   TrackProcessor? get processor => _processor;
 
-  LocalTrack(
-    TrackType kind,
-    TrackSource source,
-    rtc.MediaStream mediaStream,
-    rtc.MediaStreamTrack mediaStreamTrack, {
-    bool? enableVisualizer,
-  }) : super(
+  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream,
+      rtc.MediaStreamTrack mediaStreamTrack)
+      : super(
           kind,
           source,
           mediaStream,
           mediaStreamTrack,
-          enableVisualizer: enableVisualizer,
         ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');

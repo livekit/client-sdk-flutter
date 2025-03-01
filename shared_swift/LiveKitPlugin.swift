@@ -27,7 +27,8 @@ import Combine
 @available(iOS 13.0, *)
 public class LiveKitPlugin: NSObject, FlutterPlugin {
 
-    var processers: Dictionary<Track, Visualizer> = [:]
+    var processers: Dictionary<String, Visualizer> = [:]
+    var tracks: Dictionary<String, Track> = [:]
 
     var binaryMessenger: FlutterBinaryMessenger?
 
@@ -109,10 +110,17 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let webrtc = FlutterWebRTCPlugin.sharedSingleton()
 
         let trackId = args["trackId"] as? String
+        let visualizerId = args["visualizerId"] as? String 
         let barCount = args["barCount"] as? Int ?? 7
         let isCentered = args["isCentered"] as? Bool ?? true
 
-        if let unwrappedTrackId = trackId {
+        if visualizerId == nil {
+            result(FlutterError(code: "visualizerId", message: "visualizerId is required", details: nil))
+            return
+        }
+
+        if let unwrappedTrackId = trackId { 
+            let unwrappedVisualizerId = visualizerId!
 
             let localTrack = webrtc?.localTracks![unwrappedTrackId]
             if let audioTrack = localTrack as? LocalAudioTrack {
@@ -120,8 +128,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 let processor = Visualizer(track: lkLocalTrack,
                                                binaryMessenger: self.binaryMessenger!,
                                                bandCount: barCount,
-                                               isCentered: isCentered)
-                processers[lkLocalTrack] = processor
+                                               isCentered: isCentered,
+                                               visualizerId: unwrappedVisualizerId)    
+                
+                tracks[unwrappedTrackId] = lkLocalTrack
+                processers[unwrappedVisualizerId] = processor
+                
             }
 
             let track = webrtc?.remoteTrack(forId: unwrappedTrackId)
@@ -130,8 +142,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 let processor = Visualizer(track: lkRemoteTrack,
                                                binaryMessenger: self.binaryMessenger!,
                                                bandCount: barCount,
-                                               isCentered: isCentered)
-                processers[lkRemoteTrack] = processor
+                                               isCentered: isCentered,
+                                               visualizerId: unwrappedVisualizerId)
+                tracks[unwrappedTrackId] = lkRemoteTrack
+                processers[unwrappedVisualizerId] = processor
             }
         }
 
@@ -141,12 +155,16 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     public func handleStopAudioVisualizer(args: [String: Any?], result: @escaping FlutterResult) {
         let trackId = args["trackId"] as? String
+        let visualizerId = args["visualizerId"] as? String
         if let unwrappedTrackId = trackId {
-            for key in processers.keys {
-                if key.mediaTrack.trackId == unwrappedTrackId {
-                    processers.removeValue(forKey: key)
+            for key in tracks.keys {
+                if key == unwrappedTrackId {
+                    tracks.removeValue(forKey: key)
                 }
             }
+        }
+        if let unwrappedVisualizerId = visualizerId {
+            processers.removeValue(forKey: unwrappedVisualizerId)
         }
         result(true)
     }

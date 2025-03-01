@@ -10,11 +10,11 @@ import '../support/native.dart' show Native;
 import 'local/visualizer.dart';
 
 class VisualizerNative extends Visualizer {
+  final String visualizerId = '${DateTime.now().millisecondsSinceEpoch}';
   EventChannel? _eventChannel;
   StreamSubscription? _streamSubscription;
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
-
   final VisualizerOptions visualizerOptions;
   VisualizerNative(this._audioTrack, {required this.visualizerOptions}) {
     onDispose(() async {
@@ -32,10 +32,11 @@ class VisualizerNative extends Visualizer {
       mediaStreamTrack.id!,
       isCentered: visualizerOptions.isCentered,
       barCount: visualizerOptions.barCount,
+      visualizerId: visualizerId,
     );
 
     _eventChannel = EventChannel(
-        'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
+        'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
     _streamSubscription =
         _eventChannel?.receiveBroadcastStream().listen((event) {
       //logger.fine('[$objectId] visualizer event(${event})');
@@ -52,7 +53,8 @@ class VisualizerNative extends Visualizer {
       return;
     }
 
-    await Native.stopVisualizer(mediaStreamTrack.id!);
+    await Native.stopVisualizer(mediaStreamTrack.id!,
+        visualizerId: visualizerId);
 
     events.emit(AudioVisualizerEvent(
       track: _audioTrack!,

@@ -38,8 +38,6 @@
  * SOFTWARE.
  */
 
-import 'dart:ui_web';
-
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -72,9 +70,9 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
 
   void _startVisualizer(AudioTrack track) async {
     samples = List.filled(widget.barCount, 0);
-    _visualizer = createVisualizer(track,
+    _visualizer ??= createVisualizer(track,
         options: VisualizerOptions(barCount: widget.barCount));
-    _listener = _visualizer?.createListener();
+    _listener ??= _visualizer?.createListener();
     _listener?.on<AudioVisualizerEvent>((e) {
       if (mounted) {
         setState(() {
@@ -89,7 +87,9 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
   void _stopVisualizer(AudioTrack track) async {
     await _visualizer?.stop();
     await _visualizer?.dispose();
+    _visualizer = null;
     await _listener?.dispose();
+    _listener = null;
   }
 
   @override
