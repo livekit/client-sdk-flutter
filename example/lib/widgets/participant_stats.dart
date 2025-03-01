@@ -55,7 +55,9 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
       listener.on<VideoReceiverStatsEvent>((event) {
         Map<String, String> stats = {};
         setState(() {
-          stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
+          if (!event.currentBitrate.isFinite && !event.currentBitrate.isNaN) {
+            stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
+          }
           if (event.stats.mimeType != null) {
             stats['codec'] =
                 '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}';
