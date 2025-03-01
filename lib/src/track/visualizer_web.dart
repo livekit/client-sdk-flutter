@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
+import '../logger.dart' show logger;
 import 'local/local.dart' show AudioTrack;
 import 'local/visualizer.dart';
 import 'web/_audio_analyser.dart';
@@ -24,13 +25,17 @@ class VisualizerWeb implements Visualizer {
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
 
-  VisualizerWeb(this._audioTrack);
+  final VisualizerOptions visualizerOptions;
+
+  VisualizerWeb(this._audioTrack, {required this.visualizerOptions});
 
   @override
   Future<void> startVisualizer() async {
     if (_audioAnalyser != null) {
       return;
     }
+
+    final bands = visualizerOptions.barCount;
 
     _audioAnalyser = createAudioAnalyser(_audioTrack!, options.analyserOptions);
 
@@ -52,15 +57,19 @@ class VisualizerWeb implements Visualizer {
 
           final normalizedFrequencies =
               normalizeFrequencies(frequencies); // is this needed ?
-          final chunkSize = (normalizedFrequencies.length / options.bands!)
+          final chunkSize = (normalizedFrequencies.length / (bands + 1))
               .ceil(); // we want logarithmic chunking here
-          Float32List chunks = Float32List(options.bands!.toInt() - 1);
+          Float32List chunks = Float32List(visualizerOptions.barCount);
 
-          for (var i = 0; i < options.bands!.toInt() - 1; i++) {
+          for (var i = 0; i < bands; i++) {
             final summedVolumes = normalizedFrequencies
                 .sublist(i * chunkSize, (i + 1) * chunkSize)
                 .reduce((acc, val) => (acc += val));
             chunks[i] = (summedVolumes / chunkSize);
+          }
+
+          if (visualizerOptions.isCentered) {
+            chunks = centerBands(chunks);
           }
 
           _events.add(AudioVisualizerEvent(
@@ -68,10 +77,31 @@ class VisualizerWeb implements Visualizer {
             event: chunks,
           ));
         } catch (e) {
-          print(e);
+          logger.warning('Error in visualizer: $e');
         }
       },
     );
+  }
+
+  Float32List centerBands(Float32List sortedBands) {
+    final centeredBands = Float32List(sortedBands.length);
+    var leftIndex = sortedBands.length / 2;
+    var rightIndex = leftIndex;
+
+    for (var index = 0; index < sortedBands.length; index++) {
+      final value = sortedBands[index];
+      if (index % 2 == 0) {
+        // Place value to the right
+        centeredBands[rightIndex.toInt()] = value;
+        rightIndex += 1;
+      } else {
+        // Place value to the left
+        leftIndex -= 1;
+        centeredBands[leftIndex.toInt()] = value;
+      }
+    }
+
+    return centeredBands;
   }
 
   @override
@@ -89,8 +119,6 @@ class VisualizerWeb implements Visualizer {
 }
 
 class MultiBandTrackVolumeOptions {
-  final num? bands;
-
   /// cut off of frequency bins on the lower end
   /// Note: this is not a frequency measure, but in relation to analyserOptions.fftSize,
   final num? loPass;
@@ -105,7 +133,6 @@ class MultiBandTrackVolumeOptions {
   final AudioAnalyserOptions? analyserOptions;
 
   const MultiBandTrackVolumeOptions({
-    this.bands = 8,
     this.loPass = 0,
     this.hiPass = 170,
     this.updateInterval = 32,
@@ -134,4 +161,6 @@ List<num> normalizeFrequencies(List<double> frequencies) {
   }).toList();
 }
 
-Visualizer createVisualizerImpl(AudioTrack track) => VisualizerWeb(track);
+Visualizer createVisualizerImpl(AudioTrack track,
+        {VisualizerOptions? options}) =>
+    VisualizerWeb(track, visualizerOptions: options ?? VisualizerOptions());

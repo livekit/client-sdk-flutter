@@ -17,7 +17,9 @@ class VisualizerNative implements Visualizer {
   StreamSubscription? _streamSubscription;
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
-  VisualizerNative(this._audioTrack);
+
+  final VisualizerOptions visualizerOptions;
+  VisualizerNative(this._audioTrack, {required this.visualizerOptions});
 
   @override
   Future<void> startVisualizer() async {
@@ -25,7 +27,11 @@ class VisualizerNative implements Visualizer {
       return;
     }
 
-    await Native.startVisualizer(mediaStreamTrack.id!);
+    await Native.startVisualizer(
+      mediaStreamTrack.id!,
+      isCentered: visualizerOptions.isCentered,
+      barCount: visualizerOptions.barCount,
+    );
 
     _eventChannel = EventChannel(
         'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
@@ -59,4 +65,6 @@ class VisualizerNative implements Visualizer {
   }
 }
 
-Visualizer createVisualizerImpl(AudioTrack track) => VisualizerNative(track);
+Visualizer createVisualizerImpl(AudioTrack track,
+        {VisualizerOptions? options}) =>
+    VisualizerNative(track, visualizerOptions: options ?? VisualizerOptions());
