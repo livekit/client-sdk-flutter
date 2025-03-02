@@ -637,8 +637,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else if (source == TrackSource.microphone) {
         AudioCaptureOptions captureOptions =
             audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(
-            captureOptions, room.roomOptions.enableVisualizer);
+        final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??

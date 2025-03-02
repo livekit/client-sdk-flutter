@@ -54,6 +54,7 @@ class Native {
     String trackId, {
     bool isCentered = true,
     int barCount = 7,
+    String visualizerId = '',
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -62,6 +63,7 @@ class Native {
           'trackId': trackId,
           'isCentered': isCentered,
           'barCount': barCount,
+          'visualizerId': visualizerId,
         },
       );
       return result == true;
@@ -72,12 +74,14 @@ class Native {
   }
 
   @internal
-  static Future<void> stopVisualizer(String trackId) async {
+  static Future<void> stopVisualizer(String trackId,
+      {required String visualizerId}) async {
     try {
       await channel.invokeMethod<void>(
         'stopVisualizer',
         <String, dynamic>{
           'trackId': trackId,
+          'visualizerId': visualizerId,
         },
       );
     } catch (error) {
