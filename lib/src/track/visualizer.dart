@@ -6,20 +6,21 @@ import 'local/local.dart' show AudioTrack;
 import 'visualizer_native.dart'
     if (dart.library.js_interop) 'visualizer_web.dart';
 
-class VisualizerOptions {
+class AudioVisualizerOptions {
   final bool centeredBands;
   final int barCount;
-  const VisualizerOptions({
+  const AudioVisualizerOptions({
     this.centeredBands = true,
     this.barCount = 7,
   });
 }
 
-abstract class Visualizer extends DisposableChangeNotifier
+abstract class AudioVisualizer extends DisposableChangeNotifier
     with EventsEmittable<AudioVisualizerEvent> {
   Future<void> start();
   Future<void> stop();
 }
 
-Visualizer createVisualizer(AudioTrack track, {VisualizerOptions? options}) =>
+AudioVisualizer createVisualizer(AudioTrack track,
+        {AudioVisualizerOptions? options}) =>
     createVisualizerImpl(track, options: options);

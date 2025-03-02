@@ -11,16 +11,16 @@ import 'local/local.dart' show AudioTrack;
 import 'visualizer.dart';
 import 'web/_audio_analyser.dart';
 
-class VisualizerWeb extends Visualizer {
+class AudioVisualizerWeb extends AudioVisualizer {
   AudioAnalyser? _audioAnalyser;
   MultiBandTrackVolumeOptions options = MultiBandTrackVolumeOptions();
   Timer? _timer;
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
 
-  final VisualizerOptions visualizerOptions;
+  final AudioVisualizerOptions visualizerOptions;
 
-  VisualizerWeb(this._audioTrack, {required this.visualizerOptions}) {
+  AudioVisualizerWeb(this._audioTrack, {required this.visualizerOptions}) {
     onDispose(() async {
       await events.dispose();
     });
@@ -52,10 +52,8 @@ class VisualizerWeb extends Visualizer {
           frequencies = frequencies.sublist(
               options.loPass!.toInt(), options.hiPass!.toInt());
 
-          final normalizedFrequencies =
-              normalizeFrequencies(frequencies); // is this needed ?
-          final chunkSize = (normalizedFrequencies.length / (bands + 1))
-              .ceil(); // we want logarithmic chunking here
+          final normalizedFrequencies = normalizeFrequencies(frequencies);
+          final chunkSize = (normalizedFrequencies.length / (bands + 1)).ceil();
           Float32List chunks = Float32List(visualizerOptions.barCount);
 
           for (var i = 0; i < bands; i++) {
@@ -163,6 +161,7 @@ List<num> normalizeFrequencies(List<double> frequencies) {
   }).toList();
 }
 
-Visualizer createVisualizerImpl(AudioTrack track,
-        {VisualizerOptions? options}) =>
-    VisualizerWeb(track, visualizerOptions: options ?? VisualizerOptions());
+AudioVisualizer createVisualizerImpl(AudioTrack track,
+        {AudioVisualizerOptions? options}) =>
+    AudioVisualizerWeb(track,
+        visualizerOptions: options ?? AudioVisualizerOptions());

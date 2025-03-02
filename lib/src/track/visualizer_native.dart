@@ -9,14 +9,14 @@ import 'package:livekit_client/src/track/local/local.dart';
 import '../support/native.dart' show Native;
 import 'visualizer.dart';
 
-class VisualizerNative extends Visualizer {
+class AudioVisualizerNative extends AudioVisualizer {
   final String visualizerId = '${DateTime.now().millisecondsSinceEpoch}';
   EventChannel? _eventChannel;
   StreamSubscription? _streamSubscription;
   final AudioTrack? _audioTrack;
   MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
-  final VisualizerOptions visualizerOptions;
-  VisualizerNative(this._audioTrack, {required this.visualizerOptions}) {
+  final AudioVisualizerOptions visualizerOptions;
+  AudioVisualizerNative(this._audioTrack, {required this.visualizerOptions}) {
     onDispose(() async {
       await events.dispose();
     });
@@ -39,7 +39,6 @@ class VisualizerNative extends Visualizer {
         'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
     _streamSubscription =
         _eventChannel?.receiveBroadcastStream().listen((event) {
-      //logger.fine('[$objectId] visualizer event(${event})');
       events.emit(AudioVisualizerEvent(
         track: _audioTrack!,
         event: event,
@@ -67,6 +66,7 @@ class VisualizerNative extends Visualizer {
   }
 }
 
-Visualizer createVisualizerImpl(AudioTrack track,
-        {VisualizerOptions? options}) =>
-    VisualizerNative(track, visualizerOptions: options ?? VisualizerOptions());
+AudioVisualizer createVisualizerImpl(AudioTrack track,
+        {AudioVisualizerOptions? options}) =>
+    AudioVisualizerNative(track,
+        visualizerOptions: options ?? AudioVisualizerOptions());
