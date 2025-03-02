@@ -7,7 +7,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 import 'package:livekit_client/src/track/local/local.dart';
 import '../support/native.dart' show Native;
-import 'visualizer.dart';
+import 'audio_visualizer.dart';
 
 class AudioVisualizerNative extends AudioVisualizer {
   final String visualizerId = '${DateTime.now().millisecondsSinceEpoch}';

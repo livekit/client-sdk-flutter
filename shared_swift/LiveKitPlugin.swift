@@ -27,7 +27,7 @@ import Combine
 @available(iOS 13.0, *)
 public class LiveKitPlugin: NSObject, FlutterPlugin {
 
-    var processers: Dictionary<String, Visualizer> = [:]
+    var processors: Dictionary<String, Visualizer> = [:]
     var tracks: Dictionary<String, Track> = [:]
 
     var binaryMessenger: FlutterBinaryMessenger?
@@ -132,7 +132,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                                visualizerId: unwrappedVisualizerId)    
                 
                 tracks[unwrappedTrackId] = lkLocalTrack
-                processers[unwrappedVisualizerId] = processor
+                processors[unwrappedVisualizerId] = processor
                 
             }
 
@@ -145,7 +145,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                                isCentered: isCentered,
                                                visualizerId: unwrappedVisualizerId)
                 tracks[unwrappedTrackId] = lkRemoteTrack
-                processers[unwrappedVisualizerId] = processor
+                processors[unwrappedVisualizerId] = processor
             }
         }
 
@@ -164,7 +164,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             }
         }
         if let unwrappedVisualizerId = visualizerId {
-            processers.removeValue(forKey: unwrappedVisualizerId)
+            processors.removeValue(forKey: unwrappedVisualizerId)
         }
         result(true)
     }

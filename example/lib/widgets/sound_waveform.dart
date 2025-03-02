@@ -65,13 +65,13 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
     with TickerProviderStateMixin {
   late AnimationController controller;
   late List<double> samples;
-  Visualizer? _visualizer;
+  AudioVisualizer? _visualizer;
   EventsListener<AudioVisualizerEvent>? _listener;
 
   void _startVisualizer(AudioTrack track) async {
     samples = List.filled(widget.barCount, 0);
     _visualizer ??= createVisualizer(track,
-        options: VisualizerOptions(barCount: widget.barCount));
+        options: AudioVisualizerOptions(barCount: widget.barCount));
     _listener ??= _visualizer?.createListener();
     _listener?.on<AudioVisualizerEvent>((e) {
       if (mounted) {

@@ -7,8 +7,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:livekit_client/src/events.dart' show AudioVisualizerEvent;
 import '../logger.dart' show logger;
+import 'audio_visualizer.dart';
 import 'local/local.dart' show AudioTrack;
-import 'visualizer.dart';
 import 'web/_audio_analyser.dart';
 
 class AudioVisualizerWeb extends AudioVisualizer {
