@@ -941,8 +941,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
-      if (!_subscriberPrimary) {
-        // for subscriberPrimary, we negotiate when necessary (lazy)
+      if (!_subscriberPrimary || event.response.fastPublish) {
+        /// for subscriberPrimary, we negotiate when necessary (lazy)
+        /// and if `response.fastPublish == true`, we need to negotiate
+        /// immediately
         await negotiate();
       }
     })
