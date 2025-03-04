@@ -115,6 +115,9 @@ class RoomOptions {
   /// Options for end-to-end encryption.
   final E2EEOptions? e2eeOptions;
 
+  /// fast track publication
+  final bool fastPublish;
+
   /// audio visualizer is disabled by default
   /// When enabled, the native layer will register an FFI audio analyzer
   /// and will emit AudioVisualizerEvent events from AudioTrack.
@@ -135,6 +138,7 @@ class RoomOptions {
     this.stopLocalTrackOnUnpublish = true,
     this.e2eeOptions,
     this.enableVisualizer = false,
+    this.fastPublish = true,
   });
 
   RoomOptions copyWith({
@@ -148,6 +152,7 @@ class RoomOptions {
     bool? dynacast,
     bool? stopLocalTrackOnUnpublish,
     E2EEOptions? e2eeOptions,
+    bool? fastPublish,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions:
@@ -167,6 +172,7 @@ class RoomOptions {
       stopLocalTrackOnUnpublish:
           stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
+      fastPublish: fastPublish ?? this.fastPublish,
     );
   }
 }

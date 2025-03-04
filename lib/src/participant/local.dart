@@ -58,6 +58,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   final Map<String, Function(String? payload, RpcError? error)>
       _pendingResponses = {};
 
+  List<lk_models.Codec> _enabledPublishVideoCodecs = [];
+
   @internal
   LocalParticipant({
     required Room room,
@@ -178,6 +180,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       publishOptions = publishOptions.copyWith(
         videoCodec: publishOptions.videoCodec.toLowerCase(),
       );
+    }
+
+    if (_enabledPublishVideoCodecs.isNotEmpty) {
+      // fallback to a supported codec if it is not supported
+      if (!_enabledPublishVideoCodecs.any((c) =>
+          publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
+        publishOptions = publishOptions.copyWith(
+          videoCodec:
+              mimeTypeToVideoCodecString(_enabledPublishVideoCodecs[0].mime)
+                  .toLowerCase(),
+        );
+      }
     }
 
     // handle SVC publishing
@@ -812,6 +826,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     logger.info(
         'published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
+  }
+
+  @internal
+  void setEnabledPublishCodecs(List<lk_models.Codec> codecs) {
+    _enabledPublishVideoCodecs =
+        codecs.where((c) => c.mime.split('/').contains('video')).toList();
   }
 }
 
