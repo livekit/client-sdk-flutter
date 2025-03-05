@@ -38,32 +38,10 @@ class Visualizer(
     private var audioTrack: LKAudioTrack? = audioTrack
     private var amplitudes: FloatArray = FloatArray(0)
     private var bands: FloatArray
-
-    private var barCount: Int = 7
     private var loPass: Int = 1
     private var hiPass: Int = 120
-    private var isCentered: Boolean = true
 
     private var audioFormat = AudioFormat(16, 48000, 1)
-
-    val visualizerId: String
-
-    constructor(
-        barCount: Int,
-        isCentered: Boolean,
-        audioTrack: LKAudioTrack,
-        binaryMessenger: BinaryMessenger,
-        visualizerId: String) {
-        this.barCount = barCount
-        this.isCentered = isCentered
-        this.audioTrack = audioTrack
-        this.bands = FloatArray(barCount)
-        this.visualizerId = visualizerId
-        eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id() + "-" + visualizerId)
-        eventChannel?.setStreamHandler(this)
-        ffiAudioAnalyzer.configure(audioFormat)
-        audioTrack.addSink(this)
-    }
 
     fun stop() {
         audioTrack?.removeSink(this)
