@@ -29,16 +29,18 @@ class Visualizer(
     private var barCount: Int,
     private var isCentered: Boolean,
     audioTrack: LKAudioTrack,
-    binaryMessenger: BinaryMessenger
+    binaryMessenger: BinaryMessenger,
+    visualizerId: String
 ) : EventChannel.StreamHandler, AudioTrackSink {
     private var eventChannel: EventChannel? = null
     private var eventSink: EventChannel.EventSink? = null
     private var ffiAudioAnalyzer = FFTAudioAnalyzer()
     private var audioTrack: LKAudioTrack? = audioTrack
     private var amplitudes: FloatArray = FloatArray(0)
-    private var bands: FloatArray = FloatArray(0)
+    private var bands: FloatArray
     private var loPass: Int = 0
     private var hiPass: Int = 80
+
     private var audioFormat = AudioFormat(16, 48000, 1)
 
     fun stop() {
@@ -99,8 +101,9 @@ class Visualizer(
     }
 
     init {
-        eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id())
+        eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id() + "-" + visualizerId)
         eventChannel?.setStreamHandler(this)
+        bands = FloatArray(barCount)
         ffiAudioAnalyzer.configure(audioFormat)
         audioTrack.addSink(this)
     }
