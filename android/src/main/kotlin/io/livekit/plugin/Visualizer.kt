@@ -23,16 +23,19 @@ import io.flutter.plugin.common.EventChannel
 import org.webrtc.AudioTrack
 import org.webrtc.AudioTrackSink
 import java.nio.ByteBuffer
-import kotlin.math.pow
-import kotlin.math.round
-import kotlin.math.sqrt
+import kotlin.math.*
 
-class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
+class Visualizer(
+    private var barCount: Int,
+    private var isCentered: Boolean,
+    audioTrack: LKAudioTrack,
+    binaryMessenger: BinaryMessenger,
+    visualizerId: String
+) : EventChannel.StreamHandler, AudioTrackSink {
     private var eventChannel: EventChannel? = null
     private var eventSink: EventChannel.EventSink? = null
     private var ffiAudioAnalyzer = FFTAudioAnalyzer()
-    private var audioTrack: LKAudioTrack? = null
-
+    private var audioTrack: LKAudioTrack? = audioTrack
     private var amplitudes: FloatArray = FloatArray(0)
     private var bands: FloatArray
 
@@ -83,17 +86,23 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
         }
 
         ffiAudioAnalyzer.queueInput(audioData)
-        var fft: FloatArray? = ffiAudioAnalyzer.fft ?: return
+        val fft: FloatArray = ffiAudioAnalyzer.fft ?: return
 
         val averages = FloatArray(barCount)
 
-        var sliced = fft?.slice(loPass until hiPass)
-        amplitudes = sliced?.let { calculateAmplitudeBarsFromFFT(it, averages, barCount) }!!
+        val sliced = fft.slice(loPass until hiPass)
+        amplitudes = calculateAmplitudeBarsFromFFT(sliced, averages, barCount)
 
-        amplitudes = centerBands(amplitudes)
+        if(bands.size != amplitudes.size) {
+            bands = amplitudes;
+        }
+
+        if(this.isCentered) {
+            amplitudes = centerBands(amplitudes)
+        }
 
         bands = bands.mapIndexed { index, value ->
-            smoothTransition(value, amplitudes[index], 0.3f)
+          smoothTransition(value, amplitudes[index], 0.3f)
         }.toFloatArray()
 
         handler.post {
@@ -112,10 +121,18 @@ class Visualizer : EventChannel.StreamHandler, AudioTrackSink {
     override fun onCancel(arguments: Any?) {
         eventSink = null
     }
+
+    init {
+        eventChannel = EventChannel(binaryMessenger, "io.livekit.audio.visualizer/eventChannel-" + audioTrack.id() + "-" + visualizerId)
+        eventChannel?.setStreamHandler(this)
+        bands = FloatArray(barCount)
+        ffiAudioAnalyzer.configure(audioFormat)
+        audioTrack.addSink(this)
+    }
 }
 
 private fun centerBands(bands: FloatArray): FloatArray {
-    var centeredBands = FloatArray(bands.size)
+    val centeredBands = FloatArray(bands.size)
     var leftIndex = bands.size / 2;
     var rightIndex = leftIndex;
 
@@ -135,7 +152,6 @@ private fun centerBands(bands: FloatArray): FloatArray {
 }
 
 private  fun smoothTransition(from: Float, to: Float, factor: Float): Float {
-
     val delta = to - from
     val easedFactor = easeInOutCubic(factor)
     return from + delta * easedFactor
@@ -150,7 +166,7 @@ private fun easeInOutCubic(t: Float): Float {
 }
 
 private const val MIN_CONST = 0.1f
-private const val MAX_CONST = 1.0f
+private const val MAX_CONST = 8.0f
 
 private fun calculateAmplitudeBarsFromFFT(
     fft: List<Float>,
@@ -195,7 +211,7 @@ private fun calculateAmplitudeBarsFromFFT(
             accum = 0.0f
         }
 
-        val smoothingFactor = 5
+        val smoothingFactor = 1f
         var avg = averages[barIndex]
         avg += (accum - avg / smoothingFactor)
         averages[barIndex] = avg
