@@ -19,14 +19,8 @@ package io.livekit.plugin
 import org.webrtc.AudioTrack
 import org.webrtc.AudioTrackSink
 
-class LKRemoteAudioTrack: LKAudioTrack {
-    private var audioTrack: AudioTrack? = null
-
-    constructor(
-        audioTrack: AudioTrack
-    ) {
-        this.audioTrack = audioTrack
-    }
+class LKRemoteAudioTrack(audioTrack: AudioTrack) : LKAudioTrack {
+    private var audioTrack: AudioTrack? = audioTrack
 
     override fun addSink(sink: AudioTrackSink?) {
         audioTrack?.addSink(sink)

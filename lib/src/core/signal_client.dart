@@ -79,6 +79,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     onDispose(() async {
       await cleanUp();
+      await events.cancelAll();
       await events.dispose();
       if (!kIsWeb && !lkPlatformIsTest()) {
         await _connectivitySubscription?.cancel();

@@ -42,7 +42,7 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 class SoundWaveformWidget extends StatefulWidget {
-  final int count;
+  final int barCount;
   final double width;
   final double minHeight;
   final double maxHeight;
@@ -50,7 +50,7 @@ class SoundWaveformWidget extends StatefulWidget {
   const SoundWaveformWidget({
     super.key,
     required this.audioTrack,
-    this.count = 7,
+    this.barCount = 5,
     this.width = 5,
     this.minHeight = 8,
     this.maxHeight = 100,
@@ -64,12 +64,15 @@ class SoundWaveformWidget extends StatefulWidget {
 class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
     with TickerProviderStateMixin {
   late AnimationController controller;
-  List<double> samples = [0, 0, 0, 0, 0, 0, 0];
-  EventsListener<TrackEvent>? _listener;
+  late List<double> samples;
+  AudioVisualizer? _visualizer;
+  EventsListener<AudioVisualizerEvent>? _listener;
 
   void _startVisualizer(AudioTrack track) async {
-    await _listener?.dispose();
-    _listener = track.createListener();
+    samples = List.filled(widget.barCount, 0);
+    _visualizer ??= createVisualizer(track,
+        options: AudioVisualizerOptions(barCount: widget.barCount));
+    _listener ??= _visualizer?.createListener();
     _listener?.on<AudioVisualizerEvent>((e) {
       if (mounted) {
         setState(() {
@@ -77,10 +80,16 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
         });
       }
     });
+
+    await _visualizer!.start();
   }
 
   void _stopVisualizer(AudioTrack track) async {
+    await _visualizer?.stop();
+    await _visualizer?.dispose();
+    _visualizer = null;
     await _listener?.dispose();
+    _listener = null;
   }
 
   @override
@@ -106,7 +115,7 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
 
   @override
   Widget build(BuildContext context) {
-    final count = widget.count;
+    final count = widget.barCount;
     final minHeight = widget.minHeight;
     final maxHeight = widget.maxHeight;
     return AnimatedBuilder(

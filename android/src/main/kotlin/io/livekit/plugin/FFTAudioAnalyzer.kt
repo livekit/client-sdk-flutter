@@ -67,7 +67,7 @@ class FFTAudioAnalyzer {
         private const val SHORT_SIZE = 2
     }
 
-    val isActive: Boolean
+    private val isActive: Boolean
         get() = noise != null
 
     private var noise: Noise? = null

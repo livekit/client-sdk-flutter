@@ -447,6 +447,41 @@ class EngineSipDtmfReceivedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
+class EngineRPCRequestReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.RpcRequest request;
+  String get requestId => request.id;
+  final String identity;
+  const EngineRPCRequestReceivedEvent({
+    required this.request,
+    required this.identity,
+  });
+}
+
+@internal
+class EngineRPCResponseReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.RpcResponse response;
+  String get requestId => response.requestId;
+  final String identity;
+  lk_models.RpcError? get error => response.error;
+  String get payload => response.payload;
+  const EngineRPCResponseReceivedEvent({
+    required this.response,
+    required this.identity,
+  });
+}
+
+@internal
+class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
+  final lk_models.RpcAck ack;
+  String get requestId => ack.requestId;
+  final String identity;
+  const EngineRPCAckReceivedEvent({
+    required this.ack,
+    required this.identity,
+  });
+}
+
+@internal
 abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
   final bool isPrimary;
   final Reliability type;

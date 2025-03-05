@@ -639,6 +639,15 @@ const JoinResponse$json = {
       '10': 'serverInfo'
     },
     {'1': 'sif_trailer', '3': 13, '4': 1, '5': 12, '10': 'sifTrailer'},
+    {
+      '1': 'enabled_publish_codecs',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.Codec',
+      '10': 'enabledPublishCodecs'
+    },
+    {'1': 'fast_publish', '3': 15, '4': 1, '5': 8, '10': 'fastPublish'},
   ],
 };
 
@@ -655,7 +664,9 @@ final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode(
     'IwoNc2VydmVyX3JlZ2lvbhgJIAEoCVIMc2VydmVyUmVnaW9uEiEKDHBpbmdfdGltZW91dBgKIA'
     'EoBVILcGluZ1RpbWVvdXQSIwoNcGluZ19pbnRlcnZhbBgLIAEoBVIMcGluZ0ludGVydmFsEjQK'
     'C3NlcnZlcl9pbmZvGAwgASgLMhMubGl2ZWtpdC5TZXJ2ZXJJbmZvUgpzZXJ2ZXJJbmZvEh8KC3'
-    'NpZl90cmFpbGVyGA0gASgMUgpzaWZUcmFpbGVy');
+    'NpZl90cmFpbGVyGA0gASgMUgpzaWZUcmFpbGVyEkQKFmVuYWJsZWRfcHVibGlzaF9jb2RlY3MY'
+    'DiADKAsyDi5saXZla2l0LkNvZGVjUhRlbmFibGVkUHVibGlzaENvZGVjcxIhCgxmYXN0X3B1Ym'
+    'xpc2gYDyABKAhSC2Zhc3RQdWJsaXNo');
 
 @$core.Deprecated('Use reconnectResponseDescriptor instead')
 const ReconnectResponse$json = {

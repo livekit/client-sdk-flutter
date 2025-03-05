@@ -190,23 +190,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
       await requestBackgroundPermission();
     }
-    if (lkPlatformIs(PlatformType.iOS)) {
-      var track = await LocalVideoTrack.createScreenShareTrack(
-        const ScreenShareCaptureOptions(
-          useiOSBroadcastExtension: true,
-          maxFrameRate: 15.0,
-        ),
-      );
-      await participant.publishVideoTrack(track);
-      return;
-    }
 
     if (lkPlatformIsWebMobile()) {
       await context
           .showErrorDialog('Screen share is not supported on mobile web');
       return;
     }
-
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
 

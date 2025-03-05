@@ -46,6 +46,7 @@ class E2EContainer {
       wsConnector.onData(joinResponse.writeToBuffer());
       wsConnector.onData(offerResponse.writeToBuffer());
     });
+
     await connectFuture;
   }
 }

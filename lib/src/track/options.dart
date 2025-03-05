@@ -179,7 +179,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
   Map<String, dynamic> toMediaConstraintsMap() {
     var constraints = super.toMediaConstraintsMap();
     if (useiOSBroadcastExtension && lkPlatformIs(PlatformType.iOS)) {
-      constraints['deviceId'] = 'broadcast';
+      constraints['deviceId'] = 'broadcast-manual';
     }
     if (lkPlatformIsDesktop()) {
       if (deviceId != null) {
