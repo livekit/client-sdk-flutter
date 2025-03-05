@@ -267,7 +267,57 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       isSVC,
     );
 
+    if (room.engine.isClosed) {
+      throw UnexpectedConnectionState(
+          'cannot publish track when not connected');
+    }
+
     logger.fine('Video layers: ${layers.map((e) => e)}');
+
+
+    Future<void> negotiate () async {
+
+      track.sender = await room.engine.createSender(track, opts, encodings);
+
+      if (isLocalVideoTrack(track)) {
+        publishOptions.degradationPreference ??= getDefaultDegradationPreference(track);
+        track.setDegradationPreference(opts.degradationPreference);
+      }
+
+      if (encodings?.isNotEmpty ?? false) {
+        if (isFireFox() && track.kind == TrackType.AUDIO) {
+          /* Refer to RFC https://datatracker.ietf.org/doc/html/rfc7587#section-6.1,
+             livekit-server uses maxaveragebitrate=510000 in the answer sdp to permit client to
+             publish high quality audio track. But firefox always uses this value as the actual
+             bitrates, causing the audio bitrates to rise to 510Kbps in any stereo case unexpectedly.
+             So the client need to modify maxaverragebitrates in answer sdp to user provided value to
+             fix the issue.
+           */
+          let trackTransceiver: RTCRtpTransceiver | undefined = undefined;
+          for (const transceiver of this.engine.pcManager.publisher.getTransceivers()) {
+            if (transceiver.sender === track.sender) {
+              trackTransceiver = transceiver;
+              break;
+            }
+          }
+          if (trackTransceiver) {
+            this.engine.pcManager.publisher.setTrackCodecBitrate({
+              transceiver: trackTransceiver,
+              codec: 'opus',
+              maxbr: encodings[0]?.maxBitrate ? encodings[0].maxBitrate / 1000 : 0,
+            });
+          }
+        } else if (track.codec && isSVCCodec(track.codec) && encodings[0]?.maxBitrate) {
+          this.engine.pcManager.publisher.setTrackCodecBitrate({
+            cid: req.cid,
+            codec: track.codec,
+            maxbr: encodings[0].maxBitrate / 1000,
+          });
+        }
+      }
+
+      await room.engine.negotiate();
+    }
 
     final trackInfo = await room.engine.addTrack(
       cid: track.getCid(),

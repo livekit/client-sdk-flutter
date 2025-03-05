@@ -1109,10 +1109,38 @@ extension EnginePrivateMethods on Engine {
 
 extension EngineInternalMethods on Engine {
   @internal
+  Future<rtc.RTCRtpSender> createTransceiverRTCRtpSender(
+    LocalVideoTrack track,
+    VideoPublishOptions opts,
+    List<rtc.RTCRtpEncoding>? encodings,
+  ) async {
+    if (publisher == null) {
+      throw UnexpectedConnectionState('publisher is closed');
+    }
+
+    if (track.mediaStreamTrack.kind == 'video') {
+      track.codec = opts.videoCodec;
+    }
+    var transceiverInit = rtc.RTCRtpTransceiverInit(
+      direction: rtc.TransceiverDirection.SendOnly,
+    );
+    if (encodings != null) {
+      transceiverInit.sendEncodings = encodings;
+    }
+    final transceiver = await publisher!.pc.addTransceiver(
+      track: track.mediaStreamTrack,
+      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      init: transceiverInit,
+    );
+    return transceiver.sender;
+  }
+
+  @internal
   List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
         _reliableDCPub,
         _lossyDCPub
       ].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
+
   @internal
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
     LocalVideoTrack track,
