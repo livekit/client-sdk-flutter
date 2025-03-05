@@ -38,8 +38,8 @@ class Visualizer(
     private var audioTrack: LKAudioTrack? = audioTrack
     private var amplitudes: FloatArray = FloatArray(0)
     private var bands: FloatArray
-    private var loPass: Int = 1
-    private var hiPass: Int = 120
+    private var loPass: Int = 0
+    private var hiPass: Int = 80
 
     private var audioFormat = AudioFormat(16, 48000, 1)
 
