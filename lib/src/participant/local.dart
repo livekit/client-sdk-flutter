@@ -150,8 +150,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     } else {
       trackInfo = await room.engine.addTrack(req);
 
-      track.lastPublishOptions = publishOptions;
-
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
         sendEncodings: [
@@ -168,6 +166,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       await room.engine.negotiate();
     }
+
+    logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
+
+    track.lastPublishOptions = publishOptions;
 
     final pub = LocalTrackPublication<LocalAudioTrack>(
       participant: this,
@@ -424,12 +426,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         }
       }
 
-      logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
-
-      track.lastPublishOptions = publishOptions;
-
-      await track.start();
-
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
         sendEncodings: encodings,
@@ -476,6 +472,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       await room.engine.negotiate();
     }
+
+    logger.fine('publishVideoTrack engine.addTrack response: ${trackInfo}');
+
+    track.lastPublishOptions = publishOptions;
+
+    await track.start();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(
       participant: this,
