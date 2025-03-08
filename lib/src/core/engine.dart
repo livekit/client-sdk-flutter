@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../e2ee/options.dart';
@@ -42,8 +43,6 @@ import '../support/websocket.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
 import '../types/other.dart';
-import '../types/video_dimensions.dart';
-import '../utils.dart';
 import 'room.dart';
 import 'signal_client.dart';
 import 'transport.dart';
@@ -138,6 +137,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   lk_models.ServerInfo? get serverInfo => _serverInfo;
 
+  List<lk_models.Codec>? _enabledPublishCodecs;
+
+  List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -202,7 +205,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
 
       // wait for join response
-      await _signalListener.waitFor<SignalJoinResponseEvent>(
+      await events.waitFor<EngineJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException(
             'Timed out waiting for SignalJoinResponseEvent',
@@ -249,56 +252,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  Future<lk_models.TrackInfo> addTrack({
-    required String cid,
-    required String name,
-    required lk_models.TrackType kind,
-    required lk_models.TrackSource source,
-    VideoDimensions? dimensions,
-    bool? dtx,
-    Iterable<lk_models.VideoLayer>? videoLayers,
-    Iterable<lk_rtc.SimulcastCodec>? simulcastCodecs,
-    String? sid,
-    String? videoCodec,
-    String? stream,
-    bool? disableRed,
-  }) async {
-    // TODO: Check if cid already published
-
-    lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
-    if (roomOptions.e2eeOptions != null && !isSVCCodec(videoCodec ?? '')) {
-      switch (roomOptions.e2eeOptions!.encryptionType) {
-        case EncryptionType.kNone:
-          encryptionType = lk_models.Encryption_Type.NONE;
-          break;
-        case EncryptionType.kGcm:
-          encryptionType = lk_models.Encryption_Type.GCM;
-          break;
-        case EncryptionType.kCustom:
-          encryptionType = lk_models.Encryption_Type.CUSTOM;
-          break;
-      }
-    }
-
+  Future<lk_models.TrackInfo> addTrack(lk_rtc.AddTrackRequest req) async {
     // send request to add track
-    signalClient.sendAddTrack(
-      cid: cid,
-      name: name,
-      type: kind,
-      source: source,
-      dimensions: dimensions,
-      dtx: dtx,
-      videoLayers: videoLayers,
-      encryptionType: encryptionType,
-      simulcastCodecs: simulcastCodecs,
-      sid: sid,
-      stream: stream,
-      disableRed: disableRed,
-    );
+    signalClient.sendAddTrack(req);
 
     // wait for response, or timeout
     final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
-      filter: (event) => event.cid == cid,
+      filter: (event) => event.cid == req.cid,
       duration: connectOptions.timeouts.publish,
       onTimeout: () => throw TrackPublishException(),
     );
@@ -941,12 +901,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
-      if (!_subscriberPrimary || event.response.fastPublish) {
+      if (!_subscriberPrimary ||
+          (event.response.fastPublish && roomOptions.fastPublish)) {
+        _enabledPublishCodecs = event.response.enabledPublishCodecs;
+
         /// for subscriberPrimary, we negotiate when necessary (lazy)
         /// and if `response.fastPublish == true`, we need to negotiate
         /// immediately
         await negotiate();
       }
+
+      events.emit(EngineJoinResponseEvent(response: event.response));
     })
     ..on<SignalReconnectResponseEvent>((event) async {
       var iceServersFromServer =
@@ -1109,16 +1074,16 @@ extension EnginePrivateMethods on Engine {
 
 extension EngineInternalMethods on Engine {
   @internal
-  Future<rtc.RTCRtpSender> createTransceiverRTCRtpSender(
-    LocalVideoTrack track,
-    VideoPublishOptions opts,
+  Future<rtc.RTCRtpTransceiver> createTransceiverRTCRtpSender(
+    LocalTrack track,
+    PublishOptions opts,
     List<rtc.RTCRtpEncoding>? encodings,
   ) async {
     if (publisher == null) {
       throw UnexpectedConnectionState('publisher is closed');
     }
 
-    if (track.mediaStreamTrack.kind == 'video') {
+    if (track.mediaStreamTrack.kind == 'video' && opts is VideoPublishOptions) {
       track.codec = opts.videoCodec;
     }
     var transceiverInit = rtc.RTCRtpTransceiverInit(
@@ -1129,10 +1094,12 @@ extension EngineInternalMethods on Engine {
     }
     final transceiver = await publisher!.pc.addTransceiver(
       track: track.mediaStreamTrack,
-      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      kind: track is LocalVideoTrack
+          ? rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo
+          : rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
       init: transceiverInit,
     );
-    return transceiver.sender;
+    return transceiver;
   }
 
   @internal
