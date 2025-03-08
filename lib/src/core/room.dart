@@ -103,11 +103,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   lk_models.Room? _roomInfo;
 
-  List<lk_models.Codec>? _enabledPublishCodecs;
-
-  @internal
-  List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
-
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers =>
       UnmodifiableListView<Participant>(_activeSpeakers);
@@ -399,7 +394,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _metadata = event.response.room.metadata;
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
-      _enabledPublishCodecs = event.response.enabledPublishCodecs;
 
       if (_isRecording != event.response.room.activeRecording) {
         _isRecording = event.response.room.activeRecording;

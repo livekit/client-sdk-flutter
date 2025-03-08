@@ -21,9 +21,9 @@ import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';

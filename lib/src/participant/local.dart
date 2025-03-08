@@ -143,7 +143,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     late lk_models.TrackInfo trackInfo;
-    if (room.enabledPublishCodecs?.isNotEmpty ?? false) {
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
       final rets = await Future.wait<lk_models.TrackInfo>(
           [room.engine.addTrack(req), negotiate()]);
       trackInfo = rets[0];
@@ -221,14 +221,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       );
     }
 
-    if (room.enabledPublishCodecs?.isNotEmpty ?? false) {
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
       // fallback to a supported codec if it is not supported
-      if (!room.enabledPublishCodecs!.any((c) =>
+      if (!room.engine.enabledPublishCodecs!.any((c) =>
           publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
         publishOptions = publishOptions.copyWith(
-          videoCodec:
-              mimeTypeToVideoCodecString(room.enabledPublishCodecs![0].mime)
-                  .toLowerCase(),
+          videoCodec: mimeTypeToVideoCodecString(
+                  room.engine.enabledPublishCodecs![0].mime)
+              .toLowerCase(),
         );
       }
     }
@@ -395,7 +395,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         ..addAll(layers);
     }
     late lk_models.TrackInfo trackInfo;
-    if (room.enabledPublishCodecs?.isNotEmpty ?? false) {
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
       final rets = await Future.wait<lk_models.TrackInfo>(
           [room.engine.addTrack(req), negotiate()]);
       trackInfo = rets[0];
