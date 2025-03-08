@@ -118,13 +118,10 @@ class RoomOptions {
   /// fast track publication
   final bool fastPublish;
 
-  /// audio visualizer is disabled by default
-  /// When enabled, the native layer will register an FFI audio analyzer
-  /// and will emit AudioVisualizerEvent events from AudioTrack.
-  /// You can use SoundWaveformWidget (example/lib/widgets/sound_waveform.dart)
-  /// to display the audio wave. Or write a custom widget to visualize the audio
-  /// wave.
-  final bool enableVisualizer;
+  /// deprecated, use [createVisualizer] instead
+  /// please refer to example/lib/widgets/sound_waveform.dart
+  @Deprecated('Use createVisualizer instead')
+  final bool? enableVisualizer;
 
   const RoomOptions({
     this.defaultCameraCaptureOptions = const CameraCaptureOptions(),

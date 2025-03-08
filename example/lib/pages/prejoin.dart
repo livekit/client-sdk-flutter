@@ -131,7 +131,6 @@ class _PreJoinPageState extends State<PreJoinPage> {
         AudioCaptureOptions(
           deviceId: _selectedAudioDevice!.deviceId,
         ),
-        true, // enableVisualizer
       );
       await _audioTrack!.start();
     }
@@ -212,7 +211,6 @@ class _PreJoinPageState extends State<PreJoinPage> {
             screenShareEncoding: screenEncoding,
           ),
           e2eeOptions: e2eeOptions,
-          enableVisualizer: true,
         ),
       );
       // Create a Listener before connecting

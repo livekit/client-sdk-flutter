@@ -53,7 +53,8 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
                 binaryMessenger: FlutterBinaryMessenger,
                 bandCount: Int = 7,
                 isCentered: Bool = true,
-                smoothingFactor: Float = 0.3)
+                smoothingFactor: Float = 0.3,
+                visualizerId: String)
     {
         self.isCentered = isCentered
         self.smoothingFactor = smoothingFactor
@@ -62,7 +63,7 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
         _track = track
         super.init()
         _track?.add(audioRenderer: self)
-        let channelName = "io.livekit.audio.visualizer/eventChannel-" + (track?.mediaTrack.trackId ?? "")
+        let channelName = "io.livekit.audio.visualizer/eventChannel-" + (track?.mediaTrack.trackId ?? "") + "-" + visualizerId
         channel = FlutterEventChannel(name: channelName, binaryMessenger: binaryMessenger)
         channel?.setStreamHandler(self)
     }

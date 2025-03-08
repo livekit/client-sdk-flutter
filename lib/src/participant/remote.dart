@@ -112,7 +112,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     String trackSid, {
     rtc.RTCRtpReceiver? receiver,
     AudioOutputOptions audioOutputOptions = const AudioOutputOptions(),
-    bool? enableVisualizer,
   }) async {
     logger.fine('addSubscribedMediaTrack()');
 
@@ -154,8 +153,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
     } else if (pub.kind == TrackType.AUDIO) {
       // audio track
-      track = RemoteAudioTrack(pub.source, stream, mediaTrack,
-          receiver: receiver, enableVisualizer: enableVisualizer);
+      track =
+          RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
 
       var listener = track.createListener();
       listener.on<AudioPlaybackStarted>((event) {
