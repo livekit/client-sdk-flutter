@@ -103,21 +103,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions ??=
         track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
-    if (room.roomOptions.e2eeOptions != null) {
-      switch (room.roomOptions.e2eeOptions!.encryptionType) {
-        case EncryptionType.kNone:
-          encryptionType = lk_models.Encryption_Type.NONE;
-          break;
-        case EncryptionType.kGcm:
-          encryptionType = lk_models.Encryption_Type.GCM;
-          break;
-        case EncryptionType.kCustom:
-          encryptionType = lk_models.Encryption_Type.CUSTOM;
-          break;
-      }
-    }
-
     List<rtc.RTCRtpEncoding> encodings = [
       rtc.RTCRtpEncoding(
         maxBitrate: publishOptions.audioBitrate,
@@ -132,7 +117,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       stream: buildStreamId(publishOptions, track.source),
       disableDtx: !publishOptions.dtx,
       disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
-      encryption: encryptionType,
+      encryption: room.roomOptions.lkEncryptionType,
     );
 
     Future<lk_models.TrackInfo> negotiate() async {
@@ -353,22 +338,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return lk_models.TrackInfo();
     }
 
-    lk_models.Encryption_Type encryptionType = lk_models.Encryption_Type.NONE;
-    if (room.roomOptions.e2eeOptions != null &&
-        !isSVCCodec(publishOptions.videoCodec)) {
-      switch (room.roomOptions.e2eeOptions!.encryptionType) {
-        case EncryptionType.kNone:
-          encryptionType = lk_models.Encryption_Type.NONE;
-          break;
-        case EncryptionType.kGcm:
-          encryptionType = lk_models.Encryption_Type.GCM;
-          break;
-        case EncryptionType.kCustom:
-          encryptionType = lk_models.Encryption_Type.CUSTOM;
-          break;
-      }
-    }
-
     final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
       name: publishOptions.name ??
@@ -377,7 +346,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               : VideoPublishOptions.defaultCameraName),
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
-      encryption: encryptionType,
+      encryption: room.roomOptions.lkEncryptionType,
       simulcastCodecs: simulcastCodecs,
       muted: false,
       stream: buildStreamId(publishOptions, track.source),
