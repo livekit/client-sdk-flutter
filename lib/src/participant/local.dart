@@ -26,7 +26,6 @@ import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
 import '../core/transport.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
