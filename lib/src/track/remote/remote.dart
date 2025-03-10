@@ -26,7 +26,13 @@ abstract class RemoteTrack extends Track {
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track, {
     rtc.RTCRtpReceiver? receiver,
-  }) : super(kind, source, stream, track, receiver: receiver);
+  }) : super(
+          kind,
+          source,
+          stream,
+          track,
+          receiver: receiver,
+        );
 
   @override
   Future<bool> start() async {
@@ -40,7 +46,7 @@ abstract class RemoteTrack extends Track {
   @override
   Future<bool> stop() async {
     final didStop = await super.stop();
-    if (didStop /* || !muted*/ ) {
+    if (didStop/* || !muted*/) {
       await disable();
     }
     return didStop;
