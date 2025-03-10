@@ -451,10 +451,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
   }
 
-  Future<void> rePublishAllTracks() async {
+  Future<void> rePublishAllTracks({
+    bool republishMutedTrack = false,
+  }) async {
     final tracks = trackPublications.values.toList();
     trackPublications.clear();
     for (LocalTrackPublication track in tracks) {
+      if (!republishMutedTrack && track.track != null && track.track!.muted) continue;
       if (track.track is LocalAudioTrack) {
         await publishAudioTrack(track.track as LocalAudioTrack);
       } else if (track.track is LocalVideoTrack) {

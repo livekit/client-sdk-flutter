@@ -46,7 +46,7 @@ abstract class RemoteTrack extends Track {
   @override
   Future<bool> stop() async {
     final didStop = await super.stop();
-    if (didStop || !muted) {
+    if (didStop/* || !muted*/) {
       await disable();
     }
     return didStop;
