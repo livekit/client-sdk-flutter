@@ -1056,6 +1056,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
       switch (event.action) {
         case lk_rtc.LeaveRequest_Action.DISCONNECT:
+          if (event.canReconnect) {
+            fullReconnectOnNext = true;
+            // reconnect immediately instead of waiting for next attempt
+            await handleDisconnect(ClientDisconnectReason.leaveReconnect);
+            return;
+          }
           if (connectionState == ConnectionState.reconnecting) {
             logger.warning(
                 '[Signal] Received Leave while engine is reconnecting, ignoring...');
