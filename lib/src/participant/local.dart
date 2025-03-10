@@ -102,33 +102,58 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions ??=
         track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    final trackInfo = await room.engine.addTrack(
+    List<rtc.RTCRtpEncoding> encodings = [
+      rtc.RTCRtpEncoding(
+        maxBitrate: publishOptions.audioBitrate,
+      )
+    ];
+
+    var req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      stream: buildStreamId(publishOptions, track.source),
-      kind: track.kind.toPBType(),
+      type: track.kind.toPBType(),
       source: track.source.toPBType(),
-      dtx: publishOptions.dtx,
+      stream: buildStreamId(publishOptions, track.source),
+      disableDtx: !publishOptions.dtx,
       disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
+      encryption: room.roomOptions.lkEncryptionType,
     );
+
+    Future<lk_models.TrackInfo> negotiate() async {
+      track.transceiver = await room.engine
+          .createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+      await room.engine.negotiate();
+      return lk_models.TrackInfo();
+    }
+
+    late lk_models.TrackInfo trackInfo;
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
+      final rets = await Future.wait<lk_models.TrackInfo>(
+          [room.engine.addTrack(req), negotiate()]);
+      trackInfo = rets[0];
+    } else {
+      trackInfo = await room.engine.addTrack(req);
+
+      final transceiverInit = rtc.RTCRtpTransceiverInit(
+        direction: rtc.TransceiverDirection.SendOnly,
+        sendEncodings: [
+          if (publishOptions.audioBitrate > 0)
+            rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
+        ],
+      );
+      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+      track.transceiver = await room.engine.publisher?.pc.addTransceiver(
+        track: track.mediaStreamTrack,
+        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+        init: transceiverInit,
+      );
+
+      await room.engine.negotiate();
+    }
+
+    logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
 
     track.lastPublishOptions = publishOptions;
-
-    final transceiverInit = rtc.RTCRtpTransceiverInit(
-      direction: rtc.TransceiverDirection.SendOnly,
-      sendEncodings: [
-        if (publishOptions.audioBitrate > 0)
-          rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
-      ],
-    );
-    // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-    track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-      track: track.mediaStreamTrack,
-      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
-      init: transceiverInit,
-    );
-
-    await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalAudioTrack>(
       participant: this,
@@ -178,6 +203,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       publishOptions = publishOptions.copyWith(
         videoCodec: publishOptions.videoCodec.toLowerCase(),
       );
+    }
+
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
+      // fallback to a supported codec if it is not supported
+      if (!room.engine.enabledPublishCodecs!.any((c) =>
+          publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
+        publishOptions = publishOptions.copyWith(
+          videoCodec: mimeTypeToVideoCodecString(
+                  room.engine.enabledPublishCodecs![0].mime)
+              .toLowerCase(),
+        );
+      }
     }
 
     // handle SVC publishing
@@ -253,98 +290,162 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       isSVC,
     );
 
+    if (room.engine.isClosed) {
+      throw UnexpectedConnectionState(
+          'cannot publish track when not connected');
+    }
+
     logger.fine('Video layers: ${layers.map((e) => e)}');
 
-    final trackInfo = await room.engine.addTrack(
+    Future<lk_models.TrackInfo> negotiate() async {
+      track.transceiver = await room.engine
+          .createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+
+      if (lkBrowser() != BrowserType.firefox) {
+        await room.engine.setPreferredCodec(
+          track.transceiver!,
+          'video',
+          publishOptions.videoCodec,
+        );
+        track.codec = publishOptions.videoCodec;
+      }
+
+      if ([TrackSource.camera, TrackSource.screenShareVideo]
+          .contains(track.source)) {
+        var degradationPreference = publishOptions.degradationPreference ??
+            getDefaultDegradationPreference(
+              track,
+            );
+        track.setDegradationPreference(degradationPreference);
+      }
+
+      if (kIsWeb &&
+          lkBrowser() == BrowserType.firefox &&
+          track.kind == TrackType.AUDIO) {
+        //TOOD:
+      } else if (isSVCCodec(publishOptions.videoCodec) &&
+          encodings?.first.maxBitrate != null) {
+        room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+            cid: track.getCid(),
+            transceiver: track.transceiver,
+            codec: publishOptions.videoCodec,
+            maxbr: encodings![0].maxBitrate! ~/ 1000));
+      }
+
+      await room.engine.negotiate();
+
+      return lk_models.TrackInfo();
+    }
+
+    final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
       name: publishOptions.name ??
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
-      stream: buildStreamId(publishOptions, track.source),
-      kind: track.kind.toPBType(),
+      type: track.kind.toPBType(),
       source: track.source.toPBType(),
-      dimensions: dimensions,
-      videoLayers: layers,
+      encryption: room.roomOptions.lkEncryptionType,
       simulcastCodecs: simulcastCodecs,
-      videoCodec: publishOptions.videoCodec,
+      muted: false,
+      stream: buildStreamId(publishOptions, track.source),
     );
 
-    logger.fine('publishVideoTrack addTrack response: ${trackInfo}');
+    // video specific
+    if (dimensions.width > 0 && dimensions.height > 0) {
+      req.width = dimensions.width;
+      req.height = dimensions.height;
+    }
+
+    if (layers.isNotEmpty) {
+      req.layers
+        ..clear()
+        ..addAll(layers);
+    }
+    late lk_models.TrackInfo trackInfo;
+    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
+      final rets = await Future.wait<lk_models.TrackInfo>(
+          [room.engine.addTrack(req), negotiate()]);
+      trackInfo = rets[0];
+    } else {
+      trackInfo = await room.engine.addTrack(req);
+
+      String? primaryCodecMime;
+      for (var codec in trackInfo.codecs) {
+        primaryCodecMime ??= codec.mimeType;
+      }
+
+      if (primaryCodecMime != null) {
+        final updatedCodec = mimeTypeToVideoCodecString(primaryCodecMime);
+        if (updatedCodec != publishOptions.videoCodec) {
+          logger.fine(
+            'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
+          );
+          publishOptions = publishOptions.copyWith(
+            videoCodec: updatedCodec,
+          );
+          // recompute encodings since bitrates/etc could have changed
+          encodings = Utils.computeVideoEncodings(
+            isScreenShare: track.source == TrackSource.screenShareVideo,
+            dimensions: dimensions,
+            options: publishOptions,
+            codec: publishOptions.videoCodec,
+          );
+        }
+      }
+
+      final transceiverInit = rtc.RTCRtpTransceiverInit(
+        direction: rtc.TransceiverDirection.SendOnly,
+        sendEncodings: encodings,
+      );
+
+      logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
+
+      track.transceiver = await room.engine.publisher?.pc.addTransceiver(
+        track: track.mediaStreamTrack,
+        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+        init: transceiverInit,
+      );
+
+      if (lkBrowser() != BrowserType.firefox) {
+        await room.engine.setPreferredCodec(
+          track.transceiver!,
+          'video',
+          publishOptions.videoCodec,
+        );
+        track.codec = publishOptions.videoCodec;
+      }
+
+      if ([TrackSource.camera, TrackSource.screenShareVideo]
+          .contains(track.source)) {
+        var degradationPreference = publishOptions.degradationPreference ??
+            getDefaultDegradationPreference(
+              track,
+            );
+        track.setDegradationPreference(degradationPreference);
+      }
+
+      if (kIsWeb &&
+          lkBrowser() == BrowserType.firefox &&
+          track.kind == TrackType.AUDIO) {
+        //TOOD:
+      } else if (isSVCCodec(publishOptions.videoCodec) &&
+          encodings?.first.maxBitrate != null) {
+        room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+            cid: track.getCid(),
+            transceiver: track.transceiver,
+            codec: publishOptions.videoCodec,
+            maxbr: encodings![0].maxBitrate! ~/ 1000));
+      }
+
+      await room.engine.negotiate();
+    }
+
+    logger.fine('publishVideoTrack engine.addTrack response: ${trackInfo}');
 
     track.lastPublishOptions = publishOptions;
 
     await track.start();
-
-    String? primaryCodecMime;
-    for (var codec in trackInfo.codecs) {
-      primaryCodecMime ??= codec.mimeType;
-    }
-
-    if (primaryCodecMime != null) {
-      final updatedCodec = mimeTypeToVideoCodecString(primaryCodecMime);
-      if (updatedCodec != publishOptions.videoCodec) {
-        logger.fine(
-          'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
-        );
-        publishOptions = publishOptions.copyWith(
-          videoCodec: updatedCodec,
-        );
-        // recompute encodings since bitrates/etc could have changed
-        encodings = Utils.computeVideoEncodings(
-          isScreenShare: track.source == TrackSource.screenShareVideo,
-          dimensions: dimensions,
-          options: publishOptions,
-          codec: publishOptions.videoCodec,
-        );
-      }
-    }
-
-    final transceiverInit = rtc.RTCRtpTransceiverInit(
-      direction: rtc.TransceiverDirection.SendOnly,
-      sendEncodings: encodings,
-    );
-
-    logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
-
-    track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-      track: track.mediaStreamTrack,
-      kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
-      init: transceiverInit,
-    );
-
-    if (lkBrowser() != BrowserType.firefox) {
-      await room.engine.setPreferredCodec(
-        track.transceiver!,
-        'video',
-        publishOptions.videoCodec,
-      );
-      track.codec = publishOptions.videoCodec;
-    }
-
-    if ([TrackSource.camera, TrackSource.screenShareVideo]
-        .contains(track.source)) {
-      var degradationPreference = publishOptions.degradationPreference ??
-          getDefaultDegradationPreference(
-            track,
-          );
-      track.setDegradationPreference(degradationPreference);
-    }
-
-    if (kIsWeb &&
-        lkBrowser() == BrowserType.firefox &&
-        track.kind == TrackType.AUDIO) {
-      //TOOD:
-    } else if (isSVCCodec(publishOptions.videoCodec) &&
-        encodings?.first.maxBitrate != null) {
-      room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
-          cid: track.getCid(),
-          transceiver: track.transceiver,
-          codec: publishOptions.videoCodec,
-          maxbr: encodings![0].maxBitrate! ~/ 1000));
-    }
-
-    await room.engine.negotiate();
 
     final pub = LocalTrackPublication<LocalVideoTrack>(
       participant: this,
@@ -787,25 +888,31 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final cid = simulcastTrack.sender!.senderId;
 
-    final trackInfo = await room.engine.addTrack(
-        cid: cid,
-        name: options.name ??
-            (track.source == TrackSource.screenShareVideo
-                ? VideoPublishOptions.defaultScreenShareName
-                : VideoPublishOptions.defaultCameraName),
-        stream: buildStreamId(options, track.source),
-        kind: track.kind.toPBType(),
-        source: track.source.toPBType(),
-        dimensions: dimensions,
-        videoLayers: layers,
-        sid: publication.sid,
-        simulcastCodecs: <lk_rtc.SimulcastCodec>[
-          lk_rtc.SimulcastCodec(
-            codec: backupCodec.toLowerCase(),
-            cid: cid,
-          ),
-        ],
-        videoCodec: backupCodec);
+    var req = lk_rtc.AddTrackRequest(
+      cid: cid,
+      name: options.name ??
+          (track.source == TrackSource.screenShareVideo
+              ? VideoPublishOptions.defaultScreenShareName
+              : VideoPublishOptions.defaultCameraName),
+      type: track.kind.toPBType(),
+      source: track.source.toPBType(),
+      layers: layers,
+      sid: publication.sid,
+      simulcastCodecs: <lk_rtc.SimulcastCodec>[
+        lk_rtc.SimulcastCodec(
+          codec: backupCodec.toLowerCase(),
+          cid: cid,
+        ),
+      ],
+    );
+
+    // video specific
+    if (dimensions.width > 0 && dimensions.height > 0) {
+      req.width = dimensions.width;
+      req.height = dimensions.height;
+    }
+
+    final trackInfo = await room.engine.addTrack(req);
 
     await room.engine.negotiate();
 

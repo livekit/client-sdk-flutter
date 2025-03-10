@@ -273,3 +273,15 @@ extension DegradationPreferenceExt on DegradationPreference {
         DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
       }[this]!;
 }
+
+extension RoomOptionsEx on RoomOptions {
+  lk_models.Encryption_Type get lkEncryptionType {
+    return (e2eeOptions != null)
+        ? {
+            EncryptionType.kNone: lk_models.Encryption_Type.NONE,
+            EncryptionType.kGcm: lk_models.Encryption_Type.GCM,
+            EncryptionType.kCustom: lk_models.Encryption_Type.CUSTOM,
+          }[e2eeOptions!.encryptionType]!
+        : lk_models.Encryption_Type.NONE;
+  }
+}
