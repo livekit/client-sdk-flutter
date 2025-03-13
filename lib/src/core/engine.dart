@@ -890,8 +890,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
-      if (!_subscriberPrimary ||
-          (event.response.fastPublish && roomOptions.fastPublish)) {
+      if (!_subscriberPrimary || event.response.fastPublish) {
         _enabledPublishCodecs = event.response.enabledPublishCodecs;
 
         /// for subscriberPrimary, we negotiate when necessary (lazy)
