@@ -45,11 +45,12 @@ import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
 import '../types/other.dart';
+import '../types/rpc.dart';
 import '../utils.dart';
 import 'engine.dart';
 
 import '../track/web/_audio_api.dart'
-    if (dart.library.html) '../track/web/_audio_html.dart' as audio;
+    if (dart.library.js_interop) '../track/web/_audio_html.dart' as audio;
 
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
@@ -119,6 +120,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // Agents
   final Map<String, DateTime> _transcriptionReceivedTimes = {};
 
+  // RPC Handlers
+  final Map<String, RpcRequestHandler> _rpcHandlers = {};
+
+  // for testing
+  Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
+
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
     ConnectOptions connectOptions = const ConnectOptions(),
@@ -140,6 +147,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
+
+    _setupRpcListeners();
 
     onDispose(() async {
       // clean up routine
@@ -576,7 +585,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           trackSid,
           receiver: event.receiver,
           audioOutputOptions: roomOptions.defaultAudioOutputOptions,
-          enableVisualizer: roomOptions.enableVisualizer,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
         logger.severe('addSubscribedMediaTrack() throwed ${event}');
@@ -592,7 +600,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   Future<void> disconnect() async {
     if (engine.isClosed &&
         engine.connectionState == ConnectionState.disconnected) {
-      events.emit(RoomDisconnectedEvent(reason: DisconnectReason.unknown));
+      logger.warning('Engine is already closed');
       return;
     }
     await engine.disconnect();
@@ -1066,9 +1074,15 @@ extension RoomHardwareManagementMethods on Room {
     );
   }
 
-  Future<void> setSpeakerOn(bool speakerOn) async {
-    if (lkPlatformIs(PlatformType.iOS) || lkPlatformIs(PlatformType.android)) {
-      await Hardware.instance.setSpeakerphoneOn(speakerOn);
+  /// [speakerOn] set speakerphone on or off, by default wired/bluetooth headsets will still
+  /// be prioritized even if set to true.
+  /// [forceSpeakerOutput] if true, will force speaker output even if headphones
+  /// or bluetooth is connected, only supported on iOS for now
+  Future<void> setSpeakerOn(bool speakerOn,
+      {bool forceSpeakerOutput = false}) async {
+    if (lkPlatformIsMobile()) {
+      await Hardware.instance
+          .setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
       engine.roomOptions = engine.roomOptions.copyWith(
         defaultAudioOutputOptions:
             roomOptions.defaultAudioOutputOptions.copyWith(
@@ -1082,8 +1096,7 @@ extension RoomHardwareManagementMethods on Room {
   @internal
   Future<void> applyAudioSpeakerSettings() async {
     if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
-      if (lkPlatformIs(PlatformType.iOS) ||
-          lkPlatformIs(PlatformType.android)) {
+      if (lkPlatformIsMobile()) {
         await Hardware.instance.setSpeakerphoneOn(
             roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
@@ -1122,5 +1135,56 @@ extension RoomHardwareManagementMethods on Room {
     }
     _audioEnabled = false;
     events.emit(const AudioPlaybackStatusChanged(isPlaying: false));
+  }
+}
+
+extension RoomRPCMethods on Room {
+  void _setupRpcListeners() {
+    // listen for incoming requests
+    _engineListener
+      ..on<EngineRPCRequestReceivedEvent>((event) async {
+        final request = event.request;
+        await _localParticipant?.handleIncomingRpcRequest(
+          event.identity,
+          request.id,
+          request.method,
+          request.payload,
+          request.responseTimeoutMs,
+          request.version,
+        );
+      })
+      ..on<EngineRPCAckReceivedEvent>((event) {
+        _localParticipant?.handleIncomingRpcAck(event.requestId);
+      })
+      ..on<EngineRPCResponseReceivedEvent>((event) {
+        String? payload;
+        RpcError? error;
+
+        if (event.payload.isNotEmpty) {
+          payload = event.response.payload;
+        } else if (event.error != null) {
+          error = RpcError.fromProto(event.error!);
+        }
+        _localParticipant?.handleIncomingRpcResponse(
+            event.requestId, payload, error);
+      });
+  }
+
+  /// Register a handler for incoming RPC requests.
+  /// @param method, the method name to listen for.
+  /// When a request with this method name is received, the handler will be called.
+  /// The handler should return a string payload to send back to the caller.
+  /// If the handler returns null, an error will be sent back to the caller.
+  void registerRpcMethod(String method, RpcRequestHandler handler) {
+    if (rpcHandlers.containsKey(method)) {
+      throw Exception('Method $method already registered');
+    }
+    rpcHandlers[method] = handler;
+  }
+
+  /// Unregister a handler for incoming RPC requests.
+  /// @param method, the method name to unregister.
+  void unregisterRpcMethod(String method) {
+    rpcHandlers.remove(method);
   }
 }

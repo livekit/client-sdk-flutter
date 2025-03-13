@@ -107,14 +107,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     setState(() {});
   }
 
-  void _setSpeakerphoneOn() {
+  void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    Hardware.instance.setSpeakerphoneOn(_speakerphoneOn);
+    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
     setState(() {});
   }
 
   void _toggleCamera() async {
-    //
     final track = participant.videoTrackPublications.firstOrNull?.track;
     if (track == null) return;
 
@@ -191,23 +190,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
       await requestBackgroundPermission();
     }
-    if (lkPlatformIs(PlatformType.iOS)) {
-      var track = await LocalVideoTrack.createScreenShareTrack(
-        const ScreenShareCaptureOptions(
-          useiOSBroadcastExtension: true,
-          maxFrameRate: 15.0,
-        ),
-      );
-      await participant.publishVideoTrack(track);
-      return;
-    }
 
     if (lkPlatformIsWebMobile()) {
       await context
           .showErrorDialog('Screen share is not supported on mobile web');
       return;
     }
-
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
   }
 

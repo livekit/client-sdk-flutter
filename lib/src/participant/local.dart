@@ -14,10 +14,13 @@
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../core/engine.dart';
 import '../core/room.dart';
@@ -28,6 +31,7 @@ import '../exceptions.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
 import '../logger.dart';
+import '../managers/broadcast_manager.dart';
 import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -39,6 +43,7 @@ import '../track/local/video.dart';
 import '../track/options.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
+import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'participant.dart';
@@ -46,6 +51,13 @@ import 'participant.dart';
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
+  // RPC Pending Acks
+  final Map<String, Function(String participantIdentity)> _pendingAcks = {};
+
+  // RPC Pending Responses
+  final Map<String, Function(String? payload, RpcError? error)>
+      _pendingResponses = {};
+
   @internal
   LocalParticipant({
     required Room room,
@@ -58,9 +70,21 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         ) {
     updateFromInfo(info);
 
+    if (lkPlatformIs(PlatformType.iOS)) {
+      BroadcastManager().addListener(_broadcastStateChanged);
+    }
+
     onDispose(() async {
+      BroadcastManager().removeListener(_broadcastStateChanged);
       await unpublishAllTracks();
     });
+  }
+
+  /// Handle broadcast state change (iOS only)
+  void _broadcastStateChanged() {
+    final isEnabled = BroadcastManager().isBroadcasting &&
+        BroadcastManager().shouldPublishTrack;
+    setScreenShareEnabled(isEnabled);
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -613,12 +637,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else if (source == TrackSource.microphone) {
         AudioCaptureOptions captureOptions =
             audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(
-            captureOptions, room.roomOptions.enableVisualizer);
+        final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
             room.roomOptions.defaultScreenShareCaptureOptions;
+
+        if (lkPlatformIs(PlatformType.iOS) &&
+            !BroadcastManager().isBroadcasting) {
+          // Wait until broadcasting to publish track
+          BroadcastManager().requestActivation();
+          return null;
+        }
 
         /// When capturing chrome table audio, we can't capture audio/video
         /// track separately, it has to be returned once in getDisplayMedia,
@@ -781,5 +811,227 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     logger.info(
         'published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
+  }
+}
+
+extension RPCMethods on LocalParticipant {
+  @internal
+  Future<void> publishRpcRequest({
+    required String destinationIdentity,
+    required String requestId,
+    required String method,
+    required String payload,
+    required Duration responseTimeout,
+    int? version,
+  }) async {
+    if (payload.length > kRpcMaxPayloadBytes) {
+      throw RpcError.builtIn(RpcError.requestPayloadTooLarge);
+    }
+
+    if ((room.engine.serverInfo?.version.isNotEmpty ?? false) &&
+        compareVersions(room.engine.serverInfo!.version, '1.8.0') < 0) {
+      throw RpcError.builtIn(RpcError.unsupportedServer);
+    }
+
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcRequest: lk_models.RpcRequest(
+        id: requestId,
+        method: method,
+        payload: payload,
+        responseTimeoutMs: responseTimeout.inMilliseconds,
+        version: version ?? kRpcVesion,
+      ),
+      participantIdentity: identity,
+      destinationIdentities: [destinationIdentity],
+    );
+
+    await room.engine.sendDataPacket(packet);
+  }
+
+  @internal
+  Future<void> publishRpcResponse({
+    required String destinationIdentity,
+    required String requestId,
+    String? payload,
+    lk_models.RpcError? error,
+  }) async {
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcResponse: lk_models.RpcResponse(
+        requestId: requestId,
+        payload: error == null ? payload : null,
+        error: error,
+      ),
+      destinationIdentities: [destinationIdentity],
+      participantIdentity: identity,
+    );
+
+    await room.engine.sendDataPacket(packet);
+  }
+
+  @internal
+  Future<void> publishRpcAck({
+    required String destinationIdentity,
+    required String requestId,
+  }) async {
+    final packet = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      rpcAck: lk_models.RpcAck(
+        requestId: requestId,
+      ),
+      destinationIdentities: [destinationIdentity],
+      participantIdentity: identity,
+    );
+
+    await room.engine.sendDataPacket(packet);
+  }
+
+  void handleIncomingRpcAck(String requestId) {
+    final handler = _pendingAcks[requestId];
+    if (handler != null) {
+      handler(requestId);
+      _pendingAcks.remove(requestId);
+    } else {
+      logger.warning('Ack received for unexpected RPC request $requestId');
+    }
+  }
+
+  void handleIncomingRpcResponse(
+    String requestId,
+    String? payload,
+    RpcError? error,
+  ) {
+    final handler = _pendingResponses[requestId];
+    if (handler != null) {
+      handler(payload, error);
+      _pendingResponses.remove(requestId);
+    } else {
+      logger.warning('Response received for unexpected RPC request $requestId');
+    }
+  }
+
+  Future<void> handleIncomingRpcRequest(
+    String callerIdentity,
+    String requestId,
+    String method,
+    String payload,
+    num responseTimeoutMs,
+    num version,
+  ) async {
+    await publishRpcAck(
+      destinationIdentity: callerIdentity,
+      requestId: requestId,
+    );
+
+    RpcError? responseError;
+    String? responsePayload;
+
+    try {
+      if (version != kRpcVesion) {
+        await publishRpcResponse(
+          destinationIdentity: callerIdentity,
+          requestId: requestId,
+          error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
+        );
+        return;
+      }
+
+      var handler = room.rpcHandlers[method];
+      if (handler == null) {
+        await publishRpcResponse(
+          destinationIdentity: callerIdentity,
+          requestId: requestId,
+          error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
+        );
+        return;
+      }
+
+      final response = await handler(RpcInvocationData(
+          requestId: requestId,
+          callerIdentity: callerIdentity,
+          payload: payload,
+          responseTimeoutMs: responseTimeoutMs.toInt()));
+
+      if (response.length > kRpcMaxPayloadBytes) {
+        responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
+        logger.warning('RPC Response payload too large for $method');
+      } else {
+        responsePayload = response;
+      }
+    } catch (error) {
+      if (error is RpcError) {
+        responseError = error;
+      } else {
+        logger.warning(
+            'Uncaught error returned by RPC handler for ${method}. Returning RpcError.applicationError instead. $error');
+        responseError = RpcError(
+            code: RpcError.applicationError, message: error.toString());
+      }
+    }
+
+    await publishRpcResponse(
+      destinationIdentity: callerIdentity,
+      requestId: requestId,
+      payload: responsePayload,
+      error: responseError?.toProto(),
+    );
+
+    logger.fine('RPC request ${method} handled');
+  }
+
+  /// Initiate an RPC call to a remote participant.
+  /// @param [params] - RPC call parameters.
+  /// @returns A promise that resolves with the response payload or rejects with an error.
+  /// @throws Error on failure. Details in `message`.
+  Future<String> performRpc(PerformRpcParams params) async {
+    final requestId = Uuid().v4();
+    final completer = Completer<String>();
+
+    final maxRoundTripLatency = Duration(seconds: 2);
+
+    try {
+      await publishRpcRequest(
+        destinationIdentity: params.destinationIdentity,
+        requestId: requestId,
+        method: params.method,
+        payload: params.payload,
+        responseTimeout: Duration(
+            milliseconds: params.responseTimeoutMs.inMilliseconds -
+                maxRoundTripLatency.inMilliseconds),
+        version: kRpcVesion,
+      );
+
+      final ackTimer = Timer(maxRoundTripLatency, () {
+        completer.completeError(RpcError.builtIn(RpcError.connectionTimeout));
+        _pendingResponses.remove(requestId);
+      });
+
+      _pendingAcks[requestId] = (id) {
+        ackTimer.cancel();
+      };
+
+      final responseTimer = Timer(params.responseTimeoutMs, () {
+        completer.completeError(RpcError.builtIn(RpcError.responseTimeout));
+        _pendingResponses.remove(requestId);
+      });
+
+      _pendingResponses[requestId] = (String? response, RpcError? error) {
+        responseTimer.cancel();
+        if (error != null) {
+          completer.completeError(error);
+        } else {
+          completer.complete(response!);
+        }
+        ackTimer.cancel();
+        _pendingAcks.remove(requestId);
+      };
+    } catch (e) {
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+    }
+
+    return completer.future;
   }
 }

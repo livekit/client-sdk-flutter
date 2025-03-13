@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2.4.1
+
+* feat: VideoRenderer support cache renderer. (#723)
+* feat: Visualizer for web. (#718)
+* fix: Fix bar Visualizer overflow for Android. (#717)
+* fix: disconnect reason inconsistent. (#715)
+* fix: remove stats video data print from logs (#716)
+
+## 2.4.0
+
+* feat: RPC. (#682)
+* fix: Properly handle broadcast capture state (#705)
+
+## 2.3.6
+
+* Emit a final empty AudioVisualizerEvent after track stops (#701)
+* fix: Improve speaker switching logic for iOS. (#692)
+
 ## 2.3.5
 
 * feat: add TrackProcessor support. (#657)
@@ -48,7 +66,7 @@
 
 * feat: support bypass voice processing. (#595)
 * fix: Dispose LocalParticipant when room.disconnect. (#609)
-* Fix spelling error in method name: _checkPremissions to _checkPermissions (#605)
+* Fix spelling error in method name: _checkPremissions to_checkPermissions (#605)
 * fix: fix speaker switching behavior for android. (#604)
 * fix: Optimize stats display (#602)
 * fix: Handle disconnect reasons correctly. (#594)
@@ -155,6 +173,7 @@ feat: provide option to skip stop/restartTrack for mute/unmute (#516)
 ## 2.0.0
 
 ## Breaking Changes
+
 There are several breaking changes between v1 and v2. Please consult our [migration guide](https://docs.livekit.io/guides/migrate-from-v1/) when upgrading to v2.
 
 * `Room.participants` was renamed to `Room.remoteParticipants`
@@ -228,8 +247,8 @@ There are several breaking changes between v1 and v2. Please consult our [migrat
 
 ## 1.5.2
 
-* Non-functional update, forcing the versions in 
-  `'ios/livekit_client.podspec', 'macos/livekit_client.podspec', 'lib/src/livekit.dart'` 
+* Non-functional update, forcing the versions in
+  `'ios/livekit_client.podspec', 'macos/livekit_client.podspec', 'lib/src/livekit.dart'`
   consistent with pubspec.yaml
 
 ## 1.5.1
@@ -255,7 +274,7 @@ There are several breaking changes between v1 and v2. Please consult our [migrat
 * Fix: fix the speakerPhone switch issue for Android.
 * Fix: fix iOS cannot publish the audio track correctly.
 * Fix: fix crash when re-publish video track on Windows/Linux.
-* Fix: set preferCurrentTab to false by default 
+* Fix: set preferCurrentTab to false by default
 
 ## 1.4.1
 

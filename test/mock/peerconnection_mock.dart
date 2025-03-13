@@ -16,6 +16,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'datachannel_mock.dart';
 
+List<MockDataChannel> _dataChannels = [];
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
@@ -57,6 +59,27 @@ class MockPeerConnection extends RTCPeerConnection {
         (_localDescription?.type == _answerType &&
             _remoteDescription?.type == _offerType)) {
       iceConnectionState = RTCIceConnectionState.RTCIceConnectionStateCompleted;
+      _connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+      onConnectionState?.call(_connectionState);
+
+      if (onDataChannel != null) {
+        // open data channels
+        var dc = MockDataChannel(1, '_reliable');
+        _dataChannels.add(dc);
+        if (_dataChannels.length == 2) {
+          _dataChannels[0].onMessageSend = (RTCDataChannelMessage message) {
+            _dataChannels[1].onMessage?.call(message);
+          };
+          _dataChannels[1].onMessageSend = (RTCDataChannelMessage message) {
+            _dataChannels[0].onMessage?.call(message);
+          };
+        }
+
+        onDataChannel?.call(dc);
+
+        dc.stateChangeStreamController
+            .add(RTCDataChannelState.RTCDataChannelOpen);
+      }
     }
   }
 
@@ -147,13 +170,37 @@ class MockPeerConnection extends RTCPeerConnection {
   @override
   Future<RTCSessionDescription> createAnswer(
       [Map<String, dynamic>? constraints]) async {
-    return RTCSessionDescription('local_answer', 'answer');
+    return RTCSessionDescription('''
+v=0
+o=bob 2808844564 2808844564 IN IP4 host.biloxi.example.com
+s=
+c=IN IP4 host.biloxi.example.com
+t=0 0
+m=audio 49172 RTP/AVP 0 8
+a=rtpmap:0 PCMU/8000
+a=rtpmap:8 PCMA/8000
+m=video 0 RTP/AVP 31
+a=rtpmap:31 H261/90000
+''', 'answer');
   }
 
   @override
   Future<RTCSessionDescription> createOffer(
       [Map<String, dynamic>? constraints]) async {
-    return RTCSessionDescription('local_offer', 'offer');
+    return RTCSessionDescription('''
+v=0
+o=alice 2890844526 2890844526 IN IP4 host.atlanta.example.com
+s=
+c=IN IP4 host.atlanta.example.com
+t=0 0
+m=audio 49170 RTP/AVP 0 8 97
+a=rtpmap:0 PCMU/8000
+a=rtpmap:8 PCMA/8000
+a=rtpmap:97 iLBC/8000
+m=video 51372 RTP/AVP 31 32
+a=rtpmap:31 H261/90000
+a=rtpmap:32 MPV/90000
+''', 'offer');
   }
 
   @override
@@ -186,7 +233,11 @@ class MockPeerConnection extends RTCPeerConnection {
   @override
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
-    return MockDataChannel(dataChannelDict.id, label);
+    var dc = MockDataChannel(dataChannelDict.id, label);
+    if (label == '_reliable') {
+      _dataChannels.add(dc);
+    }
+    return dc;
   }
 
   @override

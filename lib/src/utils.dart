@@ -697,3 +697,26 @@ Map mapDiff(Map left, Map right) {
   return {...diff, ...rightCopy}
     ..removeWhere((key, value) => (value is Map && value.isEmpty));
 }
+
+int compareVersions(String v1, String v2) {
+  final parts1 = v1.split('.');
+  final parts2 = v2.split('.');
+  final k = math.min(parts1.length, parts2.length);
+  for (var i = 0; i < k; ++i) {
+    final p1 = int.parse(parts1[i]);
+    final p2 = int.parse(parts2[i]);
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+    if (i == k - 1 && p1 == p2) return 0;
+  }
+  if (v1 == '' && v2 != '') {
+    return -1;
+  } else if (v2 == '') {
+    return 1;
+  }
+  return parts1.length == parts2.length
+      ? 0
+      : parts1.length < parts2.length
+          ? -1
+          : 1;
+}

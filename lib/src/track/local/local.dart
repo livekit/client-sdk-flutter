@@ -16,7 +16,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -27,7 +26,6 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
-import '../../support/native.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -61,50 +59,14 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
-  EventChannel? _eventChannel;
-  StreamSubscription? _streamSubscription;
-
   @override
   Future<void> onStarted() async {
-    if (enableVisualizer == true) {
-      await startVisualizer();
-    }
+    logger.fine('AudioTrack.onStarted()');
   }
 
   @override
   Future<void> onStopped() async {
-    if (enableVisualizer == true) {
-      await stopVisualizer();
-    }
-  }
-
-  Future<void> startVisualizer() async {
-    if (_eventChannel != null) {
-      return;
-    }
-
-    await Native.startVisualizer(mediaStreamTrack.id!);
-
-    _eventChannel = EventChannel(
-        'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}');
-    _streamSubscription =
-        _eventChannel?.receiveBroadcastStream().listen((event) {
-      //logger.fine('[$objectId] visualizer event(${event})');
-      events.emit(AudioVisualizerEvent(
-        track: this,
-        event: event,
-      ));
-    });
-  }
-
-  Future<void> stopVisualizer() async {
-    if (_eventChannel == null) {
-      return;
-    }
-    await Native.stopVisualizer(mediaStreamTrack.id!);
-    await _streamSubscription?.cancel();
-    _streamSubscription = null;
-    _eventChannel = null;
+    logger.fine('AudioTrack.onStopped()');
   }
 }
 
@@ -124,18 +86,13 @@ abstract class LocalTrack extends Track {
 
   TrackProcessor? get processor => _processor;
 
-  LocalTrack(
-    TrackType kind,
-    TrackSource source,
-    rtc.MediaStream mediaStream,
-    rtc.MediaStreamTrack mediaStreamTrack, {
-    bool? enableVisualizer,
-  }) : super(
+  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream,
+      rtc.MediaStreamTrack mediaStreamTrack)
+      : super(
           kind,
           source,
           mediaStream,
           mediaStreamTrack,
-          enableVisualizer: enableVisualizer,
         ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');

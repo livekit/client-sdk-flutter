@@ -18,9 +18,9 @@ jobs:
       - run: flutter clean
       - run: flutter pub get
       - run: |
-          dart compile js web/e2ee.worker.dart -o example/web/e2ee.worker.dart.js -m
+          dart compile js ./web/e2ee.worker.dart -o ./example/web/e2ee.worker.dart.js
           cd example
-          flutter build web --release --web-renderer html --base-href /client-sdk-flutter/
+          flutter build web --release --base-href /client-sdk-flutter/
           cd build/web
           git init
           git config --global user.email duanweiwei1982@gmail.com

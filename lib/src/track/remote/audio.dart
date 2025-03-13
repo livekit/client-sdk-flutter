@@ -25,22 +25,21 @@ import '../audio_management.dart';
 import '../local/local.dart';
 import 'remote.dart';
 
-import '../web/_audio_api.dart' if (dart.library.html) '../web/_audio_html.dart'
-    as audio;
+import '../web/_audio_api.dart'
+    if (dart.library.js_interop) '../web/_audio_html.dart' as audio;
 
 class RemoteAudioTrack extends RemoteTrack
     with AudioTrack, RemoteAudioManagementMixin {
   String? _deviceId;
   RemoteAudioTrack(
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
-      {rtc.RTCRtpReceiver? receiver, bool? enableVisualizer})
+      {rtc.RTCRtpReceiver? receiver})
       : super(
           TrackType.AUDIO,
           source,
           stream,
           track,
           receiver: receiver,
-          enableVisualizer: enableVisualizer,
         );
 
   @override

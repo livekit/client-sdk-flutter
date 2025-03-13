@@ -17,12 +17,19 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
 import '../logger.dart';
+import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
 
 // Method channel methods to call native code.
 class Native {
   @internal
-  static const channel = MethodChannel('livekit_client');
+  static final channel = _createChannel();
+
+  static MethodChannel _createChannel() {
+    final channel = MethodChannel('livekit_client');
+    channel.setMethodCallHandler(_handleMethodCall);
+    return channel;
+  }
 
   @internal
   static bool bypassVoiceProcessing = false;
@@ -31,11 +38,6 @@ class Native {
   static Future<bool> configureAudio(
       NativeAudioConfiguration configuration) async {
     try {
-      if (bypassVoiceProcessing) {
-        /// skip configuring audio if bypassVoiceProcessing
-        /// is enabled
-        return false;
-      }
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
         configuration.toMap(),
@@ -52,6 +54,7 @@ class Native {
     String trackId, {
     bool isCentered = true,
     int barCount = 7,
+    String visualizerId = '',
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -60,6 +63,7 @@ class Native {
           'trackId': trackId,
           'isCentered': isCentered,
           'barCount': barCount,
+          'visualizerId': visualizerId,
         },
       );
       return result == true;
@@ -70,12 +74,14 @@ class Native {
   }
 
   @internal
-  static Future<void> stopVisualizer(String trackId) async {
+  static Future<void> stopVisualizer(String trackId,
+      {required String visualizerId}) async {
     try {
       await channel.invokeMethod<void>(
         'stopVisualizer',
         <String, dynamic>{
           'trackId': trackId,
+          'visualizerId': visualizerId,
         },
       );
     } catch (error) {
@@ -97,4 +103,45 @@ class Native {
     }
     return null;
   }
+
+  static Future<dynamic> _handleMethodCall(MethodCall call) async {
+    switch (call.method) {
+      case 'broadcastStateChanged':
+        if (call.arguments is! bool) {
+          logger.warning('broadcastStateChanged did not receive bool');
+          return null;
+        }
+        _broadcastStateChanged(call.arguments as bool);
+        return null;
+      default:
+        logger.warning('Method ${call.method} is not implemented.');
+        return null;
+    }
+  }
+
+  static void _broadcastStateChanged(bool isBroadcasting) {
+    BroadcastManager().broadcastStateChanged(isBroadcasting);
+  }
+
+  @internal
+  static void broadcastRequestActivation() {
+    try {
+      channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('broadcastRequestActivation did throw error: ${error}');
+    }
+  }
+
+  @internal
+  static void broadcastRequestStop() {
+    try {
+      channel.invokeMethod('broadcastRequestStop', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('broadcastRequestStop did throw error: ${error}');
+    }
+  }
 }
+
+// Initialize the channel before first reference so method calls can be handled.
+// ignore: unused_element
+final _channelInitializer = Native.channel;
