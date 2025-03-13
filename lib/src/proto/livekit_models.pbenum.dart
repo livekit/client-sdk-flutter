@@ -76,6 +76,25 @@ class ImageCodec extends $pb.ProtobufEnum {
   const ImageCodec._($core.int v, $core.String n) : super(v, n);
 }
 
+/// Policy for publisher to handle subscribers that are unable to support the primary codec of a track
+class BackupCodecPolicy extends $pb.ProtobufEnum {
+  static const BackupCodecPolicy REGRESSION =
+      BackupCodecPolicy._(0, _omitEnumNames ? '' : 'REGRESSION');
+  static const BackupCodecPolicy SIMULCAST =
+      BackupCodecPolicy._(1, _omitEnumNames ? '' : 'SIMULCAST');
+
+  static const $core.List<BackupCodecPolicy> values = <BackupCodecPolicy>[
+    REGRESSION,
+    SIMULCAST,
+  ];
+
+  static final $core.Map<$core.int, BackupCodecPolicy> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static BackupCodecPolicy? valueOf($core.int value) => _byValue[value];
+
+  const BackupCodecPolicy._($core.int v, $core.String n) : super(v, n);
+}
+
 class TrackType extends $pb.ProtobufEnum {
   static const TrackType AUDIO = TrackType._(0, _omitEnumNames ? '' : 'AUDIO');
   static const TrackType VIDEO = TrackType._(1, _omitEnumNames ? '' : 'VIDEO');
@@ -359,6 +378,8 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
       ParticipantInfo_Kind._(3, _omitEnumNames ? '' : 'SIP');
   static const ParticipantInfo_Kind AGENT =
       ParticipantInfo_Kind._(4, _omitEnumNames ? '' : 'AGENT');
+  static const ParticipantInfo_Kind FORWARDED =
+      ParticipantInfo_Kind._(5, _omitEnumNames ? '' : 'FORWARDED');
 
   static const $core.List<ParticipantInfo_Kind> values = <ParticipantInfo_Kind>[
     STANDARD,
@@ -366,6 +387,7 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
     EGRESS,
     SIP,
     AGENT,
+    FORWARDED,
   ];
 
   static final $core.Map<$core.int, ParticipantInfo_Kind> _byValue =
