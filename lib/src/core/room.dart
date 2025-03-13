@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
@@ -23,6 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
 import '../exceptions.dart';
@@ -44,6 +42,7 @@ import '../support/websocket.dart' show WebSocketException;
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
+import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../utils.dart';
@@ -125,6 +124,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // for testing
   Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
+
+  Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      byteStreamControllers = {};
+
+  Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      textStreamControllers = {};
+
+  Map<String, ByteStreamHandler> byteStreamHandlers = {};
+
+  Map<String, TextStreamHandler> textStreamHandlers = {};
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -1186,5 +1195,142 @@ extension RoomRPCMethods on Room {
   /// @param method, the method name to unregister.
   void unregisterRpcMethod(String method) {
     rpcHandlers.remove(method);
+  }
+}
+
+extension DataStreamRoomMethods on Room {
+  void registerTextStreamHandler(String topic, TextStreamHandler callback) {
+    if (textStreamHandlers[topic] != null) {
+      throw Exception(
+          'A text stream handler for topic "${topic}" has already been set.');
+    }
+    textStreamHandlers[topic] = callback;
+  }
+
+  void unregisterTextStreamHandler(String topic) {
+    textStreamHandlers.remove(topic);
+  }
+
+  void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
+    if (byteStreamHandlers[topic] != null) {
+      throw Exception(
+          'A byte stream handler for topic "${topic}" has already been set.');
+    }
+    byteStreamHandlers[topic] = callback;
+  }
+
+  void unregisterByteStreamHandler(String topic) {
+    byteStreamHandlers.remove(topic);
+  }
+
+  Future<void> handleStreamHeader(lk_models.DataStream_Header streamHeader,
+      String participantIdentity) async {
+    if (streamHeader.hasByteHeader()) {
+      final streamHandlerCallback = byteStreamHandlers[streamHeader.topic];
+
+      if (streamHandlerCallback == null) {
+        logger.info(
+            'ignoring incoming byte stream due to no handler for topic ${streamHeader.topic}');
+        return;
+      }
+
+      var info = ByteStreamInfo(
+        id: streamHeader.streamId,
+        name: streamHeader.byteHeader.name,
+        mimeType: streamHeader.mimeType,
+        size: streamHeader.hasTotalLength()
+            ? streamHeader.totalLength.toInt()
+            : 0,
+        topic: streamHeader.topic,
+        timestamp: streamHeader.timestamp.toInt(),
+        attributes: streamHeader.attributes,
+      );
+
+      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+        info: info,
+        streamController: StreamController<lk_models.DataStream_Chunk>(),
+        startTime: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      byteStreamControllers[streamHeader.streamId] = streamController;
+
+      streamHandlerCallback(
+        ByteStreamReader(
+            info, streamController, streamHeader.totalLength as num),
+        participantIdentity,
+      );
+    } else if (streamHeader.hasTextHeader()) {
+      final streamHandlerCallback = textStreamHandlers[streamHeader.topic];
+
+      if (streamHandlerCallback == null) {
+        logger.warning(
+            'ignoring incoming text stream due to no handler for topic ${streamHeader.topic}');
+        return;
+      }
+
+      var info = TextStreamInfo(
+        id: streamHeader.streamId,
+        mimeType: streamHeader.mimeType,
+        size: streamHeader.hasTotalLength()
+            ? streamHeader.totalLength.toInt()
+            : 0,
+        topic: streamHeader.topic,
+        timestamp: streamHeader.timestamp.toInt(),
+        attributes: streamHeader.attributes,
+      );
+
+      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+        info: info,
+        streamController: StreamController<lk_models.DataStream_Chunk>(),
+        startTime: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      textStreamControllers[streamHeader.streamId] = streamController;
+
+      streamHandlerCallback(
+        TextStreamReader(
+            info, streamController, streamHeader.totalLength as num),
+        participantIdentity,
+      );
+    }
+  }
+
+  void handleStreamChunk(lk_models.DataStream_Chunk chunk) {
+    final fileBuffer = byteStreamControllers[chunk.streamId];
+    if (fileBuffer != null) {
+      if (chunk.content.isNotEmpty) {
+        fileBuffer.write(chunk);
+      }
+    }
+    final textBuffer = textStreamControllers[chunk.streamId];
+    if (textBuffer != null) {
+      if (chunk.content.isNotEmpty) {
+        textBuffer.write(chunk);
+      }
+    }
+  }
+
+  void handleStreamTrailer(lk_models.DataStream_Trailer trailer) {
+    final textBuffer = textStreamControllers[trailer.streamId];
+    if (textBuffer != null) {
+      textBuffer.info.attributes = {
+        ...textBuffer.info.attributes,
+        ...trailer.attributes,
+      };
+      textBuffer.close();
+      textStreamControllers.remove(trailer.streamId);
+    }
+
+    final fileBuffer = byteStreamControllers[trailer.streamId];
+    if (fileBuffer != null) {
+      {
+        fileBuffer.info.attributes = {
+          ...fileBuffer.info.attributes,
+          ...trailer.attributes
+        };
+        fileBuffer.close();
+        byteStreamControllers.remove(trailer.streamId);
+      }
+    }
   }
 }

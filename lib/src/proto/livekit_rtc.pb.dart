@@ -1152,6 +1152,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $core.bool? disableRed,
     $2.Encryption_Type? encryption,
     $core.String? stream,
+    $2.BackupCodecPolicy? backupCodecPolicy,
   }) {
     final $result = create();
     if (cid != null) {
@@ -1199,6 +1200,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     if (stream != null) {
       $result.stream = stream;
     }
+    if (backupCodecPolicy != null) {
+      $result.backupCodecPolicy = backupCodecPolicy;
+    }
     return $result;
   }
   AddTrackRequest._() : super();
@@ -1241,6 +1245,11 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         valueOf: $2.Encryption_Type.valueOf,
         enumValues: $2.Encryption_Type.values)
     ..aOS(15, _omitFieldNames ? '' : 'stream')
+    ..e<$2.BackupCodecPolicy>(
+        16, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.BackupCodecPolicy.REGRESSION,
+        valueOf: $2.BackupCodecPolicy.valueOf,
+        enumValues: $2.BackupCodecPolicy.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1435,6 +1444,18 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   $core.bool hasStream() => $_has(14);
   @$pb.TagNumber(15)
   void clearStream() => clearField(15);
+
+  @$pb.TagNumber(16)
+  $2.BackupCodecPolicy get backupCodecPolicy => $_getN(15);
+  @$pb.TagNumber(16)
+  set backupCodecPolicy($2.BackupCodecPolicy v) {
+    setField(16, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasBackupCodecPolicy() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearBackupCodecPolicy() => clearField(16);
 }
 
 class TrickleRequest extends $pb.GeneratedMessage {

@@ -138,6 +138,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   lk_models.ServerInfo? get serverInfo => _serverInfo;
 
+  final Map<lk_models.DataPacket_Kind, bool> _dcBufferStatus = {
+    lk_models.DataPacket_Kind.RELIABLE: true,
+    lk_models.DataPacket_Kind.LOSSY: false,
+  };
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -320,6 +325,35 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
       await handleDisconnect(ClientDisconnectReason.negotiationFailed);
     }
+  }
+
+  bool? isBufferStatusLow(lk_models.DataPacket_Kind kind) {
+    final dc = _publisherDataChannel(kind.toSDKType());
+    if (dc != null) {
+      return dc.bufferedAmount! <= dc.bufferedAmountLowThreshold!;
+    }
+    return null;
+  }
+
+  Future<void> waitForBufferStatusLow(lk_models.DataPacket_Kind kind) async {
+    final Completer<void> completer = Completer();
+
+    if (isBufferStatusLow(kind) == true) {
+      completer.complete();
+    } else {
+      onClosing() => completer.completeError('Engine disconnected');
+      events.once<EngineClosingEvent>((e) => onClosing());
+
+      while (!_dcBufferStatus[kind]!) {
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+      if (completer.isCompleted) {
+        return;
+      }
+      completer.complete();
+    }
+
+    return completer.future;
   }
 
   @internal
@@ -543,6 +577,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 type: Reliability.lossy,
               )));
       // _onDCStateUpdated(Reliability.lossy, state)
+      _lossyDCPub?.bufferedAmountLowThreshold = 65535;
+      _lossyDCPub?.onBufferedAmountLow = (_) {
+        _dcBufferStatus[lk_models.DataPacket_Kind.LOSSY] =
+            (_lossyDCPub!.bufferedAmount! <=
+                _lossyDCPub!.bufferedAmountLowThreshold!);
+      };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
     }
@@ -560,6 +600,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 state: state,
                 type: Reliability.reliable,
               )));
+      _reliableDCPub?.bufferedAmountLowThreshold = 65535;
+      _reliableDCPub?.onBufferedAmountLow = (_) {
+        _dcBufferStatus[lk_models.DataPacket_Kind.RELIABLE] =
+            (_reliableDCPub!.bufferedAmount! <=
+                _reliableDCPub!.bufferedAmountLowThreshold!);
+      };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
     }
@@ -1082,6 +1128,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> disconnect() async {
     _isClosed = true;
+    events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
       await signalClient.sendLeave();
     } else {

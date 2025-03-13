@@ -170,6 +170,11 @@ class EngineDisconnectedEvent with InternalEvent, EngineEvent {
 }
 
 @internal
+class EngineClosingEvent with InternalEvent, EngineEvent {
+  const EngineClosingEvent();
+}
+
+@internal
 class EngineLocalTrackSubscribedEvent with InternalEvent, EngineEvent {
   final String trackSid;
   const EngineLocalTrackSubscribedEvent({

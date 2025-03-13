@@ -15,7 +15,12 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
+import 'dart:io';
 
+import 'package:async/async.dart';
+import 'package:path/path.dart';
+import 'package:mime_type/mime_type.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -26,6 +31,7 @@ import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
 import '../core/transport.dart';
+import '../data_stream/stream_writer.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -41,6 +47,7 @@ import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/rpc.dart';
@@ -201,7 +208,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
     }
 
-    // use constraints passed to getUserMedia by default
+    // use finalraints passed to getUserMedia by default
     VideoDimensions dimensions = track.currentOptions.params.dimensions;
 
     if (kIsWeb || lkPlatformIsMobile()) {
@@ -1033,5 +1040,186 @@ extension RPCMethods on LocalParticipant {
     }
 
     return completer.future;
+  }
+}
+
+extension DataStreamParticipantMethods on LocalParticipant {
+  Future<TextStreamInfo> sendText(String text,
+      {SendTextOptions? options}) async {
+    final streamId = Uuid().v4();
+    final textInBytes = text.codeUnits;
+    final totalTextLength = textInBytes.length;
+
+    var fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
+    var tmp = fileIds != null ? fileIds.length + 1 : 1;
+    final progresses = List<num>.filled(tmp, 0);
+
+    handleProgress(num progress, int idx) {
+      progresses[idx] = progress;
+      final totalProgress = progresses.reduce((acc, val) => acc + val);
+      options?.onProgress?.call(totalProgress.toDouble());
+    }
+
+    final writer = await streamText(StreamTextOptions(
+      streamId: streamId,
+      totalSize: totalTextLength,
+      destinationIdentities: options?.destinationIdentities ?? [],
+      topic: options?.topic,
+      attachedStreamIds: fileIds!,
+    ));
+
+    await writer.write(text);
+    // set text part of progress to 1
+    handleProgress(1, 0);
+
+    await writer.close();
+
+    if (options?.attachments != null) {
+      var idx = 0;
+      await Future.wait<void>(
+        options?.attachments
+                .map(
+                  (file) => _sendFile(
+                    fileIds[++idx],
+                    file,
+                    SendFileOptions(
+                        topic: options.topic,
+                        mimeType: mime(basename(file.path)),
+                        onProgress: (progress) {
+                          handleProgress(progress, idx + 1);
+                        }),
+                  ),
+                )
+                .toList() ??
+            [],
+      );
+    }
+    return writer.info;
+  }
+
+  @internal
+  Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
+    final streamId = options?.streamId ?? Uuid().v4();
+
+    final info = TextStreamInfo(
+      id: streamId,
+      mimeType: 'text/plain',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      topic: options?.topic ?? '',
+      size: options?.totalSize ?? 0,
+    );
+
+    final header = lk_models.DataStream_Header(
+      streamId: streamId,
+      mimeType: info.mimeType,
+      topic: info.topic,
+      timestamp: Int64(info.timestamp),
+      totalLength: Int64(options?.totalSize ?? 0),
+      textHeader: lk_models.DataStream_TextHeader(
+        version: options?.version,
+        attachedStreamIds: options?.attachedStreamIds,
+        replyToStreamId: options?.replyToStreamId,
+        operationType: options?.type == 'update'
+            ? lk_models.DataStream_OperationType.UPDATE
+            : lk_models.DataStream_OperationType.CREATE,
+      ),
+    );
+    final destinationIdentities = options?.destinationIdentities;
+    final packet = lk_models.DataPacket(
+      destinationIdentities: destinationIdentities,
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      streamHeader: header,
+    );
+    await room.engine.sendDataPacket(packet);
+
+    final writableStream = StreamWriterImpl(
+        destinationIdentities: destinationIdentities!,
+        engine: room.engine,
+        streamId: streamId);
+
+    onEngineClose() async {
+      await writableStream.close();
+    }
+
+    var cancelFun =
+        room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
+
+    final writer = TextStreamWriter(
+      writableStream: writableStream,
+      info: info,
+      onClose: () {
+        cancelFun?.call();
+      },
+    );
+
+    return writer;
+  }
+
+  Future<Map<String, String>> sendFile(
+    File file,
+    SendFileOptions options,
+  ) async {
+    final streamId = Uuid().v4();
+    await _sendFile(streamId, file, options);
+    return {'id': streamId};
+  }
+
+  Future<void> _sendFile(
+    String streamId,
+    File file,
+    SendFileOptions options,
+  ) async {
+    final totalLength = await file.length();
+    final header = lk_models.DataStream_Header(
+      totalLength: Int64(totalLength),
+      mimeType: options.mimeType ?? mime(basename(file.path)),
+      streamId: streamId,
+      topic: options.topic,
+      encryptionType: options.encryptionType,
+      timestamp: Int64(DateTime.now().millisecondsSinceEpoch),
+      byteHeader: lk_models.DataStream_ByteHeader(
+        name: basename(file.path),
+      ),
+    );
+
+    final destinationIdentities = options.destinationIdentities;
+    final packet = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        destinationIdentities: destinationIdentities,
+        streamHeader: header);
+
+    await room.engine.sendDataPacket(packet);
+
+    final reader = ChunkedStreamReader(file.openRead());
+
+    final totalChunks = (totalLength / kStreamChunkSize).ceil();
+    for (var i = 0; i < totalChunks; i++) {
+      final chunkData = await reader.readBytes(
+        i * kStreamChunkSize, /*min((i + 1) * kStreamChunkSize, totalLength*/
+      );
+      await room.engine
+          .waitForBufferStatusLow(lk_models.DataPacket_Kind.RELIABLE);
+      final chunk = lk_models.DataStream_Chunk(
+        content: chunkData,
+        streamId: streamId,
+        chunkIndex: Int64(i),
+      );
+      final chunkPacket = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        destinationIdentities: destinationIdentities,
+        streamChunk: chunk,
+      );
+      await room.engine.sendDataPacket(chunkPacket);
+      options.onProgress?.call((i + 1) / totalChunks);
+    }
+    final trailer = lk_models.DataStream_Trailer(
+      streamId: streamId,
+    );
+    final trailerPacket = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      destinationIdentities: destinationIdentities,
+      streamTrailer: trailer,
+    );
+    await room.engine.sendDataPacket(trailerPacket);
   }
 }
