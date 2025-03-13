@@ -135,7 +135,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
 
-
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();

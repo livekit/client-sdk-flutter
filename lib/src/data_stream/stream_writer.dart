@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:fixnum/fixnum.dart';
-import 'package:livekit_client/src/core/engine.dart';
 
+import 'package:fixnum/fixnum.dart';
+
+import 'package:livekit_client/src/core/engine.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
 
