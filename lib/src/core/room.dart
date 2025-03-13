@@ -296,91 +296,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
-    ..on<SignalJoinResponseEvent>((event) {
-      _roomInfo = event.response.room;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
-      _serverVersion = event.response.serverVersion;
-      _serverRegion = event.response.serverRegion;
-
-      if (_isRecording != event.response.room.activeRecording) {
-        _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(
-            RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
-
-      logger.fine('[Engine] Received JoinResponse, '
-          'serverVersion: ${event.response.serverVersion}');
-
-      _localParticipant ??= LocalParticipant(
-        room: this,
-        info: event.response.participant,
-      );
-
-      if (engine.fullReconnectOnNext) {
-        _localParticipant!.updateFromInfo(event.response.participant);
-      }
-
-      if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
-          engine.fastConnectOptions != null &&
-          !engine.fullReconnectOnNext) {
-        var options = engine.fastConnectOptions!;
-
-        var audio = options.microphone;
-        bool audioEnabled = audio.enabled == true || audio.track != null;
-        if (audioEnabled) {
-          if (audio.track != null) {
-            _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
-                publishOptions: roomOptions.defaultAudioPublishOptions);
-          } else {
-            _localParticipant!.setMicrophoneEnabled(true,
-                audioCaptureOptions: roomOptions.defaultAudioCaptureOptions);
-          }
-        }
-
-        var video = options.camera;
-        bool videoEnabled = video.enabled == true || video.track != null;
-        if (videoEnabled) {
-          if (video.track != null) {
-            _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
-                publishOptions: roomOptions.defaultVideoPublishOptions);
-          } else {
-            _localParticipant!.setCameraEnabled(true,
-                cameraCaptureOptions: roomOptions.defaultCameraCaptureOptions);
-          }
-        }
-
-        var screen = options.screen;
-        bool screenEnabled = screen.enabled == true || screen.track != null;
-        if (screenEnabled) {
-          if (screen.track != null) {
-            _localParticipant!.publishVideoTrack(
-                screen.track as LocalVideoTrack,
-                publishOptions: roomOptions.defaultVideoPublishOptions);
-          } else {
-            _localParticipant!.setScreenShareEnabled(true,
-                screenShareCaptureOptions:
-                    roomOptions.defaultScreenShareCaptureOptions);
-          }
-        }
-      }
-
-      for (final info in event.response.otherParticipants) {
-        logger.fine(
-            'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
-            'tracks:${info.tracks.map((e) => e.sid)}');
-        _getOrCreateRemoteParticipant(info.identity, info);
-      }
-
-      if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
-        e2eeManager!.keyProvider
-            .setSifTrailer(Uint8List.fromList(event.response.sifTrailer));
-      }
-
-      logger.fine('Room Connect completed');
-
-      events.emit(RoomConnectedEvent(room: this, metadata: _metadata));
-    })
     ..on<SignalParticipantUpdateEvent>(
         (event) => _onParticipantUpdateEvent(event.participants))
     ..on<SignalSpeakersChangedEvent>(
@@ -482,6 +397,91 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
+    ..on<EngineJoinResponseEvent>((event) {
+      _roomInfo = event.response.room;
+      _name = event.response.room.name;
+      _metadata = event.response.room.metadata;
+      _serverVersion = event.response.serverVersion;
+      _serverRegion = event.response.serverRegion;
+
+      if (_isRecording != event.response.room.activeRecording) {
+        _isRecording = event.response.room.activeRecording;
+        emitWhenConnected(
+            RoomRecordingStatusChanged(activeRecording: _isRecording));
+      }
+
+      logger.fine('[Engine] Received JoinResponse, '
+          'serverVersion: ${event.response.serverVersion}');
+
+      _localParticipant ??= LocalParticipant(
+        room: this,
+        info: event.response.participant,
+      );
+
+      if (engine.fullReconnectOnNext) {
+        _localParticipant!.updateFromInfo(event.response.participant);
+      }
+
+      if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
+          engine.fastConnectOptions != null &&
+          !engine.fullReconnectOnNext) {
+        var options = engine.fastConnectOptions!;
+
+        var audio = options.microphone;
+        bool audioEnabled = audio.enabled == true || audio.track != null;
+        if (audioEnabled) {
+          if (audio.track != null) {
+            _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
+                publishOptions: roomOptions.defaultAudioPublishOptions);
+          } else {
+            _localParticipant!.setMicrophoneEnabled(true,
+                audioCaptureOptions: roomOptions.defaultAudioCaptureOptions);
+          }
+        }
+
+        var video = options.camera;
+        bool videoEnabled = video.enabled == true || video.track != null;
+        if (videoEnabled) {
+          if (video.track != null) {
+            _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
+                publishOptions: roomOptions.defaultVideoPublishOptions);
+          } else {
+            _localParticipant!.setCameraEnabled(true,
+                cameraCaptureOptions: roomOptions.defaultCameraCaptureOptions);
+          }
+        }
+
+        var screen = options.screen;
+        bool screenEnabled = screen.enabled == true || screen.track != null;
+        if (screenEnabled) {
+          if (screen.track != null) {
+            _localParticipant!.publishVideoTrack(
+                screen.track as LocalVideoTrack,
+                publishOptions: roomOptions.defaultVideoPublishOptions);
+          } else {
+            _localParticipant!.setScreenShareEnabled(true,
+                screenShareCaptureOptions:
+                    roomOptions.defaultScreenShareCaptureOptions);
+          }
+        }
+      }
+
+      for (final info in event.response.otherParticipants) {
+        logger.fine(
+            'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}');
+        _getOrCreateRemoteParticipant(info.identity, info);
+      }
+
+      if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
+        e2eeManager!.keyProvider
+            .setSifTrailer(Uint8List.fromList(event.response.sifTrailer));
+      }
+
+      logger.fine('Room Connect completed');
+
+      events.emit(RoomConnectedEvent(room: this, metadata: _metadata));
+    })
     ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
