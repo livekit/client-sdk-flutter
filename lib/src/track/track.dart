@@ -129,8 +129,6 @@ abstract class Track extends DisposableChangeNotifier
 
     await onStopped();
 
-    await mediaStreamTrack.stop();
-
     logger.fine('$objectId.stop()');
 
     await mediaStreamTrack.stop();
