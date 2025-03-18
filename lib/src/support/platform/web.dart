@@ -32,6 +32,8 @@ bool lkE2EESupportedImplementation() {
   return isInsertableStreamSupported() || isScriptTransformSupported();
 }
 
+bool lkPlatformIsTestImplementation() => false;
+
 bool isScriptTransformSupported() {
   return web.window
       .hasProperty('RTCRtpScriptTransform'.toJS)
@@ -40,8 +42,9 @@ bool isScriptTransformSupported() {
 
 bool isInsertableStreamSupported() {
   return web.window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
-      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject)
-              .getProperty('prototype'.toJS) as JSObject)
+      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject).getProperty(
+        'prototype'.toJS,
+      ) as JSObject)
           .getProperty('createEncodedStreams'.toJS)
           .isDefinedAndNotNull;
 }
