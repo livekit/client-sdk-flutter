@@ -30,6 +30,9 @@ bool lkPlatformIsWebMobileImplementation() {
   return false;
 }
 
+bool lkPlatformIsTestImplementation() =>
+    Platform.environment.containsKey('FLUTTER_TEST');
+
 bool lkE2EESupportedImplementation() {
   return [
     PlatformType.windows,
