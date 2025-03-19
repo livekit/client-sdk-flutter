@@ -141,7 +141,7 @@ void main() {
     test('send text with filestest', () async {
     var longText = 'a' * 100000;
 
-    var files  = ['testfile.bin', 'testfile2.bin'];
+    var files  = ['testfile.bin', 'testfile2.bin', 'testfile3.bin', 'testfile4.bin'];
     /// create random files  
     for (var file in files) {
       var randomFile = File(file);
