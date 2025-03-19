@@ -852,11 +852,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {
     // participant may be null if data is sent from Server-API
-    final senderSid = dataPacketEvent.packet.participantSid;
     RemoteParticipant? senderParticipant;
-    if (senderSid.isNotEmpty) {
-      senderParticipant =
-          _getRemoteParticipantBySid(dataPacketEvent.packet.participantSid);
+    if (dataPacketEvent.identity.isNotEmpty) {
+      senderParticipant = getParticipantByIdentity(dataPacketEvent.identity)
+          as RemoteParticipant?;
     }
 
     final event = DataReceivedEvent(
@@ -1203,7 +1202,7 @@ extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
     _engineListener
       ..on<EngineDataStreamHeaderEvent>((event) {
-        handleStreamHeader(event.header, event.participantIdentity);
+        handleStreamHeader(event.header, event.identity);
       })
       ..on<EngineDataStreamChunkEvent>((event) async {
         handleStreamChunk(event.chunk);

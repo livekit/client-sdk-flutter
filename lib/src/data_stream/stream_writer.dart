@@ -62,7 +62,6 @@ class StreamWriterImpl implements StreamWriter<String> {
       streamId: streamId,
     );
     final trailerPacket = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
@@ -79,7 +78,6 @@ class StreamWriterImpl implements StreamWriter<String> {
         chunkIndex: Int64(chunkId),
       );
       final chunkPacket = lk_models.DataPacket(
-        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );

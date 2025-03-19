@@ -307,11 +307,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   @internal
   Future<void> sendDataPacket(
-    lk_models.DataPacket packet,
-  ) async {
-    //
-    final reliability = packet.kind.toSDKType();
-
+    lk_models.DataPacket packet, {
+    bool reliability = true,
+  }) async {
     // construct the data channel message
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
@@ -341,14 +339,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) => event.type == reliability,
+          filter: (event) =>
+              event.type ==
+              (reliability ? Reliability.reliable : Reliability.lossy),
           duration: connectOptions.timeouts.connection,
         );
       }
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(
+        reliability ? Reliability.reliable : Reliability.lossy);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -614,6 +615,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
+
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -624,16 +626,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(EngineDataPacketReceivedEvent(
         packet: dp.user,
         kind: dp.kind,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.transcription) {
       // Transcription packet
       events.emit(EngineTranscriptionReceivedEvent(
         transcription: dp.transcription,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.sipDtmf) {
       // SIP DTMF packet
       events.emit(EngineSipDtmfReceivedEvent(
         dtmf: dp.sipDtmf,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
       // RPC Request
@@ -658,7 +663,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(
         EngineDataStreamHeaderEvent(
           header: dp.streamHeader,
-          participantIdentity: dp.participantIdentity,
+          identity: dp.participantIdentity,
         ),
       );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
@@ -666,7 +671,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(
         EngineDataStreamChunkEvent(
           chunk: dp.streamChunk,
-          participantIdentity: dp.participantIdentity,
+          identity: dp.participantIdentity,
         ),
       );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
@@ -674,7 +679,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(
         EngineDataStreamTrailerEvent(
           trailer: dp.streamTrailer,
-          participantIdentity: dp.participantIdentity,
+          identity: dp.participantIdentity,
         ),
       );
     } else {
