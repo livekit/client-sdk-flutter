@@ -308,7 +308,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Future<void> sendDataPacket(
     lk_models.DataPacket packet, {
-    bool reliability = true,
+    bool? reliability,
   }) async {
     // construct the data channel message
     final message =
@@ -341,7 +341,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
           filter: (event) =>
               event.type ==
-              (reliability ? Reliability.reliable : Reliability.lossy),
+              (reliability == true ? Reliability.reliable : Reliability.lossy),
           duration: connectOptions.timeouts.connection,
         );
       }
@@ -349,7 +349,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // chose data channel
     final rtc.RTCDataChannel? channel = _publisherDataChannel(
-        reliability ? Reliability.reliable : Reliability.lossy);
+        reliability == true ? Reliability.reliable : Reliability.lossy);
 
     if (channel == null) {
       throw UnexpectedStateException(

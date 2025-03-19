@@ -594,7 +594,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     );
 
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: reliable);
   }
 
   /// Sets and updates the metadata of the local participant.
@@ -949,7 +949,6 @@ extension RPCMethods on LocalParticipant {
     }
 
     final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcRequest: lk_models.RpcRequest(
         id: requestId,
         method: method,
@@ -961,7 +960,7 @@ extension RPCMethods on LocalParticipant {
       destinationIdentities: [destinationIdentity],
     );
 
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: true);
   }
 
   @internal
@@ -972,7 +971,6 @@ extension RPCMethods on LocalParticipant {
     lk_models.RpcError? error,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcResponse: lk_models.RpcResponse(
         requestId: requestId,
         payload: error == null ? payload : null,
@@ -982,7 +980,7 @@ extension RPCMethods on LocalParticipant {
       participantIdentity: identity,
     );
 
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: true);
   }
 
   @internal
@@ -991,7 +989,6 @@ extension RPCMethods on LocalParticipant {
     required String requestId,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       rpcAck: lk_models.RpcAck(
         requestId: requestId,
       ),
@@ -999,7 +996,7 @@ extension RPCMethods on LocalParticipant {
       participantIdentity: identity,
     );
 
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: true);
   }
 
   void handleIncomingRpcAck(String requestId) {
@@ -1241,10 +1238,9 @@ extension DataStreamParticipantMethods on LocalParticipant {
     final destinationIdentities = options?.destinationIdentities;
     final packet = lk_models.DataPacket(
       destinationIdentities: destinationIdentities,
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       streamHeader: header,
     );
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: true);
 
     final writableStream = StreamWriterImpl(
         destinationIdentities: destinationIdentities!,
@@ -1298,11 +1294,10 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final destinationIdentities = options.destinationIdentities;
     final packet = lk_models.DataPacket(
-        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamHeader: header);
 
-    await room.engine.sendDataPacket(packet);
+    await room.engine.sendDataPacket(packet, reliability: true);
 
     final reader = ChunkedStreamReader(file.openRead());
 
@@ -1318,21 +1313,19 @@ extension DataStreamParticipantMethods on LocalParticipant {
         chunkIndex: Int64(i),
       );
       final chunkPacket = lk_models.DataPacket(
-        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );
-      await room.engine.sendDataPacket(chunkPacket);
+      await room.engine.sendDataPacket(chunkPacket, reliability: true);
       options.onProgress?.call((i + 1) / totalChunks);
     }
     final trailer = lk_models.DataStream_Trailer(
       streamId: streamId,
     );
     final trailerPacket = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
-    await room.engine.sendDataPacket(trailerPacket);
+    await room.engine.sendDataPacket(trailerPacket, reliability: true);
   }
 }

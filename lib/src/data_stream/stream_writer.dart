@@ -65,7 +65,7 @@ class StreamWriterImpl implements StreamWriter<String> {
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
-    await engine.sendDataPacket(trailerPacket);
+    await engine.sendDataPacket(trailerPacket, reliability: true);
   }
 
   @override
@@ -81,7 +81,7 @@ class StreamWriterImpl implements StreamWriter<String> {
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );
-      await engine.sendDataPacket(chunkPacket);
+      await engine.sendDataPacket(chunkPacket, reliability: true);
 
       chunkId += 1;
     }
