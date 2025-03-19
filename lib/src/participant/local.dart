@@ -1152,14 +1152,15 @@ extension RPCMethods on LocalParticipant {
 }
 
 extension DataStreamParticipantMethods on LocalParticipant {
-  Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) async {
+  Future<TextStreamInfo> sendText(String text,
+      {SendTextOptions? options}) async {
     final streamId = Uuid().v4();
     final textInBytes = text.codeUnits;
     final totalTextLength = textInBytes.length;
 
     var fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
     var len = 0;
-    if(fileIds != null && fileIds.isNotEmpty) {
+    if (fileIds != null && fileIds.isNotEmpty) {
       len = fileIds.length + 1;
     } else {
       len = 1;
@@ -1169,7 +1170,8 @@ extension DataStreamParticipantMethods on LocalParticipant {
     handleProgress(num progress, int idx) {
       progresses[idx] = progress;
       final totalProgress = progresses.reduce((acc, val) => acc + val);
-      options?.onProgress?.call(totalProgress.toDouble() / (fileIds?.length ?? 1));
+      options?.onProgress
+          ?.call(totalProgress.toDouble() / (fileIds?.length ?? 1));
     }
 
     final writer = await streamText(StreamTextOptions(
@@ -1189,23 +1191,21 @@ extension DataStreamParticipantMethods on LocalParticipant {
     if (options?.attachments != null) {
       var idx = 0;
       await Future.wait<void>(
-        options?.attachments
-                .map(
-                  (file) { 
-                    var curIdx = idx++;
-                    return _sendFile(
-                    fileIds![curIdx],
-                    file,
-                    SendFileOptions(
-                        topic: options.topic,
-                        mimeType: mime(basename(file.path)),
-                        onProgress: (progress) {
-                          handleProgress(progress, curIdx + 1);
-                        }),
-                  );
-                  },
-                )
-                .toList() ??
+        options?.attachments.map(
+              (file) {
+                var curIdx = idx++;
+                return _sendFile(
+                  fileIds![curIdx],
+                  file,
+                  SendFileOptions(
+                      topic: options.topic,
+                      mimeType: mime(basename(file.path)),
+                      onProgress: (progress) {
+                        handleProgress(progress, curIdx + 1);
+                      }),
+                );
+              },
+            ).toList() ??
             [],
       );
     }
@@ -1270,9 +1270,9 @@ extension DataStreamParticipantMethods on LocalParticipant {
   }
 
   Future<Map<String, String>> sendFile(
-    File file,
-    {required SendFileOptions options,}
-  ) async {
+    File file, {
+    required SendFileOptions options,
+  }) async {
     final streamId = Uuid().v4();
     await _sendFile(streamId, file, options);
     return {'id': streamId};
@@ -1308,10 +1308,8 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final totalChunks = (totalLength / kStreamChunkSize).ceil();
     for (var i = 0; i < totalChunks; i++) {
-      
-      final chunkData = await reader.readBytes(
-        min((i + 1) * kStreamChunkSize, totalLength)
-      );
+      final chunkData =
+          await reader.readBytes(min((i + 1) * kStreamChunkSize, totalLength));
       await room.engine
           .waitForBufferStatusLow(lk_models.DataPacket_Kind.RELIABLE);
       final chunk = lk_models.DataStream_Chunk(

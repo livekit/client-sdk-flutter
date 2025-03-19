@@ -44,8 +44,8 @@ class MockDataChannel extends RTCDataChannel {
     _state = RTCDataChannelState.RTCDataChannelClosed;
   }
 
-
   @override
+  // ignore: overridden_fields
   int? bufferedAmountLowThreshold = 0;
 
   @override

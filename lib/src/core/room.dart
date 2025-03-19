@@ -859,8 +859,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           _getRemoteParticipantBySid(dataPacketEvent.packet.participantSid);
     }
 
-    // participant.delegate?.onDataReceived(participant, event.packet.payload);
-
     final event = DataReceivedEvent(
       participant: senderParticipant,
       data: dataPacketEvent.packet.payload,
@@ -1202,10 +1200,9 @@ extension RoomRPCMethods on Room {
 }
 
 extension DataStreamRoomMethods on Room {
-
   void _setupDataStreamListeners() {
     _engineListener
-      ..on<EngineDataStreamHeaderEvent>((event)  {
+      ..on<EngineDataStreamHeaderEvent>((event) {
         handleStreamHeader(event.header, event.participantIdentity);
       })
       ..on<EngineDataStreamChunkEvent>((event) async {
