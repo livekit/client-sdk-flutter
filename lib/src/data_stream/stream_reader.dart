@@ -50,16 +50,20 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
     return chunks.toList();
   }
 
+  StreamSubscription<DataStream_Chunk>? _streamSubscription;
   @override
   StreamSubscription<DataStream_Chunk> listen(
       void Function(DataStream_Chunk event)? onData,
       {Function? onError,
       void Function()? onDone,
       bool? cancelOnError}) {
-    return reader!.streamController.stream.listen((DataStream_Chunk data) {
+    _streamSubscription ??=
+        reader!.streamController.stream.listen((DataStream_Chunk data) {
       handleChunkReceived(data);
       onData?.call(data);
     }, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+
+    return _streamSubscription!;
   }
 }
 
@@ -105,8 +109,8 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
       {Function? onError,
       void Function()? onDone,
       bool? cancelOnError}) {
-
-    _streamSubscription ??= reader!.streamController.stream.listen((DataStream_Chunk data) {
+    _streamSubscription ??=
+        reader!.streamController.stream.listen((DataStream_Chunk data) {
       handleChunkReceived(data);
       onData?.call(data);
     }, onError: onError, onDone: onDone, cancelOnError: cancelOnError);

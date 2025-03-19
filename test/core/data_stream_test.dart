@@ -15,9 +15,14 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:md5_file_checksum/md5_file_checksum.dart';
 import 'package:uuid/uuid.dart' show Uuid;
 import '../mock/e2e_container.dart';
 
@@ -84,19 +89,91 @@ void main() {
 
   test('stream text test', () async {
     room.registerTextStreamHandler('chat-stream', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
-      print('received chat message from $participantIdentity: $text');
+      reader.listen((chunk) {
+        print('received chunk: ${chunk.content.length}, total: ${reader.info?.size}, progress: ${utf8.decode(chunk.content)}');
+      });
     });
 
     final streamId = Uuid().v4();
-    var longText = 'a' * 512;
     var stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-stream',
       streamId: streamId,
-      totalSize: longText.codeUnits.length,
+      totalSize: 10000,
       attachedStreamIds: [],
     ));
-    await stream?.write(longText);
+    await stream?.write('a' * 10);
+    await stream?.write('b' * 10);
+    await stream?.write('c' * 10);
     await stream?.close();
+  });
+
+  test('file send/recv test', () async {
+      var filePath = 'testfile.bin';
+      /// create random file
+      var randomFile = File(filePath);
+      var random = Random();
+      var bytes = List<int>.generate(100000, (index) => random.nextInt(256));
+      randomFile.writeAsBytesSync(bytes);
+    
+      room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) async {
+        var file = await reader.readAll();
+        var fileName = 'copy-${reader.info!.name}';
+        print('received file from $participantIdentity: ${file.length}');
+        var received = file.expand((element) => element).toList();
+        var writeFile = File(fileName);
+        writeFile.writeAsBytesSync(received);
+        
+        expect(bytes, received);
+        await writeFile.delete();
+        await randomFile.delete();
+      });
+
+      final fileToSend = File(filePath);
+      var info = await room.localParticipant?.sendFile(fileToSend, options: SendFileOptions(
+        topic: 'file',
+        onProgress: (p0) {
+          print('progress: ${p0 * 100} %');
+        },
+      ));
+      expect(info, isNotNull);
+  });
+
+    test('send text with filestest', () async {
+    var longText = 'a' * 100000;
+
+    var files  = ['testfile.bin', 'testfile2.bin'];
+    /// create random files  
+    for (var file in files) {
+      var randomFile = File(file);
+      var random = Random();
+      var bytes = List<int>.generate(100000, (index) => random.nextInt(256));
+      randomFile.writeAsBytesSync(bytes);
+    }
+
+    room.registerTextStreamHandler('chat-stream-with-files', (TextStreamReader reader, String participantIdentity) async {
+      var receivedText = await reader.readAll();
+      print('received chat message from $participantIdentity: long text length: ${receivedText.length}');
+      expect(longText, receivedText);
+    });
+
+    room.registerByteStreamHandler('chat-stream-with-files', (ByteStreamReader reader, String participantIdentity) async {
+        var file = await reader.readAll();
+        var fileName = 'copy-${reader.info!.name}';
+        print('received file from $participantIdentity: ${fileName}');
+        var received = file.expand((element) => element).toList();
+        var writeFile = File(fileName);
+        writeFile.writeAsBytesSync(received);
+      });
+
+    var attachmentsFiles = files.map((e) => File(e)).toList();
+
+    var info = await room.localParticipant?.sendText(longText, options: SendTextOptions(
+      topic: 'chat-stream-with-files',
+      attachments: attachmentsFiles,
+      onProgress: (p0) {
+        print('file from chat-stream-with-files: progress: $p0');
+      },
+    ));
+    expect(info, isNotNull);
   });
 }

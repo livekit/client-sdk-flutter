@@ -1273,7 +1273,7 @@ extension DataStreamRoomMethods on Room {
 
       streamHandlerCallback(
         ByteStreamReader(
-            info, streamController, streamHeader.totalLength as num),
+            info, streamController, streamHeader.totalLength.toInt()),
         participantIdentity,
       );
     } else if (streamHeader.hasTextHeader()) {
