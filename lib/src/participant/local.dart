@@ -1203,7 +1203,6 @@ extension DataStreamParticipantMethods on LocalParticipant {
     return writer.info;
   }
 
-  @internal
   Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
     final streamId = options?.streamId ?? Uuid().v4();
 

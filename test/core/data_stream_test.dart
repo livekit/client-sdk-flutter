@@ -18,6 +18,7 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:uuid/uuid.dart' show Uuid;
 import '../mock/e2e_container.dart';
 
 void main() {
@@ -50,7 +51,7 @@ void main() {
     });
   });
 
-  test('text stream test', () async {
+  test('send text test', () async {
     room.registerTextStreamHandler('chat', (TextStreamReader reader, String participantIdentity) async {
       var text = await reader.readAll();
       print('received chat message from $participantIdentity: $text');
@@ -63,7 +64,7 @@ void main() {
   });
 
 
-  test('long text stream test', () async {
+  test('send long text test', () async {
     var longText = 'a' * 100000;
 
     room.registerTextStreamHandler('chat-long-text', (TextStreamReader reader, String participantIdentity) async {
@@ -74,7 +75,28 @@ void main() {
 
     var info = await room.localParticipant?.sendText(longText, options: SendTextOptions(
       topic: 'chat-long-text',
+      onProgress: (p0) {
+        print('progress: $p0');
+      },
     ));
     expect(info, isNotNull);
+  });
+
+  test('stream text test', () async {
+    room.registerTextStreamHandler('chat-stream', (TextStreamReader reader, String participantIdentity) async {
+      var text = await reader.readAll();
+      print('received chat message from $participantIdentity: $text');
+    });
+
+    final streamId = Uuid().v4();
+    var longText = 'a' * 512;
+    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+      topic: 'chat-stream',
+      streamId: streamId,
+      totalSize: longText.codeUnits.length,
+      attachedStreamIds: [],
+    ));
+    await stream?.write(longText);
+    await stream?.close();
   });
 }
