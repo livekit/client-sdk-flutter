@@ -653,6 +653,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ack: dp.rpcAck,
         identity: dp.participantIdentity,
       ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader) {
+      // Data Stream Header
+      events.emit(
+        EngineDataStreamHeaderEvent(header: dp.streamHeader, participantIdentity: dp.participantIdentity,),
+      );
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
+      // Data Stream Chunk
+        events.emit(
+        EngineDataStreamChunkEvent(chunk: dp.streamChunk, participantIdentity: dp.participantIdentity,),
+      );
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
+      // Data Stream trailer
+        events.emit(
+        EngineDataStreamTrailerEvent(trailer: dp.streamTrailer, participantIdentity: dp.participantIdentity,),
+      );
     } else {
       logger.warning('Unknown data packet type: ${dp.whichValue()}');
     }

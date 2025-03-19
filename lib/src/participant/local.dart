@@ -1151,8 +1151,7 @@ extension RPCMethods on LocalParticipant {
 }
 
 extension DataStreamParticipantMethods on LocalParticipant {
-  Future<TextStreamInfo> sendText(String text,
-      {SendTextOptions? options}) async {
+  Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) async {
     final streamId = Uuid().v4();
     final textInBytes = text.codeUnits;
     final totalTextLength = textInBytes.length;
@@ -1172,7 +1171,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       totalSize: totalTextLength,
       destinationIdentities: options?.destinationIdentities ?? [],
       topic: options?.topic,
-      attachedStreamIds: fileIds!,
+      attachedStreamIds: fileIds ?? [],
     ));
 
     await writer.write(text);
@@ -1187,7 +1186,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
         options?.attachments
                 .map(
                   (file) => _sendFile(
-                    fileIds[++idx],
+                    fileIds![++idx],
                     file,
                     SendFileOptions(
                         topic: options.topic,

@@ -160,6 +160,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _setupRpcListeners();
 
+    _setupDataStreamListeners();
+
     onDispose(() async {
       // clean up routine
       await _cleanUp();
@@ -1200,6 +1202,20 @@ extension RoomRPCMethods on Room {
 }
 
 extension DataStreamRoomMethods on Room {
+
+  void _setupDataStreamListeners() {
+    _engineListener
+      ..on<EngineDataStreamHeaderEvent>((event)  {
+        handleStreamHeader(event.header, event.participantIdentity);
+      })
+      ..on<EngineDataStreamChunkEvent>((event) async {
+        handleStreamChunk(event.chunk);
+      })
+      ..on<EngineDataStreamTrailerEvent>((event) {
+        handleStreamTrailer(event.trailer);
+      });
+  }
+
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
     if (textStreamHandlers[topic] != null) {
       throw Exception(
@@ -1290,7 +1306,7 @@ extension DataStreamRoomMethods on Room {
 
       streamHandlerCallback(
         TextStreamReader(
-            info, streamController, streamHeader.totalLength as num),
+            info, streamController, streamHeader.totalLength.toInt()),
         participantIdentity,
       );
     }

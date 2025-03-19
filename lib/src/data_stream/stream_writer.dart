@@ -93,8 +93,16 @@ class StreamWriterImpl implements StreamWriter<String> {
 List<Uint8List> splitUtf8(String text, int chunkSize) {
   final utf8Bytes = utf8.encode(text);
   final chunks = <Uint8List>[];
+  if(text.length <= chunkSize) {
+    chunks.add(Uint8List.fromList(utf8Bytes));
+    return chunks;
+  }
   for (var i = 0; i < utf8Bytes.length; i += chunkSize) {
     final end = i + chunkSize;
+    if(end > utf8Bytes.length) {
+      chunks.add(Uint8List.fromList(utf8Bytes.sublist(i)));
+      break;
+    }
     chunks.add(Uint8List.fromList(utf8Bytes.sublist(i, end)));
   }
   return chunks;

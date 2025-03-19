@@ -495,6 +495,36 @@ class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
+class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
+  final lk_models.DataStream_Header header;
+  final String participantIdentity;
+  const EngineDataStreamHeaderEvent({
+    required this.header,
+    required this.participantIdentity,
+  });
+}
+
+@internal
+class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
+  final lk_models.DataStream_Chunk chunk;
+  final String participantIdentity;
+  const EngineDataStreamChunkEvent({
+    required this.chunk,
+    required this.participantIdentity,
+  });
+}
+
+@internal
+class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
+  final lk_models.DataStream_Trailer trailer;
+  final String participantIdentity;
+  const EngineDataStreamTrailerEvent({
+    required this.trailer,
+    required this.participantIdentity,
+  });
+}
+
+@internal
 abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
   final bool isPrimary;
   final Reliability type;

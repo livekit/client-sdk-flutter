@@ -44,9 +44,12 @@ class MockDataChannel extends RTCDataChannel {
     _state = RTCDataChannelState.RTCDataChannelClosed;
   }
 
+
   @override
-  // TODO: implement bufferedAmount
-  int? get bufferedAmount => throw UnimplementedError();
+  int? bufferedAmountLowThreshold = 0;
+
+  @override
+  int? get bufferedAmount => bufferedAmountLowThreshold;
 
   @override
   int? get id => _id;

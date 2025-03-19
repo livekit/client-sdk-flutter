@@ -75,7 +75,7 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
 
   @override
   void handleChunkReceived(DataStream_Chunk chunk) {
-    final index = chunk.chunkIndex as num;
+    final index = chunk.chunkIndex.toInt();
     final previousChunkAtIndex = receivedChunks[index];
     if (previousChunkAtIndex != null &&
         previousChunkAtIndex.version > chunk.version) {
@@ -98,15 +98,19 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
     return finalString;
   }
 
+  StreamSubscription<DataStream_Chunk>? _streamSubscription;
   @override
   StreamSubscription<DataStream_Chunk> listen(
       void Function(DataStream_Chunk event)? onData,
       {Function? onError,
       void Function()? onDone,
       bool? cancelOnError}) {
-    return reader!.streamController.stream.listen((DataStream_Chunk data) {
+
+    _streamSubscription ??= reader!.streamController.stream.listen((DataStream_Chunk data) {
       handleChunkReceived(data);
       onData?.call(data);
     }, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+
+    return _streamSubscription!;
   }
 }
