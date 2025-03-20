@@ -126,9 +126,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   lk_models.ServerInfo? get serverInfo => _serverInfo;
 
-  final Map<lk_models.DataPacket_Kind, bool> _dcBufferStatus = {
-    lk_models.DataPacket_Kind.RELIABLE: true,
-    lk_models.DataPacket_Kind.LOSSY: false,
+  final Map<Reliability, bool> _dcBufferStatus = {
+    Reliability.reliable: true,
+    Reliability.lossy: false,
   };
 
   List<lk_models.Codec>? _enabledPublishCodecs;
@@ -276,15 +276,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  bool? isBufferStatusLow(lk_models.DataPacket_Kind kind) {
-    final dc = _publisherDataChannel(kind.toSDKType());
+  bool? isBufferStatusLow(Reliability kind) {
+    final dc = _publisherDataChannel(kind);
     if (dc != null) {
       return dc.bufferedAmount! <= dc.bufferedAmountLowThreshold!;
     }
     return null;
   }
 
-  Future<void> waitForBufferStatusLow(lk_models.DataPacket_Kind kind) async {
+  Future<void> waitForBufferStatusLow(Reliability kind) async {
     final Completer<void> completer = Completer();
 
     if (isBufferStatusLow(kind) == true) {
@@ -308,11 +308,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Future<void> sendDataPacket(
     lk_models.DataPacket packet, {
-    bool? reliability,
+    bool? reliability = true,
   }) async {
     // construct the data channel message
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+
+    var reliabilityType =
+        reliability == true ? Reliability.reliable : Reliability.lossy;
 
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
@@ -335,13 +338,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(packet.kind.toSDKType()) !=
+      if (_publisherDataChannelState(reliabilityType) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
-        logger.fine('Waiting for data channel ${reliability} to open...');
+        logger.fine('Waiting for data channel ${reliabilityType} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) =>
-              event.type ==
-              (reliability == true ? Reliability.reliable : Reliability.lossy),
+          filter: (event) => event.type == reliabilityType,
           duration: connectOptions.timeouts.connection,
         );
       }
@@ -358,6 +359,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
+
+    _dcBufferStatus[reliabilityType] =
+        channel.bufferedAmount! <= channel.bufferedAmountLowThreshold!;
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -529,9 +533,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // _onDCStateUpdated(Reliability.lossy, state)
       _lossyDCPub?.bufferedAmountLowThreshold = 65535;
       _lossyDCPub?.onBufferedAmountLow = (_) {
-        _dcBufferStatus[lk_models.DataPacket_Kind.LOSSY] =
-            (_lossyDCPub!.bufferedAmount! <=
-                _lossyDCPub!.bufferedAmountLowThreshold!);
+        _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <=
+            _lossyDCPub!.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -552,7 +555,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
               )));
       _reliableDCPub?.bufferedAmountLowThreshold = 65535;
       _reliableDCPub?.onBufferedAmountLow = (_) {
-        _dcBufferStatus[lk_models.DataPacket_Kind.RELIABLE] =
+        _dcBufferStatus[Reliability.reliable] =
             (_reliableDCPub!.bufferedAmount! <=
                 _reliableDCPub!.bufferedAmountLowThreshold!);
       };

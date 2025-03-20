@@ -1302,10 +1302,9 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final totalChunks = (totalLength / kStreamChunkSize).ceil();
     for (var i = 0; i < totalChunks; i++) {
-      final chunkData =
-          await reader.readBytes(min((i + 1) * kStreamChunkSize, totalLength));
-      await room.engine
-          .waitForBufferStatusLow(lk_models.DataPacket_Kind.RELIABLE);
+      final chunkData = await reader
+          .readBytes(min((i + 1) * kStreamChunkSize, kStreamChunkSize));
+      await room.engine.waitForBufferStatusLow(Reliability.reliable);
       final chunk = lk_models.DataStream_Chunk(
         content: chunkData,
         streamId: streamId,

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:fixnum/fixnum.dart';
 
 import 'package:livekit_client/src/core/engine.dart';
+import 'package:livekit_client/src/types/other.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
 
@@ -71,7 +72,7 @@ class StreamWriterImpl implements StreamWriter<String> {
   @override
   Future<void> write(String text) async {
     for (final textByteChunk in splitUtf8(text, kStreamChunkSize)) {
-      await engine.waitForBufferStatusLow(lk_models.DataPacket_Kind.RELIABLE);
+      await engine.waitForBufferStatusLow(Reliability.reliable);
       final chunk = lk_models.DataStream_Chunk(
         content: textByteChunk,
         streamId: streamId,
