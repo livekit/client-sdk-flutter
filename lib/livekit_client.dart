@@ -54,3 +54,6 @@ export 'src/types/video_parameters.dart';
 export 'src/types/rpc.dart';
 export 'src/widgets/screen_select_dialog.dart';
 export 'src/widgets/video_track_renderer.dart';
+export 'src/data_stream/stream_reader.dart';
+export 'src/data_stream/stream_writer.dart';
+export 'src/types/data_stream.dart';

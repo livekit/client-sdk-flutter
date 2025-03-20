@@ -528,6 +528,14 @@ const AddTrackRequest$json = {
       '10': 'encryption'
     },
     {'1': 'stream', '3': 15, '4': 1, '5': 9, '10': 'stream'},
+    {
+      '1': 'backup_codec_policy',
+      '3': 16,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.BackupCodecPolicy',
+      '10': 'backupCodecPolicy'
+    },
   ],
 };
 
@@ -542,7 +550,8 @@ final $typed_data.Uint8List addTrackRequestDescriptor = $convert.base64Decode(
     'Q29kZWNSD3NpbXVsY2FzdENvZGVjcxIQCgNzaWQYCyABKAlSA3NpZBIWCgZzdGVyZW8YDCABKA'
     'hSBnN0ZXJlbxIfCgtkaXNhYmxlX3JlZBgNIAEoCFIKZGlzYWJsZVJlZBI4CgplbmNyeXB0aW9u'
     'GA4gASgOMhgubGl2ZWtpdC5FbmNyeXB0aW9uLlR5cGVSCmVuY3J5cHRpb24SFgoGc3RyZWFtGA'
-    '8gASgJUgZzdHJlYW0=');
+    '8gASgJUgZzdHJlYW0SSgoTYmFja3VwX2NvZGVjX3BvbGljeRgQIAEoDjIaLmxpdmVraXQuQmFj'
+    'a3VwQ29kZWNQb2xpY3lSEWJhY2t1cENvZGVjUG9saWN5');
 
 @$core.Deprecated('Use trickleRequestDescriptor instead')
 const TrickleRequest$json = {

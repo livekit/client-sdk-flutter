@@ -42,6 +42,7 @@ dependencies:
   dart_webrtc: ^1.5.2+hotfix.1
   sdp_transform: ^0.3.2
   web: ^1.0.0
+  mime_type: ^1.0.1
 
 dev_dependencies:
   flutter_test:
