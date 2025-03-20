@@ -1294,8 +1294,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final destinationIdentities = options.destinationIdentities;
     final packet = lk_models.DataPacket(
-        destinationIdentities: destinationIdentities,
-        streamHeader: header);
+        destinationIdentities: destinationIdentities, streamHeader: header);
 
     await room.engine.sendDataPacket(packet, reliability: true);
 
