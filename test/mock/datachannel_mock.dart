@@ -52,5 +52,8 @@ class MockDataChannel extends RTCDataChannel {
   int? get bufferedAmount => bufferedAmountLowThreshold;
 
   @override
+  Future<int> getBufferedAmount() => Future.value(bufferedAmountLowThreshold);
+
+  @override
   int? get id => _id;
 }

@@ -361,7 +361,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await channel.send(message);
 
     _dcBufferStatus[reliabilityType] =
-        channel.bufferedAmount! <= channel.bufferedAmountLowThreshold!;
+        await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!;
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
