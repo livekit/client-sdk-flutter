@@ -67,8 +67,8 @@ BrowserType lkBrowserImplementation() {
 }
 
 BrowserVersion lkBrowserVersionImplementation() {
-  var ua = web.window.navigator.userAgent;
-  var appVersion = web.window.navigator.appVersion;
+  final ua = web.window.navigator.userAgent;
+  final appVersion = web.window.navigator.appVersion;
 
   BrowserVersion chromeBased(String prefix) {
     Match? match =
@@ -92,8 +92,8 @@ BrowserVersion lkBrowserVersionImplementation() {
         return BrowserVersion(0, 0, 0);
       }
 
-      var major = int.parse(match.group(1)!);
-      var minor = int.parse(match.group(2)!);
+      final major = int.parse(match.group(1)!);
+      final minor = int.parse(match.group(2)!);
       return BrowserVersion(major, minor, 0);
     case BrowserType.safari:
       Match? match =
@@ -109,22 +109,22 @@ BrowserVersion lkBrowserVersionImplementation() {
     case BrowserType.internetExplorer:
       Match? match = RegExp(r'MSIE (\d+)\.(\d+);').firstMatch(appVersion);
       if (match != null) {
-        var major = int.parse(match.group(1)!);
-        var minor = int.parse(match.group(2)!);
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
         return BrowserVersion(major, minor, 0);
       }
 
       match = RegExp(r'rv[: ](\d+)\.(\d+)').firstMatch(appVersion);
       if (match != null) {
-        var major = int.parse(match.group(1)!);
-        var minor = int.parse(match.group(2)!);
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
         return BrowserVersion(major, minor, 0);
       }
 
       match = RegExp(r'Edge/(\d+)\.(\d+)$').firstMatch(appVersion);
       if (match != null) {
-        var major = int.parse(match.group(1)!);
-        var minor = int.parse(match.group(2)!);
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
         return BrowserVersion(major, minor, 0);
       }
 
