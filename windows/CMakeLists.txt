@@ -21,8 +21,12 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 set(PLUGIN_NAME "livekit_client_plugin")
 
 add_library(${PLUGIN_NAME} SHARED
-  "livekit_plugin.cpp"
+  "livekit_plugin.cpp",
+  "fft/real_fft.c",
+  "fft/complex_fft.c",
+  "fft/complex_bit_reverse.c",
 )
+
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
