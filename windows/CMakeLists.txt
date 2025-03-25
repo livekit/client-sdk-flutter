@@ -21,10 +21,10 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 set(PLUGIN_NAME "livekit_client_plugin")
 
 add_library(${PLUGIN_NAME} SHARED
-  "livekit_plugin.cpp",
-  "../shared_cpp/fft/real_fft.c",
-  "../shared_cpp/fft/complex_fft.c",
-  "../shared_cpp/fft/complex_bit_reverse.c",
+  "livekit_plugin.cpp"
+  "../shared_cpp/fft/real_fft.c"
+  "../shared_cpp/fft/complex_fft.c"
+  "../shared_cpp/fft/complex_bit_reverse.c"
 )
 
 include_directories(
