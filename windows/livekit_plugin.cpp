@@ -24,6 +24,10 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
+
+#include <flutter_webrtc.h>
+
 #include <map>
 #include <memory>
 #include <sstream>
