@@ -126,6 +126,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   lk_models.ServerInfo? get serverInfo => _serverInfo;
 
+  final Map<Reliability, bool> _dcBufferStatus = {
+    Reliability.reliable: true,
+    Reliability.lossy: false,
+  };
+
   List<lk_models.Codec>? _enabledPublishCodecs;
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
@@ -271,16 +276,46 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  bool? isBufferStatusLow(Reliability kind) {
+    final dc = _publisherDataChannel(kind);
+    if (dc != null) {
+      return dc.bufferedAmount! <= dc.bufferedAmountLowThreshold!;
+    }
+    return null;
+  }
+
+  Future<void> waitForBufferStatusLow(Reliability kind) async {
+    final Completer<void> completer = Completer();
+
+    if (isBufferStatusLow(kind) == true) {
+      completer.complete();
+    } else {
+      onClosing() => completer.completeError('Engine disconnected');
+      events.once<EngineClosingEvent>((e) => onClosing());
+
+      while (!_dcBufferStatus[kind]!) {
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+      if (completer.isCompleted) {
+        return;
+      }
+      completer.complete();
+    }
+
+    return completer.future;
+  }
+
   @internal
   Future<void> sendDataPacket(
-    lk_models.DataPacket packet,
-  ) async {
-    //
-    final reliability = packet.kind.toSDKType();
-
+    lk_models.DataPacket packet, {
+    bool? reliability = true,
+  }) async {
     // construct the data channel message
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+
+    var reliabilityType =
+        reliability == true ? Reliability.reliable : Reliability.lossy;
 
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
@@ -303,18 +338,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(packet.kind.toSDKType()) !=
+      if (_publisherDataChannelState(reliabilityType) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
-        logger.fine('Waiting for data channel ${reliability} to open...');
+        logger.fine('Waiting for data channel ${reliabilityType} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) => event.type == reliability,
+          filter: (event) => event.type == reliabilityType,
           duration: connectOptions.timeouts.connection,
         );
       }
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(
+        reliability == true ? Reliability.reliable : Reliability.lossy);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -323,6 +359,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
+
+    _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <=
+        channel.bufferedAmountLowThreshold!;
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -492,6 +531,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 type: Reliability.lossy,
               )));
       // _onDCStateUpdated(Reliability.lossy, state)
+      _lossyDCPub?.bufferedAmountLowThreshold = 65535;
+      _lossyDCPub?.onBufferedAmountLow = (_) {
+        _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <=
+            _lossyDCPub!.bufferedAmountLowThreshold!);
+      };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
     }
@@ -509,6 +553,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
                 state: state,
                 type: Reliability.reliable,
               )));
+      _reliableDCPub?.bufferedAmountLowThreshold = 65535;
+      _reliableDCPub?.onBufferedAmountLow = (_) {
+        _dcBufferStatus[Reliability.reliable] =
+            (_reliableDCPub!.bufferedAmount! <=
+                _reliableDCPub!.bufferedAmountLowThreshold!);
+      };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
     }
@@ -568,6 +618,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
+
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -578,16 +629,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(EngineDataPacketReceivedEvent(
         packet: dp.user,
         kind: dp.kind,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.transcription) {
       // Transcription packet
       events.emit(EngineTranscriptionReceivedEvent(
         transcription: dp.transcription,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.sipDtmf) {
       // SIP DTMF packet
       events.emit(EngineSipDtmfReceivedEvent(
         dtmf: dp.sipDtmf,
+        identity: dp.participantIdentity,
       ));
     } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
       // RPC Request
@@ -607,6 +661,30 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ack: dp.rpcAck,
         identity: dp.participantIdentity,
       ));
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader) {
+      // Data Stream Header
+      events.emit(
+        EngineDataStreamHeaderEvent(
+          header: dp.streamHeader,
+          identity: dp.participantIdentity,
+        ),
+      );
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
+      // Data Stream Chunk
+      events.emit(
+        EngineDataStreamChunkEvent(
+          chunk: dp.streamChunk,
+          identity: dp.participantIdentity,
+        ),
+      );
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
+      // Data Stream trailer
+      events.emit(
+        EngineDataStreamTrailerEvent(
+          trailer: dp.streamTrailer,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else {
       logger.warning('Unknown data packet type: ${dp.whichValue()}');
     }
@@ -1037,6 +1115,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> disconnect() async {
     _isClosed = true;
+    events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
       await signalClient.sendLeave();
     } else {
