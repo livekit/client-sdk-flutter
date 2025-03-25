@@ -22,9 +22,15 @@ set(PLUGIN_NAME "livekit_client_plugin")
 
 add_library(${PLUGIN_NAME} SHARED
   "livekit_plugin.cpp",
-  "fft/real_fft.c",
-  "fft/complex_fft.c",
-  "fft/complex_bit_reverse.c",
+  "../shared_cpp/fft/real_fft.c",
+  "../shared_cpp/fft/complex_fft.c",
+  "../shared_cpp/fft/complex_bit_reverse.c",
+)
+
+include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp/fft"
 )
 
 apply_standard_settings(${PLUGIN_NAME})
