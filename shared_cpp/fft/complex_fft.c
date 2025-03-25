@@ -25,6 +25,31 @@
 #define CIFFTSFT 14
 #define CIFFTRND 1
 
+#define WEBRTC_SPL_WORD16_MAX 32767
+#define WEBRTC_SPL_WORD16_MIN -32768
+
+// Maximum absolute value of word16 vector. C version for generic platforms.
+int16_t WebRtcSpl_MaxAbsValueW16C(const int16_t* vector, size_t length) {
+  size_t i = 0;
+  int absolute = 0, maximum = 0;
+
+  RTC_DCHECK_GT(length, 0);
+
+  for (i = 0; i < length; i++) {
+    absolute = abs((int)vector[i]);
+
+    if (absolute > maximum) {
+      maximum = absolute;
+    }
+  }
+
+  // Guard the case for abs(-32768).
+  if (maximum > WEBRTC_SPL_WORD16_MAX) {
+    maximum = WEBRTC_SPL_WORD16_MAX;
+  }
+
+  return (int16_t)maximum;
+}
 
 int WebRtcSpl_ComplexFFT(int16_t frfi[], int stages, int mode)
 {
