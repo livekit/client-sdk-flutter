@@ -31,7 +31,7 @@
 #define WEBRTC_SPL_WORD16_MIN -32768
 
 // Maximum absolute value of word16 vector. C version for generic platforms.
-int16_t WebRtcSpl_MaxAbsValueW16C(const int16_t* vector, size_t length) {
+int16_t WebRtcSpl_MaxAbsValueW16(const int16_t* vector, size_t length) {
   size_t i = 0;
   int absolute = 0, maximum = 0;
 
