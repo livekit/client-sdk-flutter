@@ -123,18 +123,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // RPC Handlers
   final Map<String, RpcRequestHandler> _rpcHandlers = {};
 
+  final Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      _byteStreamControllers = {};
+
+  final Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      _textStreamControllers = {};
+
+  final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
+
+  final Map<String, TextStreamHandler> _textStreamHandlers = {};
+
   // for testing
+  @internal
   Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
 
-  Map<String, DataStreamController<lk_models.DataStream_Chunk>>
-      byteStreamControllers = {};
+  @internal
+  Map<String, TextStreamHandler> get textStreamHandlers => _textStreamHandlers;
 
-  Map<String, DataStreamController<lk_models.DataStream_Chunk>>
-      textStreamControllers = {};
-
-  Map<String, ByteStreamHandler> byteStreamHandlers = {};
-
-  Map<String, TextStreamHandler> textStreamHandlers = {};
+  @internal
+  Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -1213,33 +1220,33 @@ extension DataStreamRoomMethods on Room {
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
-    if (textStreamHandlers[topic] != null) {
+    if (_textStreamHandlers[topic] != null) {
       throw Exception(
           'A text stream handler for topic "${topic}" has already been set.');
     }
-    textStreamHandlers[topic] = callback;
+    _textStreamHandlers[topic] = callback;
   }
 
   void unregisterTextStreamHandler(String topic) {
-    textStreamHandlers.remove(topic);
+    _textStreamHandlers.remove(topic);
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
-    if (byteStreamHandlers[topic] != null) {
+    if (_byteStreamHandlers[topic] != null) {
       throw Exception(
           'A byte stream handler for topic "${topic}" has already been set.');
     }
-    byteStreamHandlers[topic] = callback;
+    _byteStreamHandlers[topic] = callback;
   }
 
   void unregisterByteStreamHandler(String topic) {
-    byteStreamHandlers.remove(topic);
+    _byteStreamHandlers.remove(topic);
   }
 
   Future<void> handleStreamHeader(lk_models.DataStream_Header streamHeader,
       String participantIdentity) async {
     if (streamHeader.hasByteHeader()) {
-      final streamHandlerCallback = byteStreamHandlers[streamHeader.topic];
+      final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
 
       if (streamHandlerCallback == null) {
         logger.info(
@@ -1265,7 +1272,7 @@ extension DataStreamRoomMethods on Room {
         startTime: DateTime.now().millisecondsSinceEpoch,
       );
 
-      byteStreamControllers[streamHeader.streamId] = streamController;
+      _byteStreamControllers[streamHeader.streamId] = streamController;
 
       streamHandlerCallback(
         ByteStreamReader(
@@ -1273,7 +1280,7 @@ extension DataStreamRoomMethods on Room {
         participantIdentity,
       );
     } else if (streamHeader.hasTextHeader()) {
-      final streamHandlerCallback = textStreamHandlers[streamHeader.topic];
+      final streamHandlerCallback = _textStreamHandlers[streamHeader.topic];
 
       if (streamHandlerCallback == null) {
         logger.warning(
@@ -1298,7 +1305,7 @@ extension DataStreamRoomMethods on Room {
         startTime: DateTime.now().millisecondsSinceEpoch,
       );
 
-      textStreamControllers[streamHeader.streamId] = streamController;
+      _textStreamControllers[streamHeader.streamId] = streamController;
 
       streamHandlerCallback(
         TextStreamReader(
@@ -1309,13 +1316,13 @@ extension DataStreamRoomMethods on Room {
   }
 
   void handleStreamChunk(lk_models.DataStream_Chunk chunk) {
-    final fileBuffer = byteStreamControllers[chunk.streamId];
+    final fileBuffer = _byteStreamControllers[chunk.streamId];
     if (fileBuffer != null) {
       if (chunk.content.isNotEmpty) {
         fileBuffer.write(chunk);
       }
     }
-    final textBuffer = textStreamControllers[chunk.streamId];
+    final textBuffer = _textStreamControllers[chunk.streamId];
     if (textBuffer != null) {
       if (chunk.content.isNotEmpty) {
         textBuffer.write(chunk);
@@ -1324,17 +1331,17 @@ extension DataStreamRoomMethods on Room {
   }
 
   void handleStreamTrailer(lk_models.DataStream_Trailer trailer) {
-    final textBuffer = textStreamControllers[trailer.streamId];
+    final textBuffer = _textStreamControllers[trailer.streamId];
     if (textBuffer != null) {
       textBuffer.info.attributes = {
         ...textBuffer.info.attributes,
         ...trailer.attributes,
       };
       textBuffer.close();
-      textStreamControllers.remove(trailer.streamId);
+      _textStreamControllers.remove(trailer.streamId);
     }
 
-    final fileBuffer = byteStreamControllers[trailer.streamId];
+    final fileBuffer = _byteStreamControllers[trailer.streamId];
     if (fileBuffer != null) {
       {
         fileBuffer.info.attributes = {
@@ -1342,7 +1349,7 @@ extension DataStreamRoomMethods on Room {
           ...trailer.attributes
         };
         fileBuffer.close();
-        byteStreamControllers.remove(trailer.streamId);
+        _byteStreamControllers.remove(trailer.streamId);
       }
     }
   }
