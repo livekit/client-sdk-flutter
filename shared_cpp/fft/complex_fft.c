@@ -18,6 +18,8 @@
 #include "complex_fft_tables.h"
 #include "complex_fft.h"
 
+#include <stdlib.h>
+
 #define CFFTSFT 14
 #define CFFTRND 1
 #define CFFTRND2 16384
@@ -32,8 +34,6 @@
 int16_t WebRtcSpl_MaxAbsValueW16C(const int16_t* vector, size_t length) {
   size_t i = 0;
   int absolute = 0, maximum = 0;
-
-  RTC_DCHECK_GT(length, 0);
 
   for (i = 0; i < length; i++) {
     absolute = abs((int)vector[i]);
