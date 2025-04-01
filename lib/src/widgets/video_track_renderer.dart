@@ -48,12 +48,16 @@ class VideoTrackRenderer extends StatefulWidget {
   final rtc.RTCVideoViewObjectFit fit;
   final VideoViewMirrorMode mirrorMode;
   final VideoRenderMode renderMode;
+  final rtc.RTCVideoRenderer? cachedRenderer;
+  final bool autoDisposeRenderer;
 
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
     this.mirrorMode = VideoViewMirrorMode.auto,
     this.renderMode = VideoRenderMode.texture,
+    this.autoDisposeRenderer = true,
+    this.cachedRenderer,
     Key? key,
   }) : super(key: key);
 
@@ -114,6 +118,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   @override
   void initState() {
     super.initState();
+    if (widget.cachedRenderer != null) {
+      _renderer = widget.cachedRenderer;
+    }
     _internalKey = widget.track.addViewKey();
     if (kIsWeb) {
       () async {
@@ -127,7 +134,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void dispose() {
     widget.track.removeViewKey(_internalKey);
     _listener?.dispose();
-    disposeRenderer();
+    if (widget.autoDisposeRenderer) {
+      disposeRenderer();
+    }
     super.dispose();
   }
 

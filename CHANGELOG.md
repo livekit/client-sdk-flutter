@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.1
+
+* feat: VideoRenderer support cache renderer. (#723)
+* feat: Visualizer for web. (#718)
+* fix: Fix bar Visualizer overflow for Android. (#717)
+* fix: disconnect reason inconsistent. (#715)
+* fix: remove stats video data print from logs (#716)
+
 ## 2.4.0
 
 * feat: RPC. (#682)
