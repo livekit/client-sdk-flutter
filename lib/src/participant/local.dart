@@ -207,8 +207,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
       // fallback to a supported codec if it is not supported
-      if (!room.engine.enabledPublishCodecs!.any((c) =>
-          publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
+      if (!room.engine.enabledPublishCodecs!
+          .where((c) => c.mime.startsWith('video/'))
+          .any((c) =>
+              publishOptions?.videoCodec ==
+              mimeTypeToVideoCodecString(c.mime))) {
         publishOptions = publishOptions.copyWith(
           videoCodec: mimeTypeToVideoCodecString(
                   room.engine.enabledPublishCodecs![0].mime)
