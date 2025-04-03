@@ -3,11 +3,12 @@
 ## 2.4.2
 
 * fix: Fixed the echo issue on some specific models of Android devices.
-* bump version for flutter-webrtc.
-* fix: improve browser version detection, fix issue #730 (#738)
+* chore: Bbmp version for flutter-webrtc.
+* fix: Improve browser version detection, fix issue #730 (#738)
 * feat: Fast track publication. (#720)
-* chore: remove `bypassVoiceProcessing = true` settings for connect page. (#693)
+* chore: Remove `bypassVoiceProcessing = true` settings for connect page. (#693)
 * fix: [bug] Crash when join room on Windows.
+* fix: Disable selectAudioInput for mobile platforms.
 
 ## 2.4.1
 
