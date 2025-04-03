@@ -28,7 +28,7 @@ dependencies:
   flutter:
     sdk: flutter
   async: ^2.9.0
-  collection: ^1.19.1
+  collection: ^1.19.0
   connectivity_plus: ^6.0.2
   fixnum: ^1.0.1
   meta: ^1.8.0
