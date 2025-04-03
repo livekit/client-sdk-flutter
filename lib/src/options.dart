@@ -115,6 +115,9 @@ class RoomOptions {
   /// Options for end-to-end encryption.
   final E2EEOptions? e2eeOptions;
 
+  /// fast track publication
+  final bool fastPublish;
+
   /// deprecated, use [createVisualizer] instead
   /// please refer to example/lib/widgets/sound_waveform.dart
   @Deprecated('Use createVisualizer instead')
@@ -131,7 +134,8 @@ class RoomOptions {
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
     this.e2eeOptions,
-    this.enableVisualizer,
+    this.enableVisualizer = false,
+    this.fastPublish = true,
   });
 
   RoomOptions copyWith({
@@ -145,6 +149,7 @@ class RoomOptions {
     bool? dynacast,
     bool? stopLocalTrackOnUnpublish,
     E2EEOptions? e2eeOptions,
+    bool? fastPublish,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions:
@@ -164,6 +169,7 @@ class RoomOptions {
       stopLocalTrackOnUnpublish:
           stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
+      fastPublish: fastPublish ?? this.fastPublish,
     );
   }
 }

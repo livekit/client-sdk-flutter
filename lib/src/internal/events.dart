@@ -152,6 +152,14 @@ class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
 }
 
 @internal
+class EngineJoinResponseEvent with EngineEvent, InternalEvent {
+  final lk_rtc.JoinResponse response;
+  const EngineJoinResponseEvent({
+    required this.response,
+  });
+}
+
+@internal
 class EngineConnectingEvent with InternalEvent, EngineEvent {
   const EngineConnectingEvent();
 }

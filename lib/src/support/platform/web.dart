@@ -32,6 +32,8 @@ bool lkE2EESupportedImplementation() {
   return isInsertableStreamSupported() || isScriptTransformSupported();
 }
 
+bool lkPlatformIsTestImplementation() => false;
+
 bool isScriptTransformSupported() {
   return web.window
       .hasProperty('RTCRtpScriptTransform'.toJS)
@@ -40,8 +42,9 @@ bool isScriptTransformSupported() {
 
 bool isInsertableStreamSupported() {
   return web.window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
-      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject)
-              .getProperty('prototype'.toJS) as JSObject)
+      ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject).getProperty(
+        'prototype'.toJS,
+      ) as JSObject)
           .getProperty('createEncodedStreams'.toJS)
           .isDefinedAndNotNull;
 }
@@ -64,12 +67,82 @@ BrowserType lkBrowserImplementation() {
 }
 
 BrowserVersion lkBrowserVersionImplementation() {
-  var appVersion = web.window.navigator.appVersion;
-  Match match =
-      RegExp(r'Version/(\d+)(\.(\d+))?(\.(\d+))?').firstMatch(appVersion)!;
-  var major = int.parse(match.group(1)!);
-  var minor = int.parse(match.group(3) ?? '0');
-  var patch = int.parse(match.group(5) ?? '0');
+  final ua = web.window.navigator.userAgent;
+  final appVersion = web.window.navigator.appVersion;
 
-  return BrowserVersion(major, minor, patch);
+  BrowserVersion chromeBased(String prefix) {
+    Match? match =
+        RegExp(prefix + r'/(\d+)\.(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
+    if (match == null) {
+      return BrowserVersion(0, 0, 0);
+    }
+
+    final major = int.parse(match.group(1)!);
+    final minor = int.parse(match.group(2)!);
+    final patch = int.parse(match.group(3)!);
+    return BrowserVersion(major, minor, patch);
+  }
+
+  switch (lkBrowserImplementation()) {
+    case BrowserType.chrome:
+      return chromeBased('Chrome');
+    case BrowserType.firefox:
+      Match? match = RegExp(r'rv:(\d+)\.(\d+)\)').firstMatch(ua);
+      if (match == null) {
+        return BrowserVersion(0, 0, 0);
+      }
+
+      final major = int.parse(match.group(1)!);
+      final minor = int.parse(match.group(2)!);
+      return BrowserVersion(major, minor, 0);
+    case BrowserType.safari:
+      Match? match =
+          RegExp(r'Version/(\d+)(\.(\d+))?(\.(\d+))?').firstMatch(appVersion);
+      if (match == null) {
+        return BrowserVersion(0, 0, 0);
+      }
+
+      final major = int.parse(match.group(1)!);
+      final minor = int.parse(match.group(3) ?? '0');
+      final patch = int.parse(match.group(5) ?? '0');
+      return BrowserVersion(major, minor, patch);
+    case BrowserType.internetExplorer:
+      Match? match = RegExp(r'MSIE (\d+)\.(\d+);').firstMatch(appVersion);
+      if (match != null) {
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
+        return BrowserVersion(major, minor, 0);
+      }
+
+      match = RegExp(r'rv[: ](\d+)\.(\d+)').firstMatch(appVersion);
+      if (match != null) {
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
+        return BrowserVersion(major, minor, 0);
+      }
+
+      match = RegExp(r'Edge/(\d+)\.(\d+)$').firstMatch(appVersion);
+      if (match != null) {
+        final major = int.parse(match.group(1)!);
+        final minor = int.parse(match.group(2)!);
+        return BrowserVersion(major, minor, 0);
+      }
+
+      return BrowserVersion(0, 0, 0);
+    case BrowserType.wkWebView:
+      Match? match =
+          RegExp(r'AppleWebKit/(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
+      if (match == null) {
+        return BrowserVersion(0, 0, 0);
+      }
+
+      final major = int.parse(match.group(1)!);
+      final minor = int.parse(match.group(2)!);
+      final patch = int.parse(match.group(3)!);
+      return BrowserVersion(major, minor, patch);
+    case BrowserType.edge:
+      return chromeBased('Edg');
+    default:
+      return BrowserVersion(0, 0, 0);
+  }
 }
