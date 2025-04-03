@@ -14,6 +14,8 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -131,7 +133,9 @@ abstract class Track extends DisposableChangeNotifier
 
     logger.fine('$objectId.stop()');
 
-    await mediaStreamTrack.stop();
+    if (!kIsWeb) {
+      await mediaStreamTrack.stop();
+    }
 
     _active = false;
     return true;
