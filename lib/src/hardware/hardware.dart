@@ -121,9 +121,8 @@ class Hardware {
   }
 
   Future<void> selectAudioInput(MediaDevice device) async {
-    if (lkPlatformIs(PlatformType.web)) {
-      logger.warning(
-          'selectAudioInput is only supported on Android/Windows/macOS');
+    if (lkPlatformIs(PlatformType.web) || lkPlatformIsMobile()) {
+      logger.warning('selectAudioInput is only supported on Windows/macOS');
       return;
     }
     selectedAudioInput = device;
