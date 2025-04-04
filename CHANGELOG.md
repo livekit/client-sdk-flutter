@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.2+hotfix.1
+
+* fix: fixed bug for fast track publish.
+
 ## 2.4.2
 
 * fix: Fixed the echo issue on some specific models of Android devices.
