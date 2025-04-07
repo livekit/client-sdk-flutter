@@ -19,7 +19,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:http/http.dart' as http;
+import 'package:livekit_client/src/track/audio_management.dart';
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -38,6 +40,7 @@ import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/native.dart' show Native;
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart' show WebSocketException;
@@ -244,6 +247,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         logger.warning('could not fetch region settings $e');
       }));
     }
+
+    // configure audio for native platform
+    await NativeAudioManagement.start();
+
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -927,6 +934,8 @@ extension RoomPrivateMethods on Room {
 
     // clean up engine
     await engine.cleanUp();
+
+    await NativeAudioManagement.stop();
 
     // reset params
     _name = null;
