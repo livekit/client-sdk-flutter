@@ -668,6 +668,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
+      // The local participant is not ready yet, waiting for the
+      // `RoomConnectedEvent` to create the local participant.
+      if (_localParticipant == null) {
+        await events.waitFor<RoomConnectedEvent>(
+          duration: const Duration(seconds: 10),
+        );
+      }
+
       if (localParticipant?.identity == info.identity) {
         await localParticipant?.updateFromInfo(info);
         continue;
