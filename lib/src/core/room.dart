@@ -41,6 +41,7 @@ import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart' show WebSocketException;
+import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
@@ -244,6 +245,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         logger.warning('could not fetch region settings $e');
       }));
     }
+
+    // configure audio for native platform
+    await NativeAudioManagement.start();
+
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -935,6 +940,8 @@ extension RoomPrivateMethods on Room {
 
     // clean up engine
     await engine.cleanUp();
+
+    await NativeAudioManagement.stop();
 
     // reset params
     _name = null;
