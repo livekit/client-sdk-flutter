@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
 import '../hardware/hardware.dart';
@@ -158,4 +159,25 @@ Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
   return Hardware.instance.preferSpeakerOutput
       ? NativeAudioConfiguration.playAndRecordSpeaker
       : NativeAudioConfiguration.playAndRecordReceiver;
+}
+
+class NativeAudioManagement {
+  static Future<void> start() async {
+    // Audio configuration for Android.
+    if (lkPlatformIs(PlatformType.android)) {
+      if (Native.bypassVoiceProcessing) {
+        await rtc.Helper.setAndroidAudioConfiguration(
+            rtc.AndroidAudioConfiguration.media);
+      } else {
+        await rtc.Helper.setAndroidAudioConfiguration(
+            rtc.AndroidAudioConfiguration.communication);
+      }
+    }
+  }
+
+  static Future<void> stop() async {
+    if (lkPlatformIs(PlatformType.android)) {
+      await rtc.Helper.clearAndroidCommunicationDevice();
+    }
+  }
 }

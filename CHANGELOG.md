@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.4.2+hotfix.2
+
+* fix: Fix creation timing for local participant. (#749)
+* fix: Filter out non-video codecs for fast video track publication. (#747)
+
 ## 2.4.2+hotfix.1
 
 * fix: fixed bug for fast track publish.
