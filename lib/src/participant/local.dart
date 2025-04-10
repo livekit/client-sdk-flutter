@@ -732,7 +732,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await publication.mute(stopOnMute: stopOnMute);
         }
       }
-      await room.applyAudioSpeakerSettings();
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
