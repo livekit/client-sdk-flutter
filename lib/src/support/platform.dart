@@ -71,8 +71,7 @@ class BrowserVersion {
 }
 
 bool isChrome129OrLater() {
-  if (lkPlatformIs(PlatformType.web) &&
-      [BrowserType.chrome, BrowserType.edge].contains(lkBrowser())) {
+  if (lkPlatformIs(PlatformType.web) && BrowserType.chrome == lkBrowser()) {
     final version = lkBrowserVersion();
     return version.major > 129 || (version.major == 129 && version.minor >= 0);
   }
