@@ -69,3 +69,12 @@ class BrowserVersion {
   /// The patch version number: "3" in "1.2.3".
   final int patch;
 }
+
+bool isChrome129OrLater() {
+  if (lkPlatformIs(PlatformType.web) &&
+      [BrowserType.chrome, BrowserType.edge].contains(lkBrowser())) {
+    final version = lkBrowserVersion();
+    return version.major > 129 || (version.major == 129 && version.minor >= 0);
+  }
+  return false;
+}
