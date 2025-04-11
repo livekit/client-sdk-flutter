@@ -63,6 +63,27 @@ class StreamTextOptions {
   });
 }
 
+class StreamBytesOptions {
+  String? name;
+  String? mimeType;
+  String? topic;
+  List<String> destinationIdentities;
+  Map<String, String> attributes;
+  String? streamId;
+  int? totalSize;
+  Encryption_Type? encryptionType;
+  StreamBytesOptions({
+    this.name,
+    this.mimeType,
+    this.topic,
+    this.destinationIdentities = const [],
+    this.attributes = const {},
+    this.streamId,
+    this.totalSize,
+    this.encryptionType = Encryption_Type.NONE,
+  });
+}
+
 class ChatMessage {
   String id;
   int timestamp;

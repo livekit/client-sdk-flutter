@@ -192,4 +192,25 @@ void main() {
         ));
     expect(info, isNotNull);
   });
+
+  test('stream bytes test', () async {
+    room.registerByteStreamHandler('bytes-stream',
+        (ByteStreamReader reader, String participantIdentity) async {
+      var chunks = await reader.readAll();
+      var content = chunks.expand((element) => element).toList();
+      print(
+          'bytes content = ${content}, \n string content = ${utf8.decode(content)}');
+    });
+
+    final streamId = Uuid().v4();
+    var stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
+      topic: 'bytes-stream',
+      streamId: streamId,
+      totalSize: 30,
+    ));
+    await stream?.write(utf8.encode('a' * 10));
+    await stream?.write(utf8.encode('b' * 10));
+    await stream?.write(utf8.encode('c' * 10));
+    await stream?.close();
+  });
 }

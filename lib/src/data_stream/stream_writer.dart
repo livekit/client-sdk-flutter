@@ -35,26 +35,23 @@ class TextStreamWriter extends BaseStreamWriter<String, TextStreamInfo> {
       required super.onClose});
 }
 
-class BinaryStreamWriter extends BaseStreamWriter<Uint8List, ByteStreamInfo> {
-  BinaryStreamWriter(
-      {required super.writableStream,
-      required super.info,
-      required super.onClose});
+class ByteStreamWriter extends BaseStreamWriter<Uint8List, ByteStreamInfo> {
+  ByteStreamWriter({
+    required super.writableStream,
+    required super.info,
+    required super.onClose,
+  });
 }
 
-class StreamWriterImpl implements StreamWriter<String> {
+class WritableStream<T> implements StreamWriter<T> {
   String streamId;
-
   int chunkId = 0;
-
-  List<String> destinationIdentities;
-
+  List<String>? destinationIdentities;
   Engine engine;
-
-  StreamWriterImpl({
+  WritableStream({
     required this.streamId,
-    required this.destinationIdentities,
     required this.engine,
+    this.destinationIdentities,
   });
 
   @override
@@ -70,8 +67,8 @@ class StreamWriterImpl implements StreamWriter<String> {
   }
 
   @override
-  Future<void> write(String text) async {
-    for (final textByteChunk in splitUtf8(text, kStreamChunkSize)) {
+  Future<void> write(T chunk) async {
+    for (final textByteChunk in splitUTF8List(chunk, kStreamChunkSize)) {
       await engine.waitForBufferStatusLow(Reliability.reliable);
       final chunk = lk_models.DataStream_Chunk(
         content: textByteChunk,
@@ -83,26 +80,32 @@ class StreamWriterImpl implements StreamWriter<String> {
         streamChunk: chunk,
       );
       await engine.sendDataPacket(chunkPacket, reliability: true);
-
       chunkId += 1;
     }
   }
-}
 
-List<Uint8List> splitUtf8(String text, int chunkSize) {
-  final utf8Bytes = utf8.encode(text);
-  final chunks = <Uint8List>[];
-  if (text.length <= chunkSize) {
-    chunks.add(Uint8List.fromList(utf8Bytes));
+  List<Uint8List> splitUTF8List(T chunk, int chunkSize) {
+    Uint8List utf8Bytes = Uint8List(0);
+
+    if (chunk is String) {
+      utf8Bytes = utf8.encode(chunk as String);
+    } else if (chunk is Uint8List) {
+      utf8Bytes = chunk as Uint8List;
+    }
+
+    final chunks = <Uint8List>[];
+    if (utf8Bytes.length <= chunkSize) {
+      chunks.add(Uint8List.fromList(utf8Bytes));
+      return chunks;
+    }
+    for (var i = 0; i < utf8Bytes.length; i += chunkSize) {
+      final end = i + chunkSize;
+      if (end > utf8Bytes.length) {
+        chunks.add(Uint8List.fromList(utf8Bytes.sublist(i)));
+        break;
+      }
+      chunks.add(Uint8List.fromList(utf8Bytes.sublist(i, end)));
+    }
     return chunks;
   }
-  for (var i = 0; i < utf8Bytes.length; i += chunkSize) {
-    final end = i + chunkSize;
-    if (end > utf8Bytes.length) {
-      chunks.add(Uint8List.fromList(utf8Bytes.sublist(i)));
-      break;
-    }
-    chunks.add(Uint8List.fromList(utf8Bytes.sublist(i, end)));
-  }
-  return chunks;
 }

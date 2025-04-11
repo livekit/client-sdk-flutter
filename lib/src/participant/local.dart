@@ -1246,7 +1246,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     );
     await room.engine.sendDataPacket(packet, reliability: true);
 
-    final writableStream = StreamWriterImpl(
+    final writableStream = WritableStream<String>(
         destinationIdentities: destinationIdentities!,
         engine: room.engine,
         streamId: streamId);
@@ -1284,23 +1284,18 @@ extension DataStreamParticipantMethods on LocalParticipant {
     SendFileOptions options,
   ) async {
     final totalLength = await file.length();
-    final header = lk_models.DataStream_Header(
-      totalLength: Int64(totalLength),
-      mimeType: options.mimeType ?? mime(basename(file.path)),
+
+    final streamBytesOptions = StreamBytesOptions(
       streamId: streamId,
+      totalSize: totalLength,
       topic: options.topic,
+      mimeType: options.mimeType ?? mime(basename(file.path)),
+      name: basename(file.path),
+      destinationIdentities: options.destinationIdentities,
       encryptionType: options.encryptionType,
-      timestamp: Int64(DateTime.now().millisecondsSinceEpoch),
-      byteHeader: lk_models.DataStream_ByteHeader(
-        name: basename(file.path),
-      ),
     );
 
-    final destinationIdentities = options.destinationIdentities;
-    final packet = lk_models.DataPacket(
-        destinationIdentities: destinationIdentities, streamHeader: header);
-
-    await room.engine.sendDataPacket(packet, reliability: true);
+    final writer = await streamBytes(streamBytesOptions);
 
     final reader = ChunkedStreamReader(file.openRead());
 
@@ -1308,26 +1303,65 @@ extension DataStreamParticipantMethods on LocalParticipant {
     for (var i = 0; i < totalChunks; i++) {
       final chunkData = await reader
           .readBytes(min((i + 1) * kStreamChunkSize, kStreamChunkSize));
-      await room.engine.waitForBufferStatusLow(Reliability.reliable);
-      final chunk = lk_models.DataStream_Chunk(
-        content: chunkData,
-        streamId: streamId,
-        chunkIndex: Int64(i),
-      );
-      final chunkPacket = lk_models.DataPacket(
-        destinationIdentities: destinationIdentities,
-        streamChunk: chunk,
-      );
-      await room.engine.sendDataPacket(chunkPacket, reliability: true);
+      await writer.write(chunkData);
       options.onProgress?.call((i + 1) / totalChunks);
     }
-    final trailer = lk_models.DataStream_Trailer(
+    await writer.close();
+    writer.info;
+  }
+
+  Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
+    final streamId = options?.streamId ?? Uuid().v4();
+
+    final info = ByteStreamInfo(
+      name: options?.name ?? 'unknown',
+      id: streamId,
+      mimeType: options?.mimeType ?? 'application/octet-stream',
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      topic: options?.topic ?? '',
+      size: options?.totalSize ?? 0,
+      attributes: options?.attributes ?? {},
+    );
+
+    final header = lk_models.DataStream_Header(
+      totalLength: Int64(info.size),
+      mimeType: info.mimeType,
       streamId: streamId,
+      topic: options?.topic,
+      encryptionType: options?.encryptionType,
+      timestamp: Int64(DateTime.now().millisecondsSinceEpoch),
+      byteHeader: lk_models.DataStream_ByteHeader(
+        name: info.name,
+      ),
     );
-    final trailerPacket = lk_models.DataPacket(
+
+    final destinationIdentities = options?.destinationIdentities;
+    final packet = lk_models.DataPacket(
+        destinationIdentities: destinationIdentities, streamHeader: header);
+
+    await room.engine.sendDataPacket(packet, reliability: true);
+
+    var writableStream = WritableStream<Uint8List>(
       destinationIdentities: destinationIdentities,
-      streamTrailer: trailer,
+      streamId: streamId,
+      engine: room.engine,
     );
-    await room.engine.sendDataPacket(trailerPacket, reliability: true);
+
+    onEngineClose() async {
+      await writableStream.close();
+    }
+
+    var cancelFun =
+        room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
+
+    final byteWriter = ByteStreamWriter(
+      writableStream: writableStream,
+      info: info,
+      onClose: () {
+        cancelFun?.call();
+      },
+    );
+
+    return byteWriter;
   }
 }
