@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -720,4 +721,29 @@ int compareVersions(String v1, String v2) {
       : parts1.length < parts2.length
           ? -1
           : 1;
+}
+
+List<Uint8List> splitUtf8(String s, int n) {
+  if (n < 4) {
+    throw Exception('n must be at least 4 due to utf8 encoding rules');
+  }
+  // adapted from https://stackoverflow.com/a/6043797
+  List<Uint8List> result = [];
+  var encoded = utf8.encode(s);
+  while (encoded.length > n) {
+    var k = n;
+    while (k > 0) {
+      var byte = encoded[k];
+      if ((byte & 0xc0) != 0x80) {
+        break;
+      }
+      k--;
+    }
+    result.add(encoded.sublist(0, k));
+    encoded = encoded.sublist(k);
+  }
+  if (encoded.isNotEmpty) {
+    result.add(encoded);
+  }
+  return result;
 }

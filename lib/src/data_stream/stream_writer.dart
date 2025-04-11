@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 
 import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/types/other.dart';
+import 'package:livekit_client/src/utils.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
 
@@ -68,7 +70,7 @@ class WritableStream<T> implements StreamWriter<T> {
 
   @override
   Future<void> write(T chunk) async {
-    for (final content in splitUTF8List(chunk, kStreamChunkSize)) {
+    for (final content in splitChunk(chunk, kStreamChunkSize)) {
       await engine.waitForBufferStatusLow(Reliability.reliable);
       final chunk = lk_models.DataStream_Chunk(
         content: content,
@@ -84,28 +86,29 @@ class WritableStream<T> implements StreamWriter<T> {
     }
   }
 
-  List<Uint8List> splitUTF8List(T chunk, int chunkSize) {
-    Uint8List utf8Bytes = Uint8List(0);
-
+  List<Uint8List> splitChunk(T chunk, int chunkSize) {
     if (chunk is String) {
-      utf8Bytes = utf8.encode(chunk as String);
+      return splitUtf8(chunk as String, chunkSize);
     } else if (chunk is Uint8List) {
-      utf8Bytes = chunk as Uint8List;
+      return splitUint8List(chunk as Uint8List, chunkSize);
+    } else {
+      throw Exception('Unsupported type: ${chunk.runtimeType}');
     }
+  }
 
-    final chunks = <Uint8List>[];
-    if (utf8Bytes.length <= chunkSize) {
-      chunks.add(Uint8List.fromList(utf8Bytes));
-      return chunks;
+  List<Uint8List> splitUint8List(Uint8List bytes, int chunkSize) {
+    List<Uint8List> result = [];
+    if (bytes.length <= chunkSize) {
+      return [bytes];
     }
-    for (var i = 0; i < utf8Bytes.length; i += chunkSize) {
-      final end = i + chunkSize;
-      if (end > utf8Bytes.length) {
-        chunks.add(Uint8List.fromList(utf8Bytes.sublist(i)));
-        break;
-      }
-      chunks.add(Uint8List.fromList(utf8Bytes.sublist(i, end)));
+    // Split the Uint8List into chunks of the specified size
+    while (bytes.length > chunkSize) {
+      result.add(bytes.sublist(0, chunkSize));
+      bytes = bytes.sublist(chunkSize);
     }
-    return chunks;
+    if (bytes.isNotEmpty) {
+      result.add(bytes);
+    }
+    return result;
   }
 }
