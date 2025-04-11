@@ -20,6 +20,133 @@ import 'livekit_models.pbenum.dart';
 
 export 'livekit_models.pbenum.dart';
 
+class Pagination extends $pb.GeneratedMessage {
+  factory Pagination({
+    $core.String? afterId,
+    $core.int? limit,
+  }) {
+    final $result = create();
+    if (afterId != null) {
+      $result.afterId = afterId;
+    }
+    if (limit != null) {
+      $result.limit = limit;
+    }
+    return $result;
+  }
+  Pagination._() : super();
+  factory Pagination.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Pagination.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Pagination',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'afterId')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  Pagination clone() => Pagination()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Pagination copyWith(void Function(Pagination) updates) =>
+      super.copyWith((message) => updates(message as Pagination)) as Pagination;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Pagination create() => Pagination._();
+  Pagination createEmptyInstance() => create();
+  static $pb.PbList<Pagination> createRepeated() => $pb.PbList<Pagination>();
+  @$core.pragma('dart2js:noInline')
+  static Pagination getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<Pagination>(create);
+  static Pagination? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get afterId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set afterId($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasAfterId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAfterId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get limit => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set limit($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasLimit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLimit() => clearField(2);
+}
+
+/// ListUpdate is used for updated APIs where 'repeated string' field is modified.
+class ListUpdate extends $pb.GeneratedMessage {
+  factory ListUpdate({
+    $core.Iterable<$core.String>? set,
+  }) {
+    final $result = create();
+    if (set != null) {
+      $result.set.addAll(set);
+    }
+    return $result;
+  }
+  ListUpdate._() : super();
+  factory ListUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ListUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'set')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ListUpdate clone() => ListUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ListUpdate copyWith(void Function(ListUpdate) updates) =>
+      super.copyWith((message) => updates(message as ListUpdate)) as ListUpdate;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ListUpdate create() => ListUpdate._();
+  ListUpdate createEmptyInstance() => create();
+  static $pb.PbList<ListUpdate> createRepeated() => $pb.PbList<ListUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static ListUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListUpdate>(create);
+  static ListUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.String> get set => $_getList(0);
+}
+
 class Room extends $pb.GeneratedMessage {
   factory Room({
     $core.String? sid,
@@ -35,6 +162,7 @@ class Room extends $pb.GeneratedMessage {
     $core.int? numPublishers,
     TimedVersion? version,
     $core.int? departureTimeout,
+    $fixnum.Int64? creationTimeMs,
   }) {
     final $result = create();
     if (sid != null) {
@@ -76,6 +204,9 @@ class Room extends $pb.GeneratedMessage {
     if (departureTimeout != null) {
       $result.departureTimeout = departureTimeout;
     }
+    if (creationTimeMs != null) {
+      $result.creationTimeMs = creationTimeMs;
+    }
     return $result;
   }
   Room._() : super();
@@ -110,6 +241,7 @@ class Room extends $pb.GeneratedMessage {
         subBuilder: TimedVersion.create)
     ..a<$core.int>(
         14, _omitFieldNames ? '' : 'departureTimeout', $pb.PbFieldType.OU3)
+    ..aInt64(15, _omitFieldNames ? '' : 'creationTimeMs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -281,6 +413,18 @@ class Room extends $pb.GeneratedMessage {
   $core.bool hasDepartureTimeout() => $_has(12);
   @$pb.TagNumber(14)
   void clearDepartureTimeout() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $fixnum.Int64 get creationTimeMs => $_getI64(13);
+  @$pb.TagNumber(15)
+  set creationTimeMs($fixnum.Int64 v) {
+    $_setInt64(13, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasCreationTimeMs() => $_has(13);
+  @$pb.TagNumber(15)
+  void clearCreationTimeMs() => clearField(15);
 }
 
 class Codec extends $pb.GeneratedMessage {
@@ -685,6 +829,8 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     ParticipantInfo_Kind? kind,
     $core.Map<$core.String, $core.String>? attributes,
     DisconnectReason? disconnectReason,
+    $fixnum.Int64? joinedAtMs,
+    $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
   }) {
     final $result = create();
     if (sid != null) {
@@ -728,6 +874,12 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (disconnectReason != null) {
       $result.disconnectReason = disconnectReason;
+    }
+    if (joinedAtMs != null) {
+      $result.joinedAtMs = joinedAtMs;
+    }
+    if (kindDetails != null) {
+      $result.kindDetails.addAll(kindDetails);
     }
     return $result;
   }
@@ -775,6 +927,12 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         defaultOrMaker: DisconnectReason.UNKNOWN_REASON,
         valueOf: DisconnectReason.valueOf,
         enumValues: DisconnectReason.values)
+    ..aInt64(17, _omitFieldNames ? '' : 'joinedAtMs')
+    ..pc<ParticipantInfo_KindDetail>(
+        18, _omitFieldNames ? '' : 'kindDetails', $pb.PbFieldType.KE,
+        valueOf: ParticipantInfo_KindDetail.valueOf,
+        enumValues: ParticipantInfo_KindDetail.values,
+        defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -954,6 +1112,22 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasDisconnectReason() => $_has(13);
   @$pb.TagNumber(16)
   void clearDisconnectReason() => clearField(16);
+
+  /// timestamp when participant joined room, in milliseconds
+  @$pb.TagNumber(17)
+  $fixnum.Int64 get joinedAtMs => $_getI64(14);
+  @$pb.TagNumber(17)
+  set joinedAtMs($fixnum.Int64 v) {
+    $_setInt64(14, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasJoinedAtMs() => $_has(14);
+  @$pb.TagNumber(17)
+  void clearJoinedAtMs() => clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.List<ParticipantInfo_KindDetail> get kindDetails => $_getList(15);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -1119,6 +1293,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.String? stream,
     TimedVersion? version,
     $core.Iterable<AudioTrackFeature>? audioFeatures,
+    BackupCodecPolicy? backupCodecPolicy,
   }) {
     final $result = create();
     if (sid != null) {
@@ -1178,6 +1353,9 @@ class TrackInfo extends $pb.GeneratedMessage {
     if (audioFeatures != null) {
       $result.audioFeatures.addAll(audioFeatures);
     }
+    if (backupCodecPolicy != null) {
+      $result.backupCodecPolicy = backupCodecPolicy;
+    }
     return $result;
   }
   TrackInfo._() : super();
@@ -1229,6 +1407,11 @@ class TrackInfo extends $pb.GeneratedMessage {
         valueOf: AudioTrackFeature.valueOf,
         enumValues: AudioTrackFeature.values,
         defaultEnumValue: AudioTrackFeature.TF_STEREO)
+    ..e<BackupCodecPolicy>(
+        20, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
+        defaultOrMaker: BackupCodecPolicy.PREFER_REGRESSION,
+        valueOf: BackupCodecPolicy.valueOf,
+        enumValues: BackupCodecPolicy.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1462,6 +1645,18 @@ class TrackInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(19)
   $core.List<AudioTrackFeature> get audioFeatures => $_getList(18);
+
+  @$pb.TagNumber(20)
+  BackupCodecPolicy get backupCodecPolicy => $_getN(19);
+  @$pb.TagNumber(20)
+  set backupCodecPolicy(BackupCodecPolicy v) {
+    setField(20, v);
+  }
+
+  @$pb.TagNumber(20)
+  $core.bool hasBackupCodecPolicy() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearBackupCodecPolicy() => clearField(20);
 }
 
 /// provide information about available spatial layers
@@ -2136,6 +2331,7 @@ class UserPacket extends $pb.GeneratedMessage {
     $core.String? id,
     $fixnum.Int64? startTime,
     $fixnum.Int64? endTime,
+    $core.List<$core.int>? nonce,
   }) {
     final $result = create();
     if (participantSid != null) {
@@ -2169,6 +2365,9 @@ class UserPacket extends $pb.GeneratedMessage {
     if (endTime != null) {
       $result.endTime = endTime;
     }
+    if (nonce != null) {
+      $result.nonce = nonce;
+    }
     return $result;
   }
   UserPacket._() : super();
@@ -2197,6 +2396,8 @@ class UserPacket extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(
         10, _omitFieldNames ? '' : 'endTime', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
+    ..a<$core.List<$core.int>>(
+        11, _omitFieldNames ? '' : 'nonce', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -2326,6 +2527,19 @@ class UserPacket extends $pb.GeneratedMessage {
   $core.bool hasEndTime() => $_has(8);
   @$pb.TagNumber(10)
   void clearEndTime() => clearField(10);
+
+  /// added by SDK to enable de-duping of messages, for INTERNAL USE ONLY
+  @$pb.TagNumber(11)
+  $core.List<$core.int> get nonce => $_getN(9);
+  @$pb.TagNumber(11)
+  set nonce($core.List<$core.int> v) {
+    $_setBytes(9, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasNonce() => $_has(9);
+  @$pb.TagNumber(11)
+  void clearNonce() => clearField(11);
 }
 
 class SipDTMF extends $pb.GeneratedMessage {
@@ -5883,71 +6097,71 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   void clearGenerated() => clearField(5);
 }
 
-/// header properties specific to file or image streams
-class DataStream_FileHeader extends $pb.GeneratedMessage {
-  factory DataStream_FileHeader({
-    $core.String? fileName,
+/// header properties specific to byte or file streams
+class DataStream_ByteHeader extends $pb.GeneratedMessage {
+  factory DataStream_ByteHeader({
+    $core.String? name,
   }) {
     final $result = create();
-    if (fileName != null) {
-      $result.fileName = fileName;
+    if (name != null) {
+      $result.name = name;
     }
     return $result;
   }
-  DataStream_FileHeader._() : super();
-  factory DataStream_FileHeader.fromBuffer($core.List<$core.int> i,
+  DataStream_ByteHeader._() : super();
+  factory DataStream_ByteHeader.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory DataStream_FileHeader.fromJson($core.String i,
+  factory DataStream_ByteHeader.fromJson($core.String i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      _omitMessageNames ? '' : 'DataStream.FileHeader',
+      _omitMessageNames ? '' : 'DataStream.ByteHeader',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'fileName')
+    ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
       'Will be removed in next major version')
-  DataStream_FileHeader clone() =>
-      DataStream_FileHeader()..mergeFromMessage(this);
+  DataStream_ByteHeader clone() =>
+      DataStream_ByteHeader()..mergeFromMessage(this);
   @$core.Deprecated('Using this can add significant overhead to your binary. '
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
-  DataStream_FileHeader copyWith(
-          void Function(DataStream_FileHeader) updates) =>
-      super.copyWith((message) => updates(message as DataStream_FileHeader))
-          as DataStream_FileHeader;
+  DataStream_ByteHeader copyWith(
+          void Function(DataStream_ByteHeader) updates) =>
+      super.copyWith((message) => updates(message as DataStream_ByteHeader))
+          as DataStream_ByteHeader;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DataStream_FileHeader create() => DataStream_FileHeader._();
-  DataStream_FileHeader createEmptyInstance() => create();
-  static $pb.PbList<DataStream_FileHeader> createRepeated() =>
-      $pb.PbList<DataStream_FileHeader>();
+  static DataStream_ByteHeader create() => DataStream_ByteHeader._();
+  DataStream_ByteHeader createEmptyInstance() => create();
+  static $pb.PbList<DataStream_ByteHeader> createRepeated() =>
+      $pb.PbList<DataStream_ByteHeader>();
   @$core.pragma('dart2js:noInline')
-  static DataStream_FileHeader getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<DataStream_FileHeader>(create);
-  static DataStream_FileHeader? _defaultInstance;
+  static DataStream_ByteHeader getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataStream_ByteHeader>(create);
+  static DataStream_ByteHeader? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.String get fileName => $_getSZ(0);
+  $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set fileName($core.String v) {
+  set name($core.String v) {
     $_setString(0, v);
   }
 
   @$pb.TagNumber(1)
-  $core.bool hasFileName() => $_has(0);
+  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
-  void clearFileName() => clearField(1);
+  void clearName() => clearField(1);
 }
 
-enum DataStream_Header_ContentHeader { textHeader, fileHeader, notSet }
+enum DataStream_Header_ContentHeader { textHeader, byteHeader, notSet }
 
 /// main DataStream.Header that contains a oneof for specific headers
 class DataStream_Header extends $pb.GeneratedMessage {
@@ -5958,9 +6172,9 @@ class DataStream_Header extends $pb.GeneratedMessage {
     $core.String? mimeType,
     $fixnum.Int64? totalLength,
     Encryption_Type? encryptionType,
-    $core.Map<$core.String, $core.String>? extensions,
+    $core.Map<$core.String, $core.String>? attributes,
     DataStream_TextHeader? textHeader,
-    DataStream_FileHeader? fileHeader,
+    DataStream_ByteHeader? byteHeader,
   }) {
     final $result = create();
     if (streamId != null) {
@@ -5981,14 +6195,14 @@ class DataStream_Header extends $pb.GeneratedMessage {
     if (encryptionType != null) {
       $result.encryptionType = encryptionType;
     }
-    if (extensions != null) {
-      $result.extensions.addAll(extensions);
+    if (attributes != null) {
+      $result.attributes.addAll(attributes);
     }
     if (textHeader != null) {
       $result.textHeader = textHeader;
     }
-    if (fileHeader != null) {
-      $result.fileHeader = fileHeader;
+    if (byteHeader != null) {
+      $result.byteHeader = byteHeader;
     }
     return $result;
   }
@@ -6003,7 +6217,7 @@ class DataStream_Header extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, DataStream_Header_ContentHeader>
       _DataStream_Header_ContentHeaderByTag = {
     9: DataStream_Header_ContentHeader.textHeader,
-    10: DataStream_Header_ContentHeader.fileHeader,
+    10: DataStream_Header_ContentHeader.byteHeader,
     0: DataStream_Header_ContentHeader.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -6023,15 +6237,15 @@ class DataStream_Header extends $pb.GeneratedMessage {
         defaultOrMaker: Encryption_Type.NONE,
         valueOf: Encryption_Type.valueOf,
         enumValues: Encryption_Type.values)
-    ..m<$core.String, $core.String>(8, _omitFieldNames ? '' : 'extensions',
-        entryClassName: 'DataStream.Header.ExtensionsEntry',
+    ..m<$core.String, $core.String>(8, _omitFieldNames ? '' : 'attributes',
+        entryClassName: 'DataStream.Header.AttributesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('livekit'))
     ..aOM<DataStream_TextHeader>(9, _omitFieldNames ? '' : 'textHeader',
         subBuilder: DataStream_TextHeader.create)
-    ..aOM<DataStream_FileHeader>(10, _omitFieldNames ? '' : 'fileHeader',
-        subBuilder: DataStream_FileHeader.create)
+    ..aOM<DataStream_ByteHeader>(10, _omitFieldNames ? '' : 'byteHeader',
+        subBuilder: DataStream_ByteHeader.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -6134,7 +6348,7 @@ class DataStream_Header extends $pb.GeneratedMessage {
   void clearEncryptionType() => clearField(7);
 
   @$pb.TagNumber(8)
-  $core.Map<$core.String, $core.String> get extensions => $_getMap(6);
+  $core.Map<$core.String, $core.String> get attributes => $_getMap(6);
 
   @$pb.TagNumber(9)
   DataStream_TextHeader get textHeader => $_getN(7);
@@ -6151,18 +6365,18 @@ class DataStream_Header extends $pb.GeneratedMessage {
   DataStream_TextHeader ensureTextHeader() => $_ensure(7);
 
   @$pb.TagNumber(10)
-  DataStream_FileHeader get fileHeader => $_getN(8);
+  DataStream_ByteHeader get byteHeader => $_getN(8);
   @$pb.TagNumber(10)
-  set fileHeader(DataStream_FileHeader v) {
+  set byteHeader(DataStream_ByteHeader v) {
     setField(10, v);
   }
 
   @$pb.TagNumber(10)
-  $core.bool hasFileHeader() => $_has(8);
+  $core.bool hasByteHeader() => $_has(8);
   @$pb.TagNumber(10)
-  void clearFileHeader() => clearField(10);
+  void clearByteHeader() => clearField(10);
   @$pb.TagNumber(10)
-  DataStream_FileHeader ensureFileHeader() => $_ensure(8);
+  DataStream_ByteHeader ensureByteHeader() => $_ensure(8);
 }
 
 class DataStream_Chunk extends $pb.GeneratedMessage {
@@ -6302,7 +6516,7 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
   factory DataStream_Trailer({
     $core.String? streamId,
     $core.String? reason,
-    $core.Map<$core.String, $core.String>? extensions,
+    $core.Map<$core.String, $core.String>? attributes,
   }) {
     final $result = create();
     if (streamId != null) {
@@ -6311,8 +6525,8 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
     if (reason != null) {
       $result.reason = reason;
     }
-    if (extensions != null) {
-      $result.extensions.addAll(extensions);
+    if (attributes != null) {
+      $result.attributes.addAll(attributes);
     }
     return $result;
   }
@@ -6330,8 +6544,8 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'streamId')
     ..aOS(2, _omitFieldNames ? '' : 'reason')
-    ..m<$core.String, $core.String>(3, _omitFieldNames ? '' : 'extensions',
-        entryClassName: 'DataStream.Trailer.ExtensionsEntry',
+    ..m<$core.String, $core.String>(3, _omitFieldNames ? '' : 'attributes',
+        entryClassName: 'DataStream.Trailer.AttributesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('livekit'))
@@ -6385,7 +6599,7 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
   void clearReason() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.Map<$core.String, $core.String> get extensions => $_getMap(2);
+  $core.Map<$core.String, $core.String> get attributes => $_getMap(2);
 }
 
 class DataStream extends $pb.GeneratedMessage {
@@ -6424,6 +6638,84 @@ class DataStream extends $pb.GeneratedMessage {
   static DataStream getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<DataStream>(create);
   static DataStream? _defaultInstance;
+}
+
+class WebhookConfig extends $pb.GeneratedMessage {
+  factory WebhookConfig({
+    $core.String? url,
+    $core.String? signingKey,
+  }) {
+    final $result = create();
+    if (url != null) {
+      $result.url = url;
+    }
+    if (signingKey != null) {
+      $result.signingKey = signingKey;
+    }
+    return $result;
+  }
+  WebhookConfig._() : super();
+  factory WebhookConfig.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory WebhookConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WebhookConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'url')
+    ..aOS(2, _omitFieldNames ? '' : 'signingKey')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  WebhookConfig clone() => WebhookConfig()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  WebhookConfig copyWith(void Function(WebhookConfig) updates) =>
+      super.copyWith((message) => updates(message as WebhookConfig))
+          as WebhookConfig;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WebhookConfig create() => WebhookConfig._();
+  WebhookConfig createEmptyInstance() => create();
+  static $pb.PbList<WebhookConfig> createRepeated() =>
+      $pb.PbList<WebhookConfig>();
+  @$core.pragma('dart2js:noInline')
+  static WebhookConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WebhookConfig>(create);
+  static WebhookConfig? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get url => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set url($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasUrl() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUrl() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get signingKey => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set signingKey($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasSigningKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSigningKey() => clearField(2);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

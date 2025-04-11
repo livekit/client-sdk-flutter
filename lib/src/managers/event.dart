@@ -172,7 +172,7 @@ abstract class EventsListenable<T> extends Disposable {
       });
 
   /// convenience method to listen & filter a specific event type, just once.
-  void once<E>(
+  CancelListenFunc? once<E>(
     FutureOr<void> Function(E) then, {
     bool Function(E)? filter,
   }) {
@@ -187,6 +187,7 @@ abstract class EventsListenable<T> extends Disposable {
       // cancel after 1 event
       cancelFunc?.call();
     });
+    return cancelFunc;
   }
 
   // waits for a specific event type

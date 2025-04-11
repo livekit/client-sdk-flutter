@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -23,6 +21,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
 import '../exceptions.dart';
@@ -45,6 +44,7 @@ import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../track/track.dart';
+import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../utils.dart';
@@ -124,8 +124,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // RPC Handlers
   final Map<String, RpcRequestHandler> _rpcHandlers = {};
 
+  final Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      _byteStreamControllers = {};
+
+  final Map<String, DataStreamController<lk_models.DataStream_Chunk>>
+      _textStreamControllers = {};
+
+  final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
+
+  final Map<String, TextStreamHandler> _textStreamHandlers = {};
+
   // for testing
+  @internal
   Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
+
+  @internal
+  Map<String, TextStreamHandler> get textStreamHandlers => _textStreamHandlers;
+
+  @internal
+  Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -150,6 +167,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
     _setupRpcListeners();
+
+    _setupDataStreamListeners();
 
     onDispose(() async {
       // clean up routine
@@ -853,14 +872,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _onDataMessageEvent(EngineDataPacketReceivedEvent dataPacketEvent) {
     // participant may be null if data is sent from Server-API
-    final senderSid = dataPacketEvent.packet.participantSid;
     RemoteParticipant? senderParticipant;
-    if (senderSid.isNotEmpty) {
-      senderParticipant =
-          _getRemoteParticipantBySid(dataPacketEvent.packet.participantSid);
+    if (dataPacketEvent.identity.isNotEmpty) {
+      senderParticipant = getParticipantByIdentity(dataPacketEvent.identity)
+          as RemoteParticipant?;
     }
-
-    // participant.delegate?.onDataReceived(participant, event.packet.payload);
 
     final event = DataReceivedEvent(
       participant: senderParticipant,
@@ -1201,5 +1217,155 @@ extension RoomRPCMethods on Room {
   /// @param method, the method name to unregister.
   void unregisterRpcMethod(String method) {
     rpcHandlers.remove(method);
+  }
+}
+
+extension DataStreamRoomMethods on Room {
+  void _setupDataStreamListeners() {
+    _engineListener
+      ..on<EngineDataStreamHeaderEvent>((event) {
+        handleStreamHeader(event.header, event.identity);
+      })
+      ..on<EngineDataStreamChunkEvent>((event) async {
+        handleStreamChunk(event.chunk);
+      })
+      ..on<EngineDataStreamTrailerEvent>((event) {
+        handleStreamTrailer(event.trailer);
+      });
+  }
+
+  void registerTextStreamHandler(String topic, TextStreamHandler callback) {
+    if (_textStreamHandlers[topic] != null) {
+      throw Exception(
+          'A text stream handler for topic "${topic}" has already been set.');
+    }
+    _textStreamHandlers[topic] = callback;
+  }
+
+  void unregisterTextStreamHandler(String topic) {
+    _textStreamHandlers.remove(topic);
+  }
+
+  void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
+    if (_byteStreamHandlers[topic] != null) {
+      throw Exception(
+          'A byte stream handler for topic "${topic}" has already been set.');
+    }
+    _byteStreamHandlers[topic] = callback;
+  }
+
+  void unregisterByteStreamHandler(String topic) {
+    _byteStreamHandlers.remove(topic);
+  }
+
+  Future<void> handleStreamHeader(lk_models.DataStream_Header streamHeader,
+      String participantIdentity) async {
+    if (streamHeader.hasByteHeader()) {
+      final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
+
+      if (streamHandlerCallback == null) {
+        logger.info(
+            'ignoring incoming byte stream due to no handler for topic ${streamHeader.topic}');
+        return;
+      }
+
+      var info = ByteStreamInfo(
+        id: streamHeader.streamId,
+        name: streamHeader.byteHeader.name,
+        mimeType: streamHeader.mimeType,
+        size: streamHeader.hasTotalLength()
+            ? streamHeader.totalLength.toInt()
+            : 0,
+        topic: streamHeader.topic,
+        timestamp: streamHeader.timestamp.toInt(),
+        attributes: streamHeader.attributes,
+      );
+
+      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+        info: info,
+        streamController: StreamController<lk_models.DataStream_Chunk>(),
+        startTime: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      _byteStreamControllers[streamHeader.streamId] = streamController;
+
+      streamHandlerCallback(
+        ByteStreamReader(
+            info, streamController, streamHeader.totalLength.toInt()),
+        participantIdentity,
+      );
+    } else if (streamHeader.hasTextHeader()) {
+      final streamHandlerCallback = _textStreamHandlers[streamHeader.topic];
+
+      if (streamHandlerCallback == null) {
+        logger.warning(
+            'ignoring incoming text stream due to no handler for topic ${streamHeader.topic}');
+        return;
+      }
+
+      var info = TextStreamInfo(
+        id: streamHeader.streamId,
+        mimeType: streamHeader.mimeType,
+        size: streamHeader.hasTotalLength()
+            ? streamHeader.totalLength.toInt()
+            : 0,
+        topic: streamHeader.topic,
+        timestamp: streamHeader.timestamp.toInt(),
+        attributes: streamHeader.attributes,
+      );
+
+      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+        info: info,
+        streamController: StreamController<lk_models.DataStream_Chunk>(),
+        startTime: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      _textStreamControllers[streamHeader.streamId] = streamController;
+
+      streamHandlerCallback(
+        TextStreamReader(
+            info, streamController, streamHeader.totalLength.toInt()),
+        participantIdentity,
+      );
+    }
+  }
+
+  void handleStreamChunk(lk_models.DataStream_Chunk chunk) {
+    final fileBuffer = _byteStreamControllers[chunk.streamId];
+    if (fileBuffer != null) {
+      if (chunk.content.isNotEmpty) {
+        fileBuffer.write(chunk);
+      }
+    }
+    final textBuffer = _textStreamControllers[chunk.streamId];
+    if (textBuffer != null) {
+      if (chunk.content.isNotEmpty) {
+        textBuffer.write(chunk);
+      }
+    }
+  }
+
+  void handleStreamTrailer(lk_models.DataStream_Trailer trailer) {
+    final textBuffer = _textStreamControllers[trailer.streamId];
+    if (textBuffer != null) {
+      textBuffer.info.attributes = {
+        ...textBuffer.info.attributes,
+        ...trailer.attributes,
+      };
+      textBuffer.close();
+      _textStreamControllers.remove(trailer.streamId);
+    }
+
+    final fileBuffer = _byteStreamControllers[trailer.streamId];
+    if (fileBuffer != null) {
+      {
+        fileBuffer.info.attributes = {
+          ...fileBuffer.info.attributes,
+          ...trailer.attributes
+        };
+        fileBuffer.close();
+        _byteStreamControllers.remove(trailer.streamId);
+      }
+    }
   }
 }
