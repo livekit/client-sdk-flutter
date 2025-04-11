@@ -184,6 +184,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _regionUrlProvider = regionUrlProvider;
     }
 
+    //reset state
+    _isClosed = false;
+
     try {
       // wait for socket to connect rtc server
       await signalClient.connect(
