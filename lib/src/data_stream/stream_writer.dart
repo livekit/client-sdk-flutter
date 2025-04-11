@@ -68,10 +68,10 @@ class WritableStream<T> implements StreamWriter<T> {
 
   @override
   Future<void> write(T chunk) async {
-    for (final textByteChunk in splitUTF8List(chunk, kStreamChunkSize)) {
+    for (final content in splitUTF8List(chunk, kStreamChunkSize)) {
       await engine.waitForBufferStatusLow(Reliability.reliable);
       final chunk = lk_models.DataStream_Chunk(
-        content: textByteChunk,
+        content: content,
         streamId: streamId,
         chunkIndex: Int64(chunkId),
       );
