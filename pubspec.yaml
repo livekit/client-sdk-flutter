@@ -43,7 +43,6 @@ dependencies:
   sdp_transform: ^0.3.2
   web: ^1.0.0
   mime_type: ^1.0.1
-  md5_file_checksum: ^1.0.7
 
 dev_dependencies:
   flutter_test:
