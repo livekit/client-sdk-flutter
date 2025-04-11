@@ -96,6 +96,57 @@ class Pagination extends $pb.GeneratedMessage {
   void clearLimit() => clearField(2);
 }
 
+/// ListUpdate is used for updated APIs where 'repeated string' field is modified.
+class ListUpdate extends $pb.GeneratedMessage {
+  factory ListUpdate({
+    $core.Iterable<$core.String>? set,
+  }) {
+    final $result = create();
+    if (set != null) {
+      $result.set.addAll(set);
+    }
+    return $result;
+  }
+  ListUpdate._() : super();
+  factory ListUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ListUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ListUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'set')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  ListUpdate clone() => ListUpdate()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  ListUpdate copyWith(void Function(ListUpdate) updates) =>
+      super.copyWith((message) => updates(message as ListUpdate)) as ListUpdate;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ListUpdate create() => ListUpdate._();
+  ListUpdate createEmptyInstance() => create();
+  static $pb.PbList<ListUpdate> createRepeated() => $pb.PbList<ListUpdate>();
+  @$core.pragma('dart2js:noInline')
+  static ListUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ListUpdate>(create);
+  static ListUpdate? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.String> get set => $_getList(0);
+}
+
 class Room extends $pb.GeneratedMessage {
   factory Room({
     $core.String? sid,
@@ -779,6 +830,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.Map<$core.String, $core.String>? attributes,
     DisconnectReason? disconnectReason,
     $fixnum.Int64? joinedAtMs,
+    $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
   }) {
     final $result = create();
     if (sid != null) {
@@ -825,6 +877,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     }
     if (joinedAtMs != null) {
       $result.joinedAtMs = joinedAtMs;
+    }
+    if (kindDetails != null) {
+      $result.kindDetails.addAll(kindDetails);
     }
     return $result;
   }
@@ -873,6 +928,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         valueOf: DisconnectReason.valueOf,
         enumValues: DisconnectReason.values)
     ..aInt64(17, _omitFieldNames ? '' : 'joinedAtMs')
+    ..pc<ParticipantInfo_KindDetail>(
+        18, _omitFieldNames ? '' : 'kindDetails', $pb.PbFieldType.KE,
+        valueOf: ParticipantInfo_KindDetail.valueOf,
+        enumValues: ParticipantInfo_KindDetail.values,
+        defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -1065,6 +1125,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasJoinedAtMs() => $_has(14);
   @$pb.TagNumber(17)
   void clearJoinedAtMs() => clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.List<ParticipantInfo_KindDetail> get kindDetails => $_getList(15);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -1346,7 +1409,7 @@ class TrackInfo extends $pb.GeneratedMessage {
         defaultEnumValue: AudioTrackFeature.TF_STEREO)
     ..e<BackupCodecPolicy>(
         20, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
-        defaultOrMaker: BackupCodecPolicy.REGRESSION,
+        defaultOrMaker: BackupCodecPolicy.PREFER_REGRESSION,
         valueOf: BackupCodecPolicy.valueOf,
         enumValues: BackupCodecPolicy.values)
     ..hasRequiredFields = false;
@@ -6575,6 +6638,84 @@ class DataStream extends $pb.GeneratedMessage {
   static DataStream getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<DataStream>(create);
   static DataStream? _defaultInstance;
+}
+
+class WebhookConfig extends $pb.GeneratedMessage {
+  factory WebhookConfig({
+    $core.String? url,
+    $core.String? signingKey,
+  }) {
+    final $result = create();
+    if (url != null) {
+      $result.url = url;
+    }
+    if (signingKey != null) {
+      $result.signingKey = signingKey;
+    }
+    return $result;
+  }
+  WebhookConfig._() : super();
+  factory WebhookConfig.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory WebhookConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WebhookConfig',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'url')
+    ..aOS(2, _omitFieldNames ? '' : 'signingKey')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  WebhookConfig clone() => WebhookConfig()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  WebhookConfig copyWith(void Function(WebhookConfig) updates) =>
+      super.copyWith((message) => updates(message as WebhookConfig))
+          as WebhookConfig;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WebhookConfig create() => WebhookConfig._();
+  WebhookConfig createEmptyInstance() => create();
+  static $pb.PbList<WebhookConfig> createRepeated() =>
+      $pb.PbList<WebhookConfig>();
+  @$core.pragma('dart2js:noInline')
+  static WebhookConfig getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WebhookConfig>(create);
+  static WebhookConfig? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get url => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set url($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasUrl() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUrl() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get signingKey => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set signingKey($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasSigningKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSigningKey() => clearField(2);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

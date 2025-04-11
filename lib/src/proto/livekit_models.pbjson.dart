@@ -61,14 +61,16 @@ final $typed_data.Uint8List imageCodecDescriptor = $convert
 const BackupCodecPolicy$json = {
   '1': 'BackupCodecPolicy',
   '2': [
-    {'1': 'REGRESSION', '2': 0},
+    {'1': 'PREFER_REGRESSION', '2': 0},
     {'1': 'SIMULCAST', '2': 1},
+    {'1': 'REGRESSION', '2': 2},
   ],
 };
 
 /// Descriptor for `BackupCodecPolicy`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List backupCodecPolicyDescriptor = $convert.base64Decode(
-    'ChFCYWNrdXBDb2RlY1BvbGljeRIOCgpSRUdSRVNTSU9OEAASDQoJU0lNVUxDQVNUEAE=');
+    'ChFCYWNrdXBDb2RlY1BvbGljeRIVChFQUkVGRVJfUkVHUkVTU0lPThAAEg0KCVNJTVVMQ0FTVB'
+    'ABEg4KClJFR1JFU1NJT04QAg==');
 
 @$core.Deprecated('Use trackTypeDescriptor instead')
 const TrackType$json = {
@@ -165,6 +167,7 @@ const DisconnectReason$json = {
     {'1': 'USER_UNAVAILABLE', '2': 11},
     {'1': 'USER_REJECTED', '2': 12},
     {'1': 'SIP_TRUNK_FAILURE', '2': 13},
+    {'1': 'CONNECTION_TIMEOUT', '2': 14},
   ],
 };
 
@@ -175,7 +178,7 @@ final $typed_data.Uint8List disconnectReasonDescriptor = $convert.base64Decode(
     'UlRJQ0lQQU5UX1JFTU9WRUQQBBIQCgxST09NX0RFTEVURUQQBRISCg5TVEFURV9NSVNNQVRDSB'
     'AGEhAKDEpPSU5fRkFJTFVSRRAHEg0KCU1JR1JBVElPThAIEhAKDFNJR05BTF9DTE9TRRAJEg8K'
     'C1JPT01fQ0xPU0VEEAoSFAoQVVNFUl9VTkFWQUlMQUJMRRALEhEKDVVTRVJfUkVKRUNURUQQDB'
-    'IVChFTSVBfVFJVTktfRkFJTFVSRRAN');
+    'IVChFTSVBfVFJVTktfRkFJTFVSRRANEhYKEkNPTk5FQ1RJT05fVElNRU9VVBAO');
 
 @$core.Deprecated('Use reconnectReasonDescriptor instead')
 const ReconnectReason$json = {
@@ -242,6 +245,18 @@ const Pagination$json = {
 final $typed_data.Uint8List paginationDescriptor = $convert.base64Decode(
     'CgpQYWdpbmF0aW9uEhkKCGFmdGVyX2lkGAEgASgJUgdhZnRlcklkEhQKBWxpbWl0GAIgASgFUg'
     'VsaW1pdA==');
+
+@$core.Deprecated('Use listUpdateDescriptor instead')
+const ListUpdate$json = {
+  '1': 'ListUpdate',
+  '2': [
+    {'1': 'set', '3': 1, '4': 3, '5': 9, '10': 'set'},
+  ],
+};
+
+/// Descriptor for `ListUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List listUpdateDescriptor =
+    $convert.base64Decode('CgpMaXN0VXBkYXRlEhAKA3NldBgBIAMoCVIDc2V0');
 
 @$core.Deprecated('Use roomDescriptor instead')
 const Room$json = {
@@ -446,9 +461,21 @@ const ParticipantInfo$json = {
       '6': '.livekit.DisconnectReason',
       '10': 'disconnectReason'
     },
+    {
+      '1': 'kind_details',
+      '3': 18,
+      '4': 3,
+      '5': 14,
+      '6': '.livekit.ParticipantInfo.KindDetail',
+      '10': 'kindDetails'
+    },
   ],
   '3': [ParticipantInfo_AttributesEntry$json],
-  '4': [ParticipantInfo_State$json, ParticipantInfo_Kind$json],
+  '4': [
+    ParticipantInfo_State$json,
+    ParticipantInfo_Kind$json,
+    ParticipantInfo_KindDetail$json
+  ],
 };
 
 @$core.Deprecated('Use participantInfoDescriptor instead')
@@ -481,7 +508,15 @@ const ParticipantInfo_Kind$json = {
     {'1': 'EGRESS', '2': 2},
     {'1': 'SIP', '2': 3},
     {'1': 'AGENT', '2': 4},
-    {'1': 'FORWARDED', '2': 5},
+  ],
+};
+
+@$core.Deprecated('Use participantInfoDescriptor instead')
+const ParticipantInfo_KindDetail$json = {
+  '1': 'KindDetail',
+  '2': [
+    {'1': 'CLOUD_AGENT', '2': 0},
+    {'1': 'FORWARDED', '2': 1},
   ],
 };
 
@@ -498,10 +533,12 @@ final $typed_data.Uint8List participantInfoDescriptor = $convert.base64Decode(
     'dC5QYXJ0aWNpcGFudEluZm8uS2luZFIEa2luZBJICgphdHRyaWJ1dGVzGA8gAygLMigubGl2ZW'
     'tpdC5QYXJ0aWNpcGFudEluZm8uQXR0cmlidXRlc0VudHJ5UgphdHRyaWJ1dGVzEkYKEWRpc2Nv'
     'bm5lY3RfcmVhc29uGBAgASgOMhkubGl2ZWtpdC5EaXNjb25uZWN0UmVhc29uUhBkaXNjb25uZW'
-    'N0UmVhc29uGj0KD0F0dHJpYnV0ZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgC'
-    'IAEoCVIFdmFsdWU6AjgBIj4KBVN0YXRlEgsKB0pPSU5JTkcQABIKCgZKT0lORUQQARIKCgZBQ1'
-    'RJVkUQAhIQCgxESVNDT05ORUNURUQQAyJQCgRLaW5kEgwKCFNUQU5EQVJEEAASCwoHSU5HUkVT'
-    'UxABEgoKBkVHUkVTUxACEgcKA1NJUBADEgkKBUFHRU5UEAQSDQoJRk9SV0FSREVEEAU=');
+    'N0UmVhc29uEkYKDGtpbmRfZGV0YWlscxgSIAMoDjIjLmxpdmVraXQuUGFydGljaXBhbnRJbmZv'
+    'LktpbmREZXRhaWxSC2tpbmREZXRhaWxzGj0KD0F0dHJpYnV0ZXNFbnRyeRIQCgNrZXkYASABKA'
+    'lSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBIj4KBVN0YXRlEgsKB0pPSU5JTkcQABIK'
+    'CgZKT0lORUQQARIKCgZBQ1RJVkUQAhIQCgxESVNDT05ORUNURUQQAyJBCgRLaW5kEgwKCFNUQU'
+    '5EQVJEEAASCwoHSU5HUkVTUxABEgoKBkVHUkVTUxACEgcKA1NJUBADEgkKBUFHRU5UEAQiLAoK'
+    'S2luZERldGFpbBIPCgtDTE9VRF9BR0VOVBAAEg0KCUZPUldBUkRFRBAB');
 
 @$core.Deprecated('Use encryptionDescriptor instead')
 const Encryption$json = {
@@ -1225,6 +1262,7 @@ const ClientInfo_SDK$json = {
     {'1': 'CPP', '2': 10},
     {'1': 'UNITY_WEB', '2': 11},
     {'1': 'NODE', '2': 12},
+    {'1': 'UNREAL', '2': 13},
   ],
 };
 
@@ -1236,10 +1274,10 @@ final $typed_data.Uint8List clientInfoDescriptor = $convert.base64Decode(
     '9tb2RlbBgGIAEoCVILZGV2aWNlTW9kZWwSGAoHYnJvd3NlchgHIAEoCVIHYnJvd3NlchInCg9i'
     'cm93c2VyX3ZlcnNpb24YCCABKAlSDmJyb3dzZXJWZXJzaW9uEhgKB2FkZHJlc3MYCSABKAlSB2'
     'FkZHJlc3MSGAoHbmV0d29yaxgKIAEoCVIHbmV0d29yaxIdCgpvdGhlcl9zZGtzGAsgASgJUglv'
-    'dGhlclNka3MinAEKA1NESxILCgdVTktOT1dOEAASBgoCSlMQARIJCgVTV0lGVBACEgsKB0FORF'
+    'dGhlclNka3MiqAEKA1NESxILCgdVTktOT1dOEAASBgoCSlMQARIJCgVTV0lGVBACEgsKB0FORF'
     'JPSUQQAxILCgdGTFVUVEVSEAQSBgoCR08QBRIJCgVVTklUWRAGEhAKDFJFQUNUX05BVElWRRAH'
     'EggKBFJVU1QQCBIKCgZQWVRIT04QCRIHCgNDUFAQChINCglVTklUWV9XRUIQCxIICgROT0RFEA'
-    'w=');
+    'wSCgoGVU5SRUFMEA0=');
 
 @$core.Deprecated('Use clientConfigurationDescriptor instead')
 const ClientConfiguration$json = {
@@ -1999,3 +2037,17 @@ final $typed_data.Uint8List dataStreamDescriptor = $convert.base64Decode(
     'dXRlcxo9Cg9BdHRyaWJ1dGVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKA'
     'lSBXZhbHVlOgI4ASJBCg1PcGVyYXRpb25UeXBlEgoKBkNSRUFURRAAEgoKBlVQREFURRABEgoK'
     'BkRFTEVURRACEgwKCFJFQUNUSU9OEAM=');
+
+@$core.Deprecated('Use webhookConfigDescriptor instead')
+const WebhookConfig$json = {
+  '1': 'WebhookConfig',
+  '2': [
+    {'1': 'url', '3': 1, '4': 1, '5': 9, '10': 'url'},
+    {'1': 'signing_key', '3': 2, '4': 1, '5': 9, '10': 'signingKey'},
+  ],
+};
+
+/// Descriptor for `WebhookConfig`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List webhookConfigDescriptor = $convert.base64Decode(
+    'Cg1XZWJob29rQ29uZmlnEhAKA3VybBgBIAEoCVIDdXJsEh8KC3NpZ25pbmdfa2V5GAIgASgJUg'
+    'pzaWduaW5nS2V5');

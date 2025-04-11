@@ -1247,7 +1247,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     ..aOS(15, _omitFieldNames ? '' : 'stream')
     ..e<$2.BackupCodecPolicy>(
         16, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
-        defaultOrMaker: $2.BackupCodecPolicy.REGRESSION,
+        defaultOrMaker: $2.BackupCodecPolicy.PREFER_REGRESSION,
         valueOf: $2.BackupCodecPolicy.valueOf,
         enumValues: $2.BackupCodecPolicy.values)
     ..hasRequiredFields = false;
