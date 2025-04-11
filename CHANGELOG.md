@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2.4.2+hotfix.2
+
+* fix: Fix creation timing for local participant. (#749)
+* fix: Filter out non-video codecs for fast video track publication. (#747)
+
+## 2.4.2+hotfix.1
+
+* fix: fixed bug for fast track publish.
+
+## 2.4.2
+
+* fix: Fixed the echo issue on some specific models of Android devices.
+* chore: Bbmp version for flutter-webrtc.
+* fix: Improve browser version detection, fix issue #730 (#738)
+* feat: Fast track publication. (#720)
+* chore: Remove `bypassVoiceProcessing = true` settings for connect page. (#693)
+* fix: [bug] Crash when join room on Windows.
+* fix: Disable selectAudioInput for mobile platforms.
+
 ## 2.4.1
 
 * feat: VideoRenderer support cache renderer. (#723)

@@ -38,7 +38,7 @@ class _ConnectPageState extends State<ConnectPage> {
   bool _busy = false;
   bool _e2ee = false;
   bool _multiCodec = false;
-  String _preferredCodec = 'Preferred Codec';
+  String _preferredCodec = 'VP8';
 
   @override
   void initState() {

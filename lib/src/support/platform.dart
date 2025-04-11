@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:io';
-
 import 'platform/io.dart' if (dart.library.js_interop) 'platform/web.dart';
 
 // Returns the current platform which works for both web and devices.
@@ -29,12 +27,12 @@ bool lkPlatformIsWebMobile() => lkPlatformIsWebMobileImplementation();
 bool lkPlatformIsDesktop() => [
       PlatformType.macOS,
       PlatformType.windows,
-      PlatformType.linux
+      PlatformType.linux,
     ].contains(lkPlatform());
 
 bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
 
-bool lkPlatformIsTest() => Platform.environment.containsKey('FLUTTER_TEST');
+bool lkPlatformIsTest() => lkPlatformIsTestImplementation();
 
 BrowserType lkBrowser() => lkBrowserImplementation();
 
@@ -47,15 +45,7 @@ bool skipStopForTrackMute() =>
     (lkPlatformIs(PlatformType.web) &&
         [BrowserType.firefox].contains(lkBrowser()));
 
-enum PlatformType {
-  web,
-  windows,
-  linux,
-  macOS,
-  android,
-  fuchsia,
-  iOS,
-}
+enum PlatformType { web, windows, linux, macOS, android, fuchsia, iOS }
 
 enum BrowserType {
   chrome,
@@ -78,4 +68,12 @@ class BrowserVersion {
 
   /// The patch version number: "3" in "1.2.3".
   final int patch;
+}
+
+bool isChrome129OrLater() {
+  if (lkPlatformIs(PlatformType.web) && BrowserType.chrome == lkBrowser()) {
+    final version = lkBrowserVersion();
+    return version.major > 129 || (version.major == 129 && version.minor >= 0);
+  }
+  return false;
 }

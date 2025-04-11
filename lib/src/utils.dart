@@ -626,7 +626,8 @@ String mimeTypeToVideoCodecString(String mimeType) {
   }
   final codec = mimeType.split('/')[1].toLowerCase();
   if (!videoCodecs.contains(codec)) {
-    throw Exception('Video codec not supported: $codec');
+    logger.warning('Video codec not supported: $codec');
+    return '';
   }
   return codec;
 }
