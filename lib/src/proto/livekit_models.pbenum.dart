@@ -76,6 +76,28 @@ class ImageCodec extends $pb.ProtobufEnum {
   const ImageCodec._($core.int v, $core.String n) : super(v, n);
 }
 
+/// Policy for publisher to handle subscribers that are unable to support the primary codec of a track
+class BackupCodecPolicy extends $pb.ProtobufEnum {
+  static const BackupCodecPolicy PREFER_REGRESSION =
+      BackupCodecPolicy._(0, _omitEnumNames ? '' : 'PREFER_REGRESSION');
+  static const BackupCodecPolicy SIMULCAST =
+      BackupCodecPolicy._(1, _omitEnumNames ? '' : 'SIMULCAST');
+  static const BackupCodecPolicy REGRESSION =
+      BackupCodecPolicy._(2, _omitEnumNames ? '' : 'REGRESSION');
+
+  static const $core.List<BackupCodecPolicy> values = <BackupCodecPolicy>[
+    PREFER_REGRESSION,
+    SIMULCAST,
+    REGRESSION,
+  ];
+
+  static final $core.Map<$core.int, BackupCodecPolicy> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static BackupCodecPolicy? valueOf($core.int value) => _byValue[value];
+
+  const BackupCodecPolicy._($core.int v, $core.String n) : super(v, n);
+}
+
 class TrackType extends $pb.ProtobufEnum {
   static const TrackType AUDIO = TrackType._(0, _omitEnumNames ? '' : 'AUDIO');
   static const TrackType VIDEO = TrackType._(1, _omitEnumNames ? '' : 'VIDEO');
@@ -219,6 +241,8 @@ class DisconnectReason extends $pb.ProtobufEnum {
       DisconnectReason._(12, _omitEnumNames ? '' : 'USER_REJECTED');
   static const DisconnectReason SIP_TRUNK_FAILURE =
       DisconnectReason._(13, _omitEnumNames ? '' : 'SIP_TRUNK_FAILURE');
+  static const DisconnectReason CONNECTION_TIMEOUT =
+      DisconnectReason._(14, _omitEnumNames ? '' : 'CONNECTION_TIMEOUT');
 
   static const $core.List<DisconnectReason> values = <DisconnectReason>[
     UNKNOWN_REASON,
@@ -235,6 +259,7 @@ class DisconnectReason extends $pb.ProtobufEnum {
     USER_UNAVAILABLE,
     USER_REJECTED,
     SIP_TRUNK_FAILURE,
+    CONNECTION_TIMEOUT,
   ];
 
   static final $core.Map<$core.int, DisconnectReason> _byValue =
@@ -375,6 +400,26 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
   const ParticipantInfo_Kind._($core.int v, $core.String n) : super(v, n);
 }
 
+class ParticipantInfo_KindDetail extends $pb.ProtobufEnum {
+  static const ParticipantInfo_KindDetail CLOUD_AGENT =
+      ParticipantInfo_KindDetail._(0, _omitEnumNames ? '' : 'CLOUD_AGENT');
+  static const ParticipantInfo_KindDetail FORWARDED =
+      ParticipantInfo_KindDetail._(1, _omitEnumNames ? '' : 'FORWARDED');
+
+  static const $core.List<ParticipantInfo_KindDetail> values =
+      <ParticipantInfo_KindDetail>[
+    CLOUD_AGENT,
+    FORWARDED,
+  ];
+
+  static final $core.Map<$core.int, ParticipantInfo_KindDetail> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static ParticipantInfo_KindDetail? valueOf($core.int value) =>
+      _byValue[value];
+
+  const ParticipantInfo_KindDetail._($core.int v, $core.String n) : super(v, n);
+}
+
 class Encryption_Type extends $pb.ProtobufEnum {
   static const Encryption_Type NONE =
       Encryption_Type._(0, _omitEnumNames ? '' : 'NONE');
@@ -459,6 +504,8 @@ class ClientInfo_SDK extends $pb.ProtobufEnum {
       ClientInfo_SDK._(11, _omitEnumNames ? '' : 'UNITY_WEB');
   static const ClientInfo_SDK NODE =
       ClientInfo_SDK._(12, _omitEnumNames ? '' : 'NODE');
+  static const ClientInfo_SDK UNREAL =
+      ClientInfo_SDK._(13, _omitEnumNames ? '' : 'UNREAL');
 
   static const $core.List<ClientInfo_SDK> values = <ClientInfo_SDK>[
     UNKNOWN,
@@ -474,6 +521,7 @@ class ClientInfo_SDK extends $pb.ProtobufEnum {
     CPP,
     UNITY_WEB,
     NODE,
+    UNREAL,
   ];
 
   static final $core.Map<$core.int, ClientInfo_SDK> _byValue =
