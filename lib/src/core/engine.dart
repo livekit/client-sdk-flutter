@@ -1228,7 +1228,8 @@ extension EngineInternalMethods on Engine {
       if (!matchesVideoCodec) {
         if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
           if (c.sdpFmtpLine != null &&
-              c.sdpFmtpLine!.contains('profile-id=0')) {
+              (c.sdpFmtpLine!.contains('profile-id=0') ||
+                  c.sdpFmtpLine!.contains('profile-id=1'))) {
             unmatched.add(c);
           }
         } else {
@@ -1248,7 +1249,9 @@ extension EngineInternalMethods on Engine {
         continue;
       }
       if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
-        if (c.sdpFmtpLine != null && c.sdpFmtpLine!.contains('profile-id=0')) {
+        if (c.sdpFmtpLine != null &&
+            (c.sdpFmtpLine!.contains('profile-id=0') ||
+                c.sdpFmtpLine!.contains('profile-id=1'))) {
           matched.add(c);
         }
       } else {
