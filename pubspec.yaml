@@ -43,6 +43,7 @@ dependencies:
   sdp_transform: ^0.3.2
   web: ^1.0.0
   mime_type: ^1.0.1
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
