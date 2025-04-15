@@ -1226,7 +1226,15 @@ extension EngineInternalMethods on Engine {
 
       var matchesVideoCodec = codec == 'video/$videoCodec';
       if (!matchesVideoCodec) {
-        unmatched.add(c);
+        if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
+          if (c.sdpFmtpLine != null &&
+              (c.sdpFmtpLine!.contains('profile-id=0') ||
+                  c.sdpFmtpLine!.contains('profile-id=1'))) {
+            unmatched.add(c);
+          }
+        } else {
+          unmatched.add(c);
+        }
         continue;
       }
       // for h264 codecs that have sdpFmtpLine available, use only if the
@@ -1240,7 +1248,15 @@ extension EngineInternalMethods on Engine {
         }
         continue;
       }
-      matched.add(c);
+      if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
+        if (c.sdpFmtpLine != null &&
+            (c.sdpFmtpLine!.contains('profile-id=0') ||
+                c.sdpFmtpLine!.contains('profile-id=1'))) {
+          matched.add(c);
+        }
+      } else {
+        matched.add(c);
+      }
     }
     matched.addAll([...partialMatched, ...unmatched]);
     try {
