@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.4
+
+* feat: data stream
+* fix: calling setSourceEnabled should not affect the current output settings (#754)
+* fix: Calling connect on a disconnected room instance should reset _isClosed. (#752)
+* fix: Fix for Chrome getUserMedia "ideal" Constraint Change.
+* fix: fix duplicate fmtp for vp9 on some old Android devices. (#758)
+
 ## 2.4.3
 
 * feat: Automatically configure audio mode for Android. (#746)
