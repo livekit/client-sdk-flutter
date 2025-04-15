@@ -1240,7 +1240,14 @@ extension EngineInternalMethods on Engine {
         }
         continue;
       }
-      matched.add(c);
+      if (lkPlatformIs(PlatformType.android) &&
+          videoCodec.toLowerCase() == 'vp9') {
+        if (matched.isEmpty) {
+          matched.add(c);
+        }
+      } else {
+        matched.add(c);
+      }
     }
     matched.addAll([...partialMatched, ...unmatched]);
     try {
