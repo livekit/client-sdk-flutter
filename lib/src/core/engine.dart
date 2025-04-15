@@ -1242,7 +1242,9 @@ extension EngineInternalMethods on Engine {
       }
       if (lkPlatformIs(PlatformType.android) &&
           videoCodec.toLowerCase() == 'vp9') {
-        if (matched.isEmpty) {
+        if (matched.isEmpty &&
+            (c.sdpFmtpLine != null &&
+                c.sdpFmtpLine!.contains('profile-id=0'))) {
           matched.add(c);
         }
       } else {
