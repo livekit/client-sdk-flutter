@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.3
+
+* feat: Automatically configure audio mode for Android. (#746)
+
 ## 2.4.2+hotfix.2
 
 * fix: Fix creation timing for local participant. (#749)
