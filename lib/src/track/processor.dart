@@ -1,4 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:webrtc_interface/webrtc_interface.dart';
 
 import '../core/room.dart';
 import '../types/other.dart';
@@ -10,18 +10,6 @@ class ProcessorOptions<T extends TrackType> {
     required this.kind,
     required this.track,
   });
-}
-
-class AudioProcessorOptions extends ProcessorOptions {
-  AudioProcessorOptions({
-    required MediaStreamTrack track,
-  }) : super(kind: TrackType.AUDIO, track: track);
-}
-
-class VideoProcessorOptions extends ProcessorOptions {
-  VideoProcessorOptions({
-    required MediaStreamTrack track,
-  }) : super(kind: TrackType.VIDEO, track: track);
 }
 
 abstract class TrackProcessor<T extends ProcessorOptions> {
@@ -36,4 +24,6 @@ abstract class TrackProcessor<T extends ProcessorOptions> {
   Future<void> onPublish(Room room);
 
   Future<void> onUnpublish();
+
+  MediaStreamTrack? get processedTrack;
 }
