@@ -14,6 +14,8 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import '../platform.dart';
 
 PlatformType lkPlatformImplementation() {
@@ -31,7 +33,7 @@ bool lkPlatformIsWebMobileImplementation() {
 }
 
 bool lkPlatformIsTestImplementation() =>
-    Platform.environment.containsKey('FLUTTER_TEST');
+    !kIsWeb && !kIsWasm && Platform.environment.containsKey('FLUTTER_TEST');
 
 bool lkE2EESupportedImplementation() {
   return [

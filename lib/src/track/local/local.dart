@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
@@ -30,6 +31,8 @@ import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../processor.dart';
+import '../processor_native.dart'
+    if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
@@ -258,12 +261,15 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    var processorOptions = ProcessorOptions(
-      kind: kind,
+    var processorOptions = AudioProcessorOptions(
       track: mediaStreamTrack,
     );
 
     await _processor!.init(processorOptions);
+
+    if (_processor?.processedTrack != null) {
+      setProcessedTrack(processor!.processedTrack!);
+    }
 
     logger.fine('processor initialized');
 
