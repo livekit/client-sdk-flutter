@@ -18,7 +18,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
@@ -31,13 +30,14 @@ import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../processor.dart';
-import '../processor_native.dart'
-    if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
+
+import '../processor_native.dart'
+    if (dart.library.js_interop) '../processor_web.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
