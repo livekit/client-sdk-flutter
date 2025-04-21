@@ -139,6 +139,10 @@ abstract class Track extends DisposableChangeNotifier
       await mediaStreamTrack.stop();
     }
 
+    if (_originalTrack != null) {
+      await _originalTrack?.stop();
+    }
+
     _active = false;
     return true;
   }
