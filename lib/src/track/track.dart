@@ -141,6 +141,7 @@ abstract class Track extends DisposableChangeNotifier
 
     if (_originalTrack != null) {
       await _originalTrack?.stop();
+      _originalTrack = null;
     }
 
     _active = false;

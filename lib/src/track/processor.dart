@@ -1,4 +1,4 @@
-import 'package:webrtc_interface/webrtc_interface.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../core/room.dart';
 import '../types/other.dart';
