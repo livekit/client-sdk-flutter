@@ -268,7 +268,7 @@ abstract class LocalTrack extends Track {
     await _processor!.init(processorOptions);
 
     if (_processor?.processedTrack != null) {
-      setProcessedTrack(processor!.processedTrack!);
+      setProcessedTrack(processor.processedTrack!);
     }
 
     logger.fine('processor initialized');

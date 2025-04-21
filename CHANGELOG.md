@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.4.5
+
+* feat: noise filter for flutter web. (#762)
+
 ## 2.4.4
 
 * feat: data stream
