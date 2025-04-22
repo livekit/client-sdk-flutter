@@ -12,18 +12,6 @@ class ProcessorOptions<T extends TrackType> {
   });
 }
 
-class AudioProcessorOptions extends ProcessorOptions {
-  AudioProcessorOptions({
-    required MediaStreamTrack track,
-  }) : super(kind: TrackType.AUDIO, track: track);
-}
-
-class VideoProcessorOptions extends ProcessorOptions {
-  VideoProcessorOptions({
-    required MediaStreamTrack track,
-  }) : super(kind: TrackType.VIDEO, track: track);
-}
-
 abstract class TrackProcessor<T extends ProcessorOptions> {
   String get name;
 
@@ -36,4 +24,6 @@ abstract class TrackProcessor<T extends ProcessorOptions> {
   Future<void> onPublish(Room room);
 
   Future<void> onUnpublish();
+
+  MediaStreamTrack? get processedTrack;
 }

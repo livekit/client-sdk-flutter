@@ -46,6 +46,8 @@ abstract class Track extends DisposableChangeNotifier
   rtc.MediaStreamTrack get mediaStreamTrack => _mediaStreamTrack;
   rtc.MediaStreamTrack _mediaStreamTrack;
 
+  rtc.MediaStreamTrack? _originalTrack;
+
   String? sid;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
@@ -137,6 +139,11 @@ abstract class Track extends DisposableChangeNotifier
       await mediaStreamTrack.stop();
     }
 
+    if (_originalTrack != null) {
+      await _originalTrack?.stop();
+      _originalTrack = null;
+    }
+
     _active = false;
     return true;
   }
@@ -219,5 +226,11 @@ abstract class Track extends DisposableChangeNotifier
       track: this,
       stream: stream,
     ));
+  }
+
+  @internal
+  void setProcessedTrack(rtc.MediaStreamTrack track) {
+    _originalTrack = _mediaStreamTrack;
+    _mediaStreamTrack = track;
   }
 }
