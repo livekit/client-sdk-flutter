@@ -109,6 +109,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
 
+  /// Map of Track SID to the latest received audio level (0.0 - 1.0).
+  /// Updated frequently.
+  final Map<String, double> remoteTrackAudioLevels = {};
+
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
@@ -153,6 +157,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             Engine(
               roomOptions: roomOptions,
             ) {
+    // Assign callback in the body if engine was created here
+    if (engine == null) {
+      this.engine.onAudioLevelUpdate =
+          (trackId, level) => _handleEngineAudioLevelUpdate(trackId, level);
+    }
+
     //
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
@@ -926,6 +936,24 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       trackSidsDisabled: trackSidsDisabled,
       publishTracks: localParticipant?.publishedTracksInfo(),
     );
+  }
+
+  // Handler for audio level updates from the engine
+  void _handleEngineAudioLevelUpdate(String trackId, double level) {
+    bool needsNotify = true;
+    // Only notify if the level actually changed significantly
+    // to avoid excessive UI updates.
+    // You might adjust the threshold (e.g., 0.02) or remove it
+    // if you need every single update.
+    // if ((remoteTrackAudioLevels[trackId] ?? -1.0 - level).abs() < 0.02) {
+    //   needsNotify = false;
+    // }
+
+    remoteTrackAudioLevels[trackId] = level;
+
+    if (needsNotify) {
+      notifyListeners();
+    }
   }
 }
 

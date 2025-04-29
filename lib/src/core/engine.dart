@@ -17,11 +17,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:meta/meta.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import '../extensions.dart';
@@ -57,6 +57,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final SignalClient signalClient;
 
   final PeerConnectionCreate _peerConnectionCreate;
+
+  // Store the ID of the remote audio track to monitor
+  String? _monitoredAudioTrackId;
+  // Timer for periodically fetching stats
+  Timer? _statsTimer;
 
   @internal
   Transport? publisher;
@@ -135,6 +140,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
 
+  // Callback function type (make non-final)
+  Function(String trackId, double level)? onAudioLevelUpdate;
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -151,9 +159,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
+    Function(String trackId, double level)? onAudioLevelUpdateCallback,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
         _peerConnectionCreate =
             peerConnectionCreate ?? rtc.createPeerConnection {
+    onAudioLevelUpdate = onAudioLevelUpdateCallback;
+
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -233,6 +244,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> cleanUp() async {
     logger.fine('[$objectId] cleanUp()');
 
+    _statsTimer?.cancel();
+    _statsTimer = null;
+    _monitoredAudioTrackId = null;
+
     await publisher?.dispose();
     publisher = null;
     _hasPublished = false;
@@ -280,7 +295,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   bool? isBufferStatusLow(Reliability kind) {
-    final dc = _publisherDataChannel(kind);
+    final dc = publisherDataChannel(kind);
     if (dc != null) {
       return dc.bufferedAmount! <= dc.bufferedAmountLowThreshold!;
     }
@@ -341,7 +356,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliabilityType) !=
+      if (publisherDataChannelState(reliabilityType) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliabilityType} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
@@ -352,7 +367,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(
+    final rtc.RTCDataChannel? channel = publisherDataChannel(
         reliability == true ? Reliability.reliable : Reliability.lossy);
 
     if (channel == null) {
@@ -465,7 +480,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
-      logger.fine('[WebRTC] pc.onTrack');
+      logger.fine(
+          '[WebRTC] pc.onTrack, trackId: ${event.track.id}, kind: ${event.track.kind}');
+
+      // Start monitoring audio level if it's an audio track and not already monitoring
+      if (event.track.kind == 'audio' && _monitoredAudioTrackId == null) {
+        _monitoredAudioTrackId = event.track.id;
+        logger
+            .fine('Monitoring audio level for track: $_monitoredAudioTrackId');
+        _startStatsTimer();
+      }
 
       final stream = event.streams.firstOrNull;
       if (stream == null) {
@@ -1129,16 +1153,78 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void setRegionUrlProvider(RegionUrlProvider provider) {
     _regionUrlProvider = provider;
   }
+
+  void _startStatsTimer() {
+    _statsTimer?.cancel();
+    // Run at approx 30fps
+    _statsTimer = Timer.periodic(const Duration(milliseconds: 33), (_) {
+      _logAudioLevel();
+    });
+  }
+
+  Future<void> _logAudioLevel() async {
+    if (subscriber == null || subscriber?.pc == null) {
+      // Check subscriber first
+      return;
+    }
+    if (_monitoredAudioTrackId == null) {
+      // Log if the ID is null when the function runs
+      print(
+          '[${objectId}] _logAudioLevel: Skipping, _monitoredAudioTrackId is still null.');
+      return;
+    }
+
+    // Log the monitored ID each time just before fetching stats
+    print(
+        '[${objectId}] _logAudioLevel: Current _monitoredAudioTrackId: $_monitoredAudioTrackId');
+
+    try {
+      final stats = await subscriber!.pc.getStats();
+      print('[${objectId}] gonna log audio level'); // Confirm entry
+      for (final report in stats) {
+        // Focus on inbound-rtp reports
+        if (report.type == 'inbound-rtp') {
+          final trackIdFromReport = report.values['trackIdentifier'];
+          // Print the values being compared for debugging
+          print(
+              '[${objectId}] Comparing IDs: Report="${trackIdFromReport}" vs Monitored="${_monitoredAudioTrackId}"');
+
+          if (trackIdFromReport == _monitoredAudioTrackId &&
+              report.values['mediaType'] == 'audio') {
+            final audioLevelObject = report.values['audioLevel'];
+            if (audioLevelObject != null) {
+              final audioLevel = (audioLevelObject is String)
+                  ? double.tryParse(audioLevelObject) ?? 0.0
+                  : (audioLevelObject as num).toDouble();
+
+              // Call the callback instead of emitting event
+              onAudioLevelUpdate?.call(_monitoredAudioTrackId!, audioLevel);
+
+              // Keep print/log for debugging if needed
+              logger.info(
+                  'Remote audio level for track $_monitoredAudioTrackId: $audioLevel');
+              print(
+                  '!!! SUCCESS: Remote audio level for track $_monitoredAudioTrackId: $audioLevel');
+            }
+            break; // Found the relevant report, no need to continue
+          }
+        }
+      }
+    } catch (e) {
+      // Use logger for errors
+      logger.warning('Error getting stats: $e');
+    }
+  }
 }
 
 extension EnginePrivateMethods on Engine {
   // publisher data channel for the reliability
-  rtc.RTCDataChannel? _publisherDataChannel(Reliability reliability) =>
+  rtc.RTCDataChannel? publisherDataChannel(Reliability reliability) =>
       reliability == Reliability.reliable ? _reliableDCPub : _lossyDCPub;
 
   // state of the publisher data channel
-  rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
-      _publisherDataChannel(reliability)?.state ??
+  rtc.RTCDataChannelState publisherDataChannelState(Reliability reliability) =>
+      publisherDataChannel(reliability)?.state ??
       rtc.RTCDataChannelState.RTCDataChannelClosed;
 }
 
