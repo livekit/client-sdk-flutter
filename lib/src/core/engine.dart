@@ -1164,30 +1164,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> _logAudioLevel() async {
     if (subscriber == null || subscriber?.pc == null) {
-      // Check subscriber first
       return;
     }
     if (_monitoredAudioTrackId == null) {
-      // Log if the ID is null when the function runs
-      print(
-          '[${objectId}] _logAudioLevel: Skipping, _monitoredAudioTrackId is still null.');
       return;
     }
 
-    // Log the monitored ID each time just before fetching stats
-    print(
-        '[${objectId}] _logAudioLevel: Current _monitoredAudioTrackId: $_monitoredAudioTrackId');
-
     try {
       final stats = await subscriber!.pc.getStats();
-      print('[${objectId}] gonna log audio level'); // Confirm entry
       for (final report in stats) {
-        // Focus on inbound-rtp reports
         if (report.type == 'inbound-rtp') {
           final trackIdFromReport = report.values['trackIdentifier'];
-          // Print the values being compared for debugging
-          print(
-              '[${objectId}] Comparing IDs: Report="${trackIdFromReport}" vs Monitored="${_monitoredAudioTrackId}"');
 
           if (trackIdFromReport == _monitoredAudioTrackId &&
               report.values['mediaType'] == 'audio') {
@@ -1199,19 +1186,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
               // Call the callback instead of emitting event
               onAudioLevelUpdate?.call(_monitoredAudioTrackId!, audioLevel);
-
-              // Keep print/log for debugging if needed
-              logger.info(
-                  'Remote audio level for track $_monitoredAudioTrackId: $audioLevel');
-              print(
-                  '!!! SUCCESS: Remote audio level for track $_monitoredAudioTrackId: $audioLevel');
             }
-            break; // Found the relevant report, no need to continue
+            break;
           }
         }
       }
     } catch (e) {
-      // Use logger for errors
       logger.warning('Error getting stats: $e');
     }
   }
