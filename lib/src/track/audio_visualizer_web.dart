@@ -52,7 +52,9 @@ class AudioVisualizerWeb extends AudioVisualizer {
           frequencies = frequencies.sublist(
               options.loPass!.toInt(), options.hiPass!.toInt());
 
-          final normalizedFrequencies = normalizeFrequencies(frequencies);
+          final normalizedFrequencies = visualizerOptions.smoothTransition
+              ? normalizeFrequencies(frequencies)
+              : frequencies;
           final chunkSize = (normalizedFrequencies.length / (bands + 1)).ceil();
           Float32List chunks = Float32List(visualizerOptions.barCount);
 

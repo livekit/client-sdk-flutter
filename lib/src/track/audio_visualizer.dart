@@ -9,9 +9,11 @@ import 'audio_visualizer_native.dart'
 class AudioVisualizerOptions {
   final bool centeredBands;
   final int barCount;
+  final bool smoothTransition;
   const AudioVisualizerOptions({
     this.centeredBands = true,
     this.barCount = 7,
+    this.smoothTransition = true,
   });
 }
 

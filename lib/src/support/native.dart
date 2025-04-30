@@ -55,6 +55,7 @@ class Native {
     bool isCentered = true,
     int barCount = 7,
     String visualizerId = '',
+    bool smoothTransition = true,
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -64,6 +65,7 @@ class Native {
           'isCentered': isCentered,
           'barCount': barCount,
           'visualizerId': visualizerId,
+          'smoothTransition': smoothTransition,
         },
       );
       return result == true;
