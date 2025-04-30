@@ -84,6 +84,8 @@ class Visualizer(
             bands = bands.mapIndexed { index, value ->
                 smoothTransition(value, amplitudes[index], 0.3f)
             }.toFloatArray()
+        } else {
+            bands = amplitudes
         }
 
         handler.post {
