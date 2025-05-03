@@ -28,6 +28,7 @@ import kotlin.math.*
 class Visualizer(
     private var barCount: Int,
     private var isCentered: Boolean,
+    private var smoothTransition: Boolean,
     audioTrack: LKAudioTrack,
     binaryMessenger: BinaryMessenger,
     visualizerId: String
@@ -79,9 +80,13 @@ class Visualizer(
             amplitudes = centerBands(amplitudes)
         }
 
-        bands = bands.mapIndexed { index, value ->
-          smoothTransition(value, amplitudes[index], 0.3f)
-        }.toFloatArray()
+        if(this.smoothTransition) {
+            bands = bands.mapIndexed { index, value ->
+                smoothTransition(value, amplitudes[index], 0.3f)
+            }.toFloatArray()
+        } else {
+            bands = amplitudes
+        }
 
         handler.post {
             eventSink?.success(bands)
