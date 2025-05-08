@@ -113,6 +113,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let visualizerId = args["visualizerId"] as? String 
         let barCount = args["barCount"] as? Int ?? 7
         let isCentered = args["isCentered"] as? Bool ?? true
+        let smoothTransition = args["smoothTransition"] as? Bool ?? true
 
         if visualizerId == nil {
             result(FlutterError(code: "visualizerId", message: "visualizerId is required", details: nil))
@@ -129,6 +130,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                                binaryMessenger: self.binaryMessenger!,
                                                bandCount: barCount,
                                                isCentered: isCentered,
+                                               smoothTransition: smoothTransition,
                                                visualizerId: unwrappedVisualizerId)    
                 
                 tracks[unwrappedTrackId] = lkLocalTrack
@@ -143,6 +145,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                                binaryMessenger: self.binaryMessenger!,
                                                bandCount: barCount,
                                                isCentered: isCentered,
+                                               smoothTransition: smoothTransition,
                                                visualizerId: unwrappedVisualizerId)
                 tracks[unwrappedTrackId] = lkRemoteTrack
                 processors[unwrappedVisualizerId] = processor

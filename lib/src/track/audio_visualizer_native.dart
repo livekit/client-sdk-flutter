@@ -33,6 +33,7 @@ class AudioVisualizerNative extends AudioVisualizer {
       isCentered: visualizerOptions.centeredBands,
       barCount: visualizerOptions.barCount,
       visualizerId: visualizerId,
+      smoothTransition: visualizerOptions.smoothTransition,
     );
 
     _eventChannel = EventChannel(

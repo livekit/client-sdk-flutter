@@ -34,7 +34,19 @@ class AudioVisualizerWeb extends AudioVisualizer {
 
     final bands = visualizerOptions.barCount;
 
-    _audioAnalyser = createAudioAnalyser(_audioTrack!, options.analyserOptions);
+    // Override smoothingTimeConstant to a very low valiue if smoothTransition is false
+    var currentAnalyserOptions =
+        options.analyserOptions ?? const AudioAnalyserOptions();
+    if (!visualizerOptions.smoothTransition) {
+      currentAnalyserOptions = AudioAnalyserOptions(
+        fftSize: currentAnalyserOptions.fftSize,
+        maxDecibels: currentAnalyserOptions.maxDecibels,
+        minDecibels: currentAnalyserOptions.minDecibels,
+        smoothingTimeConstant: 0.02,
+      );
+    }
+
+    _audioAnalyser = createAudioAnalyser(_audioTrack!, currentAnalyserOptions);
 
     final bufferLength = _audioAnalyser?.analyser.frequencyBinCount;
 

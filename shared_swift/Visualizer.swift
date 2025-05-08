@@ -43,7 +43,7 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
     
     public let isCentered: Bool
     public let smoothingFactor: Float
-
+    public let smoothTransition: Bool
     public var bands: [Float]
 
     private let _processor: AudioVisualizeProcessor
@@ -53,11 +53,13 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
                 binaryMessenger: FlutterBinaryMessenger,
                 bandCount: Int = 7,
                 isCentered: Bool = true,
+                smoothTransition: Bool = true,
                 smoothingFactor: Float = 0.3,
                 visualizerId: String)
     {
         self.isCentered = isCentered
         self.smoothingFactor = smoothingFactor
+        self.smoothTransition = smoothTransition
         bands = Array(repeating: 0.0, count: bandCount)
         _processor = AudioVisualizeProcessor(bandsCount: bandCount)
         _track = track
@@ -86,7 +88,10 @@ public class Visualizer: NSObject, RTCAudioRenderer, FlutterStreamHandler {
             guard let self else { return }
             
             self.bands = zip(self.bands, newBands).map { old, new in
-                self._smoothTransition(from: old, to: new, factor: self.smoothingFactor)
+                if(self.smoothTransition) {
+                    return self._smoothTransition(from: old, to: new, factor: self.smoothingFactor)
+                }
+                return new
             }
             self.eventSink?(self.bands)
         }

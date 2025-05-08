@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.6
+
+* feat: Add smoothTransition option for AudioVisualizer. (#773)
+* fix: Fix deadlock when creating a frame cryptor on iOS/macOS.
+* fix: add task runner for linux to fix crashes.
+
 ## 2.4.5
 
 * feat: noise filter for flutter web. (#762)
