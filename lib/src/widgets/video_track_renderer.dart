@@ -158,7 +158,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _renderer?.onResize = () {
       if (mounted) {
         setState(() {
-          _aspectRatio = _renderer?.videoValue.aspectRatio;
+          _aspectRatio =
+              (_renderer as rtc.RTCVideoRenderer?)?.videoValue.aspectRatio;
         });
       }
     };
