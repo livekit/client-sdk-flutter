@@ -522,7 +522,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       final lossyInit = rtc.RTCDataChannelInit()
         ..binaryType = 'binary'
-        ..ordered = true
+        ..ordered = false
         ..maxRetransmits = 0;
       _lossyDCPub =
           await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
