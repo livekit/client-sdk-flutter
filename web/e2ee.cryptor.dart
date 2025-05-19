@@ -248,7 +248,8 @@ class FrameCryptor {
       this.codec = codec;
     }
     var transformer = web.TransformStream({
-      'transform': operation == 'encode' ? encodeFunction : decodeFunction
+      'transform':
+          (operation == 'encode' ? encodeFunction.toJS : decodeFunction.toJS)
     }.jsify() as JSObject);
     try {
       readable
@@ -363,7 +364,7 @@ class FrameCryptor {
     controller.enqueue(frameObj);
   }
 
-  Future<void> encodeFunction(
+  void encodeFunction(
     JSObject frameObj,
     web.TransformStreamDefaultController controller,
   ) async {
@@ -471,7 +472,7 @@ class FrameCryptor {
     }
   }
 
-  Future<void> decodeFunction(
+  void decodeFunction(
     JSObject frameObj,
     web.TransformStreamDefaultController controller,
   ) async {
