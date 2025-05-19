@@ -141,10 +141,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_webrtc
-      sha256: "8565f1f1f412b8a6fd862f3a157560811e61eeeac26741c735a5d2ff409a0202"
+      sha256: "5b76fd85ac95d6f5dee3e7d7de8d4b51bfbec1dc73804647c6aebb52d6297116"
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.3"
+    version: "1.5.3+hotfix.2"
   dbus:
     dependency: transitive
     description:
@@ -220,10 +220,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: "4f0d6e248f178e617f249b6a2f432b5981e3300c2896fc8d476fc2aa1f525547"
+      sha256: e84ca404ef4b0d07a0fcd676b15814fabd5bc08e8d4b8dd8b634f76beab1bb50
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.1"
+    version: "0.14.0"
   glob:
     dependency: transitive
     description:
@@ -328,6 +328,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  mime_type:
+    dependency: "direct main"
+    description:
+      name: mime_type
+      sha256: d652b613e84dac1af28030a9fba82c0999be05b98163f9e18a0849c6e63838bb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   mockito:
     dependency: "direct dev"
     description:
@@ -353,7 +361,7 @@ packages:
     source: hosted
     version: "2.2.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
@@ -593,10 +601,10 @@ packages:
     dependency: transitive
     description:
       name: webrtc_interface
-      sha256: e92afec11152a9ccb5c9f35482754edd99696e886ab6acaf90c06dd2d09f09eb
+      sha256: "86fe3afc81a08481dfb25cf14a5a94e27062ecef25544783f352c914e0bbc1ca"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2+hotfix.1"
+    version: "1.2.2+hotfix.2"
   win32:
     dependency: transitive
     description:
