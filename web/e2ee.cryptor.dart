@@ -500,8 +500,7 @@ class FrameCryptor {
       var magicBytes = keyOptions.uncryptedMagicBytes!;
       if (srcFrame.buffer.length > magicBytes.length + 1) {
         var magicBytesBuffer = srcFrame.buffer.sublist(
-            srcFrame.buffer.length - magicBytes.length - 1,
-            srcFrame.buffer.length - 1);
+            srcFrame.buffer.length - magicBytes.length, srcFrame.buffer.length);
         logger.finer(
             'magicBytesBuffer $magicBytesBuffer, magicBytes $magicBytes');
         if (magicBytesBuffer.toString() == magicBytes.toString()) {
@@ -681,7 +680,9 @@ class FrameCryptor {
 
       logger.fine(
           'decodeFunction[CryptorError.kOk]: decryption success kind $kind, headerLength: $headerLength, timestamp: ${srcFrame.timestamp}, ssrc: ${srcFrame.ssrc}, data length: ${srcFrame.buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e) {
+    } catch (e, s) {
+      logger.info('decodeFunction[CryptorError.kDecryptError]: $e, $s');
+
       if (lastError != CryptorError.kDecryptError) {
         lastError = CryptorError.kDecryptError;
         postMessage({
