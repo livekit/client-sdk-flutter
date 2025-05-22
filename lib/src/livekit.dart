@@ -20,7 +20,7 @@ import 'support/native.dart';
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.4.6';
+  static const version = '2.4.7';
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
