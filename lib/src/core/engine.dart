@@ -323,22 +323,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
 
-      if ((await publisher?.pc.getConnectionState())?.isConnected() != true) {
-        logger.fine('Publisher is not connected...');
-
-        // start negotiation
-        if (await publisher?.pc.getConnectionState() !=
-            rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
-          await negotiate();
-        }
-        if (!lkPlatformIsTest()) {
-          logger.fine('Waiting for publisher to ice-connect...');
-          await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
-            filter: (event) => event.state.isConnected(),
-            duration: connectOptions.timeouts.peerConnection,
-          );
-        }
-      }
+      await _publisherEnsureConnected();
 
       // wait for data channel to open (if not already)
       if (_publisherDataChannelState(reliabilityType) !=
@@ -365,6 +350,25 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <=
         channel.bufferedAmountLowThreshold!;
+  }
+
+  Future<void> _publisherEnsureConnected() async {
+    if ((await publisher?.pc.getConnectionState())?.isConnected() != true) {
+      logger.fine('Publisher is not connected...');
+
+      // start negotiation
+      if (await publisher?.pc.getConnectionState() !=
+          rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+        await negotiate();
+      }
+      if (!lkPlatformIsTest()) {
+        logger.fine('Waiting for publisher to ice-connect...');
+        await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
+          filter: (event) => event.state.isConnected(),
+          duration: connectOptions.timeouts.peerConnection,
+        );
+      }
+    }
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -896,13 +900,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
 
       if (_hasPublished) {
-        await negotiate();
-        logger
-            .fine('restartConnection: Waiting for publisher to ice-connect...');
-        await events.waitFor<EnginePublisherPeerStateUpdatedEvent>(
-          filter: (event) => event.state.isConnected(),
-          duration: connectOptions.timeouts.peerConnection,
-        );
+        await _publisherEnsureConnected();
       }
       fullReconnectOnNext = false;
       _regionUrlProvider?.resetAttempts();
