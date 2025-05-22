@@ -5,6 +5,7 @@
 * fix: interop for encode and decode function in e2ee cryptor (#785)
 * chore: Unorder the lossy data channel (#783)
 * chore: bump flutter-webrtc to 0.14.1.
+* fix: mitigate reconnect loop (#780)
 
 ## 2.4.6
 
