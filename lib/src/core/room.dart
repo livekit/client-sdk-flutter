@@ -622,14 +622,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
+    bool isPendingReconnect = engine.isPendingReconnect;
     if (engine.isClosed &&
+        !isPendingReconnect &&
         engine.connectionState == ConnectionState.disconnected) {
       logger.warning('Engine is already closed');
       return;
     }
     await engine.disconnect();
-    await _engineListener.waitFor<EngineDisconnectedEvent>(
-        duration: const Duration(seconds: 10));
+    if (!isPendingReconnect) {
+      await _engineListener.waitFor<EngineDisconnectedEvent>(
+          duration: const Duration(seconds: 10));
+    }
     await _cleanUp();
   }
 
