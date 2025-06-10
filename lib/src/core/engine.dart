@@ -116,6 +116,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool get isClosed => _isClosed;
 
+  bool get isPendingReconnect =>
+      reconnectStart != null && reconnectTimeout != null;
+
   final int _reconnectCount = defaultRetryDelaysInMs.length;
 
   bool attemptingReconnect = false;
@@ -145,6 +148,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void clearPendingReconnect() {
     clearReconnectTimeout();
     reconnectAttempts = 0;
+    reconnectStart = null;
   }
 
   Engine({
@@ -275,7 +279,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnectOnNext = true;
       }
-      await handleDisconnect(ClientDisconnectReason.negotiationFailed);
+      await handleReconnect(ClientDisconnectReason.negotiationFailed);
     }
   }
 
@@ -449,7 +453,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('subscriber connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
-        await handleDisconnect(state.isFailed()
+        await handleReconnect(state.isFailed()
             ? ClientDisconnectReason.peerConnectionFailed
             : ClientDisconnectReason.peerConnectionClosed);
       }
@@ -462,7 +466,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
-        await handleDisconnect(state.isFailed()
+        await handleReconnect(state.isFailed()
             ? ClientDisconnectReason.peerConnectionFailed
             : ClientDisconnectReason.peerConnectionClosed);
       }
@@ -697,9 +701,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> handleDisconnect(ClientDisconnectReason reason) async {
+  Future<void> handleReconnect(ClientDisconnectReason reason) async {
     if (_isClosed) {
-      logger.fine('handleDisconnect: engine is closed, skip');
+      logger.fine('handleReconnect: engine is closed, skip');
       return;
     }
 
@@ -797,7 +801,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
 
       if (recoverable) {
-        unawaited(handleDisconnect(ClientDisconnectReason.reconnectRetry));
+        unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
         events.emit(EngineDisconnectedEvent(
@@ -1024,7 +1028,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
-        await handleDisconnect(ClientDisconnectReason.signal);
+        await handleReconnect(ClientDisconnectReason.signal);
       } else if (event.reason == DisconnectReason.signalingConnectionFailure) {
         events.emit(EngineDisconnectedEvent(
           reason: event.reason,
@@ -1104,11 +1108,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         case lk_rtc.LeaveRequest_Action.RECONNECT:
           fullReconnectOnNext = true;
           // reconnect immediately instead of waiting for next attempt
-          await handleDisconnect(ClientDisconnectReason.leaveReconnect);
+          await handleReconnect(ClientDisconnectReason.leaveReconnect);
           break;
         case lk_rtc.LeaveRequest_Action.RESUME:
           // reconnect immediately instead of waiting for next attempt
-          await handleDisconnect(ClientDisconnectReason.leaveReconnect);
+          await handleReconnect(ClientDisconnectReason.leaveReconnect);
         default:
           break;
       }
@@ -1120,6 +1124,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (connectionState == ConnectionState.connected) {
       await signalClient.sendLeave();
     } else {
+      if (isPendingReconnect) {
+        logger.fine('disconnect: Cancel the reconnection processing!');
+        await signalClient.cleanUp();
+        await _signalListener.cancelAll();
+        clearPendingReconnect();
+        events.emit(EngineDisconnectedEvent(
+          reason: DisconnectReason.clientInitiated,
+        ));
+      }
       await cleanUp();
     }
   }
