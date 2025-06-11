@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.4.8
+
+* fix: fix room.disconnect when pending reconnect. (#802)
+* fix: fix bitrate display for remote video track. (#801)
+* feat: add a flag to skip auto native audio config (#797)
+* fix: sif detection for e2ee (#788)
+* chore: Update protobuf dep (#790)
+
 ## 2.4.7
 
 * fix: interop for encode and decode function in e2ee cryptor (#785)
