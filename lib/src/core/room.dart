@@ -47,6 +47,7 @@ import '../track/track.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
+import '../types/transcription_segment.dart';
 import '../utils.dart';
 import 'engine.dart';
 
