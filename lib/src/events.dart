@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:livekit_client/src/track/processor.dart';
 import 'core/engine.dart';
 import 'core/room.dart';
 import 'core/signal_client.dart';
@@ -23,9 +22,11 @@ import 'publication/local.dart';
 import 'publication/remote.dart';
 import 'publication/track_publication.dart';
 import 'stats/stats.dart';
+import 'track/processor.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/participant_permissions.dart';
+import 'types/transcription_segment.dart';
 
 /// Base type for all LiveKit events.
 mixin LiveKitEvent {}
@@ -458,23 +459,6 @@ class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
   @override
   String toString() => '${runtimeType}'
       '(participant: ${participant}, permissions: ${permissions})';
-}
-
-class TranscriptionSegment {
-  final String id;
-  final String text;
-  final DateTime firstReceivedTime;
-  final DateTime lastReceivedTime;
-  final bool isFinal;
-  final String language;
-  const TranscriptionSegment({
-    required this.id,
-    required this.text,
-    required this.firstReceivedTime,
-    required this.lastReceivedTime,
-    required this.isFinal,
-    required this.language,
-  });
 }
 
 /// Transcription event received from the server.
