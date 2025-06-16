@@ -289,8 +289,6 @@ class _PreJoinPageState extends State<PreJoinPage> {
                                   ? VideoTrackRenderer(
                                       renderMode: VideoRenderMode.auto,
                                       _videoTrack!,
-                                      fit: RTCVideoViewObjectFit
-                                          .RTCVideoViewObjectFitContain,
                                     )
                                   : Container(
                                       alignment: Alignment.center,
