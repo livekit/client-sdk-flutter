@@ -46,7 +46,7 @@ enum VideoViewFit {
   contain, cover,
 }
 
-extension on VideoViewFit {
+extension VideoViewFitExt on VideoViewFit {
   rtc.RTCVideoViewObjectFit toRTCType() {
     if (this == VideoViewFit.cover) return rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitCover;
     return rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;

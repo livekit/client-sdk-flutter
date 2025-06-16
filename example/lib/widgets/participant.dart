@@ -145,7 +145,6 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget>
                   ? VideoTrackRenderer(
                       renderMode: VideoRenderMode.auto,
                       activeVideoTrack!,
-                      fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
                     )
                   : const NoVideoWidget(),
             ),
