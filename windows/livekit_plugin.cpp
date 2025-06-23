@@ -35,18 +35,21 @@
 namespace {
 
 class LiveKitPlugin : public flutter::Plugin {
- public:
+public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
   LiveKitPlugin();
 
   virtual ~LiveKitPlugin();
 
- private:
+private:
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+private:
+  FlutterWebRTC *webrtc_instance_ = nullptr;
 };
 
 // static
@@ -67,30 +70,51 @@ void LiveKitPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-LiveKitPlugin::LiveKitPlugin() {}
+LiveKitPlugin::LiveKitPlugin() {
+  webrtc_instance_ = FlutterWebRTC::shared_instance();
+}
 
 LiveKitPlugin::~LiveKitPlugin() {}
 
 void LiveKitPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (method_call.method_name().compare("getPlatformVersion") == 0) {
-    std::ostringstream version_stream;
-    version_stream << "Windows ";
-    if (IsWindows10OrGreater()) {
-      version_stream << "10+";
-    } else if (IsWindows8OrGreater()) {
-      version_stream << "8";
-    } else if (IsWindows7OrGreater()) {
-      version_stream << "7";
+  if (method_call.method_name().compare("startVisualizer") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
     }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string trackId = findString(params, "trackId");
+    const std::string visualizerId = findString(params, "visualizerId");
+    const int barCount = GetValue<int>(params["barCount"]);
+    const bool isCentered = GetValue<bool>(params["isCentered"]);
+
+    std::cout << "Starting visualizer for trackId: " << trackId
+              << ", visualizerId: " << visualizerId
+              << ", barCount: " << barCount
+              << ", isCentered: " << (isCentered ? "true" : "false") << std::endl;
+
+    result->Success(flutter::EncodableValue(version_stream.str()));
+  } else if (method_call.method_name().compare("stopVisualizer") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    const EncodableMap args =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string trackId = findString(args, "trackId");
+    const std::string visualizerId = findString(args, "visualizerId");
+    std::cout << "Stopping visualizer for trackId: " << trackId
+              << ", visualizerId: " << visualizerId << std::endl;
     result->Success(flutter::EncodableValue(version_stream.str()));
   } else {
     result->NotImplemented();
   }
 }
 
-}  // namespace
+} // namespace
 
 void LiveKitPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
