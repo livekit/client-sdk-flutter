@@ -33,6 +33,8 @@ import '../support/disposable.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
 import '../types/internal.dart';
+import '../utils/data_packet_buffer.dart';
+import '../utils/ttl_map.dart';
 import 'signal_client.dart';
 import 'transport.dart';
 
@@ -138,6 +140,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
 
+  // E2E reliability for data channels
+  int _reliableDataSequence = 1;
+  final DataPacketBuffer _reliableMessageBuffer = DataPacketBuffer();
+  final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
+  bool _isReconnecting = false;
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -171,6 +179,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await cleanUp();
       await events.dispose();
       await _signalListener.dispose();
+      _reliableReceivedState.dispose();
     });
   }
 
@@ -249,6 +258,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     fullReconnectOnNext = false;
     attemptingReconnect = false;
 
+    // Reset reliability state
+    _reliableDataSequence = 1;
+    _reliableMessageBuffer.clear();
+    _reliableReceivedState.clear();
+    _isReconnecting = false;
+
     clearPendingReconnect();
   }
 
@@ -312,21 +327,63 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return completer.future;
   }
 
+  Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
+    logger.fine('Resending reliable messages from sequence $lastMessageSeq');
+
+    final messagesToResend = _reliableMessageBuffer
+        .getAll()
+        .where((item) => item.sequence > lastMessageSeq)
+        .toList();
+
+    if (messagesToResend.isEmpty) {
+      logger.fine('No reliable messages to resend');
+      return;
+    }
+
+    logger.fine('Resending ${messagesToResend.length} reliable messages');
+
+    final channel = _publisherDataChannel(Reliability.reliable);
+    if (channel == null) {
+      logger.warning('Reliable data channel is null, cannot resend messages');
+      return;
+    }
+
+    for (final item in messagesToResend) {
+      try {
+        await channel.send(item.message);
+        logger.fine('Resent reliable message with sequence ${item.sequence}');
+      } catch (e) {
+        logger
+            .warning('Failed to resend reliable message ${item.sequence}: $e');
+      }
+    }
+  }
+
   @internal
   Future<void> sendDataPacket(
     lk_models.DataPacket packet, {
     bool? reliability = true,
   }) async {
+    var reliabilityType =
+        reliability == true ? Reliability.reliable : Reliability.lossy;
+
+    // Block sending during reconnection attempts for reliable packets
+    if (reliabilityType == Reliability.reliable && _isReconnecting) {
+      logger.fine('Blocking reliable data packet during reconnection');
+      return;
+    }
+
+    // Add sequence number for reliable packets
+    if (reliabilityType == Reliability.reliable) {
+      packet.sequence = _reliableDataSequence++;
+    }
+
     // construct the data channel message
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    var reliabilityType =
-        reliability == true ? Reliability.reliable : Reliability.lossy;
-
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
-
       await _publisherEnsureConnected();
 
       // wait for data channel to open (if not already)
@@ -341,19 +398,34 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(
-        reliability == true ? Reliability.reliable : Reliability.lossy);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliabilityType);
 
     if (channel == null) {
       throw UnexpectedStateException(
           'Data channel for ${packet.kind.toSDKType()} is null');
     }
 
-    logger.fine('sendDataPacket(label:${channel.label})');
+    // Buffer reliable packets for potential resending
+    if (reliabilityType == Reliability.reliable) {
+      _reliableMessageBuffer.push(BufferedDataPacket(
+        packet: packet,
+        message: message,
+        sequence: packet.sequence,
+      ));
+    }
+
+    logger.fine(
+        'sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
     await channel.send(message);
 
     _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <=
         channel.bufferedAmountLowThreshold!;
+
+    // Align buffer with WebRTC buffer for reliable packets
+    if (reliabilityType == Reliability.reliable) {
+      _reliableMessageBuffer
+          .alignBufferedAmount(await channel.getBufferedAmount());
+    }
   }
 
   Future<void> _publisherEnsureConnected() async {
@@ -630,6 +702,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
 
+    // Handle sequence numbers for reliable packets
+    if (dp.kind == lk_models.DataPacket_Kind.RELIABLE && dp.hasSequence()) {
+      final participantKey = dp.participantIdentity;
+      final sequence = dp.sequence;
+
+      // Check for duplicates and out-of-order packets
+      final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
+
+      if (sequence <= lastReceived) {
+        logger.fine('Ignoring duplicate or out-of-order packet: '
+            'sequence=$sequence, lastReceived=$lastReceived, participant=$participantKey');
+        return;
+      }
+
+      // Update received state
+      _reliableReceivedState.set(participantKey, sequence);
+    }
+
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -710,6 +800,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger
         .info('onDisconnected state:${connectionState} reason:${reason.name}');
 
+    _isReconnecting = true;
+
     if (reconnectAttempts == 0) {
       reconnectStart = DateTime.now();
     }
@@ -788,6 +880,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
       clearPendingReconnect();
       attemptingReconnect = false;
+      _isReconnecting = false;
     } catch (e) {
       reconnectAttempts = reconnectAttempts! + 1;
       bool recoverable = true;
@@ -863,6 +956,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
+    _isReconnecting = false;
     events.emit(const EngineResumedEvent());
   }
 
@@ -930,12 +1024,26 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     final previousAnswer =
         (await subscriber?.pc.getLocalDescription())?.toPBType();
+
+    // Build data channel receive states for reliability
+    final dataChannelReceiveStates = <lk_rtc.DataChannelReceiveState>[];
+    for (final participantId in _reliableReceivedState.keys) {
+      final lastSequence = _reliableReceivedState.get(participantId);
+      if (lastSequence != null) {
+        final receiveState = lk_rtc.DataChannelReceiveState();
+        receiveState.publisherSid = participantId;
+        receiveState.lastSeq = lastSequence;
+        dataChannelReceiveStates.add(receiveState);
+      }
+    }
+
     signalClient.sendSyncState(
       answer: previousAnswer,
       subscription: subscription,
       publishTracks: publishTracks,
       dataChannelInfo: dataChannelInfo(),
       trackSidsDisabled: trackSidsDisabled,
+      dataChannelReceiveStates: dataChannelReceiveStates,
     );
   }
 
@@ -996,7 +1104,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       logger.fine('Handle ReconnectResponse: '
           'iceServers: ${event.response.iceServers}, '
-          'forceRelay: $event.response.clientConfiguration.forceRelay');
+          'forceRelay: $event.response.clientConfiguration.forceRelay, '
+          'lastMessageSeq: ${event.response.lastMessageSeq}');
 
       var rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
@@ -1008,6 +1117,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       if (!_subscriberPrimary) {
         await negotiate();
+      }
+
+      // Handle reliable message resending
+      if (event.response.hasLastMessageSeq()) {
+        await _resendReliableMessagesForResume(event.response.lastMessageSeq);
       }
 
       events.emit(const SignalReconnectedEvent());
