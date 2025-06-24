@@ -60,4 +60,4 @@ export 'src/types/video_encoding.dart';
 export 'src/types/video_parameters.dart';
 export 'src/widgets/screen_select_dialog.dart';
 export 'src/widgets/video_track_renderer.dart';
-export 'src/types/attribute-typings.dart';
+export 'src/types/attribute_typings.dart';
