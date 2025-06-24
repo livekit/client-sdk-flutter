@@ -44,8 +44,7 @@ export 'src/track/local/local.dart';
 export 'src/track/local/video.dart';
 export 'src/track/options.dart';
 export 'src/track/processor.dart';
-export 'src/track/processor_native.dart'
-    if (dart.library.js_interop) 'src/track/processor_web.dart';
+export 'src/track/processor_native.dart' if (dart.library.js_interop) 'src/track/processor_web.dart';
 export 'src/track/remote/audio.dart';
 export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';
@@ -60,3 +59,4 @@ export 'src/types/video_encoding.dart';
 export 'src/types/video_parameters.dart';
 export 'src/widgets/screen_select_dialog.dart';
 export 'src/widgets/video_track_renderer.dart';
+export 'src/types/attribute-typings.dart';
