@@ -24,6 +24,7 @@ add_definitions(-D_USE_MATH_DEFINES)
 
 add_library(${PLUGIN_NAME} SHARED
   "livekit_plugin.cpp"
+  "task_runner_windows.cpp"
   "../shared_cpp/fft_processor.cpp"
   "../shared_cpp/audio_visualizer.cpp"
   "../shared_cpp/pffft.c"
