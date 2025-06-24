@@ -23,23 +23,23 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 export 'livekit_rtc.pbenum.dart';
 
 enum SignalRequest_Message {
-  offer, 
-  answer, 
-  trickle, 
-  addTrack, 
-  mute, 
-  subscription, 
-  trackSetting, 
-  leave, 
-  updateLayers, 
-  subscriptionPermission, 
-  syncState, 
-  simulate, 
-  ping, 
-  updateMetadata, 
-  pingReq, 
-  updateAudioTrack, 
-  updateVideoTrack, 
+  offer,
+  answer,
+  trickle,
+  addTrack,
+  mute,
+  subscription,
+  trackSetting,
+  leave,
+  updateLayers,
+  subscriptionPermission,
+  syncState,
+  simulate,
+  ping,
+  updateMetadata,
+  pingReq,
+  updateAudioTrack,
+  updateVideoTrack,
   notSet
 }
 
@@ -53,7 +53,7 @@ class SignalRequest extends $pb.GeneratedMessage {
     UpdateSubscription? subscription,
     UpdateTrackSettings? trackSetting,
     LeaveRequest? leave,
-  @$core.Deprecated('This field is deprecated.')
+    @$core.Deprecated('This field is deprecated.')
     UpdateVideoLayers? updateLayers,
     SubscriptionPermission? subscriptionPermission,
     SyncState? syncState,
@@ -74,7 +74,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     if (trackSetting != null) result.trackSetting = trackSetting;
     if (leave != null) result.leave = leave;
     if (updateLayers != null) result.updateLayers = updateLayers;
-    if (subscriptionPermission != null) result.subscriptionPermission = subscriptionPermission;
+    if (subscriptionPermission != null)
+      result.subscriptionPermission = subscriptionPermission;
     if (syncState != null) result.syncState = syncState;
     if (simulate != null) result.simulate = simulate;
     if (ping != null) result.ping = ping;
@@ -87,55 +88,81 @@ class SignalRequest extends $pb.GeneratedMessage {
 
   SignalRequest._();
 
-  factory SignalRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SignalRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SignalRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SignalRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static const $core.Map<$core.int, SignalRequest_Message> _SignalRequest_MessageByTag = {
-    1 : SignalRequest_Message.offer,
-    2 : SignalRequest_Message.answer,
-    3 : SignalRequest_Message.trickle,
-    4 : SignalRequest_Message.addTrack,
-    5 : SignalRequest_Message.mute,
-    6 : SignalRequest_Message.subscription,
-    7 : SignalRequest_Message.trackSetting,
-    8 : SignalRequest_Message.leave,
-    10 : SignalRequest_Message.updateLayers,
-    11 : SignalRequest_Message.subscriptionPermission,
-    12 : SignalRequest_Message.syncState,
-    13 : SignalRequest_Message.simulate,
-    14 : SignalRequest_Message.ping,
-    15 : SignalRequest_Message.updateMetadata,
-    16 : SignalRequest_Message.pingReq,
-    17 : SignalRequest_Message.updateAudioTrack,
-    18 : SignalRequest_Message.updateVideoTrack,
-    0 : SignalRequest_Message.notSet
+  static const $core.Map<$core.int, SignalRequest_Message>
+      _SignalRequest_MessageByTag = {
+    1: SignalRequest_Message.offer,
+    2: SignalRequest_Message.answer,
+    3: SignalRequest_Message.trickle,
+    4: SignalRequest_Message.addTrack,
+    5: SignalRequest_Message.mute,
+    6: SignalRequest_Message.subscription,
+    7: SignalRequest_Message.trackSetting,
+    8: SignalRequest_Message.leave,
+    10: SignalRequest_Message.updateLayers,
+    11: SignalRequest_Message.subscriptionPermission,
+    12: SignalRequest_Message.syncState,
+    13: SignalRequest_Message.simulate,
+    14: SignalRequest_Message.ping,
+    15: SignalRequest_Message.updateMetadata,
+    16: SignalRequest_Message.pingReq,
+    17: SignalRequest_Message.updateAudioTrack,
+    18: SignalRequest_Message.updateVideoTrack,
+    0: SignalRequest_Message.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SignalRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SignalRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18])
-    ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'offer', subBuilder: SessionDescription.create)
-    ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer', subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(3, _omitFieldNames ? '' : 'trickle', subBuilder: TrickleRequest.create)
-    ..aOM<AddTrackRequest>(4, _omitFieldNames ? '' : 'addTrack', subBuilder: AddTrackRequest.create)
-    ..aOM<MuteTrackRequest>(5, _omitFieldNames ? '' : 'mute', subBuilder: MuteTrackRequest.create)
-    ..aOM<UpdateSubscription>(6, _omitFieldNames ? '' : 'subscription', subBuilder: UpdateSubscription.create)
-    ..aOM<UpdateTrackSettings>(7, _omitFieldNames ? '' : 'trackSetting', subBuilder: UpdateTrackSettings.create)
-    ..aOM<LeaveRequest>(8, _omitFieldNames ? '' : 'leave', subBuilder: LeaveRequest.create)
-    ..aOM<UpdateVideoLayers>(10, _omitFieldNames ? '' : 'updateLayers', subBuilder: UpdateVideoLayers.create)
-    ..aOM<SubscriptionPermission>(11, _omitFieldNames ? '' : 'subscriptionPermission', subBuilder: SubscriptionPermission.create)
-    ..aOM<SyncState>(12, _omitFieldNames ? '' : 'syncState', subBuilder: SyncState.create)
-    ..aOM<SimulateScenario>(13, _omitFieldNames ? '' : 'simulate', subBuilder: SimulateScenario.create)
+    ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'offer',
+        subBuilder: SessionDescription.create)
+    ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer',
+        subBuilder: SessionDescription.create)
+    ..aOM<TrickleRequest>(3, _omitFieldNames ? '' : 'trickle',
+        subBuilder: TrickleRequest.create)
+    ..aOM<AddTrackRequest>(4, _omitFieldNames ? '' : 'addTrack',
+        subBuilder: AddTrackRequest.create)
+    ..aOM<MuteTrackRequest>(5, _omitFieldNames ? '' : 'mute',
+        subBuilder: MuteTrackRequest.create)
+    ..aOM<UpdateSubscription>(6, _omitFieldNames ? '' : 'subscription',
+        subBuilder: UpdateSubscription.create)
+    ..aOM<UpdateTrackSettings>(7, _omitFieldNames ? '' : 'trackSetting',
+        subBuilder: UpdateTrackSettings.create)
+    ..aOM<LeaveRequest>(8, _omitFieldNames ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<UpdateVideoLayers>(10, _omitFieldNames ? '' : 'updateLayers',
+        subBuilder: UpdateVideoLayers.create)
+    ..aOM<SubscriptionPermission>(
+        11, _omitFieldNames ? '' : 'subscriptionPermission',
+        subBuilder: SubscriptionPermission.create)
+    ..aOM<SyncState>(12, _omitFieldNames ? '' : 'syncState',
+        subBuilder: SyncState.create)
+    ..aOM<SimulateScenario>(13, _omitFieldNames ? '' : 'simulate',
+        subBuilder: SimulateScenario.create)
     ..aInt64(14, _omitFieldNames ? '' : 'ping')
-    ..aOM<UpdateParticipantMetadata>(15, _omitFieldNames ? '' : 'updateMetadata', subBuilder: UpdateParticipantMetadata.create)
+    ..aOM<UpdateParticipantMetadata>(
+        15, _omitFieldNames ? '' : 'updateMetadata',
+        subBuilder: UpdateParticipantMetadata.create)
     ..aOM<Ping>(16, _omitFieldNames ? '' : 'pingReq', subBuilder: Ping.create)
-    ..aOM<UpdateLocalAudioTrack>(17, _omitFieldNames ? '' : 'updateAudioTrack', subBuilder: UpdateLocalAudioTrack.create)
-    ..aOM<UpdateLocalVideoTrack>(18, _omitFieldNames ? '' : 'updateVideoTrack', subBuilder: UpdateLocalVideoTrack.create)
-    ..hasRequiredFields = false
-  ;
+    ..aOM<UpdateLocalAudioTrack>(17, _omitFieldNames ? '' : 'updateAudioTrack',
+        subBuilder: UpdateLocalAudioTrack.create)
+    ..aOM<UpdateLocalVideoTrack>(18, _omitFieldNames ? '' : 'updateVideoTrack',
+        subBuilder: UpdateLocalVideoTrack.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SignalRequest clone() => SignalRequest()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SignalRequest copyWith(void Function(SignalRequest) updates) => super.copyWith((message) => updates(message as SignalRequest)) as SignalRequest;
+  SignalRequest copyWith(void Function(SignalRequest) updates) =>
+      super.copyWith((message) => updates(message as SignalRequest))
+          as SignalRequest;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -144,12 +171,15 @@ class SignalRequest extends $pb.GeneratedMessage {
   static SignalRequest create() => SignalRequest._();
   @$core.override
   SignalRequest createEmptyInstance() => create();
-  static $pb.PbList<SignalRequest> createRepeated() => $pb.PbList<SignalRequest>();
+  static $pb.PbList<SignalRequest> createRepeated() =>
+      $pb.PbList<SignalRequest>();
   @$core.pragma('dart2js:noInline')
-  static SignalRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SignalRequest>(create);
+  static SignalRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SignalRequest>(create);
   static SignalRequest? _defaultInstance;
 
-  SignalRequest_Message whichMessage() => _SignalRequest_MessageByTag[$_whichOneof(0)]!;
+  SignalRequest_Message whichMessage() =>
+      _SignalRequest_MessageByTag[$_whichOneof(0)]!;
   void clearMessage() => $_clearField($_whichOneof(0));
 
   /// initial join exchange, for publisher
@@ -267,7 +297,8 @@ class SignalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   SubscriptionPermission get subscriptionPermission => $_getN(9);
   @$pb.TagNumber(11)
-  set subscriptionPermission(SubscriptionPermission value) => $_setField(11, value);
+  set subscriptionPermission(SubscriptionPermission value) =>
+      $_setField(11, value);
   @$pb.TagNumber(11)
   $core.bool hasSubscriptionPermission() => $_has(9);
   @$pb.TagNumber(11)
@@ -359,29 +390,29 @@ class SignalRequest extends $pb.GeneratedMessage {
 }
 
 enum SignalResponse_Message {
-  join, 
-  answer, 
-  offer, 
-  trickle, 
-  update, 
-  trackPublished, 
-  leave, 
-  mute, 
-  speakersChanged, 
-  roomUpdate, 
-  connectionQuality, 
-  streamStateUpdate, 
-  subscribedQualityUpdate, 
-  subscriptionPermissionUpdate, 
-  refreshToken, 
-  trackUnpublished, 
-  pong, 
-  reconnect, 
-  pongResp, 
-  subscriptionResponse, 
-  requestResponse, 
-  trackSubscribed, 
-  roomMoved, 
+  join,
+  answer,
+  offer,
+  trickle,
+  update,
+  trackPublished,
+  leave,
+  mute,
+  speakersChanged,
+  roomUpdate,
+  connectionQuality,
+  streamStateUpdate,
+  subscribedQualityUpdate,
+  subscriptionPermissionUpdate,
+  refreshToken,
+  trackUnpublished,
+  pong,
+  reconnect,
+  pongResp,
+  subscriptionResponse,
+  requestResponse,
+  trackSubscribed,
+  roomMoved,
   notSet
 }
 
@@ -424,14 +455,17 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (roomUpdate != null) result.roomUpdate = roomUpdate;
     if (connectionQuality != null) result.connectionQuality = connectionQuality;
     if (streamStateUpdate != null) result.streamStateUpdate = streamStateUpdate;
-    if (subscribedQualityUpdate != null) result.subscribedQualityUpdate = subscribedQualityUpdate;
-    if (subscriptionPermissionUpdate != null) result.subscriptionPermissionUpdate = subscriptionPermissionUpdate;
+    if (subscribedQualityUpdate != null)
+      result.subscribedQualityUpdate = subscribedQualityUpdate;
+    if (subscriptionPermissionUpdate != null)
+      result.subscriptionPermissionUpdate = subscriptionPermissionUpdate;
     if (refreshToken != null) result.refreshToken = refreshToken;
     if (trackUnpublished != null) result.trackUnpublished = trackUnpublished;
     if (pong != null) result.pong = pong;
     if (reconnect != null) result.reconnect = reconnect;
     if (pongResp != null) result.pongResp = pongResp;
-    if (subscriptionResponse != null) result.subscriptionResponse = subscriptionResponse;
+    if (subscriptionResponse != null)
+      result.subscriptionResponse = subscriptionResponse;
     if (requestResponse != null) result.requestResponse = requestResponse;
     if (trackSubscribed != null) result.trackSubscribed = trackSubscribed;
     if (roomMoved != null) result.roomMoved = roomMoved;
@@ -440,67 +474,125 @@ class SignalResponse extends $pb.GeneratedMessage {
 
   SignalResponse._();
 
-  factory SignalResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SignalResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SignalResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SignalResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static const $core.Map<$core.int, SignalResponse_Message> _SignalResponse_MessageByTag = {
-    1 : SignalResponse_Message.join,
-    2 : SignalResponse_Message.answer,
-    3 : SignalResponse_Message.offer,
-    4 : SignalResponse_Message.trickle,
-    5 : SignalResponse_Message.update,
-    6 : SignalResponse_Message.trackPublished,
-    8 : SignalResponse_Message.leave,
-    9 : SignalResponse_Message.mute,
-    10 : SignalResponse_Message.speakersChanged,
-    11 : SignalResponse_Message.roomUpdate,
-    12 : SignalResponse_Message.connectionQuality,
-    13 : SignalResponse_Message.streamStateUpdate,
-    14 : SignalResponse_Message.subscribedQualityUpdate,
-    15 : SignalResponse_Message.subscriptionPermissionUpdate,
-    16 : SignalResponse_Message.refreshToken,
-    17 : SignalResponse_Message.trackUnpublished,
-    18 : SignalResponse_Message.pong,
-    19 : SignalResponse_Message.reconnect,
-    20 : SignalResponse_Message.pongResp,
-    21 : SignalResponse_Message.subscriptionResponse,
-    22 : SignalResponse_Message.requestResponse,
-    23 : SignalResponse_Message.trackSubscribed,
-    24 : SignalResponse_Message.roomMoved,
-    0 : SignalResponse_Message.notSet
+  static const $core.Map<$core.int, SignalResponse_Message>
+      _SignalResponse_MessageByTag = {
+    1: SignalResponse_Message.join,
+    2: SignalResponse_Message.answer,
+    3: SignalResponse_Message.offer,
+    4: SignalResponse_Message.trickle,
+    5: SignalResponse_Message.update,
+    6: SignalResponse_Message.trackPublished,
+    8: SignalResponse_Message.leave,
+    9: SignalResponse_Message.mute,
+    10: SignalResponse_Message.speakersChanged,
+    11: SignalResponse_Message.roomUpdate,
+    12: SignalResponse_Message.connectionQuality,
+    13: SignalResponse_Message.streamStateUpdate,
+    14: SignalResponse_Message.subscribedQualityUpdate,
+    15: SignalResponse_Message.subscriptionPermissionUpdate,
+    16: SignalResponse_Message.refreshToken,
+    17: SignalResponse_Message.trackUnpublished,
+    18: SignalResponse_Message.pong,
+    19: SignalResponse_Message.reconnect,
+    20: SignalResponse_Message.pongResp,
+    21: SignalResponse_Message.subscriptionResponse,
+    22: SignalResponse_Message.requestResponse,
+    23: SignalResponse_Message.trackSubscribed,
+    24: SignalResponse_Message.roomMoved,
+    0: SignalResponse_Message.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SignalResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
-    ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join', subBuilder: JoinResponse.create)
-    ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer', subBuilder: SessionDescription.create)
-    ..aOM<SessionDescription>(3, _omitFieldNames ? '' : 'offer', subBuilder: SessionDescription.create)
-    ..aOM<TrickleRequest>(4, _omitFieldNames ? '' : 'trickle', subBuilder: TrickleRequest.create)
-    ..aOM<ParticipantUpdate>(5, _omitFieldNames ? '' : 'update', subBuilder: ParticipantUpdate.create)
-    ..aOM<TrackPublishedResponse>(6, _omitFieldNames ? '' : 'trackPublished', subBuilder: TrackPublishedResponse.create)
-    ..aOM<LeaveRequest>(8, _omitFieldNames ? '' : 'leave', subBuilder: LeaveRequest.create)
-    ..aOM<MuteTrackRequest>(9, _omitFieldNames ? '' : 'mute', subBuilder: MuteTrackRequest.create)
-    ..aOM<SpeakersChanged>(10, _omitFieldNames ? '' : 'speakersChanged', subBuilder: SpeakersChanged.create)
-    ..aOM<RoomUpdate>(11, _omitFieldNames ? '' : 'roomUpdate', subBuilder: RoomUpdate.create)
-    ..aOM<ConnectionQualityUpdate>(12, _omitFieldNames ? '' : 'connectionQuality', subBuilder: ConnectionQualityUpdate.create)
-    ..aOM<StreamStateUpdate>(13, _omitFieldNames ? '' : 'streamStateUpdate', subBuilder: StreamStateUpdate.create)
-    ..aOM<SubscribedQualityUpdate>(14, _omitFieldNames ? '' : 'subscribedQualityUpdate', subBuilder: SubscribedQualityUpdate.create)
-    ..aOM<SubscriptionPermissionUpdate>(15, _omitFieldNames ? '' : 'subscriptionPermissionUpdate', subBuilder: SubscriptionPermissionUpdate.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SignalResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..oo(0, [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ])
+    ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join',
+        subBuilder: JoinResponse.create)
+    ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer',
+        subBuilder: SessionDescription.create)
+    ..aOM<SessionDescription>(3, _omitFieldNames ? '' : 'offer',
+        subBuilder: SessionDescription.create)
+    ..aOM<TrickleRequest>(4, _omitFieldNames ? '' : 'trickle',
+        subBuilder: TrickleRequest.create)
+    ..aOM<ParticipantUpdate>(5, _omitFieldNames ? '' : 'update',
+        subBuilder: ParticipantUpdate.create)
+    ..aOM<TrackPublishedResponse>(6, _omitFieldNames ? '' : 'trackPublished',
+        subBuilder: TrackPublishedResponse.create)
+    ..aOM<LeaveRequest>(8, _omitFieldNames ? '' : 'leave',
+        subBuilder: LeaveRequest.create)
+    ..aOM<MuteTrackRequest>(9, _omitFieldNames ? '' : 'mute',
+        subBuilder: MuteTrackRequest.create)
+    ..aOM<SpeakersChanged>(10, _omitFieldNames ? '' : 'speakersChanged',
+        subBuilder: SpeakersChanged.create)
+    ..aOM<RoomUpdate>(11, _omitFieldNames ? '' : 'roomUpdate',
+        subBuilder: RoomUpdate.create)
+    ..aOM<ConnectionQualityUpdate>(
+        12, _omitFieldNames ? '' : 'connectionQuality',
+        subBuilder: ConnectionQualityUpdate.create)
+    ..aOM<StreamStateUpdate>(13, _omitFieldNames ? '' : 'streamStateUpdate',
+        subBuilder: StreamStateUpdate.create)
+    ..aOM<SubscribedQualityUpdate>(
+        14, _omitFieldNames ? '' : 'subscribedQualityUpdate',
+        subBuilder: SubscribedQualityUpdate.create)
+    ..aOM<SubscriptionPermissionUpdate>(
+        15, _omitFieldNames ? '' : 'subscriptionPermissionUpdate',
+        subBuilder: SubscriptionPermissionUpdate.create)
     ..aOS(16, _omitFieldNames ? '' : 'refreshToken')
-    ..aOM<TrackUnpublishedResponse>(17, _omitFieldNames ? '' : 'trackUnpublished', subBuilder: TrackUnpublishedResponse.create)
+    ..aOM<TrackUnpublishedResponse>(
+        17, _omitFieldNames ? '' : 'trackUnpublished',
+        subBuilder: TrackUnpublishedResponse.create)
     ..aInt64(18, _omitFieldNames ? '' : 'pong')
-    ..aOM<ReconnectResponse>(19, _omitFieldNames ? '' : 'reconnect', subBuilder: ReconnectResponse.create)
+    ..aOM<ReconnectResponse>(19, _omitFieldNames ? '' : 'reconnect',
+        subBuilder: ReconnectResponse.create)
     ..aOM<Pong>(20, _omitFieldNames ? '' : 'pongResp', subBuilder: Pong.create)
-    ..aOM<SubscriptionResponse>(21, _omitFieldNames ? '' : 'subscriptionResponse', subBuilder: SubscriptionResponse.create)
-    ..aOM<RequestResponse>(22, _omitFieldNames ? '' : 'requestResponse', subBuilder: RequestResponse.create)
-    ..aOM<TrackSubscribed>(23, _omitFieldNames ? '' : 'trackSubscribed', subBuilder: TrackSubscribed.create)
-    ..aOM<RoomMovedResponse>(24, _omitFieldNames ? '' : 'roomMoved', subBuilder: RoomMovedResponse.create)
-    ..hasRequiredFields = false
-  ;
+    ..aOM<SubscriptionResponse>(
+        21, _omitFieldNames ? '' : 'subscriptionResponse',
+        subBuilder: SubscriptionResponse.create)
+    ..aOM<RequestResponse>(22, _omitFieldNames ? '' : 'requestResponse',
+        subBuilder: RequestResponse.create)
+    ..aOM<TrackSubscribed>(23, _omitFieldNames ? '' : 'trackSubscribed',
+        subBuilder: TrackSubscribed.create)
+    ..aOM<RoomMovedResponse>(24, _omitFieldNames ? '' : 'roomMoved',
+        subBuilder: RoomMovedResponse.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SignalResponse clone() => SignalResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SignalResponse copyWith(void Function(SignalResponse) updates) => super.copyWith((message) => updates(message as SignalResponse)) as SignalResponse;
+  SignalResponse copyWith(void Function(SignalResponse) updates) =>
+      super.copyWith((message) => updates(message as SignalResponse))
+          as SignalResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -509,12 +601,15 @@ class SignalResponse extends $pb.GeneratedMessage {
   static SignalResponse create() => SignalResponse._();
   @$core.override
   SignalResponse createEmptyInstance() => create();
-  static $pb.PbList<SignalResponse> createRepeated() => $pb.PbList<SignalResponse>();
+  static $pb.PbList<SignalResponse> createRepeated() =>
+      $pb.PbList<SignalResponse>();
   @$core.pragma('dart2js:noInline')
-  static SignalResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SignalResponse>(create);
+  static SignalResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SignalResponse>(create);
   static SignalResponse? _defaultInstance;
 
-  SignalResponse_Message whichMessage() => _SignalResponse_MessageByTag[$_whichOneof(0)]!;
+  SignalResponse_Message whichMessage() =>
+      _SignalResponse_MessageByTag[$_whichOneof(0)]!;
   void clearMessage() => $_clearField($_whichOneof(0));
 
   /// sent when join is accepted
@@ -666,7 +761,8 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   SubscribedQualityUpdate get subscribedQualityUpdate => $_getN(12);
   @$pb.TagNumber(14)
-  set subscribedQualityUpdate(SubscribedQualityUpdate value) => $_setField(14, value);
+  set subscribedQualityUpdate(SubscribedQualityUpdate value) =>
+      $_setField(14, value);
   @$pb.TagNumber(14)
   $core.bool hasSubscribedQualityUpdate() => $_has(12);
   @$pb.TagNumber(14)
@@ -678,13 +774,15 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   SubscriptionPermissionUpdate get subscriptionPermissionUpdate => $_getN(13);
   @$pb.TagNumber(15)
-  set subscriptionPermissionUpdate(SubscriptionPermissionUpdate value) => $_setField(15, value);
+  set subscriptionPermissionUpdate(SubscriptionPermissionUpdate value) =>
+      $_setField(15, value);
   @$pb.TagNumber(15)
   $core.bool hasSubscriptionPermissionUpdate() => $_has(13);
   @$pb.TagNumber(15)
   void clearSubscriptionPermissionUpdate() => $_clearField(15);
   @$pb.TagNumber(15)
-  SubscriptionPermissionUpdate ensureSubscriptionPermissionUpdate() => $_ensure(13);
+  SubscriptionPermissionUpdate ensureSubscriptionPermissionUpdate() =>
+      $_ensure(13);
 
   /// update the token the client was using, to prevent an active client from using an expired token
   @$pb.TagNumber(16)
@@ -804,19 +902,27 @@ class SimulcastCodec extends $pb.GeneratedMessage {
 
   SimulcastCodec._();
 
-  factory SimulcastCodec.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SimulcastCodec.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SimulcastCodec.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SimulcastCodec.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SimulcastCodec', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SimulcastCodec',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'codec')
     ..aOS(2, _omitFieldNames ? '' : 'cid')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimulcastCodec clone() => SimulcastCodec()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimulcastCodec copyWith(void Function(SimulcastCodec) updates) => super.copyWith((message) => updates(message as SimulcastCodec)) as SimulcastCodec;
+  SimulcastCodec copyWith(void Function(SimulcastCodec) updates) =>
+      super.copyWith((message) => updates(message as SimulcastCodec))
+          as SimulcastCodec;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -825,9 +931,11 @@ class SimulcastCodec extends $pb.GeneratedMessage {
   static SimulcastCodec create() => SimulcastCodec._();
   @$core.override
   SimulcastCodec createEmptyInstance() => create();
-  static $pb.PbList<SimulcastCodec> createRepeated() => $pb.PbList<SimulcastCodec>();
+  static $pb.PbList<SimulcastCodec> createRepeated() =>
+      $pb.PbList<SimulcastCodec>();
   @$core.pragma('dart2js:noInline')
-  static SimulcastCodec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SimulcastCodec>(create);
+  static SimulcastCodec getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulcastCodec>(create);
   static SimulcastCodec? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -857,14 +965,12 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $core.int? width,
     $core.int? height,
     $core.bool? muted,
-  @$core.Deprecated('This field is deprecated.')
-    $core.bool? disableDtx,
+    @$core.Deprecated('This field is deprecated.') $core.bool? disableDtx,
     $2.TrackSource? source,
     $core.Iterable<$2.VideoLayer>? layers,
     $core.Iterable<SimulcastCodec>? simulcastCodecs,
     $core.String? sid,
-  @$core.Deprecated('This field is deprecated.')
-    $core.bool? stereo,
+    @$core.Deprecated('This field is deprecated.') $core.bool? stereo,
     $core.bool? disableRed,
     $2.Encryption_Type? encryption,
     $core.String? stream,
@@ -894,34 +1000,63 @@ class AddTrackRequest extends $pb.GeneratedMessage {
 
   AddTrackRequest._();
 
-  factory AddTrackRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory AddTrackRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory AddTrackRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AddTrackRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AddTrackRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AddTrackRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'cid')
     ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..e<$2.TrackType>(3, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: $2.TrackType.AUDIO, valueOf: $2.TrackType.valueOf, enumValues: $2.TrackType.values)
+    ..e<$2.TrackType>(3, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.TrackType.AUDIO,
+        valueOf: $2.TrackType.valueOf,
+        enumValues: $2.TrackType.values)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
     ..aOB(6, _omitFieldNames ? '' : 'muted')
     ..aOB(7, _omitFieldNames ? '' : 'disableDtx')
-    ..e<$2.TrackSource>(8, _omitFieldNames ? '' : 'source', $pb.PbFieldType.OE, defaultOrMaker: $2.TrackSource.UNKNOWN, valueOf: $2.TrackSource.valueOf, enumValues: $2.TrackSource.values)
-    ..pc<$2.VideoLayer>(9, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: $2.VideoLayer.create)
-    ..pc<SimulcastCodec>(10, _omitFieldNames ? '' : 'simulcastCodecs', $pb.PbFieldType.PM, subBuilder: SimulcastCodec.create)
+    ..e<$2.TrackSource>(8, _omitFieldNames ? '' : 'source', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.TrackSource.UNKNOWN,
+        valueOf: $2.TrackSource.valueOf,
+        enumValues: $2.TrackSource.values)
+    ..pc<$2.VideoLayer>(9, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM,
+        subBuilder: $2.VideoLayer.create)
+    ..pc<SimulcastCodec>(
+        10, _omitFieldNames ? '' : 'simulcastCodecs', $pb.PbFieldType.PM,
+        subBuilder: SimulcastCodec.create)
     ..aOS(11, _omitFieldNames ? '' : 'sid')
     ..aOB(12, _omitFieldNames ? '' : 'stereo')
     ..aOB(13, _omitFieldNames ? '' : 'disableRed')
-    ..e<$2.Encryption_Type>(14, _omitFieldNames ? '' : 'encryption', $pb.PbFieldType.OE, defaultOrMaker: $2.Encryption_Type.NONE, valueOf: $2.Encryption_Type.valueOf, enumValues: $2.Encryption_Type.values)
+    ..e<$2.Encryption_Type>(
+        14, _omitFieldNames ? '' : 'encryption', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.Encryption_Type.NONE,
+        valueOf: $2.Encryption_Type.valueOf,
+        enumValues: $2.Encryption_Type.values)
     ..aOS(15, _omitFieldNames ? '' : 'stream')
-    ..e<$2.BackupCodecPolicy>(16, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE, defaultOrMaker: $2.BackupCodecPolicy.PREFER_REGRESSION, valueOf: $2.BackupCodecPolicy.valueOf, enumValues: $2.BackupCodecPolicy.values)
-    ..pc<$2.AudioTrackFeature>(17, _omitFieldNames ? '' : 'audioFeatures', $pb.PbFieldType.KE, valueOf: $2.AudioTrackFeature.valueOf, enumValues: $2.AudioTrackFeature.values, defaultEnumValue: $2.AudioTrackFeature.TF_STEREO)
-    ..hasRequiredFields = false
-  ;
+    ..e<$2.BackupCodecPolicy>(
+        16, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.BackupCodecPolicy.PREFER_REGRESSION,
+        valueOf: $2.BackupCodecPolicy.valueOf,
+        enumValues: $2.BackupCodecPolicy.values)
+    ..pc<$2.AudioTrackFeature>(
+        17, _omitFieldNames ? '' : 'audioFeatures', $pb.PbFieldType.KE,
+        valueOf: $2.AudioTrackFeature.valueOf,
+        enumValues: $2.AudioTrackFeature.values,
+        defaultEnumValue: $2.AudioTrackFeature.TF_STEREO)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   AddTrackRequest clone() => AddTrackRequest()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AddTrackRequest copyWith(void Function(AddTrackRequest) updates) => super.copyWith((message) => updates(message as AddTrackRequest)) as AddTrackRequest;
+  AddTrackRequest copyWith(void Function(AddTrackRequest) updates) =>
+      super.copyWith((message) => updates(message as AddTrackRequest))
+          as AddTrackRequest;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -930,9 +1065,11 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   static AddTrackRequest create() => AddTrackRequest._();
   @$core.override
   AddTrackRequest createEmptyInstance() => create();
-  static $pb.PbList<AddTrackRequest> createRepeated() => $pb.PbList<AddTrackRequest>();
+  static $pb.PbList<AddTrackRequest> createRepeated() =>
+      $pb.PbList<AddTrackRequest>();
   @$core.pragma('dart2js:noInline')
-  static AddTrackRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AddTrackRequest>(create);
+  static AddTrackRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AddTrackRequest>(create);
   static AddTrackRequest? _defaultInstance;
 
   /// client ID of track, to match it when RTC track is received
@@ -1102,20 +1239,31 @@ class TrickleRequest extends $pb.GeneratedMessage {
 
   TrickleRequest._();
 
-  factory TrickleRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory TrickleRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory TrickleRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TrickleRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrickleRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrickleRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'candidateInit', protoName: 'candidateInit')
-    ..e<SignalTarget>(2, _omitFieldNames ? '' : 'target', $pb.PbFieldType.OE, defaultOrMaker: SignalTarget.PUBLISHER, valueOf: SignalTarget.valueOf, enumValues: SignalTarget.values)
+    ..e<SignalTarget>(2, _omitFieldNames ? '' : 'target', $pb.PbFieldType.OE,
+        defaultOrMaker: SignalTarget.PUBLISHER,
+        valueOf: SignalTarget.valueOf,
+        enumValues: SignalTarget.values)
     ..aOB(3, _omitFieldNames ? '' : 'final')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TrickleRequest clone() => TrickleRequest()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrickleRequest copyWith(void Function(TrickleRequest) updates) => super.copyWith((message) => updates(message as TrickleRequest)) as TrickleRequest;
+  TrickleRequest copyWith(void Function(TrickleRequest) updates) =>
+      super.copyWith((message) => updates(message as TrickleRequest))
+          as TrickleRequest;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1124,9 +1272,11 @@ class TrickleRequest extends $pb.GeneratedMessage {
   static TrickleRequest create() => TrickleRequest._();
   @$core.override
   TrickleRequest createEmptyInstance() => create();
-  static $pb.PbList<TrickleRequest> createRepeated() => $pb.PbList<TrickleRequest>();
+  static $pb.PbList<TrickleRequest> createRepeated() =>
+      $pb.PbList<TrickleRequest>();
   @$core.pragma('dart2js:noInline')
-  static TrickleRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrickleRequest>(create);
+  static TrickleRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrickleRequest>(create);
   static TrickleRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1170,19 +1320,27 @@ class MuteTrackRequest extends $pb.GeneratedMessage {
 
   MuteTrackRequest._();
 
-  factory MuteTrackRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory MuteTrackRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory MuteTrackRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MuteTrackRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MuteTrackRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MuteTrackRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sid')
     ..aOB(2, _omitFieldNames ? '' : 'muted')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MuteTrackRequest clone() => MuteTrackRequest()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MuteTrackRequest copyWith(void Function(MuteTrackRequest) updates) => super.copyWith((message) => updates(message as MuteTrackRequest)) as MuteTrackRequest;
+  MuteTrackRequest copyWith(void Function(MuteTrackRequest) updates) =>
+      super.copyWith((message) => updates(message as MuteTrackRequest))
+          as MuteTrackRequest;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1191,9 +1349,11 @@ class MuteTrackRequest extends $pb.GeneratedMessage {
   static MuteTrackRequest create() => MuteTrackRequest._();
   @$core.override
   MuteTrackRequest createEmptyInstance() => create();
-  static $pb.PbList<MuteTrackRequest> createRepeated() => $pb.PbList<MuteTrackRequest>();
+  static $pb.PbList<MuteTrackRequest> createRepeated() =>
+      $pb.PbList<MuteTrackRequest>();
   @$core.pragma('dart2js:noInline')
-  static MuteTrackRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MuteTrackRequest>(create);
+  static MuteTrackRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MuteTrackRequest>(create);
   static MuteTrackRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1236,50 +1396,72 @@ class JoinResponse extends $pb.GeneratedMessage {
     final result = create();
     if (room != null) result.room = room;
     if (participant != null) result.participant = participant;
-    if (otherParticipants != null) result.otherParticipants.addAll(otherParticipants);
+    if (otherParticipants != null)
+      result.otherParticipants.addAll(otherParticipants);
     if (serverVersion != null) result.serverVersion = serverVersion;
     if (iceServers != null) result.iceServers.addAll(iceServers);
     if (subscriberPrimary != null) result.subscriberPrimary = subscriberPrimary;
     if (alternativeUrl != null) result.alternativeUrl = alternativeUrl;
-    if (clientConfiguration != null) result.clientConfiguration = clientConfiguration;
+    if (clientConfiguration != null)
+      result.clientConfiguration = clientConfiguration;
     if (serverRegion != null) result.serverRegion = serverRegion;
     if (pingTimeout != null) result.pingTimeout = pingTimeout;
     if (pingInterval != null) result.pingInterval = pingInterval;
     if (serverInfo != null) result.serverInfo = serverInfo;
     if (sifTrailer != null) result.sifTrailer = sifTrailer;
-    if (enabledPublishCodecs != null) result.enabledPublishCodecs.addAll(enabledPublishCodecs);
+    if (enabledPublishCodecs != null)
+      result.enabledPublishCodecs.addAll(enabledPublishCodecs);
     if (fastPublish != null) result.fastPublish = fastPublish;
     return result;
   }
 
   JoinResponse._();
 
-  factory JoinResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory JoinResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory JoinResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory JoinResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'JoinResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'JoinResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOM<$2.Room>(1, _omitFieldNames ? '' : 'room', subBuilder: $2.Room.create)
-    ..aOM<$2.ParticipantInfo>(2, _omitFieldNames ? '' : 'participant', subBuilder: $2.ParticipantInfo.create)
-    ..pc<$2.ParticipantInfo>(3, _omitFieldNames ? '' : 'otherParticipants', $pb.PbFieldType.PM, subBuilder: $2.ParticipantInfo.create)
+    ..aOM<$2.ParticipantInfo>(2, _omitFieldNames ? '' : 'participant',
+        subBuilder: $2.ParticipantInfo.create)
+    ..pc<$2.ParticipantInfo>(
+        3, _omitFieldNames ? '' : 'otherParticipants', $pb.PbFieldType.PM,
+        subBuilder: $2.ParticipantInfo.create)
     ..aOS(4, _omitFieldNames ? '' : 'serverVersion')
-    ..pc<ICEServer>(5, _omitFieldNames ? '' : 'iceServers', $pb.PbFieldType.PM, subBuilder: ICEServer.create)
+    ..pc<ICEServer>(5, _omitFieldNames ? '' : 'iceServers', $pb.PbFieldType.PM,
+        subBuilder: ICEServer.create)
     ..aOB(6, _omitFieldNames ? '' : 'subscriberPrimary')
     ..aOS(7, _omitFieldNames ? '' : 'alternativeUrl')
-    ..aOM<$2.ClientConfiguration>(8, _omitFieldNames ? '' : 'clientConfiguration', subBuilder: $2.ClientConfiguration.create)
+    ..aOM<$2.ClientConfiguration>(
+        8, _omitFieldNames ? '' : 'clientConfiguration',
+        subBuilder: $2.ClientConfiguration.create)
     ..aOS(9, _omitFieldNames ? '' : 'serverRegion')
     ..a<$core.int>(10, _omitFieldNames ? '' : 'pingTimeout', $pb.PbFieldType.O3)
-    ..a<$core.int>(11, _omitFieldNames ? '' : 'pingInterval', $pb.PbFieldType.O3)
-    ..aOM<$2.ServerInfo>(12, _omitFieldNames ? '' : 'serverInfo', subBuilder: $2.ServerInfo.create)
-    ..a<$core.List<$core.int>>(13, _omitFieldNames ? '' : 'sifTrailer', $pb.PbFieldType.OY)
-    ..pc<$2.Codec>(14, _omitFieldNames ? '' : 'enabledPublishCodecs', $pb.PbFieldType.PM, subBuilder: $2.Codec.create)
+    ..a<$core.int>(
+        11, _omitFieldNames ? '' : 'pingInterval', $pb.PbFieldType.O3)
+    ..aOM<$2.ServerInfo>(12, _omitFieldNames ? '' : 'serverInfo',
+        subBuilder: $2.ServerInfo.create)
+    ..a<$core.List<$core.int>>(
+        13, _omitFieldNames ? '' : 'sifTrailer', $pb.PbFieldType.OY)
+    ..pc<$2.Codec>(
+        14, _omitFieldNames ? '' : 'enabledPublishCodecs', $pb.PbFieldType.PM,
+        subBuilder: $2.Codec.create)
     ..aOB(15, _omitFieldNames ? '' : 'fastPublish')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   JoinResponse clone() => JoinResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  JoinResponse copyWith(void Function(JoinResponse) updates) => super.copyWith((message) => updates(message as JoinResponse)) as JoinResponse;
+  JoinResponse copyWith(void Function(JoinResponse) updates) =>
+      super.copyWith((message) => updates(message as JoinResponse))
+          as JoinResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1288,9 +1470,11 @@ class JoinResponse extends $pb.GeneratedMessage {
   static JoinResponse create() => JoinResponse._();
   @$core.override
   JoinResponse createEmptyInstance() => create();
-  static $pb.PbList<JoinResponse> createRepeated() => $pb.PbList<JoinResponse>();
+  static $pb.PbList<JoinResponse> createRepeated() =>
+      $pb.PbList<JoinResponse>();
   @$core.pragma('dart2js:noInline')
-  static JoinResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<JoinResponse>(create);
+  static JoinResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<JoinResponse>(create);
   static JoinResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1435,7 +1619,8 @@ class ReconnectResponse extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (iceServers != null) result.iceServers.addAll(iceServers);
-    if (clientConfiguration != null) result.clientConfiguration = clientConfiguration;
+    if (clientConfiguration != null)
+      result.clientConfiguration = clientConfiguration;
     if (serverInfo != null) result.serverInfo = serverInfo;
     if (lastMessageSeq != null) result.lastMessageSeq = lastMessageSeq;
     return result;
@@ -1443,21 +1628,34 @@ class ReconnectResponse extends $pb.GeneratedMessage {
 
   ReconnectResponse._();
 
-  factory ReconnectResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ReconnectResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ReconnectResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ReconnectResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ReconnectResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<ICEServer>(1, _omitFieldNames ? '' : 'iceServers', $pb.PbFieldType.PM, subBuilder: ICEServer.create)
-    ..aOM<$2.ClientConfiguration>(2, _omitFieldNames ? '' : 'clientConfiguration', subBuilder: $2.ClientConfiguration.create)
-    ..aOM<$2.ServerInfo>(3, _omitFieldNames ? '' : 'serverInfo', subBuilder: $2.ServerInfo.create)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'lastMessageSeq', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ReconnectResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<ICEServer>(1, _omitFieldNames ? '' : 'iceServers', $pb.PbFieldType.PM,
+        subBuilder: ICEServer.create)
+    ..aOM<$2.ClientConfiguration>(
+        2, _omitFieldNames ? '' : 'clientConfiguration',
+        subBuilder: $2.ClientConfiguration.create)
+    ..aOM<$2.ServerInfo>(3, _omitFieldNames ? '' : 'serverInfo',
+        subBuilder: $2.ServerInfo.create)
+    ..a<$core.int>(
+        4, _omitFieldNames ? '' : 'lastMessageSeq', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ReconnectResponse clone() => ReconnectResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ReconnectResponse copyWith(void Function(ReconnectResponse) updates) => super.copyWith((message) => updates(message as ReconnectResponse)) as ReconnectResponse;
+  ReconnectResponse copyWith(void Function(ReconnectResponse) updates) =>
+      super.copyWith((message) => updates(message as ReconnectResponse))
+          as ReconnectResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1466,9 +1664,11 @@ class ReconnectResponse extends $pb.GeneratedMessage {
   static ReconnectResponse create() => ReconnectResponse._();
   @$core.override
   ReconnectResponse createEmptyInstance() => create();
-  static $pb.PbList<ReconnectResponse> createRepeated() => $pb.PbList<ReconnectResponse>();
+  static $pb.PbList<ReconnectResponse> createRepeated() =>
+      $pb.PbList<ReconnectResponse>();
   @$core.pragma('dart2js:noInline')
-  static ReconnectResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ReconnectResponse>(create);
+  static ReconnectResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ReconnectResponse>(create);
   static ReconnectResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1520,19 +1720,30 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
 
   TrackPublishedResponse._();
 
-  factory TrackPublishedResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory TrackPublishedResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory TrackPublishedResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TrackPublishedResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackPublishedResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrackPublishedResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'cid')
-    ..aOM<$2.TrackInfo>(2, _omitFieldNames ? '' : 'track', subBuilder: $2.TrackInfo.create)
-    ..hasRequiredFields = false
-  ;
+    ..aOM<$2.TrackInfo>(2, _omitFieldNames ? '' : 'track',
+        subBuilder: $2.TrackInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackPublishedResponse clone() => TrackPublishedResponse()..mergeFromMessage(this);
+  TrackPublishedResponse clone() =>
+      TrackPublishedResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackPublishedResponse copyWith(void Function(TrackPublishedResponse) updates) => super.copyWith((message) => updates(message as TrackPublishedResponse)) as TrackPublishedResponse;
+  TrackPublishedResponse copyWith(
+          void Function(TrackPublishedResponse) updates) =>
+      super.copyWith((message) => updates(message as TrackPublishedResponse))
+          as TrackPublishedResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1541,9 +1752,11 @@ class TrackPublishedResponse extends $pb.GeneratedMessage {
   static TrackPublishedResponse create() => TrackPublishedResponse._();
   @$core.override
   TrackPublishedResponse createEmptyInstance() => create();
-  static $pb.PbList<TrackPublishedResponse> createRepeated() => $pb.PbList<TrackPublishedResponse>();
+  static $pb.PbList<TrackPublishedResponse> createRepeated() =>
+      $pb.PbList<TrackPublishedResponse>();
   @$core.pragma('dart2js:noInline')
-  static TrackPublishedResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackPublishedResponse>(create);
+  static TrackPublishedResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackPublishedResponse>(create);
   static TrackPublishedResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1578,18 +1791,28 @@ class TrackUnpublishedResponse extends $pb.GeneratedMessage {
 
   TrackUnpublishedResponse._();
 
-  factory TrackUnpublishedResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory TrackUnpublishedResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory TrackUnpublishedResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TrackUnpublishedResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackUnpublishedResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrackUnpublishedResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackUnpublishedResponse clone() => TrackUnpublishedResponse()..mergeFromMessage(this);
+  TrackUnpublishedResponse clone() =>
+      TrackUnpublishedResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackUnpublishedResponse copyWith(void Function(TrackUnpublishedResponse) updates) => super.copyWith((message) => updates(message as TrackUnpublishedResponse)) as TrackUnpublishedResponse;
+  TrackUnpublishedResponse copyWith(
+          void Function(TrackUnpublishedResponse) updates) =>
+      super.copyWith((message) => updates(message as TrackUnpublishedResponse))
+          as TrackUnpublishedResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1598,9 +1821,11 @@ class TrackUnpublishedResponse extends $pb.GeneratedMessage {
   static TrackUnpublishedResponse create() => TrackUnpublishedResponse._();
   @$core.override
   TrackUnpublishedResponse createEmptyInstance() => create();
-  static $pb.PbList<TrackUnpublishedResponse> createRepeated() => $pb.PbList<TrackUnpublishedResponse>();
+  static $pb.PbList<TrackUnpublishedResponse> createRepeated() =>
+      $pb.PbList<TrackUnpublishedResponse>();
   @$core.pragma('dart2js:noInline')
-  static TrackUnpublishedResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackUnpublishedResponse>(create);
+  static TrackUnpublishedResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackUnpublishedResponse>(create);
   static TrackUnpublishedResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1628,20 +1853,28 @@ class SessionDescription extends $pb.GeneratedMessage {
 
   SessionDescription._();
 
-  factory SessionDescription.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SessionDescription.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SessionDescription.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SessionDescription.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SessionDescription', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SessionDescription',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'type')
     ..aOS(2, _omitFieldNames ? '' : 'sdp')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SessionDescription clone() => SessionDescription()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SessionDescription copyWith(void Function(SessionDescription) updates) => super.copyWith((message) => updates(message as SessionDescription)) as SessionDescription;
+  SessionDescription copyWith(void Function(SessionDescription) updates) =>
+      super.copyWith((message) => updates(message as SessionDescription))
+          as SessionDescription;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1650,9 +1883,11 @@ class SessionDescription extends $pb.GeneratedMessage {
   static SessionDescription create() => SessionDescription._();
   @$core.override
   SessionDescription createEmptyInstance() => create();
-  static $pb.PbList<SessionDescription> createRepeated() => $pb.PbList<SessionDescription>();
+  static $pb.PbList<SessionDescription> createRepeated() =>
+      $pb.PbList<SessionDescription>();
   @$core.pragma('dart2js:noInline')
-  static SessionDescription getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SessionDescription>(create);
+  static SessionDescription getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SessionDescription>(create);
   static SessionDescription? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1694,18 +1929,28 @@ class ParticipantUpdate extends $pb.GeneratedMessage {
 
   ParticipantUpdate._();
 
-  factory ParticipantUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ParticipantUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ParticipantUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ParticipantUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ParticipantUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<$2.ParticipantInfo>(1, _omitFieldNames ? '' : 'participants', $pb.PbFieldType.PM, subBuilder: $2.ParticipantInfo.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ParticipantUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<$2.ParticipantInfo>(
+        1, _omitFieldNames ? '' : 'participants', $pb.PbFieldType.PM,
+        subBuilder: $2.ParticipantInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParticipantUpdate clone() => ParticipantUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParticipantUpdate copyWith(void Function(ParticipantUpdate) updates) => super.copyWith((message) => updates(message as ParticipantUpdate)) as ParticipantUpdate;
+  ParticipantUpdate copyWith(void Function(ParticipantUpdate) updates) =>
+      super.copyWith((message) => updates(message as ParticipantUpdate))
+          as ParticipantUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1714,9 +1959,11 @@ class ParticipantUpdate extends $pb.GeneratedMessage {
   static ParticipantUpdate create() => ParticipantUpdate._();
   @$core.override
   ParticipantUpdate createEmptyInstance() => create();
-  static $pb.PbList<ParticipantUpdate> createRepeated() => $pb.PbList<ParticipantUpdate>();
+  static $pb.PbList<ParticipantUpdate> createRepeated() =>
+      $pb.PbList<ParticipantUpdate>();
   @$core.pragma('dart2js:noInline')
-  static ParticipantUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantUpdate>(create);
+  static ParticipantUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ParticipantUpdate>(create);
   static ParticipantUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1732,26 +1979,37 @@ class UpdateSubscription extends $pb.GeneratedMessage {
     final result = create();
     if (trackSids != null) result.trackSids.addAll(trackSids);
     if (subscribe != null) result.subscribe = subscribe;
-    if (participantTracks != null) result.participantTracks.addAll(participantTracks);
+    if (participantTracks != null)
+      result.participantTracks.addAll(participantTracks);
     return result;
   }
 
   UpdateSubscription._();
 
-  factory UpdateSubscription.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateSubscription.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateSubscription.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateSubscription.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateSubscription', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateSubscription',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'trackSids')
     ..aOB(2, _omitFieldNames ? '' : 'subscribe')
-    ..pc<$2.ParticipantTracks>(3, _omitFieldNames ? '' : 'participantTracks', $pb.PbFieldType.PM, subBuilder: $2.ParticipantTracks.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<$2.ParticipantTracks>(
+        3, _omitFieldNames ? '' : 'participantTracks', $pb.PbFieldType.PM,
+        subBuilder: $2.ParticipantTracks.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UpdateSubscription clone() => UpdateSubscription()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateSubscription copyWith(void Function(UpdateSubscription) updates) => super.copyWith((message) => updates(message as UpdateSubscription)) as UpdateSubscription;
+  UpdateSubscription copyWith(void Function(UpdateSubscription) updates) =>
+      super.copyWith((message) => updates(message as UpdateSubscription))
+          as UpdateSubscription;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1760,9 +2018,11 @@ class UpdateSubscription extends $pb.GeneratedMessage {
   static UpdateSubscription create() => UpdateSubscription._();
   @$core.override
   UpdateSubscription createEmptyInstance() => create();
-  static $pb.PbList<UpdateSubscription> createRepeated() => $pb.PbList<UpdateSubscription>();
+  static $pb.PbList<UpdateSubscription> createRepeated() =>
+      $pb.PbList<UpdateSubscription>();
   @$core.pragma('dart2js:noInline')
-  static UpdateSubscription getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateSubscription>(create);
+  static UpdateSubscription getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateSubscription>(create);
   static UpdateSubscription? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1804,24 +2064,36 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
 
   UpdateTrackSettings._();
 
-  factory UpdateTrackSettings.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateTrackSettings.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateTrackSettings.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateTrackSettings.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateTrackSettings', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateTrackSettings',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'trackSids')
     ..aOB(3, _omitFieldNames ? '' : 'disabled')
-    ..e<$2.VideoQuality>(4, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE, defaultOrMaker: $2.VideoQuality.LOW, valueOf: $2.VideoQuality.valueOf, enumValues: $2.VideoQuality.values)
+    ..e<$2.VideoQuality>(
+        4, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.VideoQuality.LOW,
+        valueOf: $2.VideoQuality.valueOf,
+        enumValues: $2.VideoQuality.values)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
     ..a<$core.int>(6, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
     ..a<$core.int>(7, _omitFieldNames ? '' : 'fps', $pb.PbFieldType.OU3)
     ..a<$core.int>(8, _omitFieldNames ? '' : 'priority', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UpdateTrackSettings clone() => UpdateTrackSettings()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateTrackSettings copyWith(void Function(UpdateTrackSettings) updates) => super.copyWith((message) => updates(message as UpdateTrackSettings)) as UpdateTrackSettings;
+  UpdateTrackSettings copyWith(void Function(UpdateTrackSettings) updates) =>
+      super.copyWith((message) => updates(message as UpdateTrackSettings))
+          as UpdateTrackSettings;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1830,9 +2102,11 @@ class UpdateTrackSettings extends $pb.GeneratedMessage {
   static UpdateTrackSettings create() => UpdateTrackSettings._();
   @$core.override
   UpdateTrackSettings createEmptyInstance() => create();
-  static $pb.PbList<UpdateTrackSettings> createRepeated() => $pb.PbList<UpdateTrackSettings>();
+  static $pb.PbList<UpdateTrackSettings> createRepeated() =>
+      $pb.PbList<UpdateTrackSettings>();
   @$core.pragma('dart2js:noInline')
-  static UpdateTrackSettings getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateTrackSettings>(create);
+  static UpdateTrackSettings getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateTrackSettings>(create);
   static UpdateTrackSettings? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1917,19 +2191,33 @@ class UpdateLocalAudioTrack extends $pb.GeneratedMessage {
 
   UpdateLocalAudioTrack._();
 
-  factory UpdateLocalAudioTrack.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateLocalAudioTrack.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateLocalAudioTrack.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateLocalAudioTrack.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateLocalAudioTrack', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateLocalAudioTrack',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..pc<$2.AudioTrackFeature>(2, _omitFieldNames ? '' : 'features', $pb.PbFieldType.KE, valueOf: $2.AudioTrackFeature.valueOf, enumValues: $2.AudioTrackFeature.values, defaultEnumValue: $2.AudioTrackFeature.TF_STEREO)
-    ..hasRequiredFields = false
-  ;
+    ..pc<$2.AudioTrackFeature>(
+        2, _omitFieldNames ? '' : 'features', $pb.PbFieldType.KE,
+        valueOf: $2.AudioTrackFeature.valueOf,
+        enumValues: $2.AudioTrackFeature.values,
+        defaultEnumValue: $2.AudioTrackFeature.TF_STEREO)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateLocalAudioTrack clone() => UpdateLocalAudioTrack()..mergeFromMessage(this);
+  UpdateLocalAudioTrack clone() =>
+      UpdateLocalAudioTrack()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateLocalAudioTrack copyWith(void Function(UpdateLocalAudioTrack) updates) => super.copyWith((message) => updates(message as UpdateLocalAudioTrack)) as UpdateLocalAudioTrack;
+  UpdateLocalAudioTrack copyWith(
+          void Function(UpdateLocalAudioTrack) updates) =>
+      super.copyWith((message) => updates(message as UpdateLocalAudioTrack))
+          as UpdateLocalAudioTrack;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1938,9 +2226,11 @@ class UpdateLocalAudioTrack extends $pb.GeneratedMessage {
   static UpdateLocalAudioTrack create() => UpdateLocalAudioTrack._();
   @$core.override
   UpdateLocalAudioTrack createEmptyInstance() => create();
-  static $pb.PbList<UpdateLocalAudioTrack> createRepeated() => $pb.PbList<UpdateLocalAudioTrack>();
+  static $pb.PbList<UpdateLocalAudioTrack> createRepeated() =>
+      $pb.PbList<UpdateLocalAudioTrack>();
   @$core.pragma('dart2js:noInline')
-  static UpdateLocalAudioTrack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateLocalAudioTrack>(create);
+  static UpdateLocalAudioTrack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateLocalAudioTrack>(create);
   static UpdateLocalAudioTrack? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -1971,20 +2261,30 @@ class UpdateLocalVideoTrack extends $pb.GeneratedMessage {
 
   UpdateLocalVideoTrack._();
 
-  factory UpdateLocalVideoTrack.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateLocalVideoTrack.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateLocalVideoTrack.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateLocalVideoTrack.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateLocalVideoTrack', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateLocalVideoTrack',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateLocalVideoTrack clone() => UpdateLocalVideoTrack()..mergeFromMessage(this);
+  UpdateLocalVideoTrack clone() =>
+      UpdateLocalVideoTrack()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateLocalVideoTrack copyWith(void Function(UpdateLocalVideoTrack) updates) => super.copyWith((message) => updates(message as UpdateLocalVideoTrack)) as UpdateLocalVideoTrack;
+  UpdateLocalVideoTrack copyWith(
+          void Function(UpdateLocalVideoTrack) updates) =>
+      super.copyWith((message) => updates(message as UpdateLocalVideoTrack))
+          as UpdateLocalVideoTrack;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -1993,9 +2293,11 @@ class UpdateLocalVideoTrack extends $pb.GeneratedMessage {
   static UpdateLocalVideoTrack create() => UpdateLocalVideoTrack._();
   @$core.override
   UpdateLocalVideoTrack createEmptyInstance() => create();
-  static $pb.PbList<UpdateLocalVideoTrack> createRepeated() => $pb.PbList<UpdateLocalVideoTrack>();
+  static $pb.PbList<UpdateLocalVideoTrack> createRepeated() =>
+      $pb.PbList<UpdateLocalVideoTrack>();
   @$core.pragma('dart2js:noInline')
-  static UpdateLocalVideoTrack getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateLocalVideoTrack>(create);
+  static UpdateLocalVideoTrack getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateLocalVideoTrack>(create);
   static UpdateLocalVideoTrack? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2043,21 +2345,38 @@ class LeaveRequest extends $pb.GeneratedMessage {
 
   LeaveRequest._();
 
-  factory LeaveRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory LeaveRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory LeaveRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory LeaveRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'LeaveRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'LeaveRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'canReconnect')
-    ..e<$2.DisconnectReason>(2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE, defaultOrMaker: $2.DisconnectReason.UNKNOWN_REASON, valueOf: $2.DisconnectReason.valueOf, enumValues: $2.DisconnectReason.values)
-    ..e<LeaveRequest_Action>(3, _omitFieldNames ? '' : 'action', $pb.PbFieldType.OE, defaultOrMaker: LeaveRequest_Action.DISCONNECT, valueOf: LeaveRequest_Action.valueOf, enumValues: LeaveRequest_Action.values)
-    ..aOM<RegionSettings>(4, _omitFieldNames ? '' : 'regions', subBuilder: RegionSettings.create)
-    ..hasRequiredFields = false
-  ;
+    ..e<$2.DisconnectReason>(
+        2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.DisconnectReason.UNKNOWN_REASON,
+        valueOf: $2.DisconnectReason.valueOf,
+        enumValues: $2.DisconnectReason.values)
+    ..e<LeaveRequest_Action>(
+        3, _omitFieldNames ? '' : 'action', $pb.PbFieldType.OE,
+        defaultOrMaker: LeaveRequest_Action.DISCONNECT,
+        valueOf: LeaveRequest_Action.valueOf,
+        enumValues: LeaveRequest_Action.values)
+    ..aOM<RegionSettings>(4, _omitFieldNames ? '' : 'regions',
+        subBuilder: RegionSettings.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   LeaveRequest clone() => LeaveRequest()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LeaveRequest copyWith(void Function(LeaveRequest) updates) => super.copyWith((message) => updates(message as LeaveRequest)) as LeaveRequest;
+  LeaveRequest copyWith(void Function(LeaveRequest) updates) =>
+      super.copyWith((message) => updates(message as LeaveRequest))
+          as LeaveRequest;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2066,9 +2385,11 @@ class LeaveRequest extends $pb.GeneratedMessage {
   static LeaveRequest create() => LeaveRequest._();
   @$core.override
   LeaveRequest createEmptyInstance() => create();
-  static $pb.PbList<LeaveRequest> createRepeated() => $pb.PbList<LeaveRequest>();
+  static $pb.PbList<LeaveRequest> createRepeated() =>
+      $pb.PbList<LeaveRequest>();
   @$core.pragma('dart2js:noInline')
-  static LeaveRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<LeaveRequest>(create);
+  static LeaveRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<LeaveRequest>(create);
   static LeaveRequest? _defaultInstance;
 
   /// sent when server initiates the disconnect due to server-restart
@@ -2128,19 +2449,28 @@ class UpdateVideoLayers extends $pb.GeneratedMessage {
 
   UpdateVideoLayers._();
 
-  factory UpdateVideoLayers.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateVideoLayers.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateVideoLayers.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateVideoLayers.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateVideoLayers', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateVideoLayers',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..pc<$2.VideoLayer>(2, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: $2.VideoLayer.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<$2.VideoLayer>(2, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM,
+        subBuilder: $2.VideoLayer.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UpdateVideoLayers clone() => UpdateVideoLayers()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateVideoLayers copyWith(void Function(UpdateVideoLayers) updates) => super.copyWith((message) => updates(message as UpdateVideoLayers)) as UpdateVideoLayers;
+  UpdateVideoLayers copyWith(void Function(UpdateVideoLayers) updates) =>
+      super.copyWith((message) => updates(message as UpdateVideoLayers))
+          as UpdateVideoLayers;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2149,9 +2479,11 @@ class UpdateVideoLayers extends $pb.GeneratedMessage {
   static UpdateVideoLayers create() => UpdateVideoLayers._();
   @$core.override
   UpdateVideoLayers createEmptyInstance() => create();
-  static $pb.PbList<UpdateVideoLayers> createRepeated() => $pb.PbList<UpdateVideoLayers>();
+  static $pb.PbList<UpdateVideoLayers> createRepeated() =>
+      $pb.PbList<UpdateVideoLayers>();
   @$core.pragma('dart2js:noInline')
-  static UpdateVideoLayers getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateVideoLayers>(create);
+  static UpdateVideoLayers getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateVideoLayers>(create);
   static UpdateVideoLayers? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2184,21 +2516,35 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
 
   UpdateParticipantMetadata._();
 
-  factory UpdateParticipantMetadata.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory UpdateParticipantMetadata.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory UpdateParticipantMetadata.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateParticipantMetadata.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'UpdateParticipantMetadata', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateParticipantMetadata',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'metadata')
     ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..m<$core.String, $core.String>(3, _omitFieldNames ? '' : 'attributes', entryClassName: 'UpdateParticipantMetadata.AttributesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS, packageName: const $pb.PackageName('livekit'))
+    ..m<$core.String, $core.String>(3, _omitFieldNames ? '' : 'attributes',
+        entryClassName: 'UpdateParticipantMetadata.AttributesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('livekit'))
     ..a<$core.int>(4, _omitFieldNames ? '' : 'requestId', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateParticipantMetadata clone() => UpdateParticipantMetadata()..mergeFromMessage(this);
+  UpdateParticipantMetadata clone() =>
+      UpdateParticipantMetadata()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UpdateParticipantMetadata copyWith(void Function(UpdateParticipantMetadata) updates) => super.copyWith((message) => updates(message as UpdateParticipantMetadata)) as UpdateParticipantMetadata;
+  UpdateParticipantMetadata copyWith(
+          void Function(UpdateParticipantMetadata) updates) =>
+      super.copyWith((message) => updates(message as UpdateParticipantMetadata))
+          as UpdateParticipantMetadata;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2207,9 +2553,11 @@ class UpdateParticipantMetadata extends $pb.GeneratedMessage {
   static UpdateParticipantMetadata create() => UpdateParticipantMetadata._();
   @$core.override
   UpdateParticipantMetadata createEmptyInstance() => create();
-  static $pb.PbList<UpdateParticipantMetadata> createRepeated() => $pb.PbList<UpdateParticipantMetadata>();
+  static $pb.PbList<UpdateParticipantMetadata> createRepeated() =>
+      $pb.PbList<UpdateParticipantMetadata>();
   @$core.pragma('dart2js:noInline')
-  static UpdateParticipantMetadata getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UpdateParticipantMetadata>(create);
+  static UpdateParticipantMetadata getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateParticipantMetadata>(create);
   static UpdateParticipantMetadata? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2260,20 +2608,27 @@ class ICEServer extends $pb.GeneratedMessage {
 
   ICEServer._();
 
-  factory ICEServer.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ICEServer.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ICEServer.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ICEServer.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ICEServer', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ICEServer',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'urls')
     ..aOS(2, _omitFieldNames ? '' : 'username')
     ..aOS(3, _omitFieldNames ? '' : 'credential')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ICEServer clone() => ICEServer()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ICEServer copyWith(void Function(ICEServer) updates) => super.copyWith((message) => updates(message as ICEServer)) as ICEServer;
+  ICEServer copyWith(void Function(ICEServer) updates) =>
+      super.copyWith((message) => updates(message as ICEServer)) as ICEServer;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2284,7 +2639,8 @@ class ICEServer extends $pb.GeneratedMessage {
   ICEServer createEmptyInstance() => create();
   static $pb.PbList<ICEServer> createRepeated() => $pb.PbList<ICEServer>();
   @$core.pragma('dart2js:noInline')
-  static ICEServer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ICEServer>(create);
+  static ICEServer getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ICEServer>(create);
   static ICEServer? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2320,18 +2676,28 @@ class SpeakersChanged extends $pb.GeneratedMessage {
 
   SpeakersChanged._();
 
-  factory SpeakersChanged.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SpeakersChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SpeakersChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SpeakersChanged.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SpeakersChanged', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<$2.SpeakerInfo>(1, _omitFieldNames ? '' : 'speakers', $pb.PbFieldType.PM, subBuilder: $2.SpeakerInfo.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SpeakersChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<$2.SpeakerInfo>(
+        1, _omitFieldNames ? '' : 'speakers', $pb.PbFieldType.PM,
+        subBuilder: $2.SpeakerInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SpeakersChanged clone() => SpeakersChanged()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SpeakersChanged copyWith(void Function(SpeakersChanged) updates) => super.copyWith((message) => updates(message as SpeakersChanged)) as SpeakersChanged;
+  SpeakersChanged copyWith(void Function(SpeakersChanged) updates) =>
+      super.copyWith((message) => updates(message as SpeakersChanged))
+          as SpeakersChanged;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2340,9 +2706,11 @@ class SpeakersChanged extends $pb.GeneratedMessage {
   static SpeakersChanged create() => SpeakersChanged._();
   @$core.override
   SpeakersChanged createEmptyInstance() => create();
-  static $pb.PbList<SpeakersChanged> createRepeated() => $pb.PbList<SpeakersChanged>();
+  static $pb.PbList<SpeakersChanged> createRepeated() =>
+      $pb.PbList<SpeakersChanged>();
   @$core.pragma('dart2js:noInline')
-  static SpeakersChanged getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakersChanged>(create);
+  static SpeakersChanged getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SpeakersChanged>(create);
   static SpeakersChanged? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2360,18 +2728,25 @@ class RoomUpdate extends $pb.GeneratedMessage {
 
   RoomUpdate._();
 
-  factory RoomUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory RoomUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory RoomUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RoomUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RoomUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RoomUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOM<$2.Room>(1, _omitFieldNames ? '' : 'room', subBuilder: $2.Room.create)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RoomUpdate clone() => RoomUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RoomUpdate copyWith(void Function(RoomUpdate) updates) => super.copyWith((message) => updates(message as RoomUpdate)) as RoomUpdate;
+  RoomUpdate copyWith(void Function(RoomUpdate) updates) =>
+      super.copyWith((message) => updates(message as RoomUpdate)) as RoomUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2382,7 +2757,8 @@ class RoomUpdate extends $pb.GeneratedMessage {
   RoomUpdate createEmptyInstance() => create();
   static $pb.PbList<RoomUpdate> createRepeated() => $pb.PbList<RoomUpdate>();
   @$core.pragma('dart2js:noInline')
-  static RoomUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RoomUpdate>(create);
+  static RoomUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RoomUpdate>(create);
   static RoomUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2412,20 +2788,34 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
 
   ConnectionQualityInfo._();
 
-  factory ConnectionQualityInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ConnectionQualityInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ConnectionQualityInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConnectionQualityInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ConnectionQualityInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConnectionQualityInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'participantSid')
-    ..e<$2.ConnectionQuality>(2, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE, defaultOrMaker: $2.ConnectionQuality.POOR, valueOf: $2.ConnectionQuality.valueOf, enumValues: $2.ConnectionQuality.values)
+    ..e<$2.ConnectionQuality>(
+        2, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.ConnectionQuality.POOR,
+        valueOf: $2.ConnectionQuality.valueOf,
+        enumValues: $2.ConnectionQuality.values)
     ..a<$core.double>(3, _omitFieldNames ? '' : 'score', $pb.PbFieldType.OF)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ConnectionQualityInfo clone() => ConnectionQualityInfo()..mergeFromMessage(this);
+  ConnectionQualityInfo clone() =>
+      ConnectionQualityInfo()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ConnectionQualityInfo copyWith(void Function(ConnectionQualityInfo) updates) => super.copyWith((message) => updates(message as ConnectionQualityInfo)) as ConnectionQualityInfo;
+  ConnectionQualityInfo copyWith(
+          void Function(ConnectionQualityInfo) updates) =>
+      super.copyWith((message) => updates(message as ConnectionQualityInfo))
+          as ConnectionQualityInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2434,9 +2824,11 @@ class ConnectionQualityInfo extends $pb.GeneratedMessage {
   static ConnectionQualityInfo create() => ConnectionQualityInfo._();
   @$core.override
   ConnectionQualityInfo createEmptyInstance() => create();
-  static $pb.PbList<ConnectionQualityInfo> createRepeated() => $pb.PbList<ConnectionQualityInfo>();
+  static $pb.PbList<ConnectionQualityInfo> createRepeated() =>
+      $pb.PbList<ConnectionQualityInfo>();
   @$core.pragma('dart2js:noInline')
-  static ConnectionQualityInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ConnectionQualityInfo>(create);
+  static ConnectionQualityInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectionQualityInfo>(create);
   static ConnectionQualityInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2478,18 +2870,30 @@ class ConnectionQualityUpdate extends $pb.GeneratedMessage {
 
   ConnectionQualityUpdate._();
 
-  factory ConnectionQualityUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory ConnectionQualityUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory ConnectionQualityUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConnectionQualityUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ConnectionQualityUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<ConnectionQualityInfo>(1, _omitFieldNames ? '' : 'updates', $pb.PbFieldType.PM, subBuilder: ConnectionQualityInfo.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConnectionQualityUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<ConnectionQualityInfo>(
+        1, _omitFieldNames ? '' : 'updates', $pb.PbFieldType.PM,
+        subBuilder: ConnectionQualityInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ConnectionQualityUpdate clone() => ConnectionQualityUpdate()..mergeFromMessage(this);
+  ConnectionQualityUpdate clone() =>
+      ConnectionQualityUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ConnectionQualityUpdate copyWith(void Function(ConnectionQualityUpdate) updates) => super.copyWith((message) => updates(message as ConnectionQualityUpdate)) as ConnectionQualityUpdate;
+  ConnectionQualityUpdate copyWith(
+          void Function(ConnectionQualityUpdate) updates) =>
+      super.copyWith((message) => updates(message as ConnectionQualityUpdate))
+          as ConnectionQualityUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2498,9 +2902,11 @@ class ConnectionQualityUpdate extends $pb.GeneratedMessage {
   static ConnectionQualityUpdate create() => ConnectionQualityUpdate._();
   @$core.override
   ConnectionQualityUpdate createEmptyInstance() => create();
-  static $pb.PbList<ConnectionQualityUpdate> createRepeated() => $pb.PbList<ConnectionQualityUpdate>();
+  static $pb.PbList<ConnectionQualityUpdate> createRepeated() =>
+      $pb.PbList<ConnectionQualityUpdate>();
   @$core.pragma('dart2js:noInline')
-  static ConnectionQualityUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ConnectionQualityUpdate>(create);
+  static ConnectionQualityUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectionQualityUpdate>(create);
   static ConnectionQualityUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2522,20 +2928,31 @@ class StreamStateInfo extends $pb.GeneratedMessage {
 
   StreamStateInfo._();
 
-  factory StreamStateInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory StreamStateInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory StreamStateInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory StreamStateInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StreamStateInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'StreamStateInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'participantSid')
     ..aOS(2, _omitFieldNames ? '' : 'trackSid')
-    ..e<StreamState>(3, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE, defaultOrMaker: StreamState.ACTIVE, valueOf: StreamState.valueOf, enumValues: StreamState.values)
-    ..hasRequiredFields = false
-  ;
+    ..e<StreamState>(3, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE,
+        defaultOrMaker: StreamState.ACTIVE,
+        valueOf: StreamState.valueOf,
+        enumValues: StreamState.values)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   StreamStateInfo clone() => StreamStateInfo()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  StreamStateInfo copyWith(void Function(StreamStateInfo) updates) => super.copyWith((message) => updates(message as StreamStateInfo)) as StreamStateInfo;
+  StreamStateInfo copyWith(void Function(StreamStateInfo) updates) =>
+      super.copyWith((message) => updates(message as StreamStateInfo))
+          as StreamStateInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2544,9 +2961,11 @@ class StreamStateInfo extends $pb.GeneratedMessage {
   static StreamStateInfo create() => StreamStateInfo._();
   @$core.override
   StreamStateInfo createEmptyInstance() => create();
-  static $pb.PbList<StreamStateInfo> createRepeated() => $pb.PbList<StreamStateInfo>();
+  static $pb.PbList<StreamStateInfo> createRepeated() =>
+      $pb.PbList<StreamStateInfo>();
   @$core.pragma('dart2js:noInline')
-  static StreamStateInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StreamStateInfo>(create);
+  static StreamStateInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StreamStateInfo>(create);
   static StreamStateInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2588,18 +3007,28 @@ class StreamStateUpdate extends $pb.GeneratedMessage {
 
   StreamStateUpdate._();
 
-  factory StreamStateUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory StreamStateUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory StreamStateUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory StreamStateUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StreamStateUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<StreamStateInfo>(1, _omitFieldNames ? '' : 'streamStates', $pb.PbFieldType.PM, subBuilder: StreamStateInfo.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'StreamStateUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<StreamStateInfo>(
+        1, _omitFieldNames ? '' : 'streamStates', $pb.PbFieldType.PM,
+        subBuilder: StreamStateInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   StreamStateUpdate clone() => StreamStateUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  StreamStateUpdate copyWith(void Function(StreamStateUpdate) updates) => super.copyWith((message) => updates(message as StreamStateUpdate)) as StreamStateUpdate;
+  StreamStateUpdate copyWith(void Function(StreamStateUpdate) updates) =>
+      super.copyWith((message) => updates(message as StreamStateUpdate))
+          as StreamStateUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2608,9 +3037,11 @@ class StreamStateUpdate extends $pb.GeneratedMessage {
   static StreamStateUpdate create() => StreamStateUpdate._();
   @$core.override
   StreamStateUpdate createEmptyInstance() => create();
-  static $pb.PbList<StreamStateUpdate> createRepeated() => $pb.PbList<StreamStateUpdate>();
+  static $pb.PbList<StreamStateUpdate> createRepeated() =>
+      $pb.PbList<StreamStateUpdate>();
   @$core.pragma('dart2js:noInline')
-  static StreamStateUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StreamStateUpdate>(create);
+  static StreamStateUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<StreamStateUpdate>(create);
   static StreamStateUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2630,19 +3061,31 @@ class SubscribedQuality extends $pb.GeneratedMessage {
 
   SubscribedQuality._();
 
-  factory SubscribedQuality.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscribedQuality.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscribedQuality.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscribedQuality.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscribedQuality', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<$2.VideoQuality>(1, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE, defaultOrMaker: $2.VideoQuality.LOW, valueOf: $2.VideoQuality.valueOf, enumValues: $2.VideoQuality.values)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscribedQuality',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..e<$2.VideoQuality>(
+        1, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.VideoQuality.LOW,
+        valueOf: $2.VideoQuality.valueOf,
+        enumValues: $2.VideoQuality.values)
     ..aOB(2, _omitFieldNames ? '' : 'enabled')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SubscribedQuality clone() => SubscribedQuality()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscribedQuality copyWith(void Function(SubscribedQuality) updates) => super.copyWith((message) => updates(message as SubscribedQuality)) as SubscribedQuality;
+  SubscribedQuality copyWith(void Function(SubscribedQuality) updates) =>
+      super.copyWith((message) => updates(message as SubscribedQuality))
+          as SubscribedQuality;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2651,9 +3094,11 @@ class SubscribedQuality extends $pb.GeneratedMessage {
   static SubscribedQuality create() => SubscribedQuality._();
   @$core.override
   SubscribedQuality createEmptyInstance() => create();
-  static $pb.PbList<SubscribedQuality> createRepeated() => $pb.PbList<SubscribedQuality>();
+  static $pb.PbList<SubscribedQuality> createRepeated() =>
+      $pb.PbList<SubscribedQuality>();
   @$core.pragma('dart2js:noInline')
-  static SubscribedQuality getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscribedQuality>(create);
+  static SubscribedQuality getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedQuality>(create);
   static SubscribedQuality? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2688,19 +3133,29 @@ class SubscribedCodec extends $pb.GeneratedMessage {
 
   SubscribedCodec._();
 
-  factory SubscribedCodec.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscribedCodec.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscribedCodec.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscribedCodec.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscribedCodec', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscribedCodec',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'codec')
-    ..pc<SubscribedQuality>(2, _omitFieldNames ? '' : 'qualities', $pb.PbFieldType.PM, subBuilder: SubscribedQuality.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<SubscribedQuality>(
+        2, _omitFieldNames ? '' : 'qualities', $pb.PbFieldType.PM,
+        subBuilder: SubscribedQuality.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SubscribedCodec clone() => SubscribedCodec()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscribedCodec copyWith(void Function(SubscribedCodec) updates) => super.copyWith((message) => updates(message as SubscribedCodec)) as SubscribedCodec;
+  SubscribedCodec copyWith(void Function(SubscribedCodec) updates) =>
+      super.copyWith((message) => updates(message as SubscribedCodec))
+          as SubscribedCodec;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2709,9 +3164,11 @@ class SubscribedCodec extends $pb.GeneratedMessage {
   static SubscribedCodec create() => SubscribedCodec._();
   @$core.override
   SubscribedCodec createEmptyInstance() => create();
-  static $pb.PbList<SubscribedCodec> createRepeated() => $pb.PbList<SubscribedCodec>();
+  static $pb.PbList<SubscribedCodec> createRepeated() =>
+      $pb.PbList<SubscribedCodec>();
   @$core.pragma('dart2js:noInline')
-  static SubscribedCodec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscribedCodec>(create);
+  static SubscribedCodec getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedCodec>(create);
   static SubscribedCodec? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2730,33 +3187,49 @@ class SubscribedCodec extends $pb.GeneratedMessage {
 class SubscribedQualityUpdate extends $pb.GeneratedMessage {
   factory SubscribedQualityUpdate({
     $core.String? trackSid,
-  @$core.Deprecated('This field is deprecated.')
+    @$core.Deprecated('This field is deprecated.')
     $core.Iterable<SubscribedQuality>? subscribedQualities,
     $core.Iterable<SubscribedCodec>? subscribedCodecs,
   }) {
     final result = create();
     if (trackSid != null) result.trackSid = trackSid;
-    if (subscribedQualities != null) result.subscribedQualities.addAll(subscribedQualities);
-    if (subscribedCodecs != null) result.subscribedCodecs.addAll(subscribedCodecs);
+    if (subscribedQualities != null)
+      result.subscribedQualities.addAll(subscribedQualities);
+    if (subscribedCodecs != null)
+      result.subscribedCodecs.addAll(subscribedCodecs);
     return result;
   }
 
   SubscribedQualityUpdate._();
 
-  factory SubscribedQualityUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscribedQualityUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscribedQualityUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscribedQualityUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscribedQualityUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscribedQualityUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..pc<SubscribedQuality>(2, _omitFieldNames ? '' : 'subscribedQualities', $pb.PbFieldType.PM, subBuilder: SubscribedQuality.create)
-    ..pc<SubscribedCodec>(3, _omitFieldNames ? '' : 'subscribedCodecs', $pb.PbFieldType.PM, subBuilder: SubscribedCodec.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<SubscribedQuality>(
+        2, _omitFieldNames ? '' : 'subscribedQualities', $pb.PbFieldType.PM,
+        subBuilder: SubscribedQuality.create)
+    ..pc<SubscribedCodec>(
+        3, _omitFieldNames ? '' : 'subscribedCodecs', $pb.PbFieldType.PM,
+        subBuilder: SubscribedCodec.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscribedQualityUpdate clone() => SubscribedQualityUpdate()..mergeFromMessage(this);
+  SubscribedQualityUpdate clone() =>
+      SubscribedQualityUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscribedQualityUpdate copyWith(void Function(SubscribedQualityUpdate) updates) => super.copyWith((message) => updates(message as SubscribedQualityUpdate)) as SubscribedQualityUpdate;
+  SubscribedQualityUpdate copyWith(
+          void Function(SubscribedQualityUpdate) updates) =>
+      super.copyWith((message) => updates(message as SubscribedQualityUpdate))
+          as SubscribedQualityUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2765,9 +3238,11 @@ class SubscribedQualityUpdate extends $pb.GeneratedMessage {
   static SubscribedQualityUpdate create() => SubscribedQualityUpdate._();
   @$core.override
   SubscribedQualityUpdate createEmptyInstance() => create();
-  static $pb.PbList<SubscribedQualityUpdate> createRepeated() => $pb.PbList<SubscribedQualityUpdate>();
+  static $pb.PbList<SubscribedQualityUpdate> createRepeated() =>
+      $pb.PbList<SubscribedQualityUpdate>();
   @$core.pragma('dart2js:noInline')
-  static SubscribedQualityUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscribedQualityUpdate>(create);
+  static SubscribedQualityUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscribedQualityUpdate>(create);
   static SubscribedQualityUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2798,27 +3273,36 @@ class TrackPermission extends $pb.GeneratedMessage {
     if (participantSid != null) result.participantSid = participantSid;
     if (allTracks != null) result.allTracks = allTracks;
     if (trackSids != null) result.trackSids.addAll(trackSids);
-    if (participantIdentity != null) result.participantIdentity = participantIdentity;
+    if (participantIdentity != null)
+      result.participantIdentity = participantIdentity;
     return result;
   }
 
   TrackPermission._();
 
-  factory TrackPermission.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory TrackPermission.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory TrackPermission.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TrackPermission.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackPermission', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrackPermission',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'participantSid')
     ..aOB(2, _omitFieldNames ? '' : 'allTracks')
     ..pPS(3, _omitFieldNames ? '' : 'trackSids')
     ..aOS(4, _omitFieldNames ? '' : 'participantIdentity')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TrackPermission clone() => TrackPermission()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackPermission copyWith(void Function(TrackPermission) updates) => super.copyWith((message) => updates(message as TrackPermission)) as TrackPermission;
+  TrackPermission copyWith(void Function(TrackPermission) updates) =>
+      super.copyWith((message) => updates(message as TrackPermission))
+          as TrackPermission;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2827,9 +3311,11 @@ class TrackPermission extends $pb.GeneratedMessage {
   static TrackPermission create() => TrackPermission._();
   @$core.override
   TrackPermission createEmptyInstance() => create();
-  static $pb.PbList<TrackPermission> createRepeated() => $pb.PbList<TrackPermission>();
+  static $pb.PbList<TrackPermission> createRepeated() =>
+      $pb.PbList<TrackPermission>();
   @$core.pragma('dart2js:noInline')
-  static TrackPermission getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackPermission>(create);
+  static TrackPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackPermission>(create);
   static TrackPermission? _defaultInstance;
 
   /// permission could be granted either by participant sid or identity
@@ -2871,25 +3357,38 @@ class SubscriptionPermission extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (allParticipants != null) result.allParticipants = allParticipants;
-    if (trackPermissions != null) result.trackPermissions.addAll(trackPermissions);
+    if (trackPermissions != null)
+      result.trackPermissions.addAll(trackPermissions);
     return result;
   }
 
   SubscriptionPermission._();
 
-  factory SubscriptionPermission.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscriptionPermission.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscriptionPermission.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscriptionPermission.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscriptionPermission', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscriptionPermission',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'allParticipants')
-    ..pc<TrackPermission>(2, _omitFieldNames ? '' : 'trackPermissions', $pb.PbFieldType.PM, subBuilder: TrackPermission.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<TrackPermission>(
+        2, _omitFieldNames ? '' : 'trackPermissions', $pb.PbFieldType.PM,
+        subBuilder: TrackPermission.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionPermission clone() => SubscriptionPermission()..mergeFromMessage(this);
+  SubscriptionPermission clone() =>
+      SubscriptionPermission()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionPermission copyWith(void Function(SubscriptionPermission) updates) => super.copyWith((message) => updates(message as SubscriptionPermission)) as SubscriptionPermission;
+  SubscriptionPermission copyWith(
+          void Function(SubscriptionPermission) updates) =>
+      super.copyWith((message) => updates(message as SubscriptionPermission))
+          as SubscriptionPermission;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -2898,9 +3397,11 @@ class SubscriptionPermission extends $pb.GeneratedMessage {
   static SubscriptionPermission create() => SubscriptionPermission._();
   @$core.override
   SubscriptionPermission createEmptyInstance() => create();
-  static $pb.PbList<SubscriptionPermission> createRepeated() => $pb.PbList<SubscriptionPermission>();
+  static $pb.PbList<SubscriptionPermission> createRepeated() =>
+      $pb.PbList<SubscriptionPermission>();
   @$core.pragma('dart2js:noInline')
-  static SubscriptionPermission getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscriptionPermission>(create);
+  static SubscriptionPermission getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscriptionPermission>(create);
   static SubscriptionPermission? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2931,31 +3432,45 @@ class SubscriptionPermissionUpdate extends $pb.GeneratedMessage {
 
   SubscriptionPermissionUpdate._();
 
-  factory SubscriptionPermissionUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscriptionPermissionUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscriptionPermissionUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscriptionPermissionUpdate.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscriptionPermissionUpdate', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscriptionPermissionUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'participantSid')
     ..aOS(2, _omitFieldNames ? '' : 'trackSid')
     ..aOB(3, _omitFieldNames ? '' : 'allowed')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionPermissionUpdate clone() => SubscriptionPermissionUpdate()..mergeFromMessage(this);
+  SubscriptionPermissionUpdate clone() =>
+      SubscriptionPermissionUpdate()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionPermissionUpdate copyWith(void Function(SubscriptionPermissionUpdate) updates) => super.copyWith((message) => updates(message as SubscriptionPermissionUpdate)) as SubscriptionPermissionUpdate;
+  SubscriptionPermissionUpdate copyWith(
+          void Function(SubscriptionPermissionUpdate) updates) =>
+      super.copyWith(
+              (message) => updates(message as SubscriptionPermissionUpdate))
+          as SubscriptionPermissionUpdate;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static SubscriptionPermissionUpdate create() => SubscriptionPermissionUpdate._();
+  static SubscriptionPermissionUpdate create() =>
+      SubscriptionPermissionUpdate._();
   @$core.override
   SubscriptionPermissionUpdate createEmptyInstance() => create();
-  static $pb.PbList<SubscriptionPermissionUpdate> createRepeated() => $pb.PbList<SubscriptionPermissionUpdate>();
+  static $pb.PbList<SubscriptionPermissionUpdate> createRepeated() =>
+      $pb.PbList<SubscriptionPermissionUpdate>();
   @$core.pragma('dart2js:noInline')
-  static SubscriptionPermissionUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscriptionPermissionUpdate>(create);
+  static SubscriptionPermissionUpdate getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscriptionPermissionUpdate>(create);
   static SubscriptionPermissionUpdate? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -2997,27 +3512,39 @@ class RoomMovedResponse extends $pb.GeneratedMessage {
     if (room != null) result.room = room;
     if (token != null) result.token = token;
     if (participant != null) result.participant = participant;
-    if (otherParticipants != null) result.otherParticipants.addAll(otherParticipants);
+    if (otherParticipants != null)
+      result.otherParticipants.addAll(otherParticipants);
     return result;
   }
 
   RoomMovedResponse._();
 
-  factory RoomMovedResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory RoomMovedResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory RoomMovedResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RoomMovedResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RoomMovedResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RoomMovedResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOM<$2.Room>(1, _omitFieldNames ? '' : 'room', subBuilder: $2.Room.create)
     ..aOS(2, _omitFieldNames ? '' : 'token')
-    ..aOM<$2.ParticipantInfo>(3, _omitFieldNames ? '' : 'participant', subBuilder: $2.ParticipantInfo.create)
-    ..pc<$2.ParticipantInfo>(4, _omitFieldNames ? '' : 'otherParticipants', $pb.PbFieldType.PM, subBuilder: $2.ParticipantInfo.create)
-    ..hasRequiredFields = false
-  ;
+    ..aOM<$2.ParticipantInfo>(3, _omitFieldNames ? '' : 'participant',
+        subBuilder: $2.ParticipantInfo.create)
+    ..pc<$2.ParticipantInfo>(
+        4, _omitFieldNames ? '' : 'otherParticipants', $pb.PbFieldType.PM,
+        subBuilder: $2.ParticipantInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RoomMovedResponse clone() => RoomMovedResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RoomMovedResponse copyWith(void Function(RoomMovedResponse) updates) => super.copyWith((message) => updates(message as RoomMovedResponse)) as RoomMovedResponse;
+  RoomMovedResponse copyWith(void Function(RoomMovedResponse) updates) =>
+      super.copyWith((message) => updates(message as RoomMovedResponse))
+          as RoomMovedResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3026,9 +3553,11 @@ class RoomMovedResponse extends $pb.GeneratedMessage {
   static RoomMovedResponse create() => RoomMovedResponse._();
   @$core.override
   RoomMovedResponse createEmptyInstance() => create();
-  static $pb.PbList<RoomMovedResponse> createRepeated() => $pb.PbList<RoomMovedResponse>();
+  static $pb.PbList<RoomMovedResponse> createRepeated() =>
+      $pb.PbList<RoomMovedResponse>();
   @$core.pragma('dart2js:noInline')
-  static RoomMovedResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RoomMovedResponse>(create);
+  static RoomMovedResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RoomMovedResponse>(create);
   static RoomMovedResponse? _defaultInstance;
 
   /// information about the new room
@@ -3084,31 +3613,49 @@ class SyncState extends $pb.GeneratedMessage {
     if (publishTracks != null) result.publishTracks.addAll(publishTracks);
     if (dataChannels != null) result.dataChannels.addAll(dataChannels);
     if (offer != null) result.offer = offer;
-    if (trackSidsDisabled != null) result.trackSidsDisabled.addAll(trackSidsDisabled);
-    if (datachannelReceiveStates != null) result.datachannelReceiveStates.addAll(datachannelReceiveStates);
+    if (trackSidsDisabled != null)
+      result.trackSidsDisabled.addAll(trackSidsDisabled);
+    if (datachannelReceiveStates != null)
+      result.datachannelReceiveStates.addAll(datachannelReceiveStates);
     return result;
   }
 
   SyncState._();
 
-  factory SyncState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SyncState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SyncState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SyncState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SyncState', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'answer', subBuilder: SessionDescription.create)
-    ..aOM<UpdateSubscription>(2, _omitFieldNames ? '' : 'subscription', subBuilder: UpdateSubscription.create)
-    ..pc<TrackPublishedResponse>(3, _omitFieldNames ? '' : 'publishTracks', $pb.PbFieldType.PM, subBuilder: TrackPublishedResponse.create)
-    ..pc<DataChannelInfo>(4, _omitFieldNames ? '' : 'dataChannels', $pb.PbFieldType.PM, subBuilder: DataChannelInfo.create)
-    ..aOM<SessionDescription>(5, _omitFieldNames ? '' : 'offer', subBuilder: SessionDescription.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SyncState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'answer',
+        subBuilder: SessionDescription.create)
+    ..aOM<UpdateSubscription>(2, _omitFieldNames ? '' : 'subscription',
+        subBuilder: UpdateSubscription.create)
+    ..pc<TrackPublishedResponse>(
+        3, _omitFieldNames ? '' : 'publishTracks', $pb.PbFieldType.PM,
+        subBuilder: TrackPublishedResponse.create)
+    ..pc<DataChannelInfo>(
+        4, _omitFieldNames ? '' : 'dataChannels', $pb.PbFieldType.PM,
+        subBuilder: DataChannelInfo.create)
+    ..aOM<SessionDescription>(5, _omitFieldNames ? '' : 'offer',
+        subBuilder: SessionDescription.create)
     ..pPS(6, _omitFieldNames ? '' : 'trackSidsDisabled')
-    ..pc<DataChannelReceiveState>(7, _omitFieldNames ? '' : 'datachannelReceiveStates', $pb.PbFieldType.PM, subBuilder: DataChannelReceiveState.create)
-    ..hasRequiredFields = false
-  ;
+    ..pc<DataChannelReceiveState>(7,
+        _omitFieldNames ? '' : 'datachannelReceiveStates', $pb.PbFieldType.PM,
+        subBuilder: DataChannelReceiveState.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SyncState clone() => SyncState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SyncState copyWith(void Function(SyncState) updates) => super.copyWith((message) => updates(message as SyncState)) as SyncState;
+  SyncState copyWith(void Function(SyncState) updates) =>
+      super.copyWith((message) => updates(message as SyncState)) as SyncState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3119,7 +3666,8 @@ class SyncState extends $pb.GeneratedMessage {
   SyncState createEmptyInstance() => create();
   static $pb.PbList<SyncState> createRepeated() => $pb.PbList<SyncState>();
   @$core.pragma('dart2js:noInline')
-  static SyncState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncState>(create);
+  static SyncState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncState>(create);
   static SyncState? _defaultInstance;
 
   /// last subscribe answer before reconnecting
@@ -3167,7 +3715,8 @@ class SyncState extends $pb.GeneratedMessage {
   $pb.PbList<$core.String> get trackSidsDisabled => $_getList(5);
 
   @$pb.TagNumber(7)
-  $pb.PbList<DataChannelReceiveState> get datachannelReceiveStates => $_getList(6);
+  $pb.PbList<DataChannelReceiveState> get datachannelReceiveStates =>
+      $_getList(6);
 }
 
 class DataChannelReceiveState extends $pb.GeneratedMessage {
@@ -3183,19 +3732,29 @@ class DataChannelReceiveState extends $pb.GeneratedMessage {
 
   DataChannelReceiveState._();
 
-  factory DataChannelReceiveState.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory DataChannelReceiveState.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory DataChannelReceiveState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataChannelReceiveState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataChannelReceiveState', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DataChannelReceiveState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'publisherSid')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'lastSeq', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataChannelReceiveState clone() => DataChannelReceiveState()..mergeFromMessage(this);
+  DataChannelReceiveState clone() =>
+      DataChannelReceiveState()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataChannelReceiveState copyWith(void Function(DataChannelReceiveState) updates) => super.copyWith((message) => updates(message as DataChannelReceiveState)) as DataChannelReceiveState;
+  DataChannelReceiveState copyWith(
+          void Function(DataChannelReceiveState) updates) =>
+      super.copyWith((message) => updates(message as DataChannelReceiveState))
+          as DataChannelReceiveState;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3204,9 +3763,11 @@ class DataChannelReceiveState extends $pb.GeneratedMessage {
   static DataChannelReceiveState create() => DataChannelReceiveState._();
   @$core.override
   DataChannelReceiveState createEmptyInstance() => create();
-  static $pb.PbList<DataChannelReceiveState> createRepeated() => $pb.PbList<DataChannelReceiveState>();
+  static $pb.PbList<DataChannelReceiveState> createRepeated() =>
+      $pb.PbList<DataChannelReceiveState>();
   @$core.pragma('dart2js:noInline')
-  static DataChannelReceiveState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataChannelReceiveState>(create);
+  static DataChannelReceiveState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataChannelReceiveState>(create);
   static DataChannelReceiveState? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3243,20 +3804,31 @@ class DataChannelInfo extends $pb.GeneratedMessage {
 
   DataChannelInfo._();
 
-  factory DataChannelInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory DataChannelInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory DataChannelInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataChannelInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataChannelInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'DataChannelInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'label')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'id', $pb.PbFieldType.OU3)
-    ..e<SignalTarget>(3, _omitFieldNames ? '' : 'target', $pb.PbFieldType.OE, defaultOrMaker: SignalTarget.PUBLISHER, valueOf: SignalTarget.valueOf, enumValues: SignalTarget.values)
-    ..hasRequiredFields = false
-  ;
+    ..e<SignalTarget>(3, _omitFieldNames ? '' : 'target', $pb.PbFieldType.OE,
+        defaultOrMaker: SignalTarget.PUBLISHER,
+        valueOf: SignalTarget.valueOf,
+        enumValues: SignalTarget.values)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataChannelInfo clone() => DataChannelInfo()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataChannelInfo copyWith(void Function(DataChannelInfo) updates) => super.copyWith((message) => updates(message as DataChannelInfo)) as DataChannelInfo;
+  DataChannelInfo copyWith(void Function(DataChannelInfo) updates) =>
+      super.copyWith((message) => updates(message as DataChannelInfo))
+          as DataChannelInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3265,9 +3837,11 @@ class DataChannelInfo extends $pb.GeneratedMessage {
   static DataChannelInfo create() => DataChannelInfo._();
   @$core.override
   DataChannelInfo createEmptyInstance() => create();
-  static $pb.PbList<DataChannelInfo> createRepeated() => $pb.PbList<DataChannelInfo>();
+  static $pb.PbList<DataChannelInfo> createRepeated() =>
+      $pb.PbList<DataChannelInfo>();
   @$core.pragma('dart2js:noInline')
-  static DataChannelInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataChannelInfo>(create);
+  static DataChannelInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DataChannelInfo>(create);
   static DataChannelInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3299,15 +3873,15 @@ class DataChannelInfo extends $pb.GeneratedMessage {
 }
 
 enum SimulateScenario_Scenario {
-  speakerUpdate, 
-  nodeFailure, 
-  migration, 
-  serverLeave, 
-  switchCandidateProtocol, 
-  subscriberBandwidth, 
-  disconnectSignalOnResume, 
-  disconnectSignalOnResumeNoMessages, 
-  leaveRequestFullReconnect, 
+  speakerUpdate,
+  nodeFailure,
+  migration,
+  serverLeave,
+  switchCandidateProtocol,
+  subscriberBandwidth,
+  disconnectSignalOnResume,
+  disconnectSignalOnResumeNoMessages,
+  leaveRequestFullReconnect,
   notSet
 }
 
@@ -3328,49 +3902,69 @@ class SimulateScenario extends $pb.GeneratedMessage {
     if (nodeFailure != null) result.nodeFailure = nodeFailure;
     if (migration != null) result.migration = migration;
     if (serverLeave != null) result.serverLeave = serverLeave;
-    if (switchCandidateProtocol != null) result.switchCandidateProtocol = switchCandidateProtocol;
-    if (subscriberBandwidth != null) result.subscriberBandwidth = subscriberBandwidth;
-    if (disconnectSignalOnResume != null) result.disconnectSignalOnResume = disconnectSignalOnResume;
-    if (disconnectSignalOnResumeNoMessages != null) result.disconnectSignalOnResumeNoMessages = disconnectSignalOnResumeNoMessages;
-    if (leaveRequestFullReconnect != null) result.leaveRequestFullReconnect = leaveRequestFullReconnect;
+    if (switchCandidateProtocol != null)
+      result.switchCandidateProtocol = switchCandidateProtocol;
+    if (subscriberBandwidth != null)
+      result.subscriberBandwidth = subscriberBandwidth;
+    if (disconnectSignalOnResume != null)
+      result.disconnectSignalOnResume = disconnectSignalOnResume;
+    if (disconnectSignalOnResumeNoMessages != null)
+      result.disconnectSignalOnResumeNoMessages =
+          disconnectSignalOnResumeNoMessages;
+    if (leaveRequestFullReconnect != null)
+      result.leaveRequestFullReconnect = leaveRequestFullReconnect;
     return result;
   }
 
   SimulateScenario._();
 
-  factory SimulateScenario.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SimulateScenario.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SimulateScenario.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SimulateScenario.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static const $core.Map<$core.int, SimulateScenario_Scenario> _SimulateScenario_ScenarioByTag = {
-    1 : SimulateScenario_Scenario.speakerUpdate,
-    2 : SimulateScenario_Scenario.nodeFailure,
-    3 : SimulateScenario_Scenario.migration,
-    4 : SimulateScenario_Scenario.serverLeave,
-    5 : SimulateScenario_Scenario.switchCandidateProtocol,
-    6 : SimulateScenario_Scenario.subscriberBandwidth,
-    7 : SimulateScenario_Scenario.disconnectSignalOnResume,
-    8 : SimulateScenario_Scenario.disconnectSignalOnResumeNoMessages,
-    9 : SimulateScenario_Scenario.leaveRequestFullReconnect,
-    0 : SimulateScenario_Scenario.notSet
+  static const $core.Map<$core.int, SimulateScenario_Scenario>
+      _SimulateScenario_ScenarioByTag = {
+    1: SimulateScenario_Scenario.speakerUpdate,
+    2: SimulateScenario_Scenario.nodeFailure,
+    3: SimulateScenario_Scenario.migration,
+    4: SimulateScenario_Scenario.serverLeave,
+    5: SimulateScenario_Scenario.switchCandidateProtocol,
+    6: SimulateScenario_Scenario.subscriberBandwidth,
+    7: SimulateScenario_Scenario.disconnectSignalOnResume,
+    8: SimulateScenario_Scenario.disconnectSignalOnResumeNoMessages,
+    9: SimulateScenario_Scenario.leaveRequestFullReconnect,
+    0: SimulateScenario_Scenario.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SimulateScenario', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SimulateScenario',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'speakerUpdate', $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        1, _omitFieldNames ? '' : 'speakerUpdate', $pb.PbFieldType.O3)
     ..aOB(2, _omitFieldNames ? '' : 'nodeFailure')
     ..aOB(3, _omitFieldNames ? '' : 'migration')
     ..aOB(4, _omitFieldNames ? '' : 'serverLeave')
-    ..e<CandidateProtocol>(5, _omitFieldNames ? '' : 'switchCandidateProtocol', $pb.PbFieldType.OE, defaultOrMaker: CandidateProtocol.UDP, valueOf: CandidateProtocol.valueOf, enumValues: CandidateProtocol.values)
+    ..e<CandidateProtocol>(
+        5, _omitFieldNames ? '' : 'switchCandidateProtocol', $pb.PbFieldType.OE,
+        defaultOrMaker: CandidateProtocol.UDP,
+        valueOf: CandidateProtocol.valueOf,
+        enumValues: CandidateProtocol.values)
     ..aInt64(6, _omitFieldNames ? '' : 'subscriberBandwidth')
     ..aOB(7, _omitFieldNames ? '' : 'disconnectSignalOnResume')
     ..aOB(8, _omitFieldNames ? '' : 'disconnectSignalOnResumeNoMessages')
     ..aOB(9, _omitFieldNames ? '' : 'leaveRequestFullReconnect')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimulateScenario clone() => SimulateScenario()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimulateScenario copyWith(void Function(SimulateScenario) updates) => super.copyWith((message) => updates(message as SimulateScenario)) as SimulateScenario;
+  SimulateScenario copyWith(void Function(SimulateScenario) updates) =>
+      super.copyWith((message) => updates(message as SimulateScenario))
+          as SimulateScenario;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3379,12 +3973,15 @@ class SimulateScenario extends $pb.GeneratedMessage {
   static SimulateScenario create() => SimulateScenario._();
   @$core.override
   SimulateScenario createEmptyInstance() => create();
-  static $pb.PbList<SimulateScenario> createRepeated() => $pb.PbList<SimulateScenario>();
+  static $pb.PbList<SimulateScenario> createRepeated() =>
+      $pb.PbList<SimulateScenario>();
   @$core.pragma('dart2js:noInline')
-  static SimulateScenario getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SimulateScenario>(create);
+  static SimulateScenario getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SimulateScenario>(create);
   static SimulateScenario? _defaultInstance;
 
-  SimulateScenario_Scenario whichScenario() => _SimulateScenario_ScenarioByTag[$_whichOneof(0)]!;
+  SimulateScenario_Scenario whichScenario() =>
+      _SimulateScenario_ScenarioByTag[$_whichOneof(0)]!;
   void clearScenario() => $_clearField($_whichOneof(0));
 
   /// simulate N seconds of speaker activity
@@ -3462,7 +4059,8 @@ class SimulateScenario extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.bool get disconnectSignalOnResumeNoMessages => $_getBF(7);
   @$pb.TagNumber(8)
-  set disconnectSignalOnResumeNoMessages($core.bool value) => $_setBool(7, value);
+  set disconnectSignalOnResumeNoMessages($core.bool value) =>
+      $_setBool(7, value);
   @$pb.TagNumber(8)
   $core.bool hasDisconnectSignalOnResumeNoMessages() => $_has(7);
   @$pb.TagNumber(8)
@@ -3492,19 +4090,26 @@ class Ping extends $pb.GeneratedMessage {
 
   Ping._();
 
-  factory Ping.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory Ping.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory Ping.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Ping.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Ping', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Ping',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'timestamp')
     ..aInt64(2, _omitFieldNames ? '' : 'rtt')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Ping clone() => Ping()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Ping copyWith(void Function(Ping) updates) => super.copyWith((message) => updates(message as Ping)) as Ping;
+  Ping copyWith(void Function(Ping) updates) =>
+      super.copyWith((message) => updates(message as Ping)) as Ping;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3515,7 +4120,8 @@ class Ping extends $pb.GeneratedMessage {
   Ping createEmptyInstance() => create();
   static $pb.PbList<Ping> createRepeated() => $pb.PbList<Ping>();
   @$core.pragma('dart2js:noInline')
-  static Ping getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Ping>(create);
+  static Ping getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Ping>(create);
   static Ping? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3551,19 +4157,26 @@ class Pong extends $pb.GeneratedMessage {
 
   Pong._();
 
-  factory Pong.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory Pong.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory Pong.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Pong.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Pong', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'Pong',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'lastPingTimestamp')
     ..aInt64(2, _omitFieldNames ? '' : 'timestamp')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Pong clone() => Pong()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Pong copyWith(void Function(Pong) updates) => super.copyWith((message) => updates(message as Pong)) as Pong;
+  Pong copyWith(void Function(Pong) updates) =>
+      super.copyWith((message) => updates(message as Pong)) as Pong;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3574,7 +4187,8 @@ class Pong extends $pb.GeneratedMessage {
   Pong createEmptyInstance() => create();
   static $pb.PbList<Pong> createRepeated() => $pb.PbList<Pong>();
   @$core.pragma('dart2js:noInline')
-  static Pong getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Pong>(create);
+  static Pong getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Pong>(create);
   static Pong? _defaultInstance;
 
   /// timestamp field of last received ping request
@@ -3608,18 +4222,27 @@ class RegionSettings extends $pb.GeneratedMessage {
 
   RegionSettings._();
 
-  factory RegionSettings.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory RegionSettings.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory RegionSettings.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RegionSettings.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RegionSettings', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<RegionInfo>(1, _omitFieldNames ? '' : 'regions', $pb.PbFieldType.PM, subBuilder: RegionInfo.create)
-    ..hasRequiredFields = false
-  ;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RegionSettings',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..pc<RegionInfo>(1, _omitFieldNames ? '' : 'regions', $pb.PbFieldType.PM,
+        subBuilder: RegionInfo.create)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RegionSettings clone() => RegionSettings()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RegionSettings copyWith(void Function(RegionSettings) updates) => super.copyWith((message) => updates(message as RegionSettings)) as RegionSettings;
+  RegionSettings copyWith(void Function(RegionSettings) updates) =>
+      super.copyWith((message) => updates(message as RegionSettings))
+          as RegionSettings;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3628,9 +4251,11 @@ class RegionSettings extends $pb.GeneratedMessage {
   static RegionSettings create() => RegionSettings._();
   @$core.override
   RegionSettings createEmptyInstance() => create();
-  static $pb.PbList<RegionSettings> createRepeated() => $pb.PbList<RegionSettings>();
+  static $pb.PbList<RegionSettings> createRepeated() =>
+      $pb.PbList<RegionSettings>();
   @$core.pragma('dart2js:noInline')
-  static RegionSettings getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RegionSettings>(create);
+  static RegionSettings getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RegionSettings>(create);
   static RegionSettings? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3652,20 +4277,27 @@ class RegionInfo extends $pb.GeneratedMessage {
 
   RegionInfo._();
 
-  factory RegionInfo.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory RegionInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory RegionInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RegionInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RegionInfo', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RegionInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'region')
     ..aOS(2, _omitFieldNames ? '' : 'url')
     ..aInt64(3, _omitFieldNames ? '' : 'distance')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RegionInfo clone() => RegionInfo()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RegionInfo copyWith(void Function(RegionInfo) updates) => super.copyWith((message) => updates(message as RegionInfo)) as RegionInfo;
+  RegionInfo copyWith(void Function(RegionInfo) updates) =>
+      super.copyWith((message) => updates(message as RegionInfo)) as RegionInfo;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3676,7 +4308,8 @@ class RegionInfo extends $pb.GeneratedMessage {
   RegionInfo createEmptyInstance() => create();
   static $pb.PbList<RegionInfo> createRepeated() => $pb.PbList<RegionInfo>();
   @$core.pragma('dart2js:noInline')
-  static RegionInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RegionInfo>(create);
+  static RegionInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RegionInfo>(create);
   static RegionInfo? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3720,19 +4353,32 @@ class SubscriptionResponse extends $pb.GeneratedMessage {
 
   SubscriptionResponse._();
 
-  factory SubscriptionResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory SubscriptionResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory SubscriptionResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SubscriptionResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SubscriptionResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SubscriptionResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..e<$2.SubscriptionError>(2, _omitFieldNames ? '' : 'err', $pb.PbFieldType.OE, defaultOrMaker: $2.SubscriptionError.SE_UNKNOWN, valueOf: $2.SubscriptionError.valueOf, enumValues: $2.SubscriptionError.values)
-    ..hasRequiredFields = false
-  ;
+    ..e<$2.SubscriptionError>(
+        2, _omitFieldNames ? '' : 'err', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.SubscriptionError.SE_UNKNOWN,
+        valueOf: $2.SubscriptionError.valueOf,
+        enumValues: $2.SubscriptionError.values)
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionResponse clone() => SubscriptionResponse()..mergeFromMessage(this);
+  SubscriptionResponse clone() =>
+      SubscriptionResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscriptionResponse copyWith(void Function(SubscriptionResponse) updates) => super.copyWith((message) => updates(message as SubscriptionResponse)) as SubscriptionResponse;
+  SubscriptionResponse copyWith(void Function(SubscriptionResponse) updates) =>
+      super.copyWith((message) => updates(message as SubscriptionResponse))
+          as SubscriptionResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3741,9 +4387,11 @@ class SubscriptionResponse extends $pb.GeneratedMessage {
   static SubscriptionResponse create() => SubscriptionResponse._();
   @$core.override
   SubscriptionResponse createEmptyInstance() => create();
-  static $pb.PbList<SubscriptionResponse> createRepeated() => $pb.PbList<SubscriptionResponse>();
+  static $pb.PbList<SubscriptionResponse> createRepeated() =>
+      $pb.PbList<SubscriptionResponse>();
   @$core.pragma('dart2js:noInline')
-  static SubscriptionResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscriptionResponse>(create);
+  static SubscriptionResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SubscriptionResponse>(create);
   static SubscriptionResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3780,20 +4428,32 @@ class RequestResponse extends $pb.GeneratedMessage {
 
   RequestResponse._();
 
-  factory RequestResponse.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory RequestResponse.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory RequestResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory RequestResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RequestResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'RequestResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'requestId', $pb.PbFieldType.OU3)
-    ..e<RequestResponse_Reason>(2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE, defaultOrMaker: RequestResponse_Reason.OK, valueOf: RequestResponse_Reason.valueOf, enumValues: RequestResponse_Reason.values)
+    ..e<RequestResponse_Reason>(
+        2, _omitFieldNames ? '' : 'reason', $pb.PbFieldType.OE,
+        defaultOrMaker: RequestResponse_Reason.OK,
+        valueOf: RequestResponse_Reason.valueOf,
+        enumValues: RequestResponse_Reason.values)
     ..aOS(3, _omitFieldNames ? '' : 'message')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RequestResponse clone() => RequestResponse()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RequestResponse copyWith(void Function(RequestResponse) updates) => super.copyWith((message) => updates(message as RequestResponse)) as RequestResponse;
+  RequestResponse copyWith(void Function(RequestResponse) updates) =>
+      super.copyWith((message) => updates(message as RequestResponse))
+          as RequestResponse;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3802,9 +4462,11 @@ class RequestResponse extends $pb.GeneratedMessage {
   static RequestResponse create() => RequestResponse._();
   @$core.override
   RequestResponse createEmptyInstance() => create();
-  static $pb.PbList<RequestResponse> createRepeated() => $pb.PbList<RequestResponse>();
+  static $pb.PbList<RequestResponse> createRepeated() =>
+      $pb.PbList<RequestResponse>();
   @$core.pragma('dart2js:noInline')
-  static RequestResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RequestResponse>(create);
+  static RequestResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<RequestResponse>(create);
   static RequestResponse? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3846,18 +4508,26 @@ class TrackSubscribed extends $pb.GeneratedMessage {
 
   TrackSubscribed._();
 
-  factory TrackSubscribed.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
-  factory TrackSubscribed.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+  factory TrackSubscribed.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TrackSubscribed.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackSubscribed', package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TrackSubscribed',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'trackSid')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TrackSubscribed clone() => TrackSubscribed()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackSubscribed copyWith(void Function(TrackSubscribed) updates) => super.copyWith((message) => updates(message as TrackSubscribed)) as TrackSubscribed;
+  TrackSubscribed copyWith(void Function(TrackSubscribed) updates) =>
+      super.copyWith((message) => updates(message as TrackSubscribed))
+          as TrackSubscribed;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -3866,9 +4536,11 @@ class TrackSubscribed extends $pb.GeneratedMessage {
   static TrackSubscribed create() => TrackSubscribed._();
   @$core.override
   TrackSubscribed createEmptyInstance() => create();
-  static $pb.PbList<TrackSubscribed> createRepeated() => $pb.PbList<TrackSubscribed>();
+  static $pb.PbList<TrackSubscribed> createRepeated() =>
+      $pb.PbList<TrackSubscribed>();
   @$core.pragma('dart2js:noInline')
-  static TrackSubscribed getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackSubscribed>(create);
+  static TrackSubscribed getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TrackSubscribed>(create);
   static TrackSubscribed? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -3881,6 +4553,7 @@ class TrackSubscribed extends $pb.GeneratedMessage {
   void clearTrackSid() => $_clearField(1);
 }
 
-
-const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

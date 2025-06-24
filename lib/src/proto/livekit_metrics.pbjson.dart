@@ -32,7 +32,10 @@ const MetricLabel$json = {
     {'1': 'CLIENT_AUDIO_SUBSCRIBER_TOTAL_INTERRUPTION_DURATION', '2': 11},
     {'1': 'CLIENT_SUBSCRIBER_JITTER_BUFFER_DELAY', '2': 12},
     {'1': 'CLIENT_SUBSCRIBER_JITTER_BUFFER_EMITTED_COUNT', '2': 13},
-    {'1': 'CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_BANDWIDTH', '2': 14},
+    {
+      '1': 'CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_BANDWIDTH',
+      '2': 14
+    },
     {'1': 'CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_CPU', '2': 15},
     {'1': 'CLIENT_VIDEO_PUBLISHER_QUALITY_LIMITATION_DURATION_OTHER', '2': 16},
     {'1': 'PUBLISHER_RTT', '2': 17},
@@ -67,10 +70,31 @@ const MetricsBatch$json = {
   '1': 'MetricsBatch',
   '2': [
     {'1': 'timestamp_ms', '3': 1, '4': 1, '5': 3, '10': 'timestampMs'},
-    {'1': 'normalized_timestamp', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'normalizedTimestamp'},
+    {
+      '1': 'normalized_timestamp',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'normalizedTimestamp'
+    },
     {'1': 'str_data', '3': 3, '4': 3, '5': 9, '10': 'strData'},
-    {'1': 'time_series', '3': 4, '4': 3, '5': 11, '6': '.livekit.TimeSeriesMetric', '10': 'timeSeries'},
-    {'1': 'events', '3': 5, '4': 3, '5': 11, '6': '.livekit.EventMetric', '10': 'events'},
+    {
+      '1': 'time_series',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TimeSeriesMetric',
+      '10': 'timeSeries'
+    },
+    {
+      '1': 'events',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EventMetric',
+      '10': 'events'
+    },
   ],
 };
 
@@ -87,9 +111,22 @@ const TimeSeriesMetric$json = {
   '1': 'TimeSeriesMetric',
   '2': [
     {'1': 'label', '3': 1, '4': 1, '5': 13, '10': 'label'},
-    {'1': 'participant_identity', '3': 2, '4': 1, '5': 13, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 2,
+      '4': 1,
+      '5': 13,
+      '10': 'participantIdentity'
+    },
     {'1': 'track_sid', '3': 3, '4': 1, '5': 13, '10': 'trackSid'},
-    {'1': 'samples', '3': 4, '4': 3, '5': 11, '6': '.livekit.MetricSample', '10': 'samples'},
+    {
+      '1': 'samples',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.MetricSample',
+      '10': 'samples'
+    },
     {'1': 'rid', '3': 5, '4': 1, '5': 13, '10': 'rid'},
   ],
 };
@@ -106,7 +143,14 @@ const MetricSample$json = {
   '1': 'MetricSample',
   '2': [
     {'1': 'timestamp_ms', '3': 1, '4': 1, '5': 3, '10': 'timestampMs'},
-    {'1': 'normalized_timestamp', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'normalizedTimestamp'},
+    {
+      '1': 'normalized_timestamp',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'normalizedTimestamp'
+    },
     {'1': 'value', '3': 3, '4': 1, '5': 2, '10': 'value'},
   ],
 };
@@ -122,12 +166,48 @@ const EventMetric$json = {
   '1': 'EventMetric',
   '2': [
     {'1': 'label', '3': 1, '4': 1, '5': 13, '10': 'label'},
-    {'1': 'participant_identity', '3': 2, '4': 1, '5': 13, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 2,
+      '4': 1,
+      '5': 13,
+      '10': 'participantIdentity'
+    },
     {'1': 'track_sid', '3': 3, '4': 1, '5': 13, '10': 'trackSid'},
-    {'1': 'start_timestamp_ms', '3': 4, '4': 1, '5': 3, '10': 'startTimestampMs'},
-    {'1': 'end_timestamp_ms', '3': 5, '4': 1, '5': 3, '9': 0, '10': 'endTimestampMs', '17': true},
-    {'1': 'normalized_start_timestamp', '3': 6, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'normalizedStartTimestamp'},
-    {'1': 'normalized_end_timestamp', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 1, '10': 'normalizedEndTimestamp', '17': true},
+    {
+      '1': 'start_timestamp_ms',
+      '3': 4,
+      '4': 1,
+      '5': 3,
+      '10': 'startTimestampMs'
+    },
+    {
+      '1': 'end_timestamp_ms',
+      '3': 5,
+      '4': 1,
+      '5': 3,
+      '9': 0,
+      '10': 'endTimestampMs',
+      '17': true
+    },
+    {
+      '1': 'normalized_start_timestamp',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'normalizedStartTimestamp'
+    },
+    {
+      '1': 'normalized_end_timestamp',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '9': 1,
+      '10': 'normalizedEndTimestamp',
+      '17': true
+    },
     {'1': 'metadata', '3': 8, '4': 1, '5': 9, '10': 'metadata'},
     {'1': 'rid', '3': 9, '4': 1, '5': 13, '10': 'rid'},
   ],
@@ -148,4 +228,3 @@ final $typed_data.Uint8List eventMetricDescriptor = $convert.base64Decode(
     'Gi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSAFSFm5vcm1hbGl6ZWRFbmRUaW1lc3RhbXCIAQ'
     'ESGgoIbWV0YWRhdGEYCCABKAlSCG1ldGFkYXRhEhAKA3JpZBgJIAEoDVIDcmlkQhMKEV9lbmRf'
     'dGltZXN0YW1wX21zQhsKGV9ub3JtYWxpemVkX2VuZF90aW1lc3RhbXA=');
-
