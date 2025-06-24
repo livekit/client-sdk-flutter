@@ -6,6 +6,11 @@
 
 #include <cstring>
 
+
+#include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
+
+#include "audio_visualizer.h"
+
 #include "livekit_plugin_private.h"
 
 #define LIVEKIT_PLUGIN(obj) \
@@ -14,6 +19,7 @@
 
 struct _LivekitPlugin {
   GObject parent_instance;
+  flutter_webrtc_plugin::FlutterWebRTC *webrtc_instance;
 };
 
 G_DEFINE_TYPE(LivekitPlugin, livekit_plugin, g_object_get_type())
@@ -51,7 +57,9 @@ static void livekit_plugin_class_init(LivekitPluginClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = livekit_plugin_dispose;
 }
 
-static void livekit_plugin_init(LivekitPlugin* self) {}
+static void livekit_plugin_init(LivekitPlugin* self) {
+  self->webrtc_instance = flutter_webrtc_plugin_get_shared_instance();
+}
 
 static void method_call_cb(FlMethodChannel* channel, FlMethodCall* method_call,
                            gpointer user_data) {
