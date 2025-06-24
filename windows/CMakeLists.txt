@@ -20,18 +20,23 @@ project(${PROJECT_NAME} LANGUAGES CXX C)
 # not be changed
 set(PLUGIN_NAME "livekit_client_plugin")
 
+add_definitions(-D_USE_MATH_DEFINES)
+
 add_library(${PLUGIN_NAME} SHARED
   "livekit_plugin.cpp"
-  "../shared_cpp/fft/real_fft.c"
-  "../shared_cpp/fft/complex_fft.c"
-  "../shared_cpp/fft/complex_bit_reverse.c"
+  "../shared_cpp/fft_processor.cpp"
+  "../shared_cpp/audio_visualizer.cpp"
+  "../shared_cpp/pffft.c"
 )
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp/fft"
 )
+
+target_compile_options(${PLUGIN_NAME} PRIVATE /wd4456)
+target_compile_options(${PLUGIN_NAME} PRIVATE /wd4244)
+target_compile_options(${PLUGIN_NAME} PRIVATE /wd4305)
 
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES

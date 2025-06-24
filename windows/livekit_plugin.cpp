@@ -24,15 +24,44 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <flutter_common.h>
+#include <flutter_webrtc.h>
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 
-#include <flutter_webrtc.h>
-
+#include <iomanip>
 #include <map>
 #include <memory>
 #include <sstream>
 
+#include "audio_visualizer.h"
+
 namespace {
+
+class VisualizerSink : public libwebrtc::AudioTrackSink {
+public:
+  VisualizerSink() {}
+  ~VisualizerSink() override {}
+
+public:
+  void OnData(const void *audio_data, int bits_per_sample, int sample_rate,
+              size_t number_of_channels, size_t number_of_frames) override {
+
+    std::vector<float> bands;
+    if (audio_visualizer_.Process((const int16_t *)audio_data,
+                                  (unsigned int)number_of_frames,
+                                  float(sample_rate), bands)) {
+      std::cout << "Processed audio data into bands: ";
+      for (const auto &band : bands) {
+        std::cout << band << ", ";
+      }
+      std::cout << std::endl;
+    }
+  }
+
+private:
+  AudioVisualizer audio_visualizer_;
+  std::vector<float> bands_; // Store the bands for further processing
+};
 
 class LiveKitPlugin : public flutter::Plugin {
 public:
@@ -49,7 +78,8 @@ private:
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
 private:
-  FlutterWebRTC *webrtc_instance_ = nullptr;
+  flutter_webrtc_plugin::FlutterWebRTC *webrtc_instance_ = nullptr;
+  VisualizerSink audio_sink_; // Example audio sink instance
 };
 
 // static
@@ -71,7 +101,7 @@ void LiveKitPlugin::RegisterWithRegistrar(
 }
 
 LiveKitPlugin::LiveKitPlugin() {
-  webrtc_instance_ = FlutterWebRTC::shared_instance();
+  webrtc_instance_ = FlutterWebRTCPluginSharedInstance();
 }
 
 LiveKitPlugin::~LiveKitPlugin() {}
@@ -84,31 +114,55 @@ void LiveKitPlugin::HandleMethodCall(
       result->Error("Bad Arguments", "Null arguments received");
       return;
     }
-    const EncodableMap params =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string trackId = findString(params, "trackId");
-    const std::string visualizerId = findString(params, "visualizerId");
-    const int barCount = GetValue<int>(params["barCount"]);
-    const bool isCentered = GetValue<bool>(params["isCentered"]);
+    flutter::EncodableMap params =
+        GetValue<flutter::EncodableMap>(*method_call.arguments());
+    std::string trackId = findString(params, "trackId");
+    std::string visualizerId = findString(params, "visualizerId");
+    int barCount = GetValue<int>(params["barCount"]);
+    bool isCentered = GetValue<bool>(params["isCentered"]);
+    if (trackId.empty() || visualizerId.empty()) {
+      result->Error("Invalid Arguments",
+                    "trackId and visualizerId are required");
+      return;
+    }
+    libwebrtc::RTCAudioTrack *media_track =
+        (libwebrtc::RTCAudioTrack *)webrtc_instance_->MediaTrackForId(trackId);
+    if (!media_track) {
+      result->Error("Track Not Found", "No media track found for the given ID");
+      return;
+    }
+
+    media_track->AddSink(&audio_sink_);
 
     std::cout << "Starting visualizer for trackId: " << trackId
               << ", visualizerId: " << visualizerId
               << ", barCount: " << barCount
-              << ", isCentered: " << (isCentered ? "true" : "false") << std::endl;
+              << ", isCentered: " << (isCentered ? "true" : "false")
+              << std::endl;
 
-    result->Success(flutter::EncodableValue(version_stream.str()));
+    result->Success(flutter::EncodableValue("Visualizer started"));
   } else if (method_call.method_name().compare("stopVisualizer") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
       return;
     }
-    const EncodableMap args =
-        GetValue<EncodableMap>(*method_call.arguments());
-    const std::string trackId = findString(args, "trackId");
-    const std::string visualizerId = findString(args, "visualizerId");
+    flutter::EncodableMap args =
+        GetValue<flutter::EncodableMap>(*method_call.arguments());
+    std::string trackId = findString(args, "trackId");
+    std::string visualizerId = findString(args, "visualizerId");
     std::cout << "Stopping visualizer for trackId: " << trackId
               << ", visualizerId: " << visualizerId << std::endl;
-    result->Success(flutter::EncodableValue(version_stream.str()));
+
+    libwebrtc::RTCAudioTrack *media_track =
+        (libwebrtc::RTCAudioTrack *)webrtc_instance_->MediaTrackForId(trackId);
+    if (!media_track) {
+      result->Error("Track Not Found", "No media track found for the given ID");
+      return;
+    }
+
+    media_track->RemoveSink(&audio_sink_);
+
+    result->Success(flutter::EncodableValue("Visualizer stopped"));
   } else {
     result->NotImplemented();
   }
