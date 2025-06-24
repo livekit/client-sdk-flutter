@@ -43,12 +43,15 @@ enum VideoRenderMode {
 }
 
 enum VideoViewFit {
-  contain, cover,
+  contain,
+  cover,
 }
 
 extension VideoViewFitExt on VideoViewFit {
   rtc.RTCVideoViewObjectFit toRTCType() {
-    if (this == VideoViewFit.cover) return rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitCover;
+    if (this == VideoViewFit.cover) {
+      return rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitCover;
+    }
     return rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain;
   }
 }

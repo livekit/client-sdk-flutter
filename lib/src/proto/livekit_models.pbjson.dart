@@ -2,12 +2,13 @@
 //  Generated code. Do not modify.
 //  source: livekit_models.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -168,6 +169,7 @@ const DisconnectReason$json = {
     {'1': 'USER_REJECTED', '2': 12},
     {'1': 'SIP_TRUNK_FAILURE', '2': 13},
     {'1': 'CONNECTION_TIMEOUT', '2': 14},
+    {'1': 'MEDIA_FAILURE', '2': 15},
   ],
 };
 
@@ -178,7 +180,8 @@ final $typed_data.Uint8List disconnectReasonDescriptor = $convert.base64Decode(
     'UlRJQ0lQQU5UX1JFTU9WRUQQBBIQCgxST09NX0RFTEVURUQQBRISCg5TVEFURV9NSVNNQVRDSB'
     'AGEhAKDEpPSU5fRkFJTFVSRRAHEg0KCU1JR1JBVElPThAIEhAKDFNJR05BTF9DTE9TRRAJEg8K'
     'C1JPT01fQ0xPU0VEEAoSFAoQVVNFUl9VTkFWQUlMQUJMRRALEhEKDVVTRVJfUkVKRUNURUQQDB'
-    'IVChFTSVBfVFJVTktfRkFJTFVSRRANEhYKEkNPTk5FQ1RJT05fVElNRU9VVBAO');
+    'IVChFTSVBfVFJVTktfRkFJTFVSRRANEhYKEkNPTk5FQ1RJT05fVElNRU9VVBAOEhEKDU1FRElB'
+    'X0ZBSUxVUkUQDw==');
 
 @$core.Deprecated('Use reconnectReasonDescriptor instead')
 const ReconnectReason$json = {
@@ -223,6 +226,7 @@ const AudioTrackFeature$json = {
     {'1': 'TF_ECHO_CANCELLATION', '2': 3},
     {'1': 'TF_NOISE_SUPPRESSION', '2': 4},
     {'1': 'TF_ENHANCED_NOISE_CANCELLATION', '2': 5},
+    {'1': 'TF_PRECONNECT_BUFFER', '2': 6},
   ],
 };
 
@@ -230,7 +234,8 @@ const AudioTrackFeature$json = {
 final $typed_data.Uint8List audioTrackFeatureDescriptor = $convert.base64Decode(
     'ChFBdWRpb1RyYWNrRmVhdHVyZRINCglURl9TVEVSRU8QABINCglURl9OT19EVFgQARIYChRURl'
     '9BVVRPX0dBSU5fQ09OVFJPTBACEhgKFFRGX0VDSE9fQ0FOQ0VMTEFUSU9OEAMSGAoUVEZfTk9J'
-    'U0VfU1VQUFJFU1NJT04QBBIiCh5URl9FTkhBTkNFRF9OT0lTRV9DQU5DRUxMQVRJT04QBQ==');
+    'U0VfU1VQUFJFU1NJT04QBBIiCh5URl9FTkhBTkNFRF9OT0lTRV9DQU5DRUxMQVRJT04QBRIYCh'
+    'RURl9QUkVDT05ORUNUX0JVRkZFUhAG');
 
 @$core.Deprecated('Use paginationDescriptor instead')
 const Pagination$json = {
@@ -845,6 +850,8 @@ const DataPacket$json = {
       '9': 0,
       '10': 'streamTrailer'
     },
+    {'1': 'sequence', '3': 16, '4': 1, '5': 13, '10': 'sequence'},
+    {'1': 'participant_sid', '3': 17, '4': 1, '5': 9, '10': 'participantSid'},
   ],
   '4': [DataPacket_Kind$json],
   '8': [
@@ -878,8 +885,9 @@ final $typed_data.Uint8List dataPacketDescriptor = $convert.base64Decode(
     'YWRlchgNIAEoCzIaLmxpdmVraXQuRGF0YVN0cmVhbS5IZWFkZXJIAFIMc3RyZWFtSGVhZGVyEj'
     '4KDHN0cmVhbV9jaHVuaxgOIAEoCzIZLmxpdmVraXQuRGF0YVN0cmVhbS5DaHVua0gAUgtzdHJl'
     'YW1DaHVuaxJECg5zdHJlYW1fdHJhaWxlchgPIAEoCzIbLmxpdmVraXQuRGF0YVN0cmVhbS5Ucm'
-    'FpbGVySABSDXN0cmVhbVRyYWlsZXIiHwoES2luZBIMCghSRUxJQUJMRRAAEgkKBUxPU1NZEAFC'
-    'BwoFdmFsdWU=');
+    'FpbGVySABSDXN0cmVhbVRyYWlsZXISGgoIc2VxdWVuY2UYECABKA1SCHNlcXVlbmNlEicKD3Bh'
+    'cnRpY2lwYW50X3NpZBgRIAEoCVIOcGFydGljaXBhbnRTaWQiHwoES2luZBIMCghSRUxJQUJMRR'
+    'AAEgkKBUxPU1NZEAFCBwoFdmFsdWU=');
 
 @$core.Deprecated('Use activeSpeakerUpdateDescriptor instead')
 const ActiveSpeakerUpdate$json = {
