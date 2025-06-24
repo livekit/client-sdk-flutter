@@ -1,8 +1,9 @@
+import 'package:uuid/uuid.dart' as uuid;
+
 import 'package:livekit_client/src/support/disposable.dart';
 import '../events.dart' show AudioVisualizerEvent;
 import '../managers/event.dart' show EventsEmittable;
 import 'local/local.dart' show AudioTrack;
-import 'package:uuid/uuid.dart' as uuid;
 
 import 'audio_visualizer_native.dart'
     if (dart.library.js_interop) 'audio_visualizer_web.dart';
