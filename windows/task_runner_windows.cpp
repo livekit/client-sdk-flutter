@@ -12,7 +12,7 @@ namespace livekit_client_plugin {
 TaskRunnerWindows::TaskRunnerWindows() {
   WNDCLASS window_class = RegisterWindowClass();
   window_handle_ =
-      CreateWindowEx(0, window_class.lpszClassName, L"", 0, 0, 0, 0, 0,
+      CreateWindowEx(0, window_class.lpszClassName, L"livekit", 0, 0, 0, 0, 0,
                      HWND_MESSAGE, nullptr, window_class.hInstance, nullptr);
 
   if (window_handle_) {
@@ -65,7 +65,7 @@ void TaskRunnerWindows::ProcessTasks() {
 }
 
 WNDCLASS TaskRunnerWindows::RegisterWindowClass() {
-  window_class_name_ = L"FlutterWebRTCWindowsTaskRunnerWindow";
+  window_class_name_ = L"LiveKitWindowsTaskRunnerWindow";
 
   WNDCLASS window_class{};
   window_class.hCursor = nullptr;

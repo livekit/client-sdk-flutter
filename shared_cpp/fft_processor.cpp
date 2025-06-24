@@ -36,8 +36,7 @@ void S16ToFloat(const int16_t *src, size_t size, float *dest) {
 }
 
 FFTProcessor::FFTProcessor(int fftSize, double moothing_time_constant)
-    : fft_size_(kDefaultFFTSize), input_buffer_(kInputBufferSize),
-      magnitude_buffer_(kDefaultFFTSize / 2),
+    : fft_size_(kDefaultFFTSize),
       smoothing_time_constant_(kDefaultSmoothingTimeConstant),
       min_decibels_(kDefaultMinDecibels), max_decibels_(kDefaultMaxDecibels) {
   fft_size_ = fftSize;
@@ -45,11 +44,12 @@ FFTProcessor::FFTProcessor(int fftSize, double moothing_time_constant)
     smoothing_time_constant_ = moothing_time_constant;
   }
   setup_ = std::make_unique<FFTSetup>(fft_size_);
-  pffft_work_ = std::vector<float>(fft_size_, 0.0f);
-  complex_data_ = std::vector<float>(fft_size_, 0.0f);
-  real_data_ = std::vector<float>(fft_size_ / 2, 0.0f);
-  imag_data_ = std::vector<float>(fft_size_ / 2, 0.0f);
-  magnitude_buffer_ = std::vector<float>(fft_size_ / 2, 0.0f);
+  input_buffer_ = std::make_unique<std::vector<float>>(kInputBufferSize, 0.0f);
+  pffft_work_ = std::make_unique<std::vector<float>>(fft_size_, 0.0f);
+  complex_data_ = std::make_unique<std::vector<float>>(fft_size_, 0.0f);
+  real_data_ = std::make_unique<std::vector<float>>(fft_size_ / 2, 0.0f);
+  imag_data_ = std::make_unique<std::vector<float>>(fft_size_ / 2, 0.0f);
+  magnitude_buffer_ = std::make_unique<std::vector<float>>(fft_size_ / 2, 0.0f);
 }
 
 FFTProcessor::~FFTProcessor() {}
@@ -95,15 +95,13 @@ void FFTProcessor::WriteInput(const int16_t *input,
   S16ToFloat(input, frames_to_process, input_buffer.data());
 
   unsigned int write_index = GetWriteIndex();
-  // Perform real-time analysis
-  float *dest = input_buffer_.data() + write_index;
-
-  memcpy(dest, input_buffer.data(), frames_to_process * sizeof(*dest));
-
-  write_index += frames_to_process;
-  if (write_index >= kInputBufferSize) {
+  if (write_index + frames_to_process >= kInputBufferSize) {
     write_index = 0;
   }
+  // Perform real-time analysis
+  float *dest = input_buffer_->data() + write_index;
+  memcpy(dest, input_buffer.data(), frames_to_process * sizeof(*dest));
+  write_index += frames_to_process;
 
   SetWriteIndex(write_index);
 }
@@ -112,8 +110,8 @@ void FFTProcessor::DoFFTAnalysis() {
   // Perform the FFT analysis here
   // This is a placeholder for the actual FFT analysis logic
 
-  std::vector<float> temporary_buffer(fft_size_);
-  float *input_buffer = input_buffer_.data();
+  std::vector<float> temporary_buffer(fft_size_, 0.0f);
+  float *input_buffer = input_buffer_->data();
   float *temp_p = temporary_buffer.data();
 
   // Take the previous fftSize values from the input buffer and copy into the
@@ -136,7 +134,7 @@ void FFTProcessor::DoFFTAnalysis() {
   ComputeFFT(temp_p, fft_size_);
 
   // Blow away the packed nyquist component.
-  imag_data_[0] = 0;
+  (*imag_data_)[0] = 0;
 
   // Normalize so than an input sine wave at 0dBfs registers as 0dBfs (undo FFT
   // scaling factor).
@@ -148,11 +146,11 @@ void FFTProcessor::DoFFTAnalysis() {
 
   // Convert the analysis data from complex to magnitude and average with the
   // previous result.
-  float *destination = magnitude_buffer_.data();
-  size_t n = magnitude_buffer_.size();
+  float *destination = magnitude_buffer_->data();
+  size_t n = magnitude_buffer_->size();
 
-  const float *real_p_data = real_data_.data();
-  const float *imag_p_data = imag_data_.data();
+  const float *real_p_data = real_data_->data();
+  const float *imag_p_data = imag_data_->data();
   for (size_t i = 0; i < n; ++i) {
     std::complex<double> c(real_p_data[i], imag_p_data[i]);
     double scalar_magnitude = abs(c) * magnitude_scale;
@@ -163,13 +161,13 @@ void FFTProcessor::DoFFTAnalysis() {
 
 bool FFTProcessor::ComputeFFT(const float *input, size_t numSamples) {
 
-  if (pffft_work_.size() != fft_size_) {
+  if (pffft_work_->size() != fft_size_) {
     // Handle error
     return false;
   }
 
-  pffft_transform_ordered(setup_->GetSetup(), input, complex_data_.data(),
-                          pffft_work_.data(), PFFFT_FORWARD);
+  pffft_transform_ordered(setup_->GetSetup(), input, complex_data_->data(),
+                          pffft_work_->data(), PFFFT_FORWARD);
 
   unsigned len = fft_size_ / 2;
 
@@ -177,9 +175,9 @@ bool FFTProcessor::ComputeFFT(const float *input, size_t numSamples) {
   // uses the desired format; we just need to split out the real and imaginary
   // parts.
 
-  const float *c = complex_data_.data();
-  float *real = real_data_.data();
-  float *imag = imag_data_.data();
+  const float *c = complex_data_->data();
+  float *real = real_data_->data();
+  float *imag = imag_data_->data();
   for (unsigned k = 0; k < len; ++k) {
     int index = 2 * k;
     real[k] = c[index];
@@ -191,10 +189,10 @@ bool FFTProcessor::ComputeFFT(const float *input, size_t numSamples) {
 
 void FFTProcessor::ConvertFloatToDb(std::vector<float> &destination_array) {
   // Convert from linear magnitude to floating-point decibels.
-  size_t source_length = magnitude_buffer_.size();
+  size_t source_length = magnitude_buffer_->size();
   size_t len = std::min(source_length, destination_array.size());
   if (len > 0) {
-    const float *source = magnitude_buffer_.data();
+    const float *source = magnitude_buffer_->data();
     float *destination = destination_array.data();
 
     for (unsigned i = 0; i < len; ++i) {
@@ -207,7 +205,7 @@ void FFTProcessor::ConvertFloatToDb(std::vector<float> &destination_array) {
 
 void FFTProcessor::ConvertToByteData(std::vector<uint8_t> &destination_array) {
   // Convert from linear magnitude to unsigned-byte decibels.
-  size_t source_length = magnitude_buffer_.size();
+  size_t source_length = magnitude_buffer_->size();
   size_t len = std::min(source_length, destination_array.size());
   if (len > 0) {
     const double range_scale_factor = max_decibels_ == min_decibels_
@@ -215,7 +213,7 @@ void FFTProcessor::ConvertToByteData(std::vector<uint8_t> &destination_array) {
                                           : 1 / (max_decibels_ - min_decibels_);
     const double min_decibels = min_decibels_;
 
-    const float *source = magnitude_buffer_.data();
+    const float *source = magnitude_buffer_->data();
     unsigned char *destination = destination_array.data();
 
     for (unsigned i = 0; i < len; ++i) {

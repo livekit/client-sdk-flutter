@@ -51,7 +51,7 @@ AudioVisualizer::AudioVisualizer(float min_frequency, float max_frequency,
     : min_frequency_(min_frequency), max_frequency_(max_frequency),
       min_db_(min_db), max_db_(max_db), bands_count_(bands_count),
       bands_(bands_count, 0.0f),
-      fft_processor_(std::make_unique<FFTProcessor>(bufferSize)) {}
+      fft_processor_(std::make_unique<FFTProcessor>(bufferSize, 0.8)) {}
 
 AudioVisualizer::~AudioVisualizer() {}
 

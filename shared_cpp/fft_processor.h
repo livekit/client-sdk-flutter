@@ -68,17 +68,17 @@ private:
 
 private:
   unsigned int fft_size_;
-  std::vector<float> pffft_work_;
-  std::vector<float> complex_data_;
-  std::vector<float> real_data_;
-  std::vector<float> imag_data_;
-  std::vector<float> magnitude_buffer_;
+  std::unique_ptr<std::vector<float>> pffft_work_;
+  std::unique_ptr<std::vector<float>> complex_data_;
+  std::unique_ptr<std::vector<float>> real_data_;
+  std::unique_ptr<std::vector<float>> imag_data_;
+  std::unique_ptr<std::vector<float>> magnitude_buffer_;
   std::unique_ptr<FFTSetup> setup_;
   // Time at which the FFT was last computed.
   double last_analysis_time_ = -1;
 
   // The audio thread writes the input audio here.
-  std::vector<float> input_buffer_;
+  std::unique_ptr<std::vector<float>> input_buffer_;
   std::atomic_uint write_index_{0};
 
   // A value between 0 and 1 which averages the previous version of
