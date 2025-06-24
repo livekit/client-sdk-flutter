@@ -25,11 +25,11 @@
 #include <flutter_webrtc.h>
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 
+#include <algorithm>
 #include <iomanip>
 #include <map>
 #include <memory>
 #include <sstream>
-#include <algorithm>
 
 #include "audio_visualizer.h"
 #include "task_runner_windows.h"
@@ -37,8 +37,8 @@
 namespace livekit_client_plugin {
 
 /// Centers the sorted bands by placing higher values in the middle.
-std::vector<uint8_t> centerBands(const std::vector<uint8_t> &sortedBands) {
-  std::vector<uint8_t> centeredBands(sortedBands.size(), 0);
+std::vector<float> centerBands(const std::vector<float> &sortedBands) {
+  std::vector<float> centeredBands(sortedBands.size(), 0);
   size_t leftIndex = sortedBands.size() / 2;
   size_t rightIndex = leftIndex;
 
@@ -94,8 +94,7 @@ public:
         });
 
     channel_->SetStreamHandler(std::move(handler));
-    audio_visualizer_ = std::make_unique<AudioVisualizer>(
-        10.0f, 8000.0f, -100.0f, 32.0f, bar_count_);
+    audio_visualizer_ = std::make_unique<AudioVisualizer>(-100.0f, 32.0f, 0.5f, bar_count_);
     ((libwebrtc::RTCAudioTrack *)media_track_.get())->AddSink(this);
   }
   ~VisualizerSink() override {}
@@ -106,16 +105,32 @@ public:
     if (!on_listen_called_) {
       return;
     }
-    std::vector<uint8_t> bands;
+    std::vector<float> bands;
     if (audio_visualizer_->Process((const int16_t *)audio_data,
                                    (unsigned int)number_of_frames,
                                    float(sample_rate), bands)) {
-      if (is_centered_) {
-        std::sort(bands.begin(), bands.end(), std::greater<uint8_t>());
-        bands = centerBands(bands);
+
+      if (bands_.size() != bands.size()) {
+        bands_ = bands;
       }
+
+      for (int i = 0; i < bands.size(); ++i) {
+        float minDb = -100.0;
+        float maxDb = -10.0;
+
+        float db = 1.0f - (max(minDb, min(maxDb, bands[i])) * -1.0) / 100.0;
+        db = std::sqrt(db);
+
+        bands_[i] = db;
+      }
+
+      if (is_centered_) {
+        std::sort(bands_.begin(), bands_.end(), std::greater<float>());
+        bands_ = centerBands(bands_);
+      }
+
       // Post the processed data to the event sink
-      EncodableList bands_list = EncodableList(bands.begin(), bands.end());
+      EncodableList bands_list = EncodableList(bands_.begin(), bands_.end());
       Success(EncodableValue(bands_list));
     }
   }
@@ -158,7 +173,7 @@ private:
   libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track_;
   bool is_centered_ = false;
   int bar_count_ = 7;
-  std::vector<uint8_t> bands_;
+  std::vector<float> bands_;
 };
 
 class LiveKitPlugin : public flutter::Plugin {
@@ -237,8 +252,8 @@ void LiveKitPlugin::HandleMethodCall(
         << visualizerId;
 
     mutex_.lock();
-    visualizers_[visualizerId] =
-        std::make_unique<VisualizerSink>(messenger_, oss.str(), media_track);
+    visualizers_[visualizerId] = std::make_unique<VisualizerSink>(
+        messenger_, oss.str(), media_track, isCentered, barCount);
     mutex_.unlock();
 
     std::cout << "Starting visualizer for trackId: " << trackId

@@ -12,8 +12,7 @@ public:
   static const int bufferSize = FFTProcessor::kDefaultFFTSize / 2;
 
 public:
-  AudioVisualizer(float min_frequency = 10.0f, float max_frequency = 8000.0f,
-                  float min_db = FFTProcessor::kDefaultMinDecibels,
+  AudioVisualizer(float min_db = FFTProcessor::kDefaultMinDecibels,
                   float max_db = FFTProcessor::kDefaultMaxDecibels,
                   double smoothing_time_constant =
                       FFTProcessor::kDefaultSmoothingTimeConstant,

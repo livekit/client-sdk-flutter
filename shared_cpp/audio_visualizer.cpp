@@ -10,12 +10,10 @@ double CurrentTime() {
          1000.0;
 }
 
-AudioVisualizer::AudioVisualizer(float min_frequency, float max_frequency,
-                                 float min_db, float max_db,
+AudioVisualizer::AudioVisualizer(float min_db, float max_db,
                                  double smoothing_time_constant,
                                  int bands_count)
-    : min_frequency_(min_frequency), max_frequency_(max_frequency),
-      min_db_(min_db), max_db_(max_db),
+    : min_db_(min_db), max_db_(max_db),
       smoothing_time_constant_(smoothing_time_constant),
       bands_count_(bands_count), bands_(bands_count, 0.0f),
       fft_processor_(std::make_unique<FFTProcessor>(bufferSize,
