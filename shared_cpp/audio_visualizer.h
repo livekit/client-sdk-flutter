@@ -9,9 +9,6 @@
 
 class AudioVisualizer {
 public:
-  static const int bufferSize = FFTProcessor::kDefaultFFTSize / 2;
-
-public:
   AudioVisualizer(double smoothing_time_constant =
                       FFTProcessor::kDefaultSmoothingTimeConstant,
                   int bands_count = 7);

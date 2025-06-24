@@ -16,8 +16,6 @@ typedef struct {
   GObjectClass parent_class;
 } LivekitPluginClass;
 
-FLUTTER_PLUGIN_EXPORT GType livekit_plugin_get_type();
-
 FLUTTER_PLUGIN_EXPORT void live_kit_plugin_register_with_registrar(
     FlPluginRegistrar* registrar);
 

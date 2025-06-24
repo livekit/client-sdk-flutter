@@ -14,12 +14,13 @@
 
 #include "include/livekit_client/live_kit_plugin.h"
 
-// This must be included before many other Windows headers.
-#include <windows.h>
+#include <flutter_linux/flutter_linux.h>
+#include <gtk/gtk.h>
+#include <sys/utsname.h>
 
 #include <flutter/method_channel.h>
-#include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
+#include <flutter/plugin_registrar.h>
 
 #include <flutter_common.h>
 #include <flutter_webrtc.h>
@@ -30,9 +31,11 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <cstring>
 
 #include "audio_visualizer.h"
-#include "task_runner_windows.h"
+
+#include "task_runner_linux.h"
 
 namespace livekit_client_plugin {
 
@@ -68,7 +71,7 @@ public:
                 &flutter::StandardMethodCodec::GetInstance())),
         media_track_(media_track), is_centered_(is_centered),
         bar_count_(bar_count) {
-    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerWindows>();
+    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerLinux>();
     auto handler = std::make_unique<
         flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
         [&](const flutter::EncodableValue *arguments,
@@ -118,7 +121,7 @@ public:
         float minDb = -100.0;
         float maxDb = -10.0;
 
-        float db = 1.0f - (max(minDb, min(maxDb, bands[i])) * -1.0) / 100.0;
+        float db = 1.0f - (fmax(minDb, fmin(maxDb, bands[i])) * -1.0) / 100.0;
         db = std::sqrt(db);
 
         bands_[i] = db;
@@ -165,7 +168,7 @@ public:
 
 private:
   std::unique_ptr<AudioVisualizer> audio_visualizer_;
-  std::unique_ptr<livekit_client_plugin::TaskRunnerWindows> task_runner_;
+  std::unique_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> channel_;
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   std::list<flutter::EncodableValue> event_queue_;
@@ -178,7 +181,7 @@ private:
 
 class LiveKitPlugin : public flutter::Plugin {
 public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
+  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
 
   LiveKitPlugin(BinaryMessenger *messenger);
 
@@ -199,7 +202,7 @@ private:
 
 // static
 void LiveKitPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrarWindows *registrar) {
+    flutter::PluginRegistrar *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "livekit_client",
@@ -217,7 +220,7 @@ void LiveKitPlugin::RegisterWithRegistrar(
 
 LiveKitPlugin::LiveKitPlugin(BinaryMessenger *messenger)
     : messenger_(messenger) {
-  webrtc_instance_ = FlutterWebRTCPluginSharedInstance();
+  webrtc_instance_ = flutter_webrtc_plugin_get_shared_instance();
 }
 
 LiveKitPlugin::~LiveKitPlugin() {}
@@ -303,9 +306,9 @@ void LiveKitPlugin::HandleMethodCall(
 
 } // namespace livekit_client_plugin
 
-void LiveKitPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
+void live_kit_plugin_register_with_registrar(
+    FlPluginRegistrar* registrar) {
+  static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
   livekit_client_plugin::LiveKitPlugin::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
+      plugin_registrar);
 }

@@ -21,7 +21,6 @@ project(${PROJECT_NAME} LANGUAGES CXX C)
 set(PLUGIN_NAME "livekit_client_plugin")
 
 add_definitions(-D_USE_MATH_DEFINES)
-add_definitions(-DLIB_WEBRTC_API_DLL)
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
 add_library(${PLUGIN_NAME} SHARED

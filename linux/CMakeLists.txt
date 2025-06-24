@@ -13,21 +13,27 @@ set(PLUGIN_NAME "livekit_client_plugin")
 
 
 add_definitions(-D_USE_MATH_DEFINES)
-add_definitions(-DLIB_WEBRTC_API_DLL)
 add_definitions(-DRTC_DESKTOP_DEVICE)
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/flutter/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp"
 )
 
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
-  "livekit_plugin.cc"
+  "livekit_plugin.cpp"
+  "task_runner_linux.cc"
   "../shared_cpp/fft_processor.cpp"
   "../shared_cpp/audio_visualizer.cpp"
   "../shared_cpp/pffft.c"
+  "flutter/core_implementations.cc"
+  "flutter/standard_codec.cc"
+  "flutter/plugin_registrar.cc"
 )
+
+#target_compile_options(${PLUGIN_NAME} PRIVATE -Wno-deprecated-declarations)
 
 # Define the plugin library target. Its name must not be changed (see comment
 # on PLUGIN_NAME above).

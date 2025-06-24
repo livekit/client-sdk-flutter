@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+static const int bufferSize = FFTProcessor::kDefaultFFTSize / 2;
+
 double CurrentTime() {
   return static_cast<double>(
              std::chrono::duration_cast<std::chrono::milliseconds>(
