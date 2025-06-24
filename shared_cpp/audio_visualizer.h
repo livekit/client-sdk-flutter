@@ -9,11 +9,14 @@
 
 class AudioVisualizer {
 public:
-  static const int bufferSize = 512;
+  static const int bufferSize = FFTProcessor::kDefaultFFTSize / 2;
 
 public:
   AudioVisualizer(float min_frequency = 10.0f, float max_frequency = 8000.0f,
-                  float min_db = -100.0f, float max_db = -10.0f,
+                  float min_db = FFTProcessor::kDefaultMinDecibels,
+                  float max_db = FFTProcessor::kDefaultMaxDecibels,
+                  double smoothing_time_constant =
+                      FFTProcessor::kDefaultSmoothingTimeConstant,
                   int bands_count = 7);
 
   ~AudioVisualizer();
@@ -30,6 +33,7 @@ private:
   float min_db_;
   float max_db_;
   int bands_count_;
+  double smoothing_time_constant_;
   std::vector<float> bands_;
   std::unique_ptr<FFTProcessor> fft_processor_;
 };
