@@ -94,7 +94,7 @@ public:
         });
 
     channel_->SetStreamHandler(std::move(handler));
-    audio_visualizer_ = std::make_unique<AudioVisualizer>(-100.0f, 32.0f, 0.5f, bar_count_);
+    audio_visualizer_ = std::make_unique<AudioVisualizer>(0.5f, bar_count_);
     ((libwebrtc::RTCAudioTrack *)media_track_.get())->AddSink(this);
   }
   ~VisualizerSink() override {}

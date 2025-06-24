@@ -1,6 +1,7 @@
 #ifndef FFT_PROCESSOR_H
 #define FFT_PROCESSOR_H
 
+#include <atomic>
 #include <complex>
 #include <map>
 #include <memory>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "pffft.h"
+
 
 class FFTProcessor {
 protected:

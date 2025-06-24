@@ -1,6 +1,9 @@
 #include "fft_processor.h"
 #include "math_extras.h"
 
+#include <string.h>
+#include <climits>
+
 float LinearToDecibels(float linear) { return 20 * log10f(linear); }
 
 void ApplyWindow(float *p, size_t n) {

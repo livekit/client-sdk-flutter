@@ -5,15 +5,28 @@ cmake_minimum_required(VERSION 3.10)
 
 # Project-level configuration.
 set(PROJECT_NAME "livekit")
-project(${PROJECT_NAME} LANGUAGES CXX)
+project(${PROJECT_NAME} LANGUAGES CXX C)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed.
 set(PLUGIN_NAME "livekit_client_plugin")
 
+
+add_definitions(-D_USE_MATH_DEFINES)
+add_definitions(-DLIB_WEBRTC_API_DLL)
+add_definitions(-DRTC_DESKTOP_DEVICE)
+
+include_directories(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../shared_cpp"
+)
+
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
   "livekit_plugin.cc"
+  "../shared_cpp/fft_processor.cpp"
+  "../shared_cpp/audio_visualizer.cpp"
+  "../shared_cpp/pffft.c"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
