@@ -21,6 +21,9 @@ public:
   bool Process(const int16_t *audioData, unsigned int numSamples,
                float sampleRate, std::vector<float> &output);
 
+  bool Process(const int16_t *audioData, unsigned int numSamples,
+               float sampleRate, std::vector<uint8_t> &output);
+
 private:
   float min_frequency_;
   float max_frequency_;

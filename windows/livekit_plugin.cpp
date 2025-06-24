@@ -17,9 +17,6 @@
 // This must be included before many other Windows headers.
 #include <windows.h>
 
-// For getPlatformVersion; remove unless needed for your plugin implementation.
-#include <VersionHelpers.h>
-
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
@@ -46,13 +43,13 @@ public:
   void OnData(const void *audio_data, int bits_per_sample, int sample_rate,
               size_t number_of_channels, size_t number_of_frames) override {
 
-    std::vector<float> bands;
+    std::vector<uint8_t> bands;
     if (audio_visualizer_.Process((const int16_t *)audio_data,
                                   (unsigned int)number_of_frames,
                                   float(sample_rate), bands)) {
       std::cout << "Processed audio data into bands: ";
       for (const auto &band : bands) {
-        std::cout << band << ", ";
+        std::cout << static_cast<int>(band) << ", ";
       }
       std::cout << std::endl;
     }
@@ -60,7 +57,6 @@ public:
 
 private:
   AudioVisualizer audio_visualizer_;
-  std::vector<float> bands_; // Store the bands for further processing
 };
 
 class LiveKitPlugin : public flutter::Plugin {

@@ -59,24 +59,18 @@ bool AudioVisualizer::Process(const int16_t *audioData, unsigned int numSamples,
                               float sampleRate, std::vector<float> &output) {
 
   fft_processor_->WriteInput(audioData, numSamples);
-
   std::vector<float> bands(bands_count_, 0.0f);
   fft_processor_->GetFloatFrequencyData(bands, CurrentTime());
-
-  // auto bands = fftRes.computeBands(min_frequency_, max_frequency_,
-  // bands_count_,
-  //                                  sampleRate);
-
   output = bands;
-  /*
-  float headroom = max_db_ - min_db_;
+  return true;
+}
 
-  // Normalize magnitudes (already in decibels)
+bool AudioVisualizer::Process(const int16_t *audioData, unsigned int numSamples,
+                              float sampleRate, std::vector<uint8_t> &output) {
 
-  for (const auto &magnitude : bands.magnitudes()) {
-    float adjustedMagnitude = std::max(0.0f, magnitude + std::abs(min_db_));
-    output.push_back(std::min(1.0f, adjustedMagnitude / headroom));
-  }
-  */
+  fft_processor_->WriteInput(audioData, numSamples);
+  std::vector<uint8_t> bands(bands_count_, 0);
+  fft_processor_->GetByteFrequencyData(bands, CurrentTime());
+  output = bands;
   return true;
 }
