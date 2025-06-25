@@ -14,11 +14,12 @@
 
 #include "include/livekit_client/live_kit_plugin.h"
 
-// This must be included before many other Windows headers.
-#include <windows.h>
+#include <flutter_linux/flutter_linux.h>
+#include <gtk/gtk.h>
+#include <sys/utsname.h>
 
 #include <flutter/method_channel.h>
-#include <flutter/plugin_registrar_windows.h>
+#include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
 #include <flutter_common.h>
@@ -26,15 +27,38 @@
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 
 #include <algorithm>
+#include <cstring>
 #include <iomanip>
 #include <map>
 #include <memory>
 #include <sstream>
 
 #include "audio_visualizer.h"
-#include "task_runner_windows.h"
+
+#include "task_runner_linux.h"
 
 namespace livekit_client_plugin {
+
+/// Centers the sorted bands by placing higher values in the middle.
+std::vector<float> centerBands(const std::vector<float> &sortedBands) {
+  std::vector<float> centeredBands(sortedBands.size(), 0);
+  size_t leftIndex = sortedBands.size() / 2;
+  size_t rightIndex = leftIndex;
+
+  for (size_t index = 0; index < sortedBands.size(); ++index) {
+    if (index % 2 == 0) {
+      // Place value to the right
+      centeredBands[rightIndex] = sortedBands[index];
+      rightIndex += 1;
+    } else {
+      // Place value to the left
+      leftIndex -= 1;
+      centeredBands[leftIndex] = sortedBands[index];
+    }
+  }
+
+  return centeredBands;
+}
 
 class VisualizerSink : public libwebrtc::AudioTrackSink {
 public:
@@ -47,7 +71,7 @@ public:
                 &flutter::StandardMethodCodec::GetInstance())),
         media_track_(media_track), is_centered_(is_centered),
         bar_count_(bar_count) {
-    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerWindows>();
+    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerLinux>();
     auto handler = std::make_unique<
         flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
         [&](const flutter::EncodableValue *arguments,
@@ -125,7 +149,7 @@ public:
 
 private:
   std::unique_ptr<AudioVisualizer> audio_visualizer_;
-  std::unique_ptr<livekit_client_plugin::TaskRunnerWindows> task_runner_;
+  std::unique_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> channel_;
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   std::list<flutter::EncodableValue> event_queue_;
@@ -137,7 +161,7 @@ private:
 
 class LiveKitPlugin : public flutter::Plugin {
 public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
+  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
 
   LiveKitPlugin(BinaryMessenger *messenger);
 
@@ -157,8 +181,7 @@ private:
 };
 
 // static
-void LiveKitPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrarWindows *registrar) {
+void LiveKitPlugin::RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "livekit_client",
@@ -176,7 +199,7 @@ void LiveKitPlugin::RegisterWithRegistrar(
 
 LiveKitPlugin::LiveKitPlugin(BinaryMessenger *messenger)
     : messenger_(messenger) {
-  webrtc_instance_ = FlutterWebRTCPluginSharedInstance();
+  webrtc_instance_ = flutter_webrtc_plugin_get_shared_instance();
 }
 
 LiveKitPlugin::~LiveKitPlugin() {}
@@ -225,7 +248,11 @@ void LiveKitPlugin::HandleMethodCall(
         GetValue<flutter::EncodableMap>(*method_call.arguments());
     std::string trackId = findString(args, "trackId");
     std::string visualizerId = findString(args, "visualizerId");
-
+    if (trackId.empty() || visualizerId.empty()) {
+      result->Error("Invalid Arguments",
+                    "trackId and visualizerId are required");
+      return;
+    }
     libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track =
         webrtc_instance_->MediaTrackForId(trackId);
     if (!media_track) {
@@ -254,9 +281,7 @@ void LiveKitPlugin::HandleMethodCall(
 
 } // namespace livekit_client_plugin
 
-void LiveKitPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  livekit_client_plugin::LiveKitPlugin::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
+void live_kit_plugin_register_with_registrar(FlPluginRegistrar *registrar) {
+  static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
+  livekit_client_plugin::LiveKitPlugin::RegisterWithRegistrar(plugin_registrar);
 }
