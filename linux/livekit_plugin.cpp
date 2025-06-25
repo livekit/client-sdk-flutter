@@ -19,19 +19,19 @@
 #include <sys/utsname.h>
 
 #include <flutter/method_channel.h>
-#include <flutter/standard_method_codec.h>
 #include <flutter/plugin_registrar.h>
+#include <flutter/standard_method_codec.h>
 
 #include <flutter_common.h>
 #include <flutter_webrtc.h>
 #include <flutter_webrtc/flutter_web_r_t_c_plugin.h>
 
 #include <algorithm>
+#include <cstring>
 #include <iomanip>
 #include <map>
 #include <memory>
 #include <sstream>
-#include <cstring>
 
 #include "audio_visualizer.h"
 
@@ -97,7 +97,8 @@ public:
         });
 
     channel_->SetStreamHandler(std::move(handler));
-    audio_visualizer_ = std::make_unique<AudioVisualizer>(0.5f, bar_count_);
+    audio_visualizer_ =
+        std::make_unique<AudioVisualizer>(bar_count_, is_centered_);
     ((libwebrtc::RTCAudioTrack *)media_track_.get())->AddSink(this);
   }
   ~VisualizerSink() override {}
@@ -112,28 +113,8 @@ public:
     if (audio_visualizer_->Process((const int16_t *)audio_data,
                                    (unsigned int)number_of_frames,
                                    float(sample_rate), bands)) {
-
-      if (bands_.size() != bands.size()) {
-        bands_ = bands;
-      }
-
-      for (int i = 0; i < bands.size(); ++i) {
-        float minDb = -100.0;
-        float maxDb = -10.0;
-
-        float db = 1.0f - (fmax(minDb, fmin(maxDb, bands[i])) * -1.0) / 100.0;
-        db = std::sqrt(db);
-
-        bands_[i] = db;
-      }
-
-      if (is_centered_) {
-        std::sort(bands_.begin(), bands_.end(), std::greater<float>());
-        bands_ = centerBands(bands_);
-      }
-
       // Post the processed data to the event sink
-      EncodableList bands_list = EncodableList(bands_.begin(), bands_.end());
+      EncodableList bands_list = EncodableList(bands.begin(), bands.end());
       Success(EncodableValue(bands_list));
     }
   }
@@ -176,7 +157,6 @@ private:
   libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track_;
   bool is_centered_ = false;
   int bar_count_ = 7;
-  std::vector<float> bands_;
 };
 
 class LiveKitPlugin : public flutter::Plugin {
@@ -201,8 +181,7 @@ private:
 };
 
 // static
-void LiveKitPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar *registrar) {
+void LiveKitPlugin::RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "livekit_client",
@@ -259,13 +238,7 @@ void LiveKitPlugin::HandleMethodCall(
         messenger_, oss.str(), media_track, isCentered, barCount);
     mutex_.unlock();
 
-    std::cout << "Starting visualizer for trackId: " << trackId
-              << ", visualizerId: " << visualizerId
-              << ", barCount: " << barCount
-              << ", isCentered: " << (isCentered ? "true" : "false")
-              << std::endl;
-
-    result->Success(flutter::EncodableValue("Visualizer started"));
+    result->Success(flutter::EncodableValue(true));
   } else if (method_call.method_name().compare("stopVisualizer") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -275,9 +248,11 @@ void LiveKitPlugin::HandleMethodCall(
         GetValue<flutter::EncodableMap>(*method_call.arguments());
     std::string trackId = findString(args, "trackId");
     std::string visualizerId = findString(args, "visualizerId");
-    std::cout << "Stopping visualizer for trackId: " << trackId
-              << ", visualizerId: " << visualizerId << std::endl;
-
+    if (trackId.empty() || visualizerId.empty()) {
+      result->Error("Invalid Arguments",
+                    "trackId and visualizerId are required");
+      return;
+    }
     libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track =
         webrtc_instance_->MediaTrackForId(trackId);
     if (!media_track) {
@@ -298,7 +273,7 @@ void LiveKitPlugin::HandleMethodCall(
       return;
     }
 
-    result->Success(flutter::EncodableValue("Visualizer stopped"));
+    result->Success();
   } else {
     result->NotImplemented();
   }
@@ -306,9 +281,7 @@ void LiveKitPlugin::HandleMethodCall(
 
 } // namespace livekit_client_plugin
 
-void live_kit_plugin_register_with_registrar(
-    FlPluginRegistrar* registrar) {
-  static auto* plugin_registrar = new flutter::PluginRegistrar(registrar);
-  livekit_client_plugin::LiveKitPlugin::RegisterWithRegistrar(
-      plugin_registrar);
+void live_kit_plugin_register_with_registrar(FlPluginRegistrar *registrar) {
+  static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
+  livekit_client_plugin::LiveKitPlugin::RegisterWithRegistrar(plugin_registrar);
 }

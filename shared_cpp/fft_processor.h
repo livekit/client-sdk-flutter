@@ -29,9 +29,6 @@ protected:
 
 public:
   static constexpr double kDefaultSmoothingTimeConstant = 0.5;
-  static constexpr double kDefaultMinDecibels = -100.0;
-  static constexpr double kDefaultMaxDecibels = -30.0;
-
   static constexpr unsigned kDefaultFFTSize = 2048;
   // All FFT implementations are expected to handle power-of-two sizes
   // MinFFTSize <= size <= MaxFFTSize.
@@ -48,14 +45,8 @@ public:
 
   void GetFloatFrequencyData(std::vector<float> &destination_array,
                              double current_time);
-
-  void GetByteFrequencyData(std::vector<uint8_t> &destination_array,
-                            double current_time);
-
 private:
   void ConvertFloatToDb(std::vector<float> &destination_array);
-
-  void ConvertToByteData(std::vector<uint8_t> &destination_array);
 
   void DoFFTAnalysis();
 
@@ -87,9 +78,6 @@ private:
   // m_magnitudeBuffer with the current analysis magnitude data.
   double smoothing_time_constant_;
 
-  // The range used when converting when using getByteFrequencyData().
-  double min_decibels_;
-  double max_decibels_;
 };
 
 #endif // FFT_PROCESSOR_H

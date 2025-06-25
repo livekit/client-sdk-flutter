@@ -1,8 +1,8 @@
 #include "fft_processor.h"
 #include "math_extras.h"
 
-#include <string.h>
 #include <climits>
+#include <string.h>
 
 float LinearToDecibels(float linear) { return 20 * log10f(linear); }
 
@@ -38,13 +38,12 @@ void S16ToFloat(const int16_t *src, size_t size, float *dest) {
     dest[i] = S16ToFloatV(src[i]);
 }
 
-FFTProcessor::FFTProcessor(int fftSize, double moothing_time_constant)
+FFTProcessor::FFTProcessor(int fftSize, double smoothing_time_constant)
     : fft_size_(kDefaultFFTSize),
-      smoothing_time_constant_(kDefaultSmoothingTimeConstant),
-      min_decibels_(kDefaultMinDecibels), max_decibels_(kDefaultMaxDecibels) {
+      smoothing_time_constant_(kDefaultSmoothingTimeConstant) {
   fft_size_ = fftSize;
-  if (moothing_time_constant > 0.0 && moothing_time_constant < 1.0) {
-    smoothing_time_constant_ = moothing_time_constant;
+  if (smoothing_time_constant > 0.0 && smoothing_time_constant < 1.0) {
+    smoothing_time_constant_ = smoothing_time_constant;
   }
   setup_ = std::make_unique<FFTSetup>(fft_size_);
   input_buffer_ = std::make_unique<std::vector<float>>(kInputBufferSize, 0.0f);
@@ -71,24 +70,6 @@ void FFTProcessor::GetFloatFrequencyData(std::vector<float> &destination_array,
   DoFFTAnalysis();
 
   ConvertFloatToDb(destination_array);
-}
-
-void FFTProcessor::GetByteFrequencyData(std::vector<uint8_t> &destination_array,
-                                        double current_time) {
-
-  if (current_time <= last_analysis_time_) {
-    // FIXME: Is it worth caching the data so we don't have to do the conversion
-    // every time?  Perhaps not, since we expect many calls in the same
-    // rendering quantum.
-    ConvertToByteData(destination_array);
-    return;
-  }
-
-  // Time has advanced since the last call; update the FFT data.
-  last_analysis_time_ = current_time;
-  DoFFTAnalysis();
-
-  ConvertToByteData(destination_array);
 }
 
 void FFTProcessor::WriteInput(const int16_t *input,
@@ -202,35 +183,6 @@ void FFTProcessor::ConvertFloatToDb(std::vector<float> &destination_array) {
       float linear_value = source[i];
       double db_mag = LinearToDecibels(linear_value);
       destination[i] = static_cast<float>(db_mag);
-    }
-  }
-}
-
-void FFTProcessor::ConvertToByteData(std::vector<uint8_t> &destination_array) {
-  // Convert from linear magnitude to unsigned-byte decibels.
-  size_t source_length = magnitude_buffer_->size();
-  size_t len = std::min(source_length, destination_array.size());
-  if (len > 0) {
-    const double range_scale_factor = max_decibels_ == min_decibels_
-                                          ? 1
-                                          : 1 / (max_decibels_ - min_decibels_);
-    const double min_decibels = min_decibels_;
-
-    const float *source = magnitude_buffer_->data();
-    unsigned char *destination = destination_array.data();
-
-    for (unsigned i = 0; i < len; ++i) {
-      float linear_value = source[i];
-      double db_mag = LinearToDecibels(linear_value);
-
-      // The range m_minDecibels to m_maxDecibels will be scaled to byte values
-      // from 0 to UCHAR_MAX.
-      double scaled_value =
-          UCHAR_MAX * (db_mag - min_decibels) * range_scale_factor;
-
-      // Clip to valid range.
-      destination[i] =
-          static_cast<unsigned char>(ClampTo(scaled_value, 0, UCHAR_MAX));
     }
   }
 }
