@@ -1097,17 +1097,17 @@ extension RoomHardwareManagementMethods on Room {
   /// Set video input device.
   Future<void> setVideoInputDevice(MediaDevice device) async {
     final track = localParticipant?.videoTrackPublications.firstOrNull?.track;
-    if (track == null) return;
-    if (selectedVideoInputDeviceId != device.deviceId) {
+
+    // Always update roomOptions so future tracks use the correct device
+    engine.roomOptions = engine.roomOptions.copyWith(
+      defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions
+          .copyWith(deviceId: device.deviceId),
+    );
+
+    if (track != null && selectedVideoInputDeviceId != device.deviceId) {
       await track.switchCamera(device.deviceId);
       Hardware.instance.selectedVideoInput = device;
     }
-    engine.roomOptions = engine.roomOptions.copyWith(
-      defaultCameraCaptureOptions:
-          roomOptions.defaultCameraCaptureOptions.copyWith(
-        deviceId: device.deviceId,
-      ),
-    );
   }
 
   /// [speakerOn] set speakerphone on or off, by default wired/bluetooth headsets will still
