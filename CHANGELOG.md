@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.4.9
+
+* Added: Attribute typings for agent and transcription (#811)
+* Changed: Enum for VideoView.fit (#806)
+* Chore: Update protobuf protocol to v1.39.2 (#812)
+
 ## 2.4.8
 
 * fix: fix room.disconnect when pending reconnect. (#802)
