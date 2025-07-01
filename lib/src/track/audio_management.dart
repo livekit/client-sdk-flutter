@@ -127,7 +127,10 @@ Future<void> _onAudioTrackCountDidChange() async {
     if (config != null) {
       logger.fine('configuring for ${_audioTrackState} using ${config}...');
       try {
-        await Native.configureAudio(config);
+        if (Hardware.instance.isAutomaticConfigurationEnabled) {
+          logger.fine('configuring native audio...');
+          await Native.configureAudio(config);
+        }
       } catch (error) {
         logger.warning('failed to configure ${error}');
       }
