@@ -51,6 +51,9 @@ class VideoTrackRenderer extends StatefulWidget {
   final rtc.RTCVideoRenderer? cachedRenderer;
   final bool autoDisposeRenderer;
 
+  /// wrap the video view in a Center widget (for RTCVideoViewObjectFitContain)
+  final bool autoCenter;
+
   const VideoTrackRenderer(
     this.track, {
     this.fit = rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitContain,
@@ -58,6 +61,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.renderMode = VideoRenderMode.texture,
     this.autoDisposeRenderer = true,
     this.cachedRenderer,
+    this.autoCenter = true,
     Key? key,
   }) : super(key: key);
 
@@ -271,7 +275,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       return child;
     }
 
-    return LayoutBuilder(
+    final videoView = LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         if (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) {
           return child;
@@ -303,6 +307,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         return SizedBox(width: width, height: height, child: child);
       },
     );
+
+    if (widget.autoCenter) {
+      return Center(child: videoView);
+    } else {
+      return videoView;
+    }
   }
 
   bool _shouldMirror() {
