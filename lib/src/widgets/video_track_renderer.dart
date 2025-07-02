@@ -65,7 +65,7 @@ class VideoTrackRenderer extends StatefulWidget {
   final rtc.RTCVideoRenderer? cachedRenderer;
   final bool autoDisposeRenderer;
 
-  /// wrap the video view in a Center widget (for RTCVideoViewObjectFitContain)
+  /// wrap the video view in a Center widget (if [fit] is [VideoViewFit.contain])
   final bool autoCenter;
 
   const VideoTrackRenderer(
@@ -285,7 +285,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget build(BuildContext context) {
     final child = kIsWeb ? _videoViewForWeb() : _videoViewForNative();
 
-    if (widget.fit == rtc.RTCVideoViewObjectFit.RTCVideoViewObjectFitCover) {
+    if (widget.fit == VideoViewFit.cover) {
       return child;
     }
 
