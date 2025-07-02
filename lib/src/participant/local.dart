@@ -618,7 +618,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   void setAttributes(Map<String, String> attributes) {
     room.engine.signalClient
         .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      attributes: attributes,
+      attributes: attributes.entries,
     ));
   }
 
