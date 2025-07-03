@@ -36,9 +36,6 @@ import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
 
-import '../processor_native.dart'
-    if (dart.library.js_interop) '../processor_web.dart';
-
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
   @internal
@@ -133,6 +130,13 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
+    try {
+      if (_processor != null) {
+        await stopProcessor();
+      }
+    } catch (error) {
+      logger.severe('LocalTrack.stopProcessor did throw: $error');
+    }
     final didStop = await super.stop() || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
@@ -261,14 +265,15 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    var processorOptions = AudioProcessorOptions(
+    var processorOptions = ProcessorOptions(
+      kind: kind,
       track: mediaStreamTrack,
     );
 
     await _processor!.init(processorOptions);
 
     if (_processor?.processedTrack != null) {
-      setProcessedTrack(processor.processedTrack!);
+      await setProcessedTrack(processor.processedTrack!);
     }
 
     logger.fine('processor initialized');
