@@ -62,6 +62,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   final Map<String, num> _bitrateFoLayers = {};
 
   Map<String, SimulcastTrackInfo> simulcastCodecs = {};
+  Map<(String, int), rtc.RTCRtpEncoding> encodingBackups = {};
 
   List<lk_rtc.SubscribedCodec> subscribedCodecs = [];
 
@@ -452,11 +453,16 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           // have a workaround of lowering its bitrate and resolution to the min.
           if (kIsWeb && lkBrowser() == BrowserType.firefox) {
             if (subscribedQuality.enabled) {
+              final encodingBackup = encodingBackups[(sender.senderId, idx)]!;
               encoding.scaleResolutionDownBy =
-                  encodings[idx].scaleResolutionDownBy;
-              encoding.maxBitrate = encodings[idx].maxBitrate;
-              encoding.maxFramerate = encodings[idx].maxBitrate;
+                  encodingBackup.scaleResolutionDownBy;
+              encoding.maxBitrate = encodingBackup.maxBitrate;
+              encoding.maxFramerate = encodingBackup.maxFramerate;
             } else {
+              encodingBackups[(sender.senderId, idx)] = rtc.RTCRtpEncoding(
+                  scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+                  maxBitrate: encoding.maxBitrate,
+                  maxFramerate: encoding.maxFramerate);
               encoding.scaleResolutionDownBy = 4;
               encoding.maxBitrate = 10;
               encoding.maxFramerate = 2;
