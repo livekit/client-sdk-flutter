@@ -1098,15 +1098,26 @@ extension RoomHardwareManagementMethods on Room {
   Future<void> setVideoInputDevice(MediaDevice device) async {
     final track = localParticipant?.videoTrackPublications.firstOrNull?.track;
 
+    final currentDeviceId =
+        engine.roomOptions.defaultCameraCaptureOptions.deviceId;
+
     // Always update roomOptions so future tracks use the correct device
     engine.roomOptions = engine.roomOptions.copyWith(
       defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions
           .copyWith(deviceId: device.deviceId),
     );
 
-    if (track != null && selectedVideoInputDeviceId != device.deviceId) {
-      await track.switchCamera(device.deviceId);
-      Hardware.instance.selectedVideoInput = device;
+    try {
+      if (track != null && selectedVideoInputDeviceId != device.deviceId) {
+        await track.switchCamera(device.deviceId);
+        Hardware.instance.selectedVideoInput = device;
+      }
+    } catch (e) {
+      // if the switching actually fails, reset it to the previous deviceId
+      engine.roomOptions = engine.roomOptions.copyWith(
+        defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions
+            .copyWith(deviceId: currentDeviceId),
+      );
     }
   }
 
