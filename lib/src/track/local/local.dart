@@ -299,6 +299,8 @@ abstract class LocalTrack extends Track {
     // force re-setting of the mediaStreamTrack on the sender
     //await this.setMediaStreamTrack(this._mediaStreamTrack, true);
 
+    await setProcessedTrack(null);
+
     events.emit(TrackProcessorUpdateEvent(track: this));
   }
 
