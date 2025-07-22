@@ -3,11 +3,11 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 
-import 'package:livekit_client/src/core/engine.dart';
-import 'package:livekit_client/src/types/other.dart';
-import 'package:livekit_client/src/utils.dart';
+import '../core/engine.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
+import '../types/other.dart';
+import '../utils.dart';
 
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
