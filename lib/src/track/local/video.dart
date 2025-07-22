@@ -453,7 +453,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           // have a workaround of lowering its bitrate and resolution to the min.
           if (kIsWeb && lkBrowser() == BrowserType.firefox) {
             if (subscribedQuality.enabled) {
-              final encodingBackup = encodingBackups[(sender.senderId, idx)]!;
+              final encodingBackup = encodingBackups[(sender.senderId, idx)] ?? encoding;
               encoding.scaleResolutionDownBy =
                   encodingBackup.scaleResolutionDownBy;
               encoding.maxBitrate = encodingBackup.maxBitrate;
