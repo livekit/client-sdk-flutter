@@ -37,7 +37,10 @@ dependencies:
   uuid: ^4.5.1
   synchronized: ^3.0.0+3
   protobuf: ^4.1.0
-  flutter_webrtc: ^0.14.2
+  flutter_webrtc:
+    git:
+      url: https://github.com/flutter-webrtc/flutter-webrtc.git
+      ref: feat/upgrade-libwebrtc-to-m137
   device_info_plus: ^11.3.0
   dart_webrtc: ^1.5.3
   sdp_transform: ^0.3.2
