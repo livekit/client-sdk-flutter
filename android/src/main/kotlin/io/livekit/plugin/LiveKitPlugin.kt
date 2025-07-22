@@ -92,6 +92,11 @@ class LiveKitPlugin: FlutterPlugin, MethodCallHandler {
       result.error("INVALID_ARGUMENT", "trackId and visualizerId is required", null)
       return
     }
+    processors.forEach { (k, visualizer) ->
+      if(k == visualizerId) {
+        visualizer.stop()
+      }
+    }
     processors.entries.removeAll { (k, v) -> k == visualizerId }
     result.success(null)
   }
