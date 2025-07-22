@@ -354,6 +354,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStartAudioVisualizer(args: args, result: result)
         case "stopVisualizer":
             handleStopAudioVisualizer(args: args, result: result)
+        case "startAudioRenderer":
+            handleStartAudioRenderer(args: args, result: result)
+        case "stopAudioRenderer":
+            handleStopAudioRenderer(args: args, result: result)
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         #if os(iOS)
