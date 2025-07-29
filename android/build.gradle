@@ -53,7 +53,7 @@ android {
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.0.0")
         implementation 'io.github.webrtc-sdk:android:125.6422.03'
-        implementation 'com.github.paramsen:noise:2.0.0'
+        implementation 'io.livekit:noise:2.0.0'
     }
 
     testOptions {
