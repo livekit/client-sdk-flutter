@@ -14,7 +14,6 @@
 
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/src/proto/livekit_models.pbenum.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 @immutable
@@ -24,7 +23,7 @@ class ParticipantPermissions {
   final bool canPublishData;
   final bool hidden;
   final bool canUpdateMetadata;
-  final List<TrackSource> canPublishSources;
+  final List<lk_models.TrackSource> canPublishSources;
 
   const ParticipantPermissions({
     this.canSubscribe = false,
