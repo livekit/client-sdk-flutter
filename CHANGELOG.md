@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.0+hotfix.1
+
+* fix: Switch to livekit fork of noise for 16KB page support (#839)
+* hotfix: bump libwebrtc to m137.7151.01 for android (#837)
+* fix: tighten VideoTrackRenderer Widget (#695)
+
 ## 2.5.0
 
 * Bump flutter-webrtc to 1.0.0.
