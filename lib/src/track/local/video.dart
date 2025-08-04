@@ -40,11 +40,12 @@ class SimulcastTrackInfo {
 
   List<rtc.RTCRtpEncoding>? encodings;
 
-  SimulcastTrackInfo(
-      {required this.codec,
-      this.encodings,
-      required this.mediaStreamTrack,
-      this.sender});
+  SimulcastTrackInfo({
+    required this.codec,
+    this.encodings,
+    required this.mediaStreamTrack,
+    this.sender,
+  });
 }
 
 /// A video track from the local device. Use static methods in this class to create
@@ -101,11 +102,13 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         }
       });
       _currentBitrate = totalBitrate;
-      events.emit(VideoSenderStatsEvent(
-        stats: statsMap,
-        currentBitrate: currentBitrate,
-        bitrateForLayers: _bitrateFoLayers,
-      ));
+      events.emit(
+        VideoSenderStatsEvent(
+          stats: statsMap,
+          currentBitrate: currentBitrate,
+          bitrateForLayers: _bitrateFoLayers,
+        ),
+      );
     }
 
     prevStats = statsMap;
@@ -132,14 +135,22 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         vs.bytesSent = getNumValFromReport(v.values, 'bytesSent');
         vs.framesSent = getNumValFromReport(v.values, 'framesSent');
         vs.rid = getStringValFromReport(v.values, 'rid');
-        vs.encoderImplementation =
-            getStringValFromReport(v.values, 'encoderImplementation');
-        vs.retransmittedPacketsSent =
-            getNumValFromReport(v.values, 'retransmittedPacketsSent');
-        vs.qualityLimitationReason =
-            getStringValFromReport(v.values, 'qualityLimitationReason');
-        vs.qualityLimitationResolutionChanges =
-            getNumValFromReport(v.values, 'qualityLimitationResolutionChanges');
+        vs.encoderImplementation = getStringValFromReport(
+          v.values,
+          'encoderImplementation',
+        );
+        vs.retransmittedPacketsSent = getNumValFromReport(
+          v.values,
+          'retransmittedPacketsSent',
+        );
+        vs.qualityLimitationReason = getStringValFromReport(
+          v.values,
+          'qualityLimitationReason',
+        );
+        vs.qualityLimitationResolutionChanges = getNumValFromReport(
+          v.values,
+          'qualityLimitationResolutionChanges',
+        );
 
         // locate the appropriate remote-inbound-rtp item
         final remoteId = getStringValFromReport(v.values, 'remoteId');
@@ -163,14 +174,12 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   }
 
   // Private constructor
-  LocalVideoTrack._(TrackSource source, rtc.MediaStream stream,
-      rtc.MediaStreamTrack track, this.currentOptions)
-      : super(
-          TrackType.VIDEO,
-          source,
-          stream,
-          track,
-        );
+  LocalVideoTrack._(
+    TrackSource source,
+    rtc.MediaStream stream,
+    rtc.MediaStreamTrack track,
+    this.currentOptions,
+  ) : super(TrackType.VIDEO, source, stream, track);
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([
@@ -202,7 +211,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   ]) async {
     if (lkPlatformIsWebMobile()) {
       throw TrackCreateException(
-          'Screen sharing is not supported on mobile devices');
+        'Screen sharing is not supported on mobile devices',
+      );
     }
     options ??= const ScreenShareCaptureOptions();
 
@@ -225,7 +235,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   ]) async {
     if (lkPlatformIsWebMobile()) {
       throw TrackCreateException(
-          'Screen sharing is not supported on mobile devices');
+        'Screen sharing is not supported on mobile devices',
+      );
     }
     if (options == null) {
       options = const ScreenShareCaptureOptions(captureScreenAudio: true);
@@ -240,12 +251,18 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
         stream,
         stream.getVideoTracks().first,
         options,
-      )
+      ),
     ];
 
     if (stream.getAudioTracks().isNotEmpty) {
-      tracks.add(LocalAudioTrack(TrackSource.screenShareAudio, stream,
-          stream.getAudioTracks().first, const AudioCaptureOptions()));
+      tracks.add(
+        LocalAudioTrack(
+          TrackSource.screenShareAudio,
+          stream,
+          stream.getAudioTracks().first,
+          const AudioCaptureOptions(),
+        ),
+      );
     }
     return tracks;
   }
@@ -263,10 +280,11 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       return;
     }
     final newOptions = CameraCaptureOptions(
-        cameraPosition: position,
-        deviceId: null,
-        maxFrameRate: options.maxFrameRate,
-        params: options.params);
+      cameraPosition: position,
+      deviceId: null,
+      maxFrameRate: options.maxFrameRate,
+      params: options.params,
+    );
     await restartTrack(newOptions);
     await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
     currentOptions = newOptions;
@@ -285,15 +303,14 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       return;
     }
 
-    await restartTrack(
-      options.copyWith(deviceId: deviceId),
-    );
+    await restartTrack(options.copyWith(deviceId: deviceId));
 
     await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
   }
 
   Future<void> replaceTrackForMultiCodecSimulcast(
-      rtc.MediaStreamTrack newTrack) async {
+    rtc.MediaStreamTrack newTrack,
+  ) async {
     simulcastCodecs.forEach((key, simulcastTrack) async {
       await simulcastTrack.sender?.replaceTrack(newTrack);
       simulcastTrack.mediaStreamTrack = mediaStreamTrack;
@@ -301,7 +318,9 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   Future<List<String>> setPublishingCodecs(
-      List<lk_rtc.SubscribedCodec> codecs, LocalTrack track) async {
+    List<lk_rtc.SubscribedCodec> codecs,
+    LocalTrack track,
+  ) async {
     logger.fine('setPublishingCodecs $codecs');
 
     // only enable simulcast codec for preference codec setted
@@ -342,7 +361,9 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   Future<void> updatePublishingLayers(
-      LocalTrack? track, List<lk_rtc.SubscribedQuality> layers) async {
+    LocalTrack? track,
+    List<lk_rtc.SubscribedQuality> layers,
+  ) async {
     logger.fine('Update publishing layers: $layers');
 
     if (track?.sender == null) {
@@ -379,9 +400,10 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   Future<void> setPublishingLayersForSender(
-      rtc.RTCRtpSender sender,
-      List<rtc.RTCRtpEncoding> encodings,
-      List<lk_rtc.SubscribedQuality> layers) async {
+    rtc.RTCRtpSender sender,
+    List<rtc.RTCRtpEncoding> encodings,
+    List<lk_rtc.SubscribedQuality> layers,
+  ) async {
     logger.fine('Update publishing layers: $layers');
 
     final params = sender.parameters;
@@ -437,8 +459,9 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           rid = 'q';
         }
         var quality = _videoQualityForRid(rid);
-        var subscribedQuality =
-            layers.firstWhereOrNull((q) => q.quality == quality);
+        var subscribedQuality = layers.firstWhereOrNull(
+          (q) => q.quality == quality,
+        );
         if (subscribedQuality == null) {
           continue;
         }
@@ -453,16 +476,18 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           // have a workaround of lowering its bitrate and resolution to the min.
           if (kIsWeb && lkBrowser() == BrowserType.firefox) {
             if (subscribedQuality.enabled) {
-              final encodingBackup = encodingBackups[(sender.senderId, idx)]!;
+              final encodingBackup =
+                  encodingBackups[(sender.senderId, idx)] ?? encoding;
               encoding.scaleResolutionDownBy =
                   encodingBackup.scaleResolutionDownBy;
               encoding.maxBitrate = encodingBackup.maxBitrate;
               encoding.maxFramerate = encodingBackup.maxFramerate;
             } else {
               encodingBackups[(sender.senderId, idx)] = rtc.RTCRtpEncoding(
-                  scaleResolutionDownBy: encoding.scaleResolutionDownBy,
-                  maxBitrate: encoding.maxBitrate,
-                  maxFramerate: encoding.maxFramerate);
+                scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+                maxBitrate: encoding.maxBitrate,
+                maxFramerate: encoding.maxFramerate,
+              );
               encoding.scaleResolutionDownBy = 4;
               encoding.maxBitrate = 10;
               encoding.maxFramerate = 2;
@@ -487,7 +512,9 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   SimulcastTrackInfo addSimulcastTrack(
-      String codec, List<rtc.RTCRtpEncoding> encodings) {
+    String codec,
+    List<rtc.RTCRtpEncoding> encodings,
+  ) {
     if (simulcastCodecs[codec] != null) {
       throw Exception('$codec already added');
     }
