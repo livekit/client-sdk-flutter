@@ -83,12 +83,14 @@ void main() async {
           getTrackCryptor(participantId.toDart, trackId.toDart, keyProvider);
 
       cryptor.setupTransform(
-          operation: msgType.toDart,
-          readable: transformer.readable,
-          writable: transformer.writable,
-          trackId: trackId.toDart,
-          kind: kind.toDart,
-          codec: codec?.toDart);
+        operation: msgType.toDart,
+        readable: transformer.readable,
+        writable: transformer.writable,
+        trackId: trackId.toDart,
+        kind: kind.toDart,
+        codec: codec?.toDart,
+        isReuse: false,
+      );
     }.toJS;
   }
 
@@ -198,6 +200,7 @@ void main() async {
             writable: writable,
             trackId: trackId,
             kind: kind,
+            isReuse: exist && msgType == 'decode',
           );
 
           self.postMessage({

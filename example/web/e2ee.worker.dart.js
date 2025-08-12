@@ -1960,11 +1960,11 @@ _.c=c
 _.d=null
 _.e=d
 _.f=$
-_.r=!1
-_.w=e
-_.x=0
-_.y=f
-_.z=g},
+_.w=_.r=!1
+_.x=e
+_.y=0
+_.z=f
+_.Q=g},
 cP:function cP(a,b,c,d,e,f,g){var _=this
 _.a=a
 _.b=b
@@ -2016,10 +2016,10 @@ s=t.m.a(v.G.self)
 r=t.S
 p=new A.ae(A.bh(r,r),a,b,c.J(a),B.l,s,new A.d6())
 B.d.u($.aJ,p)}else if(a!==p.b){s=c.J(a)
-if(p.w!==B.j){$.y().j(B.e,"setParticipantId: lastError != CryptorError.kOk, reset state to kNew",q,q)
-p.w=B.l}p.b=a
+if(p.x!==B.j){$.y().j(B.e,"setParticipantId: lastError != CryptorError.kOk, reset state to kNew",q,q)
+p.x=B.l}p.b=a
 p.e=s
-p.z.b_()}return p},
+p.Q.b_()}return p},
 j9(a){var s=A.cV($.aJ,new A.ec(a),t.j)
 if(s!=null)s.b=null},
 ez(){var s=0,r=A.K(t.H),q,p,o
@@ -3411,24 +3411,27 @@ A.cR.prototype={}
 A.ae.prototype={
 gaU(){if(this.b==null)return!1
 return this.r},
-W(a,b,c,d,e,f){return this.b7(a,b,c,d,e,f)},
-b6(a,b,c,d,e){return this.W(null,a,b,c,d,e)},
-b7(a,b,c,d,e,f){var s=0,r=A.K(t.H),q=this,p,o,n,m,l,k,j
-var $async$W=A.M(function(g,h){if(g===1)return A.H(h,r)
-while(true)switch(s){case 0:j=$.y()
-j.j(B.e,"setupTransform "+c+" kind "+b,null,null)
-q.f=b
-if(a!=null){j.j(B.e,"setting codec on cryptor to "+a,null,null)
-q.d=a}j=v.G.TransformStream
-n=c==="encode"?A.fs(q.gbF()):A.fs(q.gbA())
-m=t.N
-l=t.m
-p=l.a(new j(l.a(A.k(A.l(["transform",n],m,t.g)))))
-try{l.a(l.a(d.pipeThrough(p)).pipeTo(f))}catch(i){o=A.W(i)
-$.y().j(B.f,"e "+J.a1(o),null,null)
-if(q.w!==B.q){q.w=B.q
-q.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",q.b,"state","internalError","error","Internal error: "+J.a1(o)],m,t.T)))}}q.c=e
-return A.I(null,r)}})
+W(a,b,c,d,e,f,g){return this.b7(a,b,c,d,e,f,g)},
+b6(a,b,c,d,e,f){return this.W(null,a,b,c,d,e,f)},
+b7(a,b,c,d,e,f,g){var s=0,r=A.K(t.H),q,p=this,o,n,m,l,k,j,i
+var $async$W=A.M(function(a0,a1){if(a0===1)return A.H(a1,r)
+while(true)switch(s){case 0:i=$.y()
+i.j(B.e,"setupTransform "+d+" kind "+c,null,null)
+p.f=c
+if(a!=null){i.j(B.e,"setting codec on cryptor to "+a,null,null)
+p.d=a}if(b&&p.w){i.j(B.e,"setupTransform: transform already active, skipping setup",null,null)
+s=1
+break}i=v.G.TransformStream
+m=d==="encode"?A.fs(p.gbF()):A.fs(p.gbA())
+l=t.N
+k=t.m
+o=k.a(new i(k.a(A.k(A.l(["transform",m],l,t.g)))))
+try{k.a(k.a(e.pipeThrough(o)).pipeTo(g))}catch(h){n=A.W(h)
+$.y().j(B.f,"e "+J.a1(n),null,null)
+if(p.x!==B.q){p.x=B.q
+p.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",p.b,"state","internalError","error","Internal error: "+J.a1(n)],l,t.T)))}}p.w=!0
+p.c=f
+case 1:return A.I(q,r)}})
 return A.J($async$W,r)},
 au(a,b){var s,r,q,p,o,n,m=null,l=new Uint8Array(0),k=""
 l=A.Z(t.o.a(a.data),0,m)
@@ -3471,15 +3474,15 @@ s=1
 break}m=n.aY(a8)
 d=$.y()
 d.j(B.b,"encodeFunction: buffer "+m.d.length+", synchronizationSource "+m.b+" frameType "+m.a,null,null)
-c=n.e.U(n.x)
+c=n.e.U(n.y)
 l=c==null?null:c.b
-k=n.x
-if(l==null){if(n.w!==B.o){n.w=B.o
+k=n.y
+if(l==null){if(n.x!==B.o){n.x=B.o
 d=n.b
 c=n.c
 b=n.f
 b===$&&A.ap("kind")
-n.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",d,"trackId",c,"kind",b,"state","missingKey","error","Missing key for track "+c],t.N,t.T)))}s=1
+n.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",d,"trackId",c,"kind",b,"state","missingKey","error","Missing key for track "+c],t.N,t.T)))}s=1
 break}c=n.f
 c===$&&A.ap("kind")
 j=c==="video"?n.au(a8,n.d):1
@@ -3503,7 +3506,7 @@ c=h
 b=A.o(k)
 c.$flags&2&&A.Q(c,6)
 J.eE(c,1,b)
-b=n.y
+b=n.z
 c=t.m
 a=c.a(c.a(b.crypto).subtle)
 a2=t.N
@@ -3522,7 +3525,7 @@ J.b6(f,A.Z(g,0,null))
 J.b6(f,i)
 J.b6(f,J.eF(J.eH(h)))
 n.am(a8,a9,f)
-if(n.w!==B.j){n.w=B.j
+if(n.x!==B.j){n.x=B.j
 b.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",n.b,"trackId",n.c,"kind",n.f,"state","ok","error","encryption ok"],a2,t.T)))}d.j(B.b,"encodeFunction[CryptorError.kOk]: frame enqueued kind "+n.f+",codec "+A.d(n.d)+" headerLength: "+A.d(j)+",  timestamp: "+m.c+", ssrc: "+m.b+", data length: "+m.d.length+", encrypted length: "+f.ar().length+", iv "+A.d(i),null,null)
 p=2
 s=6
@@ -3531,12 +3534,12 @@ case 4:p=3
 a6=o.pop()
 e=A.W(a6)
 $.y().j(B.f,"encodeFunction encrypt: e "+J.a1(e),null,null)
-if(n.w!==B.x){n.w=B.x
+if(n.x!==B.x){n.x=B.x
 d=n.b
 c=n.c
 b=n.f
 b===$&&A.ap("kind")
-n.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",d,"trackId",c,"kind",b,"state","encryptError","error",J.a1(e)],t.N,t.T)))}s=6
+n.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",d,"trackId",c,"kind",b,"state","encryptError","error",J.a1(e)],t.N,t.T)))}s=6
 break
 case 3:s=2
 break
@@ -3553,8 +3556,8 @@ a7.a=0
 b=$.y()
 b.j(B.b,"decodeFunction: frame length "+a8.d.length,null,null)
 a7.b=a7.c=null
-a7.d=n.x
-if(!n.gaU()||a8.d.length===0){n.z.aZ()
+a7.d=n.y
+if(!n.gaU()||a8.d.length===0){n.Q.aZ()
 if(n.e.d.r){s=1
 break}b.j(B.p,"enqueing empty dtx frame",null,null)
 b2.enqueue(b1)
@@ -3565,7 +3568,7 @@ a1=a.length
 a2=a1+1
 if(a0.length>a2){a3=B.c.B(a8.d,a8.d.length-a1,a8.d.length)
 b.j(B.b,"magicBytesBuffer "+A.d(a3)+", magicBytes "+A.d(a),null,null)
-a0=n.z
+a0=n.Q
 if(A.cW(a3,"[","]")===A.cW(a,"[","]")){++a0.a
 if(a0.b==null)a0.b=Date.now()
 a0.c=Date.now()
@@ -3603,10 +3606,10 @@ break}i=B.c.B(a1,a2.length-a4-2,a8.d.length-2)
 a5=a7.b=n.e.U(j)
 a7.d=j
 b.j(B.b,"decodeFunction: start decrypting frame headerLength "+A.d(m)+" "+a8.d.length+" frameTrailer "+A.d(l)+", ivLength "+A.d(k)+", keyIndex "+A.d(j)+", iv "+A.d(i),null,null)
-if(a5==null||!n.e.c){if(n.w!==B.o){n.w=B.o
+if(a5==null||!n.e.c){if(n.x!==B.o){n.x=B.o
 a7=n.b
 b=n.c
-n.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",a7,"trackId",b,"kind",n.f,"state","missingKey","error","Missing key for track "+b],t.N,t.T)))}s=1
+n.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",a7,"trackId",b,"kind",n.f,"state","missingKey","error","Missing key for track "+b],t.N,t.T)))}s=1
 break}a.a=a5
 h=new A.cP(a7,a,n,i,a8,m,k)
 g=new A.cQ(a7,a,n,h)
@@ -3619,7 +3622,7 @@ break
 case 8:p=7
 a9=o.pop()
 f=A.W(a9)
-n.w=B.q
+n.x=B.q
 b=$.y()
 b.j(B.b,"decodeFunction: kInternalError catch "+A.d(f),null,null)
 s=12
@@ -3641,8 +3644,8 @@ a7=a7.c
 a7.toString
 J.b6(e,A.Z(a7,0,null))
 n.am(b1,b2,e)
-if(n.w!==B.j){n.w=B.j
-n.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",n.b,"trackId",n.c,"kind",n.f,"state","ok","error","decryption ok"],t.N,t.T)))}b.j(B.b,"decodeFunction[CryptorError.kOk]: decryption success kind "+n.f+", headerLength: "+A.d(m)+", timestamp: "+a8.c+", ssrc: "+a8.b+", data length: "+a8.d.length+", decrypted length: "+e.ar().length+", keyindex "+A.d(j)+" iv "+A.d(i),null,null)
+if(n.x!==B.j){n.x=B.j
+n.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",n.b,"trackId",n.c,"kind",n.f,"state","ok","error","decryption ok"],t.N,t.T)))}b.j(B.b,"decodeFunction[CryptorError.kOk]: decryption success kind "+n.f+", headerLength: "+A.d(m)+", timestamp: "+a8.c+", ssrc: "+a8.b+", data length: "+a8.d.length+", decrypted length: "+e.ar().length+", keyindex "+A.d(j)+" iv "+A.d(i),null,null)
 p=2
 s=6
 break
@@ -3651,12 +3654,12 @@ b0=o.pop()
 d=A.W(b0)
 c=A.an(b0)
 $.y().j(B.e,"decodeFunction[CryptorError.kDecryptError]: "+A.d(d)+", "+A.d(c),null,null)
-if(n.w!==B.w){n.w=B.w
+if(n.x!==B.w){n.x=B.w
 a7=n.b
 b=n.c
 a=n.f
 a===$&&A.ap("kind")
-n.y.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",a7,"trackId",b,"kind",a,"state","decryptError","error",J.a1(d)],t.N,t.T)))}n.e.bC()
+n.z.postMessage(A.k(A.l(["type","cryptorState","msgType","event","participantId",a7,"trackId",b,"kind",a,"state","decryptError","error",J.a1(d)],t.N,t.T)))}n.e.bC()
 s=6
 break
 case 3:s=2
@@ -3668,7 +3671,7 @@ A.cP.prototype={
 $0(){var s=0,r=A.K(t.H),q=this,p,o,n,m,l,k,j,i,h,g,f,e
 var $async$$0=A.M(function(a,b){if(a===1)return A.H(b,r)
 while(true)switch(s){case 0:o=q.c
-n=o.y
+n=o.z
 m=t.m
 l=m.a(m.a(n.crypto).subtle)
 k=q.e
@@ -3695,10 +3698,10 @@ break
 case 3:i.j(B.p,"decodeFunction::decryptFrameInternal: ratchetKey: decryption ok, newState: kKeyRatcheted",null,null)
 s=5
 return A.u(o.e.K(f.a,j.d),$async$$0)
-case 5:case 4:m=o.w
+case 5:case 4:m=o.x
 if(m!==B.j&&m!==B.y&&j.a>0){i.j(B.b,"decodeFunction::decryptFrameInternal: KeyRatcheted: ssrc "+k.b+" timestamp "+k.c+" ratchetCount "+j.a+"  participantId: "+A.d(o.b),null,null)
 i.j(B.b,"decodeFunction::decryptFrameInternal: ratchetKey: lastError != CryptorError.kKeyRatcheted, reset state to kKeyRatcheted",null,null)
-o.w=B.y
+o.x=B.y
 m=o.b
 l=o.c
 o=o.f
@@ -3926,7 +3929,7 @@ if(j==null){s.j(B.f,"KeyProvider not found for "+k,h,h)
 return}i=A.fJ(o,n,j)
 s=g.a(r.readable)
 g=g.a(r.writable)
-i.W(m==null?h:m,p,l,s,n,g)},
+i.W(m==null?h:m,!1,p,l,s,n,g)},
 $S:10}
 A.e3.prototype={
 b2(b5){var s=0,r=A.K(t.P),q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2,b3,b4
@@ -4007,8 +4010,8 @@ l=m.h("ay<1>")
 d=A.eQ(new A.ay(n,m.h("al(1)").a(new A.e4(e)),l),l.h("e.E"))
 for(n=d.length,m=""+f,l="Set enable "+m+" for trackId ",k="setEnabled["+m+u.h,c=0;c<d.length;d.length===n||(0,A.bT)(d),++c){b=d[c]
 b4.j(B.a,l+b.c,null,null)
-if(b.w!==B.j){b4.j(B.e,k,null,null)
-b.w=B.l}b4.j(B.a,"setEnabled for "+A.d(b.b)+", enabled: "+m,null,null)
+if(b.x!==B.j){b4.j(B.e,k,null,null)
+b.x=B.l}b4.j(B.a,"setEnabled for "+A.d(b.b)+", enabled: "+m,null,null)
 b.r=f}t.m.a(v.G.self).postMessage(A.k(A.l(["type","cryptorEnabled","enable",f,"msgId",b3,"msgType","response"],t.N,t.X)))
 s=4
 break
@@ -4028,10 +4031,11 @@ s=1
 break}A.i(e)
 b=A.fJ(a1,e,a4)
 A.i(b2)
+A.i(a)
 s=22
-return A.u(b.b6(A.i(a),b2,a2,e,a3),$async$$1)
+return A.u(b.b6(a0&&b2==="decode",a,b2,a2,e,a3),$async$$1)
 case 22:n.a(v.G.self).postMessage(A.k(A.l(["type","cryptorSetup","participantId",a1,"trackId",e,"exist",a0,"operation",b2,"msgId",b3,"msgType","response"],t.N,t.z)))
-b.w=B.l
+b.x=B.l
 s=4
 break
 case 10:e=A.i(b1.i(0,"trackId"))
@@ -4098,9 +4102,9 @@ d=A.eQ(new A.ay(n,m.h("al(1)").a(new A.e5(e)),l),l.h("e.E"))
 for(n=d.length,c=0;c<d.length;d.length===n||(0,A.bT)(d),++c){a8=d[c]
 b4.j(B.a,"Set keyIndex for trackId "+a8.c,null,null)
 A.o(a6)
-if(a8.w!==B.j){b4.j(B.e,"setKeyIndex: lastError != CryptorError.kOk, reset state to kNew",null,null)
-a8.w=B.l}b4.j(B.a,"setKeyIndex for "+A.d(a8.b)+", newIndex: "+a6,null,null)
-a8.x=a6}t.m.a(v.G.self).postMessage(A.k(A.l(["type","setKeyIndex","keyIndex",a6,"msgId",b3,"msgType","response"],t.N,t.z)))
+if(a8.x!==B.j){b4.j(B.e,"setKeyIndex: lastError != CryptorError.kOk, reset state to kNew",null,null)
+a8.x=B.l}b4.j(B.a,"setKeyIndex for "+A.d(a8.b)+", newIndex: "+a6,null,null)
+a8.y=a6}t.m.a(v.G.self).postMessage(A.k(A.l(["type","setKeyIndex","keyIndex",a6,"msgId",b3,"msgType","response"],t.N,t.z)))
 s=4
 break
 case 16:case 17:a6=A.o(b1.i(0,"keyIndex"))
@@ -4144,8 +4148,8 @@ case 19:b0=A.i(b1.i(0,"codec"))
 e=A.i(b1.i(0,"trackId"))
 b4.j(B.a,"Update codec for trackId "+e+", codec "+b0,null,null)
 b=A.cV($.aJ,new A.e6(e),t.j)
-if(b!=null){if(b.w!==B.j){b4.j(B.e,"updateCodec["+b0+u.h,null,null)
-b.w=B.l}b4.j(B.a,"updateCodec for "+A.d(b.b)+", codec: "+b0,null,null)
+if(b!=null){if(b.x!==B.j){b4.j(B.e,"updateCodec["+b0+u.h,null,null)
+b.x=B.l}b4.j(B.a,"updateCodec for "+A.d(b.b)+", codec: "+b0,null,null)
 b.d=b0}t.m.a(v.G.self).postMessage(A.k(A.l(["type","updateCodec","msgId",b3,"msgType","response"],t.N,t.T)))
 s=4
 break
@@ -4156,7 +4160,7 @@ b4=v.G
 n=t.m
 m=t.N
 l=t.T
-if(b!=null){b.w=B.I
+if(b!=null){b.x=B.I
 n.a(b4.self).postMessage(A.k(A.l(["type","cryptorDispose","participantId",b.b,"trackId",e,"msgId",b3,"msgType","response"],m,l)))}else n.a(b4.self).postMessage(A.k(A.l(["type","cryptorDispose","error","cryptor not found","msgId",b3,"msgType","response"],m,l)))
 s=4
 break
