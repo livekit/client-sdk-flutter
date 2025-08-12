@@ -1345,6 +1345,8 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? height,
     $core.int? bitrate,
     $core.int? ssrc,
+    $core.int? spatialLayer,
+    $core.String? rid,
   }) {
     final result = create();
     if (quality != null) result.quality = quality;
@@ -1352,6 +1354,8 @@ class VideoLayer extends $pb.GeneratedMessage {
     if (height != null) result.height = height;
     if (bitrate != null) result.bitrate = bitrate;
     if (ssrc != null) result.ssrc = ssrc;
+    if (spatialLayer != null) result.spatialLayer = spatialLayer;
+    if (rid != null) result.rid = rid;
     return result;
   }
 
@@ -1376,6 +1380,8 @@ class VideoLayer extends $pb.GeneratedMessage {
     ..a<$core.int>(3, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
     ..a<$core.int>(4, _omitFieldNames ? '' : 'bitrate', $pb.PbFieldType.OU3)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'ssrc', $pb.PbFieldType.OU3)
+    ..a<$core.int>(6, _omitFieldNames ? '' : 'spatialLayer', $pb.PbFieldType.O3)
+    ..aOS(7, _omitFieldNames ? '' : 'rid')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1443,6 +1449,24 @@ class VideoLayer extends $pb.GeneratedMessage {
   $core.bool hasSsrc() => $_has(4);
   @$pb.TagNumber(5)
   void clearSsrc() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get spatialLayer => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set spatialLayer($core.int value) => $_setSignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSpatialLayer() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSpatialLayer() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get rid => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set rid($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasRid() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearRid() => $_clearField(7);
 }
 
 enum DataPacket_Value {

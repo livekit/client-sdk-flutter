@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.5.0
+
+* Bump flutter-webrtc to 1.0.0.
+* Upgrade libwebrtc to m137.7151
+* fix: E2EE bug for Chrome. (#832)
+* fix(web, firefox): backup old values before overwriting them (#819)
+* fix: memory leak visualizer stop android (#831)
+* fix: ensure engine always has correct device id if switching camera fails (#820)
+* fix: Always emit RoomDisconnectedEvent when the reason is clientInitiated. (#821)
+* fix: sif frame enqueing with e2ee (#822)
+* fix: update camera `deviceId` when track is null (#814)
+* feat: Audio Visualizer for Windows/Linux. (#739)
+
 ## 2.4.9
 
 * Added: Attribute typings for agent and transcription (#811)

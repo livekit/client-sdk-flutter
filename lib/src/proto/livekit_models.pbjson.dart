@@ -705,6 +705,8 @@ const VideoLayer$json = {
     {'1': 'height', '3': 3, '4': 1, '5': 13, '10': 'height'},
     {'1': 'bitrate', '3': 4, '4': 1, '5': 13, '10': 'bitrate'},
     {'1': 'ssrc', '3': 5, '4': 1, '5': 13, '10': 'ssrc'},
+    {'1': 'spatial_layer', '3': 6, '4': 1, '5': 5, '10': 'spatialLayer'},
+    {'1': 'rid', '3': 7, '4': 1, '5': 9, '10': 'rid'},
   ],
 };
 
@@ -712,7 +714,8 @@ const VideoLayer$json = {
 final $typed_data.Uint8List videoLayerDescriptor = $convert.base64Decode(
     'CgpWaWRlb0xheWVyEi8KB3F1YWxpdHkYASABKA4yFS5saXZla2l0LlZpZGVvUXVhbGl0eVIHcX'
     'VhbGl0eRIUCgV3aWR0aBgCIAEoDVIFd2lkdGgSFgoGaGVpZ2h0GAMgASgNUgZoZWlnaHQSGAoH'
-    'Yml0cmF0ZRgEIAEoDVIHYml0cmF0ZRISCgRzc3JjGAUgASgNUgRzc3Jj');
+    'Yml0cmF0ZRgEIAEoDVIHYml0cmF0ZRISCgRzc3JjGAUgASgNUgRzc3JjEiMKDXNwYXRpYWxfbG'
+    'F5ZXIYBiABKAVSDHNwYXRpYWxMYXllchIQCgNyaWQYByABKAlSA3JpZA==');
 
 @$core.Deprecated('Use dataPacketDescriptor instead')
 const DataPacket$json = {
@@ -1271,6 +1274,7 @@ const ClientInfo_SDK$json = {
     {'1': 'UNITY_WEB', '2': 11},
     {'1': 'NODE', '2': 12},
     {'1': 'UNREAL', '2': 13},
+    {'1': 'ESP32', '2': 14},
   ],
 };
 
@@ -1282,10 +1286,10 @@ final $typed_data.Uint8List clientInfoDescriptor = $convert.base64Decode(
     '9tb2RlbBgGIAEoCVILZGV2aWNlTW9kZWwSGAoHYnJvd3NlchgHIAEoCVIHYnJvd3NlchInCg9i'
     'cm93c2VyX3ZlcnNpb24YCCABKAlSDmJyb3dzZXJWZXJzaW9uEhgKB2FkZHJlc3MYCSABKAlSB2'
     'FkZHJlc3MSGAoHbmV0d29yaxgKIAEoCVIHbmV0d29yaxIdCgpvdGhlcl9zZGtzGAsgASgJUglv'
-    'dGhlclNka3MiqAEKA1NESxILCgdVTktOT1dOEAASBgoCSlMQARIJCgVTV0lGVBACEgsKB0FORF'
+    'dGhlclNka3MiswEKA1NESxILCgdVTktOT1dOEAASBgoCSlMQARIJCgVTV0lGVBACEgsKB0FORF'
     'JPSUQQAxILCgdGTFVUVEVSEAQSBgoCR08QBRIJCgVVTklUWRAGEhAKDFJFQUNUX05BVElWRRAH'
     'EggKBFJVU1QQCBIKCgZQWVRIT04QCRIHCgNDUFAQChINCglVTklUWV9XRUIQCxIICgROT0RFEA'
-    'wSCgoGVU5SRUFMEA0=');
+    'wSCgoGVU5SRUFMEA0SCQoFRVNQMzIQDg==');
 
 @$core.Deprecated('Use clientConfigurationDescriptor instead')
 const ClientConfiguration$json = {
