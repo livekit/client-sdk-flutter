@@ -24,7 +24,7 @@ import WebRTC
     import UIKit
 #endif
 
-let trackIdKey = "visualizerId"
+let trackIdKey = "trackId"
 let visualizerIdKey = "visualizerId"
 let rendererIdKey = "rendererId"
 
@@ -221,7 +221,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         // Already exists
-        if processors.visualizers[rendererId] != nil {
+        if processors.renderers[rendererId] != nil {
             result(true)
             return
         }
@@ -231,6 +231,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                      rendererId: rendererId)
         // Retain
         processors.renderers[rendererId] = renderer
+
+        AudioManager.sharedInstance().startLocalRecording()
 
         result(true)
     }
@@ -244,7 +246,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         for processors in audioProcessors.values {
-            processors.renderers.removeValue(forKey: rendererId)
+            if let renderer = processors.renderers[rendererId] {
+                renderer.detach()
+                processors.renderers.removeValue(forKey: rendererId)
+            }
         }
 
         result(true)

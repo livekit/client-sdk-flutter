@@ -30,22 +30,27 @@ public class AudioRenderer: NSObject {
     private var channel: FlutterEventChannel?
 
     private weak var _track: AudioTrack?
-
-    public init(track: AudioTrack?,
+    public let rendererId: String
+    public init(track: AudioTrack,
                 binaryMessenger: FlutterBinaryMessenger,
                 rendererId: String)
     {
         _track = track
+        self.rendererId = rendererId
         super.init()
         _track?.add(audioRenderer: self)
 
-        let channelName = "io.livekit.audio.renderer/eventchannel-" + rendererId
+        let channelName = "io.livekit.audio.renderer/channel-" + rendererId
         channel = FlutterEventChannel(name: channelName, binaryMessenger: binaryMessenger)
         channel?.setStreamHandler(self)
     }
 
+    func detach() {
+      _track?.remove(audioRenderer: self)
+    }
+
     deinit {
-        _track?.remove(audioRenderer: self)
+        detach()
     }
 }
 
@@ -84,9 +89,9 @@ extension AudioRenderer: RTCAudioRenderer {
 
         // Create the result dictionary to send to Flutter
         var result: [String: Any] = [
-            "sampleRate": sampleRate,
-            "channelCount": channelCount,
-            "frameLength": frameLength,
+            "sampleRate": UInt(sampleRate),
+            "channelCount": UInt(channelCount),
+            "frameLength": UInt(frameLength),
         ]
 
         // Extract audio data based on the buffer format

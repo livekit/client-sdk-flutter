@@ -34,6 +34,7 @@ import '../options.dart';
 import '../participant/local.dart';
 import '../participant/participant.dart';
 import '../participant/remote.dart';
+import '../preconnect/pre_connect_audio_buffer.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
@@ -134,6 +135,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
 
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
+
+  @internal
+  late final preConnectAudioBuffer = PreConnectAudioBuffer(this);
 
   // for testing
   @internal
