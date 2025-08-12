@@ -11,6 +11,8 @@ project(${PROJECT_NAME} LANGUAGES CXX C)
 # not be changed.
 set(PLUGIN_NAME "livekit_client_plugin")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-D_USE_MATH_DEFINES)
 add_definitions(-DRTC_DESKTOP_DEVICE)
