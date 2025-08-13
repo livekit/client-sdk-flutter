@@ -1102,17 +1102,17 @@ extension RoomHardwareManagementMethods on Room {
     final currentDeviceId =
         engine.roomOptions.defaultCameraCaptureOptions.deviceId;
 
-    // Always update roomOptions so future tracks use the correct device
-    engine.roomOptions = engine.roomOptions.copyWith(
-      defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions
-          .copyWith(deviceId: device.deviceId),
-    );
-
     try {
       if (track != null && selectedVideoInputDeviceId != device.deviceId) {
         await track.switchCamera(device.deviceId);
         Hardware.instance.selectedVideoInput = device;
       }
+
+      // Always update roomOptions so future tracks use the correct device
+      engine.roomOptions = engine.roomOptions.copyWith(
+        defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions
+            .copyWith(deviceId: device.deviceId),
+      );
     } catch (e) {
       // if the switching actually fails, reset it to the previous deviceId
       engine.roomOptions = engine.roomOptions.copyWith(
