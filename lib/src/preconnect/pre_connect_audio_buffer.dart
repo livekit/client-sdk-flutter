@@ -3,13 +3,13 @@
 // and uploads via byte stream once an agent is ready.
 
 import 'dart:async';
-import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:uuid/uuid.dart';
 
+import '../support/completer_manager.dart';
 import '../support/native.dart';
 
 typedef PreConnectOnError = void Function(Object error);
@@ -59,12 +59,14 @@ class PreConnectAudioBuffer {
   StreamSubscription? _streamSubscription;
 
   final PreConnectOnError? _onError;
-  final int _sampleRate;
+  int? _sampleRate;
 
   final BytesBuilder _bytes = BytesBuilder(copy: false);
   Timer? _timeoutTimer;
   CancelListenFunc? _participantStateListener;
   CancelListenFunc? _remoteSubscribedListener;
+
+  final CompleterManager<void> _agentReadyManager = CompleterManager<void>();
 
   PreConnectAudioBuffer(
     this._room, {
@@ -77,6 +79,9 @@ class PreConnectAudioBuffer {
   bool get isRecording => _isRecording;
   int get bufferedSize => _bytes.length;
 
+  /// Future that completes when an agent is ready.
+  Future<void> get agentReadyFuture => _agentReadyManager.future;
+
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 10),
   }) async {
@@ -85,6 +90,9 @@ class PreConnectAudioBuffer {
       return;
     }
     _isRecording = true;
+
+    // Set up timeout for agent readiness
+    _agentReadyManager.setTimer(timeout, timeoutReason: 'Agent did not become ready within timeout');
 
     _localTrack = await LocalAudioTrack.create();
     print('localTrack: ${_localTrack!.mediaStreamTrack.id}');
@@ -104,12 +112,13 @@ class PreConnectAudioBuffer {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
-        // logger.info('event: $event');
+        // logger.info('sampleRate: ${event['sampleRate']}');
         // {sampleRate: 32000, format: int16, frameLength: 320, channelCount: 1}
+        _sampleRate = event['sampleRate'] as int;
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
         _bytes.add(monoData);
-        log('bufferedSize: ${_bytes.length}');
+        logger.info('[Preconnect audio] bufferedSize: ${_bytes.length}');
       } catch (e) {
         logger.warning('Error parsing event: $e');
       }
@@ -117,20 +126,24 @@ class PreConnectAudioBuffer {
 
     // Listen for agent readiness; when active, attempt to send buffer once.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>((event) async {
+      // logger.info('[Preconnect audio] State event ${event}');
+
       if (event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active) {
-        logger.info('Agent is active: ${event.participant.identity}');
+        logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
         try {
           await sendAudioData(agents: [event.participant.identity]);
+          _agentReadyManager.complete();
         } catch (e) {
+          _agentReadyManager.completeError(e);
           _onError?.call(e);
         } finally {
-          await reset();
+          // await reset();
         }
       }
     });
 
     _remoteSubscribedListener = _room.events.on<LocalTrackSubscribedEvent>((event) async {
-      logger.info('Remote track subscribed: ${event.trackSid}');
+      logger.info('[Preconnect audio] Remote track subscribed: ${event.trackSid}');
       await stopRecording();
     });
   }
@@ -160,6 +173,11 @@ class PreConnectAudioBuffer {
     );
 
     _rendererId = null;
+
+    // Complete agent ready future if not already completed
+    _agentReadyManager.complete();
+
+    logger.info('[Preconnect audio] stopped recording');
   }
 
   // Clean-up & reset for re-use
@@ -172,6 +190,17 @@ class PreConnectAudioBuffer {
     _remoteSubscribedListener = null;
     _bytes.clear();
     _localTrack = null;
+    _agentReadyManager.reset();
+
+    logger.info('[Preconnect audio] reset');
+  }
+
+  /// Dispose the audio buffer and clean up all resources.
+  void dispose() {
+    _agentReadyManager.dispose();
+    _timeoutTimer?.cancel();
+    _participantStateListener?.call();
+    _remoteSubscribedListener?.call();
   }
 
   Future<void> sendAudioData({
@@ -181,16 +210,19 @@ class PreConnectAudioBuffer {
     if (_isSent) return;
     if (agents.isEmpty) return;
 
-    final data = _bytes.takeBytes();
-    if (data.length <= 1024) {
-      throw StateError('Audio data too small to send (${data.length} bytes)');
+    logger.info('[Preconnect audio] sending audio data to ${agents.map((e) => e).join(', ')} agent(s)');
+
+    if (_sampleRate == null) {
+      throw StateError('[Preconnect audio] Sample rate is not set');
     }
+
+    final data = _bytes.takeBytes();
     _isSent = true;
 
     final streamOptions = StreamBytesOptions(
       topic: topic,
       attributes: {
-        'sampleRate': '$_sampleRate',
+        'sampleRate': _sampleRate.toString(),
         'channels': '1',
         'trackId': _localTrack!.mediaStreamTrack.id!,
       },
@@ -200,6 +232,6 @@ class PreConnectAudioBuffer {
     final writer = await _room.localParticipant!.streamBytes(streamOptions);
     await writer.write(data);
     await writer.close();
-    logger.info('[preconnect] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio to ${agents.length} agent(s)');
+    logger.info('[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio to ${agents} agent(s)');
   }
 }
