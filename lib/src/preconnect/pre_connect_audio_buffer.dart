@@ -112,13 +112,13 @@ class PreConnectAudioBuffer {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
-        // logger.info('sampleRate: ${event['sampleRate']}');
+        // logger.info('[Preconnect audio] event: ${event}');
         // {sampleRate: 32000, format: int16, frameLength: 320, channelCount: 1}
         _sampleRate = event['sampleRate'] as int;
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
         _bytes.add(monoData);
-        logger.info('[Preconnect audio] bufferedSize: ${_bytes.length}');
+        logger.info('[Preconnect audio] monoData ${monoData.length}, bufferedSize: ${_bytes.length}');
       } catch (e) {
         logger.warning('Error parsing event: $e');
       }
@@ -217,6 +217,8 @@ class PreConnectAudioBuffer {
     }
 
     final data = _bytes.takeBytes();
+    logger.info('[Preconnect audio] data.length: ${data.length}, bytes.length: ${_bytes.length}');
+
     _isSent = true;
 
     final streamOptions = StreamBytesOptions(
@@ -229,9 +231,18 @@ class PreConnectAudioBuffer {
       destinationIdentities: agents,
     );
 
+    logger.info('[Preconnect audio] streamOptions: $streamOptions');
+
     final writer = await _room.localParticipant!.streamBytes(streamOptions);
     await writer.write(data);
     await writer.close();
-    logger.info('[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio to ${agents} agent(s)');
+
+    // Compute seconds of audio data sent
+    final int bytesPerSample = 2; // Assuming 16-bit audio
+    final int totalSamples = data.length ~/ bytesPerSample;
+    final double secondsOfAudio = totalSamples / _sampleRate!;
+
+    logger.info(
+        '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
   }
 }
