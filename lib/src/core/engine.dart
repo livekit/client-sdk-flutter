@@ -16,9 +16,10 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -34,8 +35,6 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
-import '../support/platform.dart'
-    show lkPlatformIsTest, lkPlatformIs, PlatformType;
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
 import '../track/local/local.dart';
@@ -44,6 +43,9 @@ import '../types/internal.dart';
 import '../types/other.dart';
 import 'signal_client.dart';
 import 'transport.dart';
+
+import '../support/platform.dart'
+    show lkPlatformIsTest, lkPlatformIs, PlatformType;
 
 const maxRetryDelay = 7000;
 
