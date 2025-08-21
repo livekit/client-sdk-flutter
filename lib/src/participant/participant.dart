@@ -26,6 +26,7 @@ import '../publication/track_publication.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
+import '../types/participant_state.dart';
 import '../utils.dart';
 
 /// Represents a Participant in the room, notifies changes via delegates as
@@ -83,6 +84,10 @@ abstract class Participant<T extends TrackPublication>
   UnmodifiableMapView<String, String> get attributes =>
       UnmodifiableMapView(_attributes);
   Map<String, String> _attributes = {};
+
+  // Participant state
+  ParticipantState get state => _state;
+  ParticipantState _state = ParticipantState.unknown;
 
   /// when the participant joined the room
   DateTime get joinedAt {
@@ -176,6 +181,17 @@ abstract class Participant<T extends TrackPublication>
     }
   }
 
+  void _setParticipantState(ParticipantState state) {
+    final didChange = _state != state;
+    _state = state;
+    if (didChange) {
+      [events, room.events].emit(ParticipantStateUpdatedEvent(
+        participant: this,
+        state: state,
+      ));
+    }
+  }
+
   void _setAttributes(Map<String, String> attrs) {
     final diff = mapDiff(_attributes, attrs)
         .map((k, v) => MapEntry(k as String, v as String));
@@ -219,6 +235,7 @@ abstract class Participant<T extends TrackPublication>
     _setAttributes(info.attributes);
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
+    _setParticipantState(info.state.toLKType());
 
     return true;
   }
