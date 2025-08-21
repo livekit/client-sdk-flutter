@@ -130,13 +130,6 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    try {
-      if (_processor != null) {
-        await stopProcessor();
-      }
-    } catch (error) {
-      logger.severe('LocalTrack.stopProcessor did throw: $error');
-    }
     final didStop = await super.stop() || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
@@ -151,6 +144,13 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
+      try {
+        if (_processor != null) {
+          await stopProcessor();
+        }
+      } catch (error) {
+        logger.severe('LocalTrack.stopProcessor did throw: $error');
+      }
     }
     return didStop;
   }
