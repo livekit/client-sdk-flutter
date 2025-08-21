@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.0+hotfix.2
+
+* hotfix: bump libwebrtc to m137.7151.03 to support H.265 (#837)
+* feat: Expose ParticipantState (#848)
+* chore: Update protobuf to v1.39.2 (#847)
+
 ## 2.5.0+hotfix.1
 
 * fix: Switch to livekit fork of noise for 16KB page support (#839)
