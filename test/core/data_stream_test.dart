@@ -20,7 +20,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:uuid/uuid.dart' show Uuid;
 
 import 'package:livekit_client/livekit_client.dart';
 import '../mock/e2e_container.dart';
@@ -97,12 +96,8 @@ void main() {
       });
     });
 
-    final streamId = Uuid().v4();
     var stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-stream',
-      streamId: streamId,
-      totalSize: 10000,
-      attachedStreamIds: [],
     ));
     await stream?.write('a' * 10);
     await stream?.write('b' * 10);
@@ -202,10 +197,8 @@ void main() {
           'bytes content = ${content}, \n string content = ${utf8.decode(content)}');
     });
 
-    final streamId = Uuid().v4();
     var stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
       topic: 'bytes-stream',
-      streamId: streamId,
       totalSize: 30,
     ));
     await stream?.write(utf8.encode('a' * 10));

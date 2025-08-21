@@ -24,7 +24,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   Future<void> close() async {
     await writableStream.close();
-    this.onClose?.call();
+    onClose?.call();
   }
 }
 

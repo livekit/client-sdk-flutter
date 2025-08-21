@@ -18,8 +18,8 @@ abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
 
   BaseStreamReader(T info, DataStreamController<DataStream_Chunk> stream,
       this._totalByteSize) {
-    this.reader = stream;
-    this._info = info;
+    reader = stream;
+    _info = info;
   }
 
   void handleChunkReceived(DataStream_Chunk chunk);

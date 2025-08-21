@@ -356,7 +356,7 @@ class AudioPublishOptions extends PublishOptions {
 
 final backupCodecs = ['vp8', 'h264'];
 
-final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
+final videoCodecs = ['vp8', 'h264', 'h265', 'vp9', 'av1'];
 
 bool isBackupCodec(String codec) {
   return backupCodecs.contains(codec.toLowerCase());
