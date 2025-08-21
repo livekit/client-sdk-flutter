@@ -17,7 +17,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../events.dart';
