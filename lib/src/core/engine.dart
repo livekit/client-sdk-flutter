@@ -34,7 +34,8 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/disposable.dart';
-import '../support/platform.dart' show lkPlatformIsTest, lkPlatformIs, PlatformType;
+import '../support/platform.dart'
+    show lkPlatformIsTest, lkPlatformIs, PlatformType;
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
 import '../track/local/local.dart';
