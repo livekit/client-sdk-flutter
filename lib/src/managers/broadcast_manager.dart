@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide internal;
+
+import 'package:meta/meta.dart';
 
 import '../support/native.dart';
 

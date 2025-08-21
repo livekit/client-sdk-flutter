@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.0+hotfix.3
+
+* fix: Fix @internal conflicting imports from package meta or flutter/foundation.
+
 ## 2.5.0+hotfix.2
 
 * hotfix: bump libwebrtc to m137.7151.03 to support H.265 (#837)
