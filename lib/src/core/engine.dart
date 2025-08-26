@@ -305,7 +305,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (isBufferStatusLow(kind) == true) {
       completer.complete();
     } else {
-      onClosing() => completer.completeError('Engine disconnected');
+      onClosing() {
+        if (!completer.isCompleted) {
+          completer.completeError('Engine disconnected');
+        }
+      }
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
