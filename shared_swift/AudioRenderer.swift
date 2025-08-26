@@ -26,17 +26,27 @@ import WebRTC
 #endif
 
 public class AudioRenderer: NSObject {
+
+    public let rendererId: String
+    public let format: AVAudioFormat // Target format
+
     private var eventSink: FlutterEventSink?
     private var channel: FlutterEventChannel?
 
+    private var converter: AudioConverter?
+
+    // Weak ref
     private weak var _track: AudioTrack?
-    public let rendererId: String
+
     public init(track: AudioTrack,
                 binaryMessenger: FlutterBinaryMessenger,
-                rendererId: String)
+                rendererId: String,
+                format: AVAudioFormat)
     {
         _track = track
         self.rendererId = rendererId
+        self.format = format
+
         super.init()
         _track?.add(audioRenderer: self)
 
@@ -66,15 +76,8 @@ extension AudioRenderer: FlutterStreamHandler {
     }
 }
 
-extension AudioRenderer: RTCAudioRenderer {
-    public func render(pcmBuffer: AVAudioPCMBuffer) {
-        guard let eventSink = eventSink else { return }
-
-        // Extract audio format information
-        let sampleRate = pcmBuffer.format.sampleRate
-        let channelCount = pcmBuffer.format.channelCount
-        let frameLength = pcmBuffer.frameLength
-
+extension AVAudioPCMBuffer {
+    public func serialize() -> [String: Any] {
         // The format of the data:
         // {
         //   "sampleRate": 48000.0,
@@ -89,17 +92,17 @@ extension AudioRenderer: RTCAudioRenderer {
 
         // Create the result dictionary to send to Flutter
         var result: [String: Any] = [
-            "sampleRate": UInt(sampleRate),
-            "channelCount": UInt(channelCount),
+            "sampleRate": UInt(format.sampleRate),
+            "channels": UInt(format.channelCount),
             "frameLength": UInt(frameLength),
         ]
 
         // Extract audio data based on the buffer format
-        if let floatChannelData = pcmBuffer.floatChannelData {
+        if let floatChannelData = floatChannelData {
             // Buffer contains float data
             var channelsData: [[Float]] = []
 
-            for channel in 0 ..< Int(channelCount) {
+            for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = floatChannelData[channel]
                 let bytesToRead = Int(frameLength) * MemoryLayout<Float32>.size
                 let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
@@ -107,12 +110,12 @@ extension AudioRenderer: RTCAudioRenderer {
             }
 
             result["data"] = channelsData
-            result["format"] = "float32"
-        } else if let int16ChannelData = pcmBuffer.int16ChannelData {
+            result["commonFormat"] = "float32"
+        } else if let int16ChannelData = int16ChannelData {
             // Buffer contains int16 data
             var channelsData: [[Int16]] = []
 
-            for channel in 0 ..< Int(channelCount) {
+            for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = int16ChannelData[channel]
                 let bytesToRead = Int(frameLength) * MemoryLayout<Int16>.size
                 let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
@@ -120,12 +123,12 @@ extension AudioRenderer: RTCAudioRenderer {
             }
 
             result["data"] = channelsData
-            result["format"] = "int16"
-        } else if let int32ChannelData = pcmBuffer.int32ChannelData {
+            result["commonFormat"] = "int16"
+        } else if let int32ChannelData = int32ChannelData {
             // Buffer contains int32 data
             var channelsData: [[Int32]] = []
 
-            for channel in 0 ..< Int(channelCount) {
+            for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = int32ChannelData[channel]
                 let bytesToRead = Int(frameLength) * MemoryLayout<Int32>.size
                 let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
@@ -133,16 +136,32 @@ extension AudioRenderer: RTCAudioRenderer {
             }
 
             result["data"] = channelsData
-            result["format"] = "int32"
+            result["commonFormat"] = "int32"
         } else {
             // Fallback - send minimal info if no recognizable data format
             result["data"] = []
-            result["format"] = "unknown"
+            result["commonFormat"] = "unknown"
         }
+
+        return result
+    }
+}
+
+extension AudioRenderer: RTCAudioRenderer {
+    public func render(pcmBuffer: AVAudioPCMBuffer) {
+        guard let eventSink = eventSink else { return }
+
+        // Create or update converter if needed
+        if converter == nil || pcmBuffer.format != converter!.inputFormat || format != converter!.outputFormat {
+            converter = AudioConverter(from: pcmBuffer.format, to: format)
+        }
+        
+        let convertedBuffer = converter!.convert(from: pcmBuffer)
+        let serializedBuffer = convertedBuffer.serialize()
 
         // Send the result to Flutter on the main thread
         DispatchQueue.main.async {
-            eventSink(result)
+            eventSink(serializedBuffer)
         }
     }
 }

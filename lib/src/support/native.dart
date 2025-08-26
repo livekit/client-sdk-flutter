@@ -95,6 +95,7 @@ class Native {
   static Future<bool> startAudioRenderer({
     required String trackId,
     required String rendererId,
+    required Map<String, dynamic> format,
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -102,6 +103,7 @@ class Native {
         <String, dynamic>{
           'trackId': trackId,
           'rendererId': rendererId,
+          'format': format,
         },
       );
       return result == true;

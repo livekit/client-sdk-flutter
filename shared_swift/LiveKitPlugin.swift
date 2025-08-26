@@ -27,6 +27,11 @@ import WebRTC
 let trackIdKey = "trackId"
 let visualizerIdKey = "visualizerId"
 let rendererIdKey = "rendererId"
+let formatKey = "format"
+
+let commonFormatKey = "commonFormat"
+let sampleRateKey = "sampleRate"
+let channelsKey = "channels"
 
 class AudioProcessors {
     var track: AudioTrack
@@ -200,10 +205,44 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         result(true)
     }
 
+    public func parseAudioFormat(args: [String: Any?]) -> AVAudioFormat? {
+        guard let commonFormatString = args[commonFormatKey] as? String,
+              let sampleRate = args[sampleRateKey] as? Double,
+              let channels = args[channelsKey] as? AVAudioChannelCount else {
+            return nil
+        }
+
+        let commonFormat: AVAudioCommonFormat
+        switch commonFormatString {
+        case "float32":
+            commonFormat = .pcmFormatFloat32
+        case "int16":
+            commonFormat = .pcmFormatInt16
+        case "int32":
+            commonFormat = .pcmFormatInt32
+        default:
+            return nil
+        }
+
+        return AVAudioFormat(commonFormat: commonFormat, sampleRate: sampleRate, channels: channels, interleaved: false)
+    }
+
     public func handleStartAudioRenderer(args: [String: Any?], result: @escaping FlutterResult) {
         // Required params
         let trackId = args[trackIdKey] as? String
         let rendererId = args[rendererIdKey] as? String
+
+        let formatMap = args[formatKey] as? [String: Any?]
+
+        guard let formatMap else {
+            result(FlutterError(code: formatKey, message: "\(formatKey) is required", details: nil))
+            return
+        }
+
+        guard let format = parseAudioFormat(args: formatMap) else {
+            result(FlutterError(code: formatKey, message: "Failed to parse format", details: nil))
+            return
+        }
 
         guard let trackId else {
             result(FlutterError(code: trackIdKey, message: "\(trackIdKey) is required", details: nil))
@@ -228,7 +267,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
         let renderer = AudioRenderer(track: processors.track,
                                      binaryMessenger: binaryMessenger!,
-                                     rendererId: rendererId)
+                                     rendererId: rendererId,
+                                     format: format)
         // Retain
         processors.renderers[rendererId] = renderer
 

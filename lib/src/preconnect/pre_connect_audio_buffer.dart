@@ -59,7 +59,7 @@ class PreConnectAudioBuffer {
   StreamSubscription? _streamSubscription;
 
   final PreConnectOnError? _onError;
-  int? _sampleRate;
+  final int _sampleRate;
 
   final BytesBuilder _bytes = BytesBuilder(copy: false);
   Timer? _timeoutTimer;
@@ -103,6 +103,11 @@ class PreConnectAudioBuffer {
     final result = await Native.startAudioRenderer(
       trackId: _localTrack!.mediaStreamTrack.id!,
       rendererId: rendererId,
+      format: {
+        'commonFormat': 'int16',
+        'sampleRate': _sampleRate,
+        'channels': 1,
+      },
     );
 
     _rendererId = rendererId;
@@ -112,9 +117,8 @@ class PreConnectAudioBuffer {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
-        // logger.info('[Preconnect audio] event: ${event}');
-        // {sampleRate: 32000, format: int16, frameLength: 320, channelCount: 1}
-        _sampleRate = event['sampleRate'] as int;
+        logger.info('[Preconnect audio] event: ${event}');
+        
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
         _bytes.add(monoData);
