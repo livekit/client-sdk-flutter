@@ -101,7 +101,8 @@ extension AudioRenderer: RTCAudioRenderer {
 
             for channel in 0 ..< Int(channelCount) {
                 let channelPointer = floatChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: Int(frameLength)))
+                let bytesToRead = Int(frameLength) * MemoryLayout<Float32>.size
+                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
                 channelsData.append(channelArray)
             }
 
@@ -113,7 +114,8 @@ extension AudioRenderer: RTCAudioRenderer {
 
             for channel in 0 ..< Int(channelCount) {
                 let channelPointer = int16ChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: Int(frameLength)))
+                let bytesToRead = Int(frameLength) * MemoryLayout<Int16>.size
+                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
                 channelsData.append(channelArray)
             }
 
@@ -125,7 +127,8 @@ extension AudioRenderer: RTCAudioRenderer {
 
             for channel in 0 ..< Int(channelCount) {
                 let channelPointer = int32ChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: Int(frameLength)))
+                let bytesToRead = Int(frameLength) * MemoryLayout<Int32>.size
+                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
                 channelsData.append(channelArray)
             }
 
