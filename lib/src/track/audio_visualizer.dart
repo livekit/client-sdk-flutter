@@ -1,6 +1,6 @@
 import 'package:uuid/uuid.dart' as uuid;
 
-import 'package:livekit_client/src/support/disposable.dart';
+import '../support/disposable.dart';
 import '../events.dart' show AudioVisualizerEvent;
 import '../managers/event.dart' show EventsEmittable;
 import 'local/local.dart' show AudioTrack;

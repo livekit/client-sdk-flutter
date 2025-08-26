@@ -26,6 +26,7 @@ import 'track/processor.dart';
 import 'track/track.dart';
 import 'types/other.dart';
 import 'types/participant_permissions.dart';
+import 'types/participant_state.dart' show ParticipantState;
 import 'types/transcription_segment.dart';
 
 /// Base type for all LiveKit events.
@@ -372,10 +373,21 @@ class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   String toString() => '${runtimeType}(participant: ${participant})';
 }
 
+class ParticipantStateUpdatedEvent with RoomEvent, ParticipantEvent {
+  final Participant participant;
+  final ParticipantState state;
+  const ParticipantStateUpdatedEvent({
+    required this.participant,
+    required this.state,
+  });
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant})';
+}
+
 /// [Pariticpant]'s [ConnectionQuality] has updated.
 /// Emitted by [Room] and [Participant].
-class ParticipantConnectionQualityUpdatedEvent
-    with RoomEvent, ParticipantEvent {
+class ParticipantConnectionQualityUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final ConnectionQuality connectionQuality;
   const ParticipantConnectionQualityUpdatedEvent({
