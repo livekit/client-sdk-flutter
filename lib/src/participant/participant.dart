@@ -39,8 +39,8 @@ import '../utils.dart';
 
 /// Base for [RemoteParticipant] and [LocalParticipant],
 /// can not be instantiated directly.
-abstract class Participant<T extends TrackPublication> extends DisposableChangeNotifier
-    with EventsEmittable<ParticipantEvent> {
+abstract class Participant<T extends TrackPublication>
+    extends DisposableChangeNotifier with EventsEmittable<ParticipantEvent> {
   /// Reference to [Room]
   @internal
   final Room room;
@@ -81,7 +81,8 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   ParticipantPermissions get permissions => _permissions;
 
   /// Attributes associated with the participant
-  UnmodifiableMapView<String, String> get attributes => UnmodifiableMapView(_attributes);
+  UnmodifiableMapView<String, String> get attributes =>
+      UnmodifiableMapView(_attributes);
   Map<String, String> _attributes = {};
 
   // Participant state
@@ -92,7 +93,8 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   DateTime get joinedAt {
     final pi = _participantInfo;
     if (pi != null) {
-      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000, isUtc: true);
+      return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
+          isUtc: true);
     }
     return DateTime.now();
   }
@@ -191,10 +193,14 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   }
 
   void _setAttributes(Map<String, String> attrs) {
-    final diff = mapDiff(_attributes, attrs).map((k, v) => MapEntry(k as String, v as String));
+    final diff = mapDiff(_attributes, attrs)
+        .map((k, v) => MapEntry(k as String, v as String));
     _attributes = attrs;
     if (diff.isNotEmpty) {
-      [events, room.events].emit(ParticipantAttributesChanged(participant: this, attributes: diff));
+      [
+        events,
+        room.events
+      ].emit(ParticipantAttributesChanged(participant: this, attributes: diff));
     }
   }
 
@@ -211,7 +217,9 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   @internal
   Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('LocalParticipant.updateFromInfo(info: $info)');
-    if (_participantInfo != null && _participantInfo!.sid == info.sid && _participantInfo!.version > info.version) {
+    if (_participantInfo != null &&
+        _participantInfo!.sid == info.sid &&
+        _participantInfo!.version > info.version) {
       return false;
     }
 
@@ -287,14 +295,19 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   T? getTrackPublicationBySource(TrackSource source) {
     if (source == TrackSource.unknown) return null;
     // try to find by source
-    final result = trackPublications.values.firstWhereOrNull((e) => e.source == source);
+    final result =
+        trackPublications.values.firstWhereOrNull((e) => e.source == source);
     if (result != null) return result;
     // try to find by compatibility
-    return trackPublications.values.where((e) => e.source == TrackSource.unknown).firstWhereOrNull((e) =>
-        (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
-        (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||
-        (source == TrackSource.screenShareVideo && e.kind == TrackType.VIDEO) ||
-        (source == TrackSource.screenShareAudio && e.kind == TrackType.AUDIO));
+    return trackPublications.values
+        .where((e) => e.source == TrackSource.unknown)
+        .firstWhereOrNull((e) =>
+            (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
+            (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||
+            (source == TrackSource.screenShareVideo &&
+                e.kind == TrackType.VIDEO) ||
+            (source == TrackSource.screenShareAudio &&
+                e.kind == TrackType.AUDIO));
   }
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.
@@ -304,17 +317,20 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
 
   /// Convenience property to check whether [TrackSource.microphone] is published or not.
   bool isMicrophoneEnabled() {
-    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ?? true);
+    return !(getTrackPublicationBySource(TrackSource.microphone)?.muted ??
+        true);
   }
 
   /// Convenience property to check whether [TrackSource.screenShareVideo] is published or not.
   bool isScreenShareEnabled() {
-    return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ?? true);
+    return !(getTrackPublicationBySource(TrackSource.screenShareVideo)?.muted ??
+        true);
   }
 
   /// Convenience property to check whether [TrackSource.screenShareAudio] is published or not.
   bool isScreenShareAudioEnabled() {
-    return !(getTrackPublicationBySource(TrackSource.screenShareAudio)?.muted ?? true);
+    return !(getTrackPublicationBySource(TrackSource.screenShareAudio)?.muted ??
+        true);
   }
 
   /// (Equality operator) [Participant.hashCode] is same as [sid.hashCode].
