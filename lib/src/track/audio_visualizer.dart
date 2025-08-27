@@ -1,8 +1,8 @@
 import 'package:uuid/uuid.dart' as uuid;
 
-import '../support/disposable.dart';
 import '../events.dart' show AudioVisualizerEvent;
 import '../managers/event.dart' show EventsEmittable;
+import '../support/disposable.dart';
 import 'local/local.dart' show AudioTrack;
 
 import 'audio_visualizer_native.dart'
