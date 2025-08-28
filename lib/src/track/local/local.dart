@@ -18,7 +18,6 @@ import 'package:flutter/foundation.dart' hide internal;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
@@ -35,9 +34,6 @@ import '../remote/video.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
-
-import '../processor_native.dart'
-    if (dart.library.js_interop) '../processor_web.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
@@ -147,6 +143,13 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
+      try {
+        if (_processor != null) {
+          await stopProcessor();
+        }
+      } catch (error) {
+        logger.severe('LocalTrack.stopProcessor did throw: $error');
+      }
     }
     return didStop;
   }
@@ -261,14 +264,15 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    var processorOptions = AudioProcessorOptions(
+    var processorOptions = ProcessorOptions(
+      kind: kind,
       track: mediaStreamTrack,
     );
 
     await _processor!.init(processorOptions);
 
     if (_processor?.processedTrack != null) {
-      setProcessedTrack(processor.processedTrack!);
+      await setProcessedTrack(processor.processedTrack!);
     }
 
     logger.fine('processor initialized');
@@ -293,6 +297,8 @@ abstract class LocalTrack extends Track {
     //await this._mediaStreamTrack.applyConstraints(this._constraints);
     // force re-setting of the mediaStreamTrack on the sender
     //await this.setMediaStreamTrack(this._mediaStreamTrack, true);
+
+    await setProcessedTrack(null);
 
     events.emit(TrackProcessorUpdateEvent(track: this));
   }
