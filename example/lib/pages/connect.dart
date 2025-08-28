@@ -329,7 +329,8 @@ class _ConnectPageState extends State<ConnectPage> {
                                   'AV1',
                                   'VP9',
                                   'VP8',
-                                  'H264'
+                                  'H264',
+                                  'H265'
                                 ].map<DropdownMenuItem<String>>((String value) {
                                   return DropdownMenuItem<String>(
                                     value: value,
