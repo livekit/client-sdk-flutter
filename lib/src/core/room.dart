@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart' hide internal;
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
 import '../data_stream/stream_reader.dart';

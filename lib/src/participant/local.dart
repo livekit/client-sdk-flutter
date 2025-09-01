@@ -23,6 +23,7 @@ import 'package:flutter/foundation.dart' hide internal;
 import 'package:async/async.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';

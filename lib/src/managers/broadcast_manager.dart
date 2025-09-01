@@ -14,6 +14,8 @@
 
 import 'package:flutter/foundation.dart' hide internal;
 
+import 'package:meta/meta.dart';
+
 import '../support/native.dart';
 
 /// Manages broadcast state and track publication for screen sharing on iOS.

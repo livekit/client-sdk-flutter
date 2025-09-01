@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart' hide internal;
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../events.dart';
 import '../exceptions.dart';
@@ -312,6 +313,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           completer.completeError('Engine disconnected');
         }
       }
+
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
