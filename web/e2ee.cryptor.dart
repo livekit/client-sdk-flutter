@@ -8,6 +8,7 @@ import 'package:web/web.dart' as web;
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
 import 'e2ee.sfi_guard.dart';
+import 'e2ee.nalu_utils.dart';
 
 const IV_LENGTH = 12;
 
@@ -289,24 +290,27 @@ class FrameCryptor {
       }
     }
 
-    if (codec != null && codec.toLowerCase() == 'h264') {
-      var naluIndices = findNALUIndices(data);
-      for (var index in naluIndices) {
-        var type = parseNALUType(data[index]);
-        switch (type) {
-          case SLICE_IDR:
-          case SLICE_NON_IDR:
-            // skipping
-            logger.finer(
-                'unEncryptedBytes NALU of type $type, offset ${index + 2}');
-            return index + 2;
-          default:
-            logger.finer('skipping NALU of type $type');
-            break;
+    if (['h264', 'h265'].contains(codec?.toLowerCase() ?? '')) {
+      var result = processNALUsForEncryption(data, codec!);
+      if (result.detectedCodec == 'unknown') {
+        if (lastError != CryptorError.kUnsupportedCodec) {
+          lastError = CryptorError.kUnsupportedCodec;
+          postMessage({
+            'type': 'cryptorState',
+            'msgType': 'event',
+            'participantId': participantIdentity,
+            'trackId': trackId,
+            'kind': kind,
+            'state': 'unsupportedCodec',
+            'error':
+                'Unsupported codec for track $trackId, detected codec ${result.detectedCodec}'
+          });
         }
+        throw Exception('Unsupported codec for track $trackId');
       }
-      throw Exception('Could not find NALU');
+      return result.unencryptedBytes;
     }
+
     switch (frameType) {
       case 'key':
         return 10;
