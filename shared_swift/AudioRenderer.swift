@@ -104,8 +104,7 @@ extension AVAudioPCMBuffer {
 
             for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = floatChannelData[channel]
-                let bytesToRead = Int(frameLength) * MemoryLayout<Float32>.size
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
+                let channelArray = Array(UnsafeBufferPointer<Float32>(start: channelPointer, count: Int(frameLength)))
                 channelsData.append(channelArray)
             }
 
@@ -117,8 +116,7 @@ extension AVAudioPCMBuffer {
 
             for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = int16ChannelData[channel]
-                let bytesToRead = Int(frameLength) * MemoryLayout<Int16>.size
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
+                let channelArray = Array(UnsafeBufferPointer<Int16>(start: channelPointer, count: Int(frameLength)))
                 channelsData.append(channelArray)
             }
 
@@ -130,8 +128,7 @@ extension AVAudioPCMBuffer {
 
             for channel in 0 ..< Int(format.channelCount) {
                 let channelPointer = int32ChannelData[channel]
-                let bytesToRead = Int(frameLength) * MemoryLayout<Int32>.size
-                let channelArray = Array(UnsafeBufferPointer(start: channelPointer, count: bytesToRead))
+                let channelArray = Array(UnsafeBufferPointer<Int32>(start: channelPointer, count: Int(frameLength)))
                 channelsData.append(channelArray)
             }
 

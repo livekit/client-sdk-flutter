@@ -14,32 +14,6 @@ import '../support/native.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
-class AudioFrame {
-  final List<Int16List> data;
-  final int sampleRate;
-  final int channelCount;
-  final int frameLength;
-  final String format;
-
-  AudioFrame({
-    required this.data,
-    required this.sampleRate,
-    required this.channelCount,
-    required this.frameLength,
-    required this.format,
-  });
-
-  factory AudioFrame.fromMap(Map<String, dynamic> map) => AudioFrame(
-        data: (map['data'] as List<dynamic>)
-            .map<Int16List>((channel) => (channel as List).map<int>((e) => e as int).toList() as Int16List)
-            .toList(),
-        sampleRate: (map['sampleRate'] as int),
-        channelCount: (map['channelCount'] as int),
-        frameLength: (map['frameLength'] as int),
-        format: map['format'] as String,
-      );
-}
-
 class PreConnectAudioBuffer {
   static const String dataTopic = 'lk.agent.pre-connect-audio-buffer';
 
@@ -117,12 +91,9 @@ class PreConnectAudioBuffer {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
-        logger.info('[Preconnect audio] event: ${event}');
-        
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
         _bytes.add(monoData);
-        logger.info('[Preconnect audio] monoData ${monoData.length}, bufferedSize: ${_bytes.length}');
       } catch (e) {
         logger.warning('Error parsing event: $e');
       }
