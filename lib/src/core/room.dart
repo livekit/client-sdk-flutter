@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide internal;
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
