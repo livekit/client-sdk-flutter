@@ -3,6 +3,7 @@
 // and uploads via byte stream once an agent is ready.
 
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
@@ -19,6 +20,7 @@ class PreConnectAudioBuffer {
 
   static const int defaultMaxSize = 10 * 1024 * 1024; // 10MB
   static const int defaultSampleRate = 24000; // Hz
+  static const int defaultChunkSize = 64 * 1024; // 64KB chunks for streaming
 
   // Reference to the room
   final Room _room;
@@ -35,7 +37,7 @@ class PreConnectAudioBuffer {
   final PreConnectOnError? _onError;
   final int _sampleRate;
 
-  final BytesBuilder _bytes = BytesBuilder(copy: false);
+  final BytesBuilder _buffer = BytesBuilder(copy: false);
   Timer? _timeoutTimer;
   CancelListenFunc? _participantStateListener;
   CancelListenFunc? _remoteSubscribedListener;
@@ -51,7 +53,7 @@ class PreConnectAudioBuffer {
 
   // Getters
   bool get isRecording => _isRecording;
-  int get bufferedSize => _bytes.length;
+  int get bufferedSize => _buffer.length;
 
   /// Future that completes when an agent is ready.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
@@ -95,9 +97,10 @@ class PreConnectAudioBuffer {
         final monoData = dataChannels[0].cast<int>();
         // Convert Int16 values to bytes using typed data view
         final int16List = Int16List.fromList(monoData);
-        _bytes.add(int16List.buffer.asUint8List());
+        final bytes = int16List.buffer.asUint8List();
+        _buffer.add(bytes);
       } catch (e) {
-        logger.warning('Error parsing event: $e');
+        logger.warning('[Preconnect audio] Error parsing event: $e');
       }
     });
 
@@ -165,7 +168,7 @@ class PreConnectAudioBuffer {
     _participantStateListener = null;
     _remoteSubscribedListener?.call();
     _remoteSubscribedListener = null;
-    _bytes.clear();
+    _buffer.clear();
     _localTrack = null;
     _agentReadyManager.reset();
 
@@ -189,8 +192,8 @@ class PreConnectAudioBuffer {
 
     logger.info('[Preconnect audio] sending audio data to ${agents.map((e) => e).join(', ')} agent(s)');
 
-    final data = _bytes.takeBytes();
-    logger.info('[Preconnect audio] data.length: ${data.length}, bytes.length: ${_bytes.length}');
+    final data = _buffer.takeBytes();
+    logger.info('[Preconnect audio] data.length: ${data.length}, bytes.length: ${_buffer.length}');
 
     _isSent = true;
 
@@ -201,6 +204,7 @@ class PreConnectAudioBuffer {
         'channels': '1',
         'trackId': _localTrack!.mediaStreamTrack.id!,
       },
+      totalSize: data.length,
       destinationIdentities: agents,
     );
 
@@ -213,7 +217,7 @@ class PreConnectAudioBuffer {
     // Compute seconds of audio data sent
     final int bytesPerSample = 2; // Assuming 16-bit audio
     final int totalSamples = data.length ~/ bytesPerSample;
-    final double secondsOfAudio = totalSamples / _sampleRate!;
+    final double secondsOfAudio = totalSamples / _sampleRate;
 
     logger.info(
         '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
