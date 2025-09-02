@@ -108,7 +108,7 @@ void main() {
   });
 
   test('file send/recv test', () async {
-    var filePath = 'testfile.bin';
+    var filePath = 'testfiles/testfile.bin';
 
     /// create random file
     var randomFile = File(filePath);
@@ -118,7 +118,7 @@ void main() {
 
     room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) async {
       var file = await reader.readAll();
-      var fileName = 'copy-${reader.info!.name}';
+      var fileName = 'testfiles/copy-${reader.info!.name}';
       print('received file from $participantIdentity: ${file.length}');
       var received = file.expand((element) => element).toList();
       var writeFile = File(fileName);
@@ -143,7 +143,7 @@ void main() {
   test('send text with filestest', () async {
     var longText = 'a' * 100000;
 
-    var files = ['testfile.bin', 'testfile2.bin', 'testfile3.bin', 'testfile4.bin'];
+    var files = ['testfiles/testfile.bin', 'testfiles/testfile2.bin', 'testfiles/testfile3.bin', 'testfiles/testfile4.bin'];
 
     /// create random files
     for (var file in files) {
@@ -163,7 +163,7 @@ void main() {
     room.registerByteStreamHandler('chat-stream-with-files',
         (ByteStreamReader reader, String participantIdentity) async {
       var file = await reader.readAll();
-      var fileName = 'copy-${reader.info!.name}';
+      var fileName = 'testfiles/copy-${reader.info!.name}';
       print('received file from $participantIdentity: ${fileName}');
       var received = file.expand((element) => element).toList();
       var writeFile = File(fileName);
