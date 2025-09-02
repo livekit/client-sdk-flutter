@@ -187,10 +187,6 @@ class PreConnectAudioBuffer {
 
     logger.info('[Preconnect audio] sending audio data to ${agents.map((e) => e).join(', ')} agent(s)');
 
-    if (_sampleRate == null) {
-      throw StateError('[Preconnect audio] Sample rate is not set');
-    }
-
     final data = _bytes.takeBytes();
     logger.info('[Preconnect audio] data.length: ${data.length}, bytes.length: ${_bytes.length}');
 
