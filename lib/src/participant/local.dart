@@ -1197,6 +1197,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       destinationIdentities: options?.destinationIdentities ?? [],
       topic: options?.topic,
       attachedStreamIds: fileIds ?? [],
+      attributes: options?.attributes ?? {},
     ));
 
     await writer.write(text);
