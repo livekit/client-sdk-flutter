@@ -22,8 +22,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:livekit_client/livekit_client.dart';
+
 import '../mock/e2e_container.dart';
 
 void main() {
@@ -60,11 +60,11 @@ void main() {
 
   test('send text test', () async {
     room.registerTextStreamHandler('chat', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received chat message from $participantIdentity: $text');
       expect('some text !!!', text);
     });
-    var info = await room.localParticipant?.sendText('some text !!!',
+    final info = await room.localParticipant?.sendText('some text !!!',
         options: SendTextOptions(
           topic: 'chat',
         ));
@@ -75,12 +75,12 @@ void main() {
     var longText = 'a' * 100000;
 
     room.registerTextStreamHandler('chat-long-text', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received chat message from $participantIdentity: long text length: ${text.length}');
       expect(longText, text);
     });
 
-    var info = await room.localParticipant?.sendText(longText,
+    final info = await room.localParticipant?.sendText(longText,
         options: SendTextOptions(
           topic: 'chat-long-text',
           onProgress: (p0) {
@@ -98,7 +98,7 @@ void main() {
       });
     });
 
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-stream',
     ));
     await stream?.write('a' * 10);
@@ -117,11 +117,11 @@ void main() {
     randomFile.writeAsBytesSync(bytes);
 
     room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) async {
-      var file = await reader.readAll();
-      var fileName = 'testfiles/copy-${reader.info!.name}';
+      final file = await reader.readAll();
+      final fileName = 'testfiles/copy-${reader.info!.name}';
       print('received file from $participantIdentity: ${file.length}');
-      var received = file.expand((element) => element).toList();
-      var writeFile = File(fileName);
+      final received = file.expand((element) => element).toList();
+      final writeFile = File(fileName);
       writeFile.writeAsBytesSync(received);
 
       expect(bytes, received);
@@ -143,7 +143,12 @@ void main() {
   test('send text with filestest', () async {
     var longText = 'a' * 100000;
 
-    var files = ['testfiles/testfile.bin', 'testfiles/testfile2.bin', 'testfiles/testfile3.bin', 'testfiles/testfile4.bin'];
+    var files = [
+      'testfiles/testfile.bin',
+      'testfiles/testfile2.bin',
+      'testfiles/testfile3.bin',
+      'testfiles/testfile4.bin'
+    ];
 
     /// create random files
     for (var file in files) {
@@ -155,24 +160,24 @@ void main() {
 
     room.registerTextStreamHandler('chat-stream-with-files',
         (TextStreamReader reader, String participantIdentity) async {
-      var receivedText = await reader.readAll();
+      final receivedText = await reader.readAll();
       print('received chat message from $participantIdentity: long text length: ${receivedText.length}');
       expect(longText, receivedText);
     });
 
     room.registerByteStreamHandler('chat-stream-with-files',
         (ByteStreamReader reader, String participantIdentity) async {
-      var file = await reader.readAll();
-      var fileName = 'testfiles/copy-${reader.info!.name}';
+      final file = await reader.readAll();
+      final fileName = 'testfiles/copy-${reader.info!.name}';
       print('received file from $participantIdentity: ${fileName}');
-      var received = file.expand((element) => element).toList();
-      var writeFile = File(fileName);
+      final received = file.expand((element) => element).toList();
+      final writeFile = File(fileName);
       writeFile.writeAsBytesSync(received);
     });
 
     var attachmentsFiles = files.map((e) => File(e)).toList();
 
-    var info = await room.localParticipant?.sendText(longText,
+    final info = await room.localParticipant?.sendText(longText,
         options: SendTextOptions(
           topic: 'chat-stream-with-files',
           attachments: attachmentsFiles,
@@ -185,12 +190,12 @@ void main() {
 
   test('stream bytes test', () async {
     room.registerByteStreamHandler('bytes-stream', (ByteStreamReader reader, String participantIdentity) async {
-      var chunks = await reader.readAll();
-      var content = chunks.expand((element) => element).toList();
+      final chunks = await reader.readAll();
+      final content = chunks.expand((element) => element).toList();
       print('bytes content = ${content}, \n string content = ${utf8.decode(content)}');
     });
 
-    var stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
+    final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
       topic: 'bytes-stream',
       totalSize: 30,
     ));
@@ -206,18 +211,18 @@ void main() {
 
     for (var operationType in operationTypes) {
       room.registerTextStreamHandler('chat-operations', (TextStreamReader reader, String participantIdentity) async {
-        var text = await reader.readAll();
+        final text = await reader.readAll();
         receivedMessages.add('${operationType}: ${text}');
         print('received ${operationType} message: ${text}');
       });
 
-      var info = await room.localParticipant?.sendText('Test ${operationType}',
+      final info = await room.localParticipant?.sendText('Test ${operationType}',
           options: SendTextOptions(
             topic: 'chat-operations',
           ));
 
       // Test with streamText and different operation types
-      var stream = await room.localParticipant?.streamText(StreamTextOptions(
+      final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'chat-operations',
         type: operationType,
         version: operationType == 'update' ? 2 : null,
@@ -234,20 +239,20 @@ void main() {
     final testAttributes = {'userId': '12345', 'sessionId': 'abc123', 'priority': 'high'};
 
     room.registerTextStreamHandler('chat-metadata', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received message with text: ${text}');
       print('received message attributes: ${reader.info?.attributes}');
-      
+
       // Verify the text content
       expect(text, 'Test message with metadata');
-      
+
       // Verify attributes are received correctly now that sendText() is fixed
       expect(reader.info!.attributes['userId'], '12345');
       expect(reader.info!.attributes['sessionId'], 'abc123');
       expect(reader.info!.attributes['priority'], 'high');
     });
 
-    var info = await room.localParticipant?.sendText('Test message with metadata',
+    final info = await room.localParticipant?.sendText('Test message with metadata',
         options: SendTextOptions(
           topic: 'chat-metadata',
           attributes: testAttributes,
@@ -260,13 +265,13 @@ void main() {
     const replyStreamId = 'reply-stream-456';
 
     room.registerTextStreamHandler('chat-replies', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received reply message: ${text}');
       expect(text, 'This is a reply to the original message');
     });
 
     // Send a reply to an existing stream
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-replies',
       type: 'create',
       streamId: replyStreamId,
@@ -279,13 +284,13 @@ void main() {
 
   test('text stream with generated flag test', () async {
     room.registerTextStreamHandler('chat-ai-generated', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received AI-generated message: ${text}');
       expect(text, 'This message was generated by AI');
     });
 
     // Test AI-generated message
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-ai-generated',
       generated: true,
       attributes: {'aiModel': 'gpt-4', 'confidence': '0.95'},
@@ -299,12 +304,12 @@ void main() {
 
     room.registerTextStreamHandler('chat-with-attachments',
         (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received message with attachments: ${text}');
       expect(text, 'Message with file attachments');
     });
 
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'chat-with-attachments',
       attachedStreamIds: attachedIds,
       totalSize: 26, // 'Message with file attachments'.length
@@ -319,29 +324,29 @@ void main() {
     const testFileName = 'test-document.pdf';
 
     room.registerByteStreamHandler('files-with-metadata', (ByteStreamReader reader, String participantIdentity) async {
-      var chunks = await reader.readAll();
-      var content = chunks.expand((element) => element).toList();
+      final chunks = await reader.readAll();
+      final content = chunks.expand((element) => element).toList();
       print('received file: ${reader.info?.name}, size: ${content.length}');
       print('received file mimeType: ${reader.info?.mimeType}');
       print('received file attributes: ${reader.info?.attributes}');
-      
+
       // Verify basic info
       expect(reader.info?.name, testFileName);
       expect(reader.info?.mimeType, testMimeType);
       expect(content.length, greaterThan(0));
-      
+
       // Verify attributes are received (if supported by the reader)
       if (reader.info?.attributes != null) {
         expect(reader.info!.attributes['uploadedBy'], 'user123');
         expect(reader.info!.attributes['category'], 'document');
       }
-      
+
       // Verify content is correct
       var expectedContent = List<int>.generate(100, (index) => index % 256);
       expect(content, expectedContent);
     });
 
-    var stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
+    final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
       topic: 'files-with-metadata',
       name: testFileName,
       mimeType: testMimeType,
@@ -360,7 +365,7 @@ void main() {
     const expectedCount = 3;
 
     room.registerTextStreamHandler('concurrent-streams', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       receivedCount++;
       print('received concurrent message ${receivedCount}: ${text}');
     });
@@ -369,7 +374,7 @@ void main() {
     var futures = <Future>[];
     for (int i = 0; i < expectedCount; i++) {
       futures.add(() async {
-        var stream = await room.localParticipant?.streamText(StreamTextOptions(
+        final stream = await room.localParticipant?.streamText(StreamTextOptions(
           topic: 'concurrent-streams',
           streamId: 'stream-${i}',
           type: 'create',
@@ -391,13 +396,13 @@ void main() {
     var largeData = 'x' * chunkSize;
 
     room.registerTextStreamHandler('large-chunks', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('received large text, length: ${text.length}');
       expect(text.length, chunkSize);
       expect(text, largeData);
     });
 
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'large-chunks',
       totalSize: chunkSize,
     ));
@@ -408,33 +413,33 @@ void main() {
   test('validate headers and attributes actually work', () async {
     // Test comprehensive header data transmission
     final testCompleter = Completer<bool>();
-    
+
     room.registerTextStreamHandler('header-validation', (TextStreamReader reader, String participantIdentity) async {
-      var text = await reader.readAll();
+      final text = await reader.readAll();
       print('=== Header Validation Test ===');
       print('Received text: ${text}');
-      print('Reader info ID: ${reader.info?.id}');  
+      print('Reader info ID: ${reader.info?.id}');
       print('Reader info topic: ${reader.info?.topic}');
       print('Reader info mimeType: ${reader.info?.mimeType}');
       print('Reader info timestamp: ${reader.info?.timestamp}');
       print('Reader info size: ${reader.info?.size}');
       print('Reader info attributes: ${reader.info?.attributes}');
-      
+
       // Validate the content
       expect(text, 'Header validation test message');
-      
+
       // Validate basic stream properties
       expect(reader.info?.topic, 'header-validation');
       expect(reader.info?.mimeType, 'text/plain');
       expect(reader.info?.id, isNotNull);
       expect(reader.info?.timestamp, isNotNull);
-      
+
       // Test passes if we get here without exceptions
       testCompleter.complete(true);
     });
 
     // Send a message with comprehensive options
-    var stream = await room.localParticipant?.streamText(StreamTextOptions(
+    final stream = await room.localParticipant?.streamText(StreamTextOptions(
       topic: 'header-validation',
       type: 'create',
       version: 1,
@@ -448,10 +453,10 @@ void main() {
       replyToStreamId: 'parent-message-123',
       totalSize: 28, // Length of test message
     ));
-    
+
     await stream?.write('Header validation test message');
     await stream?.close();
-    
+
     // Wait for the test to complete or timeout
     await testCompleter.future.timeout(Duration(seconds: 3));
   });
