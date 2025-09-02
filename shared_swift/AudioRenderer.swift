@@ -154,6 +154,12 @@ extension AudioRenderer: RTCAudioRenderer {
         }
         
         let convertedBuffer = converter!.convert(from: pcmBuffer)
+
+        guard convertedBuffer.frameLength == UInt32(format.sampleRate / 100) else {
+            print("Converted buffer frame length does not match target format sample rate: \(convertedBuffer.frameLength) != \(format.sampleRate / 100) skipping this frame...")
+            return
+        }
+
         let serializedBuffer = convertedBuffer.serialize()
 
         // Send the result to Flutter on the main thread
