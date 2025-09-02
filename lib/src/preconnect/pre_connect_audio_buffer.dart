@@ -93,7 +93,9 @@ class PreConnectAudioBuffer {
       try {
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
-        _bytes.add(monoData);
+        // Convert Int16 values to bytes using typed data view
+        final int16List = Int16List.fromList(monoData);
+        _bytes.add(int16List.buffer.asUint8List());
       } catch (e) {
         logger.warning('Error parsing event: $e');
       }
