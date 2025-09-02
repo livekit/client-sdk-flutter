@@ -26,7 +26,6 @@ import WebRTC
 #endif
 
 public class AudioRenderer: NSObject {
-
     public let rendererId: String
     public let format: AVAudioFormat // Target format
 
@@ -56,7 +55,7 @@ public class AudioRenderer: NSObject {
     }
 
     func detach() {
-      _track?.remove(audioRenderer: self)
+        _track?.remove(audioRenderer: self)
     }
 
     deinit {
@@ -76,8 +75,8 @@ extension AudioRenderer: FlutterStreamHandler {
     }
 }
 
-extension AVAudioPCMBuffer {
-    public func serialize() -> [String: Any] {
+public extension AVAudioPCMBuffer {
+    func serialize() -> [String: Any] {
         // The format of the data:
         // {
         //   "sampleRate": 48000.0,
@@ -152,7 +151,7 @@ extension AudioRenderer: RTCAudioRenderer {
         if converter == nil || pcmBuffer.format != converter!.inputFormat || format != converter!.outputFormat {
             converter = AudioConverter(from: pcmBuffer.format, to: format)
         }
-        
+
         let convertedBuffer = converter!.convert(from: pcmBuffer)
 
         guard convertedBuffer.frameLength == UInt32(format.sampleRate / 100) else {
