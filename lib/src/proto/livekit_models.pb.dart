@@ -89,13 +89,75 @@ class Pagination extends $pb.GeneratedMessage {
   void clearLimit() => $_clearField(2);
 }
 
+class TokenPagination extends $pb.GeneratedMessage {
+  factory TokenPagination({
+    $core.String? token,
+  }) {
+    final result = create();
+    if (token != null) result.token = token;
+    return result;
+  }
+
+  TokenPagination._();
+
+  factory TokenPagination.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TokenPagination.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TokenPagination',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'token')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TokenPagination clone() => TokenPagination()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TokenPagination copyWith(void Function(TokenPagination) updates) =>
+      super.copyWith((message) => updates(message as TokenPagination))
+          as TokenPagination;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static TokenPagination create() => TokenPagination._();
+  @$core.override
+  TokenPagination createEmptyInstance() => create();
+  static $pb.PbList<TokenPagination> createRepeated() =>
+      $pb.PbList<TokenPagination>();
+  @$core.pragma('dart2js:noInline')
+  static TokenPagination getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TokenPagination>(create);
+  static TokenPagination? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get token => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set token($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearToken() => $_clearField(1);
+}
+
 /// ListUpdate is used for updated APIs where 'repeated string' field is modified.
 class ListUpdate extends $pb.GeneratedMessage {
   factory ListUpdate({
     $core.Iterable<$core.String>? set,
+    $core.Iterable<$core.String>? add,
+    $core.Iterable<$core.String>? del,
+    $core.bool? clear_4,
   }) {
     final result = create();
     if (set != null) result.set.addAll(set);
+    if (add != null) result.add.addAll(add);
+    if (del != null) result.del.addAll(del);
+    if (clear_4 != null) result.clear_4 = clear_4;
     return result;
   }
 
@@ -113,6 +175,9 @@ class ListUpdate extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
     ..pPS(1, _omitFieldNames ? '' : 'set')
+    ..pPS(2, _omitFieldNames ? '' : 'add')
+    ..pPS(3, _omitFieldNames ? '' : 'del')
+    ..aOB(4, _omitFieldNames ? '' : 'clear')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -136,6 +201,21 @@ class ListUpdate extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $pb.PbList<$core.String> get set => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.String> get add => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.String> get del => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.bool get clear_4 => $_getBF(3);
+  @$pb.TagNumber(4)
+  set clear_4($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasClear_4() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearClear_4() => $_clearField(4);
 }
 
 class Room extends $pb.GeneratedMessage {
@@ -960,12 +1040,16 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
     $core.String? mid,
     $core.String? cid,
     $core.Iterable<VideoLayer>? layers,
+    VideoLayer_Mode? videoLayerMode,
+    $core.String? sdpCid,
   }) {
     final result = create();
     if (mimeType != null) result.mimeType = mimeType;
     if (mid != null) result.mid = mid;
     if (cid != null) result.cid = cid;
     if (layers != null) result.layers.addAll(layers);
+    if (videoLayerMode != null) result.videoLayerMode = videoLayerMode;
+    if (sdpCid != null) result.sdpCid = sdpCid;
     return result;
   }
 
@@ -987,6 +1071,12 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'cid')
     ..pc<VideoLayer>(4, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM,
         subBuilder: VideoLayer.create)
+    ..e<VideoLayer_Mode>(
+        5, _omitFieldNames ? '' : 'videoLayerMode', $pb.PbFieldType.OE,
+        defaultOrMaker: VideoLayer_Mode.MODE_UNUSED,
+        valueOf: VideoLayer_Mode.valueOf,
+        enumValues: VideoLayer_Mode.values)
+    ..aOS(6, _omitFieldNames ? '' : 'sdpCid')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1039,6 +1129,28 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(4)
   $pb.PbList<VideoLayer> get layers => $_getList(3);
+
+  @$pb.TagNumber(5)
+  VideoLayer_Mode get videoLayerMode => $_getN(4);
+  @$pb.TagNumber(5)
+  set videoLayerMode(VideoLayer_Mode value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasVideoLayerMode() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearVideoLayerMode() => $_clearField(5);
+
+  /// cid (client side id for track) could be different between
+  /// signalling (AddTrackRequest) and SDP offer. This field
+  /// will be populated only if it is different to avoid
+  /// duplication and keep the representation concise.
+  @$pb.TagNumber(6)
+  $core.String get sdpCid => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set sdpCid($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSdpCid() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSdpCid() => $_clearField(6);
 }
 
 class TrackInfo extends $pb.GeneratedMessage {
@@ -1047,16 +1159,17 @@ class TrackInfo extends $pb.GeneratedMessage {
     TrackType? type,
     $core.String? name,
     $core.bool? muted,
-    $core.int? width,
-    $core.int? height,
-    $core.bool? simulcast,
-    $core.bool? disableDtx,
+    @$core.Deprecated('This field is deprecated.') $core.int? width,
+    @$core.Deprecated('This field is deprecated.') $core.int? height,
+    @$core.Deprecated('This field is deprecated.') $core.bool? simulcast,
+    @$core.Deprecated('This field is deprecated.') $core.bool? disableDtx,
     TrackSource? source,
+    @$core.Deprecated('This field is deprecated.')
     $core.Iterable<VideoLayer>? layers,
     $core.String? mimeType,
     $core.String? mid,
     $core.Iterable<SimulcastCodecInfo>? codecs,
-    $core.bool? stereo,
+    @$core.Deprecated('This field is deprecated.') $core.bool? stereo,
     $core.bool? disableRed,
     Encryption_Type? encryption,
     $core.String? stream,
@@ -1202,42 +1315,58 @@ class TrackInfo extends $pb.GeneratedMessage {
 
   /// original width of video (unset for audio)
   /// clients may receive a lower resolution version with simulcast
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.int get width => $_getIZ(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   set width($core.int value) => $_setUnsignedInt32(4, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasWidth() => $_has(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   void clearWidth() => $_clearField(5);
 
   /// original height of video (unset for audio)
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.int get height => $_getIZ(5);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   set height($core.int value) => $_setUnsignedInt32(5, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.bool hasHeight() => $_has(5);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   void clearHeight() => $_clearField(6);
 
   /// true if track is simulcasted
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool get simulcast => $_getBF(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set simulcast($core.bool value) => $_setBool(6, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasSimulcast() => $_has(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearSimulcast() => $_clearField(7);
 
   /// true if DTX (Discontinuous Transmission) is disabled for audio
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool get disableDtx => $_getBF(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   set disableDtx($core.bool value) => $_setBool(7, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasDisableDtx() => $_has(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   void clearDisableDtx() => $_clearField(8);
 
@@ -1251,6 +1380,7 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   void clearSource() => $_clearField(9);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(10)
   $pb.PbList<VideoLayer> get layers => $_getList(9);
 
@@ -1276,12 +1406,16 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $pb.PbList<SimulcastCodecInfo> get codecs => $_getList(12);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
   $core.bool get stereo => $_getBF(13);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
   set stereo($core.bool value) => $_setBool(13, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
   $core.bool hasStereo() => $_has(13);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
   void clearStereo() => $_clearField(14);
 
@@ -1482,6 +1616,7 @@ enum DataPacket_Value {
   streamHeader,
   streamChunk,
   streamTrailer,
+  encryptedPacket,
   notSet
 }
 
@@ -1505,6 +1640,7 @@ class DataPacket extends $pb.GeneratedMessage {
     DataStream_Trailer? streamTrailer,
     $core.int? sequence,
     $core.String? participantSid,
+    EncryptedPacket? encryptedPacket,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -1526,6 +1662,7 @@ class DataPacket extends $pb.GeneratedMessage {
     if (streamTrailer != null) result.streamTrailer = streamTrailer;
     if (sequence != null) result.sequence = sequence;
     if (participantSid != null) result.participantSid = participantSid;
+    if (encryptedPacket != null) result.encryptedPacket = encryptedPacket;
     return result;
   }
 
@@ -1551,13 +1688,14 @@ class DataPacket extends $pb.GeneratedMessage {
     13: DataPacket_Value.streamHeader,
     14: DataPacket_Value.streamChunk,
     15: DataPacket_Value.streamTrailer,
+    18: DataPacket_Value.encryptedPacket,
     0: DataPacket_Value.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataPacket',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    ..oo(0, [2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18])
     ..e<DataPacket_Kind>(1, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE,
         defaultOrMaker: DataPacket_Kind.RELIABLE,
         valueOf: DataPacket_Kind.valueOf,
@@ -1590,6 +1728,8 @@ class DataPacket extends $pb.GeneratedMessage {
         subBuilder: DataStream_Trailer.create)
     ..a<$core.int>(16, _omitFieldNames ? '' : 'sequence', $pb.PbFieldType.OU3)
     ..aOS(17, _omitFieldNames ? '' : 'participantSid')
+    ..aOM<EncryptedPacket>(18, _omitFieldNames ? '' : 'encryptedPacket',
+        subBuilder: EncryptedPacket.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1797,8 +1937,312 @@ class DataPacket extends $pb.GeneratedMessage {
   $core.bool hasParticipantSid() => $_has(16);
   @$pb.TagNumber(17)
   void clearParticipantSid() => $_clearField(17);
+
+  @$pb.TagNumber(18)
+  EncryptedPacket get encryptedPacket => $_getN(17);
+  @$pb.TagNumber(18)
+  set encryptedPacket(EncryptedPacket value) => $_setField(18, value);
+  @$pb.TagNumber(18)
+  $core.bool hasEncryptedPacket() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearEncryptedPacket() => $_clearField(18);
+  @$pb.TagNumber(18)
+  EncryptedPacket ensureEncryptedPacket() => $_ensure(17);
 }
 
+class EncryptedPacket extends $pb.GeneratedMessage {
+  factory EncryptedPacket({
+    Encryption_Type? encryptionType,
+    $core.List<$core.int>? iv,
+    $core.int? keyIndex,
+    $core.List<$core.int>? encryptedValue,
+  }) {
+    final result = create();
+    if (encryptionType != null) result.encryptionType = encryptionType;
+    if (iv != null) result.iv = iv;
+    if (keyIndex != null) result.keyIndex = keyIndex;
+    if (encryptedValue != null) result.encryptedValue = encryptedValue;
+    return result;
+  }
+
+  EncryptedPacket._();
+
+  factory EncryptedPacket.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EncryptedPacket.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EncryptedPacket',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..e<Encryption_Type>(
+        1, _omitFieldNames ? '' : 'encryptionType', $pb.PbFieldType.OE,
+        defaultOrMaker: Encryption_Type.NONE,
+        valueOf: Encryption_Type.valueOf,
+        enumValues: Encryption_Type.values)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'iv', $pb.PbFieldType.OY)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'keyIndex', $pb.PbFieldType.OU3)
+    ..a<$core.List<$core.int>>(
+        4, _omitFieldNames ? '' : 'encryptedValue', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EncryptedPacket clone() => EncryptedPacket()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EncryptedPacket copyWith(void Function(EncryptedPacket) updates) =>
+      super.copyWith((message) => updates(message as EncryptedPacket))
+          as EncryptedPacket;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EncryptedPacket create() => EncryptedPacket._();
+  @$core.override
+  EncryptedPacket createEmptyInstance() => create();
+  static $pb.PbList<EncryptedPacket> createRepeated() =>
+      $pb.PbList<EncryptedPacket>();
+  @$core.pragma('dart2js:noInline')
+  static EncryptedPacket getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EncryptedPacket>(create);
+  static EncryptedPacket? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Encryption_Type get encryptionType => $_getN(0);
+  @$pb.TagNumber(1)
+  set encryptionType(Encryption_Type value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEncryptionType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEncryptionType() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get iv => $_getN(1);
+  @$pb.TagNumber(2)
+  set iv($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasIv() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearIv() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get keyIndex => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set keyIndex($core.int value) => $_setUnsignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKeyIndex() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKeyIndex() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get encryptedValue => $_getN(3);
+  @$pb.TagNumber(4)
+  set encryptedValue($core.List<$core.int> value) => $_setBytes(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasEncryptedValue() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearEncryptedValue() => $_clearField(4);
+}
+
+enum EncryptedPacketPayload_Value {
+  user,
+  chatMessage,
+  rpcRequest,
+  rpcAck,
+  rpcResponse,
+  streamHeader,
+  streamChunk,
+  streamTrailer,
+  notSet
+}
+
+class EncryptedPacketPayload extends $pb.GeneratedMessage {
+  factory EncryptedPacketPayload({
+    UserPacket? user,
+    ChatMessage? chatMessage,
+    RpcRequest? rpcRequest,
+    RpcAck? rpcAck,
+    RpcResponse? rpcResponse,
+    DataStream_Header? streamHeader,
+    DataStream_Chunk? streamChunk,
+    DataStream_Trailer? streamTrailer,
+  }) {
+    final result = create();
+    if (user != null) result.user = user;
+    if (chatMessage != null) result.chatMessage = chatMessage;
+    if (rpcRequest != null) result.rpcRequest = rpcRequest;
+    if (rpcAck != null) result.rpcAck = rpcAck;
+    if (rpcResponse != null) result.rpcResponse = rpcResponse;
+    if (streamHeader != null) result.streamHeader = streamHeader;
+    if (streamChunk != null) result.streamChunk = streamChunk;
+    if (streamTrailer != null) result.streamTrailer = streamTrailer;
+    return result;
+  }
+
+  EncryptedPacketPayload._();
+
+  factory EncryptedPacketPayload.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EncryptedPacketPayload.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, EncryptedPacketPayload_Value>
+      _EncryptedPacketPayload_ValueByTag = {
+    1: EncryptedPacketPayload_Value.user,
+    3: EncryptedPacketPayload_Value.chatMessage,
+    4: EncryptedPacketPayload_Value.rpcRequest,
+    5: EncryptedPacketPayload_Value.rpcAck,
+    6: EncryptedPacketPayload_Value.rpcResponse,
+    7: EncryptedPacketPayload_Value.streamHeader,
+    8: EncryptedPacketPayload_Value.streamChunk,
+    9: EncryptedPacketPayload_Value.streamTrailer,
+    0: EncryptedPacketPayload_Value.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EncryptedPacketPayload',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..oo(0, [1, 3, 4, 5, 6, 7, 8, 9])
+    ..aOM<UserPacket>(1, _omitFieldNames ? '' : 'user',
+        subBuilder: UserPacket.create)
+    ..aOM<ChatMessage>(3, _omitFieldNames ? '' : 'chatMessage',
+        subBuilder: ChatMessage.create)
+    ..aOM<RpcRequest>(4, _omitFieldNames ? '' : 'rpcRequest',
+        subBuilder: RpcRequest.create)
+    ..aOM<RpcAck>(5, _omitFieldNames ? '' : 'rpcAck', subBuilder: RpcAck.create)
+    ..aOM<RpcResponse>(6, _omitFieldNames ? '' : 'rpcResponse',
+        subBuilder: RpcResponse.create)
+    ..aOM<DataStream_Header>(7, _omitFieldNames ? '' : 'streamHeader',
+        subBuilder: DataStream_Header.create)
+    ..aOM<DataStream_Chunk>(8, _omitFieldNames ? '' : 'streamChunk',
+        subBuilder: DataStream_Chunk.create)
+    ..aOM<DataStream_Trailer>(9, _omitFieldNames ? '' : 'streamTrailer',
+        subBuilder: DataStream_Trailer.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EncryptedPacketPayload clone() =>
+      EncryptedPacketPayload()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EncryptedPacketPayload copyWith(
+          void Function(EncryptedPacketPayload) updates) =>
+      super.copyWith((message) => updates(message as EncryptedPacketPayload))
+          as EncryptedPacketPayload;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EncryptedPacketPayload create() => EncryptedPacketPayload._();
+  @$core.override
+  EncryptedPacketPayload createEmptyInstance() => create();
+  static $pb.PbList<EncryptedPacketPayload> createRepeated() =>
+      $pb.PbList<EncryptedPacketPayload>();
+  @$core.pragma('dart2js:noInline')
+  static EncryptedPacketPayload getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EncryptedPacketPayload>(create);
+  static EncryptedPacketPayload? _defaultInstance;
+
+  EncryptedPacketPayload_Value whichValue() =>
+      _EncryptedPacketPayload_ValueByTag[$_whichOneof(0)]!;
+  void clearValue() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  UserPacket get user => $_getN(0);
+  @$pb.TagNumber(1)
+  set user(UserPacket value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUser() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUser() => $_clearField(1);
+  @$pb.TagNumber(1)
+  UserPacket ensureUser() => $_ensure(0);
+
+  @$pb.TagNumber(3)
+  ChatMessage get chatMessage => $_getN(1);
+  @$pb.TagNumber(3)
+  set chatMessage(ChatMessage value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasChatMessage() => $_has(1);
+  @$pb.TagNumber(3)
+  void clearChatMessage() => $_clearField(3);
+  @$pb.TagNumber(3)
+  ChatMessage ensureChatMessage() => $_ensure(1);
+
+  @$pb.TagNumber(4)
+  RpcRequest get rpcRequest => $_getN(2);
+  @$pb.TagNumber(4)
+  set rpcRequest(RpcRequest value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasRpcRequest() => $_has(2);
+  @$pb.TagNumber(4)
+  void clearRpcRequest() => $_clearField(4);
+  @$pb.TagNumber(4)
+  RpcRequest ensureRpcRequest() => $_ensure(2);
+
+  @$pb.TagNumber(5)
+  RpcAck get rpcAck => $_getN(3);
+  @$pb.TagNumber(5)
+  set rpcAck(RpcAck value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRpcAck() => $_has(3);
+  @$pb.TagNumber(5)
+  void clearRpcAck() => $_clearField(5);
+  @$pb.TagNumber(5)
+  RpcAck ensureRpcAck() => $_ensure(3);
+
+  @$pb.TagNumber(6)
+  RpcResponse get rpcResponse => $_getN(4);
+  @$pb.TagNumber(6)
+  set rpcResponse(RpcResponse value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRpcResponse() => $_has(4);
+  @$pb.TagNumber(6)
+  void clearRpcResponse() => $_clearField(6);
+  @$pb.TagNumber(6)
+  RpcResponse ensureRpcResponse() => $_ensure(4);
+
+  @$pb.TagNumber(7)
+  DataStream_Header get streamHeader => $_getN(5);
+  @$pb.TagNumber(7)
+  set streamHeader(DataStream_Header value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasStreamHeader() => $_has(5);
+  @$pb.TagNumber(7)
+  void clearStreamHeader() => $_clearField(7);
+  @$pb.TagNumber(7)
+  DataStream_Header ensureStreamHeader() => $_ensure(5);
+
+  @$pb.TagNumber(8)
+  DataStream_Chunk get streamChunk => $_getN(6);
+  @$pb.TagNumber(8)
+  set streamChunk(DataStream_Chunk value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasStreamChunk() => $_has(6);
+  @$pb.TagNumber(8)
+  void clearStreamChunk() => $_clearField(8);
+  @$pb.TagNumber(8)
+  DataStream_Chunk ensureStreamChunk() => $_ensure(6);
+
+  @$pb.TagNumber(9)
+  DataStream_Trailer get streamTrailer => $_getN(7);
+  @$pb.TagNumber(9)
+  set streamTrailer(DataStream_Trailer value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasStreamTrailer() => $_has(7);
+  @$pb.TagNumber(9)
+  void clearStreamTrailer() => $_clearField(9);
+  @$pb.TagNumber(9)
+  DataStream_Trailer ensureStreamTrailer() => $_ensure(7);
+}
+
+@$core.Deprecated('This message is deprecated')
 class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   factory ActiveSpeakerUpdate({
     $core.Iterable<SpeakerInfo>? speakers,
@@ -2070,7 +2514,7 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $pb.PbList<$core.String> get destinationIdentities => $_getList(5);
 
-  /// Unique ID to indentify the message
+  /// Unique ID to identify the message
   @$pb.TagNumber(8)
   $core.String get id => $_getSZ(6);
   @$pb.TagNumber(8)
@@ -5040,6 +5484,7 @@ class DataStream_Header extends $pb.GeneratedMessage {
     $core.String? topic,
     $core.String? mimeType,
     $fixnum.Int64? totalLength,
+    @$core.Deprecated('This field is deprecated.')
     Encryption_Type? encryptionType,
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? attributes,
     DataStream_TextHeader? textHeader,
@@ -5171,12 +5616,16 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearTotalLength() => $_clearField(5);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   Encryption_Type get encryptionType => $_getN(5);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set encryptionType(Encryption_Type value) => $_setField(7, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasEncryptionType() => $_has(5);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearEncryptionType() => $_clearField(7);
 
@@ -5212,7 +5661,7 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
     $fixnum.Int64? chunkIndex,
     $core.List<$core.int>? content,
     $core.int? version,
-    $core.List<$core.int>? iv,
+    @$core.Deprecated('This field is deprecated.') $core.List<$core.int>? iv,
   }) {
     final result = create();
     if (streamId != null) result.streamId = streamId;
@@ -5304,12 +5753,16 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearVersion() => $_clearField(4);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.List<$core.int> get iv => $_getN(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   set iv($core.List<$core.int> value) => $_setBytes(4, value);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasIv() => $_has(4);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   void clearIv() => $_clearField(5);
 }

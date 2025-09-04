@@ -182,7 +182,7 @@ class SignalRequest extends $pb.GeneratedMessage {
       _SignalRequest_MessageByTag[$_whichOneof(0)]!;
   void clearMessage() => $_clearField($_whichOneof(0));
 
-  /// initial join exchange, for publisher
+  /// participant offer for publisher
   @$pb.TagNumber(1)
   SessionDescription get offer => $_getN(0);
   @$pb.TagNumber(1)
@@ -194,7 +194,7 @@ class SignalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   SessionDescription ensureOffer() => $_ensure(0);
 
-  /// participant answering publisher offer
+  /// participant answering subscriber offer
   @$pb.TagNumber(2)
   SessionDescription get answer => $_getN(1);
   @$pb.TagNumber(2)
@@ -413,6 +413,7 @@ enum SignalResponse_Message {
   requestResponse,
   trackSubscribed,
   roomMoved,
+  mediaSectionsRequirement,
   notSet
 }
 
@@ -441,6 +442,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     RequestResponse? requestResponse,
     TrackSubscribed? trackSubscribed,
     RoomMovedResponse? roomMoved,
+    MediaSectionsRequirement? mediaSectionsRequirement,
   }) {
     final result = create();
     if (join != null) result.join = join;
@@ -469,6 +471,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (requestResponse != null) result.requestResponse = requestResponse;
     if (trackSubscribed != null) result.trackSubscribed = trackSubscribed;
     if (roomMoved != null) result.roomMoved = roomMoved;
+    if (mediaSectionsRequirement != null)
+      result.mediaSectionsRequirement = mediaSectionsRequirement;
     return result;
   }
 
@@ -506,6 +510,7 @@ class SignalResponse extends $pb.GeneratedMessage {
     22: SignalResponse_Message.requestResponse,
     23: SignalResponse_Message.trackSubscribed,
     24: SignalResponse_Message.roomMoved,
+    25: SignalResponse_Message.mediaSectionsRequirement,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -535,7 +540,8 @@ class SignalResponse extends $pb.GeneratedMessage {
       21,
       22,
       23,
-      24
+      24,
+      25
     ])
     ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join',
         subBuilder: JoinResponse.create)
@@ -585,6 +591,9 @@ class SignalResponse extends $pb.GeneratedMessage {
         subBuilder: TrackSubscribed.create)
     ..aOM<RoomMovedResponse>(24, _omitFieldNames ? '' : 'roomMoved',
         subBuilder: RoomMovedResponse.create)
+    ..aOM<MediaSectionsRequirement>(
+        25, _omitFieldNames ? '' : 'mediaSectionsRequirement',
+        subBuilder: MediaSectionsRequirement.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -887,16 +896,33 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearRoomMoved() => $_clearField(24);
   @$pb.TagNumber(24)
   RoomMovedResponse ensureRoomMoved() => $_ensure(22);
+
+  /// notify number of required media sections to satisfy subscribed tracks
+  @$pb.TagNumber(25)
+  MediaSectionsRequirement get mediaSectionsRequirement => $_getN(23);
+  @$pb.TagNumber(25)
+  set mediaSectionsRequirement(MediaSectionsRequirement value) =>
+      $_setField(25, value);
+  @$pb.TagNumber(25)
+  $core.bool hasMediaSectionsRequirement() => $_has(23);
+  @$pb.TagNumber(25)
+  void clearMediaSectionsRequirement() => $_clearField(25);
+  @$pb.TagNumber(25)
+  MediaSectionsRequirement ensureMediaSectionsRequirement() => $_ensure(23);
 }
 
 class SimulcastCodec extends $pb.GeneratedMessage {
   factory SimulcastCodec({
     $core.String? codec,
     $core.String? cid,
+    $core.Iterable<$2.VideoLayer>? layers,
+    $2.VideoLayer_Mode? videoLayerMode,
   }) {
     final result = create();
     if (codec != null) result.codec = codec;
     if (cid != null) result.cid = cid;
+    if (layers != null) result.layers.addAll(layers);
+    if (videoLayerMode != null) result.videoLayerMode = videoLayerMode;
     return result;
   }
 
@@ -915,6 +941,13 @@ class SimulcastCodec extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'codec')
     ..aOS(2, _omitFieldNames ? '' : 'cid')
+    ..pc<$2.VideoLayer>(4, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM,
+        subBuilder: $2.VideoLayer.create)
+    ..e<$2.VideoLayer_Mode>(
+        5, _omitFieldNames ? '' : 'videoLayerMode', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.VideoLayer_Mode.MODE_UNUSED,
+        valueOf: $2.VideoLayer_Mode.valueOf,
+        enumValues: $2.VideoLayer_Mode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -955,6 +988,18 @@ class SimulcastCodec extends $pb.GeneratedMessage {
   $core.bool hasCid() => $_has(1);
   @$pb.TagNumber(2)
   void clearCid() => $_clearField(2);
+
+  @$pb.TagNumber(4)
+  $pb.PbList<$2.VideoLayer> get layers => $_getList(2);
+
+  @$pb.TagNumber(5)
+  $2.VideoLayer_Mode get videoLayerMode => $_getN(3);
+  @$pb.TagNumber(5)
+  set videoLayerMode($2.VideoLayer_Mode value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasVideoLayerMode() => $_has(3);
+  @$pb.TagNumber(5)
+  void clearVideoLayerMode() => $_clearField(5);
 }
 
 class AddTrackRequest extends $pb.GeneratedMessage {
@@ -1100,7 +1145,6 @@ class AddTrackRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearType() => $_clearField(3);
 
-  /// to be deprecated in favor of layers
   @$pb.TagNumber(4)
   $core.int get width => $_getIZ(3);
   @$pb.TagNumber(4)
@@ -3670,7 +3714,9 @@ class SyncState extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SyncState>(create);
   static SyncState? _defaultInstance;
 
-  /// last subscribe answer before reconnecting
+  /// last subscribe/publish answer before reconnecting
+  /// subscribe answer if using dual peer connection
+  /// publish answer if using single peer connection
   @$pb.TagNumber(1)
   SessionDescription get answer => $_getN(0);
   @$pb.TagNumber(1)
@@ -3699,7 +3745,9 @@ class SyncState extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $pb.PbList<DataChannelInfo> get dataChannels => $_getList(3);
 
-  /// last received server side offer before reconnecting
+  /// last received server side offer/sent client side offer before reconnecting
+  /// received server side offer if using dual peer connection
+  /// sent client side offer if using single peer connection
   @$pb.TagNumber(5)
   SessionDescription get offer => $_getN(4);
   @$pb.TagNumber(5)
@@ -4551,6 +4599,424 @@ class TrackSubscribed extends $pb.GeneratedMessage {
   $core.bool hasTrackSid() => $_has(0);
   @$pb.TagNumber(1)
   void clearTrackSid() => $_clearField(1);
+}
+
+class ConnectionSettings extends $pb.GeneratedMessage {
+  factory ConnectionSettings({
+    $core.bool? autoSubscribe,
+    $core.bool? adaptiveStream,
+    $core.bool? subscriberAllowPause,
+    $core.bool? disableIceLite,
+  }) {
+    final result = create();
+    if (autoSubscribe != null) result.autoSubscribe = autoSubscribe;
+    if (adaptiveStream != null) result.adaptiveStream = adaptiveStream;
+    if (subscriberAllowPause != null)
+      result.subscriberAllowPause = subscriberAllowPause;
+    if (disableIceLite != null) result.disableIceLite = disableIceLite;
+    return result;
+  }
+
+  ConnectionSettings._();
+
+  factory ConnectionSettings.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ConnectionSettings.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'ConnectionSettings',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'autoSubscribe')
+    ..aOB(2, _omitFieldNames ? '' : 'adaptiveStream')
+    ..aOB(3, _omitFieldNames ? '' : 'subscriberAllowPause')
+    ..aOB(4, _omitFieldNames ? '' : 'disableIceLite')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectionSettings clone() => ConnectionSettings()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ConnectionSettings copyWith(void Function(ConnectionSettings) updates) =>
+      super.copyWith((message) => updates(message as ConnectionSettings))
+          as ConnectionSettings;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ConnectionSettings create() => ConnectionSettings._();
+  @$core.override
+  ConnectionSettings createEmptyInstance() => create();
+  static $pb.PbList<ConnectionSettings> createRepeated() =>
+      $pb.PbList<ConnectionSettings>();
+  @$core.pragma('dart2js:noInline')
+  static ConnectionSettings getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<ConnectionSettings>(create);
+  static ConnectionSettings? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get autoSubscribe => $_getBF(0);
+  @$pb.TagNumber(1)
+  set autoSubscribe($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAutoSubscribe() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAutoSubscribe() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get adaptiveStream => $_getBF(1);
+  @$pb.TagNumber(2)
+  set adaptiveStream($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasAdaptiveStream() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAdaptiveStream() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get subscriberAllowPause => $_getBF(2);
+  @$pb.TagNumber(3)
+  set subscriberAllowPause($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSubscriberAllowPause() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSubscriberAllowPause() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get disableIceLite => $_getBF(3);
+  @$pb.TagNumber(4)
+  set disableIceLite($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDisableIceLite() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDisableIceLite() => $_clearField(4);
+}
+
+class JoinRequest extends $pb.GeneratedMessage {
+  factory JoinRequest({
+    $2.ClientInfo? clientInfo,
+    ConnectionSettings? connectionSettings,
+    $core.String? metadata,
+    $core.Iterable<$core.MapEntry<$core.String, $core.String>>?
+        participantAttributes,
+    $core.Iterable<AddTrackRequest>? addTrackRequests,
+    SessionDescription? publisherOffer,
+    $core.bool? reconnect,
+    $2.ReconnectReason? reconnectReason,
+    $core.String? participantSid,
+    SyncState? syncState,
+  }) {
+    final result = create();
+    if (clientInfo != null) result.clientInfo = clientInfo;
+    if (connectionSettings != null)
+      result.connectionSettings = connectionSettings;
+    if (metadata != null) result.metadata = metadata;
+    if (participantAttributes != null)
+      result.participantAttributes.addEntries(participantAttributes);
+    if (addTrackRequests != null)
+      result.addTrackRequests.addAll(addTrackRequests);
+    if (publisherOffer != null) result.publisherOffer = publisherOffer;
+    if (reconnect != null) result.reconnect = reconnect;
+    if (reconnectReason != null) result.reconnectReason = reconnectReason;
+    if (participantSid != null) result.participantSid = participantSid;
+    if (syncState != null) result.syncState = syncState;
+    return result;
+  }
+
+  JoinRequest._();
+
+  factory JoinRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory JoinRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'JoinRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..aOM<$2.ClientInfo>(1, _omitFieldNames ? '' : 'clientInfo',
+        subBuilder: $2.ClientInfo.create)
+    ..aOM<ConnectionSettings>(2, _omitFieldNames ? '' : 'connectionSettings',
+        subBuilder: ConnectionSettings.create)
+    ..aOS(3, _omitFieldNames ? '' : 'metadata')
+    ..m<$core.String, $core.String>(
+        4, _omitFieldNames ? '' : 'participantAttributes',
+        entryClassName: 'JoinRequest.ParticipantAttributesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('livekit'))
+    ..pc<AddTrackRequest>(
+        5, _omitFieldNames ? '' : 'addTrackRequests', $pb.PbFieldType.PM,
+        subBuilder: AddTrackRequest.create)
+    ..aOM<SessionDescription>(6, _omitFieldNames ? '' : 'publisherOffer',
+        subBuilder: SessionDescription.create)
+    ..aOB(7, _omitFieldNames ? '' : 'reconnect')
+    ..e<$2.ReconnectReason>(
+        8, _omitFieldNames ? '' : 'reconnectReason', $pb.PbFieldType.OE,
+        defaultOrMaker: $2.ReconnectReason.RR_UNKNOWN,
+        valueOf: $2.ReconnectReason.valueOf,
+        enumValues: $2.ReconnectReason.values)
+    ..aOS(9, _omitFieldNames ? '' : 'participantSid')
+    ..aOM<SyncState>(10, _omitFieldNames ? '' : 'syncState',
+        subBuilder: SyncState.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  JoinRequest clone() => JoinRequest()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  JoinRequest copyWith(void Function(JoinRequest) updates) =>
+      super.copyWith((message) => updates(message as JoinRequest))
+          as JoinRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static JoinRequest create() => JoinRequest._();
+  @$core.override
+  JoinRequest createEmptyInstance() => create();
+  static $pb.PbList<JoinRequest> createRepeated() => $pb.PbList<JoinRequest>();
+  @$core.pragma('dart2js:noInline')
+  static JoinRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<JoinRequest>(create);
+  static JoinRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $2.ClientInfo get clientInfo => $_getN(0);
+  @$pb.TagNumber(1)
+  set clientInfo($2.ClientInfo value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClientInfo() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClientInfo() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.ClientInfo ensureClientInfo() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  ConnectionSettings get connectionSettings => $_getN(1);
+  @$pb.TagNumber(2)
+  set connectionSettings(ConnectionSettings value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasConnectionSettings() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearConnectionSettings() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ConnectionSettings ensureConnectionSettings() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.String get metadata => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set metadata($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMetadata() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMetadata() => $_clearField(3);
+
+  /// will set keys provided via this
+  /// will overwrite if the same key is in the token
+  /// will not delete keys from token if there is a key collision and this sets that key to empty value
+  @$pb.TagNumber(4)
+  $pb.PbMap<$core.String, $core.String> get participantAttributes =>
+      $_getMap(3);
+
+  @$pb.TagNumber(5)
+  $pb.PbList<AddTrackRequest> get addTrackRequests => $_getList(4);
+
+  @$pb.TagNumber(6)
+  SessionDescription get publisherOffer => $_getN(5);
+  @$pb.TagNumber(6)
+  set publisherOffer(SessionDescription value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasPublisherOffer() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPublisherOffer() => $_clearField(6);
+  @$pb.TagNumber(6)
+  SessionDescription ensurePublisherOffer() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  $core.bool get reconnect => $_getBF(6);
+  @$pb.TagNumber(7)
+  set reconnect($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasReconnect() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearReconnect() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $2.ReconnectReason get reconnectReason => $_getN(7);
+  @$pb.TagNumber(8)
+  set reconnectReason($2.ReconnectReason value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasReconnectReason() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearReconnectReason() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get participantSid => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set participantSid($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasParticipantSid() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearParticipantSid() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  SyncState get syncState => $_getN(9);
+  @$pb.TagNumber(10)
+  set syncState(SyncState value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSyncState() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearSyncState() => $_clearField(10);
+  @$pb.TagNumber(10)
+  SyncState ensureSyncState() => $_ensure(9);
+}
+
+class WrappedJoinRequest extends $pb.GeneratedMessage {
+  factory WrappedJoinRequest({
+    WrappedJoinRequest_Compression? compression,
+    $core.List<$core.int>? joinRequest,
+  }) {
+    final result = create();
+    if (compression != null) result.compression = compression;
+    if (joinRequest != null) result.joinRequest = joinRequest;
+    return result;
+  }
+
+  WrappedJoinRequest._();
+
+  factory WrappedJoinRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WrappedJoinRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WrappedJoinRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..e<WrappedJoinRequest_Compression>(
+        1, _omitFieldNames ? '' : 'compression', $pb.PbFieldType.OE,
+        defaultOrMaker: WrappedJoinRequest_Compression.NONE,
+        valueOf: WrappedJoinRequest_Compression.valueOf,
+        enumValues: WrappedJoinRequest_Compression.values)
+    ..a<$core.List<$core.int>>(
+        2, _omitFieldNames ? '' : 'joinRequest', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WrappedJoinRequest clone() => WrappedJoinRequest()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WrappedJoinRequest copyWith(void Function(WrappedJoinRequest) updates) =>
+      super.copyWith((message) => updates(message as WrappedJoinRequest))
+          as WrappedJoinRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WrappedJoinRequest create() => WrappedJoinRequest._();
+  @$core.override
+  WrappedJoinRequest createEmptyInstance() => create();
+  static $pb.PbList<WrappedJoinRequest> createRepeated() =>
+      $pb.PbList<WrappedJoinRequest>();
+  @$core.pragma('dart2js:noInline')
+  static WrappedJoinRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<WrappedJoinRequest>(create);
+  static WrappedJoinRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  WrappedJoinRequest_Compression get compression => $_getN(0);
+  @$pb.TagNumber(1)
+  set compression(WrappedJoinRequest_Compression value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCompression() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCompression() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get joinRequest => $_getN(1);
+  @$pb.TagNumber(2)
+  set joinRequest($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasJoinRequest() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearJoinRequest() => $_clearField(2);
+}
+
+class MediaSectionsRequirement extends $pb.GeneratedMessage {
+  factory MediaSectionsRequirement({
+    $core.int? numAudios,
+    $core.int? numVideos,
+  }) {
+    final result = create();
+    if (numAudios != null) result.numAudios = numAudios;
+    if (numVideos != null) result.numVideos = numVideos;
+    return result;
+  }
+
+  MediaSectionsRequirement._();
+
+  factory MediaSectionsRequirement.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MediaSectionsRequirement.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MediaSectionsRequirement',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'numAudios', $pb.PbFieldType.OU3)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'numVideos', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaSectionsRequirement clone() =>
+      MediaSectionsRequirement()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MediaSectionsRequirement copyWith(
+          void Function(MediaSectionsRequirement) updates) =>
+      super.copyWith((message) => updates(message as MediaSectionsRequirement))
+          as MediaSectionsRequirement;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MediaSectionsRequirement create() => MediaSectionsRequirement._();
+  @$core.override
+  MediaSectionsRequirement createEmptyInstance() => create();
+  static $pb.PbList<MediaSectionsRequirement> createRepeated() =>
+      $pb.PbList<MediaSectionsRequirement>();
+  @$core.pragma('dart2js:noInline')
+  static MediaSectionsRequirement getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MediaSectionsRequirement>(create);
+  static MediaSectionsRequirement? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get numAudios => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set numAudios($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasNumAudios() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearNumAudios() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get numVideos => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set numVideos($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasNumVideos() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearNumVideos() => $_clearField(2);
 }
 
 const $core.bool _omitFieldNames =
