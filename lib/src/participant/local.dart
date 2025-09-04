@@ -1152,6 +1152,22 @@ extension RPCMethods on LocalParticipant {
   }
 }
 
+/// Helper function to convert string operation type to enum
+lk_models.DataStream_OperationType _stringToOperationType(String? type) {
+  switch (type?.toLowerCase()) {
+    case 'create':
+      return lk_models.DataStream_OperationType.CREATE;
+    case 'update':
+      return lk_models.DataStream_OperationType.UPDATE;
+    case 'delete':
+      return lk_models.DataStream_OperationType.DELETE;
+    case 'reaction':
+      return lk_models.DataStream_OperationType.REACTION;
+    default:
+      return lk_models.DataStream_OperationType.CREATE;
+  }
+}
+
 extension DataStreamParticipantMethods on LocalParticipant {
   Future<TextStreamInfo> sendText(String text,
       {SendTextOptions? options}) async {
@@ -1181,6 +1197,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       destinationIdentities: options?.destinationIdentities ?? [],
       topic: options?.topic,
       attachedStreamIds: fileIds ?? [],
+      attributes: options?.attributes ?? {},
     ));
 
     await writer.write(text);
@@ -1230,13 +1247,13 @@ extension DataStreamParticipantMethods on LocalParticipant {
       topic: info.topic,
       timestamp: Int64(info.timestamp),
       totalLength: Int64(options?.totalSize ?? 0),
+      attributes: options?.attributes.entries,
       textHeader: lk_models.DataStream_TextHeader(
         version: options?.version,
         attachedStreamIds: options?.attachedStreamIds,
         replyToStreamId: options?.replyToStreamId,
-        operationType: options?.type == 'update'
-            ? lk_models.DataStream_OperationType.UPDATE
-            : lk_models.DataStream_OperationType.CREATE,
+        generated: options?.generated ?? false,
+        operationType: _stringToOperationType(options?.type),
       ),
     );
     final destinationIdentities = options?.destinationIdentities;
@@ -1307,7 +1324,6 @@ extension DataStreamParticipantMethods on LocalParticipant {
       options.onProgress?.call((i + 1) / totalChunks);
     }
     await writer.close();
-    writer.info;
   }
 
   Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
@@ -1333,6 +1349,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       byteHeader: lk_models.DataStream_ByteHeader(
         name: info.name,
       ),
+      attributes: options?.attributes.entries,
     );
 
     final destinationIdentities = options?.destinationIdentities;

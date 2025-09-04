@@ -1,0 +1,3 @@
+# Keep this directory in git for DataStream tests
+# Test files (.bin) are created here during test execution
+# and are ignored by .gitignore
