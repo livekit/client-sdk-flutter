@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import AVFAudio
+@preconcurrency import AVFAudio
 
 final class AudioConverter: Sendable {
     let inputFormat: AVAudioFormat
