@@ -382,7 +382,7 @@ class ParticipantStateUpdatedEvent with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(participant: ${participant})';
+  String toString() => '${runtimeType}(participant: ${participant}, state: ${state})';
 }
 
 /// [Pariticpant]'s [ConnectionQuality] has updated.
