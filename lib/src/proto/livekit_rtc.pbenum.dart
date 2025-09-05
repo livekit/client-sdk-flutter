@@ -123,5 +123,25 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
   const RequestResponse_Reason._(super.value, super.name);
 }
 
+class WrappedJoinRequest_Compression extends $pb.ProtobufEnum {
+  static const WrappedJoinRequest_Compression NONE =
+      WrappedJoinRequest_Compression._(0, _omitEnumNames ? '' : 'NONE');
+  static const WrappedJoinRequest_Compression GZIP =
+      WrappedJoinRequest_Compression._(1, _omitEnumNames ? '' : 'GZIP');
+
+  static const $core.List<WrappedJoinRequest_Compression> values =
+      <WrappedJoinRequest_Compression>[
+    NONE,
+    GZIP,
+  ];
+
+  static final $core.List<WrappedJoinRequest_Compression?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static WrappedJoinRequest_Compression? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const WrappedJoinRequest_Compression._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames =
     $core.bool.fromEnvironment('protobuf.omit_enum_names');

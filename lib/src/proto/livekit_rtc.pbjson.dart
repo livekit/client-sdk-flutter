@@ -435,6 +435,15 @@ const SignalResponse$json = {
       '9': 0,
       '10': 'roomMoved'
     },
+    {
+      '1': 'media_sections_requirement',
+      '3': 25,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MediaSectionsRequirement',
+      '9': 0,
+      '10': 'mediaSectionsRequirement'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -469,7 +478,9 @@ final $typed_data.Uint8List signalResponseDescriptor = $convert.base64Decode(
     'NlEkUKEHJlcXVlc3RfcmVzcG9uc2UYFiABKAsyGC5saXZla2l0LlJlcXVlc3RSZXNwb25zZUgA'
     'Ug9yZXF1ZXN0UmVzcG9uc2USRQoQdHJhY2tfc3Vic2NyaWJlZBgXIAEoCzIYLmxpdmVraXQuVH'
     'JhY2tTdWJzY3JpYmVkSABSD3RyYWNrU3Vic2NyaWJlZBI7Cgpyb29tX21vdmVkGBggASgLMhou'
-    'bGl2ZWtpdC5Sb29tTW92ZWRSZXNwb25zZUgAUglyb29tTW92ZWRCCQoHbWVzc2FnZQ==');
+    'bGl2ZWtpdC5Sb29tTW92ZWRSZXNwb25zZUgAUglyb29tTW92ZWQSYQoabWVkaWFfc2VjdGlvbn'
+    'NfcmVxdWlyZW1lbnQYGSABKAsyIS5saXZla2l0Lk1lZGlhU2VjdGlvbnNSZXF1aXJlbWVudEgA'
+    'UhhtZWRpYVNlY3Rpb25zUmVxdWlyZW1lbnRCCQoHbWVzc2FnZQ==');
 
 @$core.Deprecated('Use simulcastCodecDescriptor instead')
 const SimulcastCodec$json = {
@@ -477,13 +488,31 @@ const SimulcastCodec$json = {
   '2': [
     {'1': 'codec', '3': 1, '4': 1, '5': 9, '10': 'codec'},
     {'1': 'cid', '3': 2, '4': 1, '5': 9, '10': 'cid'},
+    {
+      '1': 'layers',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
+    {
+      '1': 'video_layer_mode',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoLayer.Mode',
+      '10': 'videoLayerMode'
+    },
   ],
 };
 
 /// Descriptor for `SimulcastCodec`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List simulcastCodecDescriptor = $convert.base64Decode(
     'Cg5TaW11bGNhc3RDb2RlYxIUCgVjb2RlYxgBIAEoCVIFY29kZWMSEAoDY2lkGAIgASgJUgNjaW'
-    'Q=');
+    'QSKwoGbGF5ZXJzGAQgAygLMhMubGl2ZWtpdC5WaWRlb0xheWVyUgZsYXllcnMSQgoQdmlkZW9f'
+    'bGF5ZXJfbW9kZRgFIAEoDjIYLmxpdmVraXQuVmlkZW9MYXllci5Nb2RlUg52aWRlb0xheWVyTW'
+    '9kZQ==');
 
 @$core.Deprecated('Use addTrackRequestDescriptor instead')
 const AddTrackRequest$json = {
@@ -1644,3 +1673,173 @@ const TrackSubscribed$json = {
 /// Descriptor for `TrackSubscribed`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackSubscribedDescriptor = $convert.base64Decode(
     'Cg9UcmFja1N1YnNjcmliZWQSGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZA==');
+
+@$core.Deprecated('Use connectionSettingsDescriptor instead')
+const ConnectionSettings$json = {
+  '1': 'ConnectionSettings',
+  '2': [
+    {'1': 'auto_subscribe', '3': 1, '4': 1, '5': 8, '10': 'autoSubscribe'},
+    {'1': 'adaptive_stream', '3': 2, '4': 1, '5': 8, '10': 'adaptiveStream'},
+    {
+      '1': 'subscriber_allow_pause',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'subscriberAllowPause',
+      '17': true
+    },
+    {'1': 'disable_ice_lite', '3': 4, '4': 1, '5': 8, '10': 'disableIceLite'},
+  ],
+  '8': [
+    {'1': '_subscriber_allow_pause'},
+  ],
+};
+
+/// Descriptor for `ConnectionSettings`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List connectionSettingsDescriptor = $convert.base64Decode(
+    'ChJDb25uZWN0aW9uU2V0dGluZ3MSJQoOYXV0b19zdWJzY3JpYmUYASABKAhSDWF1dG9TdWJzY3'
+    'JpYmUSJwoPYWRhcHRpdmVfc3RyZWFtGAIgASgIUg5hZGFwdGl2ZVN0cmVhbRI5ChZzdWJzY3Jp'
+    'YmVyX2FsbG93X3BhdXNlGAMgASgISABSFHN1YnNjcmliZXJBbGxvd1BhdXNliAEBEigKEGRpc2'
+    'FibGVfaWNlX2xpdGUYBCABKAhSDmRpc2FibGVJY2VMaXRlQhkKF19zdWJzY3JpYmVyX2FsbG93'
+    'X3BhdXNl');
+
+@$core.Deprecated('Use joinRequestDescriptor instead')
+const JoinRequest$json = {
+  '1': 'JoinRequest',
+  '2': [
+    {
+      '1': 'client_info',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientInfo',
+      '10': 'clientInfo'
+    },
+    {
+      '1': 'connection_settings',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ConnectionSettings',
+      '10': 'connectionSettings'
+    },
+    {'1': 'metadata', '3': 3, '4': 1, '5': 9, '10': 'metadata'},
+    {
+      '1': 'participant_attributes',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.JoinRequest.ParticipantAttributesEntry',
+      '10': 'participantAttributes'
+    },
+    {
+      '1': 'add_track_requests',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '10': 'addTrackRequests'
+    },
+    {
+      '1': 'publisher_offer',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'publisherOffer'
+    },
+    {'1': 'reconnect', '3': 7, '4': 1, '5': 8, '10': 'reconnect'},
+    {
+      '1': 'reconnect_reason',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ReconnectReason',
+      '10': 'reconnectReason'
+    },
+    {'1': 'participant_sid', '3': 9, '4': 1, '5': 9, '10': 'participantSid'},
+    {
+      '1': 'sync_state',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SyncState',
+      '10': 'syncState'
+    },
+  ],
+  '3': [JoinRequest_ParticipantAttributesEntry$json],
+};
+
+@$core.Deprecated('Use joinRequestDescriptor instead')
+const JoinRequest_ParticipantAttributesEntry$json = {
+  '1': 'ParticipantAttributesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+/// Descriptor for `JoinRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List joinRequestDescriptor = $convert.base64Decode(
+    'CgtKb2luUmVxdWVzdBI0CgtjbGllbnRfaW5mbxgBIAEoCzITLmxpdmVraXQuQ2xpZW50SW5mb1'
+    'IKY2xpZW50SW5mbxJMChNjb25uZWN0aW9uX3NldHRpbmdzGAIgASgLMhsubGl2ZWtpdC5Db25u'
+    'ZWN0aW9uU2V0dGluZ3NSEmNvbm5lY3Rpb25TZXR0aW5ncxIaCghtZXRhZGF0YRgDIAEoCVIIbW'
+    'V0YWRhdGESZgoWcGFydGljaXBhbnRfYXR0cmlidXRlcxgEIAMoCzIvLmxpdmVraXQuSm9pblJl'
+    'cXVlc3QuUGFydGljaXBhbnRBdHRyaWJ1dGVzRW50cnlSFXBhcnRpY2lwYW50QXR0cmlidXRlcx'
+    'JGChJhZGRfdHJhY2tfcmVxdWVzdHMYBSADKAsyGC5saXZla2l0LkFkZFRyYWNrUmVxdWVzdFIQ'
+    'YWRkVHJhY2tSZXF1ZXN0cxJECg9wdWJsaXNoZXJfb2ZmZXIYBiABKAsyGy5saXZla2l0LlNlc3'
+    'Npb25EZXNjcmlwdGlvblIOcHVibGlzaGVyT2ZmZXISHAoJcmVjb25uZWN0GAcgASgIUglyZWNv'
+    'bm5lY3QSQwoQcmVjb25uZWN0X3JlYXNvbhgIIAEoDjIYLmxpdmVraXQuUmVjb25uZWN0UmVhc2'
+    '9uUg9yZWNvbm5lY3RSZWFzb24SJwoPcGFydGljaXBhbnRfc2lkGAkgASgJUg5wYXJ0aWNpcGFu'
+    'dFNpZBIxCgpzeW5jX3N0YXRlGAogASgLMhIubGl2ZWtpdC5TeW5jU3RhdGVSCXN5bmNTdGF0ZR'
+    'pIChpQYXJ0aWNpcGFudEF0dHJpYnV0ZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1'
+    'ZRgCIAEoCVIFdmFsdWU6AjgB');
+
+@$core.Deprecated('Use wrappedJoinRequestDescriptor instead')
+const WrappedJoinRequest$json = {
+  '1': 'WrappedJoinRequest',
+  '2': [
+    {
+      '1': 'compression',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.WrappedJoinRequest.Compression',
+      '10': 'compression'
+    },
+    {'1': 'join_request', '3': 2, '4': 1, '5': 12, '10': 'joinRequest'},
+  ],
+  '4': [WrappedJoinRequest_Compression$json],
+};
+
+@$core.Deprecated('Use wrappedJoinRequestDescriptor instead')
+const WrappedJoinRequest_Compression$json = {
+  '1': 'Compression',
+  '2': [
+    {'1': 'NONE', '2': 0},
+    {'1': 'GZIP', '2': 1},
+  ],
+};
+
+/// Descriptor for `WrappedJoinRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List wrappedJoinRequestDescriptor = $convert.base64Decode(
+    'ChJXcmFwcGVkSm9pblJlcXVlc3QSSQoLY29tcHJlc3Npb24YASABKA4yJy5saXZla2l0LldyYX'
+    'BwZWRKb2luUmVxdWVzdC5Db21wcmVzc2lvblILY29tcHJlc3Npb24SIQoMam9pbl9yZXF1ZXN0'
+    'GAIgASgMUgtqb2luUmVxdWVzdCIhCgtDb21wcmVzc2lvbhIICgROT05FEAASCAoER1pJUBAB');
+
+@$core.Deprecated('Use mediaSectionsRequirementDescriptor instead')
+const MediaSectionsRequirement$json = {
+  '1': 'MediaSectionsRequirement',
+  '2': [
+    {'1': 'num_audios', '3': 1, '4': 1, '5': 13, '10': 'numAudios'},
+    {'1': 'num_videos', '3': 2, '4': 1, '5': 13, '10': 'numVideos'},
+  ],
+};
+
+/// Descriptor for `MediaSectionsRequirement`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List mediaSectionsRequirementDescriptor =
+    $convert.base64Decode(
+        'ChhNZWRpYVNlY3Rpb25zUmVxdWlyZW1lbnQSHQoKbnVtX2F1ZGlvcxgBIAEoDVIJbnVtQXVkaW'
+        '9zEh0KCm51bV92aWRlb3MYAiABKA1SCW51bVZpZGVvcw==');
