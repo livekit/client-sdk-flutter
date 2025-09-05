@@ -1236,7 +1236,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     final info = TextStreamInfo(
       id: streamId,
       mimeType: 'text/plain',
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
     );
@@ -1333,7 +1333,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       name: options?.name ?? 'unknown',
       id: streamId,
       mimeType: options?.mimeType ?? 'application/octet-stream',
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
       attributes: options?.attributes ?? {},
@@ -1345,7 +1345,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       streamId: streamId,
       topic: options?.topic,
       encryptionType: options?.encryptionType,
-      timestamp: Int64(DateTime.now().millisecondsSinceEpoch),
+      timestamp: Int64(DateTime.now().toUtc().millisecondsSinceEpoch),
       byteHeader: lk_models.DataStream_ByteHeader(
         name: info.name,
       ),
