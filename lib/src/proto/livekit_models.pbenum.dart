@@ -516,6 +516,29 @@ class Encryption_Type extends $pb.ProtobufEnum {
   const Encryption_Type._(super.value, super.name);
 }
 
+class VideoLayer_Mode extends $pb.ProtobufEnum {
+  static const VideoLayer_Mode MODE_UNUSED =
+      VideoLayer_Mode._(0, _omitEnumNames ? '' : 'MODE_UNUSED');
+  static const VideoLayer_Mode ONE_SPATIAL_LAYER_PER_STREAM = VideoLayer_Mode._(
+      1, _omitEnumNames ? '' : 'ONE_SPATIAL_LAYER_PER_STREAM');
+  static const VideoLayer_Mode MULTIPLE_SPATIAL_LAYERS_PER_STREAM =
+      VideoLayer_Mode._(
+          2, _omitEnumNames ? '' : 'MULTIPLE_SPATIAL_LAYERS_PER_STREAM');
+
+  static const $core.List<VideoLayer_Mode> values = <VideoLayer_Mode>[
+    MODE_UNUSED,
+    ONE_SPATIAL_LAYER_PER_STREAM,
+    MULTIPLE_SPATIAL_LAYERS_PER_STREAM,
+  ];
+
+  static final $core.List<VideoLayer_Mode?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static VideoLayer_Mode? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const VideoLayer_Mode._(super.value, super.name);
+}
+
 class DataPacket_Kind extends $pb.ProtobufEnum {
   static const DataPacket_Kind RELIABLE =
       DataPacket_Kind._(0, _omitEnumNames ? '' : 'RELIABLE');
