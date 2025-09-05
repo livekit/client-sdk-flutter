@@ -417,7 +417,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
-    ..on<EngineJoinResponseEvent>((event) {
+    ..on<EngineJoinResponseEvent>((event) async {
       _roomInfo = event.response.room;
       _name = event.response.room.name;
       _metadata = event.response.room.metadata;
@@ -442,6 +442,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         _localParticipant!.updateFromInfo(event.response.participant);
       }
 
+      // Check if preconnect buffer is recording and publish its track
+      if (preConnectAudioBuffer.isRecording && preConnectAudioBuffer.localTrack != null) {
+        logger.info('Publishing preconnect audio track');
+        await _localParticipant!.publishAudioTrack(
+          preConnectAudioBuffer.localTrack!,
+          publishOptions: roomOptions.defaultAudioPublishOptions.copyWith(preConnect: true),
+        );
+      }
+      
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
           !engine.fullReconnectOnNext) {
@@ -449,6 +458,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
         var audio = options.microphone;
         bool audioEnabled = audio.enabled == true || audio.track != null;
+        
+        // Only enable microphone if preconnect buffer is not active
         if (audioEnabled) {
           if (audio.track != null) {
             _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,

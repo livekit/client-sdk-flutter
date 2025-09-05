@@ -3,7 +3,6 @@
 // and uploads via byte stream once an agent is ready.
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
@@ -54,6 +53,7 @@ class PreConnectAudioBuffer {
   // Getters
   bool get isRecording => _isRecording;
   int get bufferedSize => _buffer.length;
+  LocalAudioTrack? get localTrack => _localTrack;
 
   /// Future that completes when an agent is ready.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
@@ -116,8 +116,6 @@ class PreConnectAudioBuffer {
         } catch (e) {
           _agentReadyManager.completeError(e);
           _onError?.call(e);
-        } finally {
-          // await reset();
         }
       }
     });
