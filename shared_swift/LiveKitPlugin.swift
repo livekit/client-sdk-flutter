@@ -272,9 +272,11 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // Retain
         processors.renderers[rendererId] = renderer
 
-        AudioManager.sharedInstance().startLocalRecording()
-
-        result(true)
+        // Run on Task to unblock main thread
+        Task {
+          let admResult = AudioManager.sharedInstance().startLocalRecording()
+          result(admResult)
+        }
     }
 
     public func handleStopAudioRenderer(args: [String: Any?], result: @escaping FlutterResult) {
