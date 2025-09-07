@@ -53,7 +53,7 @@ import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
-import '../utils.dart';
+import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
 import 'participant.dart';
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
@@ -1236,7 +1236,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     final info = TextStreamInfo(
       id: streamId,
       mimeType: 'text/plain',
-      timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
+      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
     );
@@ -1333,7 +1333,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       name: options?.name ?? 'unknown',
       id: streamId,
       mimeType: options?.mimeType ?? 'application/octet-stream',
-      timestamp: DateTime.now().toUtc().millisecondsSinceEpoch,
+      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
       attributes: options?.attributes ?? {},
@@ -1345,7 +1345,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       streamId: streamId,
       topic: options?.topic,
       encryptionType: options?.encryptionType,
-      timestamp: Int64(DateTime.now().toUtc().millisecondsSinceEpoch),
+      timestamp: Int64(info.timestamp),
       byteHeader: lk_models.DataStream_ByteHeader(
         name: info.name,
       ),
