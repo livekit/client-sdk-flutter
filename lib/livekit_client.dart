@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Flutter Client SDK to LiveKit.
-library livekit_client;
-
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/data_stream/stream_reader.dart';
