@@ -33,7 +33,7 @@ class PreConnectAudioBuffer {
 
   // Internal states
   bool _isRecording = false;
-  bool _isSent = false;
+  bool _isBufferSent = false;
   String? _rendererId;
 
   LocalAudioTrack? _localTrack;
@@ -167,7 +167,7 @@ class PreConnectAudioBuffer {
     // Emit the stopped event
     _room.events.emit(PreConnectAudioBufferStoppedEvent(
       bufferedSize: _buffer.length,
-      isDataSent: _isSent,
+      isBufferSent: _isBufferSent,
     ));
 
     logger.info('[Preconnect audio] stopped recording');
@@ -188,24 +188,14 @@ class PreConnectAudioBuffer {
     _localTrackPublishedEvent = null;
 
     // Reset the _isSent flag to allow data sending on next use
-    _isSent = false;
+    _isBufferSent = false;
 
     logger.info('[Preconnect audio] reset');
   }
 
   // Dispose the audio buffer and clean up all resources.
   Future<void> dispose() async {
-    // Ensure we stop recording first
-    await stopRecording();
-
-    // Don't stop the local track - it will continue to be used by the Room
-    _localTrack = null;
-
-    _agentReadyManager.dispose();
-    _timeoutTimer?.cancel();
-    _participantStateListener?.call();
-    _participantStateListener = null;
-
+    await reset();
     logger.info('[Preconnect audio] disposed');
   }
 
@@ -213,7 +203,7 @@ class PreConnectAudioBuffer {
     required List<String> agents,
     String topic = dataTopic,
   }) async {
-    if (_isSent) return;
+    if (_isBufferSent) return;
     if (agents.isEmpty) return;
 
     // Wait for local track published event
@@ -231,7 +221,7 @@ class PreConnectAudioBuffer {
     final data = _buffer.takeBytes();
     logger.info('[Preconnect audio] data.length: ${data.length}, bytes.length: ${_buffer.length}');
 
-    _isSent = true;
+    _isBufferSent = true;
 
     final streamOptions = StreamBytesOptions(
       topic: topic,

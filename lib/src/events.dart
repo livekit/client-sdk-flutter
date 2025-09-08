@@ -609,13 +609,13 @@ class PreConnectAudioBufferStartedEvent with RoomEvent {
 /// Emitted by [Room].
 class PreConnectAudioBufferStoppedEvent with RoomEvent {
   final int bufferedSize;
-  final bool isDataSent;
+  final bool isBufferSent;
   const PreConnectAudioBufferStoppedEvent({
     required this.bufferedSize,
-    required this.isDataSent,
+    required this.isBufferSent,
   });
 
   @override
   String toString() => '${runtimeType}'
-      '(bufferedSize: ${bufferedSize}, isDataSent: ${isDataSent})';
+      '(bufferedSize: ${bufferedSize}, isDataSent: ${isBufferSent})';
 }

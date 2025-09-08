@@ -180,6 +180,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     onDispose(() async {
       // clean up routine
       await _cleanUp();
+      // dispose preConnectAudioBuffer
+      await preConnectAudioBuffer.dispose();
       // dispose events
       await events.dispose();
       // dispose local participant
@@ -452,7 +454,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           publishOptions: roomOptions.defaultAudioPublishOptions.copyWith(preConnect: true),
         );
       }
-      
+
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
           !engine.fullReconnectOnNext) {
@@ -977,7 +979,7 @@ extension RoomPrivateMethods on Room {
 
     _activeSpeakers.clear();
 
-    await preConnectAudioBuffer.dispose();
+    await preConnectAudioBuffer.reset();
 
     // clean up engine
     await engine.cleanUp();
