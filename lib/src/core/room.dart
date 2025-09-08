@@ -48,7 +48,7 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
-import '../utils.dart';
+import '../utils.dart' show unpackStreamId;
 import 'engine.dart';
 
 import '../track/web/_audio_api.dart'
@@ -853,8 +853,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         text: segment.text,
         id: segment.id,
         firstReceivedTime:
-            _transcriptionReceivedTimes[segment.id] ?? DateTime.now(),
-        lastReceivedTime: DateTime.now(),
+            _transcriptionReceivedTimes[segment.id] ?? DateTime.timestamp(),
+        lastReceivedTime: DateTime.timestamp(),
         isFinal: segment.final_5,
         language: segment.language,
       );
@@ -863,7 +863,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     for (var segment in segments) {
       segment.isFinal
           ? _transcriptionReceivedTimes.remove(segment.id)
-          : _transcriptionReceivedTimes[segment.id] = DateTime.now();
+          : _transcriptionReceivedTimes[segment.id] = DateTime.timestamp();
     }
 
     final transcription = TranscriptionEvent(
@@ -1301,7 +1301,7 @@ extension DataStreamRoomMethods on Room {
       var streamController = DataStreamController<lk_models.DataStream_Chunk>(
         info: info,
         streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
 
       _byteStreamControllers[streamHeader.streamId] = streamController;
@@ -1334,7 +1334,7 @@ extension DataStreamRoomMethods on Room {
       var streamController = DataStreamController<lk_models.DataStream_Chunk>(
         info: info,
         streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
 
       _textStreamControllers[streamHeader.streamId] = streamController;
