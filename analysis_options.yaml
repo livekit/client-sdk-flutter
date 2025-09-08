@@ -1,4 +1,5 @@
-# Copyright 2024 LiveKit, Inc.
+#
+# Copyright 2025 LiveKit
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,18 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
-
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
-
-# https://pub.dev/packages/flutter_lints
-
 include: package:lints/recommended.yaml
 
 analyzer:
@@ -31,15 +20,8 @@ analyzer:
     constant_identifier_names: ignore
     no_wildcard_variable_uses: ignore
     use_super_parameters: ignore
-  #
-  # Enforce stricter type-checking
-  # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
-  # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
-  #
 
-  #
-  # exclude protobuf files
-  #
+  # Exclude protobuf files
   exclude:
     - '**/*.pb.dart'
     - '**/*.pbenum.dart'
@@ -49,10 +31,11 @@ analyzer:
 
 linter:
   rules:
-    #
-    # Additional recommended rules
-    #
+    # Preference of the SDK
     prefer_single_quotes: true
+    prefer_final_locals: true
     unnecessary_brace_in_string_interps: false
+
+    # Enforce this for correct async logic
     unawaited_futures: true
-    depend_on_referenced_packages: false
+    discarded_futures: true
