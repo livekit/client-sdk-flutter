@@ -55,6 +55,8 @@ class PreConnectAudioBuffer {
   int get bufferedSize => _buffer.length;
   LocalAudioTrack? get localTrack => _localTrack;
 
+  Future<LocalTrackPublishedEvent>? _localTrackPublishedEvent;
+
   /// Future that completes when an agent is ready.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
 
@@ -105,20 +107,23 @@ class PreConnectAudioBuffer {
     });
 
     // Listen for agent readiness; when active, attempt to send buffer once.
-    _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>((event) async {
-      // logger.info('[Preconnect audio] State event ${event}');
-
-      if (event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active) {
-        logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
-        try {
-          await sendAudioData(agents: [event.participant.identity]);
-          _agentReadyManager.complete();
-        } catch (e) {
-          _agentReadyManager.completeError(e);
-          _onError?.call(e);
-        }
+    _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
+        filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
+        (event) async {
+      logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
+      try {
+        await sendAudioData(agents: [event.participant.identity]);
+        _agentReadyManager.complete();
+      } catch (error) {
+        _agentReadyManager.completeError(error);
+        _onError?.call(error);
       }
     });
+
+    _localTrackPublishedEvent = _room.events.waitFor<LocalTrackPublishedEvent>(
+      duration: Duration(seconds: 10),
+      filter: (event) => event.participant == _room.localParticipant,
+    );
 
     _remoteSubscribedListener = _room.events.on<LocalTrackSubscribedEvent>((event) async {
       logger.info('[Preconnect audio] Remote track subscribed: ${event.trackSid}');
@@ -169,6 +174,7 @@ class PreConnectAudioBuffer {
     _buffer.clear();
     _localTrack = null;
     _agentReadyManager.reset();
+    _localTrackPublishedEvent = null;
 
     logger.info('[Preconnect audio] reset');
   }
@@ -188,6 +194,16 @@ class PreConnectAudioBuffer {
     if (_isSent) return;
     if (agents.isEmpty) return;
 
+    // Wait for local track published event
+    final localTrackPublishedEvent = await _localTrackPublishedEvent;
+    logger.info('[Preconnect audio] localTrackPublishedEvent: $localTrackPublishedEvent');
+
+    final localTrackSid = localTrackPublishedEvent?.publication.track?.sid;
+    if (localTrackSid == null) {
+      logger.severe('[Preconnect audio] localTrackPublishedEvent is null');
+      return;
+    }
+
     logger.info('[Preconnect audio] sending audio data to ${agents.map((e) => e).join(', ')} agent(s)');
 
     final data = _buffer.takeBytes();
@@ -200,7 +216,7 @@ class PreConnectAudioBuffer {
       attributes: {
         'sampleRate': _sampleRate.toString(),
         'channels': '1',
-        'trackId': _localTrack!.mediaStreamTrack.id!,
+        'trackId': localTrackSid,
       },
       totalSize: data.length,
       destinationIdentities: agents,
