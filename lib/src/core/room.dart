@@ -137,7 +137,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
 
   @internal
-  late final preConnectAudioBuffer = PreConnectAudioBuffer(this);
+  late final PreConnectAudioBuffer preConnectAudioBuffer;
 
   // for testing
   @internal
@@ -174,6 +174,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _setupRpcListeners();
 
     _setupDataStreamListeners();
+
+    preConnectAudioBuffer = PreConnectAudioBuffer(this);
 
     onDispose(() async {
       // clean up routine
@@ -974,6 +976,8 @@ extension RoomPrivateMethods on Room {
     }
 
     _activeSpeakers.clear();
+
+    await preConnectAudioBuffer.dispose();
 
     // clean up engine
     await engine.cleanUp();
