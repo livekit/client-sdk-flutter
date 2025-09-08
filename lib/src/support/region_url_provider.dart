@@ -23,7 +23,7 @@ class RegionUrlProvider {
   RegionUrlProvider({required String url, required this.token})
       : serverUrl = Uri.parse(url);
 
-  updateToken(String token) {
+  void updateToken(String token) {
     this.token = token;
   }
 
@@ -57,26 +57,26 @@ class RegionUrlProvider {
     }
   }
 
-  resetAttempts() {
+  void resetAttempts() {
     attemptedRegions = [];
   }
 
   /* @internal */
   Future<lk_models.RegionSettings> fetchRegionSettings() async {
-    var url = '${getCloudConfigUrl(serverUrl)}/regions';
-    http.Response regionSettingsResponse =
+    final url = '${getCloudConfigUrl(serverUrl)}/regions';
+    final http.Response regionSettingsResponse =
         await http.get(Uri.parse(url), headers: {
       'authorization': 'Bearer $token',
     });
     if (regionSettingsResponse.statusCode == 200) {
-      var mapData = json.decode(regionSettingsResponse.body);
-      var regions = (mapData['regions'] as List<dynamic>)
+      final mapData = json.decode(regionSettingsResponse.body);
+      final regions = (mapData['regions'] as List<dynamic>)
           .map((region) => lk_models.RegionInfo(
               distance: Int64(int.parse(region['distance'])),
               region: region['region'],
               url: region['url']))
           .toList();
-      var regionSettings = lk_models.RegionSettings(
+      final regionSettings = lk_models.RegionSettings(
         regions: regions,
       );
       lastUpdateAt = DateTime.timestamp().microsecondsSinceEpoch;
@@ -91,7 +91,7 @@ class RegionUrlProvider {
     }
   }
 
-  setServerReportedRegions(lk_models.RegionSettings regions) {
+  void setServerReportedRegions(lk_models.RegionSettings regions) {
     regionSettings = regions;
     lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
   }

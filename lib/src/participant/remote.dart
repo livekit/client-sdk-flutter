@@ -156,7 +156,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       track =
           RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
 
-      var listener = track.createListener();
+      final listener = track.createListener();
       listener.on<AudioPlaybackStarted>((event) {
         logger.fine('AudioPlaybackStarted');
         room.engine.events.emit(event);
@@ -203,7 +203,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
+      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {

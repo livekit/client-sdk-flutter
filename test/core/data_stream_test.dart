@@ -73,7 +73,7 @@ void main() {
     });
 
     test('Send Large Text Message With Progress Tracking', () async {
-      var longText = 'a' * 100000;
+      final longText = 'a' * 100000;
 
       room.registerTextStreamHandler('chat-long-text', (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
@@ -109,9 +109,9 @@ void main() {
     });
 
     test('Send Text Message With Multiple File Attachments', () async {
-      var longText = 'a' * 100000;
+      final longText = 'a' * 100000;
 
-      var files = [
+      final files = [
         'testfiles/testfile.bin',
         'testfiles/testfile2.bin',
         'testfiles/testfile3.bin',
@@ -120,9 +120,9 @@ void main() {
 
       /// create random files
       for (var file in files) {
-        var randomFile = File(file);
-        var random = Random();
-        var bytes = List<int>.generate(100000, (index) => random.nextInt(256));
+        final randomFile = File(file);
+        final random = Random();
+        final bytes = List<int>.generate(100000, (index) => random.nextInt(256));
         randomFile.writeAsBytesSync(bytes);
       }
 
@@ -143,7 +143,7 @@ void main() {
         writeFile.writeAsBytesSync(received);
       });
 
-      var attachmentsFiles = files.map((e) => File(e)).toList();
+      final attachmentsFiles = files.map((e) => File(e)).toList();
 
       final info = await room.localParticipant?.sendText(longText,
           options: SendTextOptions(
@@ -158,7 +158,7 @@ void main() {
 
     test('Text Stream With Operation Types', () async {
       final operationTypes = ['create', 'update', 'delete', 'reaction'];
-      var receivedMessages = <String>[];
+      final receivedMessages = <String>[];
 
       for (var operationType in operationTypes) {
         room.registerTextStreamHandler('chat-operations', (TextStreamReader reader, String participantIdentity) async {
@@ -272,12 +272,12 @@ void main() {
 
   group('Byte Streaming', () {
     test('Send And Receive Binary File', () async {
-      var filePath = 'testfiles/testfile.bin';
+      final filePath = 'testfiles/testfile.bin';
 
       /// create random file
-      var randomFile = File(filePath);
-      var random = Random();
-      var bytes = List<int>.generate(100000, (index) => random.nextInt(256));
+      final randomFile = File(filePath);
+      final random = Random();
+      final bytes = List<int>.generate(100000, (index) => random.nextInt(256));
       randomFile.writeAsBytesSync(bytes);
 
       room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) async {
@@ -294,7 +294,7 @@ void main() {
       });
 
       final fileToSend = File(filePath);
-      var info = await room.localParticipant?.sendFile(fileToSend,
+      final info = await room.localParticipant?.sendFile(fileToSend,
           options: SendFileOptions(
             topic: 'file',
             onProgress: (p0) {
@@ -346,7 +346,7 @@ void main() {
         }
 
         // Verify content is correct
-        var expectedContent = List<int>.generate(100, (index) => index % 256);
+        final expectedContent = List<int>.generate(100, (index) => index % 256);
         expect(content, expectedContent);
       });
 
@@ -359,7 +359,7 @@ void main() {
       ));
 
       // Simulate PDF content
-      var pdfContent = List<int>.generate(100, (index) => index % 256);
+      final pdfContent = List<int>.generate(100, (index) => index % 256);
       await stream?.write(Uint8List.fromList(pdfContent));
       await stream?.close();
     });
@@ -377,7 +377,7 @@ void main() {
       });
 
       // Start multiple concurrent streams
-      var futures = <Future>[];
+      final futures = <Future>[];
       for (int i = 0; i < expectedCount; i++) {
         futures.add(() async {
           final stream = await room.localParticipant?.streamText(StreamTextOptions(
@@ -399,7 +399,7 @@ void main() {
 
     test('Handle Large Stream Chunks Above Normal Size', () async {
       const chunkSize = 50000; // Larger than normal chunk size
-      var largeData = 'x' * chunkSize;
+      final largeData = 'x' * chunkSize;
 
       room.registerTextStreamHandler('large-chunks', (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();

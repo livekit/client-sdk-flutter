@@ -37,7 +37,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
 
   VideoReceiverStats? prevStats;
   num? _currentBitrate;
-  get currentBitrate => _currentBitrate;
+  num? get currentBitrate => _currentBitrate;
 
   @internal
   String? getDecoderImplementation() {
@@ -54,9 +54,9 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       final stats = await getReceiverStats();
 
       if (stats != null && prevStats != null && receiver != null) {
-        _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
-        events.emit(VideoReceiverStatsEvent(
-            stats: stats, currentBitrate: currentBitrate));
+        final bitrate = computeBitrateForReceiverStats(stats, prevStats);
+        _currentBitrate = bitrate;
+        events.emit(VideoReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;

@@ -110,13 +110,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     publishOptions ??=
         track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    List<rtc.RTCRtpEncoding> encodings = [
+    final List<rtc.RTCRtpEncoding> encodings = [
       rtc.RTCRtpEncoding(
         maxBitrate: publishOptions.audioBitrate,
       )
     ];
 
-    var req = lk_rtc.AddTrackRequest(
+    final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
       type: track.kind.toPBType(),
@@ -184,7 +184,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     await room.applyAudioSpeakerSettings();
 
-    var listener = track.createListener();
+    final listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
       removePublishedTrack(pub.sid);
@@ -290,7 +290,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     logger.fine('Using encodings: ${encodings?.map((e) => e.toMap())}');
 
-    var simulcastCodecs = <lk_rtc.SimulcastCodec>[
+    final simulcastCodecs = <lk_rtc.SimulcastCodec>[
       lk_rtc.SimulcastCodec(
         codec: publishOptions.videoCodec,
         cid: track.getCid(),
@@ -333,7 +333,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       if ([TrackSource.camera, TrackSource.screenShareVideo]
           .contains(track.source)) {
-        var degradationPreference = publishOptions.degradationPreference ??
+        final degradationPreference = publishOptions.degradationPreference ??
             getDefaultDegradationPreference(
               track,
             );
@@ -439,7 +439,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       if ([TrackSource.camera, TrackSource.screenShareVideo]
           .contains(track.source)) {
-        var degradationPreference = publishOptions.degradationPreference ??
+        final degradationPreference = publishOptions.degradationPreference ??
             getDefaultDegradationPreference(
               track,
             );
@@ -480,7 +480,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.onPublish();
     await track.processor?.onPublish(room);
 
-    var listener = track.createListener();
+    final listener = track.createListener();
     listener.on((TrackEndedEvent event) {
       logger.fine('TrackEndedEvent: ${event.track}');
       removePublishedTrack(pub.sid);
@@ -556,7 +556,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // a few of reasons we have different default paths:
     // 1. without this, Chrome seems to aggressively resize the SVC video stating `quality-limitation: bandwidth` even when BW isn't an issue
     // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
-    VideoDimensions dimensions = track.currentOptions.params.dimensions;
+    final VideoDimensions dimensions = track.currentOptions.params.dimensions;
     if (track.source == TrackSource.screenShareVideo ||
         dimensions.height >= 1080) {
       return DegradationPreference.maintainResolution;
@@ -751,12 +751,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        CameraCaptureOptions captureOptions = cameraCaptureOptions ??
+        final CameraCaptureOptions captureOptions = cameraCaptureOptions ??
             room.roomOptions.defaultCameraCaptureOptions;
         final track = await LocalVideoTrack.createCameraTrack(captureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        AudioCaptureOptions captureOptions =
+        final AudioCaptureOptions captureOptions =
             audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
         final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
@@ -864,7 +864,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     if (publication.track is! LocalVideoTrack) {
       throw Exception('multi-codec simulcast is supported only for video');
     }
-    var track = publication.track as LocalVideoTrack;
+    final track = publication.track as LocalVideoTrack;
 
     final backupCodecOpts = publication.backupVideoCodec;
     if (backupCodecOpts == null) {
@@ -885,17 +885,17 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       );
     }
 
-    var encodings = Utils.computeTrackBackupEncodings(track, backupCodecOpts);
+    final encodings = Utils.computeTrackBackupEncodings(track, backupCodecOpts);
     if (encodings == null) {
       logger.fine(
           'backup codec has been disabled, ignoring request to add additional codec for track');
       return;
     }
 
-    var simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
-    var dimensions = track.currentOptions.params.dimensions;
+    final simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
+    final dimensions = track.currentOptions.params.dimensions;
 
-    var layers = Utils.computeVideoLayers(
+    final layers = Utils.computeVideoLayers(
         dimensions, encodings, isSVCCodec(backupCodec));
 
     simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
@@ -908,7 +908,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final cid = simulcastTrack.sender!.senderId;
 
-    var req = lk_rtc.AddTrackRequest(
+    final req = lk_rtc.AddTrackRequest(
       cid: cid,
       name: options.name ??
           (track.source == TrackSource.screenShareVideo
@@ -1061,7 +1061,7 @@ extension RPCMethods on LocalParticipant {
         return;
       }
 
-      var handler = room.rpcHandlers[method];
+      final handler = room.rpcHandlers[method];
       if (handler == null) {
         await publishRpcResponse(
           destinationIdentity: callerIdentity,
@@ -1183,7 +1183,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     final textInBytes = text.codeUnits;
     final totalTextLength = textInBytes.length;
 
-    var fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
+    final fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
     var len = 0;
     if (fileIds != null && fileIds.isNotEmpty) {
       len = fileIds.length + 1;
@@ -1219,7 +1219,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       await Future.wait<void>(
         options?.attachments.map(
               (file) {
-                var curIdx = idx++;
+                final curIdx = idx++;
                 return _sendFile(
                   fileIds![curIdx],
                   file,
@@ -1280,7 +1280,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       await writableStream.close();
     }
 
-    var cancelFun =
+    final cancelFun =
         room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
 
     final writer = TextStreamWriter(
@@ -1366,7 +1366,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     await room.engine.sendDataPacket(packet, reliability: true);
 
-    var writableStream = WritableStream<Uint8List>(
+    final writableStream = WritableStream<Uint8List>(
       destinationIdentities: destinationIdentities,
       streamId: streamId,
       engine: room.engine,
@@ -1376,7 +1376,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       await writableStream.close();
     }
 
-    var cancelFun =
+    final cancelFun =
         room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
 
     final byteWriter = ByteStreamWriter(
