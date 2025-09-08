@@ -6,11 +6,18 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:livekit_client/livekit_client.dart';
 import 'package:uuid/uuid.dart';
 
+import '../core/room.dart';
+import '../events.dart';
+import '../logger.dart';
+import '../participant/local.dart';
 import '../support/completer_manager.dart';
 import '../support/native.dart';
+import '../track/local/audio.dart';
+import '../types/data_stream.dart';
+import '../types/other.dart';
+import '../types/participant_state.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
@@ -60,7 +67,7 @@ class PreConnectAudioBuffer {
   Future<void> get agentReadyFuture => _agentReadyManager.future;
 
   Future<void> startRecording({
-    Duration timeout = const Duration(seconds: 10),
+    Duration timeout = const Duration(seconds: 20),
   }) async {
     if (_isRecording) {
       logger.warning('Already recording');
@@ -123,6 +130,12 @@ class PreConnectAudioBuffer {
       duration: Duration(seconds: 10),
       filter: (event) => event.participant == _room.localParticipant,
     );
+
+    // Emit the started event
+    _room.events.emit(PreConnectAudioBufferStartedEvent(
+      sampleRate: _sampleRate,
+      timeout: timeout,
+    ));
   }
 
   Future<void> stopRecording() async {
@@ -153,6 +166,12 @@ class PreConnectAudioBuffer {
 
     // Complete agent ready future if not already completed
     _agentReadyManager.complete();
+
+    // Emit the stopped event
+    _room.events.emit(PreConnectAudioBufferStoppedEvent(
+      bufferedSize: _buffer.length,
+      isDataSent: _isSent,
+    ));
 
     logger.info('[Preconnect audio] stopped recording');
   }

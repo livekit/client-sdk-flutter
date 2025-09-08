@@ -589,3 +589,33 @@ class TrackProcessorUpdateEvent with TrackEvent {
   String toString() => '${runtimeType}'
       'track: ${track})';
 }
+
+/// Pre-connect audio buffer has started recording.
+/// Emitted by [Room].
+class PreConnectAudioBufferStartedEvent with RoomEvent {
+  final int sampleRate;
+  final Duration timeout;
+  const PreConnectAudioBufferStartedEvent({
+    required this.sampleRate,
+    required this.timeout,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(sampleRate: ${sampleRate}, timeout: ${timeout})';
+}
+
+/// Pre-connect audio buffer has stopped recording.
+/// Emitted by [Room].
+class PreConnectAudioBufferStoppedEvent with RoomEvent {
+  final int bufferedSize;
+  final bool isDataSent;
+  const PreConnectAudioBufferStoppedEvent({
+    required this.bufferedSize,
+    required this.isDataSent,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(bufferedSize: ${bufferedSize}, isDataSent: ${isDataSent})';
+}
