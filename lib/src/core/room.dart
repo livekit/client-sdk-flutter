@@ -458,9 +458,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
         var audio = options.microphone;
         bool audioEnabled = audio.enabled == true || audio.track != null;
-        
+
         // Only enable microphone if preconnect buffer is not active
-        if (audioEnabled) {
+        if (audioEnabled && !preConnectAudioBuffer.isRecording) {
           if (audio.track != null) {
             _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
                 publishOptions: roomOptions.defaultAudioPublishOptions);
