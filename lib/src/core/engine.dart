@@ -726,7 +726,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         .info('onDisconnected state:${connectionState} reason:${reason.name}');
 
     if (reconnectAttempts == 0) {
-      reconnectStart = DateTime.now();
+      reconnectStart = DateTime.timestamp();
     }
 
     if (reconnectAttempts! >= _reconnectCount) {

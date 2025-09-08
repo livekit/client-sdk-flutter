@@ -39,7 +39,7 @@ class RegionUrlProvider {
           'region availability is only supported for LiveKit Cloud domains');
     }
     if (regionSettings == null ||
-        DateTime.now().microsecondsSinceEpoch - lastUpdateAt >
+        DateTime.timestamp().microsecondsSinceEpoch - lastUpdateAt >
             settingsCacheTime) {
       regionSettings = await fetchRegionSettings();
     }
@@ -79,7 +79,7 @@ class RegionUrlProvider {
       var regionSettings = lk_models.RegionSettings(
         regions: regions,
       );
-      lastUpdateAt = DateTime.now().microsecondsSinceEpoch;
+      lastUpdateAt = DateTime.timestamp().microsecondsSinceEpoch;
       return regionSettings;
     } else {
       throw ConnectException(
@@ -93,7 +93,7 @@ class RegionUrlProvider {
 
   setServerReportedRegions(lk_models.RegionSettings regions) {
     regionSettings = regions;
-    lastUpdateAt = DateTime.now().millisecondsSinceEpoch;
+    lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
   }
 
   String getCloudConfigUrl(Uri serverUrl) {
