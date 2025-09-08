@@ -39,7 +39,6 @@ class PreConnectAudioBuffer {
   final BytesBuilder _buffer = BytesBuilder(copy: false);
   Timer? _timeoutTimer;
   CancelListenFunc? _participantStateListener;
-  CancelListenFunc? _remoteSubscribedListener;
 
   final CompleterManager<void> _agentReadyManager = CompleterManager<void>();
 
@@ -124,11 +123,6 @@ class PreConnectAudioBuffer {
       duration: Duration(seconds: 10),
       filter: (event) => event.participant == _room.localParticipant,
     );
-
-    _remoteSubscribedListener = _room.events.on<LocalTrackSubscribedEvent>((event) async {
-      logger.info('[Preconnect audio] Remote track subscribed: ${event.trackSid}');
-      await stopRecording();
-    });
   }
 
   Future<void> stopRecording() async {
@@ -169,8 +163,6 @@ class PreConnectAudioBuffer {
     _timeoutTimer?.cancel();
     _participantStateListener?.call();
     _participantStateListener = null;
-    _remoteSubscribedListener?.call();
-    _remoteSubscribedListener = null;
     _buffer.clear();
     _localTrack = null;
     _agentReadyManager.reset();
@@ -179,12 +171,11 @@ class PreConnectAudioBuffer {
     logger.info('[Preconnect audio] reset');
   }
 
-  /// Dispose the audio buffer and clean up all resources.
+  // Dispose the audio buffer and clean up all resources.
   void dispose() {
     _agentReadyManager.dispose();
     _timeoutTimer?.cancel();
     _participantStateListener?.call();
-    _remoteSubscribedListener?.call();
   }
 
   Future<void> sendAudioData({
