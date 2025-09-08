@@ -313,6 +313,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           completer.completeError('Engine disconnected');
         }
       }
+
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
