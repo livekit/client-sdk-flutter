@@ -58,7 +58,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   VideoPublishOptions? lastPublishOptions;
 
   num? _currentBitrate;
-  get currentBitrate => _currentBitrate;
+  num? get currentBitrate => _currentBitrate;
+
   Map<String, VideoSenderStats>? prevStats;
   final Map<String, num> _bitrateFoLayers = {};
 
@@ -105,7 +106,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       events.emit(
         VideoSenderStatsEvent(
           stats: statsMap,
-          currentBitrate: currentBitrate,
+          currentBitrate: totalBitrate,
           bitrateForLayers: _bitrateFoLayers,
         ),
       );
