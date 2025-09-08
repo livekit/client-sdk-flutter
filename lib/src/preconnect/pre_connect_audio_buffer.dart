@@ -153,14 +153,11 @@ class PreConnectAudioBuffer {
     _eventChannel = null;
 
     final rendererId = _rendererId;
-    if (rendererId == null) {
-      logger.warning('No rendererId');
-      return;
+    if (rendererId != null) {
+      await Native.stopAudioRenderer(
+        rendererId: rendererId,
+      );
     }
-
-    await Native.stopAudioRenderer(
-      rendererId: rendererId,
-    );
 
     _rendererId = null;
 
