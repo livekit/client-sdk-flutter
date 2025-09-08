@@ -27,7 +27,7 @@ import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/participant_state.dart';
-import '../utils.dart';
+import '../utils.dart' show mapDiff;
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -96,7 +96,7 @@ abstract class Participant<T extends TrackPublication>
       return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
           isUtc: true);
     }
-    return DateTime.now();
+    return DateTime.timestamp();
   }
 
   /// if [Participant] is currently speaking.
@@ -161,7 +161,7 @@ abstract class Participant<T extends TrackPublication>
     }
     _isSpeaking = speaking;
     if (speaking) {
-      lastSpokeAt = DateTime.now();
+      lastSpokeAt = DateTime.timestamp();
     }
 
     events.emit(SpeakingChangedEvent(
