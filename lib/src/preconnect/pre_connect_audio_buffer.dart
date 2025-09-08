@@ -183,18 +183,33 @@ class PreConnectAudioBuffer {
     _participantStateListener?.call();
     _participantStateListener = null;
     _buffer.clear();
+
+    // Don't stop the local track - it will continue to be used by the Room
     _localTrack = null;
+
     _agentReadyManager.reset();
     _localTrackPublishedEvent = null;
+
+    // Reset the _isSent flag to allow data sending on next use
+    _isSent = false;
 
     logger.info('[Preconnect audio] reset');
   }
 
   // Dispose the audio buffer and clean up all resources.
-  void dispose() {
+  Future<void> dispose() async {
+    // Ensure we stop recording first
+    await stopRecording();
+
+    // Don't stop the local track - it will continue to be used by the Room
+    _localTrack = null;
+
     _agentReadyManager.dispose();
     _timeoutTimer?.cancel();
     _participantStateListener?.call();
+    _participantStateListener = null;
+
+    logger.info('[Preconnect audio] disposed');
   }
 
   Future<void> sendAudioData({
