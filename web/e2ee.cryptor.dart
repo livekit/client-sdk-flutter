@@ -75,7 +75,7 @@ const SLICE_LAYER_EXT = 21;
 // 22, 23 reserved
 
 List<int> findNALUIndices(Uint8List stream) {
-  var result = <int>[];
+  final result = <int>[];
   var start = 0, pos = 0, searchLength = stream.length - 2;
   while (pos < searchLength) {
     // skip until end of current NALU
@@ -211,7 +211,7 @@ class FrameCryptor {
 
   Uint8List makeIv(
       {required int synchronizationSource, required int timestamp}) {
-    var iv = ByteData(IV_LENGTH);
+    final iv = ByteData(IV_LENGTH);
 
     // having to keep our own send count (similar to a picture id) is not ideal.
     if (sendCounts[synchronizationSource] == null) {
@@ -219,7 +219,7 @@ class FrameCryptor {
       sendCounts[synchronizationSource] = Random.secure().nextInt(0xffff);
     }
 
-    var sendCount = sendCounts[synchronizationSource] ?? 0;
+    final sendCount = sendCounts[synchronizationSource] ?? 0;
 
     iv.setUint32(0, synchronizationSource);
     iv.setUint32(4, timestamp);
@@ -253,7 +253,7 @@ class FrameCryptor {
       logger.info('setupTransform: transform already active, skipping setup');
       return;
     }
-    var transformer = web.TransformStream({
+    final transformer = web.TransformStream({
       'transform':
           (operation == 'encode' ? encodeFunction.toJS : decodeFunction.toJS)
     }.jsify() as JSObject);
@@ -290,9 +290,9 @@ class FrameCryptor {
     }
 
     if (codec != null && codec.toLowerCase() == 'h264') {
-      var naluIndices = findNALUIndices(data);
+      final naluIndices = findNALUIndices(data);
       for (var index in naluIndices) {
-        var type = parseNALUType(data[index]);
+        final type = parseNALUType(data[index]);
         switch (type) {
           case SLICE_IDR:
           case SLICE_NON_IDR:
@@ -389,13 +389,13 @@ class FrameCryptor {
         return;
       }
 
-      var srcFrame = readFrameInfo(frameObj);
+      final srcFrame = readFrameInfo(frameObj);
 
       logger.finer(
           'encodeFunction: buffer ${srcFrame.buffer.length}, synchronizationSource ${srcFrame.ssrc} frameType ${srcFrame.frameType}');
 
-      var secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
-      var keyIndex = currentKeyIndex;
+      final secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
+      final keyIndex = currentKeyIndex;
 
       if (secretKey == null) {
         if (lastError != CryptorError.kMissingKey) {
@@ -413,17 +413,17 @@ class FrameCryptor {
         return;
       }
 
-      var headerLength =
+      final headerLength =
           kind == 'video' ? getUnencryptedBytes(frameObj, codec) : 1;
 
-      var iv = makeIv(
+      final iv = makeIv(
           synchronizationSource: srcFrame.ssrc, timestamp: srcFrame.timestamp);
 
-      var frameTrailer = ByteData(2);
+      final frameTrailer = ByteData(2);
       frameTrailer.setInt8(0, IV_LENGTH);
       frameTrailer.setInt8(1, keyIndex);
 
-      var cipherText = await worker.crypto.subtle
+      final cipherText = await worker.crypto.subtle
           .encrypt(
             {
               'name': 'AES-GCM',
@@ -437,7 +437,7 @@ class FrameCryptor {
 
       logger.finer(
           'encodeFunction: encrypted buffer: ${srcFrame.buffer.length}, cipherText: ${cipherText.toDart.asUint8List().length}');
-      var finalBuffer = BytesBuilder();
+      final finalBuffer = BytesBuilder();
 
       finalBuffer
           .add(Uint8List.fromList(srcFrame.buffer.sublist(0, headerLength)));
@@ -483,7 +483,7 @@ class FrameCryptor {
     JSObject frameObj,
     web.TransformStreamDefaultController controller,
   ) async {
-    var srcFrame = readFrameInfo(frameObj);
+    final srcFrame = readFrameInfo(frameObj);
     var ratchetCount = 0;
 
     logger.finer('decodeFunction: frame length ${srcFrame.buffer.length}');
@@ -503,20 +503,20 @@ class FrameCryptor {
     }
 
     if (keyOptions.uncryptedMagicBytes != null) {
-      var magicBytes = keyOptions.uncryptedMagicBytes!;
+      final magicBytes = keyOptions.uncryptedMagicBytes!;
       if (srcFrame.buffer.length > magicBytes.length + 1) {
-        var magicBytesBuffer = srcFrame.buffer.sublist(
+        final magicBytesBuffer = srcFrame.buffer.sublist(
             srcFrame.buffer.length - magicBytes.length, srcFrame.buffer.length);
         logger.finer(
             'magicBytesBuffer $magicBytesBuffer, magicBytes $magicBytes');
         if (magicBytesBuffer.toString() == magicBytes.toString()) {
           sifGuard.recordSif();
           if (sifGuard.isSifAllowed()) {
-            var frameType =
+            final frameType =
                 srcFrame.buffer.sublist(srcFrame.buffer.length - 1)[0];
             logger.finer(
                 'encodeFunction: skip unencrypted frame, type $frameType');
-            var finalBuffer = BytesBuilder();
+            final finalBuffer = BytesBuilder();
             finalBuffer.add(Uint8List.fromList(srcFrame.buffer
                 .sublist(0, srcFrame.buffer.length - (magicBytes.length + 1))));
             logger.fine('encodeFunction: enqueing silent frame');
@@ -533,13 +533,13 @@ class FrameCryptor {
     }
 
     try {
-      var headerLength =
+      final headerLength =
           kind == 'video' ? getUnencryptedBytes(frameObj, codec) : 1;
 
-      var frameTrailer = srcFrame.buffer.sublist(srcFrame.buffer.length - 2);
-      var ivLength = frameTrailer[0];
-      var keyIndex = frameTrailer[1];
-      var iv = srcFrame.buffer.sublist(
+      final frameTrailer = srcFrame.buffer.sublist(srcFrame.buffer.length - 2);
+      final ivLength = frameTrailer[0];
+      final keyIndex = frameTrailer[1];
+      final iv = srcFrame.buffer.sublist(
           srcFrame.buffer.length - ivLength - 2, srcFrame.buffer.length - 2);
 
       initialKeySet = keyHandler.getKeySet(keyIndex);
@@ -630,9 +630,9 @@ class FrameCryptor {
           throw Exception('[ratchedKeyInternal] cannot ratchet anymore');
         }
 
-        var newKeyBuffer = await keyHandler.ratchet(
+        final newKeyBuffer = await keyHandler.ratchet(
             currentkeySet.material, keyOptions.ratchetSalt);
-        var newMaterial = await keyHandler.ratchetMaterial(
+        final newMaterial = await keyHandler.ratchetMaterial(
             currentkeySet.material, newKeyBuffer.buffer);
         currentkeySet =
             await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
@@ -662,7 +662,7 @@ class FrameCryptor {
       logger.finer(
           'decodeFunction: decryption success, buffer length ${srcFrame.buffer.length}, decrypted: ${decrypted!.asUint8List().length}');
 
-      var finalBuffer = BytesBuilder();
+      final finalBuffer = BytesBuilder();
 
       finalBuffer
           .add(Uint8List.fromList(srcFrame.buffer.sublist(0, headerLength)));

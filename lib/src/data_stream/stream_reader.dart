@@ -43,7 +43,7 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
 
   @override
   Future<List<Uint8List>> readAll() async {
-    Set<Uint8List> chunks = {};
+    final Set<Uint8List> chunks = {};
     await for (final chunk in this) {
       chunks.add(Uint8List.fromList(chunk.content));
     }

@@ -47,7 +47,7 @@ class E2EEManager {
             // no need to setup frame cryptor
             return;
           }
-          var frameCryptor = await _addRtpSender(
+          final frameCryptor = await _addRtpSender(
               sender: event.publication.track!.sender!,
               identity: event.participant.identity,
               sid: event.publication.sid);
@@ -59,7 +59,7 @@ class E2EEManager {
               print(
                   'Sender::onFrameCryptorStateChanged: $state, trackId:  $trackId');
             }
-            var participant = event.participant;
+            final participant = event.participant;
             [event.participant.events, participant.room.events]
                 .emit(TrackE2EEStateEvent(
               participant: participant,
@@ -72,20 +72,20 @@ class E2EEManager {
           for (var key in _frameCryptors.keys.toList()) {
             if (key.keys.first == event.participant.identity &&
                 key.values.first == event.publication.sid) {
-              var frameCryptor = _frameCryptors.remove(key);
+              final frameCryptor = _frameCryptors.remove(key);
               await frameCryptor?.setEnabled(false);
               await frameCryptor?.dispose();
             }
           }
         })
         ..on<TrackSubscribedEvent>((event) async {
-          var codec = event.publication.mimeType.split('/')[1];
+          final codec = event.publication.mimeType.split('/')[1];
           if (event.publication.encryptionType == EncryptionType.kNone ||
               isSVCCodec(codec)) {
             // no need to setup frame cryptor
             return;
           }
-          var frameCryptor = await _addRtpReceiver(
+          final frameCryptor = await _addRtpReceiver(
             receiver: event.track.receiver!,
             identity: event.participant.identity,
             sid: event.publication.sid,
@@ -98,7 +98,7 @@ class E2EEManager {
               print(
                   'Receiver::onFrameCryptorStateChanged: $state, trackId: $trackId');
             }
-            var participant = event.participant;
+            final participant = event.participant;
             [event.participant.events, participant.room.events]
                 .emit(TrackE2EEStateEvent(
               participant: participant,
@@ -111,7 +111,7 @@ class E2EEManager {
           for (var key in _frameCryptors.keys.toList()) {
             if (key.keys.first == event.participant.identity &&
                 key.values.first == event.publication.sid) {
-              var frameCryptor = _frameCryptors.remove(key);
+              final frameCryptor = _frameCryptors.remove(key);
               await frameCryptor?.setEnabled(false);
               await frameCryptor?.dispose();
             }
@@ -124,12 +124,12 @@ class E2EEManager {
 
   Future<void> ratchetKey({String? participantId, int? keyIndex}) async {
     if (participantId != null) {
-      var newKey = await _keyProvider.ratchetKey(participantId, keyIndex);
+      final newKey = await _keyProvider.ratchetKey(participantId, keyIndex);
       if (kDebugMode) {
         print('newKey: $newKey');
       }
     } else {
-      var newKey = await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
+      final newKey = await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
       if (kDebugMode) {
         print('newKey: $newKey');
       }
@@ -150,7 +150,7 @@ class E2EEManager {
       {required RTCRtpSender sender,
       required String identity,
       required String sid}) async {
-    var frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
+    final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
         participantId: identity,
         sender: sender,
         algorithm: _algorithm,
@@ -167,7 +167,7 @@ class E2EEManager {
       {required RTCRtpReceiver receiver,
       required String identity,
       required String sid}) async {
-    var frameCryptor =
+    final frameCryptor =
         await frameCryptorFactory.createFrameCryptorForRtpReceiver(
             participantId: identity,
             receiver: receiver,

@@ -97,7 +97,7 @@ class WritableStream<T> implements StreamWriter<T> {
   }
 
   List<Uint8List> splitUint8List(Uint8List bytes, int chunkSize) {
-    List<Uint8List> result = [];
+    final List<Uint8List> result = [];
     if (bytes.length <= chunkSize) {
       return [bytes];
     }
