@@ -105,7 +105,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     required this.participant,
     required lk_models.TrackInfo info,
     T? track,
-  }) : super(info: info) {
+  }) : super(info: info, track: track) {
     logger.fine('RemoteTrackPublication.init track: $track, info: $info');
 
     // register dispose func
@@ -121,8 +121,6 @@ class RemoteTrackPublication<T extends RemoteTrack>
       cancelFunc: (func) => _cancelPendingTrackSettingsUpdateRequest = func,
       wait: const Duration(milliseconds: 1500),
     );
-
-    updateTrack(track);
   }
 
   @internal
