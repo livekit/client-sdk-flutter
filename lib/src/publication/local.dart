@@ -31,8 +31,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
     required this.participant,
     required lk_models.TrackInfo info,
     required T track,
-  }) : super(info: info) {
-    updateTrack(track);
+  }) : super(info: info, track: track) {
     // register dispose func
     onDispose(() async {
       // this object is responsible for disposing track

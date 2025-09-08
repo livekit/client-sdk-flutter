@@ -36,7 +36,7 @@ import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
-import '../utils.dart';
+import '../utils.dart' show Utils, UriExt;
 
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState _connectionState = ConnectionState.disconnected;
@@ -361,7 +361,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   void _sendPing() {
     _sendRequest(lk_rtc.SignalRequest()
-      ..ping = Int64(DateTime.now().millisecondsSinceEpoch));
+      ..ping = Int64(DateTime.timestamp().millisecondsSinceEpoch));
   }
 
   void _startPingInterval() {

@@ -68,13 +68,16 @@ abstract class TrackPublication<T extends Track> extends Disposable {
 
   TrackPublication({
     required lk_models.TrackInfo info,
+    required T? track,
   })  : sid = info.sid,
         name = info.name,
         kind = info.type.toLKType(),
         source = info.source.toLKType(),
         _simulcasted = info.simulcast,
         _metadataMuted = info.muted,
-        _mimeType = info.mimeType {
+        _mimeType = info.mimeType,
+        _track = track {
+    if (track != null) _attachTrackListener(track);
     updateFromInfo(info);
   }
 
@@ -110,17 +113,17 @@ abstract class TrackPublication<T extends Track> extends Disposable {
     // dispose previous track (if exists)
     await _track?.dispose();
     _track = newValue;
-
-    if (newValue != null) {
-      // listen for Track's muted events
-      final listener = newValue.createListener()
-        ..on<InternalTrackMuteUpdatedEvent>(
-            (event) => _onTrackMuteUpdatedEvent(event));
-      // dispose listener when the track is disposed
-      newValue.onDispose(() => listener.dispose());
-    }
+    if (newValue != null) _attachTrackListener(newValue);
 
     return true;
+  }
+
+  void _attachTrackListener(T track) {
+    // listen for Track's muted events
+    final listener = track.createListener()
+      ..on<InternalTrackMuteUpdatedEvent>((event) => _onTrackMuteUpdatedEvent(event));
+    // dispose listener when the track is disposed
+    track.onDispose(() => listener.dispose());
   }
 
   void _onTrackMuteUpdatedEvent(InternalTrackMuteUpdatedEvent event) {
