@@ -64,7 +64,7 @@ class MockPeerConnection extends RTCPeerConnection {
 
       if (onDataChannel != null) {
         // open data channels
-        var dc = MockDataChannel(1, '_reliable');
+        final dc = MockDataChannel(1, '_reliable');
         _dataChannels.add(dc);
         if (_dataChannels.length == 2) {
           _dataChannels[0].onMessageSend = (RTCDataChannelMessage message) {
@@ -233,7 +233,7 @@ a=rtpmap:32 MPV/90000
   @override
   Future<RTCDataChannel> createDataChannel(
       String label, RTCDataChannelInit dataChannelDict) async {
-    var dc = MockDataChannel(dataChannelDict.id, label);
+    final dc = MockDataChannel(dataChannelDict.id, label);
     if (label == '_reliable') {
       _dataChannels.add(dc);
     }

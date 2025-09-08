@@ -58,7 +58,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   VideoPublishOptions? lastPublishOptions;
 
   num? _currentBitrate;
-  get currentBitrate => _currentBitrate;
+  num? get currentBitrate => _currentBitrate;
+
   Map<String, VideoSenderStats>? prevStats;
   final Map<String, num> _bitrateFoLayers = {};
 
@@ -80,7 +81,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       logger.warning('Failed to get sender stats: $e');
       return false;
     }
-    Map<String, VideoSenderStats> statsMap = {};
+    final Map<String, VideoSenderStats> statsMap = {};
 
     for (var s in stats) {
       statsMap[s.rid ?? 'f'] = s;
@@ -94,7 +95,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
           return;
         }
         try {
-          var bitRateForlayer = computeBitrateForSenderStats(s, prev).toInt();
+          final bitRateForlayer = computeBitrateForSenderStats(s, prev).toInt();
           _bitrateFoLayers[key] = bitRateForlayer;
           totalBitrate += bitRateForlayer;
         } catch (e) {
@@ -105,7 +106,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
       events.emit(
         VideoSenderStatsEvent(
           stats: statsMap,
-          currentBitrate: currentBitrate,
+          currentBitrate: totalBitrate,
           bitrateForLayers: _bitrateFoLayers,
         ),
       );
@@ -121,10 +122,10 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
 
     final stats = await sender!.getStats();
-    List<VideoSenderStats> items = [];
+    final List<VideoSenderStats> items = [];
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
-        VideoSenderStats vs = VideoSenderStats(v.id, v.timestamp);
+        final vs = VideoSenderStats(v.id, v.timestamp);
         vs.frameHeight = getNumValFromReport(v.values, 'frameHeight');
         vs.frameWidth = getNumValFromReport(v.values, 'frameWidth');
         vs.framesPerSecond = getNumValFromReport(v.values, 'framesPerSecond');
@@ -188,7 +189,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     options ??= const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
-    var track = LocalVideoTrack._(
+    final track = LocalVideoTrack._(
       TrackSource.camera,
       stream,
       stream.getVideoTracks().first,
@@ -245,7 +246,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
     final stream = await LocalTrack.createStream(options);
 
-    List<LocalTrack> tracks = [
+    final List<LocalTrack> tracks = [
       LocalVideoTrack._(
         TrackSource.screenShareVideo,
         stream,
@@ -331,7 +332,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     subscribedCodecs = codecs;
 
-    List<String> newCodecs = [];
+    final List<String> newCodecs = [];
 
     for (var codec in codecs) {
       if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
@@ -418,7 +419,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     /* @ts-ignore */
     if (encodings[0].scalabilityMode != null) {
       // svc dynacast encodings
-      var encoding = encodings[0];
+      final encoding = encodings[0];
       /* @ts-ignore */
       // const mode = new ScalabilityMode(encoding.scalabilityMode);
       var maxQuality = lk_models.VideoQuality.OFF;
@@ -458,8 +459,8 @@ extension LocalVideoTrackExt on LocalVideoTrack {
         if (rid == '') {
           rid = 'q';
         }
-        var quality = _videoQualityForRid(rid);
-        var subscribedQuality = layers.firstWhereOrNull(
+        final quality = _videoQualityForRid(rid);
+        final subscribedQuality = layers.firstWhereOrNull(
           (q) => q.quality == quality,
         );
         if (subscribedQuality == null) {
@@ -518,7 +519,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     if (simulcastCodecs[codec] != null) {
       throw Exception('$codec already added');
     }
-    SimulcastTrackInfo simulcastCodecInfo = SimulcastTrackInfo(
+    final SimulcastTrackInfo simulcastCodecInfo = SimulcastTrackInfo(
       codec: codec,
       encodings: encodings,
       mediaStreamTrack: mediaStreamTrack,
