@@ -153,7 +153,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   // E2E reliability for data channels
   int _reliableDataSequence = 1;
-  final DataPacketBuffer _reliableMessageBuffer = DataPacketBuffer();
+  final DataPacketBuffer _reliableMessageBuffer = DataPacketBuffer(
+    maxBufferSize: 64 * 1024 * 1024, // 64MB
+    maxPacketCount: 1000, // max 1000 packets
+  );
   final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
   bool _isReconnecting = false;
 
@@ -345,10 +348,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
     logger.fine('Resending reliable messages from sequence $lastMessageSeq');
 
-    final messagesToResend = _reliableMessageBuffer
-        .getAll()
-        .where((item) => item.sequence > lastMessageSeq)
-        .toList();
+    final channel = _publisherDataChannel(Reliability.reliable);
+    if (channel == null) {
+      logger.warning('Reliable data channel is null, cannot resend messages');
+      return;
+    }
+
+    // Remove acknowledged messages from buffer
+    _reliableMessageBuffer.popToSequence(lastMessageSeq);
+
+    // Get remaining messages to resend
+    final messagesToResend = _reliableMessageBuffer.getAll();
 
     if (messagesToResend.isEmpty) {
       logger.fine('No reliable messages to resend');
@@ -356,12 +366,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     logger.fine('Resending ${messagesToResend.length} reliable messages');
-
-    final channel = _publisherDataChannel(Reliability.reliable);
-    if (channel == null) {
-      logger.warning('Reliable data channel is null, cannot resend messages');
-      return;
-    }
 
     for (final item in messagesToResend) {
       try {
@@ -381,12 +385,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     final reliabilityType =
         reliability == true ? Reliability.reliable : Reliability.lossy;
-
-    // Block sending during reconnection attempts for reliable packets
-    if (reliabilityType == Reliability.reliable && _isReconnecting) {
-      logger.fine('Blocking reliable data packet during reconnection');
-      return;
-    }
 
     // Add sequence number for reliable packets
     if (reliabilityType == Reliability.reliable) {
@@ -427,6 +425,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         message: message,
         sequence: packet.sequence,
       ));
+    }
+
+    // Don't send during reconnection, but keep message buffered for resending
+    if (_isReconnecting) {
+      logger.fine('Deferring data packet send during reconnection (will resend when resumed)');
+      return;
     }
 
     logger.fine(
