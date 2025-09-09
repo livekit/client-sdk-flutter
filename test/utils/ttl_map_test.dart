@@ -191,70 +191,115 @@ void main() {
 
     test('should handle keys property correctly', () {
       final map = TTLMap<String, int>(5000);
-      
+
       expect(map.keys.isEmpty, isTrue);
-      
+
       map.set('key1', 100);
       expect(map.keys.length, equals(1));
       expect(map.keys, contains('key1'));
-      
+
       map.set('key2', 200);
       expect(map.keys.length, equals(2));
       expect(map.keys, containsAll(['key1', 'key2']));
-      
+
       map.delete('key1');
       expect(map.keys.length, equals(1));
       expect(map.keys, contains('key2'));
       expect(map.keys, isNot(contains('key1')));
-      
+
       map.clear();
       expect(map.keys.isEmpty, isTrue);
-      
+
       map.dispose();
     });
-    
+
+    test('should handle size property correctly', () {
+      final map = TTLMap<String, int>(5000);
+
+      expect(map.size, equals(0));
+
+      map.set('key1', 100);
+      expect(map.size, equals(1));
+
+      map.set('key2', 200);
+      expect(map.size, equals(2));
+
+      map.set('key3', 300);
+      expect(map.size, equals(3));
+
+      map.delete('key1');
+      expect(map.size, equals(2));
+
+      map.clear();
+      expect(map.size, equals(0));
+
+      map.dispose();
+    });
+
     test('should handle key iteration', () {
       final map = TTLMap<String, int>(5000);
-      
+
       map.set('key1', 100);
       map.set('key2', 200);
       map.set('key3', 300);
-      
+
       final collectedKeys = <String>[];
       for (final key in map.keys) {
         collectedKeys.add(key);
       }
-      
+
       expect(collectedKeys.length, equals(3));
       expect(collectedKeys, containsAll(['key1', 'key2', 'key3']));
-      
+
       map.dispose();
     });
 
     test('should handle null values correctly', () {
       final map = TTLMap<String, String?>(5000);
-      
+
       map.set('nullKey', null);
       expect(map.has('nullKey'), isTrue);
       expect(map.get('nullKey'), isNull);
-      
+
       // Different from non-existent key
       expect(map.has('nonExistent'), isFalse);
-      
+
       map.dispose();
     });
 
     test('should handle stress test with rapid operations', () {
       final map = TTLMap<String, int>(10000);
-      
+
       // Rapid set/get operations
       for (int i = 0; i < 1000; i++) {
         map.set('stress$i', i);
         expect(map.get('stress$i'), equals(i));
       }
-      
-      expect(map.keys.length, equals(1000));
-      
+
+      expect(map.size, equals(1000));
+
+      map.dispose();
+    });
+
+    test('should update size correctly during TTL expiration', () async {
+      final map = TTLMap<String, int>(100); // 100ms TTL
+
+      // Start with empty map
+      expect(map.size, equals(0));
+
+      // Add some entries
+      map.set('key1', 100);
+      map.set('key2', 200);
+      map.set('key3', 300);
+      expect(map.size, equals(3));
+
+      // Wait for expiry
+      await Future.delayed(const Duration(milliseconds: 150));
+
+      // Size should be updated after accessing expired entries
+      expect(map.has('key1'), isFalse); // This triggers cleanup
+      expect(map.size, equals(0));
+
       map.dispose();
     });
   });

@@ -29,6 +29,7 @@ class TTLMap<K, V> {
   Timer? _cleanupTimer;
 
   Iterable<K> get keys => _map.keys;
+  int get size => _map.length;
 
   TTLMap(this.ttlMs) {
     _startCleanupTimer();
