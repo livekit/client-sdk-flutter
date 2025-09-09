@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
 import '../core/room.dart';
@@ -41,7 +42,8 @@ class PreConnectAudioBuffer {
   StreamSubscription? _streamSubscription;
 
   final PreConnectOnError? _onError;
-  final int _sampleRate;
+  final int _requestSampleRate;
+  int? _renderedSampleRate;
 
   final BytesBuilder _buffer = BytesBuilder(copy: false);
   Timer? _timeoutTimer;
@@ -54,7 +56,7 @@ class PreConnectAudioBuffer {
     PreConnectOnError? onError,
     int sampleRate = defaultSampleRate,
   })  : _onError = onError,
-        _sampleRate = sampleRate;
+        _requestSampleRate = sampleRate;
 
   // Getters
   bool get isRecording => _isRecording;
@@ -89,10 +91,12 @@ class PreConnectAudioBuffer {
       rendererId: rendererId,
       format: {
         'commonFormat': 'int16',
-        'sampleRate': _sampleRate,
+        'sampleRate': _requestSampleRate,
         'channels': 1,
       },
     );
+
+    await webrtc.NativeAudioManagement.startLocalRecording();
 
     _rendererId = rendererId;
 
@@ -101,6 +105,8 @@ class PreConnectAudioBuffer {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
+        // Actual sample rate of the audio data, can differ from the request sample rate
+        _renderedSampleRate = event['sampleRate'] as int;
         final dataChannels = event['data'] as List<dynamic>;
         final monoData = dataChannels[0].cast<int>();
         // Convert Int16 values to bytes using typed data view
@@ -133,7 +139,7 @@ class PreConnectAudioBuffer {
 
     // Emit the started event
     _room.events.emit(PreConnectAudioBufferStartedEvent(
-      sampleRate: _sampleRate,
+      sampleRate: _requestSampleRate,
       timeout: timeout,
     ));
   }
@@ -206,6 +212,12 @@ class PreConnectAudioBuffer {
     if (_isBufferSent) return;
     if (agents.isEmpty) return;
 
+    final sampleRate = _renderedSampleRate;
+    if (sampleRate == null) {
+      logger.severe('[Preconnect audio] renderedSampleRate is null');
+      return;
+    }
+
     // Wait for local track published event
     final localTrackPublishedEvent = await _localTrackPublishedEvent;
     logger.info('[Preconnect audio] localTrackPublishedEvent: $localTrackPublishedEvent');
@@ -226,7 +238,7 @@ class PreConnectAudioBuffer {
     final streamOptions = StreamBytesOptions(
       topic: topic,
       attributes: {
-        'sampleRate': _sampleRate.toString(),
+        'sampleRate': sampleRate.toString(),
         'channels': '1',
         'trackId': localTrackSid,
       },
@@ -243,7 +255,7 @@ class PreConnectAudioBuffer {
     // Compute seconds of audio data sent
     final int bytesPerSample = 2; // Assuming 16-bit audio
     final int totalSamples = data.length ~/ bytesPerSample;
-    final double secondsOfAudio = totalSamples / _sampleRate;
+    final double secondsOfAudio = totalSamples / sampleRate;
 
     logger.info(
         '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
