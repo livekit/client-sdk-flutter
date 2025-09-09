@@ -32,7 +32,6 @@ import org.webrtc.AudioTrack
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
-  private var processors = mutableMapOf<String, Visualizer>()
   private var audioProcessors = mutableMapOf<String, AudioProcessors>()
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
@@ -57,34 +56,33 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
       result.error("INVALID_ARGUMENT", "trackId and visualizerId is required", null)
       return
     }
-    var audioTrack: LKAudioTrack? = null
+
     val barCount = call.argument<Int>("barCount") ?: 7
     val isCentered = call.argument<Boolean>("isCentered") ?: true
     var smoothTransition = call.argument<Boolean>("smoothTransition") ?: true
 
-    val track = flutterWebRTCPlugin.getLocalTrack(trackId)
-    if (track != null) {
-      audioTrack = LKLocalAudioTrack(track as LocalAudioTrack)
-    } else {
-      val remoteTrack = flutterWebRTCPlugin.getRemoteTrack(trackId)
-      if (remoteTrack != null) {
-        audioTrack = LKRemoteAudioTrack(remoteTrack as AudioTrack)
-      }
-    }
-
-    if (audioTrack == null) {
+    val processors = getAudioProcessors(trackId)
+    if (processors == null) {
       result.error("INVALID_ARGUMENT", "track not found", null)
       return
     }
 
+    // Check if visualizer already exists
+    if (processors.visualizers[visualizerId] != null) {
+      result.success(null)
+      return
+    }
+
     val visualizer = Visualizer(
-      barCount = barCount, isCentered = isCentered,
+      barCount = barCount,
+      isCentered = isCentered,
       smoothTransition = smoothTransition,
-      audioTrack = audioTrack, binaryMessenger = binaryMessenger!!,
+      audioTrack = processors.track,
+      binaryMessenger = binaryMessenger!!,
       visualizerId = visualizerId
     )
 
-    processors[visualizerId] = visualizer
+    processors.visualizers[visualizerId] = visualizer
     result.success(null)
   }
 
@@ -95,12 +93,15 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
       result.error("INVALID_ARGUMENT", "trackId and visualizerId is required", null)
       return
     }
-    processors.forEach { (k, visualizer) ->
-      if (k == visualizerId) {
+
+    // Find and remove visualizer from all processors
+    for (processors in audioProcessors.values) {
+      processors.visualizers[visualizerId]?.let { visualizer ->
         visualizer.stop()
+        processors.visualizers.remove(visualizerId)
       }
     }
-    processors.entries.removeAll { (k, v) -> k == visualizerId }
+
     result.success(null)
   }
 
@@ -177,7 +178,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
         processors.track,
         binaryMessenger!!,
         rendererId,
-        format
+        format,
       )
 
       processors.renderers[rendererId] = renderer
@@ -237,9 +238,6 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(null)
 
     // Cleanup all processors
-    processors.values.forEach { it.stop() }
-    processors.clear()
-
     audioProcessors.values.forEach { it.cleanup() }
     audioProcessors.clear()
   }
