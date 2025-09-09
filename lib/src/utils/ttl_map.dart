@@ -20,7 +20,7 @@ class _TTLEntry<V> {
 
   _TTLEntry(this.value, this.expiry);
 
-  bool get isExpired => DateTime.now().isAfter(expiry);
+  bool get isExpired => DateTime.timestamp().isAfter(expiry);
 }
 
 class TTLMap<K, V> {
@@ -43,7 +43,7 @@ class TTLMap<K, V> {
   }
 
   void _cleanup() {
-    final now = DateTime.now();
+    final now = DateTime.timestamp();
     _map.removeWhere((key, entry) => now.isAfter(entry.expiry));
   }
 
@@ -57,7 +57,7 @@ class TTLMap<K, V> {
   }
 
   void set(K key, V value) {
-    final expiry = DateTime.now().add(Duration(milliseconds: ttlMs));
+    final expiry = DateTime.timestamp().add(Duration(milliseconds: ttlMs));
     _map[key] = _TTLEntry(value, expiry);
   }
 
