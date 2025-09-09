@@ -292,5 +292,251 @@ void main() {
         expect(buffer.length, equals(buffer.getAll().length));
       });
     });
+
+    group('Complex Sequence Scenarios', () {
+      test('should handle gaps in sequence numbers', () {
+        buffer.push(createTestPacket(1, 'a'));
+        buffer.push(createTestPacket(5, 'b')); // Gap
+        buffer.push(createTestPacket(3, 'c'));
+        buffer.push(createTestPacket(7, 'd'));
+
+        // Should maintain insertion order, not sequence order
+        final all = buffer.getAll();
+        expect(all.length, equals(4));
+        expect(all[0].sequence, equals(1));
+        expect(all[1].sequence, equals(5));
+        expect(all[2].sequence, equals(3));
+        expect(all[3].sequence, equals(7));
+      });
+
+      test('should handle duplicate sequences in popToSequence', () {
+        buffer.push(createTestPacket(1, 'a'));
+        buffer.push(createTestPacket(2, 'b'));
+        buffer.push(createTestPacket(2, 'c')); // Duplicate sequence
+        buffer.push(createTestPacket(3, 'd'));
+
+        buffer.popToSequence(2);
+
+        // Should remove all packets with sequence <= 2
+        final remaining = buffer.getAll();
+        expect(remaining.length, equals(1));
+        expect(remaining[0].sequence, equals(3));
+      });
+
+      test('should handle zero and very small sequences', () {
+        buffer.push(createTestPacket(0, 'zero'));
+        buffer.push(createTestPacket(1, 'one'));
+        buffer.push(createTestPacket(2, 'two'));
+
+        buffer.popToSequence(0);
+
+        final remaining = buffer.getAll();
+        expect(remaining.length, equals(2));
+        expect(remaining[0].sequence, equals(1));
+        expect(remaining[1].sequence, equals(2));
+      });
+
+      test('should handle very large sequence numbers', () {
+        const largeSeq = 1000000; // Large but reasonable number
+        buffer.push(createTestPacket(largeSeq - 1, 'smaller'));
+        buffer.push(createTestPacket(largeSeq, 'large'));
+
+        buffer.popToSequence(largeSeq - 1);
+
+        final remaining = buffer.getAll();
+        expect(remaining.length, equals(1));
+        expect(remaining[0].sequence, equals(largeSeq));
+      });
+    });
+
+    group('Buffer State Management', () {
+      test('should maintain correct state after mixed operations', () {
+        // Complex sequence of operations
+        buffer.push(createTestPacket(1, 'a'));
+        buffer.push(createTestPacket(2, 'bb'));
+        buffer.push(createTestPacket(3, 'ccc'));
+
+        expect(buffer.totalSize, equals(6)); // 1+2+3
+
+        final popped = buffer.pop();
+        expect(popped?.sequence, equals(1));
+        expect(buffer.totalSize, equals(5)); // 2+3
+
+        buffer.push(createTestPacket(4, 'dddd'));
+        expect(buffer.totalSize, equals(9)); // 2+3+4
+
+        buffer.popToSequence(2);
+        expect(buffer.totalSize, equals(7)); // 3+4
+
+        buffer.alignBufferedAmount(6);
+        // After alignment, should have packets 3 and 4 (total 7 bytes)
+        // since 7 - 4 = 3 <= 6 (stop condition)
+        expect(buffer.totalSize, equals(7)); // 'ccc' + 'dddd'
+        expect(buffer.length, equals(2));
+      });
+
+      test('should handle empty buffer edge cases thoroughly', () {
+        // All operations on empty buffer
+        expect(buffer.pop(), isNull);
+        expect(buffer.getAll(), isEmpty);
+        expect(buffer.totalSize, equals(0));
+        expect(buffer.length, equals(0));
+
+        buffer.popToSequence(100);
+        expect(buffer.isEmpty, isTrue);
+
+        buffer.alignBufferedAmount(50);
+        expect(buffer.isEmpty, isTrue);
+
+        buffer.clear();
+        expect(buffer.isEmpty, isTrue);
+
+        // Should handle repeated operations
+        for (int i = 0; i < 10; i++) {
+          buffer.clear();
+          expect(buffer.isEmpty, isTrue);
+        }
+      });
+
+      test('should handle rapid push/pop cycles', () {
+        // Simulate rapid message traffic
+        for (int cycle = 0; cycle < 10; cycle++) {
+          // Push messages
+          for (int i = 1; i <= 10; i++) {
+            buffer.push(createTestPacket(cycle * 10 + i, 'msg$i'));
+          }
+
+          expect(buffer.length, lessThanOrEqualTo(5)); // Limited by maxPacketCount
+          expect(buffer.totalSize, lessThanOrEqualTo(1024)); // Limited by maxBufferSize
+
+          // Pop half
+          for (int i = 0; i < 5; i++) {
+            final popped = buffer.pop();
+            expect(popped, isNotNull);
+          }
+
+          expect(buffer.length, lessThanOrEqualTo(5));
+          expect(buffer.totalSize, lessThanOrEqualTo(1024));
+
+          // Clear remaining
+          buffer.clear();
+          expect(buffer.isEmpty, isTrue);
+        }
+      });
+    });
+
+    group('Performance and Stress Tests', () {
+      test('should handle large numbers of packets efficiently', () {
+        const packetCount = 5000;
+        final stopwatch = Stopwatch()..start();
+
+        // Add many packets
+        for (int i = 1; i <= packetCount; i++) {
+          buffer.push(createTestPacket(i, 'data$i'));
+        }
+
+        // Should complete quickly (less than 1 second)
+        expect(stopwatch.elapsedMilliseconds, lessThan(1000));
+        expect(buffer.length, equals(5)); // Limited by maxPacketCount
+
+        stopwatch.reset();
+
+        // Sequential pop operations
+        while (buffer.isNotEmpty) {
+          buffer.pop();
+        }
+
+        expect(stopwatch.elapsedMilliseconds, lessThan(100));
+      });
+
+      test('should handle memory efficiently with large packets', () {
+        // Create packets with varying sizes
+        final sizes = [100, 1000, 10000, 50000, 100000];
+
+        for (int i = 0; i < sizes.length; i++) {
+          final data = 'x' * sizes[i];
+          buffer.push(createTestPacket(i + 1, data));
+        }
+
+        // Buffer limits should have been enforced - keeps at least 1 packet
+        expect(buffer.length, greaterThan(0)); // At least one packet
+        expect(buffer.length, lessThanOrEqualTo(5));
+        // The largest packet (100KB) might be kept even if it exceeds buffer size
+        expect(buffer.totalSize, greaterThan(0));
+      });
+    });
+
+    group('Error Recovery and Robustness', () {
+      test('should recover gracefully from inconsistent states', () {
+        // Add packets normally
+        buffer.push(createTestPacket(1, 'a'));
+        buffer.push(createTestPacket(2, 'bb'));
+
+        expect(buffer.length, equals(2));
+        expect(buffer.totalSize, equals(3));
+
+        // Simulate various operations that might cause issues
+        buffer.popToSequence(10); // Beyond all sequences
+        expect(buffer.isEmpty, isTrue);
+        expect(buffer.totalSize, equals(0));
+
+        // Should still work normally after
+        buffer.push(createTestPacket(5, 'hello'));
+        expect(buffer.length, equals(1));
+        expect(buffer.totalSize, equals(5));
+      });
+
+      test('should handle repeated limit enforcement', () {
+        // Continuously add packets that exceed limits
+        for (int round = 0; round < 10; round++) {
+          for (int i = 1; i <= 20; i++) {
+            buffer.push(createTestPacket(round * 20 + i, 'x' * 100));
+          }
+
+          // Limits should always be enforced
+          expect(buffer.length, lessThanOrEqualTo(5));
+          expect(buffer.totalSize, lessThanOrEqualTo(1024));
+        }
+
+        // Buffer should still be functional
+        final remaining = buffer.getAll();
+        expect(remaining.length, greaterThan(0));
+        expect(remaining.length, lessThanOrEqualTo(5));
+      });
+
+      test('should maintain consistency across all operations', () {
+        final operations = 1000;
+
+        for (int i = 0; i < operations; i++) {
+          final op = i % 5;
+
+          switch (op) {
+            case 0:
+              buffer.push(createTestPacket(i, 'data$i'));
+              break;
+            case 1:
+              buffer.pop();
+              break;
+            case 2:
+              buffer.popToSequence(i ~/ 2);
+              break;
+            case 3:
+              buffer.alignBufferedAmount((i % 100) * 10);
+              break;
+            case 4:
+              if (i % 50 == 0) buffer.clear();
+              break;
+          }
+
+          // Verify consistency after each operation
+          final all = buffer.getAll();
+          final calculatedSize = all.fold<int>(0, (sum, packet) => sum + packet.message.binary.length);
+
+          expect(buffer.totalSize, equals(calculatedSize));
+          expect(buffer.length, equals(all.length));
+          expect(buffer.isEmpty, equals(all.isEmpty));
+        }
+      });
+    });
   });
 }
