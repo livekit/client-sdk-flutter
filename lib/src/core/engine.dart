@@ -381,13 +381,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Future<void> sendDataPacket(
     lk_models.DataPacket packet, {
-    bool? reliability = true,
+    Reliability reliability = Reliability.lossy,
   }) async {
-    final reliabilityType =
-        reliability == true ? Reliability.reliable : Reliability.lossy;
 
     // Add sequence number for reliable packets
-    if (reliabilityType == Reliability.reliable) {
+    if (reliability == Reliability.reliable) {
       packet.sequence = _reliableDataSequence++;
     }
 
@@ -400,18 +398,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await _publisherEnsureConnected();
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliabilityType) !=
+      if (_publisherDataChannelState(reliability) !=
           rtc.RTCDataChannelState.RTCDataChannelOpen) {
-        logger.fine('Waiting for data channel ${reliabilityType} to open...');
+        logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) => event.type == reliabilityType,
+          filter: (event) => event.type == reliability,
           duration: connectOptions.timeouts.connection,
         );
       }
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliabilityType);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
 
     if (channel == null) {
       throw UnexpectedStateException(
@@ -419,7 +417,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // Buffer reliable packets for potential resending
-    if (reliabilityType == Reliability.reliable) {
+    if (reliability == Reliability.reliable) {
       _reliableMessageBuffer.push(BufferedDataPacket(
         packet: packet,
         message: message,
@@ -437,11 +435,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         'sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
     await channel.send(message);
 
-    _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <=
+    _dcBufferStatus[reliability] = await channel.getBufferedAmount() <=
         channel.bufferedAmountLowThreshold!;
 
     // Align buffer with WebRTC buffer for reliable packets
-    if (reliabilityType == Reliability.reliable) {
+    if (reliability == Reliability.reliable) {
       _reliableMessageBuffer
           .alignBufferedAmount(await channel.getBufferedAmount());
     }

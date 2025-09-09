@@ -49,7 +49,7 @@ class WritableStream<T> implements StreamWriter<T> {
   int chunkId = 0;
   List<String>? destinationIdentities;
   Engine engine;
-  
+
   WritableStream({
     required this.streamId,
     required this.engine,
@@ -62,10 +62,11 @@ class WritableStream<T> implements StreamWriter<T> {
       streamId: streamId,
     );
     final trailerPacket = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
-    await engine.sendDataPacket(trailerPacket, reliability: true);
+    await engine.sendDataPacket(trailerPacket, reliability: Reliability.reliable);
   }
 
   @override
@@ -78,10 +79,11 @@ class WritableStream<T> implements StreamWriter<T> {
         chunkIndex: Int64(chunkId),
       );
       final chunkPacket = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );
-      await engine.sendDataPacket(chunkPacket, reliability: true);
+      await engine.sendDataPacket(chunkPacket, reliability: Reliability.reliable);
       chunkId += 1;
     }
   }
