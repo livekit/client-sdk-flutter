@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2.5.0+hotfix.3
+
+* fix: Fix @internal conflicting imports from package meta or flutter/foundation.
+
+## 2.5.0+hotfix.2
+
+* hotfix: bump libwebrtc to m137.7151.03 to support H.265 (#837)
+* feat: Expose ParticipantState (#848)
+* chore: Update protobuf to v1.39.2 (#847)
+
+## 2.5.0+hotfix.1
+
+* fix: Switch to livekit fork of noise for 16KB page support (#839)
+* hotfix: bump libwebrtc to m137.7151.01 for android (#837)
+* fix: tighten VideoTrackRenderer Widget (#695)
+
+## 2.5.0
+
+* Bump flutter-webrtc to 1.0.0.
+* Upgrade libwebrtc to m137.7151
+* fix: E2EE bug for Chrome. (#832)
+* fix(web, firefox): backup old values before overwriting them (#819)
+* fix: memory leak visualizer stop android (#831)
+* fix: ensure engine always has correct device id if switching camera fails (#820)
+* fix: Always emit RoomDisconnectedEvent when the reason is clientInitiated. (#821)
+* fix: sif frame enqueing with e2ee (#822)
+* fix: update camera `deviceId` when track is null (#814)
+* feat: Audio Visualizer for Windows/Linux. (#739)
+
+## 2.4.9
+
+* Added: Attribute typings for agent and transcription (#811)
+* Changed: Enum for VideoView.fit (#806)
+* Chore: Update protobuf protocol to v1.39.2 (#812)
+
 ## 2.4.8
 
 * fix: fix room.disconnect when pending reconnect. (#802)

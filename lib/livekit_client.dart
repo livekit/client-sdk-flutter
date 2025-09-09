@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Flutter Client SDK to LiveKit.
-library livekit_client;
-
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/data_stream/stream_reader.dart';
@@ -50,9 +47,11 @@ export 'src/track/remote/audio.dart';
 export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';
 export 'src/track/track.dart';
+export 'src/types/attribute_typings.dart';
 export 'src/types/data_stream.dart';
 export 'src/types/other.dart';
 export 'src/types/participant_permissions.dart';
+export 'src/types/participant_state.dart';
 export 'src/types/rpc.dart';
 export 'src/types/transcription_segment.dart';
 export 'src/types/video_dimensions.dart';
@@ -60,4 +59,3 @@ export 'src/types/video_encoding.dart';
 export 'src/types/video_parameters.dart';
 export 'src/widgets/screen_select_dialog.dart';
 export 'src/widgets/video_track_renderer.dart';
-export 'src/types/attribute-typings.dart';

@@ -84,7 +84,7 @@ AudioAnalyser? createAudioAnalyser(
 
   /// Calculates the current volume of the track in the range from 0 to 1
   double calculateVolume() {
-    JSUint8Array dataArray =
+    final JSUint8Array dataArray =
         JSUint8Array.withLength(analyser.frequencyBinCount);
 
     analyser.getByteFrequencyData(dataArray);

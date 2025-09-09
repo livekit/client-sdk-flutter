@@ -3,11 +3,12 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 
-import 'package:livekit_client/src/core/engine.dart';
-import 'package:livekit_client/src/types/other.dart';
-import 'package:livekit_client/src/utils.dart';
+import '../core/engine.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
+import '../types/other.dart';
+import '../utils.dart';
+
 
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
@@ -24,7 +25,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   Future<void> close() async {
     await writableStream.close();
-    this.onClose?.call();
+    onClose?.call();
   }
 }
 
@@ -48,6 +49,7 @@ class WritableStream<T> implements StreamWriter<T> {
   int chunkId = 0;
   List<String>? destinationIdentities;
   Engine engine;
+  
   WritableStream({
     required this.streamId,
     required this.engine,
@@ -95,7 +97,7 @@ class WritableStream<T> implements StreamWriter<T> {
   }
 
   List<Uint8List> splitUint8List(Uint8List bytes, int chunkSize) {
-    List<Uint8List> result = [];
+    final List<Uint8List> result = [];
     if (bytes.length <= chunkSize) {
       return [bytes];
     }

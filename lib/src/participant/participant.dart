@@ -26,7 +26,8 @@ import '../publication/track_publication.dart';
 import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
-import '../utils.dart';
+import '../types/participant_state.dart';
+import '../utils.dart' show mapDiff;
 
 /// Represents a Participant in the room, notifies changes via delegates as
 /// well as ChangeNotifier/providers.
@@ -84,6 +85,10 @@ abstract class Participant<T extends TrackPublication>
       UnmodifiableMapView(_attributes);
   Map<String, String> _attributes = {};
 
+  // Participant state
+  ParticipantState get state => _state;
+  ParticipantState _state = ParticipantState.unknown;
+
   /// when the participant joined the room
   DateTime get joinedAt {
     final pi = _participantInfo;
@@ -91,7 +96,7 @@ abstract class Participant<T extends TrackPublication>
       return DateTime.fromMillisecondsSinceEpoch(pi.joinedAt.toInt() * 1000,
           isUtc: true);
     }
-    return DateTime.now();
+    return DateTime.timestamp();
   }
 
   /// if [Participant] is currently speaking.
@@ -156,7 +161,7 @@ abstract class Participant<T extends TrackPublication>
     }
     _isSpeaking = speaking;
     if (speaking) {
-      lastSpokeAt = DateTime.now();
+      lastSpokeAt = DateTime.timestamp();
     }
 
     events.emit(SpeakingChangedEvent(
@@ -172,6 +177,17 @@ abstract class Participant<T extends TrackPublication>
       [events, room.events].emit(ParticipantMetadataUpdatedEvent(
         participant: this,
         metadata: md,
+      ));
+    }
+  }
+
+  void _setParticipantState(ParticipantState state) {
+    final didChange = _state != state;
+    _state = state;
+    if (didChange) {
+      [events, room.events].emit(ParticipantStateUpdatedEvent(
+        participant: this,
+        state: state,
       ));
     }
   }
@@ -219,6 +235,7 @@ abstract class Participant<T extends TrackPublication>
     _setAttributes(info.attributes);
     _participantInfo = info;
     setPermissions(info.permission.toLKType());
+    _setParticipantState(info.state.toLKType());
 
     return true;
   }

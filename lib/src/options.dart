@@ -14,12 +14,9 @@
 
 import 'constants.dart';
 import 'e2ee/options.dart';
-import 'proto/livekit_models.pb.dart';
-import 'publication/remote.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
-import 'track/track.dart';
 import 'types/other.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -359,7 +356,7 @@ class AudioPublishOptions extends PublishOptions {
 
 final backupCodecs = ['vp8', 'h264'];
 
-final videoCodecs = ['vp8', 'h264', 'vp9', 'av1'];
+final videoCodecs = ['vp8', 'h264', 'h265', 'vp9', 'av1'];
 
 bool isBackupCodec(String codec) {
   return backupCodecs.contains(codec.toLowerCase());

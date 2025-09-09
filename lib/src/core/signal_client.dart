@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide internal;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
@@ -36,7 +36,7 @@ import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
-import '../utils.dart';
+import '../utils.dart' show Utils, UriExt;
 
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState _connectionState = ConnectionState.disconnected;
@@ -315,6 +315,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.subscribedQualityUpdate:
         events.emit(SignalSubscribedQualityUpdatedEvent(
           trackSid: msg.subscribedQualityUpdate.trackSid,
+          // ignore: deprecated_member_use_from_same_package
           subscribedQualities: msg.subscribedQualityUpdate.subscribedQualities,
           subscribedCodecs: msg.subscribedQualityUpdate.subscribedCodecs,
         ));
@@ -360,7 +361,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   void _sendPing() {
     _sendRequest(lk_rtc.SignalRequest()
-      ..ping = Int64(DateTime.now().millisecondsSinceEpoch));
+      ..ping = Int64(DateTime.timestamp().millisecondsSinceEpoch));
   }
 
   void _startPingInterval() {
