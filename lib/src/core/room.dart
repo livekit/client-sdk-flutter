@@ -34,6 +34,7 @@ import '../options.dart';
 import '../participant/local.dart';
 import '../participant/participant.dart';
 import '../participant/remote.dart';
+import '../preconnect/pre_connect_audio_buffer.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
@@ -135,6 +136,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
 
+  @internal
+  late final PreConnectAudioBuffer preConnectAudioBuffer;
+
   // for testing
   @internal
   Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
@@ -171,9 +175,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _setupDataStreamListeners();
 
+    preConnectAudioBuffer = PreConnectAudioBuffer(this);
+
     onDispose(() async {
       // clean up routine
       await _cleanUp();
+      // dispose preConnectAudioBuffer
+      await preConnectAudioBuffer.dispose();
       // dispose events
       await events.dispose();
       // dispose local participant
@@ -438,6 +446,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         await _localParticipant!.updateFromInfo(event.response.participant);
       }
 
+      // Check if preconnect buffer is recording and publish its track
+      if (preConnectAudioBuffer.isRecording && preConnectAudioBuffer.localTrack != null) {
+        logger.info('Publishing preconnect audio track');
+        await _localParticipant!.publishAudioTrack(
+          preConnectAudioBuffer.localTrack!,
+          publishOptions: roomOptions.defaultAudioPublishOptions.copyWith(preConnect: true),
+        );
+      }
+
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
           !engine.fullReconnectOnNext) {
@@ -445,7 +462,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
         final audio = options.microphone;
         final bool audioEnabled = audio.enabled == true || audio.track != null;
-        if (audioEnabled) {
+
+        // Only enable microphone if preconnect buffer is not active
+        if (audioEnabled && !preConnectAudioBuffer.isRecording) {
           if (audio.track != null) {
             await _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
                 publishOptions: roomOptions.defaultAudioPublishOptions);
@@ -959,6 +978,8 @@ extension RoomPrivateMethods on Room {
     }
 
     _activeSpeakers.clear();
+
+    await preConnectAudioBuffer.reset();
 
     // clean up engine
     await engine.cleanUp();
