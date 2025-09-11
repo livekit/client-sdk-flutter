@@ -32,6 +32,7 @@ extension RoomPreConnect on Room {
       await preConnectAudioBuffer.agentReadyFuture;
       return result;
     } catch (error) {
+      await preConnectAudioBuffer.stopRecording(withError: error);
       logger.warning('[Preconnect] operation failed with error: $error');
       rethrow;
     } finally {

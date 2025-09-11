@@ -154,11 +154,8 @@ class PreConnectAudioBuffer {
     ));
   }
 
-  Future<void> stopRecording() async {
-    if (!_isRecording) {
-      logger.warning('Not recording');
-      return;
-    }
+  Future<void> stopRecording({Object? withError}) async {
+    if (!_isRecording) return;
     _isRecording = false;
 
     // Cancel the stream subscription.
@@ -176,6 +173,11 @@ class PreConnectAudioBuffer {
     }
 
     _rendererId = null;
+
+    // Stop native audio when errored
+    if (withError != null) {
+      await webrtc.NativeAudioManagement.stopLocalRecording();
+    }
 
     // Complete agent ready future if not already completed
     _agentReadyManager.complete();
