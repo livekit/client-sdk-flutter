@@ -110,7 +110,10 @@ class RoomOptions {
   final bool stopLocalTrackOnUnpublish;
 
   /// Options for end-to-end encryption.
+  @Deprecated('Use encryption instead')
   final E2EEOptions? e2eeOptions;
+
+  final E2EEOptions? encryption;
 
   /// fast track publication
   final bool fastPublish;
@@ -131,6 +134,7 @@ class RoomOptions {
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
     this.e2eeOptions,
+    this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
   });
@@ -166,6 +170,7 @@ class RoomOptions {
       stopLocalTrackOnUnpublish:
           stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
+      encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
     );
   }

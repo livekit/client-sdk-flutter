@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart' hide internal;
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -148,6 +149,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   List<lk_models.Codec>? _enabledPublishCodecs;
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
+
+  E2EEManager? _e2eeManager;
 
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
@@ -313,6 +316,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           completer.completeError('Engine disconnected');
         }
       }
+
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
@@ -333,8 +337,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     bool? reliability = true,
   }) async {
     // construct the data channel message
-    final message =
-        rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+    var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
     final reliabilityType =
         reliability == true ? Reliability.reliable : Reliability.lossy;
@@ -364,6 +367,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Data channel for ${packet.kind.toSDKType()} is null');
     }
 
+    if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
+      final encryptablePacket = asEncryptablePacket(packet);
+      if (encryptablePacket != null) {
+        final encryptedData = await _e2eeManager?.encryptData(
+            data: encryptablePacket.writeToBuffer());
+
+        if (encryptedData == null) {
+          logger.warning('Failed to encrypt data packet');
+          return;
+        }
+
+        final packet = lk_models.EncryptedPacket(
+          encryptionType: lk_models.Encryption_Type.GCM,
+          encryptedValue: encryptedData.data,
+          iv: encryptedData.iv,
+          keyIndex: encryptedData.keyIndex,
+        );
+
+        message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+      }
+    }
+
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
 
@@ -388,6 +413,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
     }
+  }
+
+  lk_models.EncryptedPacketPayload? asEncryptablePacket(
+      lk_models.DataPacket packet) {
+    if ([
+          lk_models.DataPacket_Value.sipDtmf,
+          lk_models.DataPacket_Value.metrics,
+          lk_models.DataPacket_Value.speaker,
+          lk_models.DataPacket_Value.transcription,
+          lk_models.DataPacket_Value.encryptedPacket
+        ].contains(packet.whichValue()) ==
+        false) {
+      return lk_models.EncryptedPacketPayload.fromBuffer(
+          packet.writeToBuffer());
+    }
+    return null;
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -636,7 +677,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  void _onDCMessage(rtc.RTCDataChannelMessage message) {
+  void _onDCMessage(rtc.RTCDataChannelMessage message) async {
     // always expect binary
     if (!message.isBinary) {
       logger.warning('Data message is not binary');
@@ -711,6 +752,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           identity: dp.participantIdentity,
         ),
       );
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.encryptedPacket) {
+      if (_e2eeManager != null) {
+        logger.warning('Received encrypted packet but E2EE not set up');
+        return;
+      }
+      final decryptedData = await _e2eeManager?.handleEncryptedData(
+        data: Uint8List.fromList(dp.encryptedPacket.encryptedValue),
+        iv: Uint8List.fromList(dp.encryptedPacket.iv),
+        participantIdentity: dp.participantIdentity,
+        keyIndex: dp.encryptedPacket.keyIndex,
+      );
+      if (decryptedData == null) {
+        logger.warning('Failed to decrypt data packet');
+        return;
+      }
+      final newDp = lk_models.DataPacket.fromBuffer(decryptedData);
+      // User packet
+      events.emit(EngineDataPacketReceivedEvent(
+        packet: newDp.user,
+        kind: newDp.kind,
+        identity: newDp.participantIdentity,
+      ));
     } else {
       logger.warning('Unknown data packet type: ${dp.whichValue()}');
     }

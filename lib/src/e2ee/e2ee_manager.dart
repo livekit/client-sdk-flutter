@@ -31,6 +31,7 @@ class E2EEManager {
   final Map<Map<String, String>, FrameCryptor> _frameCryptors = {};
   final BaseKeyProvider _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
+  DataPacketCryptor? _dataPacketCryptor;
   bool _enabled = true;
   EventsListener<RoomEvent>? _listener;
   E2EEManager(this._keyProvider);
@@ -117,6 +118,10 @@ class E2EEManager {
             }
           }
         });
+
+      _dataPacketCryptor ??=
+          await dataPacketCryptorFactory.createDataPacketCryptor(
+              algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     }
   }
 
@@ -144,17 +149,21 @@ class E2EEManager {
       await frameCryptor.dispose();
     }
     _frameCryptors.clear();
+
+    await _dataPacketCryptor?.dispose();
+    _dataPacketCryptor = null;
   }
 
   Future<FrameCryptor> _addRtpSender(
       {required RTCRtpSender sender,
       required String identity,
       required String sid}) async {
-    final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
-        participantId: identity,
-        sender: sender,
-        algorithm: _algorithm,
-        keyProvider: _keyProvider.keyProvider);
+    final frameCryptor =
+        await frameCryptorFactory.createFrameCryptorForRtpSender(
+            participantId: identity,
+            sender: sender,
+            algorithm: _algorithm,
+            keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     logger.info(
@@ -236,5 +245,41 @@ class E2EEManager {
       case FrameCryptorState.FrameCryptorStateKeyRatcheted:
         return E2EEState.kKeyRatcheted;
     }
+  }
+
+  bool get isDataChannelEncryptionEnabled =>
+      _room?.roomOptions.encryption != null;
+
+  Future<Uint8List?> handleEncryptedData({
+    required Uint8List data,
+    required Uint8List iv,
+    required String participantIdentity,
+    required int keyIndex,
+  }) async {
+    if (_dataPacketCryptor == null) {
+      throw Exception('DataPacketCryptor is not initialized');
+    }
+    try {
+      final decryptedData = await _dataPacketCryptor!.decrypt(
+        participantId: participantIdentity,
+        encryptedPacket:
+            EncryptedPacket(data: data, keyIndex: keyIndex, iv: iv),
+      );
+      return decryptedData;
+    } catch (e) {
+      logger.warning('handleEncryptedData error: $e');
+      return null;
+    }
+  }
+
+  Future<EncryptedPacket> encryptData({required Uint8List data}) async {
+    final participantId = _room?.localParticipant?.identity;
+    if (participantId == null || _dataPacketCryptor == null) {
+      throw Exception('DataPacketCryptor is not initialized');
+    }
+    return await _dataPacketCryptor!.encrypt(
+        participantId: participantId,
+        keyIndex: _keyProvider.getLatestIndex(participantId),
+        data: data);
   }
 }
