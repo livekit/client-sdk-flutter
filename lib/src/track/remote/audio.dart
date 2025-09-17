@@ -77,8 +77,9 @@ class RemoteAudioTrack extends RemoteTrack
   }
 
   AudioReceiverStats? prevStats;
+
   num? _currentBitrate;
-  get currentBitrate => _currentBitrate;
+  num? get currentBitrate => _currentBitrate;
 
   @override
   Future<bool> monitorStats() async {
@@ -90,9 +91,9 @@ class RemoteAudioTrack extends RemoteTrack
       final stats = await getReceiverStats();
 
       if (stats != null && prevStats != null && receiver != null) {
-        _currentBitrate = computeBitrateForReceiverStats(stats, prevStats);
-        events.emit(AudioReceiverStatsEvent(
-            stats: stats, currentBitrate: currentBitrate));
+        final bitrate = computeBitrateForReceiverStats(stats, prevStats);
+        _currentBitrate = bitrate;
+        events.emit(AudioReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;

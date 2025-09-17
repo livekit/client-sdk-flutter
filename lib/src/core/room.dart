@@ -48,7 +48,7 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
-import '../utils.dart';
+import '../utils.dart' show unpackStreamId;
 import 'engine.dart';
 
 import '../track/web/_audio_api.dart'
@@ -338,7 +338,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         if (publication.track! is! LocalVideoTrack) {
           return;
         }
-        var videoTrack = publication.track as LocalVideoTrack;
+        final videoTrack = publication.track as LocalVideoTrack;
         final newCodecs = await videoTrack.setPublishingCodecs(
             event.subscribedCodecs, videoTrack);
         for (var codec in newCodecs) {
@@ -350,7 +350,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
       } else if (event.subscribedQualities.isNotEmpty) {
-        var videoTrack = publication.track as LocalVideoTrack;
+        final videoTrack = publication.track as LocalVideoTrack;
         await videoTrack.updatePublishingLayers(
             videoTrack, event.subscribedQualities);
       }
@@ -413,7 +413,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   void _setUpEngineListeners() => _engineListener
-    ..on<EngineJoinResponseEvent>((event) {
+    ..on<EngineJoinResponseEvent>((event) async {
       _roomInfo = event.response.room;
       _name = event.response.room.name;
       _metadata = event.response.room.metadata;
@@ -435,47 +435,47 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
 
       if (engine.fullReconnectOnNext) {
-        _localParticipant!.updateFromInfo(event.response.participant);
+        await _localParticipant!.updateFromInfo(event.response.participant);
       }
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
           !engine.fullReconnectOnNext) {
-        var options = engine.fastConnectOptions!;
+        final options = engine.fastConnectOptions!;
 
-        var audio = options.microphone;
-        bool audioEnabled = audio.enabled == true || audio.track != null;
+        final audio = options.microphone;
+        final bool audioEnabled = audio.enabled == true || audio.track != null;
         if (audioEnabled) {
           if (audio.track != null) {
-            _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
+            await _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
                 publishOptions: roomOptions.defaultAudioPublishOptions);
           } else {
-            _localParticipant!.setMicrophoneEnabled(true,
+            await _localParticipant!.setMicrophoneEnabled(true,
                 audioCaptureOptions: roomOptions.defaultAudioCaptureOptions);
           }
         }
 
-        var video = options.camera;
-        bool videoEnabled = video.enabled == true || video.track != null;
+        final video = options.camera;
+        final bool videoEnabled = video.enabled == true || video.track != null;
         if (videoEnabled) {
           if (video.track != null) {
-            _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
+            await _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
                 publishOptions: roomOptions.defaultVideoPublishOptions);
           } else {
-            _localParticipant!.setCameraEnabled(true,
+            await _localParticipant!.setCameraEnabled(true,
                 cameraCaptureOptions: roomOptions.defaultCameraCaptureOptions);
           }
         }
 
-        var screen = options.screen;
-        bool screenEnabled = screen.enabled == true || screen.track != null;
+        final screen = options.screen;
+        final bool screenEnabled = screen.enabled == true || screen.track != null;
         if (screenEnabled) {
           if (screen.track != null) {
-            _localParticipant!.publishVideoTrack(
+            await _localParticipant!.publishVideoTrack(
                 screen.track as LocalVideoTrack,
                 publishOptions: roomOptions.defaultVideoPublishOptions);
           } else {
-            _localParticipant!.setScreenShareEnabled(true,
+            await _localParticipant!.setScreenShareEnabled(true,
                 screenShareCaptureOptions:
                     roomOptions.defaultScreenShareCaptureOptions);
           }
@@ -490,7 +490,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
-        e2eeManager!.keyProvider
+        await e2eeManager!.keyProvider
             .setSifTrailer(Uint8List.fromList(event.response.sifTrailer));
       }
 
@@ -507,7 +507,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       events.emit(const RoomReconnectingEvent());
 
       // clean up RemoteParticipants
-      var copy = _remoteParticipants.values.toList();
+      final copy = _remoteParticipants.values.toList();
 
       _remoteParticipants.clear();
       _sidToIdentity.clear();
@@ -581,7 +581,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       final idParts = unpackStreamId(event.stream.id);
       final participantSid = idParts[0];
-      var streamId = idParts[1];
+      final streamId = idParts[1];
       var trackSid = event.track.id;
 
       // firefox will get streamId (pID|trackId) instead of (pID|streamId) as it doesn't support sync tracks by stream
@@ -624,7 +624,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
-    bool isPendingReconnect = engine.isPendingReconnect;
+    final bool isPendingReconnect = engine.isPendingReconnect;
     if (engine.isClosed &&
         !isPendingReconnect &&
         engine.connectionState == ConnectionState.disconnected) {
@@ -766,7 +766,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // updates are sent only when there's a change to speaker ordering
   void _onEngineActiveSpeakersUpdateEvent(
       List<lk_models.SpeakerInfo> speakers) {
-    List<Participant> activeSpeakers = [];
+    final List<Participant> activeSpeakers = [];
 
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
@@ -816,7 +816,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onSignalStreamStateUpdateEvent(
       List<lk_rtc.StreamStateInfo> updates) async {
     for (final update in updates) {
-      var identity = _sidToIdentity[update.participantSid];
+      final identity = _sidToIdentity[update.participantSid];
       if (identity == null) {
         logger
             .warning('participant not found for sid ${update.participantSid}');
@@ -848,13 +848,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final publication =
         participant.getTrackPublicationBySid(event.transcription.trackId);
 
-    var segments = event.transcription.segments.map((segment) {
+    final segments = event.transcription.segments.map((segment) {
       return TranscriptionSegment(
         text: segment.text,
         id: segment.id,
         firstReceivedTime:
-            _transcriptionReceivedTimes[segment.id] ?? DateTime.now(),
-        lastReceivedTime: DateTime.now(),
+            _transcriptionReceivedTimes[segment.id] ?? DateTime.timestamp(),
+        lastReceivedTime: DateTime.timestamp(),
         isFinal: segment.final_5,
         language: segment.language,
       );
@@ -863,7 +863,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     for (var segment in segments) {
       segment.isFinal
           ? _transcriptionReceivedTimes.remove(segment.id)
-          : _transcriptionReceivedTimes[segment.id] = DateTime.now();
+          : _transcriptionReceivedTimes[segment.id] = DateTime.timestamp();
     }
 
     final transcription = TranscriptionEvent(
@@ -941,7 +941,7 @@ extension RoomPrivateMethods on Room {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
-    var participants = _remoteParticipants.values.toList();
+    final participants = _remoteParticipants.values.toList();
     for (final participant in participants) {
       await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
@@ -1153,7 +1153,7 @@ extension RoomHardwareManagementMethods on Room {
 
   Future<void> startAudio() async {
     try {
-      var audioContextRunning = await audio.startAllAudioElement();
+      final audioContextRunning = await audio.startAllAudioElement();
       if (audioContextRunning) {
         _handleAudioPlaybackStarted();
       } else {
@@ -1286,7 +1286,7 @@ extension DataStreamRoomMethods on Room {
         return;
       }
 
-      var info = ByteStreamInfo(
+      final info = ByteStreamInfo(
         id: streamHeader.streamId,
         name: streamHeader.byteHeader.name,
         mimeType: streamHeader.mimeType,
@@ -1298,10 +1298,10 @@ extension DataStreamRoomMethods on Room {
         attributes: streamHeader.attributes,
       );
 
-      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
         info: info,
         streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
 
       _byteStreamControllers[streamHeader.streamId] = streamController;
@@ -1320,7 +1320,7 @@ extension DataStreamRoomMethods on Room {
         return;
       }
 
-      var info = TextStreamInfo(
+      final info = TextStreamInfo(
         id: streamHeader.streamId,
         mimeType: streamHeader.mimeType,
         size: streamHeader.hasTotalLength()
@@ -1331,10 +1331,10 @@ extension DataStreamRoomMethods on Room {
         attributes: streamHeader.attributes,
       );
 
-      var streamController = DataStreamController<lk_models.DataStream_Chunk>(
+      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
         info: info,
         streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.now().millisecondsSinceEpoch,
+        startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
 
       _textStreamControllers[streamHeader.streamId] = streamController;

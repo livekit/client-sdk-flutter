@@ -46,7 +46,7 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      dynamic data = _.data.instanceOfString('ArrayBuffer')
+      final dynamic data = _.data.instanceOfString('ArrayBuffer')
           ? (_.data as JSArrayBuffer).toDart.asUint8List()
           : _.data;
       options?.onData?.call(data);

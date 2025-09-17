@@ -140,12 +140,12 @@ class ParticipantKeyHandler {
   }
 
   Future<Uint8List?> exportKey(int? keyIndex) async {
-    var currentMaterial = getKeySet(keyIndex)?.material;
+    final currentMaterial = getKeySet(keyIndex)?.material;
     if (currentMaterial == null) {
       return null;
     }
     try {
-      var key = await worker.crypto.subtle
+      final key = await worker.crypto.subtle
           .exportKey('raw', currentMaterial)
           .toDart as JSArrayBuffer;
       return key.toDart.asUint8List();
@@ -156,20 +156,20 @@ class ParticipantKeyHandler {
   }
 
   Future<Uint8List?> ratchetKey(int? keyIndex) async {
-    var currentMaterial = getKeySet(keyIndex)?.material;
+    final currentMaterial = getKeySet(keyIndex)?.material;
     if (currentMaterial == null) {
       return null;
     }
-    var newKey = await ratchet(currentMaterial, keyOptions.ratchetSalt);
-    var newMaterial = await ratchetMaterial(currentMaterial, newKey.buffer);
-    var newKeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
+    final newKey = await ratchet(currentMaterial, keyOptions.ratchetSalt);
+    final newMaterial = await ratchetMaterial(currentMaterial, newKey.buffer);
+    final newKeySet = await deriveKeys(newMaterial, keyOptions.ratchetSalt);
     await setKeySetFromMaterial(newKeySet, keyIndex ?? currentKeyIndex);
     return newKey;
   }
 
   Future<web.CryptoKey> ratchetMaterial(
       web.CryptoKey currentMaterial, ByteBuffer newKeyBuffer) async {
-    var newMaterial = await worker.crypto.subtle
+    final newMaterial = await worker.crypto.subtle
         .importKey(
           'raw',
           newKeyBuffer.toJS,
@@ -186,12 +186,12 @@ class ParticipantKeyHandler {
   }
 
   Future<void> setKey(Uint8List key, {int keyIndex = 0}) async {
-    var keyMaterial = await worker.crypto.subtle
+    final keyMaterial = await worker.crypto.subtle
         .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny,
             false, ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
         .toDart;
 
-    var keySet = await deriveKeys(
+    final keySet = await deriveKeys(
       keyMaterial,
       keyOptions.ratchetSalt,
     );
@@ -210,11 +210,11 @@ class ParticipantKeyHandler {
   /// Derives a set of keys from the master key.
   /// See https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.1
   Future<KeySet> deriveKeys(web.CryptoKey material, Uint8List salt) async {
-    var algorithmName = material.algorithm.getProperty('name'.toJS) as JSString;
-    var algorithmOptions = getAlgoOptions(algorithmName.toDart, salt);
+    final algorithmName = material.algorithm.getProperty('name'.toJS) as JSString;
+    final algorithmOptions = getAlgoOptions(algorithmName.toDart, salt);
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
     // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams
-    var encryptionKey = await worker.crypto.subtle
+    final encryptionKey = await worker.crypto.subtle
         .deriveKey(
           algorithmOptions.jsify() as web.AlgorithmIdentifier,
           material,
@@ -231,10 +231,10 @@ class ParticipantKeyHandler {
   /// https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.5.1
 
   Future<Uint8List> ratchet(web.CryptoKey material, Uint8List salt) async {
-    var algorithmOptions = getAlgoOptions('PBKDF2', salt);
+    final algorithmOptions = getAlgoOptions('PBKDF2', salt);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
-    var newKey = await worker.crypto.subtle
+    final newKey = await worker.crypto.subtle
         .deriveBits(
             algorithmOptions.jsify() as web.AlgorithmIdentifier, material, 256)
         .toDart;

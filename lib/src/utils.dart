@@ -67,7 +67,7 @@ class Utils {
     Duration delay = const Duration(seconds: 1),
     RetryCondition? retryCondition,
   }) async {
-    List<Object> errors = [];
+    final List<Object> errors = [];
     while (tries-- > 0) {
       try {
         return await future(tries, errors);
@@ -110,7 +110,7 @@ class Utils {
 
         /// [MacOsDeviceInfo.osRelease] returns Darwin version instead of macOS version
         /// So call native code to get os version
-        String? osVersionString = await Native.osVersionString();
+        final String? osVersionString = await Native.osVersionString();
 
         return lk_models.ClientInfo(
           os: 'macOS',
@@ -313,7 +313,7 @@ class Utils {
     VideoDimensions dimensions, {
     required List<VideoParameters> presets,
   }) {
-    List<rtc.RTCRtpEncoding> result = [];
+    final List<rtc.RTCRtpEncoding> result = [];
     presets.forEachIndexed((i, e) {
       if (i >= videoRids.length) {
         return;
@@ -335,7 +335,7 @@ class Utils {
     if (!kIsWeb && lkPlatformIsTest()) {
       return 'wifi';
     }
-    var connectivityResult = await (Connectivity().checkConnectivity());
+    final connectivityResult = await (Connectivity().checkConnectivity());
     // wifi, wired, cellular, vpn, empty if not known
     String networkType = 'empty';
     if (connectivityResult.contains(ConnectivityResult.none)) {
@@ -397,7 +397,7 @@ class Utils {
       videoEncoding = options.screenShareEncoding;
     }
 
-    var scalabilityMode = options.scalabilityMode;
+    final scalabilityMode = options.scalabilityMode;
 
     if ((videoEncoding == null &&
             !options.simulcast &&
@@ -432,7 +432,7 @@ class Utils {
 
     if (scalabilityMode != null && isSVCCodec(options.videoCodec)) {
       logger.info('using svc with scalabilityMode ${scalabilityMode}');
-      List<rtc.RTCRtpEncoding> encodings = [];
+      final List<rtc.RTCRtpEncoding> encodings = [];
       if (lkPlatformIs(PlatformType.web) &&
           (lkBrowser() == BrowserType.safari ||
               lkBrowser() == BrowserType.chrome &&
@@ -499,7 +499,7 @@ class Utils {
       videoEncoding: backupOpts.encoding,
       simulcast: backupOpts.simulcast,
     );
-    var encodings = computeVideoEncodings(
+    final encodings = computeVideoEncodings(
       isScreenShare: track.source == TrackSource.screenShareVideo,
       dimensions: track.currentOptions.params.dimensions,
       options: opts,
@@ -597,12 +597,12 @@ class ScalabilityMode {
   /// 'h' | '_KEY' | '_KEY_SHIFT';
 
   ScalabilityMode(String scalabilityMode) {
-    RegExp exp = RegExp(r'^L(\d)T(\d)(h|_KEY|_KEY_SHIFT){0,1}');
-    Iterable<RegExpMatch> matches = exp.allMatches(scalabilityMode);
+    final RegExp exp = RegExp(r'^L(\d)T(\d)(h|_KEY|_KEY_SHIFT){0,1}');
+    final Iterable<RegExpMatch> matches = exp.allMatches(scalabilityMode);
     if (matches.isEmpty) {
       throw Exception('invalid scalability mode');
     }
-    var results = matches.first.groups([1, 2, 3]);
+    final results = matches.first.groups([1, 2, 3]);
     spatial = int.tryParse(results[0]!) as num;
     temporal = int.tryParse(results[1]!) as num;
     if (results.length > 2) {
@@ -728,12 +728,12 @@ List<Uint8List> splitUtf8(String s, int n) {
     throw Exception('n must be at least 4 due to utf8 encoding rules');
   }
   // adapted from https://stackoverflow.com/a/6043797
-  List<Uint8List> result = [];
+  final List<Uint8List> result = [];
   var encoded = utf8.encode(s);
   while (encoded.length > n) {
     var k = n;
     while (k > 0) {
-      var byte = encoded[k];
+      final byte = encoded[k];
       if ((byte & 0xc0) != 0x80) {
         break;
       }

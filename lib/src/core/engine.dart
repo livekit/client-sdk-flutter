@@ -337,7 +337,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     final message =
         rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    var reliabilityType =
+    final reliabilityType =
         reliability == true ? Reliability.reliable : Reliability.lossy;
 
     if (_subscriberPrimary) {
@@ -626,7 +626,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> _handleGettingConnectedServerAddress(
       rtc.RTCPeerConnection pc) async {
     try {
-      var remoteAddress = await getConnectedAddress(publisher!.pc);
+      final remoteAddress = await getConnectedAddress(publisher!.pc);
       logger.fine('Connected address: $remoteAddress');
       if (_connectedServerAddress == null ||
           _connectedServerAddress != remoteAddress) {
@@ -727,7 +727,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         .info('onDisconnected state:${connectionState} reason:${reason.name}');
 
     if (reconnectAttempts == 0) {
-      reconnectStart = DateTime.now();
+      reconnectStart = DateTime.timestamp();
     }
 
     if (reconnectAttempts! >= _reconnectCount) {
@@ -741,7 +741,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    var delay = defaultRetryDelaysInMs[reconnectAttempts!];
+    final delay = defaultRetryDelaysInMs[reconnectAttempts!];
 
     events.emit(EngineAttemptReconnectEvent(
       attempt: reconnectAttempts! + 1,
@@ -966,7 +966,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
       _serverInfo = event.response.serverInfo;
-      var iceServersFromServer =
+      final iceServersFromServer =
           event.response.iceServers.map((e) => e.toSDKType()).toList();
 
       if (iceServersFromServer.isNotEmpty) {
@@ -980,7 +980,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      var rtcConfiguration = await _buildRtcConfiguration(
+      final rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
@@ -1001,7 +1001,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(EngineJoinResponseEvent(response: event.response));
     })
     ..on<SignalReconnectResponseEvent>((event) async {
-      var iceServersFromServer =
+      final iceServersFromServer =
           event.response.iceServers.map((e) => e.toSDKType()).toList();
 
       if (iceServersFromServer.isNotEmpty) {
@@ -1014,7 +1014,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'iceServers: ${event.response.iceServers}, '
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
-      var rtcConfiguration = await _buildRtcConfiguration(
+      final rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay:
               event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
@@ -1056,7 +1056,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.warning('[$objectId] subscriber is null');
         return;
       }
-      var signalingState = await subscriber!.pc.getSignalingState();
+      final signalingState = await subscriber!.pc.getSignalingState();
       logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
           '$signalingState)');
       logger.finer('sdp: ${event.sd.sdp}');
@@ -1183,7 +1183,7 @@ extension EngineInternalMethods on Engine {
     if (track.mediaStreamTrack.kind == 'video' && opts is VideoPublishOptions) {
       track.codec = opts.videoCodec;
     }
-    var transceiverInit = rtc.RTCRtpTransceiverInit(
+    final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
     );
     if (encodings != null) {
@@ -1216,7 +1216,7 @@ extension EngineInternalMethods on Engine {
     if (publisher == null) {
       throw Exception('publisher is closed');
     }
-    var transceiverInit = rtc.RTCRtpTransceiverInit(
+    final transceiverInit = rtc.RTCRtpTransceiverInit(
       direction: rtc.TransceiverDirection.SendOnly,
     );
     if (encodings != null) {
@@ -1236,22 +1236,22 @@ extension EngineInternalMethods on Engine {
       rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
     // when setting codec preferences, the capabilites need to be read from
     // the RTCRtpReceiver
-    var caps = await rtc.getRtpReceiverCapabilities(kind);
+    final caps = await rtc.getRtpReceiverCapabilities(kind);
     if (caps.codecs == null) return;
 
     logger.fine('get capabilities ${caps.codecs}');
 
-    List<rtc.RTCRtpCodecCapability> matched = [];
-    List<rtc.RTCRtpCodecCapability> partialMatched = [];
-    List<rtc.RTCRtpCodecCapability> unmatched = [];
+    final List<rtc.RTCRtpCodecCapability> matched = [];
+    final List<rtc.RTCRtpCodecCapability> partialMatched = [];
+    final List<rtc.RTCRtpCodecCapability> unmatched = [];
     for (var c in caps.codecs!) {
-      var codec = c.mimeType.toLowerCase();
+      final codec = c.mimeType.toLowerCase();
       if (codec == 'audio/opus') {
         matched.add(c);
         continue;
       }
 
-      var matchesVideoCodec = codec == 'video/$videoCodec';
+      final matchesVideoCodec = codec == 'video/$videoCodec';
       if (!matchesVideoCodec) {
         if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
           if (c.sdpFmtpLine != null &&

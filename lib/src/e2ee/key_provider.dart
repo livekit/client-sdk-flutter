@@ -76,7 +76,7 @@ class BaseKeyProvider implements KeyProvider {
     int? keyRingSize,
     bool? discardFrameWhenCryptorNotReady,
   }) async {
-    rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
+    final rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
         sharedKey: sharedKey,
         ratchetSalt:
             Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),

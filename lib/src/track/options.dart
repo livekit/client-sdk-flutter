@@ -86,7 +86,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
-    var constraints = <String, dynamic>{
+    final constraints = <String, dynamic>{
       ...super.toMediaConstraintsMap(),
       if (deviceId == null)
         'facingMode':
@@ -191,7 +191,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
-    var constraints = super.toMediaConstraintsMap();
+    final constraints = super.toMediaConstraintsMap();
     if (useiOSBroadcastExtension && lkPlatformIs(PlatformType.iOS)) {
       constraints['deviceId'] = 'broadcast-manual';
     }
@@ -307,7 +307,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
-    var constraints = <String, dynamic>{};
+    final constraints = <String, dynamic>{};
 
     if (Native.bypassVoiceProcessing) {
       constraints['optional'] = <Map<String, dynamic>>[

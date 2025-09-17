@@ -160,7 +160,7 @@ abstract class LocalTrack extends Track {
   static Future<rtc.MediaStream> createStream(
     LocalTrackOptions options,
   ) async {
-    var constraints = <String, dynamic>{
+    final constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
@@ -222,7 +222,7 @@ abstract class LocalTrack extends Track {
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    var processor = _processor;
+    final processor = _processor;
 
     await stopProcessor();
 
@@ -230,7 +230,7 @@ abstract class LocalTrack extends Track {
     try {
       await sender?.replaceTrack(newTrack);
       if (this is LocalVideoTrack) {
-        var videoTrack = this as LocalVideoTrack;
+        final videoTrack = this as LocalVideoTrack;
         await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
       }
     } catch (error) {
@@ -265,7 +265,7 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    var processorOptions = ProcessorOptions(
+    final processorOptions = ProcessorOptions(
       kind: kind,
       track: mediaStreamTrack,
     );

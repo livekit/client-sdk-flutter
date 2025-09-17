@@ -100,7 +100,7 @@ class Hardware {
   }
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
-    var infos = await rtc.navigator.mediaDevices.enumerateDevices();
+    final infos = await rtc.navigator.mediaDevices.enumerateDevices();
     var devices = infos
         .map((e) => MediaDevice(e.deviceId, e.label, e.kind!, e.groupId))
         .toList();
@@ -185,7 +185,7 @@ class Hardware {
 
   Future<rtc.MediaStream> openCamera(
       {MediaDevice? device, bool? facingMode}) async {
-    var constraints = <String, dynamic>{
+    final constraints = <String, dynamic>{
       if (facingMode != null) 'facingMode': facingMode ? 'user' : 'environment',
     };
     if (device != null) {
@@ -205,7 +205,7 @@ class Hardware {
   }
 
   dynamic _onDeviceChange(dynamic _) async {
-    var devices = await enumerateDevices();
+    final devices = await enumerateDevices();
     selectedAudioInput ??=
         devices.firstWhereOrNull((element) => element.kind == 'audioinput');
     selectedAudioOutput ??=

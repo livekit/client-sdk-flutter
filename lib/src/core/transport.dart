@@ -285,7 +285,7 @@ class Transport extends Disposable {
 
     var maxID = 0;
     bool ddFound = false;
-    List<dynamic>? ext = media['ext'];
+    final List<dynamic>? ext = media['ext'];
     if (ext != null) {
       for (var e in ext) {
         if (e['uri'] == ddExtensionURI) {

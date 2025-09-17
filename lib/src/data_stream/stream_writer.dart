@@ -9,6 +9,7 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
+
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
   Function()? onClose;
@@ -48,6 +49,7 @@ class WritableStream<T> implements StreamWriter<T> {
   int chunkId = 0;
   List<String>? destinationIdentities;
   Engine engine;
+  
   WritableStream({
     required this.streamId,
     required this.engine,
@@ -95,7 +97,7 @@ class WritableStream<T> implements StreamWriter<T> {
   }
 
   List<Uint8List> splitUint8List(Uint8List bytes, int chunkSize) {
-    List<Uint8List> result = [];
+    final List<Uint8List> result = [];
     if (bytes.length <= chunkSize) {
       return [bytes];
     }

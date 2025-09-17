@@ -47,7 +47,8 @@ class LocalAudioTrack extends LocalTrack
   }
 
   num? _currentBitrate;
-  get currentBitrate => _currentBitrate;
+  num? get currentBitrate => _currentBitrate;
+
   AudioSenderStats? prevStats;
 
   @override
@@ -60,9 +61,9 @@ class LocalAudioTrack extends LocalTrack
       final stats = await getSenderStats();
 
       if (stats != null && prevStats != null && sender != null) {
-        _currentBitrate = computeBitrateForSenderStats(stats, prevStats);
-        events.emit(AudioSenderStatsEvent(
-            stats: stats, currentBitrate: currentBitrate));
+        final bitrate = computeBitrateForSenderStats(stats, prevStats);
+        _currentBitrate = bitrate;
+        events.emit(AudioSenderStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;
@@ -133,7 +134,7 @@ class LocalAudioTrack extends LocalTrack
     options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
-    var track = LocalAudioTrack(
+    final track = LocalAudioTrack(
       TrackSource.microphone,
       stream,
       stream.getAudioTracks().first,
