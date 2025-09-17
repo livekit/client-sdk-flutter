@@ -20,7 +20,7 @@ import 'support/platform.dart' show lkPlatformIsMobile;
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.5.0';
+  static const version = '2.5.1';
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
