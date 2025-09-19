@@ -425,8 +425,29 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           lk_models.DataPacket_Value.encryptedPacket
         ].contains(packet.whichValue()) ==
         false) {
-      return lk_models.EncryptedPacketPayload.fromBuffer(
-          packet.writeToBuffer());
+      switch (packet.whichValue()) {
+        case lk_models.DataPacket_Value.user:
+          return lk_models.EncryptedPacketPayload(user: packet.user);
+        case lk_models.DataPacket_Value.rpcRequest:
+          return lk_models.EncryptedPacketPayload(
+              rpcRequest: packet.rpcRequest);
+        case lk_models.DataPacket_Value.rpcResponse:
+          return lk_models.EncryptedPacketPayload(
+              rpcResponse: packet.rpcResponse);
+        case lk_models.DataPacket_Value.rpcAck:
+          return lk_models.EncryptedPacketPayload(rpcAck: packet.rpcAck);
+        case lk_models.DataPacket_Value.streamHeader:
+          return lk_models.EncryptedPacketPayload(
+              streamHeader: packet.streamHeader);
+        case lk_models.DataPacket_Value.streamChunk:
+          return lk_models.EncryptedPacketPayload(
+              streamChunk: packet.streamChunk);
+        case lk_models.DataPacket_Value.streamTrailer:
+          return lk_models.EncryptedPacketPayload(
+              streamTrailer: packet.streamTrailer);
+        default:
+          return null;
+      }
     }
     return null;
   }
@@ -683,9 +704,30 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.warning('Data message is not binary');
       return;
     }
-
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
+    if (dp.whichValue() == lk_models.DataPacket_Value.encryptedPacket) {
+      if (_e2eeManager != null) {
+        logger.warning('Received encrypted packet but E2EE not set up');
+        return;
+      }
+      final decryptedData = await _e2eeManager?.handleEncryptedData(
+        data: Uint8List.fromList(dp.encryptedPacket.encryptedValue),
+        iv: Uint8List.fromList(dp.encryptedPacket.iv),
+        participantIdentity: dp.participantIdentity,
+        keyIndex: dp.encryptedPacket.keyIndex,
+      );
+      if (decryptedData == null) {
+        logger.warning('Failed to decrypt data packet');
+        return;
+      }
+      final newDp = lk_models.DataPacket.fromBuffer(decryptedData);
+      _emitDataPacket(newDp);
+    } else {
+      _emitDataPacket(dp);
+    }
+  }
 
+  void _emitDataPacket(lk_models.DataPacket dp) {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -752,28 +794,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           identity: dp.participantIdentity,
         ),
       );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.encryptedPacket) {
-      if (_e2eeManager != null) {
-        logger.warning('Received encrypted packet but E2EE not set up');
-        return;
-      }
-      final decryptedData = await _e2eeManager?.handleEncryptedData(
-        data: Uint8List.fromList(dp.encryptedPacket.encryptedValue),
-        iv: Uint8List.fromList(dp.encryptedPacket.iv),
-        participantIdentity: dp.participantIdentity,
-        keyIndex: dp.encryptedPacket.keyIndex,
-      );
-      if (decryptedData == null) {
-        logger.warning('Failed to decrypt data packet');
-        return;
-      }
-      final newDp = lk_models.DataPacket.fromBuffer(decryptedData);
-      // User packet
-      events.emit(EngineDataPacketReceivedEvent(
-        packet: newDp.user,
-        kind: newDp.kind,
-        identity: newDp.participantIdentity,
-      ));
     } else {
       logger.warning('Unknown data packet type: ${dp.whichValue()}');
     }
