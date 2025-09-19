@@ -5,10 +5,9 @@
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
@@ -28,20 +27,22 @@ class Pagination extends $pb.GeneratedMessage {
     $core.String? afterId,
     $core.int? limit,
   }) {
-    final result = create();
-    if (afterId != null) result.afterId = afterId;
-    if (limit != null) result.limit = limit;
-    return result;
+    final $result = create();
+    if (afterId != null) {
+      $result.afterId = afterId;
+    }
+    if (limit != null) {
+      $result.limit = limit;
+    }
+    return $result;
   }
-
-  Pagination._();
-
-  factory Pagination.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Pagination.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  Pagination._() : super();
+  factory Pagination.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Pagination.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Pagination',
@@ -51,18 +52,20 @@ class Pagination extends $pb.GeneratedMessage {
     ..a<$core.int>(2, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Pagination clone() => Pagination()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Pagination copyWith(void Function(Pagination) updates) =>
       super.copyWith((message) => updates(message as Pagination)) as Pagination;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Pagination create() => Pagination._();
-  @$core.override
   Pagination createEmptyInstance() => create();
   static $pb.PbList<Pagination> createRepeated() => $pb.PbList<Pagination>();
   @$core.pragma('dart2js:noInline')
@@ -73,7 +76,10 @@ class Pagination extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get afterId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set afterId($core.String value) => $_setString(0, value);
+  set afterId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasAfterId() => $_has(0);
   @$pb.TagNumber(1)
@@ -82,7 +88,10 @@ class Pagination extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get limit => $_getIZ(1);
   @$pb.TagNumber(2)
-  set limit($core.int value) => $_setSignedInt32(1, value);
+  set limit($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasLimit() => $_has(1);
   @$pb.TagNumber(2)
@@ -93,19 +102,19 @@ class TokenPagination extends $pb.GeneratedMessage {
   factory TokenPagination({
     $core.String? token,
   }) {
-    final result = create();
-    if (token != null) result.token = token;
-    return result;
+    final $result = create();
+    if (token != null) {
+      $result.token = token;
+    }
+    return $result;
   }
-
-  TokenPagination._();
-
-  factory TokenPagination.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory TokenPagination.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  TokenPagination._() : super();
+  factory TokenPagination.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TokenPagination.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'TokenPagination',
@@ -114,19 +123,21 @@ class TokenPagination extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'token')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TokenPagination clone() => TokenPagination()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   TokenPagination copyWith(void Function(TokenPagination) updates) =>
       super.copyWith((message) => updates(message as TokenPagination))
           as TokenPagination;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TokenPagination create() => TokenPagination._();
-  @$core.override
   TokenPagination createEmptyInstance() => create();
   static $pb.PbList<TokenPagination> createRepeated() =>
       $pb.PbList<TokenPagination>();
@@ -138,7 +149,10 @@ class TokenPagination extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get token => $_getSZ(0);
   @$pb.TagNumber(1)
-  set token($core.String value) => $_setString(0, value);
+  set token($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasToken() => $_has(0);
   @$pb.TagNumber(1)
@@ -153,22 +167,28 @@ class ListUpdate extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? del,
     $core.bool? clear_4,
   }) {
-    final result = create();
-    if (set != null) result.set.addAll(set);
-    if (add != null) result.add.addAll(add);
-    if (del != null) result.del.addAll(del);
-    if (clear_4 != null) result.clear_4 = clear_4;
-    return result;
+    final $result = create();
+    if (set != null) {
+      $result.set.addAll(set);
+    }
+    if (add != null) {
+      $result.add.addAll(add);
+    }
+    if (del != null) {
+      $result.del.addAll(del);
+    }
+    if (clear_4 != null) {
+      $result.clear_4 = clear_4;
+    }
+    return $result;
   }
-
-  ListUpdate._();
-
-  factory ListUpdate.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ListUpdate.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ListUpdate._() : super();
+  factory ListUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ListUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ListUpdate',
@@ -180,18 +200,20 @@ class ListUpdate extends $pb.GeneratedMessage {
     ..aOB(4, _omitFieldNames ? '' : 'clear')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ListUpdate clone() => ListUpdate()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ListUpdate copyWith(void Function(ListUpdate) updates) =>
       super.copyWith((message) => updates(message as ListUpdate)) as ListUpdate;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ListUpdate create() => ListUpdate._();
-  @$core.override
   ListUpdate createEmptyInstance() => create();
   static $pb.PbList<ListUpdate> createRepeated() => $pb.PbList<ListUpdate>();
   @$core.pragma('dart2js:noInline')
@@ -211,7 +233,10 @@ class ListUpdate extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool get clear_4 => $_getBF(3);
   @$pb.TagNumber(4)
-  set clear_4($core.bool value) => $_setBool(3, value);
+  set clear_4($core.bool v) {
+    $_setBool(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasClear_4() => $_has(3);
   @$pb.TagNumber(4)
@@ -235,32 +260,58 @@ class Room extends $pb.GeneratedMessage {
     $core.int? departureTimeout,
     $fixnum.Int64? creationTimeMs,
   }) {
-    final result = create();
-    if (sid != null) result.sid = sid;
-    if (name != null) result.name = name;
-    if (emptyTimeout != null) result.emptyTimeout = emptyTimeout;
-    if (maxParticipants != null) result.maxParticipants = maxParticipants;
-    if (creationTime != null) result.creationTime = creationTime;
-    if (turnPassword != null) result.turnPassword = turnPassword;
-    if (enabledCodecs != null) result.enabledCodecs.addAll(enabledCodecs);
-    if (metadata != null) result.metadata = metadata;
-    if (numParticipants != null) result.numParticipants = numParticipants;
-    if (activeRecording != null) result.activeRecording = activeRecording;
-    if (numPublishers != null) result.numPublishers = numPublishers;
-    if (version != null) result.version = version;
-    if (departureTimeout != null) result.departureTimeout = departureTimeout;
-    if (creationTimeMs != null) result.creationTimeMs = creationTimeMs;
-    return result;
+    final $result = create();
+    if (sid != null) {
+      $result.sid = sid;
+    }
+    if (name != null) {
+      $result.name = name;
+    }
+    if (emptyTimeout != null) {
+      $result.emptyTimeout = emptyTimeout;
+    }
+    if (maxParticipants != null) {
+      $result.maxParticipants = maxParticipants;
+    }
+    if (creationTime != null) {
+      $result.creationTime = creationTime;
+    }
+    if (turnPassword != null) {
+      $result.turnPassword = turnPassword;
+    }
+    if (enabledCodecs != null) {
+      $result.enabledCodecs.addAll(enabledCodecs);
+    }
+    if (metadata != null) {
+      $result.metadata = metadata;
+    }
+    if (numParticipants != null) {
+      $result.numParticipants = numParticipants;
+    }
+    if (activeRecording != null) {
+      $result.activeRecording = activeRecording;
+    }
+    if (numPublishers != null) {
+      $result.numPublishers = numPublishers;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (departureTimeout != null) {
+      $result.departureTimeout = departureTimeout;
+    }
+    if (creationTimeMs != null) {
+      $result.creationTimeMs = creationTimeMs;
+    }
+    return $result;
   }
-
-  Room._();
-
-  factory Room.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Room.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  Room._() : super();
+  factory Room.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Room.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Room',
@@ -289,18 +340,20 @@ class Room extends $pb.GeneratedMessage {
     ..aInt64(15, _omitFieldNames ? '' : 'creationTimeMs')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Room clone() => Room()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Room copyWith(void Function(Room) updates) =>
       super.copyWith((message) => updates(message as Room)) as Room;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Room create() => Room._();
-  @$core.override
   Room createEmptyInstance() => create();
   static $pb.PbList<Room> createRepeated() => $pb.PbList<Room>();
   @$core.pragma('dart2js:noInline')
@@ -311,7 +364,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String value) => $_setString(0, value);
+  set sid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -320,7 +376,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
-  set name($core.String value) => $_setString(1, value);
+  set name($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
@@ -329,7 +388,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get emptyTimeout => $_getIZ(2);
   @$pb.TagNumber(3)
-  set emptyTimeout($core.int value) => $_setUnsignedInt32(2, value);
+  set emptyTimeout($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasEmptyTimeout() => $_has(2);
   @$pb.TagNumber(3)
@@ -338,7 +400,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get maxParticipants => $_getIZ(3);
   @$pb.TagNumber(4)
-  set maxParticipants($core.int value) => $_setUnsignedInt32(3, value);
+  set maxParticipants($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasMaxParticipants() => $_has(3);
   @$pb.TagNumber(4)
@@ -347,7 +412,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get creationTime => $_getI64(4);
   @$pb.TagNumber(5)
-  set creationTime($fixnum.Int64 value) => $_setInt64(4, value);
+  set creationTime($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasCreationTime() => $_has(4);
   @$pb.TagNumber(5)
@@ -356,7 +424,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get turnPassword => $_getSZ(5);
   @$pb.TagNumber(6)
-  set turnPassword($core.String value) => $_setString(5, value);
+  set turnPassword($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasTurnPassword() => $_has(5);
   @$pb.TagNumber(6)
@@ -368,7 +439,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get metadata => $_getSZ(7);
   @$pb.TagNumber(8)
-  set metadata($core.String value) => $_setString(7, value);
+  set metadata($core.String v) {
+    $_setString(7, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasMetadata() => $_has(7);
   @$pb.TagNumber(8)
@@ -377,7 +451,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.int get numParticipants => $_getIZ(8);
   @$pb.TagNumber(9)
-  set numParticipants($core.int value) => $_setUnsignedInt32(8, value);
+  set numParticipants($core.int v) {
+    $_setUnsignedInt32(8, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasNumParticipants() => $_has(8);
   @$pb.TagNumber(9)
@@ -386,7 +463,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.bool get activeRecording => $_getBF(9);
   @$pb.TagNumber(10)
-  set activeRecording($core.bool value) => $_setBool(9, value);
+  set activeRecording($core.bool v) {
+    $_setBool(9, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasActiveRecording() => $_has(9);
   @$pb.TagNumber(10)
@@ -395,7 +475,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.int get numPublishers => $_getIZ(10);
   @$pb.TagNumber(11)
-  set numPublishers($core.int value) => $_setUnsignedInt32(10, value);
+  set numPublishers($core.int v) {
+    $_setUnsignedInt32(10, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasNumPublishers() => $_has(10);
   @$pb.TagNumber(11)
@@ -404,7 +487,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   TimedVersion get version => $_getN(11);
   @$pb.TagNumber(13)
-  set version(TimedVersion value) => $_setField(13, value);
+  set version(TimedVersion v) {
+    $_setField(13, v);
+  }
+
   @$pb.TagNumber(13)
   $core.bool hasVersion() => $_has(11);
   @$pb.TagNumber(13)
@@ -415,7 +501,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $core.int get departureTimeout => $_getIZ(12);
   @$pb.TagNumber(14)
-  set departureTimeout($core.int value) => $_setUnsignedInt32(12, value);
+  set departureTimeout($core.int v) {
+    $_setUnsignedInt32(12, v);
+  }
+
   @$pb.TagNumber(14)
   $core.bool hasDepartureTimeout() => $_has(12);
   @$pb.TagNumber(14)
@@ -424,7 +513,10 @@ class Room extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   $fixnum.Int64 get creationTimeMs => $_getI64(13);
   @$pb.TagNumber(15)
-  set creationTimeMs($fixnum.Int64 value) => $_setInt64(13, value);
+  set creationTimeMs($fixnum.Int64 v) {
+    $_setInt64(13, v);
+  }
+
   @$pb.TagNumber(15)
   $core.bool hasCreationTimeMs() => $_has(13);
   @$pb.TagNumber(15)
@@ -436,20 +528,22 @@ class Codec extends $pb.GeneratedMessage {
     $core.String? mime,
     $core.String? fmtpLine,
   }) {
-    final result = create();
-    if (mime != null) result.mime = mime;
-    if (fmtpLine != null) result.fmtpLine = fmtpLine;
-    return result;
+    final $result = create();
+    if (mime != null) {
+      $result.mime = mime;
+    }
+    if (fmtpLine != null) {
+      $result.fmtpLine = fmtpLine;
+    }
+    return $result;
   }
-
-  Codec._();
-
-  factory Codec.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Codec.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  Codec._() : super();
+  factory Codec.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Codec.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Codec',
@@ -459,18 +553,20 @@ class Codec extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'fmtpLine')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Codec clone() => Codec()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Codec copyWith(void Function(Codec) updates) =>
       super.copyWith((message) => updates(message as Codec)) as Codec;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Codec create() => Codec._();
-  @$core.override
   Codec createEmptyInstance() => create();
   static $pb.PbList<Codec> createRepeated() => $pb.PbList<Codec>();
   @$core.pragma('dart2js:noInline')
@@ -481,7 +577,10 @@ class Codec extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get mime => $_getSZ(0);
   @$pb.TagNumber(1)
-  set mime($core.String value) => $_setString(0, value);
+  set mime($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasMime() => $_has(0);
   @$pb.TagNumber(1)
@@ -490,7 +589,10 @@ class Codec extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get fmtpLine => $_getSZ(1);
   @$pb.TagNumber(2)
-  set fmtpLine($core.String value) => $_setString(1, value);
+  set fmtpLine($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasFmtpLine() => $_has(1);
   @$pb.TagNumber(2)
@@ -503,21 +605,25 @@ class PlayoutDelay extends $pb.GeneratedMessage {
     $core.int? min,
     $core.int? max,
   }) {
-    final result = create();
-    if (enabled != null) result.enabled = enabled;
-    if (min != null) result.min = min;
-    if (max != null) result.max = max;
-    return result;
+    final $result = create();
+    if (enabled != null) {
+      $result.enabled = enabled;
+    }
+    if (min != null) {
+      $result.min = min;
+    }
+    if (max != null) {
+      $result.max = max;
+    }
+    return $result;
   }
-
-  PlayoutDelay._();
-
-  factory PlayoutDelay.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory PlayoutDelay.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  PlayoutDelay._() : super();
+  factory PlayoutDelay.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory PlayoutDelay.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'PlayoutDelay',
@@ -528,19 +634,21 @@ class PlayoutDelay extends $pb.GeneratedMessage {
     ..a<$core.int>(3, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   PlayoutDelay clone() => PlayoutDelay()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   PlayoutDelay copyWith(void Function(PlayoutDelay) updates) =>
       super.copyWith((message) => updates(message as PlayoutDelay))
           as PlayoutDelay;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static PlayoutDelay create() => PlayoutDelay._();
-  @$core.override
   PlayoutDelay createEmptyInstance() => create();
   static $pb.PbList<PlayoutDelay> createRepeated() =>
       $pb.PbList<PlayoutDelay>();
@@ -552,7 +660,10 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool get enabled => $_getBF(0);
   @$pb.TagNumber(1)
-  set enabled($core.bool value) => $_setBool(0, value);
+  set enabled($core.bool v) {
+    $_setBool(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasEnabled() => $_has(0);
   @$pb.TagNumber(1)
@@ -561,7 +672,10 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get min => $_getIZ(1);
   @$pb.TagNumber(2)
-  set min($core.int value) => $_setUnsignedInt32(1, value);
+  set min($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasMin() => $_has(1);
   @$pb.TagNumber(2)
@@ -570,7 +684,10 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get max => $_getIZ(2);
   @$pb.TagNumber(3)
-  set max($core.int value) => $_setUnsignedInt32(2, value);
+  set max($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasMax() => $_has(2);
   @$pb.TagNumber(3)
@@ -589,29 +706,45 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     @$core.Deprecated('This field is deprecated.') $core.bool? agent,
     $core.bool? canSubscribeMetrics,
   }) {
-    final result = create();
-    if (canSubscribe != null) result.canSubscribe = canSubscribe;
-    if (canPublish != null) result.canPublish = canPublish;
-    if (canPublishData != null) result.canPublishData = canPublishData;
-    if (hidden != null) result.hidden = hidden;
-    if (recorder != null) result.recorder = recorder;
-    if (canPublishSources != null)
-      result.canPublishSources.addAll(canPublishSources);
-    if (canUpdateMetadata != null) result.canUpdateMetadata = canUpdateMetadata;
-    if (agent != null) result.agent = agent;
-    if (canSubscribeMetrics != null)
-      result.canSubscribeMetrics = canSubscribeMetrics;
-    return result;
+    final $result = create();
+    if (canSubscribe != null) {
+      $result.canSubscribe = canSubscribe;
+    }
+    if (canPublish != null) {
+      $result.canPublish = canPublish;
+    }
+    if (canPublishData != null) {
+      $result.canPublishData = canPublishData;
+    }
+    if (hidden != null) {
+      $result.hidden = hidden;
+    }
+    if (recorder != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.recorder = recorder;
+    }
+    if (canPublishSources != null) {
+      $result.canPublishSources.addAll(canPublishSources);
+    }
+    if (canUpdateMetadata != null) {
+      $result.canUpdateMetadata = canUpdateMetadata;
+    }
+    if (agent != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.agent = agent;
+    }
+    if (canSubscribeMetrics != null) {
+      $result.canSubscribeMetrics = canSubscribeMetrics;
+    }
+    return $result;
   }
-
-  ParticipantPermission._();
-
-  factory ParticipantPermission.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ParticipantPermission.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ParticipantPermission._() : super();
+  factory ParticipantPermission.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ParticipantPermission.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ParticipantPermission',
@@ -632,21 +765,23 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     ..aOB(12, _omitFieldNames ? '' : 'canSubscribeMetrics')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ParticipantPermission clone() =>
       ParticipantPermission()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ParticipantPermission copyWith(
           void Function(ParticipantPermission) updates) =>
       super.copyWith((message) => updates(message as ParticipantPermission))
           as ParticipantPermission;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ParticipantPermission create() => ParticipantPermission._();
-  @$core.override
   ParticipantPermission createEmptyInstance() => create();
   static $pb.PbList<ParticipantPermission> createRepeated() =>
       $pb.PbList<ParticipantPermission>();
@@ -659,7 +794,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool get canSubscribe => $_getBF(0);
   @$pb.TagNumber(1)
-  set canSubscribe($core.bool value) => $_setBool(0, value);
+  set canSubscribe($core.bool v) {
+    $_setBool(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCanSubscribe() => $_has(0);
   @$pb.TagNumber(1)
@@ -669,7 +807,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool get canPublish => $_getBF(1);
   @$pb.TagNumber(2)
-  set canPublish($core.bool value) => $_setBool(1, value);
+  set canPublish($core.bool v) {
+    $_setBool(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCanPublish() => $_has(1);
   @$pb.TagNumber(2)
@@ -679,7 +820,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool get canPublishData => $_getBF(2);
   @$pb.TagNumber(3)
-  set canPublishData($core.bool value) => $_setBool(2, value);
+  set canPublishData($core.bool v) {
+    $_setBool(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasCanPublishData() => $_has(2);
   @$pb.TagNumber(3)
@@ -689,7 +833,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.bool get hidden => $_getBF(3);
   @$pb.TagNumber(7)
-  set hidden($core.bool value) => $_setBool(3, value);
+  set hidden($core.bool v) {
+    $_setBool(3, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasHidden() => $_has(3);
   @$pb.TagNumber(7)
@@ -702,7 +849,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   $core.bool get recorder => $_getBF(4);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
-  set recorder($core.bool value) => $_setBool(4, value);
+  set recorder($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasRecorder() => $_has(4);
@@ -718,7 +868,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.bool get canUpdateMetadata => $_getBF(6);
   @$pb.TagNumber(10)
-  set canUpdateMetadata($core.bool value) => $_setBool(6, value);
+  set canUpdateMetadata($core.bool v) {
+    $_setBool(6, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasCanUpdateMetadata() => $_has(6);
   @$pb.TagNumber(10)
@@ -731,7 +884,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   $core.bool get agent => $_getBF(7);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
-  set agent($core.bool value) => $_setBool(7, value);
+  set agent($core.bool v) {
+    $_setBool(7, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(11)
   $core.bool hasAgent() => $_has(7);
@@ -743,7 +899,10 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.bool get canSubscribeMetrics => $_getBF(8);
   @$pb.TagNumber(12)
-  set canSubscribeMetrics($core.bool value) => $_setBool(8, value);
+  set canSubscribeMetrics($core.bool v) {
+    $_setBool(8, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasCanSubscribeMetrics() => $_has(8);
   @$pb.TagNumber(12)
@@ -769,34 +928,64 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $fixnum.Int64? joinedAtMs,
     $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
   }) {
-    final result = create();
-    if (sid != null) result.sid = sid;
-    if (identity != null) result.identity = identity;
-    if (state != null) result.state = state;
-    if (tracks != null) result.tracks.addAll(tracks);
-    if (metadata != null) result.metadata = metadata;
-    if (joinedAt != null) result.joinedAt = joinedAt;
-    if (name != null) result.name = name;
-    if (version != null) result.version = version;
-    if (permission != null) result.permission = permission;
-    if (region != null) result.region = region;
-    if (isPublisher != null) result.isPublisher = isPublisher;
-    if (kind != null) result.kind = kind;
-    if (attributes != null) result.attributes.addEntries(attributes);
-    if (disconnectReason != null) result.disconnectReason = disconnectReason;
-    if (joinedAtMs != null) result.joinedAtMs = joinedAtMs;
-    if (kindDetails != null) result.kindDetails.addAll(kindDetails);
-    return result;
+    final $result = create();
+    if (sid != null) {
+      $result.sid = sid;
+    }
+    if (identity != null) {
+      $result.identity = identity;
+    }
+    if (state != null) {
+      $result.state = state;
+    }
+    if (tracks != null) {
+      $result.tracks.addAll(tracks);
+    }
+    if (metadata != null) {
+      $result.metadata = metadata;
+    }
+    if (joinedAt != null) {
+      $result.joinedAt = joinedAt;
+    }
+    if (name != null) {
+      $result.name = name;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (permission != null) {
+      $result.permission = permission;
+    }
+    if (region != null) {
+      $result.region = region;
+    }
+    if (isPublisher != null) {
+      $result.isPublisher = isPublisher;
+    }
+    if (kind != null) {
+      $result.kind = kind;
+    }
+    if (attributes != null) {
+      $result.attributes.addEntries(attributes);
+    }
+    if (disconnectReason != null) {
+      $result.disconnectReason = disconnectReason;
+    }
+    if (joinedAtMs != null) {
+      $result.joinedAtMs = joinedAtMs;
+    }
+    if (kindDetails != null) {
+      $result.kindDetails.addAll(kindDetails);
+    }
+    return $result;
   }
-
-  ParticipantInfo._();
-
-  factory ParticipantInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ParticipantInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ParticipantInfo._() : super();
+  factory ParticipantInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ParticipantInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ParticipantInfo',
@@ -842,19 +1031,21 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ParticipantInfo clone() => ParticipantInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ParticipantInfo copyWith(void Function(ParticipantInfo) updates) =>
       super.copyWith((message) => updates(message as ParticipantInfo))
           as ParticipantInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ParticipantInfo create() => ParticipantInfo._();
-  @$core.override
   ParticipantInfo createEmptyInstance() => create();
   static $pb.PbList<ParticipantInfo> createRepeated() =>
       $pb.PbList<ParticipantInfo>();
@@ -866,7 +1057,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String value) => $_setString(0, value);
+  set sid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -875,7 +1069,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get identity => $_getSZ(1);
   @$pb.TagNumber(2)
-  set identity($core.String value) => $_setString(1, value);
+  set identity($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasIdentity() => $_has(1);
   @$pb.TagNumber(2)
@@ -884,7 +1081,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ParticipantInfo_State get state => $_getN(2);
   @$pb.TagNumber(3)
-  set state(ParticipantInfo_State value) => $_setField(3, value);
+  set state(ParticipantInfo_State v) {
+    $_setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasState() => $_has(2);
   @$pb.TagNumber(3)
@@ -896,7 +1096,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get metadata => $_getSZ(4);
   @$pb.TagNumber(5)
-  set metadata($core.String value) => $_setString(4, value);
+  set metadata($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasMetadata() => $_has(4);
   @$pb.TagNumber(5)
@@ -906,7 +1109,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $fixnum.Int64 get joinedAt => $_getI64(5);
   @$pb.TagNumber(6)
-  set joinedAt($fixnum.Int64 value) => $_setInt64(5, value);
+  set joinedAt($fixnum.Int64 v) {
+    $_setInt64(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasJoinedAt() => $_has(5);
   @$pb.TagNumber(6)
@@ -915,7 +1121,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.String get name => $_getSZ(6);
   @$pb.TagNumber(9)
-  set name($core.String value) => $_setString(6, value);
+  set name($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasName() => $_has(6);
   @$pb.TagNumber(9)
@@ -924,7 +1133,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.int get version => $_getIZ(7);
   @$pb.TagNumber(10)
-  set version($core.int value) => $_setUnsignedInt32(7, value);
+  set version($core.int v) {
+    $_setUnsignedInt32(7, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasVersion() => $_has(7);
   @$pb.TagNumber(10)
@@ -933,7 +1145,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   ParticipantPermission get permission => $_getN(8);
   @$pb.TagNumber(11)
-  set permission(ParticipantPermission value) => $_setField(11, value);
+  set permission(ParticipantPermission v) {
+    $_setField(11, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasPermission() => $_has(8);
   @$pb.TagNumber(11)
@@ -944,7 +1159,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.String get region => $_getSZ(9);
   @$pb.TagNumber(12)
-  set region($core.String value) => $_setString(9, value);
+  set region($core.String v) {
+    $_setString(9, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasRegion() => $_has(9);
   @$pb.TagNumber(12)
@@ -955,7 +1173,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $core.bool get isPublisher => $_getBF(10);
   @$pb.TagNumber(13)
-  set isPublisher($core.bool value) => $_setBool(10, value);
+  set isPublisher($core.bool v) {
+    $_setBool(10, v);
+  }
+
   @$pb.TagNumber(13)
   $core.bool hasIsPublisher() => $_has(10);
   @$pb.TagNumber(13)
@@ -964,7 +1185,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   ParticipantInfo_Kind get kind => $_getN(11);
   @$pb.TagNumber(14)
-  set kind(ParticipantInfo_Kind value) => $_setField(14, value);
+  set kind(ParticipantInfo_Kind v) {
+    $_setField(14, v);
+  }
+
   @$pb.TagNumber(14)
   $core.bool hasKind() => $_has(11);
   @$pb.TagNumber(14)
@@ -976,7 +1200,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   DisconnectReason get disconnectReason => $_getN(13);
   @$pb.TagNumber(16)
-  set disconnectReason(DisconnectReason value) => $_setField(16, value);
+  set disconnectReason(DisconnectReason v) {
+    $_setField(16, v);
+  }
+
   @$pb.TagNumber(16)
   $core.bool hasDisconnectReason() => $_has(13);
   @$pb.TagNumber(16)
@@ -986,7 +1213,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   $fixnum.Int64 get joinedAtMs => $_getI64(14);
   @$pb.TagNumber(17)
-  set joinedAtMs($fixnum.Int64 value) => $_setInt64(14, value);
+  set joinedAtMs($fixnum.Int64 v) {
+    $_setInt64(14, v);
+  }
+
   @$pb.TagNumber(17)
   $core.bool hasJoinedAtMs() => $_has(14);
   @$pb.TagNumber(17)
@@ -998,15 +1228,13 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 
 class Encryption extends $pb.GeneratedMessage {
   factory Encryption() => create();
-
-  Encryption._();
-
-  factory Encryption.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Encryption.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  Encryption._() : super();
+  factory Encryption.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Encryption.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Encryption',
@@ -1014,18 +1242,20 @@ class Encryption extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Encryption clone() => Encryption()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Encryption copyWith(void Function(Encryption) updates) =>
       super.copyWith((message) => updates(message as Encryption)) as Encryption;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Encryption create() => Encryption._();
-  @$core.override
   Encryption createEmptyInstance() => create();
   static $pb.PbList<Encryption> createRepeated() => $pb.PbList<Encryption>();
   @$core.pragma('dart2js:noInline')
@@ -1043,24 +1273,34 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
     VideoLayer_Mode? videoLayerMode,
     $core.String? sdpCid,
   }) {
-    final result = create();
-    if (mimeType != null) result.mimeType = mimeType;
-    if (mid != null) result.mid = mid;
-    if (cid != null) result.cid = cid;
-    if (layers != null) result.layers.addAll(layers);
-    if (videoLayerMode != null) result.videoLayerMode = videoLayerMode;
-    if (sdpCid != null) result.sdpCid = sdpCid;
-    return result;
+    final $result = create();
+    if (mimeType != null) {
+      $result.mimeType = mimeType;
+    }
+    if (mid != null) {
+      $result.mid = mid;
+    }
+    if (cid != null) {
+      $result.cid = cid;
+    }
+    if (layers != null) {
+      $result.layers.addAll(layers);
+    }
+    if (videoLayerMode != null) {
+      $result.videoLayerMode = videoLayerMode;
+    }
+    if (sdpCid != null) {
+      $result.sdpCid = sdpCid;
+    }
+    return $result;
   }
-
-  SimulcastCodecInfo._();
-
-  factory SimulcastCodecInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory SimulcastCodecInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  SimulcastCodecInfo._() : super();
+  factory SimulcastCodecInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SimulcastCodecInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SimulcastCodecInfo',
@@ -1079,19 +1319,21 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'sdpCid')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   SimulcastCodecInfo clone() => SimulcastCodecInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   SimulcastCodecInfo copyWith(void Function(SimulcastCodecInfo) updates) =>
       super.copyWith((message) => updates(message as SimulcastCodecInfo))
           as SimulcastCodecInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SimulcastCodecInfo create() => SimulcastCodecInfo._();
-  @$core.override
   SimulcastCodecInfo createEmptyInstance() => create();
   static $pb.PbList<SimulcastCodecInfo> createRepeated() =>
       $pb.PbList<SimulcastCodecInfo>();
@@ -1103,7 +1345,10 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get mimeType => $_getSZ(0);
   @$pb.TagNumber(1)
-  set mimeType($core.String value) => $_setString(0, value);
+  set mimeType($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasMimeType() => $_has(0);
   @$pb.TagNumber(1)
@@ -1112,7 +1357,10 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get mid => $_getSZ(1);
   @$pb.TagNumber(2)
-  set mid($core.String value) => $_setString(1, value);
+  set mid($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasMid() => $_has(1);
   @$pb.TagNumber(2)
@@ -1121,7 +1369,10 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get cid => $_getSZ(2);
   @$pb.TagNumber(3)
-  set cid($core.String value) => $_setString(2, value);
+  set cid($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasCid() => $_has(2);
   @$pb.TagNumber(3)
@@ -1133,7 +1384,10 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   VideoLayer_Mode get videoLayerMode => $_getN(4);
   @$pb.TagNumber(5)
-  set videoLayerMode(VideoLayer_Mode value) => $_setField(5, value);
+  set videoLayerMode(VideoLayer_Mode v) {
+    $_setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasVideoLayerMode() => $_has(4);
   @$pb.TagNumber(5)
@@ -1146,7 +1400,10 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get sdpCid => $_getSZ(5);
   @$pb.TagNumber(6)
-  set sdpCid($core.String value) => $_setString(5, value);
+  set sdpCid($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasSdpCid() => $_has(5);
   @$pb.TagNumber(6)
@@ -1177,38 +1434,82 @@ class TrackInfo extends $pb.GeneratedMessage {
     $core.Iterable<AudioTrackFeature>? audioFeatures,
     BackupCodecPolicy? backupCodecPolicy,
   }) {
-    final result = create();
-    if (sid != null) result.sid = sid;
-    if (type != null) result.type = type;
-    if (name != null) result.name = name;
-    if (muted != null) result.muted = muted;
-    if (width != null) result.width = width;
-    if (height != null) result.height = height;
-    if (simulcast != null) result.simulcast = simulcast;
-    if (disableDtx != null) result.disableDtx = disableDtx;
-    if (source != null) result.source = source;
-    if (layers != null) result.layers.addAll(layers);
-    if (mimeType != null) result.mimeType = mimeType;
-    if (mid != null) result.mid = mid;
-    if (codecs != null) result.codecs.addAll(codecs);
-    if (stereo != null) result.stereo = stereo;
-    if (disableRed != null) result.disableRed = disableRed;
-    if (encryption != null) result.encryption = encryption;
-    if (stream != null) result.stream = stream;
-    if (version != null) result.version = version;
-    if (audioFeatures != null) result.audioFeatures.addAll(audioFeatures);
-    if (backupCodecPolicy != null) result.backupCodecPolicy = backupCodecPolicy;
-    return result;
+    final $result = create();
+    if (sid != null) {
+      $result.sid = sid;
+    }
+    if (type != null) {
+      $result.type = type;
+    }
+    if (name != null) {
+      $result.name = name;
+    }
+    if (muted != null) {
+      $result.muted = muted;
+    }
+    if (width != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.width = width;
+    }
+    if (height != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.height = height;
+    }
+    if (simulcast != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.simulcast = simulcast;
+    }
+    if (disableDtx != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.disableDtx = disableDtx;
+    }
+    if (source != null) {
+      $result.source = source;
+    }
+    if (layers != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.layers.addAll(layers);
+    }
+    if (mimeType != null) {
+      $result.mimeType = mimeType;
+    }
+    if (mid != null) {
+      $result.mid = mid;
+    }
+    if (codecs != null) {
+      $result.codecs.addAll(codecs);
+    }
+    if (stereo != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.stereo = stereo;
+    }
+    if (disableRed != null) {
+      $result.disableRed = disableRed;
+    }
+    if (encryption != null) {
+      $result.encryption = encryption;
+    }
+    if (stream != null) {
+      $result.stream = stream;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (audioFeatures != null) {
+      $result.audioFeatures.addAll(audioFeatures);
+    }
+    if (backupCodecPolicy != null) {
+      $result.backupCodecPolicy = backupCodecPolicy;
+    }
+    return $result;
   }
-
-  TrackInfo._();
-
-  factory TrackInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory TrackInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  TrackInfo._() : super();
+  factory TrackInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TrackInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'TrackInfo',
@@ -1258,18 +1559,20 @@ class TrackInfo extends $pb.GeneratedMessage {
         enumValues: BackupCodecPolicy.values)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TrackInfo clone() => TrackInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   TrackInfo copyWith(void Function(TrackInfo) updates) =>
       super.copyWith((message) => updates(message as TrackInfo)) as TrackInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TrackInfo create() => TrackInfo._();
-  @$core.override
   TrackInfo createEmptyInstance() => create();
   static $pb.PbList<TrackInfo> createRepeated() => $pb.PbList<TrackInfo>();
   @$core.pragma('dart2js:noInline')
@@ -1280,7 +1583,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String value) => $_setString(0, value);
+  set sid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -1289,7 +1595,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   TrackType get type => $_getN(1);
   @$pb.TagNumber(2)
-  set type(TrackType value) => $_setField(2, value);
+  set type(TrackType v) {
+    $_setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasType() => $_has(1);
   @$pb.TagNumber(2)
@@ -1298,7 +1607,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get name => $_getSZ(2);
   @$pb.TagNumber(3)
-  set name($core.String value) => $_setString(2, value);
+  set name($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasName() => $_has(2);
   @$pb.TagNumber(3)
@@ -1307,7 +1619,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool get muted => $_getBF(3);
   @$pb.TagNumber(4)
-  set muted($core.bool value) => $_setBool(3, value);
+  set muted($core.bool v) {
+    $_setBool(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasMuted() => $_has(3);
   @$pb.TagNumber(4)
@@ -1320,7 +1635,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.int get width => $_getIZ(4);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
-  set width($core.int value) => $_setUnsignedInt32(4, value);
+  set width($core.int v) {
+    $_setUnsignedInt32(4, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasWidth() => $_has(4);
@@ -1334,7 +1652,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.int get height => $_getIZ(5);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
-  set height($core.int value) => $_setUnsignedInt32(5, value);
+  set height($core.int v) {
+    $_setUnsignedInt32(5, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.bool hasHeight() => $_has(5);
@@ -1348,7 +1669,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool get simulcast => $_getBF(6);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
-  set simulcast($core.bool value) => $_setBool(6, value);
+  set simulcast($core.bool v) {
+    $_setBool(6, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasSimulcast() => $_has(6);
@@ -1362,7 +1686,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool get disableDtx => $_getBF(7);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
-  set disableDtx($core.bool value) => $_setBool(7, value);
+  set disableDtx($core.bool v) {
+    $_setBool(7, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasDisableDtx() => $_has(7);
@@ -1374,7 +1701,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   TrackSource get source => $_getN(8);
   @$pb.TagNumber(9)
-  set source(TrackSource value) => $_setField(9, value);
+  set source(TrackSource v) {
+    $_setField(9, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasSource() => $_has(8);
   @$pb.TagNumber(9)
@@ -1388,7 +1718,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.String get mimeType => $_getSZ(10);
   @$pb.TagNumber(11)
-  set mimeType($core.String value) => $_setString(10, value);
+  set mimeType($core.String v) {
+    $_setString(10, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasMimeType() => $_has(10);
   @$pb.TagNumber(11)
@@ -1397,7 +1730,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.String get mid => $_getSZ(11);
   @$pb.TagNumber(12)
-  set mid($core.String value) => $_setString(11, value);
+  set mid($core.String v) {
+    $_setString(11, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasMid() => $_has(11);
   @$pb.TagNumber(12)
@@ -1411,7 +1747,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool get stereo => $_getBF(13);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
-  set stereo($core.bool value) => $_setBool(13, value);
+  set stereo($core.bool v) {
+    $_setBool(13, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(14)
   $core.bool hasStereo() => $_has(13);
@@ -1423,7 +1762,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   $core.bool get disableRed => $_getBF(14);
   @$pb.TagNumber(15)
-  set disableRed($core.bool value) => $_setBool(14, value);
+  set disableRed($core.bool v) {
+    $_setBool(14, v);
+  }
+
   @$pb.TagNumber(15)
   $core.bool hasDisableRed() => $_has(14);
   @$pb.TagNumber(15)
@@ -1432,7 +1774,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   Encryption_Type get encryption => $_getN(15);
   @$pb.TagNumber(16)
-  set encryption(Encryption_Type value) => $_setField(16, value);
+  set encryption(Encryption_Type v) {
+    $_setField(16, v);
+  }
+
   @$pb.TagNumber(16)
   $core.bool hasEncryption() => $_has(15);
   @$pb.TagNumber(16)
@@ -1441,7 +1786,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   $core.String get stream => $_getSZ(16);
   @$pb.TagNumber(17)
-  set stream($core.String value) => $_setString(16, value);
+  set stream($core.String v) {
+    $_setString(16, v);
+  }
+
   @$pb.TagNumber(17)
   $core.bool hasStream() => $_has(16);
   @$pb.TagNumber(17)
@@ -1450,7 +1798,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   TimedVersion get version => $_getN(17);
   @$pb.TagNumber(18)
-  set version(TimedVersion value) => $_setField(18, value);
+  set version(TimedVersion v) {
+    $_setField(18, v);
+  }
+
   @$pb.TagNumber(18)
   $core.bool hasVersion() => $_has(17);
   @$pb.TagNumber(18)
@@ -1464,7 +1815,10 @@ class TrackInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   BackupCodecPolicy get backupCodecPolicy => $_getN(19);
   @$pb.TagNumber(20)
-  set backupCodecPolicy(BackupCodecPolicy value) => $_setField(20, value);
+  set backupCodecPolicy(BackupCodecPolicy v) {
+    $_setField(20, v);
+  }
+
   @$pb.TagNumber(20)
   $core.bool hasBackupCodecPolicy() => $_has(19);
   @$pb.TagNumber(20)
@@ -1482,25 +1836,37 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? spatialLayer,
     $core.String? rid,
   }) {
-    final result = create();
-    if (quality != null) result.quality = quality;
-    if (width != null) result.width = width;
-    if (height != null) result.height = height;
-    if (bitrate != null) result.bitrate = bitrate;
-    if (ssrc != null) result.ssrc = ssrc;
-    if (spatialLayer != null) result.spatialLayer = spatialLayer;
-    if (rid != null) result.rid = rid;
-    return result;
+    final $result = create();
+    if (quality != null) {
+      $result.quality = quality;
+    }
+    if (width != null) {
+      $result.width = width;
+    }
+    if (height != null) {
+      $result.height = height;
+    }
+    if (bitrate != null) {
+      $result.bitrate = bitrate;
+    }
+    if (ssrc != null) {
+      $result.ssrc = ssrc;
+    }
+    if (spatialLayer != null) {
+      $result.spatialLayer = spatialLayer;
+    }
+    if (rid != null) {
+      $result.rid = rid;
+    }
+    return $result;
   }
-
-  VideoLayer._();
-
-  factory VideoLayer.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory VideoLayer.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  VideoLayer._() : super();
+  factory VideoLayer.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VideoLayer.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'VideoLayer',
@@ -1518,18 +1884,20 @@ class VideoLayer extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'rid')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   VideoLayer clone() => VideoLayer()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   VideoLayer copyWith(void Function(VideoLayer) updates) =>
       super.copyWith((message) => updates(message as VideoLayer)) as VideoLayer;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static VideoLayer create() => VideoLayer._();
-  @$core.override
   VideoLayer createEmptyInstance() => create();
   static $pb.PbList<VideoLayer> createRepeated() => $pb.PbList<VideoLayer>();
   @$core.pragma('dart2js:noInline')
@@ -1541,7 +1909,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   VideoQuality get quality => $_getN(0);
   @$pb.TagNumber(1)
-  set quality(VideoQuality value) => $_setField(1, value);
+  set quality(VideoQuality v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasQuality() => $_has(0);
   @$pb.TagNumber(1)
@@ -1550,7 +1921,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get width => $_getIZ(1);
   @$pb.TagNumber(2)
-  set width($core.int value) => $_setUnsignedInt32(1, value);
+  set width($core.int v) {
+    $_setUnsignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasWidth() => $_has(1);
   @$pb.TagNumber(2)
@@ -1559,7 +1933,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get height => $_getIZ(2);
   @$pb.TagNumber(3)
-  set height($core.int value) => $_setUnsignedInt32(2, value);
+  set height($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasHeight() => $_has(2);
   @$pb.TagNumber(3)
@@ -1569,7 +1946,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get bitrate => $_getIZ(3);
   @$pb.TagNumber(4)
-  set bitrate($core.int value) => $_setUnsignedInt32(3, value);
+  set bitrate($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasBitrate() => $_has(3);
   @$pb.TagNumber(4)
@@ -1578,7 +1958,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.int get ssrc => $_getIZ(4);
   @$pb.TagNumber(5)
-  set ssrc($core.int value) => $_setUnsignedInt32(4, value);
+  set ssrc($core.int v) {
+    $_setUnsignedInt32(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasSsrc() => $_has(4);
   @$pb.TagNumber(5)
@@ -1587,7 +1970,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.int get spatialLayer => $_getIZ(5);
   @$pb.TagNumber(6)
-  set spatialLayer($core.int value) => $_setSignedInt32(5, value);
+  set spatialLayer($core.int v) {
+    $_setSignedInt32(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasSpatialLayer() => $_has(5);
   @$pb.TagNumber(6)
@@ -1596,7 +1982,10 @@ class VideoLayer extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get rid => $_getSZ(6);
   @$pb.TagNumber(7)
-  set rid($core.String value) => $_setString(6, value);
+  set rid($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasRid() => $_has(6);
   @$pb.TagNumber(7)
@@ -1642,38 +2031,72 @@ class DataPacket extends $pb.GeneratedMessage {
     $core.String? participantSid,
     EncryptedPacket? encryptedPacket,
   }) {
-    final result = create();
-    if (kind != null) result.kind = kind;
-    if (user != null) result.user = user;
-    if (speaker != null) result.speaker = speaker;
-    if (participantIdentity != null)
-      result.participantIdentity = participantIdentity;
-    if (destinationIdentities != null)
-      result.destinationIdentities.addAll(destinationIdentities);
-    if (sipDtmf != null) result.sipDtmf = sipDtmf;
-    if (transcription != null) result.transcription = transcription;
-    if (metrics != null) result.metrics = metrics;
-    if (chatMessage != null) result.chatMessage = chatMessage;
-    if (rpcRequest != null) result.rpcRequest = rpcRequest;
-    if (rpcAck != null) result.rpcAck = rpcAck;
-    if (rpcResponse != null) result.rpcResponse = rpcResponse;
-    if (streamHeader != null) result.streamHeader = streamHeader;
-    if (streamChunk != null) result.streamChunk = streamChunk;
-    if (streamTrailer != null) result.streamTrailer = streamTrailer;
-    if (sequence != null) result.sequence = sequence;
-    if (participantSid != null) result.participantSid = participantSid;
-    if (encryptedPacket != null) result.encryptedPacket = encryptedPacket;
-    return result;
+    final $result = create();
+    if (kind != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.kind = kind;
+    }
+    if (user != null) {
+      $result.user = user;
+    }
+    if (speaker != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.speaker = speaker;
+    }
+    if (participantIdentity != null) {
+      $result.participantIdentity = participantIdentity;
+    }
+    if (destinationIdentities != null) {
+      $result.destinationIdentities.addAll(destinationIdentities);
+    }
+    if (sipDtmf != null) {
+      $result.sipDtmf = sipDtmf;
+    }
+    if (transcription != null) {
+      $result.transcription = transcription;
+    }
+    if (metrics != null) {
+      $result.metrics = metrics;
+    }
+    if (chatMessage != null) {
+      $result.chatMessage = chatMessage;
+    }
+    if (rpcRequest != null) {
+      $result.rpcRequest = rpcRequest;
+    }
+    if (rpcAck != null) {
+      $result.rpcAck = rpcAck;
+    }
+    if (rpcResponse != null) {
+      $result.rpcResponse = rpcResponse;
+    }
+    if (streamHeader != null) {
+      $result.streamHeader = streamHeader;
+    }
+    if (streamChunk != null) {
+      $result.streamChunk = streamChunk;
+    }
+    if (streamTrailer != null) {
+      $result.streamTrailer = streamTrailer;
+    }
+    if (sequence != null) {
+      $result.sequence = sequence;
+    }
+    if (participantSid != null) {
+      $result.participantSid = participantSid;
+    }
+    if (encryptedPacket != null) {
+      $result.encryptedPacket = encryptedPacket;
+    }
+    return $result;
   }
-
-  DataPacket._();
-
-  factory DataPacket.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataPacket.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataPacket._() : super();
+  factory DataPacket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataPacket.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, DataPacket_Value> _DataPacket_ValueByTag = {
     2: DataPacket_Value.user,
@@ -1732,18 +2155,20 @@ class DataPacket extends $pb.GeneratedMessage {
         subBuilder: EncryptedPacket.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataPacket clone() => DataPacket()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataPacket copyWith(void Function(DataPacket) updates) =>
       super.copyWith((message) => updates(message as DataPacket)) as DataPacket;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataPacket create() => DataPacket._();
-  @$core.override
   DataPacket createEmptyInstance() => create();
   static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
   @$core.pragma('dart2js:noInline')
@@ -1759,7 +2184,10 @@ class DataPacket extends $pb.GeneratedMessage {
   DataPacket_Kind get kind => $_getN(0);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
-  set kind(DataPacket_Kind value) => $_setField(1, value);
+  set kind(DataPacket_Kind v) {
+    $_setField(1, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   $core.bool hasKind() => $_has(0);
@@ -1770,7 +2198,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   UserPacket get user => $_getN(1);
   @$pb.TagNumber(2)
-  set user(UserPacket value) => $_setField(2, value);
+  set user(UserPacket v) {
+    $_setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasUser() => $_has(1);
   @$pb.TagNumber(2)
@@ -1783,7 +2214,10 @@ class DataPacket extends $pb.GeneratedMessage {
   ActiveSpeakerUpdate get speaker => $_getN(2);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
-  set speaker(ActiveSpeakerUpdate value) => $_setField(3, value);
+  set speaker(ActiveSpeakerUpdate v) {
+    $_setField(3, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.bool hasSpeaker() => $_has(2);
@@ -1798,7 +2232,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get participantIdentity => $_getSZ(3);
   @$pb.TagNumber(4)
-  set participantIdentity($core.String value) => $_setString(3, value);
+  set participantIdentity($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasParticipantIdentity() => $_has(3);
   @$pb.TagNumber(4)
@@ -1811,7 +2248,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   SipDTMF get sipDtmf => $_getN(5);
   @$pb.TagNumber(6)
-  set sipDtmf(SipDTMF value) => $_setField(6, value);
+  set sipDtmf(SipDTMF v) {
+    $_setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasSipDtmf() => $_has(5);
   @$pb.TagNumber(6)
@@ -1822,7 +2262,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   Transcription get transcription => $_getN(6);
   @$pb.TagNumber(7)
-  set transcription(Transcription value) => $_setField(7, value);
+  set transcription(Transcription v) {
+    $_setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasTranscription() => $_has(6);
   @$pb.TagNumber(7)
@@ -1833,7 +2276,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $1.MetricsBatch get metrics => $_getN(7);
   @$pb.TagNumber(8)
-  set metrics($1.MetricsBatch value) => $_setField(8, value);
+  set metrics($1.MetricsBatch v) {
+    $_setField(8, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasMetrics() => $_has(7);
   @$pb.TagNumber(8)
@@ -1844,7 +2290,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   ChatMessage get chatMessage => $_getN(8);
   @$pb.TagNumber(9)
-  set chatMessage(ChatMessage value) => $_setField(9, value);
+  set chatMessage(ChatMessage v) {
+    $_setField(9, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasChatMessage() => $_has(8);
   @$pb.TagNumber(9)
@@ -1855,7 +2304,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   RpcRequest get rpcRequest => $_getN(9);
   @$pb.TagNumber(10)
-  set rpcRequest(RpcRequest value) => $_setField(10, value);
+  set rpcRequest(RpcRequest v) {
+    $_setField(10, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasRpcRequest() => $_has(9);
   @$pb.TagNumber(10)
@@ -1866,7 +2318,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   RpcAck get rpcAck => $_getN(10);
   @$pb.TagNumber(11)
-  set rpcAck(RpcAck value) => $_setField(11, value);
+  set rpcAck(RpcAck v) {
+    $_setField(11, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasRpcAck() => $_has(10);
   @$pb.TagNumber(11)
@@ -1877,7 +2332,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   RpcResponse get rpcResponse => $_getN(11);
   @$pb.TagNumber(12)
-  set rpcResponse(RpcResponse value) => $_setField(12, value);
+  set rpcResponse(RpcResponse v) {
+    $_setField(12, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasRpcResponse() => $_has(11);
   @$pb.TagNumber(12)
@@ -1888,7 +2346,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   DataStream_Header get streamHeader => $_getN(12);
   @$pb.TagNumber(13)
-  set streamHeader(DataStream_Header value) => $_setField(13, value);
+  set streamHeader(DataStream_Header v) {
+    $_setField(13, v);
+  }
+
   @$pb.TagNumber(13)
   $core.bool hasStreamHeader() => $_has(12);
   @$pb.TagNumber(13)
@@ -1899,7 +2360,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   DataStream_Chunk get streamChunk => $_getN(13);
   @$pb.TagNumber(14)
-  set streamChunk(DataStream_Chunk value) => $_setField(14, value);
+  set streamChunk(DataStream_Chunk v) {
+    $_setField(14, v);
+  }
+
   @$pb.TagNumber(14)
   $core.bool hasStreamChunk() => $_has(13);
   @$pb.TagNumber(14)
@@ -1910,7 +2374,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   DataStream_Trailer get streamTrailer => $_getN(14);
   @$pb.TagNumber(15)
-  set streamTrailer(DataStream_Trailer value) => $_setField(15, value);
+  set streamTrailer(DataStream_Trailer v) {
+    $_setField(15, v);
+  }
+
   @$pb.TagNumber(15)
   $core.bool hasStreamTrailer() => $_has(14);
   @$pb.TagNumber(15)
@@ -1922,7 +2389,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   $core.int get sequence => $_getIZ(15);
   @$pb.TagNumber(16)
-  set sequence($core.int value) => $_setUnsignedInt32(15, value);
+  set sequence($core.int v) {
+    $_setUnsignedInt32(15, v);
+  }
+
   @$pb.TagNumber(16)
   $core.bool hasSequence() => $_has(15);
   @$pb.TagNumber(16)
@@ -1932,7 +2402,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   $core.String get participantSid => $_getSZ(16);
   @$pb.TagNumber(17)
-  set participantSid($core.String value) => $_setString(16, value);
+  set participantSid($core.String v) {
+    $_setString(16, v);
+  }
+
   @$pb.TagNumber(17)
   $core.bool hasParticipantSid() => $_has(16);
   @$pb.TagNumber(17)
@@ -1941,7 +2414,10 @@ class DataPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   EncryptedPacket get encryptedPacket => $_getN(17);
   @$pb.TagNumber(18)
-  set encryptedPacket(EncryptedPacket value) => $_setField(18, value);
+  set encryptedPacket(EncryptedPacket v) {
+    $_setField(18, v);
+  }
+
   @$pb.TagNumber(18)
   $core.bool hasEncryptedPacket() => $_has(17);
   @$pb.TagNumber(18)
@@ -1957,22 +2433,28 @@ class EncryptedPacket extends $pb.GeneratedMessage {
     $core.int? keyIndex,
     $core.List<$core.int>? encryptedValue,
   }) {
-    final result = create();
-    if (encryptionType != null) result.encryptionType = encryptionType;
-    if (iv != null) result.iv = iv;
-    if (keyIndex != null) result.keyIndex = keyIndex;
-    if (encryptedValue != null) result.encryptedValue = encryptedValue;
-    return result;
+    final $result = create();
+    if (encryptionType != null) {
+      $result.encryptionType = encryptionType;
+    }
+    if (iv != null) {
+      $result.iv = iv;
+    }
+    if (keyIndex != null) {
+      $result.keyIndex = keyIndex;
+    }
+    if (encryptedValue != null) {
+      $result.encryptedValue = encryptedValue;
+    }
+    return $result;
   }
-
-  EncryptedPacket._();
-
-  factory EncryptedPacket.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory EncryptedPacket.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  EncryptedPacket._() : super();
+  factory EncryptedPacket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory EncryptedPacket.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'EncryptedPacket',
@@ -1990,19 +2472,21 @@ class EncryptedPacket extends $pb.GeneratedMessage {
         4, _omitFieldNames ? '' : 'encryptedValue', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   EncryptedPacket clone() => EncryptedPacket()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   EncryptedPacket copyWith(void Function(EncryptedPacket) updates) =>
       super.copyWith((message) => updates(message as EncryptedPacket))
           as EncryptedPacket;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static EncryptedPacket create() => EncryptedPacket._();
-  @$core.override
   EncryptedPacket createEmptyInstance() => create();
   static $pb.PbList<EncryptedPacket> createRepeated() =>
       $pb.PbList<EncryptedPacket>();
@@ -2014,7 +2498,10 @@ class EncryptedPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   Encryption_Type get encryptionType => $_getN(0);
   @$pb.TagNumber(1)
-  set encryptionType(Encryption_Type value) => $_setField(1, value);
+  set encryptionType(Encryption_Type v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasEncryptionType() => $_has(0);
   @$pb.TagNumber(1)
@@ -2023,7 +2510,10 @@ class EncryptedPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get iv => $_getN(1);
   @$pb.TagNumber(2)
-  set iv($core.List<$core.int> value) => $_setBytes(1, value);
+  set iv($core.List<$core.int> v) {
+    $_setBytes(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasIv() => $_has(1);
   @$pb.TagNumber(2)
@@ -2032,7 +2522,10 @@ class EncryptedPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get keyIndex => $_getIZ(2);
   @$pb.TagNumber(3)
-  set keyIndex($core.int value) => $_setUnsignedInt32(2, value);
+  set keyIndex($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasKeyIndex() => $_has(2);
   @$pb.TagNumber(3)
@@ -2041,7 +2534,10 @@ class EncryptedPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.List<$core.int> get encryptedValue => $_getN(3);
   @$pb.TagNumber(4)
-  set encryptedValue($core.List<$core.int> value) => $_setBytes(3, value);
+  set encryptedValue($core.List<$core.int> v) {
+    $_setBytes(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasEncryptedValue() => $_has(3);
   @$pb.TagNumber(4)
@@ -2071,26 +2567,40 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
     DataStream_Chunk? streamChunk,
     DataStream_Trailer? streamTrailer,
   }) {
-    final result = create();
-    if (user != null) result.user = user;
-    if (chatMessage != null) result.chatMessage = chatMessage;
-    if (rpcRequest != null) result.rpcRequest = rpcRequest;
-    if (rpcAck != null) result.rpcAck = rpcAck;
-    if (rpcResponse != null) result.rpcResponse = rpcResponse;
-    if (streamHeader != null) result.streamHeader = streamHeader;
-    if (streamChunk != null) result.streamChunk = streamChunk;
-    if (streamTrailer != null) result.streamTrailer = streamTrailer;
-    return result;
+    final $result = create();
+    if (user != null) {
+      $result.user = user;
+    }
+    if (chatMessage != null) {
+      $result.chatMessage = chatMessage;
+    }
+    if (rpcRequest != null) {
+      $result.rpcRequest = rpcRequest;
+    }
+    if (rpcAck != null) {
+      $result.rpcAck = rpcAck;
+    }
+    if (rpcResponse != null) {
+      $result.rpcResponse = rpcResponse;
+    }
+    if (streamHeader != null) {
+      $result.streamHeader = streamHeader;
+    }
+    if (streamChunk != null) {
+      $result.streamChunk = streamChunk;
+    }
+    if (streamTrailer != null) {
+      $result.streamTrailer = streamTrailer;
+    }
+    return $result;
   }
-
-  EncryptedPacketPayload._();
-
-  factory EncryptedPacketPayload.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory EncryptedPacketPayload.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  EncryptedPacketPayload._() : super();
+  factory EncryptedPacketPayload.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory EncryptedPacketPayload.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, EncryptedPacketPayload_Value>
       _EncryptedPacketPayload_ValueByTag = {
@@ -2126,21 +2636,23 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
         subBuilder: DataStream_Trailer.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   EncryptedPacketPayload clone() =>
       EncryptedPacketPayload()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   EncryptedPacketPayload copyWith(
           void Function(EncryptedPacketPayload) updates) =>
       super.copyWith((message) => updates(message as EncryptedPacketPayload))
           as EncryptedPacketPayload;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static EncryptedPacketPayload create() => EncryptedPacketPayload._();
-  @$core.override
   EncryptedPacketPayload createEmptyInstance() => create();
   static $pb.PbList<EncryptedPacketPayload> createRepeated() =>
       $pb.PbList<EncryptedPacketPayload>();
@@ -2156,7 +2668,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   UserPacket get user => $_getN(0);
   @$pb.TagNumber(1)
-  set user(UserPacket value) => $_setField(1, value);
+  set user(UserPacket v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasUser() => $_has(0);
   @$pb.TagNumber(1)
@@ -2167,7 +2682,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ChatMessage get chatMessage => $_getN(1);
   @$pb.TagNumber(3)
-  set chatMessage(ChatMessage value) => $_setField(3, value);
+  set chatMessage(ChatMessage v) {
+    $_setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasChatMessage() => $_has(1);
   @$pb.TagNumber(3)
@@ -2178,7 +2696,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   RpcRequest get rpcRequest => $_getN(2);
   @$pb.TagNumber(4)
-  set rpcRequest(RpcRequest value) => $_setField(4, value);
+  set rpcRequest(RpcRequest v) {
+    $_setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasRpcRequest() => $_has(2);
   @$pb.TagNumber(4)
@@ -2189,7 +2710,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   RpcAck get rpcAck => $_getN(3);
   @$pb.TagNumber(5)
-  set rpcAck(RpcAck value) => $_setField(5, value);
+  set rpcAck(RpcAck v) {
+    $_setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasRpcAck() => $_has(3);
   @$pb.TagNumber(5)
@@ -2200,7 +2724,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   RpcResponse get rpcResponse => $_getN(4);
   @$pb.TagNumber(6)
-  set rpcResponse(RpcResponse value) => $_setField(6, value);
+  set rpcResponse(RpcResponse v) {
+    $_setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasRpcResponse() => $_has(4);
   @$pb.TagNumber(6)
@@ -2211,7 +2738,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   DataStream_Header get streamHeader => $_getN(5);
   @$pb.TagNumber(7)
-  set streamHeader(DataStream_Header value) => $_setField(7, value);
+  set streamHeader(DataStream_Header v) {
+    $_setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasStreamHeader() => $_has(5);
   @$pb.TagNumber(7)
@@ -2222,7 +2752,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   DataStream_Chunk get streamChunk => $_getN(6);
   @$pb.TagNumber(8)
-  set streamChunk(DataStream_Chunk value) => $_setField(8, value);
+  set streamChunk(DataStream_Chunk v) {
+    $_setField(8, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasStreamChunk() => $_has(6);
   @$pb.TagNumber(8)
@@ -2233,7 +2766,10 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   DataStream_Trailer get streamTrailer => $_getN(7);
   @$pb.TagNumber(9)
-  set streamTrailer(DataStream_Trailer value) => $_setField(9, value);
+  set streamTrailer(DataStream_Trailer v) {
+    $_setField(9, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasStreamTrailer() => $_has(7);
   @$pb.TagNumber(9)
@@ -2247,19 +2783,19 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   factory ActiveSpeakerUpdate({
     $core.Iterable<SpeakerInfo>? speakers,
   }) {
-    final result = create();
-    if (speakers != null) result.speakers.addAll(speakers);
-    return result;
+    final $result = create();
+    if (speakers != null) {
+      $result.speakers.addAll(speakers);
+    }
+    return $result;
   }
-
-  ActiveSpeakerUpdate._();
-
-  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ActiveSpeakerUpdate.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ActiveSpeakerUpdate._() : super();
+  factory ActiveSpeakerUpdate.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ActiveSpeakerUpdate.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ActiveSpeakerUpdate',
@@ -2269,19 +2805,21 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
         subBuilder: SpeakerInfo.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ActiveSpeakerUpdate clone() => ActiveSpeakerUpdate()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) =>
       super.copyWith((message) => updates(message as ActiveSpeakerUpdate))
           as ActiveSpeakerUpdate;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
-  @$core.override
   ActiveSpeakerUpdate createEmptyInstance() => create();
   static $pb.PbList<ActiveSpeakerUpdate> createRepeated() =>
       $pb.PbList<ActiveSpeakerUpdate>();
@@ -2300,21 +2838,25 @@ class SpeakerInfo extends $pb.GeneratedMessage {
     $core.double? level,
     $core.bool? active,
   }) {
-    final result = create();
-    if (sid != null) result.sid = sid;
-    if (level != null) result.level = level;
-    if (active != null) result.active = active;
-    return result;
+    final $result = create();
+    if (sid != null) {
+      $result.sid = sid;
+    }
+    if (level != null) {
+      $result.level = level;
+    }
+    if (active != null) {
+      $result.active = active;
+    }
+    return $result;
   }
-
-  SpeakerInfo._();
-
-  factory SpeakerInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory SpeakerInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  SpeakerInfo._() : super();
+  factory SpeakerInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SpeakerInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SpeakerInfo',
@@ -2325,19 +2867,21 @@ class SpeakerInfo extends $pb.GeneratedMessage {
     ..aOB(3, _omitFieldNames ? '' : 'active')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   SpeakerInfo clone() => SpeakerInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   SpeakerInfo copyWith(void Function(SpeakerInfo) updates) =>
       super.copyWith((message) => updates(message as SpeakerInfo))
           as SpeakerInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SpeakerInfo create() => SpeakerInfo._();
-  @$core.override
   SpeakerInfo createEmptyInstance() => create();
   static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
   @$core.pragma('dart2js:noInline')
@@ -2348,7 +2892,10 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get sid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set sid($core.String value) => $_setString(0, value);
+  set sid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -2358,7 +2905,10 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.double get level => $_getN(1);
   @$pb.TagNumber(2)
-  set level($core.double value) => $_setFloat(1, value);
+  set level($core.double v) {
+    $_setFloat(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasLevel() => $_has(1);
   @$pb.TagNumber(2)
@@ -2368,7 +2918,10 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool get active => $_getBF(2);
   @$pb.TagNumber(3)
-  set active($core.bool value) => $_setBool(2, value);
+  set active($core.bool v) {
+    $_setBool(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasActive() => $_has(2);
   @$pb.TagNumber(3)
@@ -2391,30 +2944,50 @@ class UserPacket extends $pb.GeneratedMessage {
     $fixnum.Int64? endTime,
     $core.List<$core.int>? nonce,
   }) {
-    final result = create();
-    if (participantSid != null) result.participantSid = participantSid;
-    if (payload != null) result.payload = payload;
-    if (destinationSids != null) result.destinationSids.addAll(destinationSids);
-    if (topic != null) result.topic = topic;
-    if (participantIdentity != null)
-      result.participantIdentity = participantIdentity;
-    if (destinationIdentities != null)
-      result.destinationIdentities.addAll(destinationIdentities);
-    if (id != null) result.id = id;
-    if (startTime != null) result.startTime = startTime;
-    if (endTime != null) result.endTime = endTime;
-    if (nonce != null) result.nonce = nonce;
-    return result;
+    final $result = create();
+    if (participantSid != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.participantSid = participantSid;
+    }
+    if (payload != null) {
+      $result.payload = payload;
+    }
+    if (destinationSids != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.destinationSids.addAll(destinationSids);
+    }
+    if (topic != null) {
+      $result.topic = topic;
+    }
+    if (participantIdentity != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.participantIdentity = participantIdentity;
+    }
+    if (destinationIdentities != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.destinationIdentities.addAll(destinationIdentities);
+    }
+    if (id != null) {
+      $result.id = id;
+    }
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (nonce != null) {
+      $result.nonce = nonce;
+    }
+    return $result;
   }
-
-  UserPacket._();
-
-  factory UserPacket.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory UserPacket.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  UserPacket._() : super();
+  factory UserPacket.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory UserPacket.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'UserPacket',
@@ -2438,18 +3011,20 @@ class UserPacket extends $pb.GeneratedMessage {
         11, _omitFieldNames ? '' : 'nonce', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   UserPacket clone() => UserPacket()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   UserPacket copyWith(void Function(UserPacket) updates) =>
       super.copyWith((message) => updates(message as UserPacket)) as UserPacket;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static UserPacket create() => UserPacket._();
-  @$core.override
   UserPacket createEmptyInstance() => create();
   static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
   @$core.pragma('dart2js:noInline')
@@ -2463,7 +3038,10 @@ class UserPacket extends $pb.GeneratedMessage {
   $core.String get participantSid => $_getSZ(0);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
-  set participantSid($core.String value) => $_setString(0, value);
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(1)
   $core.bool hasParticipantSid() => $_has(0);
@@ -2475,7 +3053,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.List<$core.int> get payload => $_getN(1);
   @$pb.TagNumber(2)
-  set payload($core.List<$core.int> value) => $_setBytes(1, value);
+  set payload($core.List<$core.int> v) {
+    $_setBytes(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasPayload() => $_has(1);
   @$pb.TagNumber(2)
@@ -2490,7 +3071,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get topic => $_getSZ(3);
   @$pb.TagNumber(4)
-  set topic($core.String value) => $_setString(3, value);
+  set topic($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasTopic() => $_has(3);
   @$pb.TagNumber(4)
@@ -2501,7 +3085,10 @@ class UserPacket extends $pb.GeneratedMessage {
   $core.String get participantIdentity => $_getSZ(4);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
-  set participantIdentity($core.String value) => $_setString(4, value);
+  set participantIdentity($core.String v) {
+    $_setString(4, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasParticipantIdentity() => $_has(4);
@@ -2518,7 +3105,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get id => $_getSZ(6);
   @$pb.TagNumber(8)
-  set id($core.String value) => $_setString(6, value);
+  set id($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasId() => $_has(6);
   @$pb.TagNumber(8)
@@ -2528,7 +3118,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $fixnum.Int64 get startTime => $_getI64(7);
   @$pb.TagNumber(9)
-  set startTime($fixnum.Int64 value) => $_setInt64(7, value);
+  set startTime($fixnum.Int64 v) {
+    $_setInt64(7, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasStartTime() => $_has(7);
   @$pb.TagNumber(9)
@@ -2537,7 +3130,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $fixnum.Int64 get endTime => $_getI64(8);
   @$pb.TagNumber(10)
-  set endTime($fixnum.Int64 value) => $_setInt64(8, value);
+  set endTime($fixnum.Int64 v) {
+    $_setInt64(8, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasEndTime() => $_has(8);
   @$pb.TagNumber(10)
@@ -2547,7 +3143,10 @@ class UserPacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.List<$core.int> get nonce => $_getN(9);
   @$pb.TagNumber(11)
-  set nonce($core.List<$core.int> value) => $_setBytes(9, value);
+  set nonce($core.List<$core.int> v) {
+    $_setBytes(9, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasNonce() => $_has(9);
   @$pb.TagNumber(11)
@@ -2559,20 +3158,22 @@ class SipDTMF extends $pb.GeneratedMessage {
     $core.int? code,
     $core.String? digit,
   }) {
-    final result = create();
-    if (code != null) result.code = code;
-    if (digit != null) result.digit = digit;
-    return result;
+    final $result = create();
+    if (code != null) {
+      $result.code = code;
+    }
+    if (digit != null) {
+      $result.digit = digit;
+    }
+    return $result;
   }
-
-  SipDTMF._();
-
-  factory SipDTMF.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory SipDTMF.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  SipDTMF._() : super();
+  factory SipDTMF.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SipDTMF.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'SipDTMF',
@@ -2582,18 +3183,20 @@ class SipDTMF extends $pb.GeneratedMessage {
     ..aOS(4, _omitFieldNames ? '' : 'digit')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   SipDTMF clone() => SipDTMF()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   SipDTMF copyWith(void Function(SipDTMF) updates) =>
       super.copyWith((message) => updates(message as SipDTMF)) as SipDTMF;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static SipDTMF create() => SipDTMF._();
-  @$core.override
   SipDTMF createEmptyInstance() => create();
   static $pb.PbList<SipDTMF> createRepeated() => $pb.PbList<SipDTMF>();
   @$core.pragma('dart2js:noInline')
@@ -2604,7 +3207,10 @@ class SipDTMF extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get code => $_getIZ(0);
   @$pb.TagNumber(3)
-  set code($core.int value) => $_setUnsignedInt32(0, value);
+  set code($core.int v) {
+    $_setUnsignedInt32(0, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasCode() => $_has(0);
   @$pb.TagNumber(3)
@@ -2613,7 +3219,10 @@ class SipDTMF extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get digit => $_getSZ(1);
   @$pb.TagNumber(4)
-  set digit($core.String value) => $_setString(1, value);
+  set digit($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasDigit() => $_has(1);
   @$pb.TagNumber(4)
@@ -2626,22 +3235,25 @@ class Transcription extends $pb.GeneratedMessage {
     $core.String? trackId,
     $core.Iterable<TranscriptionSegment>? segments,
   }) {
-    final result = create();
-    if (transcribedParticipantIdentity != null)
-      result.transcribedParticipantIdentity = transcribedParticipantIdentity;
-    if (trackId != null) result.trackId = trackId;
-    if (segments != null) result.segments.addAll(segments);
-    return result;
+    final $result = create();
+    if (transcribedParticipantIdentity != null) {
+      $result.transcribedParticipantIdentity = transcribedParticipantIdentity;
+    }
+    if (trackId != null) {
+      $result.trackId = trackId;
+    }
+    if (segments != null) {
+      $result.segments.addAll(segments);
+    }
+    return $result;
   }
-
-  Transcription._();
-
-  factory Transcription.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory Transcription.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  Transcription._() : super();
+  factory Transcription.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Transcription.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Transcription',
@@ -2654,19 +3266,21 @@ class Transcription extends $pb.GeneratedMessage {
         subBuilder: TranscriptionSegment.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Transcription clone() => Transcription()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   Transcription copyWith(void Function(Transcription) updates) =>
       super.copyWith((message) => updates(message as Transcription))
           as Transcription;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static Transcription create() => Transcription._();
-  @$core.override
   Transcription createEmptyInstance() => create();
   static $pb.PbList<Transcription> createRepeated() =>
       $pb.PbList<Transcription>();
@@ -2679,8 +3293,10 @@ class Transcription extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get transcribedParticipantIdentity => $_getSZ(0);
   @$pb.TagNumber(2)
-  set transcribedParticipantIdentity($core.String value) =>
-      $_setString(0, value);
+  set transcribedParticipantIdentity($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTranscribedParticipantIdentity() => $_has(0);
   @$pb.TagNumber(2)
@@ -2689,7 +3305,10 @@ class Transcription extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get trackId => $_getSZ(1);
   @$pb.TagNumber(3)
-  set trackId($core.String value) => $_setString(1, value);
+  set trackId($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasTrackId() => $_has(1);
   @$pb.TagNumber(3)
@@ -2708,24 +3327,34 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
     $core.bool? final_5,
     $core.String? language,
   }) {
-    final result = create();
-    if (id != null) result.id = id;
-    if (text != null) result.text = text;
-    if (startTime != null) result.startTime = startTime;
-    if (endTime != null) result.endTime = endTime;
-    if (final_5 != null) result.final_5 = final_5;
-    if (language != null) result.language = language;
-    return result;
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (text != null) {
+      $result.text = text;
+    }
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (final_5 != null) {
+      $result.final_5 = final_5;
+    }
+    if (language != null) {
+      $result.language = language;
+    }
+    return $result;
   }
-
-  TranscriptionSegment._();
-
-  factory TranscriptionSegment.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory TranscriptionSegment.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  TranscriptionSegment._() : super();
+  factory TranscriptionSegment.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TranscriptionSegment.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'TranscriptionSegment',
@@ -2742,20 +3371,22 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'language')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TranscriptionSegment clone() =>
       TranscriptionSegment()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   TranscriptionSegment copyWith(void Function(TranscriptionSegment) updates) =>
       super.copyWith((message) => updates(message as TranscriptionSegment))
           as TranscriptionSegment;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TranscriptionSegment create() => TranscriptionSegment._();
-  @$core.override
   TranscriptionSegment createEmptyInstance() => create();
   static $pb.PbList<TranscriptionSegment> createRepeated() =>
       $pb.PbList<TranscriptionSegment>();
@@ -2767,7 +3398,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
-  set id($core.String value) => $_setString(0, value);
+  set id($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
@@ -2776,7 +3410,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get text => $_getSZ(1);
   @$pb.TagNumber(2)
-  set text($core.String value) => $_setString(1, value);
+  set text($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasText() => $_has(1);
   @$pb.TagNumber(2)
@@ -2785,7 +3422,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get startTime => $_getI64(2);
   @$pb.TagNumber(3)
-  set startTime($fixnum.Int64 value) => $_setInt64(2, value);
+  set startTime($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasStartTime() => $_has(2);
   @$pb.TagNumber(3)
@@ -2794,7 +3434,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get endTime => $_getI64(3);
   @$pb.TagNumber(4)
-  set endTime($fixnum.Int64 value) => $_setInt64(3, value);
+  set endTime($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasEndTime() => $_has(3);
   @$pb.TagNumber(4)
@@ -2803,7 +3446,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get final_5 => $_getBF(4);
   @$pb.TagNumber(5)
-  set final_5($core.bool value) => $_setBool(4, value);
+  set final_5($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasFinal_5() => $_has(4);
   @$pb.TagNumber(5)
@@ -2812,7 +3458,10 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get language => $_getSZ(5);
   @$pb.TagNumber(6)
-  set language($core.String value) => $_setString(5, value);
+  set language($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasLanguage() => $_has(5);
   @$pb.TagNumber(6)
@@ -2828,24 +3477,34 @@ class ChatMessage extends $pb.GeneratedMessage {
     $core.bool? deleted,
     $core.bool? generated,
   }) {
-    final result = create();
-    if (id != null) result.id = id;
-    if (timestamp != null) result.timestamp = timestamp;
-    if (editTimestamp != null) result.editTimestamp = editTimestamp;
-    if (message != null) result.message = message;
-    if (deleted != null) result.deleted = deleted;
-    if (generated != null) result.generated = generated;
-    return result;
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (timestamp != null) {
+      $result.timestamp = timestamp;
+    }
+    if (editTimestamp != null) {
+      $result.editTimestamp = editTimestamp;
+    }
+    if (message != null) {
+      $result.message = message;
+    }
+    if (deleted != null) {
+      $result.deleted = deleted;
+    }
+    if (generated != null) {
+      $result.generated = generated;
+    }
+    return $result;
   }
-
-  ChatMessage._();
-
-  factory ChatMessage.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ChatMessage.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ChatMessage._() : super();
+  factory ChatMessage.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ChatMessage.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ChatMessage',
@@ -2859,19 +3518,21 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..aOB(6, _omitFieldNames ? '' : 'generated')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ChatMessage clone() => ChatMessage()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ChatMessage copyWith(void Function(ChatMessage) updates) =>
       super.copyWith((message) => updates(message as ChatMessage))
           as ChatMessage;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ChatMessage create() => ChatMessage._();
-  @$core.override
   ChatMessage createEmptyInstance() => create();
   static $pb.PbList<ChatMessage> createRepeated() => $pb.PbList<ChatMessage>();
   @$core.pragma('dart2js:noInline')
@@ -2882,7 +3543,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
-  set id($core.String value) => $_setString(0, value);
+  set id($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
@@ -2891,7 +3555,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get timestamp => $_getI64(1);
   @$pb.TagNumber(2)
-  set timestamp($fixnum.Int64 value) => $_setInt64(1, value);
+  set timestamp($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTimestamp() => $_has(1);
   @$pb.TagNumber(2)
@@ -2900,7 +3567,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get editTimestamp => $_getI64(2);
   @$pb.TagNumber(3)
-  set editTimestamp($fixnum.Int64 value) => $_setInt64(2, value);
+  set editTimestamp($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasEditTimestamp() => $_has(2);
   @$pb.TagNumber(3)
@@ -2909,7 +3579,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get message => $_getSZ(3);
   @$pb.TagNumber(4)
-  set message($core.String value) => $_setString(3, value);
+  set message($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasMessage() => $_has(3);
   @$pb.TagNumber(4)
@@ -2918,7 +3591,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get deleted => $_getBF(4);
   @$pb.TagNumber(5)
-  set deleted($core.bool value) => $_setBool(4, value);
+  set deleted($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasDeleted() => $_has(4);
   @$pb.TagNumber(5)
@@ -2927,7 +3603,10 @@ class ChatMessage extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.bool get generated => $_getBF(5);
   @$pb.TagNumber(6)
-  set generated($core.bool value) => $_setBool(5, value);
+  set generated($core.bool v) {
+    $_setBool(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasGenerated() => $_has(5);
   @$pb.TagNumber(6)
@@ -2942,23 +3621,31 @@ class RpcRequest extends $pb.GeneratedMessage {
     $core.int? responseTimeoutMs,
     $core.int? version,
   }) {
-    final result = create();
-    if (id != null) result.id = id;
-    if (method != null) result.method = method;
-    if (payload != null) result.payload = payload;
-    if (responseTimeoutMs != null) result.responseTimeoutMs = responseTimeoutMs;
-    if (version != null) result.version = version;
-    return result;
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (method != null) {
+      $result.method = method;
+    }
+    if (payload != null) {
+      $result.payload = payload;
+    }
+    if (responseTimeoutMs != null) {
+      $result.responseTimeoutMs = responseTimeoutMs;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    return $result;
   }
-
-  RpcRequest._();
-
-  factory RpcRequest.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RpcRequest.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RpcRequest._() : super();
+  factory RpcRequest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RpcRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RpcRequest',
@@ -2972,18 +3659,20 @@ class RpcRequest extends $pb.GeneratedMessage {
     ..a<$core.int>(5, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RpcRequest clone() => RpcRequest()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RpcRequest copyWith(void Function(RpcRequest) updates) =>
       super.copyWith((message) => updates(message as RpcRequest)) as RpcRequest;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RpcRequest create() => RpcRequest._();
-  @$core.override
   RpcRequest createEmptyInstance() => create();
   static $pb.PbList<RpcRequest> createRepeated() => $pb.PbList<RpcRequest>();
   @$core.pragma('dart2js:noInline')
@@ -2994,7 +3683,10 @@ class RpcRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
-  set id($core.String value) => $_setString(0, value);
+  set id($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
@@ -3003,7 +3695,10 @@ class RpcRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get method => $_getSZ(1);
   @$pb.TagNumber(2)
-  set method($core.String value) => $_setString(1, value);
+  set method($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasMethod() => $_has(1);
   @$pb.TagNumber(2)
@@ -3012,7 +3707,10 @@ class RpcRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get payload => $_getSZ(2);
   @$pb.TagNumber(3)
-  set payload($core.String value) => $_setString(2, value);
+  set payload($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasPayload() => $_has(2);
   @$pb.TagNumber(3)
@@ -3021,7 +3719,10 @@ class RpcRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get responseTimeoutMs => $_getIZ(3);
   @$pb.TagNumber(4)
-  set responseTimeoutMs($core.int value) => $_setUnsignedInt32(3, value);
+  set responseTimeoutMs($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasResponseTimeoutMs() => $_has(3);
   @$pb.TagNumber(4)
@@ -3030,7 +3731,10 @@ class RpcRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.int get version => $_getIZ(4);
   @$pb.TagNumber(5)
-  set version($core.int value) => $_setUnsignedInt32(4, value);
+  set version($core.int v) {
+    $_setUnsignedInt32(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasVersion() => $_has(4);
   @$pb.TagNumber(5)
@@ -3041,19 +3745,19 @@ class RpcAck extends $pb.GeneratedMessage {
   factory RpcAck({
     $core.String? requestId,
   }) {
-    final result = create();
-    if (requestId != null) result.requestId = requestId;
-    return result;
+    final $result = create();
+    if (requestId != null) {
+      $result.requestId = requestId;
+    }
+    return $result;
   }
-
-  RpcAck._();
-
-  factory RpcAck.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RpcAck.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RpcAck._() : super();
+  factory RpcAck.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RpcAck.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RpcAck',
@@ -3062,18 +3766,20 @@ class RpcAck extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'requestId')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RpcAck clone() => RpcAck()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RpcAck copyWith(void Function(RpcAck) updates) =>
       super.copyWith((message) => updates(message as RpcAck)) as RpcAck;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RpcAck create() => RpcAck._();
-  @$core.override
   RpcAck createEmptyInstance() => create();
   static $pb.PbList<RpcAck> createRepeated() => $pb.PbList<RpcAck>();
   @$core.pragma('dart2js:noInline')
@@ -3084,7 +3790,10 @@ class RpcAck extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get requestId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set requestId($core.String value) => $_setString(0, value);
+  set requestId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasRequestId() => $_has(0);
   @$pb.TagNumber(1)
@@ -3099,21 +3808,25 @@ class RpcResponse extends $pb.GeneratedMessage {
     $core.String? payload,
     RpcError? error,
   }) {
-    final result = create();
-    if (requestId != null) result.requestId = requestId;
-    if (payload != null) result.payload = payload;
-    if (error != null) result.error = error;
-    return result;
+    final $result = create();
+    if (requestId != null) {
+      $result.requestId = requestId;
+    }
+    if (payload != null) {
+      $result.payload = payload;
+    }
+    if (error != null) {
+      $result.error = error;
+    }
+    return $result;
   }
-
-  RpcResponse._();
-
-  factory RpcResponse.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RpcResponse.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RpcResponse._() : super();
+  factory RpcResponse.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RpcResponse.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, RpcResponse_Value> _RpcResponse_ValueByTag =
       {
@@ -3132,19 +3845,21 @@ class RpcResponse extends $pb.GeneratedMessage {
         subBuilder: RpcError.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RpcResponse clone() => RpcResponse()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RpcResponse copyWith(void Function(RpcResponse) updates) =>
       super.copyWith((message) => updates(message as RpcResponse))
           as RpcResponse;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RpcResponse create() => RpcResponse._();
-  @$core.override
   RpcResponse createEmptyInstance() => create();
   static $pb.PbList<RpcResponse> createRepeated() => $pb.PbList<RpcResponse>();
   @$core.pragma('dart2js:noInline')
@@ -3158,7 +3873,10 @@ class RpcResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get requestId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set requestId($core.String value) => $_setString(0, value);
+  set requestId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasRequestId() => $_has(0);
   @$pb.TagNumber(1)
@@ -3167,7 +3885,10 @@ class RpcResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get payload => $_getSZ(1);
   @$pb.TagNumber(2)
-  set payload($core.String value) => $_setString(1, value);
+  set payload($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasPayload() => $_has(1);
   @$pb.TagNumber(2)
@@ -3176,7 +3897,10 @@ class RpcResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   RpcError get error => $_getN(2);
   @$pb.TagNumber(3)
-  set error(RpcError value) => $_setField(3, value);
+  set error(RpcError v) {
+    $_setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasError() => $_has(2);
   @$pb.TagNumber(3)
@@ -3191,21 +3915,25 @@ class RpcError extends $pb.GeneratedMessage {
     $core.String? message,
     $core.String? data,
   }) {
-    final result = create();
-    if (code != null) result.code = code;
-    if (message != null) result.message = message;
-    if (data != null) result.data = data;
-    return result;
+    final $result = create();
+    if (code != null) {
+      $result.code = code;
+    }
+    if (message != null) {
+      $result.message = message;
+    }
+    if (data != null) {
+      $result.data = data;
+    }
+    return $result;
   }
-
-  RpcError._();
-
-  factory RpcError.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RpcError.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RpcError._() : super();
+  factory RpcError.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RpcError.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RpcError',
@@ -3216,18 +3944,20 @@ class RpcError extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'data')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RpcError clone() => RpcError()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RpcError copyWith(void Function(RpcError) updates) =>
       super.copyWith((message) => updates(message as RpcError)) as RpcError;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RpcError create() => RpcError._();
-  @$core.override
   RpcError createEmptyInstance() => create();
   static $pb.PbList<RpcError> createRepeated() => $pb.PbList<RpcError>();
   @$core.pragma('dart2js:noInline')
@@ -3238,7 +3968,10 @@ class RpcError extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get code => $_getIZ(0);
   @$pb.TagNumber(1)
-  set code($core.int value) => $_setUnsignedInt32(0, value);
+  set code($core.int v) {
+    $_setUnsignedInt32(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasCode() => $_has(0);
   @$pb.TagNumber(1)
@@ -3247,7 +3980,10 @@ class RpcError extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get message => $_getSZ(1);
   @$pb.TagNumber(2)
-  set message($core.String value) => $_setString(1, value);
+  set message($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasMessage() => $_has(1);
   @$pb.TagNumber(2)
@@ -3256,7 +3992,10 @@ class RpcError extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get data => $_getSZ(2);
   @$pb.TagNumber(3)
-  set data($core.String value) => $_setString(2, value);
+  set data($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasData() => $_has(2);
   @$pb.TagNumber(3)
@@ -3268,20 +4007,22 @@ class ParticipantTracks extends $pb.GeneratedMessage {
     $core.String? participantSid,
     $core.Iterable<$core.String>? trackSids,
   }) {
-    final result = create();
-    if (participantSid != null) result.participantSid = participantSid;
-    if (trackSids != null) result.trackSids.addAll(trackSids);
-    return result;
+    final $result = create();
+    if (participantSid != null) {
+      $result.participantSid = participantSid;
+    }
+    if (trackSids != null) {
+      $result.trackSids.addAll(trackSids);
+    }
+    return $result;
   }
-
-  ParticipantTracks._();
-
-  factory ParticipantTracks.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ParticipantTracks.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ParticipantTracks._() : super();
+  factory ParticipantTracks.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ParticipantTracks.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ParticipantTracks',
@@ -3291,19 +4032,21 @@ class ParticipantTracks extends $pb.GeneratedMessage {
     ..pPS(2, _omitFieldNames ? '' : 'trackSids')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ParticipantTracks clone() => ParticipantTracks()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ParticipantTracks copyWith(void Function(ParticipantTracks) updates) =>
       super.copyWith((message) => updates(message as ParticipantTracks))
           as ParticipantTracks;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ParticipantTracks create() => ParticipantTracks._();
-  @$core.override
   ParticipantTracks createEmptyInstance() => create();
   static $pb.PbList<ParticipantTracks> createRepeated() =>
       $pb.PbList<ParticipantTracks>();
@@ -3316,7 +4059,10 @@ class ParticipantTracks extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get participantSid => $_getSZ(0);
   @$pb.TagNumber(1)
-  set participantSid($core.String value) => $_setString(0, value);
+  set participantSid($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasParticipantSid() => $_has(0);
   @$pb.TagNumber(1)
@@ -3337,25 +4083,37 @@ class ServerInfo extends $pb.GeneratedMessage {
     $core.String? debugInfo,
     $core.int? agentProtocol,
   }) {
-    final result = create();
-    if (edition != null) result.edition = edition;
-    if (version != null) result.version = version;
-    if (protocol != null) result.protocol = protocol;
-    if (region != null) result.region = region;
-    if (nodeId != null) result.nodeId = nodeId;
-    if (debugInfo != null) result.debugInfo = debugInfo;
-    if (agentProtocol != null) result.agentProtocol = agentProtocol;
-    return result;
+    final $result = create();
+    if (edition != null) {
+      $result.edition = edition;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (protocol != null) {
+      $result.protocol = protocol;
+    }
+    if (region != null) {
+      $result.region = region;
+    }
+    if (nodeId != null) {
+      $result.nodeId = nodeId;
+    }
+    if (debugInfo != null) {
+      $result.debugInfo = debugInfo;
+    }
+    if (agentProtocol != null) {
+      $result.agentProtocol = agentProtocol;
+    }
+    return $result;
   }
-
-  ServerInfo._();
-
-  factory ServerInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ServerInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ServerInfo._() : super();
+  factory ServerInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ServerInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ServerInfo',
@@ -3375,18 +4133,20 @@ class ServerInfo extends $pb.GeneratedMessage {
         7, _omitFieldNames ? '' : 'agentProtocol', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ServerInfo clone() => ServerInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ServerInfo copyWith(void Function(ServerInfo) updates) =>
       super.copyWith((message) => updates(message as ServerInfo)) as ServerInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ServerInfo create() => ServerInfo._();
-  @$core.override
   ServerInfo createEmptyInstance() => create();
   static $pb.PbList<ServerInfo> createRepeated() => $pb.PbList<ServerInfo>();
   @$core.pragma('dart2js:noInline')
@@ -3397,7 +4157,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ServerInfo_Edition get edition => $_getN(0);
   @$pb.TagNumber(1)
-  set edition(ServerInfo_Edition value) => $_setField(1, value);
+  set edition(ServerInfo_Edition v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasEdition() => $_has(0);
   @$pb.TagNumber(1)
@@ -3406,7 +4169,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String value) => $_setString(1, value);
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -3415,7 +4181,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get protocol => $_getIZ(2);
   @$pb.TagNumber(3)
-  set protocol($core.int value) => $_setSignedInt32(2, value);
+  set protocol($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasProtocol() => $_has(2);
   @$pb.TagNumber(3)
@@ -3424,7 +4193,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get region => $_getSZ(3);
   @$pb.TagNumber(4)
-  set region($core.String value) => $_setString(3, value);
+  set region($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasRegion() => $_has(3);
   @$pb.TagNumber(4)
@@ -3433,7 +4205,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get nodeId => $_getSZ(4);
   @$pb.TagNumber(5)
-  set nodeId($core.String value) => $_setString(4, value);
+  set nodeId($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasNodeId() => $_has(4);
   @$pb.TagNumber(5)
@@ -3443,7 +4218,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get debugInfo => $_getSZ(5);
   @$pb.TagNumber(6)
-  set debugInfo($core.String value) => $_setString(5, value);
+  set debugInfo($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasDebugInfo() => $_has(5);
   @$pb.TagNumber(6)
@@ -3452,7 +4230,10 @@ class ServerInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.int get agentProtocol => $_getIZ(6);
   @$pb.TagNumber(7)
-  set agentProtocol($core.int value) => $_setSignedInt32(6, value);
+  set agentProtocol($core.int v) {
+    $_setSignedInt32(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasAgentProtocol() => $_has(6);
   @$pb.TagNumber(7)
@@ -3474,29 +4255,49 @@ class ClientInfo extends $pb.GeneratedMessage {
     $core.String? network,
     $core.String? otherSdks,
   }) {
-    final result = create();
-    if (sdk != null) result.sdk = sdk;
-    if (version != null) result.version = version;
-    if (protocol != null) result.protocol = protocol;
-    if (os != null) result.os = os;
-    if (osVersion != null) result.osVersion = osVersion;
-    if (deviceModel != null) result.deviceModel = deviceModel;
-    if (browser != null) result.browser = browser;
-    if (browserVersion != null) result.browserVersion = browserVersion;
-    if (address != null) result.address = address;
-    if (network != null) result.network = network;
-    if (otherSdks != null) result.otherSdks = otherSdks;
-    return result;
+    final $result = create();
+    if (sdk != null) {
+      $result.sdk = sdk;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (protocol != null) {
+      $result.protocol = protocol;
+    }
+    if (os != null) {
+      $result.os = os;
+    }
+    if (osVersion != null) {
+      $result.osVersion = osVersion;
+    }
+    if (deviceModel != null) {
+      $result.deviceModel = deviceModel;
+    }
+    if (browser != null) {
+      $result.browser = browser;
+    }
+    if (browserVersion != null) {
+      $result.browserVersion = browserVersion;
+    }
+    if (address != null) {
+      $result.address = address;
+    }
+    if (network != null) {
+      $result.network = network;
+    }
+    if (otherSdks != null) {
+      $result.otherSdks = otherSdks;
+    }
+    return $result;
   }
-
-  ClientInfo._();
-
-  factory ClientInfo.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ClientInfo.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ClientInfo._() : super();
+  factory ClientInfo.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ClientInfo.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ClientInfo',
@@ -3518,18 +4319,20 @@ class ClientInfo extends $pb.GeneratedMessage {
     ..aOS(11, _omitFieldNames ? '' : 'otherSdks')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ClientInfo clone() => ClientInfo()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ClientInfo copyWith(void Function(ClientInfo) updates) =>
       super.copyWith((message) => updates(message as ClientInfo)) as ClientInfo;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ClientInfo create() => ClientInfo._();
-  @$core.override
   ClientInfo createEmptyInstance() => create();
   static $pb.PbList<ClientInfo> createRepeated() => $pb.PbList<ClientInfo>();
   @$core.pragma('dart2js:noInline')
@@ -3540,7 +4343,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ClientInfo_SDK get sdk => $_getN(0);
   @$pb.TagNumber(1)
-  set sdk(ClientInfo_SDK value) => $_setField(1, value);
+  set sdk(ClientInfo_SDK v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasSdk() => $_has(0);
   @$pb.TagNumber(1)
@@ -3549,7 +4355,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
-  set version($core.String value) => $_setString(1, value);
+  set version($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -3558,7 +4367,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get protocol => $_getIZ(2);
   @$pb.TagNumber(3)
-  set protocol($core.int value) => $_setSignedInt32(2, value);
+  set protocol($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasProtocol() => $_has(2);
   @$pb.TagNumber(3)
@@ -3567,7 +4379,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get os => $_getSZ(3);
   @$pb.TagNumber(4)
-  set os($core.String value) => $_setString(3, value);
+  set os($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasOs() => $_has(3);
   @$pb.TagNumber(4)
@@ -3576,7 +4391,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.String get osVersion => $_getSZ(4);
   @$pb.TagNumber(5)
-  set osVersion($core.String value) => $_setString(4, value);
+  set osVersion($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasOsVersion() => $_has(4);
   @$pb.TagNumber(5)
@@ -3585,7 +4403,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.String get deviceModel => $_getSZ(5);
   @$pb.TagNumber(6)
-  set deviceModel($core.String value) => $_setString(5, value);
+  set deviceModel($core.String v) {
+    $_setString(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasDeviceModel() => $_has(5);
   @$pb.TagNumber(6)
@@ -3594,7 +4415,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get browser => $_getSZ(6);
   @$pb.TagNumber(7)
-  set browser($core.String value) => $_setString(6, value);
+  set browser($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasBrowser() => $_has(6);
   @$pb.TagNumber(7)
@@ -3603,7 +4427,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.String get browserVersion => $_getSZ(7);
   @$pb.TagNumber(8)
-  set browserVersion($core.String value) => $_setString(7, value);
+  set browserVersion($core.String v) {
+    $_setString(7, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasBrowserVersion() => $_has(7);
   @$pb.TagNumber(8)
@@ -3612,7 +4439,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.String get address => $_getSZ(8);
   @$pb.TagNumber(9)
-  set address($core.String value) => $_setString(8, value);
+  set address($core.String v) {
+    $_setString(8, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasAddress() => $_has(8);
   @$pb.TagNumber(9)
@@ -3622,7 +4452,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.String get network => $_getSZ(9);
   @$pb.TagNumber(10)
-  set network($core.String value) => $_setString(9, value);
+  set network($core.String v) {
+    $_setString(9, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasNetwork() => $_has(9);
   @$pb.TagNumber(10)
@@ -3633,7 +4466,10 @@ class ClientInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.String get otherSdks => $_getSZ(10);
   @$pb.TagNumber(11)
-  set otherSdks($core.String value) => $_setString(10, value);
+  set otherSdks($core.String v) {
+    $_setString(10, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasOtherSdks() => $_has(10);
   @$pb.TagNumber(11)
@@ -3649,23 +4485,31 @@ class ClientConfiguration extends $pb.GeneratedMessage {
     DisabledCodecs? disabledCodecs,
     ClientConfigSetting? forceRelay,
   }) {
-    final result = create();
-    if (video != null) result.video = video;
-    if (screen != null) result.screen = screen;
-    if (resumeConnection != null) result.resumeConnection = resumeConnection;
-    if (disabledCodecs != null) result.disabledCodecs = disabledCodecs;
-    if (forceRelay != null) result.forceRelay = forceRelay;
-    return result;
+    final $result = create();
+    if (video != null) {
+      $result.video = video;
+    }
+    if (screen != null) {
+      $result.screen = screen;
+    }
+    if (resumeConnection != null) {
+      $result.resumeConnection = resumeConnection;
+    }
+    if (disabledCodecs != null) {
+      $result.disabledCodecs = disabledCodecs;
+    }
+    if (forceRelay != null) {
+      $result.forceRelay = forceRelay;
+    }
+    return $result;
   }
-
-  ClientConfiguration._();
-
-  factory ClientConfiguration.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory ClientConfiguration.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  ClientConfiguration._() : super();
+  factory ClientConfiguration.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory ClientConfiguration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'ClientConfiguration',
@@ -3689,19 +4533,21 @@ class ClientConfiguration extends $pb.GeneratedMessage {
         enumValues: ClientConfigSetting.values)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   ClientConfiguration clone() => ClientConfiguration()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   ClientConfiguration copyWith(void Function(ClientConfiguration) updates) =>
       super.copyWith((message) => updates(message as ClientConfiguration))
           as ClientConfiguration;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static ClientConfiguration create() => ClientConfiguration._();
-  @$core.override
   ClientConfiguration createEmptyInstance() => create();
   static $pb.PbList<ClientConfiguration> createRepeated() =>
       $pb.PbList<ClientConfiguration>();
@@ -3713,7 +4559,10 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   VideoConfiguration get video => $_getN(0);
   @$pb.TagNumber(1)
-  set video(VideoConfiguration value) => $_setField(1, value);
+  set video(VideoConfiguration v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasVideo() => $_has(0);
   @$pb.TagNumber(1)
@@ -3724,7 +4573,10 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   VideoConfiguration get screen => $_getN(1);
   @$pb.TagNumber(2)
-  set screen(VideoConfiguration value) => $_setField(2, value);
+  set screen(VideoConfiguration v) {
+    $_setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasScreen() => $_has(1);
   @$pb.TagNumber(2)
@@ -3735,7 +4587,10 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   ClientConfigSetting get resumeConnection => $_getN(2);
   @$pb.TagNumber(3)
-  set resumeConnection(ClientConfigSetting value) => $_setField(3, value);
+  set resumeConnection(ClientConfigSetting v) {
+    $_setField(3, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasResumeConnection() => $_has(2);
   @$pb.TagNumber(3)
@@ -3744,7 +4599,10 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   DisabledCodecs get disabledCodecs => $_getN(3);
   @$pb.TagNumber(4)
-  set disabledCodecs(DisabledCodecs value) => $_setField(4, value);
+  set disabledCodecs(DisabledCodecs v) {
+    $_setField(4, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasDisabledCodecs() => $_has(3);
   @$pb.TagNumber(4)
@@ -3755,7 +4613,10 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   ClientConfigSetting get forceRelay => $_getN(4);
   @$pb.TagNumber(5)
-  set forceRelay(ClientConfigSetting value) => $_setField(5, value);
+  set forceRelay(ClientConfigSetting v) {
+    $_setField(5, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasForceRelay() => $_has(4);
   @$pb.TagNumber(5)
@@ -3766,19 +4627,19 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   factory VideoConfiguration({
     ClientConfigSetting? hardwareEncoder,
   }) {
-    final result = create();
-    if (hardwareEncoder != null) result.hardwareEncoder = hardwareEncoder;
-    return result;
+    final $result = create();
+    if (hardwareEncoder != null) {
+      $result.hardwareEncoder = hardwareEncoder;
+    }
+    return $result;
   }
-
-  VideoConfiguration._();
-
-  factory VideoConfiguration.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory VideoConfiguration.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  VideoConfiguration._() : super();
+  factory VideoConfiguration.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VideoConfiguration.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'VideoConfiguration',
@@ -3791,19 +4652,21 @@ class VideoConfiguration extends $pb.GeneratedMessage {
         enumValues: ClientConfigSetting.values)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   VideoConfiguration clone() => VideoConfiguration()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   VideoConfiguration copyWith(void Function(VideoConfiguration) updates) =>
       super.copyWith((message) => updates(message as VideoConfiguration))
           as VideoConfiguration;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static VideoConfiguration create() => VideoConfiguration._();
-  @$core.override
   VideoConfiguration createEmptyInstance() => create();
   static $pb.PbList<VideoConfiguration> createRepeated() =>
       $pb.PbList<VideoConfiguration>();
@@ -3815,7 +4678,10 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   ClientConfigSetting get hardwareEncoder => $_getN(0);
   @$pb.TagNumber(1)
-  set hardwareEncoder(ClientConfigSetting value) => $_setField(1, value);
+  set hardwareEncoder(ClientConfigSetting v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasHardwareEncoder() => $_has(0);
   @$pb.TagNumber(1)
@@ -3827,20 +4693,22 @@ class DisabledCodecs extends $pb.GeneratedMessage {
     $core.Iterable<Codec>? codecs,
     $core.Iterable<Codec>? publish,
   }) {
-    final result = create();
-    if (codecs != null) result.codecs.addAll(codecs);
-    if (publish != null) result.publish.addAll(publish);
-    return result;
+    final $result = create();
+    if (codecs != null) {
+      $result.codecs.addAll(codecs);
+    }
+    if (publish != null) {
+      $result.publish.addAll(publish);
+    }
+    return $result;
   }
-
-  DisabledCodecs._();
-
-  factory DisabledCodecs.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DisabledCodecs.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DisabledCodecs._() : super();
+  factory DisabledCodecs.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DisabledCodecs.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DisabledCodecs',
@@ -3852,19 +4720,21 @@ class DisabledCodecs extends $pb.GeneratedMessage {
         subBuilder: Codec.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DisabledCodecs clone() => DisabledCodecs()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DisabledCodecs copyWith(void Function(DisabledCodecs) updates) =>
       super.copyWith((message) => updates(message as DisabledCodecs))
           as DisabledCodecs;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DisabledCodecs create() => DisabledCodecs._();
-  @$core.override
   DisabledCodecs createEmptyInstance() => create();
   static $pb.PbList<DisabledCodecs> createRepeated() =>
       $pb.PbList<DisabledCodecs>();
@@ -3894,27 +4764,43 @@ class RTPDrift extends $pb.GeneratedMessage {
     $core.double? driftMs,
     $core.double? clockRate,
   }) {
-    final result = create();
-    if (startTime != null) result.startTime = startTime;
-    if (endTime != null) result.endTime = endTime;
-    if (duration != null) result.duration = duration;
-    if (startTimestamp != null) result.startTimestamp = startTimestamp;
-    if (endTimestamp != null) result.endTimestamp = endTimestamp;
-    if (rtpClockTicks != null) result.rtpClockTicks = rtpClockTicks;
-    if (driftSamples != null) result.driftSamples = driftSamples;
-    if (driftMs != null) result.driftMs = driftMs;
-    if (clockRate != null) result.clockRate = clockRate;
-    return result;
+    final $result = create();
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (duration != null) {
+      $result.duration = duration;
+    }
+    if (startTimestamp != null) {
+      $result.startTimestamp = startTimestamp;
+    }
+    if (endTimestamp != null) {
+      $result.endTimestamp = endTimestamp;
+    }
+    if (rtpClockTicks != null) {
+      $result.rtpClockTicks = rtpClockTicks;
+    }
+    if (driftSamples != null) {
+      $result.driftSamples = driftSamples;
+    }
+    if (driftMs != null) {
+      $result.driftMs = driftMs;
+    }
+    if (clockRate != null) {
+      $result.clockRate = clockRate;
+    }
+    return $result;
   }
-
-  RTPDrift._();
-
-  factory RTPDrift.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RTPDrift.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RTPDrift._() : super();
+  factory RTPDrift.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPDrift.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RTPDrift',
@@ -3939,18 +4825,20 @@ class RTPDrift extends $pb.GeneratedMessage {
     ..a<$core.double>(9, _omitFieldNames ? '' : 'clockRate', $pb.PbFieldType.OD)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RTPDrift clone() => RTPDrift()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RTPDrift copyWith(void Function(RTPDrift) updates) =>
       super.copyWith((message) => updates(message as RTPDrift)) as RTPDrift;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RTPDrift create() => RTPDrift._();
-  @$core.override
   RTPDrift createEmptyInstance() => create();
   static $pb.PbList<RTPDrift> createRepeated() => $pb.PbList<RTPDrift>();
   @$core.pragma('dart2js:noInline')
@@ -3961,7 +4849,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($0.Timestamp value) => $_setField(1, value);
+  set startTime($0.Timestamp v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStartTime() => $_has(0);
   @$pb.TagNumber(1)
@@ -3972,7 +4863,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($0.Timestamp value) => $_setField(2, value);
+  set endTime($0.Timestamp v) {
+    $_setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasEndTime() => $_has(1);
   @$pb.TagNumber(2)
@@ -3983,7 +4877,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
   @$pb.TagNumber(3)
-  set duration($core.double value) => $_setDouble(2, value);
+  set duration($core.double v) {
+    $_setDouble(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasDuration() => $_has(2);
   @$pb.TagNumber(3)
@@ -3992,7 +4889,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get startTimestamp => $_getI64(3);
   @$pb.TagNumber(4)
-  set startTimestamp($fixnum.Int64 value) => $_setInt64(3, value);
+  set startTimestamp($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasStartTimestamp() => $_has(3);
   @$pb.TagNumber(4)
@@ -4001,7 +4901,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get endTimestamp => $_getI64(4);
   @$pb.TagNumber(5)
-  set endTimestamp($fixnum.Int64 value) => $_setInt64(4, value);
+  set endTimestamp($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasEndTimestamp() => $_has(4);
   @$pb.TagNumber(5)
@@ -4010,7 +4913,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $fixnum.Int64 get rtpClockTicks => $_getI64(5);
   @$pb.TagNumber(6)
-  set rtpClockTicks($fixnum.Int64 value) => $_setInt64(5, value);
+  set rtpClockTicks($fixnum.Int64 v) {
+    $_setInt64(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasRtpClockTicks() => $_has(5);
   @$pb.TagNumber(6)
@@ -4019,7 +4925,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $fixnum.Int64 get driftSamples => $_getI64(6);
   @$pb.TagNumber(7)
-  set driftSamples($fixnum.Int64 value) => $_setInt64(6, value);
+  set driftSamples($fixnum.Int64 v) {
+    $_setInt64(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasDriftSamples() => $_has(6);
   @$pb.TagNumber(7)
@@ -4028,7 +4937,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.double get driftMs => $_getN(7);
   @$pb.TagNumber(8)
-  set driftMs($core.double value) => $_setDouble(7, value);
+  set driftMs($core.double v) {
+    $_setDouble(7, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasDriftMs() => $_has(7);
   @$pb.TagNumber(8)
@@ -4037,7 +4949,10 @@ class RTPDrift extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.double get clockRate => $_getN(8);
   @$pb.TagNumber(9)
-  set clockRate($core.double value) => $_setDouble(8, value);
+  set clockRate($core.double v) {
+    $_setDouble(8, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasClockRate() => $_has(8);
   @$pb.TagNumber(9)
@@ -4092,69 +5007,151 @@ class RTPStats extends $pb.GeneratedMessage {
     RTPDrift? rebasedReportDrift,
     RTPDrift? receivedReportDrift,
   }) {
-    final result = create();
-    if (startTime != null) result.startTime = startTime;
-    if (endTime != null) result.endTime = endTime;
-    if (duration != null) result.duration = duration;
-    if (packets != null) result.packets = packets;
-    if (packetRate != null) result.packetRate = packetRate;
-    if (bytes != null) result.bytes = bytes;
-    if (bitrate != null) result.bitrate = bitrate;
-    if (packetsLost != null) result.packetsLost = packetsLost;
-    if (packetLossRate != null) result.packetLossRate = packetLossRate;
-    if (packetLossPercentage != null)
-      result.packetLossPercentage = packetLossPercentage;
-    if (packetsDuplicate != null) result.packetsDuplicate = packetsDuplicate;
-    if (packetDuplicateRate != null)
-      result.packetDuplicateRate = packetDuplicateRate;
-    if (bytesDuplicate != null) result.bytesDuplicate = bytesDuplicate;
-    if (bitrateDuplicate != null) result.bitrateDuplicate = bitrateDuplicate;
-    if (packetsPadding != null) result.packetsPadding = packetsPadding;
-    if (packetPaddingRate != null) result.packetPaddingRate = packetPaddingRate;
-    if (bytesPadding != null) result.bytesPadding = bytesPadding;
-    if (bitratePadding != null) result.bitratePadding = bitratePadding;
-    if (packetsOutOfOrder != null) result.packetsOutOfOrder = packetsOutOfOrder;
-    if (frames != null) result.frames = frames;
-    if (frameRate != null) result.frameRate = frameRate;
-    if (jitterCurrent != null) result.jitterCurrent = jitterCurrent;
-    if (jitterMax != null) result.jitterMax = jitterMax;
-    if (gapHistogram != null) result.gapHistogram.addEntries(gapHistogram);
-    if (nacks != null) result.nacks = nacks;
-    if (nackMisses != null) result.nackMisses = nackMisses;
-    if (plis != null) result.plis = plis;
-    if (lastPli != null) result.lastPli = lastPli;
-    if (firs != null) result.firs = firs;
-    if (lastFir != null) result.lastFir = lastFir;
-    if (rttCurrent != null) result.rttCurrent = rttCurrent;
-    if (rttMax != null) result.rttMax = rttMax;
-    if (keyFrames != null) result.keyFrames = keyFrames;
-    if (lastKeyFrame != null) result.lastKeyFrame = lastKeyFrame;
-    if (layerLockPlis != null) result.layerLockPlis = layerLockPlis;
-    if (lastLayerLockPli != null) result.lastLayerLockPli = lastLayerLockPli;
-    if (nackAcks != null) result.nackAcks = nackAcks;
-    if (nackRepeated != null) result.nackRepeated = nackRepeated;
-    if (headerBytes != null) result.headerBytes = headerBytes;
-    if (headerBytesDuplicate != null)
-      result.headerBytesDuplicate = headerBytesDuplicate;
-    if (headerBytesPadding != null)
-      result.headerBytesPadding = headerBytesPadding;
-    if (packetDrift != null) result.packetDrift = packetDrift;
-    if (ntpReportDrift != null) result.ntpReportDrift = ntpReportDrift;
-    if (rebasedReportDrift != null)
-      result.rebasedReportDrift = rebasedReportDrift;
-    if (receivedReportDrift != null)
-      result.receivedReportDrift = receivedReportDrift;
-    return result;
+    final $result = create();
+    if (startTime != null) {
+      $result.startTime = startTime;
+    }
+    if (endTime != null) {
+      $result.endTime = endTime;
+    }
+    if (duration != null) {
+      $result.duration = duration;
+    }
+    if (packets != null) {
+      $result.packets = packets;
+    }
+    if (packetRate != null) {
+      $result.packetRate = packetRate;
+    }
+    if (bytes != null) {
+      $result.bytes = bytes;
+    }
+    if (bitrate != null) {
+      $result.bitrate = bitrate;
+    }
+    if (packetsLost != null) {
+      $result.packetsLost = packetsLost;
+    }
+    if (packetLossRate != null) {
+      $result.packetLossRate = packetLossRate;
+    }
+    if (packetLossPercentage != null) {
+      $result.packetLossPercentage = packetLossPercentage;
+    }
+    if (packetsDuplicate != null) {
+      $result.packetsDuplicate = packetsDuplicate;
+    }
+    if (packetDuplicateRate != null) {
+      $result.packetDuplicateRate = packetDuplicateRate;
+    }
+    if (bytesDuplicate != null) {
+      $result.bytesDuplicate = bytesDuplicate;
+    }
+    if (bitrateDuplicate != null) {
+      $result.bitrateDuplicate = bitrateDuplicate;
+    }
+    if (packetsPadding != null) {
+      $result.packetsPadding = packetsPadding;
+    }
+    if (packetPaddingRate != null) {
+      $result.packetPaddingRate = packetPaddingRate;
+    }
+    if (bytesPadding != null) {
+      $result.bytesPadding = bytesPadding;
+    }
+    if (bitratePadding != null) {
+      $result.bitratePadding = bitratePadding;
+    }
+    if (packetsOutOfOrder != null) {
+      $result.packetsOutOfOrder = packetsOutOfOrder;
+    }
+    if (frames != null) {
+      $result.frames = frames;
+    }
+    if (frameRate != null) {
+      $result.frameRate = frameRate;
+    }
+    if (jitterCurrent != null) {
+      $result.jitterCurrent = jitterCurrent;
+    }
+    if (jitterMax != null) {
+      $result.jitterMax = jitterMax;
+    }
+    if (gapHistogram != null) {
+      $result.gapHistogram.addEntries(gapHistogram);
+    }
+    if (nacks != null) {
+      $result.nacks = nacks;
+    }
+    if (nackMisses != null) {
+      $result.nackMisses = nackMisses;
+    }
+    if (plis != null) {
+      $result.plis = plis;
+    }
+    if (lastPli != null) {
+      $result.lastPli = lastPli;
+    }
+    if (firs != null) {
+      $result.firs = firs;
+    }
+    if (lastFir != null) {
+      $result.lastFir = lastFir;
+    }
+    if (rttCurrent != null) {
+      $result.rttCurrent = rttCurrent;
+    }
+    if (rttMax != null) {
+      $result.rttMax = rttMax;
+    }
+    if (keyFrames != null) {
+      $result.keyFrames = keyFrames;
+    }
+    if (lastKeyFrame != null) {
+      $result.lastKeyFrame = lastKeyFrame;
+    }
+    if (layerLockPlis != null) {
+      $result.layerLockPlis = layerLockPlis;
+    }
+    if (lastLayerLockPli != null) {
+      $result.lastLayerLockPli = lastLayerLockPli;
+    }
+    if (nackAcks != null) {
+      $result.nackAcks = nackAcks;
+    }
+    if (nackRepeated != null) {
+      $result.nackRepeated = nackRepeated;
+    }
+    if (headerBytes != null) {
+      $result.headerBytes = headerBytes;
+    }
+    if (headerBytesDuplicate != null) {
+      $result.headerBytesDuplicate = headerBytesDuplicate;
+    }
+    if (headerBytesPadding != null) {
+      $result.headerBytesPadding = headerBytesPadding;
+    }
+    if (packetDrift != null) {
+      $result.packetDrift = packetDrift;
+    }
+    if (ntpReportDrift != null) {
+      $result.ntpReportDrift = ntpReportDrift;
+    }
+    if (rebasedReportDrift != null) {
+      $result.rebasedReportDrift = rebasedReportDrift;
+    }
+    if (receivedReportDrift != null) {
+      $result.receivedReportDrift = receivedReportDrift;
+    }
+    return $result;
   }
-
-  RTPStats._();
-
-  factory RTPStats.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RTPStats.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RTPStats._() : super();
+  factory RTPStats.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPStats.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RTPStats',
@@ -4247,18 +5244,20 @@ class RTPStats extends $pb.GeneratedMessage {
         subBuilder: RTPDrift.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RTPStats clone() => RTPStats()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RTPStats copyWith(void Function(RTPStats) updates) =>
       super.copyWith((message) => updates(message as RTPStats)) as RTPStats;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RTPStats create() => RTPStats._();
-  @$core.override
   RTPStats createEmptyInstance() => create();
   static $pb.PbList<RTPStats> createRepeated() => $pb.PbList<RTPStats>();
   @$core.pragma('dart2js:noInline')
@@ -4269,7 +5268,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($0.Timestamp value) => $_setField(1, value);
+  set startTime($0.Timestamp v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStartTime() => $_has(0);
   @$pb.TagNumber(1)
@@ -4280,7 +5282,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($0.Timestamp value) => $_setField(2, value);
+  set endTime($0.Timestamp v) {
+    $_setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasEndTime() => $_has(1);
   @$pb.TagNumber(2)
@@ -4291,7 +5296,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
   @$pb.TagNumber(3)
-  set duration($core.double value) => $_setDouble(2, value);
+  set duration($core.double v) {
+    $_setDouble(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasDuration() => $_has(2);
   @$pb.TagNumber(3)
@@ -4300,7 +5308,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get packets => $_getIZ(3);
   @$pb.TagNumber(4)
-  set packets($core.int value) => $_setUnsignedInt32(3, value);
+  set packets($core.int v) {
+    $_setUnsignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasPackets() => $_has(3);
   @$pb.TagNumber(4)
@@ -4309,7 +5320,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.double get packetRate => $_getN(4);
   @$pb.TagNumber(5)
-  set packetRate($core.double value) => $_setDouble(4, value);
+  set packetRate($core.double v) {
+    $_setDouble(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasPacketRate() => $_has(4);
   @$pb.TagNumber(5)
@@ -4318,7 +5332,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $fixnum.Int64 get bytes => $_getI64(5);
   @$pb.TagNumber(6)
-  set bytes($fixnum.Int64 value) => $_setInt64(5, value);
+  set bytes($fixnum.Int64 v) {
+    $_setInt64(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasBytes() => $_has(5);
   @$pb.TagNumber(6)
@@ -4327,7 +5344,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.double get bitrate => $_getN(6);
   @$pb.TagNumber(7)
-  set bitrate($core.double value) => $_setDouble(6, value);
+  set bitrate($core.double v) {
+    $_setDouble(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasBitrate() => $_has(6);
   @$pb.TagNumber(7)
@@ -4336,7 +5356,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.int get packetsLost => $_getIZ(7);
   @$pb.TagNumber(8)
-  set packetsLost($core.int value) => $_setUnsignedInt32(7, value);
+  set packetsLost($core.int v) {
+    $_setUnsignedInt32(7, v);
+  }
+
   @$pb.TagNumber(8)
   $core.bool hasPacketsLost() => $_has(7);
   @$pb.TagNumber(8)
@@ -4345,7 +5368,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $core.double get packetLossRate => $_getN(8);
   @$pb.TagNumber(9)
-  set packetLossRate($core.double value) => $_setDouble(8, value);
+  set packetLossRate($core.double v) {
+    $_setDouble(8, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasPacketLossRate() => $_has(8);
   @$pb.TagNumber(9)
@@ -4354,7 +5380,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.double get packetLossPercentage => $_getN(9);
   @$pb.TagNumber(10)
-  set packetLossPercentage($core.double value) => $_setFloat(9, value);
+  set packetLossPercentage($core.double v) {
+    $_setFloat(9, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasPacketLossPercentage() => $_has(9);
   @$pb.TagNumber(10)
@@ -4363,7 +5392,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.int get packetsDuplicate => $_getIZ(10);
   @$pb.TagNumber(11)
-  set packetsDuplicate($core.int value) => $_setUnsignedInt32(10, value);
+  set packetsDuplicate($core.int v) {
+    $_setUnsignedInt32(10, v);
+  }
+
   @$pb.TagNumber(11)
   $core.bool hasPacketsDuplicate() => $_has(10);
   @$pb.TagNumber(11)
@@ -4372,7 +5404,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(12)
   $core.double get packetDuplicateRate => $_getN(11);
   @$pb.TagNumber(12)
-  set packetDuplicateRate($core.double value) => $_setDouble(11, value);
+  set packetDuplicateRate($core.double v) {
+    $_setDouble(11, v);
+  }
+
   @$pb.TagNumber(12)
   $core.bool hasPacketDuplicateRate() => $_has(11);
   @$pb.TagNumber(12)
@@ -4381,7 +5416,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $fixnum.Int64 get bytesDuplicate => $_getI64(12);
   @$pb.TagNumber(13)
-  set bytesDuplicate($fixnum.Int64 value) => $_setInt64(12, value);
+  set bytesDuplicate($fixnum.Int64 v) {
+    $_setInt64(12, v);
+  }
+
   @$pb.TagNumber(13)
   $core.bool hasBytesDuplicate() => $_has(12);
   @$pb.TagNumber(13)
@@ -4390,7 +5428,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(14)
   $core.double get bitrateDuplicate => $_getN(13);
   @$pb.TagNumber(14)
-  set bitrateDuplicate($core.double value) => $_setDouble(13, value);
+  set bitrateDuplicate($core.double v) {
+    $_setDouble(13, v);
+  }
+
   @$pb.TagNumber(14)
   $core.bool hasBitrateDuplicate() => $_has(13);
   @$pb.TagNumber(14)
@@ -4399,7 +5440,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   $core.int get packetsPadding => $_getIZ(14);
   @$pb.TagNumber(15)
-  set packetsPadding($core.int value) => $_setUnsignedInt32(14, value);
+  set packetsPadding($core.int v) {
+    $_setUnsignedInt32(14, v);
+  }
+
   @$pb.TagNumber(15)
   $core.bool hasPacketsPadding() => $_has(14);
   @$pb.TagNumber(15)
@@ -4408,7 +5452,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(16)
   $core.double get packetPaddingRate => $_getN(15);
   @$pb.TagNumber(16)
-  set packetPaddingRate($core.double value) => $_setDouble(15, value);
+  set packetPaddingRate($core.double v) {
+    $_setDouble(15, v);
+  }
+
   @$pb.TagNumber(16)
   $core.bool hasPacketPaddingRate() => $_has(15);
   @$pb.TagNumber(16)
@@ -4417,7 +5464,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   $fixnum.Int64 get bytesPadding => $_getI64(16);
   @$pb.TagNumber(17)
-  set bytesPadding($fixnum.Int64 value) => $_setInt64(16, value);
+  set bytesPadding($fixnum.Int64 v) {
+    $_setInt64(16, v);
+  }
+
   @$pb.TagNumber(17)
   $core.bool hasBytesPadding() => $_has(16);
   @$pb.TagNumber(17)
@@ -4426,7 +5476,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(18)
   $core.double get bitratePadding => $_getN(17);
   @$pb.TagNumber(18)
-  set bitratePadding($core.double value) => $_setDouble(17, value);
+  set bitratePadding($core.double v) {
+    $_setDouble(17, v);
+  }
+
   @$pb.TagNumber(18)
   $core.bool hasBitratePadding() => $_has(17);
   @$pb.TagNumber(18)
@@ -4435,7 +5488,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   $core.int get packetsOutOfOrder => $_getIZ(18);
   @$pb.TagNumber(19)
-  set packetsOutOfOrder($core.int value) => $_setUnsignedInt32(18, value);
+  set packetsOutOfOrder($core.int v) {
+    $_setUnsignedInt32(18, v);
+  }
+
   @$pb.TagNumber(19)
   $core.bool hasPacketsOutOfOrder() => $_has(18);
   @$pb.TagNumber(19)
@@ -4444,7 +5500,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(20)
   $core.int get frames => $_getIZ(19);
   @$pb.TagNumber(20)
-  set frames($core.int value) => $_setUnsignedInt32(19, value);
+  set frames($core.int v) {
+    $_setUnsignedInt32(19, v);
+  }
+
   @$pb.TagNumber(20)
   $core.bool hasFrames() => $_has(19);
   @$pb.TagNumber(20)
@@ -4453,7 +5512,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   $core.double get frameRate => $_getN(20);
   @$pb.TagNumber(21)
-  set frameRate($core.double value) => $_setDouble(20, value);
+  set frameRate($core.double v) {
+    $_setDouble(20, v);
+  }
+
   @$pb.TagNumber(21)
   $core.bool hasFrameRate() => $_has(20);
   @$pb.TagNumber(21)
@@ -4462,7 +5524,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   $core.double get jitterCurrent => $_getN(21);
   @$pb.TagNumber(22)
-  set jitterCurrent($core.double value) => $_setDouble(21, value);
+  set jitterCurrent($core.double v) {
+    $_setDouble(21, v);
+  }
+
   @$pb.TagNumber(22)
   $core.bool hasJitterCurrent() => $_has(21);
   @$pb.TagNumber(22)
@@ -4471,7 +5536,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   $core.double get jitterMax => $_getN(22);
   @$pb.TagNumber(23)
-  set jitterMax($core.double value) => $_setDouble(22, value);
+  set jitterMax($core.double v) {
+    $_setDouble(22, v);
+  }
+
   @$pb.TagNumber(23)
   $core.bool hasJitterMax() => $_has(22);
   @$pb.TagNumber(23)
@@ -4483,7 +5551,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   $core.int get nacks => $_getIZ(24);
   @$pb.TagNumber(25)
-  set nacks($core.int value) => $_setUnsignedInt32(24, value);
+  set nacks($core.int v) {
+    $_setUnsignedInt32(24, v);
+  }
+
   @$pb.TagNumber(25)
   $core.bool hasNacks() => $_has(24);
   @$pb.TagNumber(25)
@@ -4492,7 +5563,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(26)
   $core.int get nackMisses => $_getIZ(25);
   @$pb.TagNumber(26)
-  set nackMisses($core.int value) => $_setUnsignedInt32(25, value);
+  set nackMisses($core.int v) {
+    $_setUnsignedInt32(25, v);
+  }
+
   @$pb.TagNumber(26)
   $core.bool hasNackMisses() => $_has(25);
   @$pb.TagNumber(26)
@@ -4501,7 +5575,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   $core.int get plis => $_getIZ(26);
   @$pb.TagNumber(27)
-  set plis($core.int value) => $_setUnsignedInt32(26, value);
+  set plis($core.int v) {
+    $_setUnsignedInt32(26, v);
+  }
+
   @$pb.TagNumber(27)
   $core.bool hasPlis() => $_has(26);
   @$pb.TagNumber(27)
@@ -4510,7 +5587,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(28)
   $0.Timestamp get lastPli => $_getN(27);
   @$pb.TagNumber(28)
-  set lastPli($0.Timestamp value) => $_setField(28, value);
+  set lastPli($0.Timestamp v) {
+    $_setField(28, v);
+  }
+
   @$pb.TagNumber(28)
   $core.bool hasLastPli() => $_has(27);
   @$pb.TagNumber(28)
@@ -4521,7 +5601,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   $core.int get firs => $_getIZ(28);
   @$pb.TagNumber(29)
-  set firs($core.int value) => $_setUnsignedInt32(28, value);
+  set firs($core.int v) {
+    $_setUnsignedInt32(28, v);
+  }
+
   @$pb.TagNumber(29)
   $core.bool hasFirs() => $_has(28);
   @$pb.TagNumber(29)
@@ -4530,7 +5613,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(30)
   $0.Timestamp get lastFir => $_getN(29);
   @$pb.TagNumber(30)
-  set lastFir($0.Timestamp value) => $_setField(30, value);
+  set lastFir($0.Timestamp v) {
+    $_setField(30, v);
+  }
+
   @$pb.TagNumber(30)
   $core.bool hasLastFir() => $_has(29);
   @$pb.TagNumber(30)
@@ -4541,7 +5627,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(31)
   $core.int get rttCurrent => $_getIZ(30);
   @$pb.TagNumber(31)
-  set rttCurrent($core.int value) => $_setUnsignedInt32(30, value);
+  set rttCurrent($core.int v) {
+    $_setUnsignedInt32(30, v);
+  }
+
   @$pb.TagNumber(31)
   $core.bool hasRttCurrent() => $_has(30);
   @$pb.TagNumber(31)
@@ -4550,7 +5639,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(32)
   $core.int get rttMax => $_getIZ(31);
   @$pb.TagNumber(32)
-  set rttMax($core.int value) => $_setUnsignedInt32(31, value);
+  set rttMax($core.int v) {
+    $_setUnsignedInt32(31, v);
+  }
+
   @$pb.TagNumber(32)
   $core.bool hasRttMax() => $_has(31);
   @$pb.TagNumber(32)
@@ -4559,7 +5651,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(33)
   $core.int get keyFrames => $_getIZ(32);
   @$pb.TagNumber(33)
-  set keyFrames($core.int value) => $_setUnsignedInt32(32, value);
+  set keyFrames($core.int v) {
+    $_setUnsignedInt32(32, v);
+  }
+
   @$pb.TagNumber(33)
   $core.bool hasKeyFrames() => $_has(32);
   @$pb.TagNumber(33)
@@ -4568,7 +5663,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(34)
   $0.Timestamp get lastKeyFrame => $_getN(33);
   @$pb.TagNumber(34)
-  set lastKeyFrame($0.Timestamp value) => $_setField(34, value);
+  set lastKeyFrame($0.Timestamp v) {
+    $_setField(34, v);
+  }
+
   @$pb.TagNumber(34)
   $core.bool hasLastKeyFrame() => $_has(33);
   @$pb.TagNumber(34)
@@ -4579,7 +5677,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(35)
   $core.int get layerLockPlis => $_getIZ(34);
   @$pb.TagNumber(35)
-  set layerLockPlis($core.int value) => $_setUnsignedInt32(34, value);
+  set layerLockPlis($core.int v) {
+    $_setUnsignedInt32(34, v);
+  }
+
   @$pb.TagNumber(35)
   $core.bool hasLayerLockPlis() => $_has(34);
   @$pb.TagNumber(35)
@@ -4588,7 +5689,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(36)
   $0.Timestamp get lastLayerLockPli => $_getN(35);
   @$pb.TagNumber(36)
-  set lastLayerLockPli($0.Timestamp value) => $_setField(36, value);
+  set lastLayerLockPli($0.Timestamp v) {
+    $_setField(36, v);
+  }
+
   @$pb.TagNumber(36)
   $core.bool hasLastLayerLockPli() => $_has(35);
   @$pb.TagNumber(36)
@@ -4599,7 +5703,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(37)
   $core.int get nackAcks => $_getIZ(36);
   @$pb.TagNumber(37)
-  set nackAcks($core.int value) => $_setUnsignedInt32(36, value);
+  set nackAcks($core.int v) {
+    $_setUnsignedInt32(36, v);
+  }
+
   @$pb.TagNumber(37)
   $core.bool hasNackAcks() => $_has(36);
   @$pb.TagNumber(37)
@@ -4608,7 +5715,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(38)
   $core.int get nackRepeated => $_getIZ(37);
   @$pb.TagNumber(38)
-  set nackRepeated($core.int value) => $_setUnsignedInt32(37, value);
+  set nackRepeated($core.int v) {
+    $_setUnsignedInt32(37, v);
+  }
+
   @$pb.TagNumber(38)
   $core.bool hasNackRepeated() => $_has(37);
   @$pb.TagNumber(38)
@@ -4617,7 +5727,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   $fixnum.Int64 get headerBytes => $_getI64(38);
   @$pb.TagNumber(39)
-  set headerBytes($fixnum.Int64 value) => $_setInt64(38, value);
+  set headerBytes($fixnum.Int64 v) {
+    $_setInt64(38, v);
+  }
+
   @$pb.TagNumber(39)
   $core.bool hasHeaderBytes() => $_has(38);
   @$pb.TagNumber(39)
@@ -4626,7 +5739,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(40)
   $fixnum.Int64 get headerBytesDuplicate => $_getI64(39);
   @$pb.TagNumber(40)
-  set headerBytesDuplicate($fixnum.Int64 value) => $_setInt64(39, value);
+  set headerBytesDuplicate($fixnum.Int64 v) {
+    $_setInt64(39, v);
+  }
+
   @$pb.TagNumber(40)
   $core.bool hasHeaderBytesDuplicate() => $_has(39);
   @$pb.TagNumber(40)
@@ -4635,7 +5751,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(41)
   $fixnum.Int64 get headerBytesPadding => $_getI64(40);
   @$pb.TagNumber(41)
-  set headerBytesPadding($fixnum.Int64 value) => $_setInt64(40, value);
+  set headerBytesPadding($fixnum.Int64 v) {
+    $_setInt64(40, v);
+  }
+
   @$pb.TagNumber(41)
   $core.bool hasHeaderBytesPadding() => $_has(40);
   @$pb.TagNumber(41)
@@ -4644,7 +5763,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(44)
   RTPDrift get packetDrift => $_getN(41);
   @$pb.TagNumber(44)
-  set packetDrift(RTPDrift value) => $_setField(44, value);
+  set packetDrift(RTPDrift v) {
+    $_setField(44, v);
+  }
+
   @$pb.TagNumber(44)
   $core.bool hasPacketDrift() => $_has(41);
   @$pb.TagNumber(44)
@@ -4655,7 +5777,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(45)
   RTPDrift get ntpReportDrift => $_getN(42);
   @$pb.TagNumber(45)
-  set ntpReportDrift(RTPDrift value) => $_setField(45, value);
+  set ntpReportDrift(RTPDrift v) {
+    $_setField(45, v);
+  }
+
   @$pb.TagNumber(45)
   $core.bool hasNtpReportDrift() => $_has(42);
   @$pb.TagNumber(45)
@@ -4666,7 +5791,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(46)
   RTPDrift get rebasedReportDrift => $_getN(43);
   @$pb.TagNumber(46)
-  set rebasedReportDrift(RTPDrift value) => $_setField(46, value);
+  set rebasedReportDrift(RTPDrift v) {
+    $_setField(46, v);
+  }
+
   @$pb.TagNumber(46)
   $core.bool hasRebasedReportDrift() => $_has(43);
   @$pb.TagNumber(46)
@@ -4677,7 +5805,10 @@ class RTPStats extends $pb.GeneratedMessage {
   @$pb.TagNumber(47)
   RTPDrift get receivedReportDrift => $_getN(44);
   @$pb.TagNumber(47)
-  set receivedReportDrift(RTPDrift value) => $_setField(47, value);
+  set receivedReportDrift(RTPDrift v) {
+    $_setField(47, v);
+  }
+
   @$pb.TagNumber(47)
   $core.bool hasReceivedReportDrift() => $_has(44);
   @$pb.TagNumber(47)
@@ -4696,25 +5827,37 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
     $core.int? packets,
     $fixnum.Int64? octets,
   }) {
-    final result = create();
-    if (rtpTimestamp != null) result.rtpTimestamp = rtpTimestamp;
-    if (rtpTimestampExt != null) result.rtpTimestampExt = rtpTimestampExt;
-    if (ntpTimestamp != null) result.ntpTimestamp = ntpTimestamp;
-    if (at != null) result.at = at;
-    if (atAdjusted != null) result.atAdjusted = atAdjusted;
-    if (packets != null) result.packets = packets;
-    if (octets != null) result.octets = octets;
-    return result;
+    final $result = create();
+    if (rtpTimestamp != null) {
+      $result.rtpTimestamp = rtpTimestamp;
+    }
+    if (rtpTimestampExt != null) {
+      $result.rtpTimestampExt = rtpTimestampExt;
+    }
+    if (ntpTimestamp != null) {
+      $result.ntpTimestamp = ntpTimestamp;
+    }
+    if (at != null) {
+      $result.at = at;
+    }
+    if (atAdjusted != null) {
+      $result.atAdjusted = atAdjusted;
+    }
+    if (packets != null) {
+      $result.packets = packets;
+    }
+    if (octets != null) {
+      $result.octets = octets;
+    }
+    return $result;
   }
-
-  RTCPSenderReportState._();
-
-  factory RTCPSenderReportState.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RTCPSenderReportState.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RTCPSenderReportState._() : super();
+  factory RTCPSenderReportState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTCPSenderReportState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RTCPSenderReportState',
@@ -4735,21 +5878,23 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RTCPSenderReportState clone() =>
       RTCPSenderReportState()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RTCPSenderReportState copyWith(
           void Function(RTCPSenderReportState) updates) =>
       super.copyWith((message) => updates(message as RTCPSenderReportState))
           as RTCPSenderReportState;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RTCPSenderReportState create() => RTCPSenderReportState._();
-  @$core.override
   RTCPSenderReportState createEmptyInstance() => create();
   static $pb.PbList<RTCPSenderReportState> createRepeated() =>
       $pb.PbList<RTCPSenderReportState>();
@@ -4761,7 +5906,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get rtpTimestamp => $_getIZ(0);
   @$pb.TagNumber(1)
-  set rtpTimestamp($core.int value) => $_setUnsignedInt32(0, value);
+  set rtpTimestamp($core.int v) {
+    $_setUnsignedInt32(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasRtpTimestamp() => $_has(0);
   @$pb.TagNumber(1)
@@ -4770,7 +5918,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get rtpTimestampExt => $_getI64(1);
   @$pb.TagNumber(2)
-  set rtpTimestampExt($fixnum.Int64 value) => $_setInt64(1, value);
+  set rtpTimestampExt($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasRtpTimestampExt() => $_has(1);
   @$pb.TagNumber(2)
@@ -4779,7 +5930,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get ntpTimestamp => $_getI64(2);
   @$pb.TagNumber(3)
-  set ntpTimestamp($fixnum.Int64 value) => $_setInt64(2, value);
+  set ntpTimestamp($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasNtpTimestamp() => $_has(2);
   @$pb.TagNumber(3)
@@ -4788,7 +5942,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get at => $_getI64(3);
   @$pb.TagNumber(4)
-  set at($fixnum.Int64 value) => $_setInt64(3, value);
+  set at($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasAt() => $_has(3);
   @$pb.TagNumber(4)
@@ -4797,7 +5954,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get atAdjusted => $_getI64(4);
   @$pb.TagNumber(5)
-  set atAdjusted($fixnum.Int64 value) => $_setInt64(4, value);
+  set atAdjusted($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasAtAdjusted() => $_has(4);
   @$pb.TagNumber(5)
@@ -4806,7 +5966,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.int get packets => $_getIZ(5);
   @$pb.TagNumber(6)
-  set packets($core.int value) => $_setUnsignedInt32(5, value);
+  set packets($core.int v) {
+    $_setUnsignedInt32(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasPackets() => $_has(5);
   @$pb.TagNumber(6)
@@ -4815,7 +5978,10 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $fixnum.Int64 get octets => $_getI64(6);
   @$pb.TagNumber(7)
-  set octets($fixnum.Int64 value) => $_setInt64(6, value);
+  set octets($fixnum.Int64 v) {
+    $_setInt64(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasOctets() => $_has(6);
   @$pb.TagNumber(7)
@@ -4835,29 +6001,40 @@ class RTPForwarderState extends $pb.GeneratedMessage {
     VP8MungerState? vp8Munger,
     $core.Iterable<RTCPSenderReportState>? senderReportState,
   }) {
-    final result = create();
-    if (started != null) result.started = started;
-    if (referenceLayerSpatial != null)
-      result.referenceLayerSpatial = referenceLayerSpatial;
-    if (preStartTime != null) result.preStartTime = preStartTime;
-    if (extFirstTimestamp != null) result.extFirstTimestamp = extFirstTimestamp;
-    if (dummyStartTimestampOffset != null)
-      result.dummyStartTimestampOffset = dummyStartTimestampOffset;
-    if (rtpMunger != null) result.rtpMunger = rtpMunger;
-    if (vp8Munger != null) result.vp8Munger = vp8Munger;
-    if (senderReportState != null)
-      result.senderReportState.addAll(senderReportState);
-    return result;
+    final $result = create();
+    if (started != null) {
+      $result.started = started;
+    }
+    if (referenceLayerSpatial != null) {
+      $result.referenceLayerSpatial = referenceLayerSpatial;
+    }
+    if (preStartTime != null) {
+      $result.preStartTime = preStartTime;
+    }
+    if (extFirstTimestamp != null) {
+      $result.extFirstTimestamp = extFirstTimestamp;
+    }
+    if (dummyStartTimestampOffset != null) {
+      $result.dummyStartTimestampOffset = dummyStartTimestampOffset;
+    }
+    if (rtpMunger != null) {
+      $result.rtpMunger = rtpMunger;
+    }
+    if (vp8Munger != null) {
+      $result.vp8Munger = vp8Munger;
+    }
+    if (senderReportState != null) {
+      $result.senderReportState.addAll(senderReportState);
+    }
+    return $result;
   }
-
-  RTPForwarderState._();
-
-  factory RTPForwarderState.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RTPForwarderState.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RTPForwarderState._() : super();
+  factory RTPForwarderState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPForwarderState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, RTPForwarderState_CodecMunger>
       _RTPForwarderState_CodecMungerByTag = {
@@ -4888,19 +6065,21 @@ class RTPForwarderState extends $pb.GeneratedMessage {
         subBuilder: RTCPSenderReportState.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RTPForwarderState clone() => RTPForwarderState()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RTPForwarderState copyWith(void Function(RTPForwarderState) updates) =>
       super.copyWith((message) => updates(message as RTPForwarderState))
           as RTPForwarderState;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RTPForwarderState create() => RTPForwarderState._();
-  @$core.override
   RTPForwarderState createEmptyInstance() => create();
   static $pb.PbList<RTPForwarderState> createRepeated() =>
       $pb.PbList<RTPForwarderState>();
@@ -4916,7 +6095,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool get started => $_getBF(0);
   @$pb.TagNumber(1)
-  set started($core.bool value) => $_setBool(0, value);
+  set started($core.bool v) {
+    $_setBool(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStarted() => $_has(0);
   @$pb.TagNumber(1)
@@ -4925,7 +6107,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get referenceLayerSpatial => $_getIZ(1);
   @$pb.TagNumber(2)
-  set referenceLayerSpatial($core.int value) => $_setSignedInt32(1, value);
+  set referenceLayerSpatial($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasReferenceLayerSpatial() => $_has(1);
   @$pb.TagNumber(2)
@@ -4934,7 +6119,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get preStartTime => $_getI64(2);
   @$pb.TagNumber(3)
-  set preStartTime($fixnum.Int64 value) => $_setInt64(2, value);
+  set preStartTime($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasPreStartTime() => $_has(2);
   @$pb.TagNumber(3)
@@ -4943,7 +6131,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get extFirstTimestamp => $_getI64(3);
   @$pb.TagNumber(4)
-  set extFirstTimestamp($fixnum.Int64 value) => $_setInt64(3, value);
+  set extFirstTimestamp($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasExtFirstTimestamp() => $_has(3);
   @$pb.TagNumber(4)
@@ -4952,7 +6143,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get dummyStartTimestampOffset => $_getI64(4);
   @$pb.TagNumber(5)
-  set dummyStartTimestampOffset($fixnum.Int64 value) => $_setInt64(4, value);
+  set dummyStartTimestampOffset($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasDummyStartTimestampOffset() => $_has(4);
   @$pb.TagNumber(5)
@@ -4961,7 +6155,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   RTPMungerState get rtpMunger => $_getN(5);
   @$pb.TagNumber(6)
-  set rtpMunger(RTPMungerState value) => $_setField(6, value);
+  set rtpMunger(RTPMungerState v) {
+    $_setField(6, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasRtpMunger() => $_has(5);
   @$pb.TagNumber(6)
@@ -4972,7 +6169,10 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   VP8MungerState get vp8Munger => $_getN(6);
   @$pb.TagNumber(7)
-  set vp8Munger(VP8MungerState value) => $_setField(7, value);
+  set vp8Munger(VP8MungerState v) {
+    $_setField(7, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasVp8Munger() => $_has(6);
   @$pb.TagNumber(7)
@@ -4993,27 +6193,34 @@ class RTPMungerState extends $pb.GeneratedMessage {
     $core.bool? lastMarker,
     $core.bool? secondLastMarker,
   }) {
-    final result = create();
-    if (extLastSequenceNumber != null)
-      result.extLastSequenceNumber = extLastSequenceNumber;
-    if (extSecondLastSequenceNumber != null)
-      result.extSecondLastSequenceNumber = extSecondLastSequenceNumber;
-    if (extLastTimestamp != null) result.extLastTimestamp = extLastTimestamp;
-    if (extSecondLastTimestamp != null)
-      result.extSecondLastTimestamp = extSecondLastTimestamp;
-    if (lastMarker != null) result.lastMarker = lastMarker;
-    if (secondLastMarker != null) result.secondLastMarker = secondLastMarker;
-    return result;
+    final $result = create();
+    if (extLastSequenceNumber != null) {
+      $result.extLastSequenceNumber = extLastSequenceNumber;
+    }
+    if (extSecondLastSequenceNumber != null) {
+      $result.extSecondLastSequenceNumber = extSecondLastSequenceNumber;
+    }
+    if (extLastTimestamp != null) {
+      $result.extLastTimestamp = extLastTimestamp;
+    }
+    if (extSecondLastTimestamp != null) {
+      $result.extSecondLastTimestamp = extSecondLastTimestamp;
+    }
+    if (lastMarker != null) {
+      $result.lastMarker = lastMarker;
+    }
+    if (secondLastMarker != null) {
+      $result.secondLastMarker = secondLastMarker;
+    }
+    return $result;
   }
-
-  RTPMungerState._();
-
-  factory RTPMungerState.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory RTPMungerState.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  RTPMungerState._() : super();
+  factory RTPMungerState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory RTPMungerState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'RTPMungerState',
@@ -5035,19 +6242,21 @@ class RTPMungerState extends $pb.GeneratedMessage {
     ..aOB(6, _omitFieldNames ? '' : 'secondLastMarker')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   RTPMungerState clone() => RTPMungerState()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   RTPMungerState copyWith(void Function(RTPMungerState) updates) =>
       super.copyWith((message) => updates(message as RTPMungerState))
           as RTPMungerState;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static RTPMungerState create() => RTPMungerState._();
-  @$core.override
   RTPMungerState createEmptyInstance() => create();
   static $pb.PbList<RTPMungerState> createRepeated() =>
       $pb.PbList<RTPMungerState>();
@@ -5059,7 +6268,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get extLastSequenceNumber => $_getI64(0);
   @$pb.TagNumber(1)
-  set extLastSequenceNumber($fixnum.Int64 value) => $_setInt64(0, value);
+  set extLastSequenceNumber($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasExtLastSequenceNumber() => $_has(0);
   @$pb.TagNumber(1)
@@ -5068,7 +6280,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get extSecondLastSequenceNumber => $_getI64(1);
   @$pb.TagNumber(2)
-  set extSecondLastSequenceNumber($fixnum.Int64 value) => $_setInt64(1, value);
+  set extSecondLastSequenceNumber($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasExtSecondLastSequenceNumber() => $_has(1);
   @$pb.TagNumber(2)
@@ -5077,7 +6292,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $fixnum.Int64 get extLastTimestamp => $_getI64(2);
   @$pb.TagNumber(3)
-  set extLastTimestamp($fixnum.Int64 value) => $_setInt64(2, value);
+  set extLastTimestamp($fixnum.Int64 v) {
+    $_setInt64(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasExtLastTimestamp() => $_has(2);
   @$pb.TagNumber(3)
@@ -5086,7 +6304,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $fixnum.Int64 get extSecondLastTimestamp => $_getI64(3);
   @$pb.TagNumber(4)
-  set extSecondLastTimestamp($fixnum.Int64 value) => $_setInt64(3, value);
+  set extSecondLastTimestamp($fixnum.Int64 v) {
+    $_setInt64(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasExtSecondLastTimestamp() => $_has(3);
   @$pb.TagNumber(4)
@@ -5095,7 +6316,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get lastMarker => $_getBF(4);
   @$pb.TagNumber(5)
-  set lastMarker($core.bool value) => $_setBool(4, value);
+  set lastMarker($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasLastMarker() => $_has(4);
   @$pb.TagNumber(5)
@@ -5104,7 +6328,10 @@ class RTPMungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.bool get secondLastMarker => $_getBF(5);
   @$pb.TagNumber(6)
-  set secondLastMarker($core.bool value) => $_setBool(5, value);
+  set secondLastMarker($core.bool v) {
+    $_setBool(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasSecondLastMarker() => $_has(5);
   @$pb.TagNumber(6)
@@ -5121,25 +6348,37 @@ class VP8MungerState extends $pb.GeneratedMessage {
     $core.int? lastKeyIdx,
     $core.bool? keyIdxUsed,
   }) {
-    final result = create();
-    if (extLastPictureId != null) result.extLastPictureId = extLastPictureId;
-    if (pictureIdUsed != null) result.pictureIdUsed = pictureIdUsed;
-    if (lastTl0PicIdx != null) result.lastTl0PicIdx = lastTl0PicIdx;
-    if (tl0PicIdxUsed != null) result.tl0PicIdxUsed = tl0PicIdxUsed;
-    if (tidUsed != null) result.tidUsed = tidUsed;
-    if (lastKeyIdx != null) result.lastKeyIdx = lastKeyIdx;
-    if (keyIdxUsed != null) result.keyIdxUsed = keyIdxUsed;
-    return result;
+    final $result = create();
+    if (extLastPictureId != null) {
+      $result.extLastPictureId = extLastPictureId;
+    }
+    if (pictureIdUsed != null) {
+      $result.pictureIdUsed = pictureIdUsed;
+    }
+    if (lastTl0PicIdx != null) {
+      $result.lastTl0PicIdx = lastTl0PicIdx;
+    }
+    if (tl0PicIdxUsed != null) {
+      $result.tl0PicIdxUsed = tl0PicIdxUsed;
+    }
+    if (tidUsed != null) {
+      $result.tidUsed = tidUsed;
+    }
+    if (lastKeyIdx != null) {
+      $result.lastKeyIdx = lastKeyIdx;
+    }
+    if (keyIdxUsed != null) {
+      $result.keyIdxUsed = keyIdxUsed;
+    }
+    return $result;
   }
-
-  VP8MungerState._();
-
-  factory VP8MungerState.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory VP8MungerState.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  VP8MungerState._() : super();
+  factory VP8MungerState.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory VP8MungerState.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'VP8MungerState',
@@ -5156,19 +6395,21 @@ class VP8MungerState extends $pb.GeneratedMessage {
     ..aOB(7, _omitFieldNames ? '' : 'keyIdxUsed')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   VP8MungerState clone() => VP8MungerState()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   VP8MungerState copyWith(void Function(VP8MungerState) updates) =>
       super.copyWith((message) => updates(message as VP8MungerState))
           as VP8MungerState;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static VP8MungerState create() => VP8MungerState._();
-  @$core.override
   VP8MungerState createEmptyInstance() => create();
   static $pb.PbList<VP8MungerState> createRepeated() =>
       $pb.PbList<VP8MungerState>();
@@ -5180,7 +6421,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.int get extLastPictureId => $_getIZ(0);
   @$pb.TagNumber(1)
-  set extLastPictureId($core.int value) => $_setSignedInt32(0, value);
+  set extLastPictureId($core.int v) {
+    $_setSignedInt32(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasExtLastPictureId() => $_has(0);
   @$pb.TagNumber(1)
@@ -5189,7 +6433,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool get pictureIdUsed => $_getBF(1);
   @$pb.TagNumber(2)
-  set pictureIdUsed($core.bool value) => $_setBool(1, value);
+  set pictureIdUsed($core.bool v) {
+    $_setBool(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasPictureIdUsed() => $_has(1);
   @$pb.TagNumber(2)
@@ -5198,7 +6445,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.int get lastTl0PicIdx => $_getIZ(2);
   @$pb.TagNumber(3)
-  set lastTl0PicIdx($core.int value) => $_setUnsignedInt32(2, value);
+  set lastTl0PicIdx($core.int v) {
+    $_setUnsignedInt32(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasLastTl0PicIdx() => $_has(2);
   @$pb.TagNumber(3)
@@ -5207,7 +6457,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool get tl0PicIdxUsed => $_getBF(3);
   @$pb.TagNumber(4)
-  set tl0PicIdxUsed($core.bool value) => $_setBool(3, value);
+  set tl0PicIdxUsed($core.bool v) {
+    $_setBool(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasTl0PicIdxUsed() => $_has(3);
   @$pb.TagNumber(4)
@@ -5216,7 +6469,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get tidUsed => $_getBF(4);
   @$pb.TagNumber(5)
-  set tidUsed($core.bool value) => $_setBool(4, value);
+  set tidUsed($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasTidUsed() => $_has(4);
   @$pb.TagNumber(5)
@@ -5225,7 +6481,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.int get lastKeyIdx => $_getIZ(5);
   @$pb.TagNumber(6)
-  set lastKeyIdx($core.int value) => $_setUnsignedInt32(5, value);
+  set lastKeyIdx($core.int v) {
+    $_setUnsignedInt32(5, v);
+  }
+
   @$pb.TagNumber(6)
   $core.bool hasLastKeyIdx() => $_has(5);
   @$pb.TagNumber(6)
@@ -5234,7 +6493,10 @@ class VP8MungerState extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.bool get keyIdxUsed => $_getBF(6);
   @$pb.TagNumber(7)
-  set keyIdxUsed($core.bool value) => $_setBool(6, value);
+  set keyIdxUsed($core.bool v) {
+    $_setBool(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasKeyIdxUsed() => $_has(6);
   @$pb.TagNumber(7)
@@ -5246,20 +6508,22 @@ class TimedVersion extends $pb.GeneratedMessage {
     $fixnum.Int64? unixMicro,
     $core.int? ticks,
   }) {
-    final result = create();
-    if (unixMicro != null) result.unixMicro = unixMicro;
-    if (ticks != null) result.ticks = ticks;
-    return result;
+    final $result = create();
+    if (unixMicro != null) {
+      $result.unixMicro = unixMicro;
+    }
+    if (ticks != null) {
+      $result.ticks = ticks;
+    }
+    return $result;
   }
-
-  TimedVersion._();
-
-  factory TimedVersion.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory TimedVersion.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  TimedVersion._() : super();
+  factory TimedVersion.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory TimedVersion.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'TimedVersion',
@@ -5269,19 +6533,21 @@ class TimedVersion extends $pb.GeneratedMessage {
     ..a<$core.int>(2, _omitFieldNames ? '' : 'ticks', $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   TimedVersion clone() => TimedVersion()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   TimedVersion copyWith(void Function(TimedVersion) updates) =>
       super.copyWith((message) => updates(message as TimedVersion))
           as TimedVersion;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static TimedVersion create() => TimedVersion._();
-  @$core.override
   TimedVersion createEmptyInstance() => create();
   static $pb.PbList<TimedVersion> createRepeated() =>
       $pb.PbList<TimedVersion>();
@@ -5293,7 +6559,10 @@ class TimedVersion extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $fixnum.Int64 get unixMicro => $_getI64(0);
   @$pb.TagNumber(1)
-  set unixMicro($fixnum.Int64 value) => $_setInt64(0, value);
+  set unixMicro($fixnum.Int64 v) {
+    $_setInt64(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasUnixMicro() => $_has(0);
   @$pb.TagNumber(1)
@@ -5302,7 +6571,10 @@ class TimedVersion extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get ticks => $_getIZ(1);
   @$pb.TagNumber(2)
-  set ticks($core.int value) => $_setSignedInt32(1, value);
+  set ticks($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTicks() => $_has(1);
   @$pb.TagNumber(2)
@@ -5318,24 +6590,31 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? attachedStreamIds,
     $core.bool? generated,
   }) {
-    final result = create();
-    if (operationType != null) result.operationType = operationType;
-    if (version != null) result.version = version;
-    if (replyToStreamId != null) result.replyToStreamId = replyToStreamId;
-    if (attachedStreamIds != null)
-      result.attachedStreamIds.addAll(attachedStreamIds);
-    if (generated != null) result.generated = generated;
-    return result;
+    final $result = create();
+    if (operationType != null) {
+      $result.operationType = operationType;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (replyToStreamId != null) {
+      $result.replyToStreamId = replyToStreamId;
+    }
+    if (attachedStreamIds != null) {
+      $result.attachedStreamIds.addAll(attachedStreamIds);
+    }
+    if (generated != null) {
+      $result.generated = generated;
+    }
+    return $result;
   }
-
-  DataStream_TextHeader._();
-
-  factory DataStream_TextHeader.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream_TextHeader.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream_TextHeader._() : super();
+  factory DataStream_TextHeader.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream_TextHeader.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataStream.TextHeader',
@@ -5352,21 +6631,23 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
     ..aOB(5, _omitFieldNames ? '' : 'generated')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream_TextHeader clone() =>
       DataStream_TextHeader()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream_TextHeader copyWith(
           void Function(DataStream_TextHeader) updates) =>
       super.copyWith((message) => updates(message as DataStream_TextHeader))
           as DataStream_TextHeader;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream_TextHeader create() => DataStream_TextHeader._();
-  @$core.override
   DataStream_TextHeader createEmptyInstance() => create();
   static $pb.PbList<DataStream_TextHeader> createRepeated() =>
       $pb.PbList<DataStream_TextHeader>();
@@ -5378,7 +6659,10 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   DataStream_OperationType get operationType => $_getN(0);
   @$pb.TagNumber(1)
-  set operationType(DataStream_OperationType value) => $_setField(1, value);
+  set operationType(DataStream_OperationType v) {
+    $_setField(1, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasOperationType() => $_has(0);
   @$pb.TagNumber(1)
@@ -5387,7 +6671,10 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get version => $_getIZ(1);
   @$pb.TagNumber(2)
-  set version($core.int value) => $_setSignedInt32(1, value);
+  set version($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
@@ -5396,7 +6683,10 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get replyToStreamId => $_getSZ(2);
   @$pb.TagNumber(3)
-  set replyToStreamId($core.String value) => $_setString(2, value);
+  set replyToStreamId($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasReplyToStreamId() => $_has(2);
   @$pb.TagNumber(3)
@@ -5408,7 +6698,10 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool get generated => $_getBF(4);
   @$pb.TagNumber(5)
-  set generated($core.bool value) => $_setBool(4, value);
+  set generated($core.bool v) {
+    $_setBool(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasGenerated() => $_has(4);
   @$pb.TagNumber(5)
@@ -5420,19 +6713,19 @@ class DataStream_ByteHeader extends $pb.GeneratedMessage {
   factory DataStream_ByteHeader({
     $core.String? name,
   }) {
-    final result = create();
-    if (name != null) result.name = name;
-    return result;
+    final $result = create();
+    if (name != null) {
+      $result.name = name;
+    }
+    return $result;
   }
-
-  DataStream_ByteHeader._();
-
-  factory DataStream_ByteHeader.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream_ByteHeader.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream_ByteHeader._() : super();
+  factory DataStream_ByteHeader.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream_ByteHeader.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataStream.ByteHeader',
@@ -5441,21 +6734,23 @@ class DataStream_ByteHeader extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream_ByteHeader clone() =>
       DataStream_ByteHeader()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream_ByteHeader copyWith(
           void Function(DataStream_ByteHeader) updates) =>
       super.copyWith((message) => updates(message as DataStream_ByteHeader))
           as DataStream_ByteHeader;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream_ByteHeader create() => DataStream_ByteHeader._();
-  @$core.override
   DataStream_ByteHeader createEmptyInstance() => create();
   static $pb.PbList<DataStream_ByteHeader> createRepeated() =>
       $pb.PbList<DataStream_ByteHeader>();
@@ -5467,7 +6762,10 @@ class DataStream_ByteHeader extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set name($core.String value) => $_setString(0, value);
+  set name($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
@@ -5490,27 +6788,44 @@ class DataStream_Header extends $pb.GeneratedMessage {
     DataStream_TextHeader? textHeader,
     DataStream_ByteHeader? byteHeader,
   }) {
-    final result = create();
-    if (streamId != null) result.streamId = streamId;
-    if (timestamp != null) result.timestamp = timestamp;
-    if (topic != null) result.topic = topic;
-    if (mimeType != null) result.mimeType = mimeType;
-    if (totalLength != null) result.totalLength = totalLength;
-    if (encryptionType != null) result.encryptionType = encryptionType;
-    if (attributes != null) result.attributes.addEntries(attributes);
-    if (textHeader != null) result.textHeader = textHeader;
-    if (byteHeader != null) result.byteHeader = byteHeader;
-    return result;
+    final $result = create();
+    if (streamId != null) {
+      $result.streamId = streamId;
+    }
+    if (timestamp != null) {
+      $result.timestamp = timestamp;
+    }
+    if (topic != null) {
+      $result.topic = topic;
+    }
+    if (mimeType != null) {
+      $result.mimeType = mimeType;
+    }
+    if (totalLength != null) {
+      $result.totalLength = totalLength;
+    }
+    if (encryptionType != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.encryptionType = encryptionType;
+    }
+    if (attributes != null) {
+      $result.attributes.addEntries(attributes);
+    }
+    if (textHeader != null) {
+      $result.textHeader = textHeader;
+    }
+    if (byteHeader != null) {
+      $result.byteHeader = byteHeader;
+    }
+    return $result;
   }
-
-  DataStream_Header._();
-
-  factory DataStream_Header.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream_Header.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream_Header._() : super();
+  factory DataStream_Header.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream_Header.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static const $core.Map<$core.int, DataStream_Header_ContentHeader>
       _DataStream_Header_ContentHeaderByTag = {
@@ -5546,19 +6861,21 @@ class DataStream_Header extends $pb.GeneratedMessage {
         subBuilder: DataStream_ByteHeader.create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream_Header clone() => DataStream_Header()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream_Header copyWith(void Function(DataStream_Header) updates) =>
       super.copyWith((message) => updates(message as DataStream_Header))
           as DataStream_Header;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream_Header create() => DataStream_Header._();
-  @$core.override
   DataStream_Header createEmptyInstance() => create();
   static $pb.PbList<DataStream_Header> createRepeated() =>
       $pb.PbList<DataStream_Header>();
@@ -5574,7 +6891,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get streamId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set streamId($core.String value) => $_setString(0, value);
+  set streamId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStreamId() => $_has(0);
   @$pb.TagNumber(1)
@@ -5583,7 +6903,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get timestamp => $_getI64(1);
   @$pb.TagNumber(2)
-  set timestamp($fixnum.Int64 value) => $_setInt64(1, value);
+  set timestamp($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasTimestamp() => $_has(1);
   @$pb.TagNumber(2)
@@ -5592,7 +6915,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.String get topic => $_getSZ(2);
   @$pb.TagNumber(3)
-  set topic($core.String value) => $_setString(2, value);
+  set topic($core.String v) {
+    $_setString(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasTopic() => $_has(2);
   @$pb.TagNumber(3)
@@ -5601,7 +6927,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get mimeType => $_getSZ(3);
   @$pb.TagNumber(4)
-  set mimeType($core.String value) => $_setString(3, value);
+  set mimeType($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasMimeType() => $_has(3);
   @$pb.TagNumber(4)
@@ -5610,7 +6939,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $fixnum.Int64 get totalLength => $_getI64(4);
   @$pb.TagNumber(5)
-  set totalLength($fixnum.Int64 value) => $_setInt64(4, value);
+  set totalLength($fixnum.Int64 v) {
+    $_setInt64(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasTotalLength() => $_has(4);
   @$pb.TagNumber(5)
@@ -5621,7 +6953,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   Encryption_Type get encryptionType => $_getN(5);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
-  set encryptionType(Encryption_Type value) => $_setField(7, value);
+  set encryptionType(Encryption_Type v) {
+    $_setField(7, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasEncryptionType() => $_has(5);
@@ -5635,7 +6970,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   DataStream_TextHeader get textHeader => $_getN(7);
   @$pb.TagNumber(9)
-  set textHeader(DataStream_TextHeader value) => $_setField(9, value);
+  set textHeader(DataStream_TextHeader v) {
+    $_setField(9, v);
+  }
+
   @$pb.TagNumber(9)
   $core.bool hasTextHeader() => $_has(7);
   @$pb.TagNumber(9)
@@ -5646,7 +6984,10 @@ class DataStream_Header extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   DataStream_ByteHeader get byteHeader => $_getN(8);
   @$pb.TagNumber(10)
-  set byteHeader(DataStream_ByteHeader value) => $_setField(10, value);
+  set byteHeader(DataStream_ByteHeader v) {
+    $_setField(10, v);
+  }
+
   @$pb.TagNumber(10)
   $core.bool hasByteHeader() => $_has(8);
   @$pb.TagNumber(10)
@@ -5663,23 +7004,32 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
     $core.int? version,
     @$core.Deprecated('This field is deprecated.') $core.List<$core.int>? iv,
   }) {
-    final result = create();
-    if (streamId != null) result.streamId = streamId;
-    if (chunkIndex != null) result.chunkIndex = chunkIndex;
-    if (content != null) result.content = content;
-    if (version != null) result.version = version;
-    if (iv != null) result.iv = iv;
-    return result;
+    final $result = create();
+    if (streamId != null) {
+      $result.streamId = streamId;
+    }
+    if (chunkIndex != null) {
+      $result.chunkIndex = chunkIndex;
+    }
+    if (content != null) {
+      $result.content = content;
+    }
+    if (version != null) {
+      $result.version = version;
+    }
+    if (iv != null) {
+      // ignore: deprecated_member_use_from_same_package
+      $result.iv = iv;
+    }
+    return $result;
   }
-
-  DataStream_Chunk._();
-
-  factory DataStream_Chunk.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream_Chunk.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream_Chunk._() : super();
+  factory DataStream_Chunk.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream_Chunk.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataStream.Chunk',
@@ -5696,19 +7046,21 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
         5, _omitFieldNames ? '' : 'iv', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream_Chunk clone() => DataStream_Chunk()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream_Chunk copyWith(void Function(DataStream_Chunk) updates) =>
       super.copyWith((message) => updates(message as DataStream_Chunk))
           as DataStream_Chunk;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream_Chunk create() => DataStream_Chunk._();
-  @$core.override
   DataStream_Chunk createEmptyInstance() => create();
   static $pb.PbList<DataStream_Chunk> createRepeated() =>
       $pb.PbList<DataStream_Chunk>();
@@ -5720,7 +7072,10 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get streamId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set streamId($core.String value) => $_setString(0, value);
+  set streamId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStreamId() => $_has(0);
   @$pb.TagNumber(1)
@@ -5729,7 +7084,10 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $fixnum.Int64 get chunkIndex => $_getI64(1);
   @$pb.TagNumber(2)
-  set chunkIndex($fixnum.Int64 value) => $_setInt64(1, value);
+  set chunkIndex($fixnum.Int64 v) {
+    $_setInt64(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasChunkIndex() => $_has(1);
   @$pb.TagNumber(2)
@@ -5738,7 +7096,10 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.List<$core.int> get content => $_getN(2);
   @$pb.TagNumber(3)
-  set content($core.List<$core.int> value) => $_setBytes(2, value);
+  set content($core.List<$core.int> v) {
+    $_setBytes(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasContent() => $_has(2);
   @$pb.TagNumber(3)
@@ -5747,7 +7108,10 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.int get version => $_getIZ(3);
   @$pb.TagNumber(4)
-  set version($core.int value) => $_setSignedInt32(3, value);
+  set version($core.int v) {
+    $_setSignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasVersion() => $_has(3);
   @$pb.TagNumber(4)
@@ -5758,7 +7122,10 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   $core.List<$core.int> get iv => $_getN(4);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
-  set iv($core.List<$core.int> value) => $_setBytes(4, value);
+  set iv($core.List<$core.int> v) {
+    $_setBytes(4, v);
+  }
+
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasIv() => $_has(4);
@@ -5773,21 +7140,25 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
     $core.String? reason,
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? attributes,
   }) {
-    final result = create();
-    if (streamId != null) result.streamId = streamId;
-    if (reason != null) result.reason = reason;
-    if (attributes != null) result.attributes.addEntries(attributes);
-    return result;
+    final $result = create();
+    if (streamId != null) {
+      $result.streamId = streamId;
+    }
+    if (reason != null) {
+      $result.reason = reason;
+    }
+    if (attributes != null) {
+      $result.attributes.addEntries(attributes);
+    }
+    return $result;
   }
-
-  DataStream_Trailer._();
-
-  factory DataStream_Trailer.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream_Trailer.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream_Trailer._() : super();
+  factory DataStream_Trailer.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream_Trailer.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataStream.Trailer',
@@ -5802,19 +7173,21 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
         packageName: const $pb.PackageName('livekit'))
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream_Trailer clone() => DataStream_Trailer()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream_Trailer copyWith(void Function(DataStream_Trailer) updates) =>
       super.copyWith((message) => updates(message as DataStream_Trailer))
           as DataStream_Trailer;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream_Trailer create() => DataStream_Trailer._();
-  @$core.override
   DataStream_Trailer createEmptyInstance() => create();
   static $pb.PbList<DataStream_Trailer> createRepeated() =>
       $pb.PbList<DataStream_Trailer>();
@@ -5826,7 +7199,10 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get streamId => $_getSZ(0);
   @$pb.TagNumber(1)
-  set streamId($core.String value) => $_setString(0, value);
+  set streamId($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasStreamId() => $_has(0);
   @$pb.TagNumber(1)
@@ -5835,7 +7211,10 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get reason => $_getSZ(1);
   @$pb.TagNumber(2)
-  set reason($core.String value) => $_setString(1, value);
+  set reason($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasReason() => $_has(1);
   @$pb.TagNumber(2)
@@ -5847,15 +7226,13 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
 
 class DataStream extends $pb.GeneratedMessage {
   factory DataStream() => create();
-
-  DataStream._();
-
-  factory DataStream.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory DataStream.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  DataStream._() : super();
+  factory DataStream.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DataStream.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DataStream',
@@ -5863,18 +7240,20 @@ class DataStream extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   DataStream clone() => DataStream()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   DataStream copyWith(void Function(DataStream) updates) =>
       super.copyWith((message) => updates(message as DataStream)) as DataStream;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static DataStream create() => DataStream._();
-  @$core.override
   DataStream createEmptyInstance() => create();
   static $pb.PbList<DataStream> createRepeated() => $pb.PbList<DataStream>();
   @$core.pragma('dart2js:noInline')
@@ -5888,20 +7267,22 @@ class WebhookConfig extends $pb.GeneratedMessage {
     $core.String? url,
     $core.String? signingKey,
   }) {
-    final result = create();
-    if (url != null) result.url = url;
-    if (signingKey != null) result.signingKey = signingKey;
-    return result;
+    final $result = create();
+    if (url != null) {
+      $result.url = url;
+    }
+    if (signingKey != null) {
+      $result.signingKey = signingKey;
+    }
+    return $result;
   }
-
-  WebhookConfig._();
-
-  factory WebhookConfig.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory WebhookConfig.fromJson($core.String json,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
+  WebhookConfig._() : super();
+  factory WebhookConfig.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory WebhookConfig.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'WebhookConfig',
@@ -5911,19 +7292,21 @@ class WebhookConfig extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'signingKey')
     ..hasRequiredFields = false;
 
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   WebhookConfig clone() => WebhookConfig()..mergeFromMessage(this);
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
   WebhookConfig copyWith(void Function(WebhookConfig) updates) =>
       super.copyWith((message) => updates(message as WebhookConfig))
           as WebhookConfig;
 
-  @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
   static WebhookConfig create() => WebhookConfig._();
-  @$core.override
   WebhookConfig createEmptyInstance() => create();
   static $pb.PbList<WebhookConfig> createRepeated() =>
       $pb.PbList<WebhookConfig>();
@@ -5935,7 +7318,10 @@ class WebhookConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get url => $_getSZ(0);
   @$pb.TagNumber(1)
-  set url($core.String value) => $_setString(0, value);
+  set url($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasUrl() => $_has(0);
   @$pb.TagNumber(1)
@@ -5944,14 +7330,16 @@ class WebhookConfig extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.String get signingKey => $_getSZ(1);
   @$pb.TagNumber(2)
-  set signingKey($core.String value) => $_setString(1, value);
+  set signingKey($core.String v) {
+    $_setString(1, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasSigningKey() => $_has(1);
   @$pb.TagNumber(2)
   void clearSigningKey() => $_clearField(2);
 }
 
-const $core.bool _omitFieldNames =
-    $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames =
+const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
+const _omitMessageNames =
     $core.bool.fromEnvironment('protobuf.omit_message_names');
