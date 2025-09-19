@@ -23,6 +23,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -148,6 +149,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   List<lk_models.Codec>? _enabledPublishCodecs;
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
+
+  E2EEManager? _e2eeManager;
 
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
@@ -313,6 +316,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           completer.completeError('Engine disconnected');
         }
       }
+
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
@@ -333,8 +337,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     bool? reliability = true,
   }) async {
     // construct the data channel message
-    final message =
-        rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+    var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
     final reliabilityType =
         reliability == true ? Reliability.reliable : Reliability.lossy;
@@ -364,6 +367,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Data channel for ${packet.kind.toSDKType()} is null');
     }
 
+    if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
+      final encryptablePacket = asEncryptablePacket(packet);
+      if (encryptablePacket != null) {
+        final encryptedData = await _e2eeManager?.encryptData(
+            data: encryptablePacket.writeToBuffer());
+
+        if (encryptedData == null) {
+          logger.warning('Failed to encrypt data packet');
+          return;
+        }
+
+        final packet = lk_models.EncryptedPacket(
+          encryptionType: lk_models.Encryption_Type.GCM,
+          encryptedValue: encryptedData.data,
+          iv: encryptedData.iv,
+          keyIndex: encryptedData.keyIndex,
+        );
+
+        message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+      }
+    }
+
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
 
@@ -388,6 +413,43 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
     }
+  }
+
+  lk_models.EncryptedPacketPayload? asEncryptablePacket(
+      lk_models.DataPacket packet) {
+    if ([
+          lk_models.DataPacket_Value.sipDtmf,
+          lk_models.DataPacket_Value.metrics,
+          lk_models.DataPacket_Value.speaker,
+          lk_models.DataPacket_Value.transcription,
+          lk_models.DataPacket_Value.encryptedPacket
+        ].contains(packet.whichValue()) ==
+        false) {
+      switch (packet.whichValue()) {
+        case lk_models.DataPacket_Value.user:
+          return lk_models.EncryptedPacketPayload(user: packet.user);
+        case lk_models.DataPacket_Value.rpcRequest:
+          return lk_models.EncryptedPacketPayload(
+              rpcRequest: packet.rpcRequest);
+        case lk_models.DataPacket_Value.rpcResponse:
+          return lk_models.EncryptedPacketPayload(
+              rpcResponse: packet.rpcResponse);
+        case lk_models.DataPacket_Value.rpcAck:
+          return lk_models.EncryptedPacketPayload(rpcAck: packet.rpcAck);
+        case lk_models.DataPacket_Value.streamHeader:
+          return lk_models.EncryptedPacketPayload(
+              streamHeader: packet.streamHeader);
+        case lk_models.DataPacket_Value.streamChunk:
+          return lk_models.EncryptedPacketPayload(
+              streamChunk: packet.streamChunk);
+        case lk_models.DataPacket_Value.streamTrailer:
+          return lk_models.EncryptedPacketPayload(
+              streamTrailer: packet.streamTrailer);
+        default:
+          return null;
+      }
+    }
+    return null;
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -636,15 +698,36 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  void _onDCMessage(rtc.RTCDataChannelMessage message) {
+  void _onDCMessage(rtc.RTCDataChannelMessage message) async {
     // always expect binary
     if (!message.isBinary) {
       logger.warning('Data message is not binary');
       return;
     }
-
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
+    if (dp.whichValue() == lk_models.DataPacket_Value.encryptedPacket) {
+      if (_e2eeManager != null) {
+        logger.warning('Received encrypted packet but E2EE not set up');
+        return;
+      }
+      final decryptedData = await _e2eeManager?.handleEncryptedData(
+        data: Uint8List.fromList(dp.encryptedPacket.encryptedValue),
+        iv: Uint8List.fromList(dp.encryptedPacket.iv),
+        participantIdentity: dp.participantIdentity,
+        keyIndex: dp.encryptedPacket.keyIndex,
+      );
+      if (decryptedData == null) {
+        logger.warning('Failed to decrypt data packet');
+        return;
+      }
+      final newDp = lk_models.DataPacket.fromBuffer(decryptedData);
+      _emitDataPacket(newDp);
+    } else {
+      _emitDataPacket(dp);
+    }
+  }
 
+  void _emitDataPacket(lk_models.DataPacket dp) {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
