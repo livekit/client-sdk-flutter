@@ -19,7 +19,7 @@ version: 2.5.1
 homepage: https://github.com/livekit/client-sdk-flutter
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
@@ -28,7 +28,7 @@ dependencies:
   flutter:
     sdk: flutter
   async: ^2.9.0
-  collection: ^1.19.0
+  collection: ^1.18.0
   connectivity_plus: ^6.0.2
   fixnum: ^1.0.1
   meta: ^1.8.0
@@ -36,12 +36,12 @@ dependencies:
   logging: ^1.1.0
   uuid: ^4.5.1
   synchronized: ^3.0.0+3
-  protobuf: ^4.1.0
+  protobuf: ^4.0.0
   device_info_plus: ^11.3.0
   sdp_transform: ^0.3.2
   web: ^1.0.0
   mime_type: ^1.0.1
-  path: ^1.9.1
+  path: ^1.9.0
 
   # Fix version to avoid version conflicts between WebRTC-SDK pods, which both this package and flutter_webrtc depend on.
   flutter_webrtc: 1.2.0
@@ -50,7 +50,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  lints: ^6.0.0
+  lints: ^5.0.0
   mockito: ^5.3.2
   import_sorter: ^4.6.0
   yaml: ^3.1.2
