@@ -223,7 +223,7 @@ void main() {
         // Verify that reply metadata is accessible
         expect(reader.info?.replyToStreamId, originalStreamId);
         expect(reader.info?.version, 1);
-        expect(reader.info?.operationType, 'CREATE');
+        expect(reader.info?.operationType, TextStreamOperationType.create);
       });
 
       // Send a reply to an existing stream

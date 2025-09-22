@@ -165,6 +165,30 @@ class ByteStreamInfo extends BaseStreamInfo {
         );
 }
 
+/// Operation types for text streams
+enum TextStreamOperationType {
+  create,
+  update,
+  delete,
+  reaction;
+
+  static TextStreamOperationType? fromString(String? stringValue) {
+    if (stringValue == null) return null;
+    switch (stringValue.toUpperCase()) {
+      case 'CREATE':
+        return TextStreamOperationType.create;
+      case 'UPDATE':
+        return TextStreamOperationType.update;
+      case 'DELETE':
+        return TextStreamOperationType.delete;
+      case 'REACTION':
+        return TextStreamOperationType.reaction;
+      default:
+        return null;
+    }
+  }
+}
+
 class TextStreamInfo extends BaseStreamInfo {
   /// The stream ID this message is replying to, if any
   final String? replyToStreamId;
@@ -179,7 +203,7 @@ class TextStreamInfo extends BaseStreamInfo {
   final bool generated;
 
   /// Operation type for the stream
-  final String? operationType;
+  final TextStreamOperationType? operationType;
 
   TextStreamInfo({
     required String id,

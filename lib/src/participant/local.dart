@@ -1243,7 +1243,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       attachedStreamIds: options?.attachedStreamIds ?? [],
       version: options?.version,
       generated: options?.generated ?? false,
-      operationType: options?.type,
+      operationType: TextStreamOperationType.fromString(options?.type),
     );
 
     final header = lk_models.DataStream_Header(
