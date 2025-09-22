@@ -54,7 +54,7 @@ class AudioVisualizerWeb extends AudioVisualizer {
       Duration(milliseconds: options.updateInterval!.toInt()),
       (timer) {
         try {
-          final tmp = JSFloat32Array.withLength(bufferLength ?? 0);
+          final tmp = Float32List(bufferLength ?? 0).toJS;
           _audioAnalyser?.analyser.getFloatFrequencyData(tmp);
           Float32List frequencies = Float32List(tmp.toDart.length);
           for (var i = 0; i < tmp.toDart.length; i++) {
