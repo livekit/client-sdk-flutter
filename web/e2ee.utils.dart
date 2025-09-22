@@ -2,6 +2,8 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
+// ignore: deprecated_member_use
+import 'package:js/js_util.dart';
 import 'package:web/web.dart' as web;
 
 bool isE2EESupported() {
@@ -23,15 +25,13 @@ bool isInsertableStreamSupported() {
 Future<web.CryptoKey> createKeyMaterialFromString(
     Uint8List keyBytes, String algorithm, String usage) {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
-  return web.window.crypto.subtle
-      .importKey(
-        'raw',
-        keyBytes.toJS,
-        {'name': 'PBKDF2'}.jsify() as web.AlgorithmIdentifier,
-        false,
-        ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>,
-      )
-      .toDart;
+  return promiseToFuture<web.CryptoKey>(web.window.crypto.subtle.importKey(
+    'raw',
+    keyBytes.toJS,
+    {'name': 'PBKDF2'}.jsify() as web.AlgorithmIdentifier,
+    false,
+    ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>,
+  ));
 }
 
 Map<String, dynamic> getAlgoOptions(String algorithmName, Uint8List salt) {
