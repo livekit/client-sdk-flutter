@@ -1187,8 +1187,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     handleProgress(num progress, int idx) {
       progresses[idx] = progress;
       final totalProgress = progresses.reduce((acc, val) => acc + val);
-      options?.onProgress
-          ?.call(totalProgress.toDouble() / (fileIds?.length ?? 1));
+      options?.onProgress?.call(totalProgress.toDouble() / len);
     }
 
     final writer = await streamText(StreamTextOptions(
