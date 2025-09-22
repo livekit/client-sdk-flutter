@@ -50,7 +50,7 @@ class E2EEDataPacketCryptor {
   }
 
   Uint8List makeIv({required int timestamp}) {
-    var iv = ByteData(IV_LENGTH);
+    final iv = ByteData(IV_LENGTH);
 
     // having to keep our own send count (similar to a picture id) is not ideal.
     if (sendCount_ == -1) {
@@ -58,7 +58,7 @@ class E2EEDataPacketCryptor {
       sendCount_ = Random.secure().nextInt(0xffff);
     }
 
-    var sendCount = sendCount_;
+    final sendCount = sendCount_;
     final randomBytes =
         Random.secure().nextInt(max(0, 0xffffffff)).toUnsigned(32);
 
@@ -81,8 +81,8 @@ class E2EEDataPacketCryptor {
   ) async {
     logger.fine('encodeFunction: buffer ${data.length}');
 
-    var secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
-    var keyIndex = currentKeyIndex;
+    final secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
+    final keyIndex = currentKeyIndex;
 
     if (secretKey == null) {
       logger.warning(
@@ -90,14 +90,14 @@ class E2EEDataPacketCryptor {
       return null;
     }
 
-    var iv = makeIv(timestamp: DateTime.timestamp().millisecondsSinceEpoch);
+    final iv = makeIv(timestamp: DateTime.timestamp().millisecondsSinceEpoch);
 
-    var frameTrailer = ByteData(2);
+    final frameTrailer = ByteData(2);
     frameTrailer.setInt8(0, IV_LENGTH);
     frameTrailer.setInt8(1, keyIndex);
 
     try {
-      var cipherText = await worker.crypto.subtle
+      final cipherText = await worker.crypto.subtle
           .encrypt(
             {
               'name': 'AES-GCM',
@@ -133,13 +133,13 @@ class E2EEDataPacketCryptor {
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;
-    var initialKeyIndex = currentKeyIndex;
+    final initialKeyIndex = currentKeyIndex;
 
     try {
-      var ivLength = encryptedPacket.iv.length;
-      var keyIndex = encryptedPacket.keyIndex;
-      var iv = encryptedPacket.iv;
-      var payload = encryptedPacket.data;
+      final ivLength = encryptedPacket.iv.length;
+      final keyIndex = encryptedPacket.keyIndex;
+      final iv = encryptedPacket.iv;
+      final payload = encryptedPacket.data;
       initialKeySet = keyHandler.getKeySet(initialKeyIndex);
 
       logger.finer(
@@ -190,9 +190,9 @@ class E2EEDataPacketCryptor {
           throw Exception('[ratchedKeyInternal] cannot ratchet anymore');
         }
 
-        var newKeyBuffer = await keyHandler.ratchet(
+        final newKeyBuffer = await keyHandler.ratchet(
             currentkeySet.material, keyOptions.ratchetSalt);
-        var newMaterial = await keyHandler.ratchetMaterial(
+        final newMaterial = await keyHandler.ratchetMaterial(
             currentkeySet.material, newKeyBuffer.buffer);
         currentkeySet =
             await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
