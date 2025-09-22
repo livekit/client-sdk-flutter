@@ -1239,6 +1239,11 @@ extension DataStreamParticipantMethods on LocalParticipant {
       timestamp: DateTime.timestamp().millisecondsSinceEpoch,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
+      replyToStreamId: options?.replyToStreamId,
+      attachedStreamIds: options?.attachedStreamIds ?? [],
+      version: options?.version,
+      generated: options?.generated ?? false,
+      operationType: options?.type,
     );
 
     final header = lk_models.DataStream_Header(
