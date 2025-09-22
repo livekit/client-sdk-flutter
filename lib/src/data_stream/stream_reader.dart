@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../proto/livekit_models.pb.dart' show DataStream_Chunk;
 import '../types/data_stream.dart';
+import 'errors.dart';
 
 abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
   DataStreamController<DataStream_Chunk>? reader;
@@ -27,6 +28,26 @@ abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
   Function(double? progress)? onProgress;
 
   Future<U> readAll();
+
+  void validateBytesReceived([bool doneReceiving = false]) {
+    if (_totalByteSize is! num || _totalByteSize == 0) {
+      return;
+    }
+
+    if (doneReceiving && _bytesReceived < _totalByteSize) {
+      throw DataStreamError(
+        message:
+            'Not enough chunk(s) received - expected $_totalByteSize bytes of data total, only received $_bytesReceived bytes',
+        reason: DataStreamErrorReason.Incomplete,
+      );
+    } else if (_bytesReceived > _totalByteSize) {
+      throw DataStreamError(
+        message:
+            'Extra chunk(s) received - expected $_totalByteSize bytes of data total, received $_bytesReceived bytes',
+        reason: DataStreamErrorReason.LengthExceeded,
+      );
+    }
+  }
 }
 
 class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
@@ -36,6 +57,8 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
   @override
   void handleChunkReceived(DataStream_Chunk chunk) {
     _bytesReceived += chunk.content.length;
+    validateBytesReceived();
+
     final currentProgress =
         _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
     onProgress?.call(currentProgress);
@@ -88,6 +111,9 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
     }
     receivedChunks[index] = chunk;
     _bytesReceived += chunk.content.length;
+
+    validateBytesReceived();
+
     final currentProgress =
         _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
     onProgress?.call(currentProgress);
@@ -97,7 +123,14 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
   Future<String> readAll() async {
     var finalString = '';
     await for (final chunk in this) {
-      finalString += utf8.decode(chunk.content.toList());
+      try {
+        finalString += utf8.decode(chunk.content.toList());
+      } catch (e) {
+        throw DataStreamError(
+          message: 'Failed to decode chunk data: $e',
+          reason: DataStreamErrorReason.DecodeFailed,
+        );
+      }
     }
     return finalString;
   }

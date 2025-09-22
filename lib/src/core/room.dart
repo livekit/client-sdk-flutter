@@ -18,10 +18,11 @@ import 'package:flutter/foundation.dart' hide internal;
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
-import 'package:livekit_client/src/e2ee/options.dart';
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/src/e2ee/options.dart';
 import '../core/signal_client.dart';
+import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
 import '../events.dart';
@@ -912,6 +913,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       return false;
     }
 
+    validateParticipantHasNoActiveDataStreams(identity);
+
     await participant.removeAllPublishedTracks(notify: true);
 
     emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
@@ -1265,9 +1268,12 @@ extension DataStreamRoomMethods on Room {
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
-    if (_textStreamHandlers[topic] != null) {
-      throw Exception(
-          'A text stream handler for topic "${topic}" has already been set.');
+    if (_textStreamHandlers.containsKey(topic)) {
+      throw DataStreamError(
+        message:
+            'A text stream handler for topic "${topic}" has already been set.',
+        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+      );
     }
     _textStreamHandlers[topic] = callback;
   }
@@ -1277,9 +1283,12 @@ extension DataStreamRoomMethods on Room {
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
-    if (_byteStreamHandlers[topic] != null) {
-      throw Exception(
-          'A byte stream handler for topic "${topic}" has already been set.');
+    if (_byteStreamHandlers.containsKey(topic)) {
+      throw DataStreamError(
+        message:
+            'A byte stream handler for topic "${topic}" has already been set.',
+        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+      );
     }
     _byteStreamHandlers[topic] = callback;
   }
@@ -1310,6 +1319,7 @@ extension DataStreamRoomMethods on Room {
         timestamp: streamHeader.timestamp.toInt(),
         attributes: streamHeader.attributes,
         encryptionType: encryptionType,
+        sendingParticipantIdentity: participantIdentity,
       );
 
       final streamController = DataStreamController<lk_models.DataStream_Chunk>(
@@ -1317,6 +1327,14 @@ extension DataStreamRoomMethods on Room {
         streamController: StreamController<lk_models.DataStream_Chunk>(),
         startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
+
+      if (_byteStreamControllers.containsKey(streamHeader.streamId)) {
+        throw DataStreamError(
+          message:
+              'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
+          reason: DataStreamErrorReason.AlreadyOpened,
+        );
+      }
 
       _byteStreamControllers[streamHeader.streamId] = streamController;
 
@@ -1343,6 +1361,8 @@ extension DataStreamRoomMethods on Room {
         topic: streamHeader.topic,
         timestamp: streamHeader.timestamp.toInt(),
         attributes: streamHeader.attributes,
+        encryptionType: encryptionType,
+        sendingParticipantIdentity: participantIdentity,
       );
 
       final streamController = DataStreamController<lk_models.DataStream_Chunk>(
@@ -1350,6 +1370,14 @@ extension DataStreamRoomMethods on Room {
         streamController: StreamController<lk_models.DataStream_Chunk>(),
         startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
+
+      if (_textStreamControllers.containsKey(streamHeader.streamId)) {
+        throw DataStreamError(
+          message:
+              'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
+          reason: DataStreamErrorReason.AlreadyOpened,
+        );
+      }
 
       _textStreamControllers[streamHeader.streamId] = streamController;
 
@@ -1367,8 +1395,14 @@ extension DataStreamRoomMethods on Room {
 
     if (fileBuffer != null) {
       if (fileBuffer.info.encryptionType != encryptionType) {
-        logger.warning(
-            'encryption type mismatch for byte stream ${chunk.streamId}');
+        fileBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
         _byteStreamControllers.remove(chunk.streamId);
       }
 
@@ -1379,6 +1413,14 @@ extension DataStreamRoomMethods on Room {
     final textBuffer = _textStreamControllers[chunk.streamId];
     if (textBuffer != null) {
       if (textBuffer.info.encryptionType != encryptionType) {
+        textBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
         logger.warning(
             'encryption type mismatch for text stream ${chunk.streamId}');
         _textStreamControllers.remove(chunk.streamId);
@@ -1394,8 +1436,14 @@ extension DataStreamRoomMethods on Room {
     final textBuffer = _textStreamControllers[trailer.streamId];
     if (textBuffer != null) {
       if (textBuffer.info.encryptionType != encryptionType) {
-        logger.warning(
-            'encryption type mismatch for text stream ${trailer.streamId}');
+        textBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
         _textStreamControllers.remove(trailer.streamId);
         return;
       } else {
@@ -1411,8 +1459,14 @@ extension DataStreamRoomMethods on Room {
     final fileBuffer = _byteStreamControllers[trailer.streamId];
     if (fileBuffer != null) {
       if (fileBuffer.info.encryptionType != encryptionType) {
-        logger.warning(
-            'encryption type mismatch for byte stream ${trailer.streamId}');
+        fileBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
         _byteStreamControllers.remove(trailer.streamId);
         return;
       } else {
@@ -1422,6 +1476,39 @@ extension DataStreamRoomMethods on Room {
         };
         await fileBuffer.close();
         _byteStreamControllers.remove(trailer.streamId);
+      }
+    }
+  }
+
+  void validateParticipantHasNoActiveDataStreams(String participantIdentity) {
+    // Terminate any in flight data stream receives from the given participant
+    final textStreamsBeingSentByDisconnectingParticipant =
+        _textStreamControllers.values
+            .where((controller) =>
+                controller.info.sendingParticipantIdentity ==
+                participantIdentity)
+            .toList();
+
+    final byteStreamsBeingSentByDisconnectingParticipant =
+        _byteStreamControllers.values
+            .where((controller) =>
+                controller.info.sendingParticipantIdentity ==
+                participantIdentity)
+            .toList();
+    if (textStreamsBeingSentByDisconnectingParticipant.isNotEmpty ||
+        byteStreamsBeingSentByDisconnectingParticipant.isNotEmpty) {
+      final abnormalEndError = DataStreamError(
+        message:
+            'Participant ${participantIdentity} unexpectedly disconnected in the middle of sending data',
+        reason: DataStreamErrorReason.AbnormalEnd,
+      );
+      for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
+        controller.error(abnormalEndError);
+        _byteStreamControllers.remove(controller.info.id);
+      }
+      for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
+        controller.error(abnormalEndError);
+        _textStreamControllers.remove(controller.info.id);
       }
     }
   }
