@@ -230,8 +230,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }) async {
     var roomOptions = this.roomOptions;
     connectOptions ??= ConnectOptions();
-    if (roomOptions.e2eeOptions != null ||
-        roomOptions.encryption != null && engine.e2eeManager == null) {
+    if ((roomOptions.e2eeOptions != null || roomOptions.encryption != null) &&
+        engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
