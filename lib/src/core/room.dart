@@ -234,7 +234,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
-      _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider,
+      final e2eeOptions = roomOptions.e2eeOptions ?? roomOptions.encryption;
+      _e2eeManager = E2EEManager(e2eeOptions!.keyProvider,
           dcEncryptionEnabled: roomOptions.encryption != null);
       await _e2eeManager!.setup(this);
 
