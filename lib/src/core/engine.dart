@@ -152,6 +152,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   E2EEManager? _e2eeManager;
 
+  E2EEManager? get e2eeManager => _e2eeManager;
+
+  void setE2eeManager(E2EEManager? e2eeManager) {
+    _e2eeManager = e2eeManager;
+  }
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -169,9 +175,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
+    E2EEManager? e2eeManager,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
         _peerConnectionCreate =
-            peerConnectionCreate ?? rtc.createPeerConnection {
+            peerConnectionCreate ?? rtc.createPeerConnection,
+        _e2eeManager = e2eeManager {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -378,14 +386,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           return;
         }
 
-        final packet = lk_models.EncryptedPacket(
+        final encryptedPacket = lk_models.EncryptedPacket(
           encryptionType: lk_models.Encryption_Type.GCM,
           encryptedValue: encryptedData.data,
           iv: encryptedData.iv,
           keyIndex: encryptedData.keyIndex,
         );
 
-        message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+        final dataToSend = lk_models.DataPacket(
+          participantIdentity: packet.participantIdentity,
+          kind: packet.kind,
+          encryptedPacket: encryptedPacket,
+          destinationIdentities: packet.destinationIdentities,
+        );
+
+        message =
+            rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
       }
     }
 
@@ -450,6 +466,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     }
     return null;
+  }
+
+  lk_models.DataPacket asDataPacket(lk_models.EncryptedPacketPayload packet) {
+    switch (packet.whichValue()) {
+      case lk_models.EncryptedPacketPayload_Value.user:
+        return lk_models.DataPacket(user: packet.user);
+      case lk_models.EncryptedPacketPayload_Value.rpcRequest:
+        return lk_models.DataPacket(rpcRequest: packet.rpcRequest);
+      case lk_models.EncryptedPacketPayload_Value.rpcResponse:
+        return lk_models.DataPacket(rpcResponse: packet.rpcResponse);
+      case lk_models.EncryptedPacketPayload_Value.rpcAck:
+        return lk_models.DataPacket(rpcAck: packet.rpcAck);
+      case lk_models.EncryptedPacketPayload_Value.streamHeader:
+        return lk_models.DataPacket(streamHeader: packet.streamHeader);
+      case lk_models.EncryptedPacketPayload_Value.streamChunk:
+        return lk_models.DataPacket(streamChunk: packet.streamChunk);
+      case lk_models.EncryptedPacketPayload_Value.streamTrailer:
+        return lk_models.DataPacket(streamTrailer: packet.streamTrailer);
+      default:
+        throw Exception(
+            'Unknown encrypted packet type: ${packet.whichValue()}');
+    }
   }
 
   Future<RTCConfiguration> _buildRtcConfiguration(
@@ -706,7 +744,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
     final dp = lk_models.DataPacket.fromBuffer(message.binary);
     if (dp.whichValue() == lk_models.DataPacket_Value.encryptedPacket) {
-      if (_e2eeManager != null) {
+      if (_e2eeManager == null) {
         logger.warning('Received encrypted packet but E2EE not set up');
         return;
       }
@@ -720,7 +758,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.warning('Failed to decrypt data packet');
         return;
       }
-      final newDp = lk_models.DataPacket.fromBuffer(decryptedData);
+
+      final decryptedPacketPayload =
+          lk_models.EncryptedPacketPayload.fromBuffer(decryptedData);
+      final newDp = asDataPacket(decryptedPacketPayload);
+
       _emitDataPacket(newDp);
     } else {
       _emitDataPacket(dp);

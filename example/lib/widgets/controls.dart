@@ -269,6 +269,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     if (result == true) {
       await widget.participant.publishData(
         utf8.encode('This is a sample data message'),
+        reliable: true,
       );
     }
   }
