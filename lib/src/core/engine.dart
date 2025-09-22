@@ -24,6 +24,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../e2ee/e2ee_manager.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -763,13 +764,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           lk_models.EncryptedPacketPayload.fromBuffer(decryptedData);
       final newDp = asDataPacket(decryptedPacketPayload);
 
-      _emitDataPacket(newDp);
+      _emitDataPacket(newDp,
+          encryptionType: dp.encryptedPacket.encryptionType.toLkType());
     } else {
       _emitDataPacket(dp);
     }
   }
 
-  void _emitDataPacket(lk_models.DataPacket dp) {
+  void _emitDataPacket(lk_models.DataPacket dp,
+      {EncryptionType encryptionType = EncryptionType.kNone}) {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -818,6 +821,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         EngineDataStreamHeaderEvent(
           header: dp.streamHeader,
           identity: dp.participantIdentity,
+          encryptionType: encryptionType,
         ),
       );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
@@ -826,6 +830,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         EngineDataStreamChunkEvent(
           chunk: dp.streamChunk,
           identity: dp.participantIdentity,
+          encryptionType: encryptionType,
         ),
       );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
@@ -834,6 +839,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         EngineDataStreamTrailerEvent(
           trailer: dp.streamTrailer,
           identity: dp.participantIdentity,
+          encryptionType: encryptionType,
         ),
       );
     } else {
