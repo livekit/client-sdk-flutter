@@ -1340,7 +1340,7 @@ extension DataStreamRoomMethods on Room {
             ? streamHeader.textHeader.generated
             : false,
         operationType: streamHeader.textHeader.hasOperationType()
-            ? streamHeader.textHeader.operationType.name
+            ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
             : null,
       );
 
