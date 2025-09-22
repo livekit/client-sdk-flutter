@@ -33,10 +33,10 @@ class E2EEManager {
   final Algorithm _algorithm = Algorithm.kAesGcm;
   DataPacketCryptor? _dataPacketCryptor;
   bool _enabled = true;
-  bool encryptionEnabled = false;
+  bool _encryptionEnabled = false;
   EventsListener<RoomEvent>? _listener;
   E2EEManager(this._keyProvider, {bool dcEncryptionEnabled = false}) {
-    encryptionEnabled = dcEncryptionEnabled;
+    _encryptionEnabled = dcEncryptionEnabled;
   }
 
   Future<void> setup(Room room) async {
@@ -121,7 +121,7 @@ class E2EEManager {
             }
           }
         });
-      if (encryptionEnabled && room.roomOptions.encryption != null) {
+      if (_encryptionEnabled && room.roomOptions.encryption != null) {
         _dataPacketCryptor ??=
             await dataPacketCryptorFactory.createDataPacketCryptor(
                 algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
@@ -252,7 +252,7 @@ class E2EEManager {
   }
 
   bool get isDataChannelEncryptionEnabled =>
-      encryptionEnabled && _dataPacketCryptor != null;
+      _encryptionEnabled && _dataPacketCryptor != null;
 
   Future<Uint8List?> handleEncryptedData({
     required Uint8List data,
