@@ -113,6 +113,8 @@ class RoomOptions {
   @Deprecated('Use encryption instead')
   final E2EEOptions? e2eeOptions;
 
+  /// @experimental
+  /// Options for end-to-end encryption.
   final E2EEOptions? encryption;
 
   /// fast track publication

@@ -121,11 +121,9 @@ class E2EEManager {
             }
           }
         });
-      if (_encryptionEnabled && room.roomOptions.encryption != null) {
-        _dataPacketCryptor ??=
-            await dataPacketCryptorFactory.createDataPacketCryptor(
-                algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
-      }
+      _dataPacketCryptor ??=
+          await dataPacketCryptorFactory.createDataPacketCryptor(
+              algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     }
   }
 
@@ -251,8 +249,7 @@ class E2EEManager {
     }
   }
 
-  bool get isDataChannelEncryptionEnabled =>
-      _encryptionEnabled && _dataPacketCryptor != null;
+  bool get isDataChannelEncryptionEnabled => _enabled && _encryptionEnabled;
 
   Future<Uint8List?> handleEncryptedData({
     required Uint8List data,

@@ -209,7 +209,6 @@ class _PreJoinPageState extends State<PreJoinPage> {
             videoEncoding: cameraEncoding,
             screenShareEncoding: screenEncoding,
           ),
-          e2eeOptions: e2eeOptions,
           encryption: e2eeOptions,
         ),
       );
