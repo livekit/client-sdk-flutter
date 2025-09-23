@@ -16,6 +16,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -504,19 +505,23 @@ class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
 class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Header header;
   final String identity;
+  final EncryptionType encryptionType;
   const EngineDataStreamHeaderEvent({
     required this.header,
     required this.identity,
+    required this.encryptionType,
   });
 }
 
 @internal
 class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Chunk chunk;
+  final EncryptionType encryptionType;
   final String identity;
   const EngineDataStreamChunkEvent({
     required this.chunk,
     required this.identity,
+    required this.encryptionType,
   });
 }
 
@@ -524,9 +529,11 @@ class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
 class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Trailer trailer;
   final String identity;
+  final EncryptionType encryptionType;
   const EngineDataStreamTrailerEvent({
     required this.trailer,
     required this.identity,
+    required this.encryptionType,
   });
 }
 

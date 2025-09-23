@@ -35,7 +35,7 @@ class SifGuard {
   bool isSifAllowed() {
     return consecutiveSifCount < MAX_SIF_COUNT &&
         (sifSequenceStartedAt == null ||
-            DateTime.timestamp().millisecondsSinceEpoch - sifSequenceStartedAt! <
+            DateTime.now().millisecondsSinceEpoch - sifSequenceStartedAt! <
                 MAX_SIF_DURATION);
   }
 

@@ -152,7 +152,8 @@ class ScreenSelectDialog extends Dialog {
 
   Future<void> _getSources() async {
     try {
-      final sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
+      final sources =
+          await rtc.desktopCapturer.getSources(types: [_sourceType]);
       for (var element in sources) {
         if (kDebugMode) {
           print(

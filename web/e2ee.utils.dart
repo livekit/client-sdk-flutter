@@ -21,7 +21,7 @@ bool isInsertableStreamSupported() {
 }
 
 Future<web.CryptoKey> createKeyMaterialFromString(
-    Uint8List keyBytes, String algorithm, String usage) {
+    Uint8List keyBytes, String algorithm, String usage) async {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
   return web.window.crypto.subtle
       .importKey(
