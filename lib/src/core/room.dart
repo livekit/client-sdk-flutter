@@ -1329,6 +1329,19 @@ extension DataStreamRoomMethods on Room {
         topic: streamHeader.topic,
         timestamp: streamHeader.timestamp.toInt(),
         attributes: streamHeader.attributes,
+        replyToStreamId: streamHeader.textHeader.hasReplyToStreamId()
+            ? streamHeader.textHeader.replyToStreamId
+            : null,
+        attachedStreamIds: streamHeader.textHeader.attachedStreamIds.toList(),
+        version: streamHeader.textHeader.hasVersion()
+            ? streamHeader.textHeader.version
+            : null,
+        generated: streamHeader.textHeader.hasGenerated()
+            ? streamHeader.textHeader.generated
+            : false,
+        operationType: streamHeader.textHeader.hasOperationType()
+            ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
+            : null,
       );
 
       final streamController = DataStreamController<lk_models.DataStream_Chunk>(

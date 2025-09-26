@@ -1153,22 +1153,6 @@ extension RPCMethods on LocalParticipant {
   }
 }
 
-/// Helper function to convert string operation type to enum
-lk_models.DataStream_OperationType _stringToOperationType(String? type) {
-  switch (type?.toLowerCase()) {
-    case 'create':
-      return lk_models.DataStream_OperationType.CREATE;
-    case 'update':
-      return lk_models.DataStream_OperationType.UPDATE;
-    case 'delete':
-      return lk_models.DataStream_OperationType.DELETE;
-    case 'reaction':
-      return lk_models.DataStream_OperationType.REACTION;
-    default:
-      return lk_models.DataStream_OperationType.CREATE;
-  }
-}
-
 extension DataStreamParticipantMethods on LocalParticipant {
   Future<TextStreamInfo> sendText(String text,
       {SendTextOptions? options}) async {
@@ -1233,20 +1217,26 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
   Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
     final streamId = options?.streamId ?? Uuid().v4();
+    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
 
     final info = TextStreamInfo(
       id: streamId,
       mimeType: 'text/plain',
-      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
+      timestamp: timestamp,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
+      replyToStreamId: options?.replyToStreamId,
+      attachedStreamIds: options?.attachedStreamIds ?? [],
+      version: options?.version,
+      generated: options?.generated ?? false,
+      operationType: options?.type,
     );
 
     final header = lk_models.DataStream_Header(
       streamId: streamId,
       mimeType: info.mimeType,
       topic: info.topic,
-      timestamp: Int64(info.timestamp),
+      timestamp: Int64(timestamp),
       totalLength: Int64(options?.totalSize ?? 0),
       attributes: options?.attributes.entries,
       textHeader: lk_models.DataStream_TextHeader(
@@ -1254,9 +1244,10 @@ extension DataStreamParticipantMethods on LocalParticipant {
         attachedStreamIds: options?.attachedStreamIds,
         replyToStreamId: options?.replyToStreamId,
         generated: options?.generated ?? false,
-        operationType: _stringToOperationType(options?.type),
+        operationType: options?.type?.toPBType(),
       ),
     );
+
     final destinationIdentities = options?.destinationIdentities;
     final packet = lk_models.DataPacket(
       kind: lk_models.DataPacket_Kind.RELIABLE,
@@ -1330,12 +1321,13 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
   Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
     final streamId = options?.streamId ?? Uuid().v4();
+    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
 
     final info = ByteStreamInfo(
       name: options?.name ?? 'unknown',
       id: streamId,
       mimeType: options?.mimeType ?? 'application/octet-stream',
-      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
+      timestamp: timestamp,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
       attributes: options?.attributes ?? {},
@@ -1347,7 +1339,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       streamId: streamId,
       topic: options?.topic,
       encryptionType: options?.encryptionType,
-      timestamp: Int64(info.timestamp),
+      timestamp: Int64(timestamp),
       byteHeader: lk_models.DataStream_ByteHeader(
         name: info.name,
       ),
