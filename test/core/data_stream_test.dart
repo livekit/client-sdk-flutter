@@ -157,7 +157,12 @@ void main() {
     });
 
     test('Text Stream With Operation Types', () async {
-      final operationTypes = ['create', 'update', 'delete', 'reaction'];
+      final operationTypes = [
+        TextStreamOperationType.create,
+        TextStreamOperationType.update,
+        TextStreamOperationType.delete,
+        TextStreamOperationType.reaction,
+      ];
       final receivedMessages = <String>[];
 
       for (var operationType in operationTypes) {
@@ -176,7 +181,7 @@ void main() {
         final stream = await room.localParticipant?.streamText(StreamTextOptions(
           topic: 'chat-operations',
           type: operationType,
-          version: operationType == 'update' ? 2 : null,
+          version: operationType == TextStreamOperationType.update ? 2 : null,
         ));
         await stream?.write('Streamed ${operationType}');
         await stream?.close();
@@ -229,7 +234,7 @@ void main() {
       // Send a reply to an existing stream
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'chat-replies',
-        type: 'create',
+        type: TextStreamOperationType.create,
         streamId: replyStreamId,
         replyToStreamId: originalStreamId,
         version: 1,
@@ -388,7 +393,7 @@ void main() {
           final stream = await room.localParticipant?.streamText(StreamTextOptions(
             topic: 'concurrent-streams',
             streamId: 'stream-${i}',
-            type: 'create',
+            type: TextStreamOperationType.create,
           ));
           await stream?.write('Concurrent message ${i}');
           await stream?.close();
@@ -454,7 +459,7 @@ void main() {
       // Send a message with comprehensive options
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'header-validation',
-        type: 'create',
+        type: TextStreamOperationType.create,
         version: 1,
         generated: false,
         attributes: {
