@@ -219,6 +219,11 @@ void main() {
         final text = await reader.readAll();
         print('received reply message: ${text}');
         expect(text, 'This is a reply to the original message');
+
+        // Verify that reply metadata is accessible
+        expect(reader.info?.replyToStreamId, originalStreamId);
+        expect(reader.info?.version, 1);
+        expect(reader.info?.operationType, 'CREATE');
       });
 
       // Send a reply to an existing stream
