@@ -32,13 +32,13 @@ class BufferedDataPacket {
 class DataPacketBuffer {
   final List<BufferedDataPacket> _buffer = [];
   int _totalSize = 0;
-  
+
   // Maximum buffer size in bytes (64MB by default)
   final int maxBufferSize;
-  
+
   // Maximum number of packets (1000 by default)
   final int maxPacketCount;
-  
+
   DataPacketBuffer({
     this.maxBufferSize = 64 * 1024 * 1024, // 64MB
     this.maxPacketCount = 1000,
@@ -47,35 +47,33 @@ class DataPacketBuffer {
   void push(BufferedDataPacket item) {
     _buffer.add(item);
     _totalSize += item.message.binary.length;
-    
+
     // Enforce buffer limits
     _enforceBufferLimits();
   }
-  
+
   void _enforceBufferLimits() {
     int removedCount = 0;
-    
+
     // Remove oldest packets if we exceed count limit
     while (_buffer.length > maxPacketCount && _buffer.isNotEmpty) {
       final removed = pop();
       if (removed == null) break;
       removedCount++;
     }
-    
+
     // Remove oldest packets if we exceed size limit, but keep at least one packet
     while (_totalSize > maxBufferSize && _buffer.length > 1) {
       final removed = pop();
       if (removed == null) break;
       removedCount++;
     }
-    
+
     // Log buffer limit enforcement
     if (removedCount > 0) {
-      logger.warning(
-        'DataPacketBuffer limit reached: removed $removedCount old packets. '
-        'Current: ${_buffer.length} packets, ${(_totalSize / 1024).round()}KB. '
-        'Limits: $maxPacketCount packets, ${(maxBufferSize / 1024).round()}KB'
-      );
+      logger.warning('DataPacketBuffer limit reached: removed $removedCount old packets. '
+          'Current: ${_buffer.length} packets, ${(_totalSize / 1024).round()}KB. '
+          'Limits: $maxPacketCount packets, ${(maxBufferSize / 1024).round()}KB');
     }
   }
 
@@ -98,16 +96,16 @@ class DataPacketBuffer {
       clear();
       return;
     }
-    
+
     while (_buffer.isNotEmpty) {
       final first = _buffer.first;
       final sizeAfterRemoving = _totalSize - first.message.binary.length;
-      
+
       // If removing this packet would bring us <= bufferedAmount, stop
       if (sizeAfterRemoving <= bufferedAmount) {
         break;
       }
-      
+
       pop();
     }
   }
@@ -125,12 +123,12 @@ class DataPacketBuffer {
   int get totalSize => _totalSize;
   bool get isEmpty => _buffer.isEmpty;
   bool get isNotEmpty => _buffer.isNotEmpty;
-  
+
   // Buffer limit getters
   bool get isOverSizeLimit => _totalSize > maxBufferSize;
   bool get isOverCountLimit => _buffer.length > maxPacketCount;
   bool get isOverLimits => isOverSizeLimit || isOverCountLimit;
-  
+
   // Buffer utilization (0.0 to 1.0+)
   double get sizeUtilization => _totalSize / maxBufferSize;
   double get countUtilization => _buffer.length / maxPacketCount;
