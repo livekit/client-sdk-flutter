@@ -84,8 +84,10 @@ void main() {
       final info = await room.localParticipant?.sendText(longText,
           options: SendTextOptions(
             topic: 'chat-long-text',
-            onProgress: (p0) {
-              print('progress: $p0');
+            onProgress: (progress) {
+              print('progress: $progress');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
@@ -149,8 +151,10 @@ void main() {
           options: SendTextOptions(
             topic: 'chat-stream-with-files',
             attachments: attachmentsFiles,
-            onProgress: (p0) {
-              print('file from chat-stream-with-files: progress: $p0');
+            onProgress: (progress) {
+              print('file from chat-stream-with-files: progress: $progress');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
@@ -307,8 +311,10 @@ void main() {
       final info = await room.localParticipant?.sendFile(fileToSend,
           options: SendFileOptions(
             topic: 'file',
-            onProgress: (p0) {
-              print('progress: ${p0 * 100} %');
+            onProgress: (progress) {
+              print('progress: ${progress * 100} %');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
