@@ -1152,22 +1152,6 @@ extension RPCMethods on LocalParticipant {
   }
 }
 
-/// Helper function to convert string operation type to enum
-lk_models.DataStream_OperationType _stringToOperationType(String? type) {
-  switch (type?.toLowerCase()) {
-    case 'create':
-      return lk_models.DataStream_OperationType.CREATE;
-    case 'update':
-      return lk_models.DataStream_OperationType.UPDATE;
-    case 'delete':
-      return lk_models.DataStream_OperationType.DELETE;
-    case 'reaction':
-      return lk_models.DataStream_OperationType.REACTION;
-    default:
-      return lk_models.DataStream_OperationType.CREATE;
-  }
-}
-
 extension DataStreamParticipantMethods on LocalParticipant {
   Future<TextStreamInfo> sendText(String text,
       {SendTextOptions? options}) async {
@@ -1259,7 +1243,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
         attachedStreamIds: options?.attachedStreamIds,
         replyToStreamId: options?.replyToStreamId,
         generated: options?.generated ?? false,
-        operationType: _stringToOperationType(options?.type),
+        operationType: options?.type?.toPBType(),
       ),
     );
 
