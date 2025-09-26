@@ -1216,11 +1216,12 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
   Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
     final streamId = options?.streamId ?? Uuid().v4();
+    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
 
     final info = TextStreamInfo(
       id: streamId,
       mimeType: 'text/plain',
-      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
+      timestamp: timestamp,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
       replyToStreamId: options?.replyToStreamId,
@@ -1234,7 +1235,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       streamId: streamId,
       mimeType: info.mimeType,
       topic: info.topic,
-      timestamp: Int64(info.timestamp),
+      timestamp: Int64(timestamp),
       totalLength: Int64(options?.totalSize ?? 0),
       attributes: options?.attributes.entries,
       textHeader: lk_models.DataStream_TextHeader(
@@ -1245,11 +1246,13 @@ extension DataStreamParticipantMethods on LocalParticipant {
         operationType: options?.type?.toPBType(),
       ),
     );
+
     final destinationIdentities = options?.destinationIdentities;
     final packet = lk_models.DataPacket(
       destinationIdentities: destinationIdentities,
       streamHeader: header,
     );
+
     await room.engine.sendDataPacket(packet, reliability: true);
 
     final writableStream = WritableStream<String>(
@@ -1317,12 +1320,13 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
   Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
     final streamId = options?.streamId ?? Uuid().v4();
+    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
 
     final info = ByteStreamInfo(
       name: options?.name ?? 'unknown',
       id: streamId,
       mimeType: options?.mimeType ?? 'application/octet-stream',
-      timestamp: DateTime.timestamp().millisecondsSinceEpoch,
+      timestamp: timestamp,
       topic: options?.topic ?? '',
       size: options?.totalSize ?? 0,
       attributes: options?.attributes ?? {},
@@ -1334,7 +1338,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       streamId: streamId,
       topic: options?.topic,
       encryptionType: options?.encryptionType,
-      timestamp: Int64(info.timestamp),
+      timestamp: Int64(timestamp),
       byteHeader: lk_models.DataStream_ByteHeader(
         name: info.name,
       ),
