@@ -5,7 +5,7 @@ import '../data_stream/stream_reader.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_models.pb.dart' show Encryption_Type, DataStream_Chunk;
 
-const kStreamChunkSize = 15_000;
+const kStreamChunkSize = 15000;
 
 class SendTextOptions {
   String? topic;

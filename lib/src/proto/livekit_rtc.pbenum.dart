@@ -5,10 +5,9 @@
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:core' as $core;
 
@@ -25,12 +24,11 @@ class SignalTarget extends $pb.ProtobufEnum {
     SUBSCRIBER,
   ];
 
-  static final $core.List<SignalTarget?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 1);
-  static SignalTarget? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, SignalTarget> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static SignalTarget? valueOf($core.int value) => _byValue[value];
 
-  const SignalTarget._(super.value, super.name);
+  const SignalTarget._(super.v, super.n);
 }
 
 class StreamState extends $pb.ProtobufEnum {
@@ -44,12 +42,11 @@ class StreamState extends $pb.ProtobufEnum {
     PAUSED,
   ];
 
-  static final $core.List<StreamState?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 1);
-  static StreamState? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, StreamState> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static StreamState? valueOf($core.int value) => _byValue[value];
 
-  const StreamState._(super.value, super.name);
+  const StreamState._(super.v, super.n);
 }
 
 class CandidateProtocol extends $pb.ProtobufEnum {
@@ -66,12 +63,11 @@ class CandidateProtocol extends $pb.ProtobufEnum {
     TLS,
   ];
 
-  static final $core.List<CandidateProtocol?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
-  static CandidateProtocol? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, CandidateProtocol> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static CandidateProtocol? valueOf($core.int value) => _byValue[value];
 
-  const CandidateProtocol._(super.value, super.name);
+  const CandidateProtocol._(super.v, super.n);
 }
 
 /// indicates action clients should take on receiving this message
@@ -89,12 +85,11 @@ class LeaveRequest_Action extends $pb.ProtobufEnum {
     RECONNECT,
   ];
 
-  static final $core.List<LeaveRequest_Action?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
-  static LeaveRequest_Action? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, LeaveRequest_Action> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static LeaveRequest_Action? valueOf($core.int value) => _byValue[value];
 
-  const LeaveRequest_Action._(super.value, super.name);
+  const LeaveRequest_Action._(super.v, super.n);
 }
 
 class RequestResponse_Reason extends $pb.ProtobufEnum {
@@ -115,12 +110,11 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
     LIMIT_EXCEEDED,
   ];
 
-  static final $core.List<RequestResponse_Reason?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 3);
-  static RequestResponse_Reason? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, RequestResponse_Reason> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static RequestResponse_Reason? valueOf($core.int value) => _byValue[value];
 
-  const RequestResponse_Reason._(super.value, super.name);
+  const RequestResponse_Reason._(super.v, super.n);
 }
 
 class WrappedJoinRequest_Compression extends $pb.ProtobufEnum {
@@ -135,13 +129,12 @@ class WrappedJoinRequest_Compression extends $pb.ProtobufEnum {
     GZIP,
   ];
 
-  static final $core.List<WrappedJoinRequest_Compression?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static final $core.Map<$core.int, WrappedJoinRequest_Compression> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static WrappedJoinRequest_Compression? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+      _byValue[value];
 
-  const WrappedJoinRequest_Compression._(super.value, super.name);
+  const WrappedJoinRequest_Compression._(super.v, super.n);
 }
 
-const $core.bool _omitEnumNames =
-    $core.bool.fromEnvironment('protobuf.omit_enum_names');
+const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

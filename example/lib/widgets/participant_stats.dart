@@ -150,7 +150,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.3),
+      color: Colors.black.withOpacity(0.3),
       padding: const EdgeInsets.symmetric(
         vertical: 8,
         horizontal: 8,
