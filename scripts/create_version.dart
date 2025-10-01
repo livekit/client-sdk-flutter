@@ -47,6 +47,8 @@ class _Path {
   static const changelog = 'CHANGELOG.md';
   static const pubspec = 'pubspec.yaml';
   static const livekitVersion = 'lib/src/livekit.dart';
+  static const iosPodspec = 'ios/livekit_client.podspec';
+  static const macosPodspec = 'macos/livekit_client.podspec';
 }
 
 // ANSI color codes
@@ -253,6 +255,20 @@ void updateVersionFiles(SemanticVersion version) {
     _Path.livekitVersion,
     RegExp(r"static const version = '[^']*'"),
     "static const version = '$version'",
+  );
+
+  // Update iOS podspec
+  replaceVersionInFile(
+    _Path.iosPodspec,
+    RegExp(r"s\.version\s*=\s*'[^']*'"),
+    "s.version             = '$version'",
+  );
+
+  // Update macOS podspec
+  replaceVersionInFile(
+    _Path.macosPodspec,
+    RegExp(r"s\.version\s*=\s*'[^']*'"),
+    "s.version             = '$version'",
   );
 }
 
