@@ -22,7 +22,7 @@ void main() {
   final files = [
     'ios/livekit_client.podspec',
     'macos/livekit_client.podspec',
-    'lib/src/livekit.dart'
+    'lib/src/livekit.dart',
   ];
 
   for (var file in files) {
@@ -31,8 +31,7 @@ void main() {
       final RegExp exp = RegExp(r'(\d+\.\d+\.\d+)');
       final RegExpMatch? match = exp.firstMatch(content);
       // ignore: avoid_print
-      print(
-          'Version mismatch in $file, pubspec.yaml version is $version != ${match![0]} in $file, please update');
+      print('Version mismatch in $file, pubspec.yaml version is $version != ${match![0]} in $file, please update');
       exit(1);
     }
   }
