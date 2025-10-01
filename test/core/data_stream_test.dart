@@ -84,8 +84,10 @@ void main() {
       final info = await room.localParticipant?.sendText(longText,
           options: SendTextOptions(
             topic: 'chat-long-text',
-            onProgress: (p0) {
-              print('progress: $p0');
+            onProgress: (progress) {
+              print('progress: $progress');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
@@ -149,15 +151,22 @@ void main() {
           options: SendTextOptions(
             topic: 'chat-stream-with-files',
             attachments: attachmentsFiles,
-            onProgress: (p0) {
-              print('file from chat-stream-with-files: progress: $p0');
+            onProgress: (progress) {
+              print('file from chat-stream-with-files: progress: $progress');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
     });
 
     test('Text Stream With Operation Types', () async {
-      final operationTypes = ['create', 'update', 'delete', 'reaction'];
+      final operationTypes = [
+        TextStreamOperationType.create,
+        TextStreamOperationType.update,
+        TextStreamOperationType.delete,
+        TextStreamOperationType.reaction,
+      ];
       final receivedMessages = <String>[];
 
       for (var operationType in operationTypes) {
@@ -176,7 +185,7 @@ void main() {
         final stream = await room.localParticipant?.streamText(StreamTextOptions(
           topic: 'chat-operations',
           type: operationType,
-          version: operationType == 'update' ? 2 : null,
+          version: operationType == TextStreamOperationType.update ? 2 : null,
         ));
         await stream?.write('Streamed ${operationType}');
         await stream?.close();
@@ -219,12 +228,17 @@ void main() {
         final text = await reader.readAll();
         print('received reply message: ${text}');
         expect(text, 'This is a reply to the original message');
+
+        // Verify that reply metadata is accessible
+        expect(reader.info?.replyToStreamId, originalStreamId);
+        expect(reader.info?.version, 1);
+        expect(reader.info?.operationType, TextStreamOperationType.create);
       });
 
       // Send a reply to an existing stream
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'chat-replies',
-        type: 'create',
+        type: TextStreamOperationType.create,
         streamId: replyStreamId,
         replyToStreamId: originalStreamId,
         version: 1,
@@ -297,8 +311,10 @@ void main() {
       final info = await room.localParticipant?.sendFile(fileToSend,
           options: SendFileOptions(
             topic: 'file',
-            onProgress: (p0) {
-              print('progress: ${p0 * 100} %');
+            onProgress: (progress) {
+              print('progress: ${progress * 100} %');
+              expect(progress, greaterThanOrEqualTo(0.0));
+              expect(progress, lessThanOrEqualTo(1.0));
             },
           ));
       expect(info, isNotNull);
@@ -383,7 +399,7 @@ void main() {
           final stream = await room.localParticipant?.streamText(StreamTextOptions(
             topic: 'concurrent-streams',
             streamId: 'stream-${i}',
-            type: 'create',
+            type: TextStreamOperationType.create,
           ));
           await stream?.write('Concurrent message ${i}');
           await stream?.close();
@@ -449,7 +465,7 @@ void main() {
       // Send a message with comprehensive options
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'header-validation',
-        type: 'create',
+        type: TextStreamOperationType.create,
         version: 1,
         generated: false,
         attributes: {
