@@ -74,6 +74,12 @@ class StreamTextOptions {
     this.generated = false,
     this.attributes = const {},
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(topic: $topic, destinationIdentities: $destinationIdentities, '
+      'streamId: $streamId, totalSize: $totalSize, type: $type, version: $version, '
+      'replyToStreamId: $replyToStreamId, attachedStreamIds: $attachedStreamIds)';
 }
 
 class StreamBytesOptions {
@@ -85,6 +91,7 @@ class StreamBytesOptions {
   String? streamId;
   int? totalSize;
   Encryption_Type? encryptionType;
+
   StreamBytesOptions({
     this.name,
     this.mimeType,
@@ -95,6 +102,11 @@ class StreamBytesOptions {
     this.totalSize,
     this.encryptionType = Encryption_Type.NONE,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(name: $name, mimeType: $mimeType, topic: $topic, destinationIdentities: $destinationIdentities, '
+      'attributes: $attributes, streamId: $streamId, totalSize: $totalSize, encryptionType: $encryptionType)';
 }
 
 class ChatMessage {
@@ -164,6 +176,11 @@ class ByteStreamInfo extends BaseStreamInfo {
           size: size,
           attributes: attributes,
         );
+
+  @override
+  String toString() => '${runtimeType}'
+      '(name: $name, id: $id, mimeType: $mimeType, topic: $topic, '
+      'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }
 
 /// Operation types for text streams
@@ -239,6 +256,11 @@ class TextStreamInfo extends BaseStreamInfo {
           size: size,
           attributes: attributes,
         );
+
+  @override
+  String toString() => '${runtimeType}'
+      '(id: $id, mimeType: $mimeType, topic: $topic, '
+      'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }
 
 abstract class StreamWriter<T> {
@@ -247,8 +269,6 @@ abstract class StreamWriter<T> {
   Future<void> write(T chunk);
 }
 
-typedef ByteStreamHandler = void Function(
-    ByteStreamReader reader, String participantIdentity);
+typedef ByteStreamHandler = void Function(ByteStreamReader reader, String participantIdentity);
 
-typedef TextStreamHandler = Function(
-    TextStreamReader reader, String participantIdentity);
+typedef TextStreamHandler = Function(TextStreamReader reader, String participantIdentity);
