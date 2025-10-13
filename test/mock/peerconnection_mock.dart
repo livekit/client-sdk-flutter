@@ -26,16 +26,12 @@ class MockPeerConnection extends RTCPeerConnection {
   RTCSessionDescription? _localDescription;
   RTCSessionDescription? _remoteDescription;
 
-  RTCPeerConnectionState _connectionState =
-      RTCPeerConnectionState.RTCPeerConnectionStateNew;
-  RTCIceConnectionState _iceConnectionState =
-      RTCIceConnectionState.RTCIceConnectionStateNew;
-  RTCIceGatheringState _iceGatheringState =
-      RTCIceGatheringState.RTCIceGatheringStateNew;
+  RTCPeerConnectionState _connectionState = RTCPeerConnectionState.RTCPeerConnectionStateNew;
+  RTCIceConnectionState _iceConnectionState = RTCIceConnectionState.RTCIceConnectionStateNew;
+  RTCIceGatheringState _iceGatheringState = RTCIceGatheringState.RTCIceGatheringStateNew;
 
   @override
-  Future<RTCSessionDescription?> getLocalDescription() async =>
-      _localDescription;
+  Future<RTCSessionDescription?> getLocalDescription() async => _localDescription;
 
   @override
   Future<void> setLocalDescription(RTCSessionDescription description) async {
@@ -44,8 +40,7 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCSessionDescription?> getRemoteDescription() async =>
-      _remoteDescription;
+  Future<RTCSessionDescription?> getRemoteDescription() async => _remoteDescription;
 
   @override
   Future<void> setRemoteDescription(RTCSessionDescription description) async {
@@ -54,10 +49,8 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   void _handleIceConnection() {
-    if ((_localDescription?.type == _offerType &&
-            _remoteDescription?.type == _answerType) ||
-        (_localDescription?.type == _answerType &&
-            _remoteDescription?.type == _offerType)) {
+    if ((_localDescription?.type == _offerType && _remoteDescription?.type == _answerType) ||
+        (_localDescription?.type == _answerType && _remoteDescription?.type == _offerType)) {
       iceConnectionState = RTCIceConnectionState.RTCIceConnectionStateCompleted;
       _connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnected;
       onConnectionState?.call(_connectionState);
@@ -77,8 +70,7 @@ class MockPeerConnection extends RTCPeerConnection {
 
         onDataChannel?.call(dc);
 
-        dc.stateChangeStreamController
-            .add(RTCDataChannelState.RTCDataChannelOpen);
+        dc.stateChangeStreamController.add(RTCDataChannelState.RTCDataChannelOpen);
       }
     }
   }
@@ -106,20 +98,17 @@ class MockPeerConnection extends RTCPeerConnection {
           connectionState = RTCPeerConnectionState.RTCPeerConnectionStateNew;
           break;
         case RTCIceConnectionState.RTCIceConnectionStateChecking:
-          connectionState =
-              RTCPeerConnectionState.RTCPeerConnectionStateConnecting;
+          connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnecting;
           break;
         case RTCIceConnectionState.RTCIceConnectionStateConnected:
         case RTCIceConnectionState.RTCIceConnectionStateCompleted:
-          connectionState =
-              RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+          connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnected;
           break;
         case RTCIceConnectionState.RTCIceConnectionStateFailed:
           connectionState = RTCPeerConnectionState.RTCPeerConnectionStateFailed;
           break;
         case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
-          connectionState =
-              RTCPeerConnectionState.RTCPeerConnectionStateDisconnected;
+          connectionState = RTCPeerConnectionState.RTCPeerConnectionStateDisconnected;
           break;
         case RTCIceConnectionState.RTCIceConnectionStateClosed:
           connectionState = RTCPeerConnectionState.RTCPeerConnectionStateClosed;
@@ -147,17 +136,14 @@ class MockPeerConnection extends RTCPeerConnection {
   Future<void> addStream(MediaStream stream) async {}
 
   @override
-  Future<RTCRtpSender> addTrack(MediaStreamTrack track,
-      [MediaStream? stream]) async {
+  Future<RTCRtpSender> addTrack(MediaStreamTrack track, [MediaStream? stream]) async {
     // TODO: implement addTrack
     throw UnimplementedError();
   }
 
   @override
   Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack? track,
-      RTCRtpMediaType? kind,
-      RTCRtpTransceiverInit? init}) {
+      {MediaStreamTrack? track, RTCRtpMediaType? kind, RTCRtpTransceiverInit? init}) {
     // TODO: implement addTransceiver
     throw UnimplementedError();
   }
@@ -168,8 +154,7 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCSessionDescription> createAnswer(
-      [Map<String, dynamic>? constraints]) async {
+  Future<RTCSessionDescription> createAnswer([Map<String, dynamic>? constraints]) async {
     return RTCSessionDescription('''
 v=0
 o=bob 2808844564 2808844564 IN IP4 host.biloxi.example.com
@@ -185,8 +170,7 @@ a=rtpmap:31 H261/90000
   }
 
   @override
-  Future<RTCSessionDescription> createOffer(
-      [Map<String, dynamic>? constraints]) async {
+  Future<RTCSessionDescription> createOffer([Map<String, dynamic>? constraints]) async {
     return RTCSessionDescription('''
 v=0
 o=alice 2890844526 2890844526 IN IP4 host.atlanta.example.com
@@ -210,29 +194,23 @@ a=rtpmap:32 MPV/90000
     }
 
     if ((_localDescription?.type == null && _remoteDescription?.type == null) ||
-        (_localDescription?.type == _offerType &&
-            _remoteDescription?.type == _answerType) ||
-        (_localDescription?.type == _answerType &&
-            _remoteDescription?.type == _offerType)) {
+        (_localDescription?.type == _offerType && _remoteDescription?.type == _answerType) ||
+        (_localDescription?.type == _answerType && _remoteDescription?.type == _offerType)) {
       return RTCSignalingState.RTCSignalingStateStable;
     }
 
-    if (_localDescription?.type == _offerType &&
-        _remoteDescription?.type == null) {
+    if (_localDescription?.type == _offerType && _remoteDescription?.type == null) {
       return RTCSignalingState.RTCSignalingStateHaveLocalOffer;
     }
-    if (_remoteDescription?.type == _offerType &&
-        _localDescription?.type == null) {
+    if (_remoteDescription?.type == _offerType && _localDescription?.type == null) {
       return RTCSignalingState.RTCSignalingStateHaveRemoteOffer;
     }
 
-    throw Exception(
-        'Illegal signalling state? localDesc: $_localDescription, remoteDesc: $_remoteDescription');
+    throw Exception('Illegal signalling state? localDesc: $_localDescription, remoteDesc: $_remoteDescription');
   }
 
   @override
-  Future<RTCDataChannel> createDataChannel(
-      String label, RTCDataChannelInit dataChannelDict) async {
+  Future<RTCDataChannel> createDataChannel(String label, RTCDataChannelInit dataChannelDict) async {
     final dc = MockDataChannel(dataChannelDict.id, label);
     if (label == '_reliable') {
       _dataChannels.add(dc);
@@ -268,8 +246,7 @@ a=rtpmap:32 MPV/90000
   Future<List<RTCRtpSender>> getSenders() async => List.empty();
 
   @override
-  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async =>
-      List.empty();
+  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async => List.empty();
 
   @override
   Future<List<RTCRtpTransceiver>> getTransceivers() async => List.empty();

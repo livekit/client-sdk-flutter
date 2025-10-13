@@ -37,12 +37,10 @@ class AudioSourceStats {
 
   factory AudioSourceStats.fromReport(rtc.StatsReport report) {
     return AudioSourceStats(
-      echoReturnLossEnhancement:
-          getNumValFromReport(report.values, 'echoReturnLossEnhancement'),
+      echoReturnLossEnhancement: getNumValFromReport(report.values, 'echoReturnLossEnhancement'),
       audioLevel: getNumValFromReport(report.values, 'audioLevel'),
       totalAudioEnergy: getNumValFromReport(report.values, 'totalAudioEnergy'),
-      totalSamplesDuration:
-          getNumValFromReport(report.values, 'totalSamplesDuration'),
+      totalSamplesDuration: getNumValFromReport(report.values, 'totalSamplesDuration'),
       echoReturnLoss: getNumValFromReport(report.values, 'echoReturnLoss'),
       trackIdentifier: getStringValFromReport(report.values, 'trackIdentifier'),
       remoteSource: getBoolValFromReport(report.values, 'remoteSource'),
