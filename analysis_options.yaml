@@ -36,7 +36,6 @@ linter:
     prefer_final_locals: true
     unnecessary_brace_in_string_interps: false
     avoid_print: true
-    require_trailing_commas: true
 
     # Enforce this for correct async logic
     unawaited_futures: true
