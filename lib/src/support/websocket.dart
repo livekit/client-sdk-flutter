@@ -37,11 +37,13 @@ class WebSocketEventHandlers {
   });
 }
 
-typedef WebSocketConnector = Future<LiveKitWebSocket> Function(Uri uri, [WebSocketEventHandlers? options]);
+typedef WebSocketConnector = Future<LiveKitWebSocket> Function(Uri uri,
+    [WebSocketEventHandlers? options]);
 
 abstract class LiveKitWebSocket extends Disposable {
   void send(List<int> data);
 
-  static Future<LiveKitWebSocket> connect(Uri uri, [WebSocketEventHandlers? options]) =>
+  static Future<LiveKitWebSocket> connect(Uri uri,
+          [WebSocketEventHandlers? options]) =>
       lkWebSocketConnect(uri, options);
 }

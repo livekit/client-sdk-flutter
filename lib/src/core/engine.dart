@@ -44,7 +44,8 @@ import '../types/other.dart';
 import 'signal_client.dart';
 import 'transport.dart';
 
-import '../support/platform.dart' show lkPlatformIsTest, lkPlatformIs, PlatformType;
+import '../support/platform.dart'
+    show lkPlatformIsTest, lkPlatformIs, PlatformType;
 
 const maxRetryDelay = 7000;
 
@@ -77,8 +78,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Transport? get primary => _subscriberPrimary ? subscriber : publisher;
 
-  rtc.RTCDataChannel? get dataChannel =>
-      _subscriberPrimary ? _reliableDCSub ?? _lossyDCSub : _reliableDCPub ?? _lossyDCPub;
+  rtc.RTCDataChannel? get dataChannel => _subscriberPrimary
+      ? _reliableDCSub ?? _lossyDCSub
+      : _reliableDCPub ?? _lossyDCPub;
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDCPub;
@@ -113,7 +115,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
 
-  late EventsListener<SignalEvent> _signalListener = signalClient.createListener(synchronized: true);
+  late EventsListener<SignalEvent> _signalListener =
+      signalClient.createListener(synchronized: true);
 
   int? reconnectAttempts;
 
@@ -124,7 +127,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool get isClosed => _isClosed;
 
-  bool get isPendingReconnect => reconnectStart != null && reconnectTimeout != null;
+  bool get isPendingReconnect =>
+      reconnectStart != null && reconnectTimeout != null;
 
   final int _reconnectCount = defaultRetryDelaysInMs.length;
 
@@ -163,7 +167,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
   })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
-        _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection {
+        _peerConnectionCreate =
+            peerConnectionCreate ?? rtc.createPeerConnection {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -214,7 +219,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException('Timed out waiting for SignalJoinResponseEvent',
+        onTimeout: () => throw ConnectException(
+            'Timed out waiting for SignalJoinResponseEvent',
             reason: ConnectionErrorReason.Timeout),
       );
 
@@ -307,7 +313,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           completer.completeError('Engine disconnected');
         }
       }
-
       events.once<EngineClosingEvent>((e) => onClosing());
 
       while (!_dcBufferStatus[kind]!) {
@@ -328,9 +333,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     bool? reliability = true,
   }) async {
     // construct the data channel message
-    final message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
+    final message =
+        rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    final reliabilityType = reliability == true ? Reliability.reliable : Reliability.lossy;
+    final reliabilityType =
+        reliability == true ? Reliability.reliable : Reliability.lossy;
 
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
@@ -338,7 +345,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await _publisherEnsureConnected();
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliabilityType) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
+      if (_publisherDataChannelState(reliabilityType) !=
+          rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliabilityType} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
           filter: (event) => event.type == reliabilityType,
@@ -348,17 +356,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // chose data channel
-    final rtc.RTCDataChannel? channel =
-        _publisherDataChannel(reliability == true ? Reliability.reliable : Reliability.lossy);
+    final rtc.RTCDataChannel? channel = _publisherDataChannel(
+        reliability == true ? Reliability.reliable : Reliability.lossy);
 
     if (channel == null) {
-      throw UnexpectedStateException('Data channel for ${packet.kind.toSDKType()} is null');
+      throw UnexpectedStateException(
+          'Data channel for ${packet.kind.toSDKType()} is null');
     }
 
     logger.fine('sendDataPacket(label:${channel.label})');
     await channel.send(message);
 
-    _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!;
+    _dcBufferStatus[reliabilityType] = await channel.getBufferedAmount() <=
+        channel.bufferedAmountLowThreshold!;
   }
 
   Future<void> _publisherEnsureConnected() async {
@@ -366,7 +376,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('Publisher is not connected...');
 
       // start negotiation
-      if (await publisher?.pc.getConnectionState() != rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+      if (await publisher?.pc.getConnectionState() !=
+          rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
         await negotiate();
       }
       if (!lkPlatformIsTest()) {
@@ -387,8 +398,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // The server provided iceServers are only used if
     // the client's iceServers are not set.
-    if (rtcConfiguration.iceServers == null && serverProvidedIceServers.isNotEmpty) {
-      rtcConfiguration = connectOptions.rtcConfiguration.copyWith(iceServers: serverProvidedIceServers);
+    if (rtcConfiguration.iceServers == null &&
+        serverProvidedIceServers.isNotEmpty) {
+      rtcConfiguration = connectOptions.rtcConfiguration
+          .copyWith(iceServers: serverProvidedIceServers);
     }
 
     // set forceRelay if server response is enabled
@@ -399,24 +412,26 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     if (kIsWeb && roomOptions.e2eeOptions != null) {
-      rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
+      rtcConfiguration =
+          rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
     return rtcConfiguration;
   }
 
   Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
-    publisher =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
-    subscriber =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    publisher = await Transport.create(_peerConnectionCreate,
+        rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    subscriber = await Transport.create(_peerConnectionCreate,
+        rtcConfig: rtcConfiguration, connectOptions: connectOptions);
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
       signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.PUBLISHER);
     };
 
-    publisher?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
+    publisher?.pc.onIceConnectionState =
+        (rtc.RTCIceConnectionState state) async {
       logger.fine('publisher iceConnectionState: $state');
       if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         await _handleGettingConnectedServerAddress(publisher!.pc);
@@ -428,7 +443,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
     };
 
-    subscriber?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
+    subscriber?.pc.onIceConnectionState =
+        (rtc.RTCIceConnectionState state) async {
       logger.fine('subscriber iceConnectionState: $state');
       if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
         await _handleGettingConnectedServerAddress(subscriber!.pc);
@@ -520,7 +536,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     // doesn't get called reliably, doesn't work on mac
-    subscriber?.pc.onRemoveTrack = (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+    subscriber?.pc.onRemoveTrack =
+        (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
       logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
     };
 
@@ -530,17 +547,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ..binaryType = 'binary'
         ..ordered = false
         ..maxRetransmits = 0;
-      _lossyDCPub = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
+      _lossyDCPub =
+          await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
       _lossyDCPub?.onMessage = _onDCMessage;
-      _lossyDCPub?.stateChangeStream.listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
-            isPrimary: !_subscriberPrimary,
-            state: state,
-            type: Reliability.lossy,
-          )));
+      _lossyDCPub?.stateChangeStream
+          .listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+                isPrimary: !_subscriberPrimary,
+                state: state,
+                type: Reliability.lossy,
+              )));
       // _onDCStateUpdated(Reliability.lossy, state)
       _lossyDCPub?.bufferedAmountLowThreshold = 65535;
       _lossyDCPub?.onBufferedAmountLow = (_) {
-        _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
+        _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <=
+            _lossyDCPub!.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -550,17 +570,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       final reliableInit = rtc.RTCDataChannelInit()
         ..binaryType = 'binary'
         ..ordered = true;
-      _reliableDCPub = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
+      _reliableDCPub =
+          await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
       _reliableDCPub?.onMessage = _onDCMessage;
-      _reliableDCPub?.stateChangeStream.listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
-            isPrimary: !_subscriberPrimary,
-            state: state,
-            type: Reliability.reliable,
-          )));
+      _reliableDCPub?.stateChangeStream
+          .listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+                isPrimary: !_subscriberPrimary,
+                state: state,
+                type: Reliability.reliable,
+              )));
       _reliableDCPub?.bufferedAmountLowThreshold = 65535;
       _reliableDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.reliable] =
-            (_reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!);
+            (_reliableDCPub!.bufferedAmount! <=
+                _reliableDCPub!.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -574,22 +597,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _reliableDCSub = dc;
         _reliableDCSub?.onMessage = _onDCMessage;
         _reliableDCSub?.stateChangeStream.listen((state) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.reliable,
-                ))));
+            _reliableDCPub?.stateChangeStream.listen(
+                (state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+                      isPrimary: _subscriberPrimary,
+                      state: state,
+                      type: Reliability.reliable,
+                    ))));
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
         _lossyDCSub = dc;
         _lossyDCSub?.onMessage = _onDCMessage;
         _lossyDCSub?.stateChangeStream.listen((event) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.lossy,
-                ))));
+            _reliableDCPub?.stateChangeStream.listen(
+                (state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+                      isPrimary: _subscriberPrimary,
+                      state: state,
+                      type: Reliability.lossy,
+                    ))));
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
@@ -597,11 +622,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> _handleGettingConnectedServerAddress(rtc.RTCPeerConnection pc) async {
+  Future<void> _handleGettingConnectedServerAddress(
+      rtc.RTCPeerConnection pc) async {
     try {
       final remoteAddress = await getConnectedAddress(publisher!.pc);
       logger.fine('Connected address: $remoteAddress');
-      if (_connectedServerAddress == null || _connectedServerAddress != remoteAddress) {
+      if (_connectedServerAddress == null ||
+          _connectedServerAddress != remoteAddress) {
         _connectedServerAddress = remoteAddress;
       }
     } catch (e) {
@@ -695,7 +722,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    logger.info('onDisconnected state:${connectionState} reason:${reason.name}');
+    logger
+        .info('onDisconnected state:${connectionState} reason:${reason.name}');
 
     if (reconnectAttempts == 0) {
       reconnectStart = DateTime.timestamp();
@@ -726,7 +754,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // since the current engine may have inherited a regional url
       _regionUrlProvider!.updateToken(token!);
     }
-    logger.fine('WebSocket reconnecting in $delay ms, retry times $reconnectAttempts');
+    logger.fine(
+        'WebSocket reconnecting in $delay ms, retry times $reconnectAttempts');
     reconnectTimeout = Timer(Duration(milliseconds: delay), () async {
       await attemptReconnect(reason);
     });
@@ -743,7 +772,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED ||
+    if (_clientConfiguration?.resumeConnection ==
+            lk_models.ClientConfigSetting.DISABLED ||
         [
           ClientDisconnectReason.leaveReconnect,
           ClientDisconnectReason.negotiationFailed,
@@ -817,7 +847,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
-      onTimeout: () => throw ConnectException('resumeConnection: Timed out waiting for SignalReconnectedEvent',
+      onTimeout: () => throw ConnectException(
+          'resumeConnection: Timed out waiting for SignalReconnectedEvent',
           reason: ConnectionErrorReason.Timeout),
     );
 
@@ -830,7 +861,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
     }
 
-    final isConnected = (await primary?.pc.getConnectionState())?.isConnected() ?? false;
+    final isConnected =
+        (await primary?.pc.getConnectionState())?.isConnected() ?? false;
 
     logger.fine('resumeConnection: primary is connected: $isConnected');
 
@@ -840,8 +872,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: connectOptions.timeouts.peerConnection,
-        onTimeout: () =>
-            throw MediaConnectException('resumeConnection: Timed out waiting for EnginePeerStateUpdatedEvent'),
+        onTimeout: () => throw MediaConnectException(
+            'resumeConnection: Timed out waiting for EnginePeerStateUpdatedEvent'),
       );
       logger.fine('resumeConnection: primary connected');
     }
@@ -911,7 +943,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required List<String> trackSidsDisabled,
   }) async {
-    final previousAnswer = (await subscriber?.pc.getLocalDescription())?.toPBType();
+    final previousAnswer =
+        (await subscriber?.pc.getLocalDescription())?.toPBType();
     signalClient.sendSyncState(
       answer: previousAnswer,
       subscription: subscription,
@@ -921,7 +954,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     );
   }
 
-  void _setUpEngineListeners() => events.on<SignalReconnectedEvent>((event) async {
+  void _setUpEngineListeners() =>
+      events.on<SignalReconnectedEvent>((event) async {
         // send queued requests if engine re-connected
         signalClient.sendQueuedRequests();
       });
@@ -931,7 +965,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
       _serverInfo = event.response.serverInfo;
-      final iceServersFromServer = event.response.iceServers.map((e) => e.toSDKType()).toList();
+      final iceServersFromServer =
+          event.response.iceServers.map((e) => e.toSDKType()).toList();
 
       if (iceServersFromServer.isNotEmpty) {
         _serverProvidedIceServers = iceServersFromServer;
@@ -945,7 +980,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
       final rtcConfiguration = await _buildRtcConfiguration(
-          serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
       if (publisher == null && subscriber == null) {
@@ -964,7 +1000,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(EngineJoinResponseEvent(response: event.response));
     })
     ..on<SignalReconnectResponseEvent>((event) async {
-      final iceServersFromServer = event.response.iceServers.map((e) => e.toSDKType()).toList();
+      final iceServersFromServer =
+          event.response.iceServers.map((e) => e.toSDKType()).toList();
 
       if (iceServersFromServer.isNotEmpty) {
         _serverProvidedIceServers = iceServersFromServer;
@@ -977,7 +1014,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'forceRelay: $event.response.clientConfiguration.forceRelay');
 
       final rtcConfiguration = await _buildRtcConfiguration(
-          serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
+          serverResponseForceRelay:
+              event.response.clientConfiguration.forceRelay,
           serverProvidedIceServers: _serverProvidedIceServers);
 
       await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
@@ -1044,7 +1082,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
-        logger.warning('Received ${SignalTrickleEvent} but publisher or subscriber was null.');
+        logger.warning(
+            'Received ${SignalTrickleEvent} but publisher or subscriber was null.');
         return;
       }
       logger.fine('got ICE candidate from peer (target: ${event.target})');
@@ -1071,13 +1110,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       switch (event.action) {
         case lk_rtc.LeaveRequest_Action.DISCONNECT:
           if (connectionState == ConnectionState.reconnecting) {
-            logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
+            logger.warning(
+                '[Signal] Received Leave while engine is reconnecting, ignoring...');
             return;
           }
           await signalClient.cleanUp();
           fullReconnectOnNext = false;
           await disconnect();
-          events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
+          events
+              .emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
           break;
         case lk_rtc.LeaveRequest_Action.RECONNECT:
           fullReconnectOnNext = true;
@@ -1123,7 +1164,8 @@ extension EnginePrivateMethods on Engine {
 
   // state of the publisher data channel
   rtc.RTCDataChannelState _publisherDataChannelState(Reliability reliability) =>
-      _publisherDataChannel(reliability)?.state ?? rtc.RTCDataChannelState.RTCDataChannelClosed;
+      _publisherDataChannel(reliability)?.state ??
+      rtc.RTCDataChannelState.RTCDataChannelClosed;
 }
 
 extension EngineInternalMethods on Engine {
@@ -1157,8 +1199,10 @@ extension EngineInternalMethods on Engine {
   }
 
   @internal
-  List<lk_rtc.DataChannelInfo> dataChannelInfo() =>
-      [_reliableDCPub, _lossyDCPub].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
+  List<lk_rtc.DataChannelInfo> dataChannelInfo() => [
+        _reliableDCPub,
+        _lossyDCPub
+      ].nonNulls.where((e) => e.id != -1).map((e) => e.toLKInfoType()).toList();
 
   @internal
   Future<rtc.RTCRtpSender> createSimulcastTransceiverSender(
@@ -1182,11 +1226,13 @@ extension EngineInternalMethods on Engine {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
-    await setPreferredCodec(transceiver, track.kind.toString().toLowerCase(), videoCodec);
+    await setPreferredCodec(
+        transceiver, track.kind.toString().toLowerCase(), videoCodec);
     return transceiver.sender;
   }
 
-  Future<void> setPreferredCodec(rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
+  Future<void> setPreferredCodec(
+      rtc.RTCRtpTransceiver transceiver, String kind, String videoCodec) async {
     // when setting codec preferences, the capabilites need to be read from
     // the RTCRtpReceiver
     final caps = await rtc.getRtpReceiverCapabilities(kind);
@@ -1208,7 +1254,8 @@ extension EngineInternalMethods on Engine {
       if (!matchesVideoCodec) {
         if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
           if (c.sdpFmtpLine != null &&
-              (c.sdpFmtpLine!.contains('profile-id=0') || c.sdpFmtpLine!.contains('profile-id=1'))) {
+              (c.sdpFmtpLine!.contains('profile-id=0') ||
+                  c.sdpFmtpLine!.contains('profile-id=1'))) {
             unmatched.add(c);
           }
         } else {
@@ -1219,7 +1266,8 @@ extension EngineInternalMethods on Engine {
       // for h264 codecs that have sdpFmtpLine available, use only if the
       // profile-level-id is 42e01f for cross-browser compatibility
       if (videoCodec.toLowerCase() == 'h264') {
-        if (c.sdpFmtpLine != null && c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
+        if (c.sdpFmtpLine != null &&
+            c.sdpFmtpLine!.contains('profile-level-id=42e01f')) {
           matched.add(c);
         } else {
           partialMatched.add(c);
@@ -1228,7 +1276,8 @@ extension EngineInternalMethods on Engine {
       }
       if (lkPlatformIs(PlatformType.android) && codec == 'video/vp9') {
         if (c.sdpFmtpLine != null &&
-            (c.sdpFmtpLine!.contains('profile-id=0') || c.sdpFmtpLine!.contains('profile-id=1'))) {
+            (c.sdpFmtpLine!.contains('profile-id=0') ||
+                c.sdpFmtpLine!.contains('profile-id=1'))) {
           matched.add(c);
         }
       } else {

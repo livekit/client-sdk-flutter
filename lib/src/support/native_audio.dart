@@ -59,7 +59,8 @@ extension AppleAudioCategoryOptionExt on AppleAudioCategoryOption {
   String toStringValue() => <AppleAudioCategoryOption, String>{
         AppleAudioCategoryOption.mixWithOthers: 'mixWithOthers',
         AppleAudioCategoryOption.duckOthers: 'duckOthers',
-        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers: 'interruptSpokenAudioAndMixWithOthers',
+        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers:
+            'interruptSpokenAudioAndMixWithOthers',
         AppleAudioCategoryOption.allowBluetooth: 'allowBluetooth',
         AppleAudioCategoryOption.allowBluetoothA2DP: 'allowBluetoothA2DP',
         AppleAudioCategoryOption.allowAirPlay: 'allowAirPlay',
@@ -131,11 +132,15 @@ class NativeAudioConfiguration {
       });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (appleAudioCategory != null) 'appleAudioCategory': appleAudioCategory!.toStringValue(),
+        if (appleAudioCategory != null)
+          'appleAudioCategory': appleAudioCategory!.toStringValue(),
         if (appleAudioCategoryOptions != null)
-          'appleAudioCategoryOptions': appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
-        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
-        if (preferSpeakerOutput != null) 'preferSpeakerOutput': preferSpeakerOutput,
+          'appleAudioCategoryOptions':
+              appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
+        if (appleAudioMode != null)
+          'appleAudioMode': appleAudioMode!.toStringValue(),
+        if (preferSpeakerOutput != null)
+          'preferSpeakerOutput': preferSpeakerOutput,
       };
 
   NativeAudioConfiguration copyWith({
@@ -146,7 +151,8 @@ class NativeAudioConfiguration {
   }) =>
       NativeAudioConfiguration(
         appleAudioCategory: appleAudioCategory ?? this.appleAudioCategory,
-        appleAudioCategoryOptions: appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
+        appleAudioCategoryOptions:
+            appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
         appleAudioMode: appleAudioMode ?? this.appleAudioMode,
         preferSpeakerOutput: preferSpeakerOutput ?? this.preferSpeakerOutput,
       );

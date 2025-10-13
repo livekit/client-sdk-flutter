@@ -36,7 +36,8 @@ class VideoEncoding implements Comparable<VideoEncoding> {
       );
 
   @override
-  String toString() => '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
+  String toString() =>
+      '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate})';
 
   // ----------------------------------------------------------------------
   // equality
@@ -44,7 +45,9 @@ class VideoEncoding implements Comparable<VideoEncoding> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is VideoEncoding && maxFramerate == other.maxFramerate && maxBitrate == other.maxBitrate;
+      other is VideoEncoding &&
+          maxFramerate == other.maxFramerate &&
+          maxBitrate == other.maxBitrate;
 
   @override
   int get hashCode => Object.hash(maxFramerate, maxBitrate);

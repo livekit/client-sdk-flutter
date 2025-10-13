@@ -52,7 +52,8 @@ void main() {
       expect(
         room.events.streamCtrl.stream,
         emitsInOrder(<Matcher>[
-          predicate<ParticipantStateUpdatedEvent>((event) => event.participant.sid == remoteParticipantData.sid),
+          predicate<ParticipantStateUpdatedEvent>(
+              (event) => event.participant.sid == remoteParticipantData.sid),
           predicate<ParticipantConnectedEvent>(
             (event) => event.participant.sid == remoteParticipantData.sid,
           ),
@@ -64,37 +65,45 @@ void main() {
 
       ws.onData(participantJoinResponse.writeToBuffer());
 
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
       expect(room.remoteParticipants.length, 1);
     });
 
     test('participant disconnect', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       ws.onData(participantDisconnectResponse.writeToBuffer());
       expect(
         room.events.streamCtrl.stream,
         emitsInOrder(<Matcher>[
-          predicate<TrackUnpublishedEvent>((event) => event.participant.sid == remoteParticipantData.sid),
-          predicate<ParticipantDisconnectedEvent>((event) => event.participant.sid == remoteParticipantData.sid),
+          predicate<TrackUnpublishedEvent>(
+              (event) => event.participant.sid == remoteParticipantData.sid),
+          predicate<ParticipantDisconnectedEvent>(
+              (event) => event.participant.sid == remoteParticipantData.sid),
         ]),
       );
 
-      await room.events.waitFor<ParticipantDisconnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantDisconnectedEvent>(
+          duration: const Duration(seconds: 1));
       expect(room.remoteParticipants.length, 0);
     });
 
     test('participant metadata changed', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       ws.onData(participantMetadataChangedResponse.writeToBuffer());
       expect(
         room.events.streamCtrl.stream,
         emits(
           predicate<ParticipantMetadataUpdatedEvent>((event) =>
-              event.participant.metadata == participantMetadataChangedResponse.update.participants[0].metadata),
+              event.participant.metadata ==
+              participantMetadataChangedResponse
+                  .update.participants[0].metadata),
         ),
       );
     });
@@ -103,7 +112,8 @@ void main() {
       expect(
         room.events.streamCtrl.stream,
         emits(predicate<RoomMetadataChangedEvent>((event) =>
-            event.metadata == roomUpdateResponse.roomUpdate.room.metadata && room.metadata == event.metadata)),
+            event.metadata == roomUpdateResponse.roomUpdate.room.metadata &&
+            room.metadata == event.metadata)),
       );
       ws.onData(roomUpdateResponse.writeToBuffer());
     });
@@ -120,20 +130,24 @@ void main() {
 
     test('active speakers changed', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
-      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      await room.events.waitFor<ParticipantConnectedEvent>(
+          duration: const Duration(seconds: 1));
 
       expect(
         room.events.streamCtrl.stream,
         emits(
-          predicate<ActiveSpeakersChangedEvent>((event) => event.speakers[0].sid == remoteParticipantData.sid),
+          predicate<ActiveSpeakersChangedEvent>(
+              (event) => event.speakers[0].sid == remoteParticipantData.sid),
         ),
       );
       ws.onData(activeSpeakerResponse.writeToBuffer());
     });
 
     test('leave', () async {
-      expect(room.events.streamCtrl.stream,
-          emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)));
+      expect(
+          room.events.streamCtrl.stream,
+          emits(predicate<RoomDisconnectedEvent>(
+              (event) => event.reason == DisconnectReason.unknown)));
       ws.onData(leaveResponse.writeToBuffer());
     });
   });

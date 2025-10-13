@@ -247,6 +247,8 @@ abstract class StreamWriter<T> {
   Future<void> write(T chunk);
 }
 
-typedef ByteStreamHandler = void Function(ByteStreamReader reader, String participantIdentity);
+typedef ByteStreamHandler = void Function(
+    ByteStreamReader reader, String participantIdentity);
 
-typedef TextStreamHandler = Function(TextStreamReader reader, String participantIdentity);
+typedef TextStreamHandler = Function(
+    TextStreamReader reader, String participantIdentity);

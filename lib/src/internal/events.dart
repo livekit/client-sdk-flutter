@@ -37,7 +37,8 @@ abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class EngineSubscriberPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
+class EngineSubscriberPeerStateUpdatedEvent
+    extends EnginePeerStateUpdatedEvent {
   const EngineSubscriberPeerStateUpdatedEvent({
     required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
@@ -47,7 +48,8 @@ class EngineSubscriberPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent 
         );
 
   @override
-  String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
+  String toString() =>
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -60,7 +62,8 @@ class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
           isPrimary: isPrimary,
         );
   @override
-  String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
+  String toString() =>
+      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -112,7 +115,8 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
   });
 
   @override
-  String toString() => 'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
+  String toString() =>
+      'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
 }
 
 //
@@ -355,7 +359,8 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
   bool get canReconnect => request.canReconnect;
   lk_rtc.LeaveRequest_Action get action => request.action;
   lk_models.DisconnectReason get reason => request.reason;
-  lk_rtc.RegionSettings? get regions => request.hasReason() ? request.regions : null;
+  lk_rtc.RegionSettings? get regions =>
+      request.hasReason() ? request.regions : null;
   final lk_rtc.LeaveRequest request;
   const SignalLeaveEvent({
     required this.request,
@@ -538,7 +543,8 @@ abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class PublisherDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent {
+class PublisherDataChannelStateUpdatedEvent
+    extends DataChannelStateUpdatedEvent {
   PublisherDataChannelStateUpdatedEvent({
     required bool isPrimary,
     required Reliability type,
@@ -551,7 +557,8 @@ class PublisherDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent
 }
 
 @internal
-class SubscriberDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent {
+class SubscriberDataChannelStateUpdatedEvent
+    extends DataChannelStateUpdatedEvent {
   SubscriberDataChannelStateUpdatedEvent({
     required bool isPrimary,
     required Reliability type,

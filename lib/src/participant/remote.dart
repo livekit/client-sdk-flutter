@@ -62,15 +62,21 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   /// A convenience property to get all video tracks.
   @override
   List<RemoteTrackPublication<RemoteVideoTrack>> get videoTrackPublications =>
-      trackPublications.values.whereType<RemoteTrackPublication<RemoteVideoTrack>>().toList();
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
+          .toList();
 
   /// A convenience property to get all audio tracks.
   @override
   List<RemoteTrackPublication<RemoteAudioTrack>> get audioTrackPublications =>
-      trackPublications.values.whereType<RemoteTrackPublication<RemoteAudioTrack>>().toList();
+      trackPublications.values
+          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
+          .toList();
 
-  List<RemoteTrackPublication> get subscribedTracks =>
-      trackPublications.values.where((e) => e.subscribed).cast<RemoteTrackPublication>().toList();
+  List<RemoteTrackPublication> get subscribedTracks => trackPublications.values
+      .where((e) => e.subscribed)
+      .cast<RemoteTrackPublication>()
+      .toList();
 
   @override
   RemoteTrackPublication? getTrackPublicationByName(String name) {
@@ -116,7 +122,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
       // Wait for the metadata to arrive
       final event = await events.waitFor<TrackPublishedEvent>(
-        filter: (event) => event.participant == this && event.publication.sid == trackSid,
+        filter: (event) =>
+            event.participant == this && event.publication.sid == trackSid,
         duration: room.connectOptions.timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
           participant: this,
@@ -129,7 +136,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     // Check if track type is supported, throw if not.
-    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO].contains(pub.kind.toPBType())) {
+    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO]
+        .contains(pub.kind.toPBType())) {
       throw TrackSubscriptionExceptionEvent(
         participant: this,
         sid: trackSid,
@@ -141,10 +149,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final RemoteTrack track;
     if (pub.kind == TrackType.VIDEO) {
       // video track
-      track = RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
+      track =
+          RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
     } else if (pub.kind == TrackType.AUDIO) {
       // audio track
-      track = RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
+      track =
+          RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
 
       final listener = track.createListener();
       listener.on<AudioPlaybackStarted>((event) {
@@ -163,7 +173,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     /// Apply audio output selection for the web.
     if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
-        await (track as RemoteAudioTrack).setSinkId(audioOutputOptions.deviceId!);
+        await (track as RemoteAudioTrack)
+            .setSinkId(audioOutputOptions.deviceId!);
       }
     }
 
@@ -228,7 +239,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // remove any published track that is not in the info
     final validSids = info.tracks.map((e) => e.sid);
-    final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
+    final removeSids =
+        trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
@@ -236,7 +248,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     return true;
   }
 
-  Future<void> removePublishedTrack(String trackSid, {bool notify = true}) async {
+  Future<void> removePublishedTrack(String trackSid,
+      {bool notify = true}) async {
     logger.finer('removePublishedTrack track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -274,7 +287,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   }
 
   @internal
-  lk_models.ParticipantTracks participantTracks() => lk_models.ParticipantTracks(
+  lk_models.ParticipantTracks participantTracks() =>
+      lk_models.ParticipantTracks(
         participantSid: sid,
         trackSids: trackPublications.values.map((e) => e.sid),
       );

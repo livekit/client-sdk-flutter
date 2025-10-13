@@ -104,7 +104,8 @@ class ReceiverStats extends CodecStats {
 }
 
 class AudioReceiverStats extends ReceiverStats {
-  AudioReceiverStats(String streamId, num timestamp) : super(streamId, timestamp);
+  AudioReceiverStats(String streamId, num timestamp)
+      : super(streamId, timestamp);
 
   num? concealedSamples;
 
@@ -122,7 +123,8 @@ class AudioReceiverStats extends ReceiverStats {
 }
 
 class VideoReceiverStats extends ReceiverStats {
-  VideoReceiverStats(String streamId, num timestamp) : super(streamId, timestamp);
+  VideoReceiverStats(String streamId, num timestamp)
+      : super(streamId, timestamp);
 
   num? framesDecoded;
 
@@ -160,10 +162,12 @@ num computeBitrateForSenderStats(
     return 0;
   }
   if (kIsWeb) {
-    return ((bytesNow - bytesPrev) * 8) / (currentStats.timestamp - prevStats.timestamp);
+    return ((bytesNow - bytesPrev) * 8) /
+        (currentStats.timestamp - prevStats.timestamp);
   }
 
-  return ((bytesNow - bytesPrev) * 8 * 1000) / (currentStats.timestamp - prevStats.timestamp);
+  return ((bytesNow - bytesPrev) * 8 * 1000) /
+      (currentStats.timestamp - prevStats.timestamp);
 }
 
 num computeBitrateForReceiverStats(
@@ -183,15 +187,19 @@ num computeBitrateForReceiverStats(
     return 0;
   }
   if (kIsWeb) {
-    return ((bytesNow - bytesPrev) * 8) / (currentStats.timestamp - prevStats.timestamp);
+    return ((bytesNow - bytesPrev) * 8) /
+        (currentStats.timestamp - prevStats.timestamp);
   }
 
-  return ((bytesNow - bytesPrev) * 8 * 1000) / (currentStats.timestamp - prevStats.timestamp);
+  return ((bytesNow - bytesPrev) * 8 * 1000) /
+      (currentStats.timestamp - prevStats.timestamp);
 }
 
 num? getNumValFromReport(Map<dynamic, dynamic> values, String key) {
   if (values.containsKey(key)) {
-    return (values[key] is String) ? num.tryParse(values[key]) : values[key] as num;
+    return (values[key] is String)
+        ? num.tryParse(values[key])
+        : values[key] as num;
   }
   return null;
 }

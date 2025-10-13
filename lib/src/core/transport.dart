@@ -27,7 +27,8 @@ import '../support/platform.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
-const ddExtensionURI = 'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension';
+const ddExtensionURI =
+    'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension';
 
 /* The svc codec (av1/vp9) would use a very low bitrate at the begining and
 increase slowly by the bandwidth estimator until it reach the target bitrate. The
@@ -51,7 +52,8 @@ class TrackBitrateInfo {
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
-typedef PeerConnectionCreate = Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration,
+typedef PeerConnectionCreate = Future<rtc.RTCPeerConnection> Function(
+    Map<String, dynamic> configuration,
     [Map<String, dynamic> constraints]);
 
 /// a wrapper around PeerConnection
@@ -101,7 +103,8 @@ class Transport extends Disposable {
   }
 
   static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
-      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions}) async {
+      {RTCConfiguration? rtcConfig,
+      required ConnectOptions connectOptions}) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
@@ -123,7 +126,8 @@ class Transport extends Disposable {
     try {
       await pc.setRemoteDescription(sd);
     } catch (e) {
-      logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
+      logger
+          .warning('[$objectId] setRemoteDescription() failed with error: $e');
     }
 
     for (final candidate in _pendingCandidates) {
@@ -155,7 +159,8 @@ class Transport extends Disposable {
       restartingIce = true;
     }
 
-    if (await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+    if (await pc.getSignalingState() ==
+        rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
       final currentSD = await getRemoteDescription();
@@ -180,11 +185,14 @@ class Transport extends Disposable {
     final sdpParsed = sdp_transform.parse(offer.sdp ?? '');
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {
-        ensureVideoDDExtensionForSVC(media, media['type'], media['port'], media['protocol'], media['payloads']);
+        ensureVideoDDExtensionForSVC(media, media['type'], media['port'],
+            media['protocol'], media['payloads']);
 
         // mung sdp for codec bitrate setting that can't apply by sendEncoding
         for (var trackbr in _bitrateTrackers) {
-          if (media['msid'] == null || trackbr.cid == null || !(media['msid'] as String).contains(trackbr.cid!)) {
+          if (media['msid'] == null ||
+              trackbr.cid == null ||
+              !(media['msid'] as String).contains(trackbr.cid!)) {
             continue;
           }
 
@@ -203,8 +211,10 @@ class Transport extends Disposable {
 
           for (var fmtp in media['fmtp']) {
             if (fmtp['payload'] == codecPayload) {
-              if (!(fmtp['config'] as String).contains('x-google-start-bitrate')) {
-                fmtp['config'] += ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()}';
+              if (!(fmtp['config'] as String)
+                  .contains('x-google-start-bitrate')) {
+                fmtp['config'] +=
+                    ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()}';
               }
               break;
             }
@@ -215,7 +225,8 @@ class Transport extends Disposable {
     });
 
     try {
-      await setMungedSDP(sd: offer, munged: sdp_transform.write(sdpParsed, null));
+      await setMungedSDP(
+          sd: offer, munged: sdp_transform.write(sdpParsed, null));
     } catch (e) {
       throw NegotiationError(e.toString());
     }
@@ -297,7 +308,10 @@ class Transport extends Disposable {
     return ddFound;
   }
 
-  Future<void> setMungedSDP({required rtc.RTCSessionDescription sd, String? munged, bool? remote}) async {
+  Future<void> setMungedSDP(
+      {required rtc.RTCSessionDescription sd,
+      String? munged,
+      bool? remote}) async {
     if (munged != null) {
       final originalSdp = sd.sdp;
       sd.sdp = munged;
@@ -311,7 +325,8 @@ class Transport extends Disposable {
         }
         return;
       } catch (e) {
-        logger.warning('not able to set ${sd.type}, falling back to unmodified sdp error: $e, sdp: $munged ');
+        logger.warning(
+            'not able to set ${sd.type}, falling back to unmodified sdp error: $e, sdp: $munged ');
         sd.sdp = originalSdp;
       }
     }

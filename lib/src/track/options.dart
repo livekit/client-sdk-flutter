@@ -21,7 +21,8 @@ import '../track/local/video.dart';
 import '../types/video_parameters.dart';
 import 'processor.dart';
 
-import 'processor_native.dart' if (dart.library.js_interop) 'processor_web.dart';
+import 'processor_native.dart'
+    if (dart.library.js_interop) 'processor_web.dart';
 
 /// A type that represents front or back of the camera.
 enum CameraPosition {
@@ -86,7 +87,9 @@ class CameraCaptureOptions extends VideoCaptureOptions {
   Map<String, dynamic> toMediaConstraintsMap() {
     final constraints = <String, dynamic>{
       ...super.toMediaConstraintsMap(),
-      if (deviceId == null) 'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment'
+      if (deviceId == null)
+        'facingMode':
+            cameraPosition == CameraPosition.front ? 'user' : 'environment'
     };
     if (deviceId != null && deviceId!.isNotEmpty) {
       if (kIsWeb) {
@@ -120,7 +123,8 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         cameraPosition: cameraPosition ?? this.cameraPosition,
         deviceId: deviceId ?? this.deviceId,
         maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+        stopCameraCaptureOnMute:
+            stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
       );
 }
 
@@ -168,7 +172,8 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     String? selfBrowserSurface,
   }) =>
       ScreenShareCaptureOptions(
-        useiOSBroadcastExtension: useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
+        useiOSBroadcastExtension:
+            useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
         captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
         params: params ?? this.params,
         sourceId: sourceId ?? deviceId,
@@ -233,7 +238,8 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() => params.toMediaConstraintsMap();
+  Map<String, dynamic> toMediaConstraintsMap() =>
+      params.toMediaConstraintsMap();
 }
 
 /// Options used when creating a [LocalAudioTrack].
@@ -340,7 +346,9 @@ class AudioCaptureOptions extends LocalTrackOptions {
           constraints['deviceId'] = {'ideal': deviceId};
         }
       } else {
-        constraints['optional'].cast<Map<String, dynamic>>().add(<String, dynamic>{'sourceId': deviceId});
+        constraints['optional']
+            .cast<Map<String, dynamic>>()
+            .add(<String, dynamic>{'sourceId': deviceId});
       }
     }
     return constraints;

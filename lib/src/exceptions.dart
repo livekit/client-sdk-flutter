@@ -54,7 +54,8 @@ class MediaConnectException extends LiveKitException {
 /// An internal state of the SDK is not correct and can not continue to execute.
 /// This should not occur frequently.
 class UnexpectedStateException extends LiveKitException {
-  UnexpectedStateException([String msg = 'Unexpected connection state']) : super._(msg);
+  UnexpectedStateException([String msg = 'Unexpected connection state'])
+      : super._(msg);
 }
 
 /// Exception thrown when pc negotiation fails.
@@ -75,7 +76,8 @@ class TrackCreateException extends LiveKitException {
 /// - Token does not have track publish permission.
 /// - Network condition is not good.
 class TrackPublishException extends LiveKitException {
-  TrackPublishException([String msg = 'Failed to publish track']) : super._(msg);
+  TrackPublishException([String msg = 'Failed to publish track'])
+      : super._(msg);
 }
 
 /// Failed to publish data.
@@ -100,5 +102,6 @@ class LiveKitE2EEException extends LiveKitException {
 }
 
 class UnexpectedConnectionState extends LiveKitException {
-  UnexpectedConnectionState([String msg = 'Unexpected connection state']) : super._(msg);
+  UnexpectedConnectionState([String msg = 'Unexpected connection state'])
+      : super._(msg);
 }

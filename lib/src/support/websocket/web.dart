@@ -46,8 +46,9 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      final dynamic data =
-          _.data.instanceOfString('ArrayBuffer') ? (_.data as JSArrayBuffer).toDart.asUint8List() : _.data;
+      final dynamic data = _.data.instanceOfString('ArrayBuffer')
+          ? (_.data as JSArrayBuffer).toDart.asUint8List()
+          : _.data;
       options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {
@@ -74,8 +75,10 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
   ]) async {
     final completer = Completer<LiveKitWebSocketWeb>();
     final ws = web.WebSocket(uri.toString());
-    ws.onOpen.listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
-    ws.onError.listen((e) => completer.completeError(WebSocketException('Failed to connect', e)));
+    ws.onOpen
+        .listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));
+    ws.onError.listen((e) =>
+        completer.completeError(WebSocketException('Failed to connect', e)));
     return completer.future;
   }
 }

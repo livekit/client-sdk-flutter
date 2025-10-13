@@ -23,7 +23,8 @@ class MockDataChannel extends RTCDataChannel {
   Function(RTCDataChannelMessage data)? onMessageSend;
   late StreamController<RTCDataChannelState> stateChangeStreamController;
   MockDataChannel(this._id, this._label) {
-    stateChangeStreamController = StreamController<RTCDataChannelState>.broadcast();
+    stateChangeStreamController =
+        StreamController<RTCDataChannelState>.broadcast();
   }
 
   @override

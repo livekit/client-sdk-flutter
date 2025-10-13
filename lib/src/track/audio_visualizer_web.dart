@@ -35,7 +35,8 @@ class AudioVisualizerWeb extends AudioVisualizer {
     final bands = visualizerOptions.barCount;
 
     // Override smoothingTimeConstant to a very low valiue if smoothTransition is false
-    var currentAnalyserOptions = options.analyserOptions ?? const AudioAnalyserOptions();
+    var currentAnalyserOptions =
+        options.analyserOptions ?? const AudioAnalyserOptions();
     if (!visualizerOptions.smoothTransition) {
       currentAnalyserOptions = AudioAnalyserOptions(
         fftSize: currentAnalyserOptions.fftSize,
@@ -60,15 +61,17 @@ class AudioVisualizerWeb extends AudioVisualizer {
             final element = tmp.toDart[i];
             frequencies[i] = element;
           }
-          frequencies = frequencies.sublist(options.loPass!.toInt(), options.hiPass!.toInt());
+          frequencies = frequencies.sublist(
+              options.loPass!.toInt(), options.hiPass!.toInt());
 
           final normalizedFrequencies = normalizeFrequencies(frequencies);
           final chunkSize = (normalizedFrequencies.length / (bands + 1)).ceil();
           Float32List chunks = Float32List(visualizerOptions.barCount);
 
           for (var i = 0; i < bands; i++) {
-            final summedVolumes =
-                normalizedFrequencies.sublist(i * chunkSize, (i + 1) * chunkSize).reduce((acc, val) => (acc += val));
+            final summedVolumes = normalizedFrequencies
+                .sublist(i * chunkSize, (i + 1) * chunkSize)
+                .reduce((acc, val) => (acc += val));
             chunks[i] = (summedVolumes / chunkSize);
           }
 
@@ -153,7 +156,8 @@ double normalizeDb(num value) {
   const minDb = -100.0;
   const maxDb = -10.0;
 
-  var db = 1.0 - (math.max(minDb, math.min(maxDb, value)) * -1.0).toDouble() / 100.0;
+  var db =
+      1.0 - (math.max(minDb, math.min(maxDb, value)) * -1.0).toDouble() / 100.0;
   db = math.sqrt(db);
 
   return db;
@@ -169,5 +173,7 @@ List<num> normalizeFrequencies(List<double> frequencies) {
   }).toList();
 }
 
-AudioVisualizer createVisualizerImpl(AudioTrack track, {AudioVisualizerOptions? options}) =>
-    AudioVisualizerWeb(track, visualizerOptions: options ?? AudioVisualizerOptions());
+AudioVisualizer createVisualizerImpl(AudioTrack track,
+        {AudioVisualizerOptions? options}) =>
+    AudioVisualizerWeb(track,
+        visualizerOptions: options ?? AudioVisualizerOptions());

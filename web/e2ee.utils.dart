@@ -14,10 +14,14 @@ bool isScriptTransformSupported() {
 
 bool isInsertableStreamSupported() {
   return web.window.hasProperty('RTCRtpSender'.toJS).toDart &&
-      web.window.getProperty<web.RTCRtpSender>('RTCRtpSender'.toJS).hasProperty('createEncodedStreams'.toJS).toDart;
+      web.window
+          .getProperty<web.RTCRtpSender>('RTCRtpSender'.toJS)
+          .hasProperty('createEncodedStreams'.toJS)
+          .toDart;
 }
 
-Future<web.CryptoKey> createKeyMaterialFromString(Uint8List keyBytes, String algorithm, String usage) {
+Future<web.CryptoKey> createKeyMaterialFromString(
+    Uint8List keyBytes, String algorithm, String usage) {
   // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey
   return web.window.crypto.subtle
       .importKey(
