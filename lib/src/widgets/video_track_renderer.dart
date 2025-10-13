@@ -93,8 +93,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   late GlobalKey _internalKey;
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (lkPlatformIs(PlatformType.iOS) &&
-        widget.renderMode == VideoRenderMode.platformView) {
+    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
       return Null as Future<rtc.VideoRenderer>;
     }
     if (_renderer == null) {
@@ -176,8 +175,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _renderer?.onResize = () {
       if (mounted) {
         setState(() {
-          _aspectRatio =
-              (_renderer as rtc.RTCVideoRenderer?)?.videoValue.aspectRatio;
+          _aspectRatio = (_renderer as rtc.RTCVideoRenderer?)?.videoValue.aspectRatio;
         });
       }
     };
@@ -194,8 +192,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       })();
     }
 
-    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) &&
-        oldWidget.key != widget.key) {
+    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {
       _renderer?.srcObject = widget.track.mediaStream;
     }
   }
@@ -206,8 +203,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           key: _internalKey,
           builder: (ctx) {
             // let it render before notifying build
-            WidgetsBindingCompatible.instance
-                ?.addPostFrameCallback((timeStamp) {
+            WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
               widget.track.onVideoViewBuild?.call(_internalKey);
             });
             return rtc.RTCVideoView(
@@ -220,8 +216,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         );
 
   Widget _videoRendererView() {
-    if (lkPlatformIs(PlatformType.iOS) &&
-        widget.renderMode == VideoRenderMode.platformView) {
+    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
@@ -244,14 +239,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       future: _initializeRenderer(),
       builder: (context, snapshot) {
         if ((snapshot.hasData && _renderer != null) ||
-            (lkPlatformIs(PlatformType.iOS) &&
-                widget.renderMode == VideoRenderMode.platformView)) {
+            (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView)) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
               // let it render before notifying build
-              WidgetsBindingCompatible.instance
-                  ?.addPostFrameCallback((timeStamp) {
+              WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
                 widget.track.onVideoViewBuild?.call(_internalKey);
               });
 
@@ -267,8 +260,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                         setZoom(details.scale);
                       }
                     },
-                    onTapDown: (TapDownDetails details) =>
-                        onViewFinderTap(details, constraints),
+                    onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
                     child: _videoRendererView(),
                   );
                 },
@@ -305,8 +297,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           fixHeight = false;
         } else {
           // both width and height are bound, figure out which to fix based on aspect ratios
-          final constraintsAspectRatio =
-              constraints.maxWidth / constraints.maxHeight;
+          final constraintsAspectRatio = constraints.maxWidth / constraints.maxHeight;
           fixHeight = constraintsAspectRatio > _aspectRatio!;
         }
         final double width;

@@ -35,8 +35,7 @@ import 'track_publication.dart';
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
-class RemoteTrackPublication<T extends RemoteTrack>
-    extends TrackPublication<T> {
+class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> {
   /// The [RemoteParticipant] this [RemoteTrackPublication] belongs to.
   @override
   final RemoteParticipant participant;
@@ -74,9 +73,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
 
   TrackSubscriptionState get subscriptionState {
     if (!_subscriptionAllowed) return TrackSubscriptionState.notAllowed;
-    return super.subscribed
-        ? TrackSubscriptionState.subscribed
-        : TrackSubscriptionState.unsubscribed;
+    return super.subscribed ? TrackSubscriptionState.subscribed : TrackSubscriptionState.unsubscribed;
   }
 
   @internal
@@ -126,8 +123,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
   @internal
   @override
   void updateFromInfo(lk_models.TrackInfo info) {
-    logger.fine(
-        'RemoteTrackPublication.updateFromInfo sid: ${info.sid} muted: ${info.muted}');
+    logger.fine('RemoteTrackPublication.updateFromInfo sid: ${info.sid} muted: ${info.muted}');
     super.updateFromInfo(info);
     track?.updateMuted(info.muted);
     _metadataMuted = info.muted;
@@ -158,13 +154,11 @@ class RemoteTrackPublication<T extends RemoteTrack>
         .where((e) => e.hasSize)
         .map((e) => e.size);
 
-    logger.finer(
-        '[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+    logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
     if (viewSizes.isNotEmpty) {
       // compute largest size
-      final largestSize =
-          viewSizes.reduce((value, element) => maxOfSizes(value, element));
+      final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
 
       settings
         ..disabled = false
@@ -184,8 +178,7 @@ class RemoteTrackPublication<T extends RemoteTrack>
     }
   }
 
-  void _sendPendingTrackSettingsUpdateRequest(
-      lk_rtc.UpdateTrackSettings settings) {
+  void _sendPendingTrackSettingsUpdateRequest(lk_rtc.UpdateTrackSettings settings) {
     logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }

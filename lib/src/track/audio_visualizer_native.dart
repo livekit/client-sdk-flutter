@@ -38,10 +38,8 @@ class AudioVisualizerNative extends AudioVisualizer {
       smoothTransition: visualizerOptions.smoothTransition,
     );
 
-    _eventChannel = EventChannel(
-        'io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
-    _streamSubscription =
-        _eventChannel?.receiveBroadcastStream().listen((event) {
+    _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
+    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       events.emit(AudioVisualizerEvent(
         track: _audioTrack!,
         event: event,
@@ -55,8 +53,7 @@ class AudioVisualizerNative extends AudioVisualizer {
       return;
     }
 
-    await Native.stopVisualizer(mediaStreamTrack.id!,
-        visualizerId: visualizerId);
+    await Native.stopVisualizer(mediaStreamTrack.id!, visualizerId: visualizerId);
 
     await _streamSubscription?.cancel();
     _streamSubscription = null;
@@ -64,7 +61,5 @@ class AudioVisualizerNative extends AudioVisualizer {
   }
 }
 
-AudioVisualizer createVisualizerImpl(AudioTrack track,
-        {AudioVisualizerOptions? options}) =>
-    AudioVisualizerNative(track,
-        visualizerOptions: options ?? AudioVisualizerOptions());
+AudioVisualizer createVisualizerImpl(AudioTrack track, {AudioVisualizerOptions? options}) =>
+    AudioVisualizerNative(track, visualizerOptions: options ?? AudioVisualizerOptions());
