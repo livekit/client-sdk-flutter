@@ -3,9 +3,8 @@ import 'package:uuid/uuid.dart' as uuid;
 import '../events.dart' show AudioVisualizerEvent;
 import '../managers/event.dart' show EventsEmittable;
 import '../support/disposable.dart';
-import 'local/local.dart' show AudioTrack;
-
 import 'audio_visualizer_native.dart' if (dart.library.js_interop) 'audio_visualizer_web.dart';
+import 'local/local.dart' show AudioTrack;
 
 final _uuid = uuid.Uuid();
 
