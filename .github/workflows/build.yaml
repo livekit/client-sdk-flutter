@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Dart Format Check
         run: dart format lib/ test/ --set-exit-if-changed
@@ -37,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
@@ -46,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Check version consistency
         run: dart run scripts/check_version.dart
@@ -55,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Dart Analyze Check
         run: flutter analyze
@@ -64,6 +72,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
@@ -73,6 +83,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -85,6 +97,8 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Install xcode platform support for iOS
         run: xcodebuild -downloadPlatform iOS
@@ -97,6 +111,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Build for Windows
         working-directory: ./example
@@ -107,6 +123,8 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Build for macOS
         working-directory: ./example
@@ -117,6 +135,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "12.x"
@@ -133,6 +153,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "12.x"
@@ -145,6 +167,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "12.x"

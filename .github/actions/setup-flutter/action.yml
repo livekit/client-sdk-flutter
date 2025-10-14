@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: "Setup Flutter Environment"
-description: "Clones repository, sets up Flutter, and installs dependencies"
+description: "Sets up Flutter, Java (optional), and installs project dependencies"
 
 inputs:
   java-version:
@@ -28,9 +28,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
-
     - name: Setup Java
       if: inputs.java-version != ''
       uses: actions/setup-java@v4
