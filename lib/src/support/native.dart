@@ -35,8 +35,7 @@ class Native {
   static bool bypassVoiceProcessing = false;
 
   @internal
-  static Future<bool> configureAudio(
-      NativeAudioConfiguration configuration) async {
+  static Future<bool> configureAudio(NativeAudioConfiguration configuration) async {
     try {
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
@@ -76,8 +75,7 @@ class Native {
   }
 
   @internal
-  static Future<void> stopVisualizer(String trackId,
-      {required String visualizerId}) async {
+  static Future<void> stopVisualizer(String trackId, {required String visualizerId}) async {
     try {
       await channel.invokeMethod<void>(
         'stopVisualizer',

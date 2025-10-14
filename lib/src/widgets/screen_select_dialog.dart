@@ -20,11 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 class ThumbnailWidget extends StatefulWidget {
-  const ThumbnailWidget(
-      {Key? key,
-      required this.source,
-      required this.selected,
-      required this.onTap})
+  const ThumbnailWidget({Key? key, required this.source, required this.selected, required this.onTap})
       : super(key: key);
   final rtc.DesktopCapturerSource source;
   final bool selected;
@@ -43,11 +39,8 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
   void initState() {
     super.initState();
     _name = widget.source.name;
-    _thumbnail = widget.source.thumbnail?.isNotEmpty == true
-        ? widget.source.thumbnail
-        : null;
-    _subscriptions
-        .add(widget.source.onThumbnailChanged.stream.listen((thumbnail) {
+    _thumbnail = widget.source.thumbnail?.isNotEmpty == true ? widget.source.thumbnail : null;
+    _subscriptions.add(widget.source.onThumbnailChanged.stream.listen((thumbnail) {
       setState(() {
         _thumbnail = thumbnail;
       });
@@ -73,10 +66,7 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
       children: [
         Expanded(
             child: Container(
-          decoration: widget.selected
-              ? BoxDecoration(
-                  border: Border.all(width: 2, color: Colors.blueAccent))
-              : null,
+          decoration: widget.selected ? BoxDecoration(border: Border.all(width: 2, color: Colors.blueAccent)) : null,
           child: InkWell(
             onTap: () {
               if (kDebugMode) {
@@ -96,10 +86,7 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
         Text(
           _name,
           style: TextStyle(
-              fontSize: 12,
-              color: Colors.black87,
-              fontWeight:
-                  widget.selected ? FontWeight.bold : FontWeight.normal),
+              fontSize: 12, color: Colors.black87, fontWeight: widget.selected ? FontWeight.bold : FontWeight.normal),
         ),
       ],
     );
@@ -122,8 +109,7 @@ class ScreenSelectDialog extends Dialog {
       _stateSetter?.call(() {});
     }));
 
-    _subscriptions
-        .add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
+    _subscriptions.add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
       _stateSetter?.call(() {});
     }));
   }
@@ -155,8 +141,7 @@ class ScreenSelectDialog extends Dialog {
       final sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
       for (var element in sources) {
         if (kDebugMode) {
-          print(
-              'name: ${element.name}, id: ${element.id}, type: ${element.type}');
+          print('name: ${element.name}, id: ${element.id}, type: ${element.type}');
         }
       }
       _timer?.cancel();
@@ -221,14 +206,10 @@ class ScreenSelectDialog extends Dialog {
                       child: Column(
                         children: <Widget>[
                           Container(
-                            constraints:
-                                const BoxConstraints.expand(height: 24),
+                            constraints: const BoxConstraints.expand(height: 24),
                             child: TabBar(
-                                onTap: (value) => Future.delayed(
-                                        const Duration(milliseconds: 300), () {
-                                      _sourceType = value == 0
-                                          ? rtc.SourceType.Screen
-                                          : rtc.SourceType.Window;
+                                onTap: (value) => Future.delayed(const Duration(milliseconds: 300), () {
+                                      _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
                                       _getSources();
                                     }),
                                 tabs: const [
@@ -255,9 +236,7 @@ class ScreenSelectDialog extends Dialog {
                                     crossAxisSpacing: 8,
                                     crossAxisCount: 2,
                                     children: _sources.entries
-                                        .where((element) =>
-                                            element.value.type ==
-                                            rtc.SourceType.Screen)
+                                        .where((element) => element.value.type == rtc.SourceType.Screen)
                                         .map((e) => ThumbnailWidget(
                                               onTap: (source) {
                                                 setState(() {
@@ -265,8 +244,7 @@ class ScreenSelectDialog extends Dialog {
                                                 });
                                               },
                                               source: e.value,
-                                              selected: _selectedSource?.id ==
-                                                  e.value.id,
+                                              selected: _selectedSource?.id == e.value.id,
                                             ))
                                         .toList(),
                                   )),
@@ -276,9 +254,7 @@ class ScreenSelectDialog extends Dialog {
                                     crossAxisSpacing: 8,
                                     crossAxisCount: 3,
                                     children: _sources.entries
-                                        .where((element) =>
-                                            element.value.type ==
-                                            rtc.SourceType.Window)
+                                        .where((element) => element.value.type == rtc.SourceType.Window)
                                         .map((e) => ThumbnailWidget(
                                               onTap: (source) {
                                                 setState(() {
@@ -286,8 +262,7 @@ class ScreenSelectDialog extends Dialog {
                                                 });
                                               },
                                               source: e.value,
-                                              selected: _selectedSource?.id ==
-                                                  e.value.id,
+                                              selected: _selectedSource?.id == e.value.id,
                                             ))
                                         .toList(),
                                   )),

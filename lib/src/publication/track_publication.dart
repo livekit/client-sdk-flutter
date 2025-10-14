@@ -82,8 +82,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   }
 
   /// True when the track is published with source [TrackSource.screenShareVideo].
-  bool get isScreenShare =>
-      kind == TrackType.VIDEO && source == TrackSource.screenShareVideo;
+  bool get isScreenShare => kind == TrackType.VIDEO && source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     _simulcasted = info.simulcast;
@@ -101,8 +100,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   int get hashCode => sid.hashCode;
 
   @override
-  bool operator ==(Object other) =>
-      other is TrackPublication && sid == other.sid;
+  bool operator ==(Object other) => other is TrackPublication && sid == other.sid;
 
   // Update track to new value, dispose previous if exists.
   // Returns true if value has changed.
@@ -129,8 +127,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   void _onTrackMuteUpdatedEvent(InternalTrackMuteUpdatedEvent event) {
     // send signal to server (if mute initiated by local user)
     if (event.shouldSendSignal) {
-      logger.fine(
-          '${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
+      logger.fine('${this} Sending mute signal... sid:${sid}, muted:${event.muted}');
       participant.room.engine.signalClient.sendMuteTrack(sid, event.muted);
     }
     _metadataMuted = event.muted;

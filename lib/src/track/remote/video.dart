@@ -24,8 +24,7 @@ import '../local/local.dart';
 import 'remote.dart';
 
 class RemoteVideoTrack extends RemoteTrack with VideoTrack {
-  RemoteVideoTrack(
-      TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
+  RemoteVideoTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
           TrackType.VIDEO,
@@ -85,36 +84,25 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       if (v.type == 'inbound-rtp') {
         receiverStats ??= VideoReceiverStats(v.id, v.timestamp);
         receiverStats.jitter = getNumValFromReport(v.values, 'jitter');
-        receiverStats.jitterBufferDelay =
-            getNumValFromReport(v.values, 'jitterBufferDelay');
-        receiverStats.bytesReceived =
-            getNumValFromReport(v.values, 'bytesReceived');
-        receiverStats.packetsLost =
-            getNumValFromReport(v.values, 'packetsLost');
-        receiverStats.framesDecoded =
-            getNumValFromReport(v.values, 'framesDecoded');
-        receiverStats.framesDropped =
-            getNumValFromReport(v.values, 'framesDropped');
-        receiverStats.framesReceived =
-            getNumValFromReport(v.values, 'framesReceived');
-        receiverStats.packetsReceived =
-            getNumValFromReport(v.values, 'packetsReceived');
-        receiverStats.framesPerSecond =
-            getNumValFromReport(v.values, 'framesPerSecond');
+        receiverStats.jitterBufferDelay = getNumValFromReport(v.values, 'jitterBufferDelay');
+        receiverStats.bytesReceived = getNumValFromReport(v.values, 'bytesReceived');
+        receiverStats.packetsLost = getNumValFromReport(v.values, 'packetsLost');
+        receiverStats.framesDecoded = getNumValFromReport(v.values, 'framesDecoded');
+        receiverStats.framesDropped = getNumValFromReport(v.values, 'framesDropped');
+        receiverStats.framesReceived = getNumValFromReport(v.values, 'framesReceived');
+        receiverStats.packetsReceived = getNumValFromReport(v.values, 'packetsReceived');
+        receiverStats.framesPerSecond = getNumValFromReport(v.values, 'framesPerSecond');
         receiverStats.frameWidth = getNumValFromReport(v.values, 'frameWidth');
-        receiverStats.frameHeight =
-            getNumValFromReport(v.values, 'frameHeight');
+        receiverStats.frameHeight = getNumValFromReport(v.values, 'frameHeight');
         receiverStats.pliCount = getNumValFromReport(v.values, 'pliCount');
         receiverStats.firCount = getNumValFromReport(v.values, 'firCount');
         receiverStats.nackCount = getNumValFromReport(v.values, 'nackCount');
-        receiverStats.decoderImplementation =
-            getStringValFromReport(v.values, 'decoderImplementation');
+        receiverStats.decoderImplementation = getStringValFromReport(v.values, 'decoderImplementation');
 
         final c = stats.firstWhereOrNull((element) => element.type == 'codec');
         if (c != null) {
           receiverStats.mimeType = getStringValFromReport(c.values, 'mimeType');
-          receiverStats.payloadType =
-              getNumValFromReport(c.values, 'payloadType');
+          receiverStats.payloadType = getNumValFromReport(c.values, 'payloadType');
           receiverStats.channels = getNumValFromReport(c.values, 'channels');
           receiverStats.clockRate = getNumValFromReport(c.values, 'clockRate');
         }

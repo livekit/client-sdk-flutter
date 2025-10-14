@@ -16,8 +16,7 @@ abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
 
   num _bytesReceived = 0;
 
-  BaseStreamReader(T info, DataStreamController<DataStream_Chunk> stream,
-      this._totalByteSize) {
+  BaseStreamReader(T info, DataStreamController<DataStream_Chunk> stream, this._totalByteSize) {
     reader = stream;
     _info = info;
   }
@@ -29,15 +28,13 @@ abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
   Future<U> readAll();
 }
 
-class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
-    with Stream<DataStream_Chunk> {
+class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>> with Stream<DataStream_Chunk> {
   ByteStreamReader(super.info, super.stream, super.totalByteSize);
 
   @override
   void handleChunkReceived(DataStream_Chunk chunk) {
     _bytesReceived += chunk.content.length;
-    final currentProgress =
-        _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
+    final currentProgress = _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
     onProgress?.call(currentProgress);
   }
 
@@ -52,13 +49,9 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
 
   StreamSubscription<DataStream_Chunk>? _streamSubscription;
   @override
-  StreamSubscription<DataStream_Chunk> listen(
-      void Function(DataStream_Chunk event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError}) {
-    _streamSubscription ??=
-        reader!.streamController.stream.listen((DataStream_Chunk data) {
+  StreamSubscription<DataStream_Chunk> listen(void Function(DataStream_Chunk event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    _streamSubscription ??= reader!.streamController.stream.listen((DataStream_Chunk data) {
       handleChunkReceived(data);
       onData?.call(data);
     }, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -67,8 +60,7 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
   }
 }
 
-class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
-    with Stream<DataStream_Chunk> {
+class TextStreamReader extends BaseStreamReader<TextStreamInfo, String> with Stream<DataStream_Chunk> {
   Map<num, DataStream_Chunk> receivedChunks = {};
 
   TextStreamReader(
@@ -81,15 +73,13 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
   void handleChunkReceived(DataStream_Chunk chunk) {
     final index = chunk.chunkIndex.toInt();
     final previousChunkAtIndex = receivedChunks[index];
-    if (previousChunkAtIndex != null &&
-        previousChunkAtIndex.version > chunk.version) {
+    if (previousChunkAtIndex != null && previousChunkAtIndex.version > chunk.version) {
       // we have a newer version already, dropping the old one
       return;
     }
     receivedChunks[index] = chunk;
     _bytesReceived += chunk.content.length;
-    final currentProgress =
-        _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
+    final currentProgress = _totalByteSize != null ? _bytesReceived / _totalByteSize : null;
     onProgress?.call(currentProgress);
   }
 
@@ -104,13 +94,9 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String>
 
   StreamSubscription<DataStream_Chunk>? _streamSubscription;
   @override
-  StreamSubscription<DataStream_Chunk> listen(
-      void Function(DataStream_Chunk event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError}) {
-    _streamSubscription ??=
-        reader!.streamController.stream.listen((DataStream_Chunk data) {
+  StreamSubscription<DataStream_Chunk> listen(void Function(DataStream_Chunk event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    _streamSubscription ??= reader!.streamController.stream.listen((DataStream_Chunk data) {
       handleChunkReceived(data);
       onData?.call(data);
     }, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
