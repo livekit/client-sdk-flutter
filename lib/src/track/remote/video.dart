@@ -56,7 +56,8 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
       if (stats != null && prevStats != null && receiver != null) {
         final bitrate = computeBitrateForReceiverStats(stats, prevStats);
         _currentBitrate = bitrate;
-        events.emit(VideoReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
+        events.emit(
+            VideoReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;

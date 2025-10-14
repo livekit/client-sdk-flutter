@@ -150,11 +150,12 @@ class E2EEManager {
       {required RTCRtpSender sender,
       required String identity,
       required String sid}) async {
-    final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
-        participantId: identity,
-        sender: sender,
-        algorithm: _algorithm,
-        keyProvider: _keyProvider.keyProvider);
+    final frameCryptor =
+        await frameCryptorFactory.createFrameCryptorForRtpSender(
+            participantId: identity,
+            sender: sender,
+            algorithm: _algorithm,
+            keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
     logger.info(
