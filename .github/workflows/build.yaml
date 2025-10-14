@@ -139,7 +139,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
-          java-version: "12.x"
+          java-version: "17.x"
       - name: Run apt update
         run: sudo apt-get update
       - name: Install ninja-build libgtk-3-dev
@@ -157,7 +157,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
-          java-version: "12.x"
+          java-version: "17.x"
       - name: Build for Web
         working-directory: ./example
         run: flutter build web
@@ -171,7 +171,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
         with:
-          java-version: "12.x"
+          java-version: "17.x"
       - name: Build for Web
         working-directory: ./example
         run: flutter build web --wasm
