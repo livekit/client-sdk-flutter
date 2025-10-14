@@ -31,7 +31,8 @@ class MetricsBatch extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (timestampMs != null) result.timestampMs = timestampMs;
-    if (normalizedTimestamp != null) result.normalizedTimestamp = normalizedTimestamp;
+    if (normalizedTimestamp != null)
+      result.normalizedTimestamp = normalizedTimestamp;
     if (strData != null) result.strData.addAll(strData);
     if (timeSeries != null) result.timeSeries.addAll(timeSeries);
     if (events != null) result.events.addAll(events);
@@ -43,24 +44,31 @@ class MetricsBatch extends $pb.GeneratedMessage {
   factory MetricsBatch.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetricsBatch.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetricsBatch.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetricsBatch',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MetricsBatch',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'timestampMs')
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'normalizedTimestamp', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'normalizedTimestamp',
+        subBuilder: $0.Timestamp.create)
     ..pPS(3, _omitFieldNames ? '' : 'strData')
-    ..pc<TimeSeriesMetric>(4, _omitFieldNames ? '' : 'timeSeries', $pb.PbFieldType.PM,
+    ..pc<TimeSeriesMetric>(
+        4, _omitFieldNames ? '' : 'timeSeries', $pb.PbFieldType.PM,
         subBuilder: TimeSeriesMetric.create)
-    ..pc<EventMetric>(5, _omitFieldNames ? '' : 'events', $pb.PbFieldType.PM, subBuilder: EventMetric.create)
+    ..pc<EventMetric>(5, _omitFieldNames ? '' : 'events', $pb.PbFieldType.PM,
+        subBuilder: EventMetric.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetricsBatch clone() => MetricsBatch()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetricsBatch copyWith(void Function(MetricsBatch) updates) =>
-      super.copyWith((message) => updates(message as MetricsBatch)) as MetricsBatch;
+      super.copyWith((message) => updates(message as MetricsBatch))
+          as MetricsBatch;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -69,9 +77,11 @@ class MetricsBatch extends $pb.GeneratedMessage {
   static MetricsBatch create() => MetricsBatch._();
   @$core.override
   MetricsBatch createEmptyInstance() => create();
-  static $pb.PbList<MetricsBatch> createRepeated() => $pb.PbList<MetricsBatch>();
+  static $pb.PbList<MetricsBatch> createRepeated() =>
+      $pb.PbList<MetricsBatch>();
   @$core.pragma('dart2js:noInline')
-  static MetricsBatch getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetricsBatch>(create);
+  static MetricsBatch getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MetricsBatch>(create);
   static MetricsBatch? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -120,7 +130,8 @@ class TimeSeriesMetric extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (label != null) result.label = label;
-    if (participantIdentity != null) result.participantIdentity = participantIdentity;
+    if (participantIdentity != null)
+      result.participantIdentity = participantIdentity;
     if (trackSid != null) result.trackSid = trackSid;
     if (samples != null) result.samples.addAll(samples);
     if (rid != null) result.rid = rid;
@@ -136,12 +147,16 @@ class TimeSeriesMetric extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TimeSeriesMetric',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TimeSeriesMetric',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'label', $pb.PbFieldType.OU3)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'participantIdentity', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        2, _omitFieldNames ? '' : 'participantIdentity', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'trackSid', $pb.PbFieldType.OU3)
-    ..pc<MetricSample>(4, _omitFieldNames ? '' : 'samples', $pb.PbFieldType.PM, subBuilder: MetricSample.create)
+    ..pc<MetricSample>(4, _omitFieldNames ? '' : 'samples', $pb.PbFieldType.PM,
+        subBuilder: MetricSample.create)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'rid', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
@@ -149,7 +164,8 @@ class TimeSeriesMetric extends $pb.GeneratedMessage {
   TimeSeriesMetric clone() => TimeSeriesMetric()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TimeSeriesMetric copyWith(void Function(TimeSeriesMetric) updates) =>
-      super.copyWith((message) => updates(message as TimeSeriesMetric)) as TimeSeriesMetric;
+      super.copyWith((message) => updates(message as TimeSeriesMetric))
+          as TimeSeriesMetric;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -158,10 +174,11 @@ class TimeSeriesMetric extends $pb.GeneratedMessage {
   static TimeSeriesMetric create() => TimeSeriesMetric._();
   @$core.override
   TimeSeriesMetric createEmptyInstance() => create();
-  static $pb.PbList<TimeSeriesMetric> createRepeated() => $pb.PbList<TimeSeriesMetric>();
+  static $pb.PbList<TimeSeriesMetric> createRepeated() =>
+      $pb.PbList<TimeSeriesMetric>();
   @$core.pragma('dart2js:noInline')
-  static TimeSeriesMetric getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimeSeriesMetric>(create);
+  static TimeSeriesMetric getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<TimeSeriesMetric>(create);
   static TimeSeriesMetric? _defaultInstance;
 
   /// Metric name e.g "speech_probablity". The string value is not directly stored in the message, but referenced by index
@@ -214,7 +231,8 @@ class MetricSample extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (timestampMs != null) result.timestampMs = timestampMs;
-    if (normalizedTimestamp != null) result.normalizedTimestamp = normalizedTimestamp;
+    if (normalizedTimestamp != null)
+      result.normalizedTimestamp = normalizedTimestamp;
     if (value != null) result.value = value;
     return result;
   }
@@ -224,13 +242,17 @@ class MetricSample extends $pb.GeneratedMessage {
   factory MetricSample.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory MetricSample.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory MetricSample.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetricSample',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MetricSample',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'timestampMs')
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'normalizedTimestamp', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'normalizedTimestamp',
+        subBuilder: $0.Timestamp.create)
     ..a<$core.double>(3, _omitFieldNames ? '' : 'value', $pb.PbFieldType.OF)
     ..hasRequiredFields = false;
 
@@ -238,7 +260,8 @@ class MetricSample extends $pb.GeneratedMessage {
   MetricSample clone() => MetricSample()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MetricSample copyWith(void Function(MetricSample) updates) =>
-      super.copyWith((message) => updates(message as MetricSample)) as MetricSample;
+      super.copyWith((message) => updates(message as MetricSample))
+          as MetricSample;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -247,9 +270,11 @@ class MetricSample extends $pb.GeneratedMessage {
   static MetricSample create() => MetricSample._();
   @$core.override
   MetricSample createEmptyInstance() => create();
-  static $pb.PbList<MetricSample> createRepeated() => $pb.PbList<MetricSample>();
+  static $pb.PbList<MetricSample> createRepeated() =>
+      $pb.PbList<MetricSample>();
   @$core.pragma('dart2js:noInline')
-  static MetricSample getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetricSample>(create);
+  static MetricSample getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MetricSample>(create);
   static MetricSample? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -296,12 +321,15 @@ class EventMetric extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (label != null) result.label = label;
-    if (participantIdentity != null) result.participantIdentity = participantIdentity;
+    if (participantIdentity != null)
+      result.participantIdentity = participantIdentity;
     if (trackSid != null) result.trackSid = trackSid;
     if (startTimestampMs != null) result.startTimestampMs = startTimestampMs;
     if (endTimestampMs != null) result.endTimestampMs = endTimestampMs;
-    if (normalizedStartTimestamp != null) result.normalizedStartTimestamp = normalizedStartTimestamp;
-    if (normalizedEndTimestamp != null) result.normalizedEndTimestamp = normalizedEndTimestamp;
+    if (normalizedStartTimestamp != null)
+      result.normalizedStartTimestamp = normalizedStartTimestamp;
+    if (normalizedEndTimestamp != null)
+      result.normalizedEndTimestamp = normalizedEndTimestamp;
     if (metadata != null) result.metadata = metadata;
     if (rid != null) result.rid = rid;
     return result;
@@ -312,18 +340,24 @@ class EventMetric extends $pb.GeneratedMessage {
   factory EventMetric.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory EventMetric.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory EventMetric.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'EventMetric',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EventMetric',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'label', $pb.PbFieldType.OU3)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'participantIdentity', $pb.PbFieldType.OU3)
+    ..a<$core.int>(
+        2, _omitFieldNames ? '' : 'participantIdentity', $pb.PbFieldType.OU3)
     ..a<$core.int>(3, _omitFieldNames ? '' : 'trackSid', $pb.PbFieldType.OU3)
     ..aInt64(4, _omitFieldNames ? '' : 'startTimestampMs')
     ..aInt64(5, _omitFieldNames ? '' : 'endTimestampMs')
-    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'normalizedStartTimestamp', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'normalizedEndTimestamp', subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(6, _omitFieldNames ? '' : 'normalizedStartTimestamp',
+        subBuilder: $0.Timestamp.create)
+    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'normalizedEndTimestamp',
+        subBuilder: $0.Timestamp.create)
     ..aOS(8, _omitFieldNames ? '' : 'metadata')
     ..a<$core.int>(9, _omitFieldNames ? '' : 'rid', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
@@ -332,7 +366,8 @@ class EventMetric extends $pb.GeneratedMessage {
   EventMetric clone() => EventMetric()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EventMetric copyWith(void Function(EventMetric) updates) =>
-      super.copyWith((message) => updates(message as EventMetric)) as EventMetric;
+      super.copyWith((message) => updates(message as EventMetric))
+          as EventMetric;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -343,7 +378,8 @@ class EventMetric extends $pb.GeneratedMessage {
   EventMetric createEmptyInstance() => create();
   static $pb.PbList<EventMetric> createRepeated() => $pb.PbList<EventMetric>();
   @$core.pragma('dart2js:noInline')
-  static EventMetric getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EventMetric>(create);
+  static EventMetric getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EventMetric>(create);
   static EventMetric? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -439,7 +475,8 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
   }) {
     final result = create();
     if (roomId != null) result.roomId = roomId;
-    if (enableUserDataTraining != null) result.enableUserDataTraining = enableUserDataTraining;
+    if (enableUserDataTraining != null)
+      result.enableUserDataTraining = enableUserDataTraining;
     return result;
   }
 
@@ -452,17 +489,22 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MetricsRecordingHeader',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MetricsRecordingHeader',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'),
+      createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'roomId')
     ..aOB(2, _omitFieldNames ? '' : 'enableUserDataTraining')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetricsRecordingHeader clone() => MetricsRecordingHeader()..mergeFromMessage(this);
+  MetricsRecordingHeader clone() =>
+      MetricsRecordingHeader()..mergeFromMessage(this);
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MetricsRecordingHeader copyWith(void Function(MetricsRecordingHeader) updates) =>
-      super.copyWith((message) => updates(message as MetricsRecordingHeader)) as MetricsRecordingHeader;
+  MetricsRecordingHeader copyWith(
+          void Function(MetricsRecordingHeader) updates) =>
+      super.copyWith((message) => updates(message as MetricsRecordingHeader))
+          as MetricsRecordingHeader;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
@@ -471,10 +513,11 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
   static MetricsRecordingHeader create() => MetricsRecordingHeader._();
   @$core.override
   MetricsRecordingHeader createEmptyInstance() => create();
-  static $pb.PbList<MetricsRecordingHeader> createRepeated() => $pb.PbList<MetricsRecordingHeader>();
+  static $pb.PbList<MetricsRecordingHeader> createRepeated() =>
+      $pb.PbList<MetricsRecordingHeader>();
   @$core.pragma('dart2js:noInline')
-  static MetricsRecordingHeader getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MetricsRecordingHeader>(create);
+  static MetricsRecordingHeader getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MetricsRecordingHeader>(create);
   static MetricsRecordingHeader? _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -496,5 +539,7 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
   void clearEnableUserDataTraining() => $_clearField(2);
 }
 
-const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
-const $core.bool _omitMessageNames = $core.bool.fromEnvironment('protobuf.omit_message_names');
+const $core.bool _omitFieldNames =
+    $core.bool.fromEnvironment('protobuf.omit_field_names');
+const $core.bool _omitMessageNames =
+    $core.bool.fromEnvironment('protobuf.omit_message_names');

@@ -63,7 +63,8 @@ class LocalAudioTrack extends LocalTrack
       if (stats != null && prevStats != null && sender != null) {
         final bitrate = computeBitrateForSenderStats(stats, prevStats);
         _currentBitrate = bitrate;
-        events.emit(AudioSenderStatsEvent(stats: stats, currentBitrate: bitrate));
+        events
+            .emit(AudioSenderStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;
