@@ -120,7 +120,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     final rtcUri = await Utils.buildUri(
       uriString,
-      token: token,
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       reconnect: reconnect,
@@ -147,6 +146,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           onDispose: _onSocketDispose,
           onError: _onSocketError,
         ),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
       );
       future = future.timeout(connectOptions.timeouts.connection);
       _ws = await future;

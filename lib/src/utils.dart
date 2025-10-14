@@ -157,7 +157,6 @@ class Utils {
   @internal
   static Future<Uri> buildUri(
     String uriString, {
-    required String token,
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
     bool reconnect = false,
@@ -185,7 +184,6 @@ class Utils {
       scheme: validate ? httpScheme : wsScheme,
       pathSegments: pathSegments,
       queryParameters: <String, String>{
-        'access_token': token,
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
