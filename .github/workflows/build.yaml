@@ -16,34 +16,83 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  dart-format-and-analyze-check:
-    name: Dart Format/Analyze/Test Check
+  dart-format-check:
+    name: Dart Format Check
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '17.x'
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Dart Format Check
         run: dart format lib/ test/ --set-exit-if-changed
+
+  import-sorter-check:
+    name: Import Sorter Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Install project dependencies
+        run: flutter pub get
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
+
+  version-consistency-check:
+    name: Version Consistency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Install project dependencies
+        run: flutter pub get
       - name: Check version consistency
         run: dart run scripts/check_version.dart
+
+  dart-analyze-check:
+    name: Dart Analyze Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Install project dependencies
+        run: flutter pub get
       - name: Dart Analyze Check
         run: flutter analyze
+
+  dart-test-check:
+    name: Dart Test Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - name: Install project dependencies
+        run: flutter pub get
       - name: Dart Test Check
         run: flutter test
 
@@ -52,14 +101,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: actions/setup-java@v1
         with:
-          java-version: '17.x'
-      - uses: actions/checkout@v2
+          java-version: "17.x"
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Build for Android
@@ -71,10 +120,11 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Install xcode platform support for iOS
@@ -88,10 +138,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: subosito/flutter-action@v1
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Build for Windows
@@ -103,10 +154,11 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: subosito/flutter-action@v1
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Build for macOS
@@ -118,14 +170,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
+          java-version: "12.x"
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Run apt update
@@ -141,14 +193,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
+          java-version: "12.x"
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Build for Web
@@ -160,14 +212,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone repository
+        uses: actions/checkout@v4
       - uses: actions/setup-java@v1
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
+          java-version: "12.x"
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
       - name: Install project dependencies
         run: flutter pub get
       - name: Build for Web
