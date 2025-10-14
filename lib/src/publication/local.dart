@@ -40,15 +40,12 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   }
 
   /// Mute the track associated with this publication
-  Future<void> mute({bool stopOnMute = true}) async =>
-      await track?.mute(stopOnMute: stopOnMute);
+  Future<void> mute({bool stopOnMute = true}) async => await track?.mute(stopOnMute: stopOnMute);
 
   /// Unmute the track associated with this publication
-  Future<void> unmute({bool stopOnMute = true}) async =>
-      await track?.unmute(stopOnMute: stopOnMute);
+  Future<void> unmute({bool stopOnMute = true}) async => await track?.unmute(stopOnMute: stopOnMute);
 
-  lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() =>
-      lk_rtc.TrackPublishedResponse(
+  lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() => lk_rtc.TrackPublishedResponse(
         cid: track?.mediaStreamTrack.id,
         track: latestInfo,
       );

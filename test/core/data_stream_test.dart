@@ -22,8 +22,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:livekit_client/livekit_client.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../mock/e2e_container.dart';
 
 void main() {

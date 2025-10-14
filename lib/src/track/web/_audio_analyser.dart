@@ -3,13 +3,12 @@ import 'dart:js_interop_unsafe';
 import 'dart:math' as math;
 
 import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamWeb;
+import 'package:dart_webrtc/src/media_stream_track_impl.dart' show MediaStreamTrackWeb;
 import 'package:web/web.dart' as web;
 
 import '../../track/local/local.dart' show AudioTrack;
 
 // ignore: implementation_imports
-import 'package:dart_webrtc/src/media_stream_track_impl.dart'
-    show MediaStreamTrackWeb;
 
 class AudioAnalyser {
   final double Function() calculateVolume;
@@ -67,13 +66,9 @@ AudioAnalyser? createAudioAnalyser(
   if (audioContext == null) {
     throw Exception('Audio Context not supported on this browser');
   }
-  final streamTrack = opts.cloneTrack == true
-      ? track.mediaStreamTrack.clone()
-      : track.mediaStreamTrack;
-  final mediaStreamSource = audioContext.createMediaStreamSource(MediaStreamWeb(
-          web.MediaStream([(streamTrack as MediaStreamTrackWeb).jsTrack].toJS),
-          '')
-      .jsStream);
+  final streamTrack = opts.cloneTrack == true ? track.mediaStreamTrack.clone() : track.mediaStreamTrack;
+  final mediaStreamSource = audioContext.createMediaStreamSource(
+      MediaStreamWeb(web.MediaStream([(streamTrack as MediaStreamTrackWeb).jsTrack].toJS), '').jsStream);
   final analyser = audioContext.createAnalyser();
   analyser.minDecibels = opts.minDecibels ?? -100;
   analyser.maxDecibels = opts.maxDecibels ?? -80;
@@ -84,8 +79,7 @@ AudioAnalyser? createAudioAnalyser(
 
   /// Calculates the current volume of the track in the range from 0 to 1
   double calculateVolume() {
-    final JSUint8Array dataArray =
-        JSUint8Array.withLength(analyser.frequencyBinCount);
+    final JSUint8Array dataArray = JSUint8Array.withLength(analyser.frequencyBinCount);
 
     analyser.getByteFrequencyData(dataArray);
     num sum = 0;

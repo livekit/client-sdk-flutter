@@ -347,8 +347,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
               break;
             }
           }
-        } else if (simulcastCodecInfo.encodings != null &&
-            simulcastCodecInfo.sender != null) {
+        } else if (simulcastCodecInfo.encodings != null && simulcastCodecInfo.sender != null) {
           logger.fine('setPublishingCodecs $codecs');
           await setPublishingLayersForSender(
             simulcastCodecInfo.sender!,
@@ -424,9 +423,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       // const mode = new ScalabilityMode(encoding.scalabilityMode);
       var maxQuality = lk_models.VideoQuality.OFF;
       for (var q in layers) {
-        if (q.enabled &&
-            (maxQuality == lk_models.VideoQuality.OFF ||
-                q.quality.value > maxQuality.value)) {
+        if (q.enabled && (maxQuality == lk_models.VideoQuality.OFF || q.quality.value > maxQuality.value)) {
           maxQuality = q.quality;
         }
       }
@@ -477,10 +474,8 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           // have a workaround of lowering its bitrate and resolution to the min.
           if (kIsWeb && lkBrowser() == BrowserType.firefox) {
             if (subscribedQuality.enabled) {
-              final encodingBackup =
-                  encodingBackups[(sender.senderId, idx)] ?? encoding;
-              encoding.scaleResolutionDownBy =
-                  encodingBackup.scaleResolutionDownBy;
+              final encodingBackup = encodingBackups[(sender.senderId, idx)] ?? encoding;
+              encoding.scaleResolutionDownBy = encodingBackup.scaleResolutionDownBy;
               encoding.maxBitrate = encodingBackup.maxBitrate;
               encoding.maxFramerate = encodingBackup.maxFramerate;
             } else {

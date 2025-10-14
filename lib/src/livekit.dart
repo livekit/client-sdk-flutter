@@ -28,8 +28,7 @@ class LiveKitClient {
   static Future<void> initialize({bool bypassVoiceProcessing = false}) async {
     if (lkPlatformIsMobile()) {
       await rtc.WebRTC.initialize(options: {
-        if (bypassVoiceProcessing)
-          'bypassVoiceProcessing': bypassVoiceProcessing,
+        if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
       });
 
       Native.bypassVoiceProcessing = bypassVoiceProcessing;
