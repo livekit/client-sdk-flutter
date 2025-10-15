@@ -50,8 +50,7 @@ class _RoomPageState extends State<RoomPage> {
     if (lkPlatformIsDesktop()) {
       onWindowShouldClose = () async {
         unawaited(widget.room.disconnect());
-        await _listener.waitFor<RoomDisconnectedEvent>(
-            duration: const Duration(seconds: 5));
+        await _listener.waitFor<RoomDisconnectedEvent>(duration: const Duration(seconds: 5));
       };
     }
   }
@@ -74,8 +73,8 @@ class _RoomPageState extends State<RoomPage> {
       if (event.reason != null) {
         print('Room disconnected: reason => ${event.reason}');
       }
-      WidgetsBindingCompatible.instance?.addPostFrameCallback(
-          (timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
+      WidgetsBindingCompatible.instance
+          ?.addPostFrameCallback((timeStamp) => Navigator.popUntil(context, (route) => route.isFirst));
     })
     ..on<ParticipantEvent>((event) {
       // sort participants on many track events as noted in documentation linked above
@@ -85,8 +84,7 @@ class _RoomPageState extends State<RoomPage> {
       context.showRecordingStatusChangedDialog(event.activeRecording);
     })
     ..on<RoomAttemptReconnectEvent>((event) {
-      print(
-          'Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
+      print('Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
           '(${event.nextRetryDelaysInMs}ms delay until next attempt)');
     })
     ..on<LocalTrackSubscribedEvent>((event) {
@@ -98,13 +96,11 @@ class _RoomPageState extends State<RoomPage> {
     ..on<TrackUnsubscribedEvent>((_) => _sortParticipants())
     ..on<TrackE2EEStateEvent>(_onE2EEStateEvent)
     ..on<ParticipantNameUpdatedEvent>((event) {
-      print(
-          'Participant name updated: ${event.participant.identity}, name => ${event.name}');
+      print('Participant name updated: ${event.participant.identity}, name => ${event.name}');
       _sortParticipants();
     })
     ..on<ParticipantMetadataUpdatedEvent>((event) {
-      print(
-          'Participant metadata updated: ${event.participant.identity}, metadata => ${event.metadata}');
+      print('Participant metadata updated: ${event.participant.identity}, metadata => ${event.metadata}');
     })
     ..on<RoomMetadataChangedEvent>((event) {
       print('Room metadata changed: ${event.metadata}');
@@ -194,12 +190,10 @@ class _RoomPageState extends State<RoomPage> {
       }
 
       // joinedAt
-      return a.participant.joinedAt.millisecondsSinceEpoch -
-          b.participant.joinedAt.millisecondsSinceEpoch;
+      return a.participant.joinedAt.millisecondsSinceEpoch - b.participant.joinedAt.millisecondsSinceEpoch;
     });
 
-    final localParticipantTracks =
-        widget.room.localParticipant?.videoTrackPublications;
+    final localParticipantTracks = widget.room.localParticipant?.videoTrackPublications;
     if (localParticipantTracks != null) {
       for (var t in localParticipantTracks) {
         if (t.isScreenShare) {
@@ -208,8 +202,7 @@ class _RoomPageState extends State<RoomPage> {
             type: ParticipantTrackType.kScreenShare,
           ));
         } else {
-          userMediaTracks.add(
-              ParticipantTrack(participant: widget.room.localParticipant!));
+          userMediaTracks.add(ParticipantTrack(participant: widget.room.localParticipant!));
         }
       }
     }
@@ -226,14 +219,12 @@ class _RoomPageState extends State<RoomPage> {
               children: [
                 Expanded(
                     child: participantTracks.isNotEmpty
-                        ? ParticipantWidget.widgetFor(participantTracks.first,
-                            showStatsLayer: true)
+                        ? ParticipantWidget.widgetFor(participantTracks.first, showStatsLayer: true)
                         : Container()),
                 if (widget.room.localParticipant != null)
                   SafeArea(
                     top: false,
-                    child: ControlsWidget(
-                        widget.room, widget.room.localParticipant!),
+                    child: ControlsWidget(widget.room, widget.room.localParticipant!),
                   )
               ],
             ),
@@ -249,8 +240,7 @@ class _RoomPageState extends State<RoomPage> {
                     itemBuilder: (BuildContext context, int index) => SizedBox(
                       width: 180,
                       height: 120,
-                      child: ParticipantWidget.widgetFor(
-                          participantTracks[index + 1]),
+                      child: ParticipantWidget.widgetFor(participantTracks[index + 1]),
                     ),
                   ),
                 )),

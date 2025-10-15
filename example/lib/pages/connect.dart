@@ -81,9 +81,8 @@ class _ConnectPageState extends State<ConnectPage> {
   // Read saved URL and Token
   Future<void> _readPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    _uriCtrl.text = const bool.hasEnvironment('URL')
-        ? const String.fromEnvironment('URL')
-        : prefs.getString(_storeKeyUri) ?? '';
+    _uriCtrl.text =
+        const bool.hasEnvironment('URL') ? const String.fromEnvironment('URL') : prefs.getString(_storeKeyUri) ?? '';
     _tokenCtrl.text = const bool.hasEnvironment('TOKEN')
         ? const String.fromEnvironment('TOKEN')
         : prefs.getString(_storeKeyToken) ?? '';
@@ -142,8 +141,7 @@ class _ConnectPageState extends State<ConnectPage> {
                     adaptiveStream: _adaptiveStream,
                     dynacast: _dynacast,
                     preferredCodec: _preferredCodec,
-                    enableBackupVideoCodec:
-                        ['VP9', 'AV1'].contains(_preferredCodec),
+                    enableBackupVideoCodec: ['VP9', 'AV1'].contains(_preferredCodec),
                   ),
                 )),
       );
@@ -302,43 +300,35 @@ class _ConnectPageState extends State<ConnectPage> {
                   if (_multiCodec)
                     Padding(
                         padding: const EdgeInsets.only(bottom: 5),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Preferred Codec:'),
-                              DropdownButton<String>(
-                                value: _preferredCodec,
-                                icon: const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.blue,
-                                ),
-                                elevation: 16,
-                                style: const TextStyle(color: Colors.blue),
-                                underline: Container(
-                                  height: 2,
-                                  color: Colors.blueAccent,
-                                ),
-                                onChanged: (String? value) {
-                                  // This is called when the user selects an item.
-                                  setState(() {
-                                    _preferredCodec = value!;
-                                  });
-                                },
-                                items: [
-                                  'Preferred Codec',
-                                  'AV1',
-                                  'VP9',
-                                  'VP8',
-                                  'H264',
-                                  'H265'
-                                ].map<DropdownMenuItem<String>>((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                              )
-                            ])),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          const Text('Preferred Codec:'),
+                          DropdownButton<String>(
+                            value: _preferredCodec,
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.blue,
+                            ),
+                            elevation: 16,
+                            style: const TextStyle(color: Colors.blue),
+                            underline: Container(
+                              height: 2,
+                              color: Colors.blueAccent,
+                            ),
+                            onChanged: (String? value) {
+                              // This is called when the user selects an item.
+                              setState(() {
+                                _preferredCodec = value!;
+                              });
+                            },
+                            items: ['Preferred Codec', 'AV1', 'VP9', 'VP8', 'H264', 'H265']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          )
+                        ])),
                   ElevatedButton(
                     onPressed: _busy ? null : () => _connect(context),
                     child: Row(

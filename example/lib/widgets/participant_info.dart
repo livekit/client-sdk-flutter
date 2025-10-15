@@ -19,8 +19,7 @@ extension ParticipantTrackTypeExt on ParticipantTrackType {
 }
 
 class ParticipantTrack {
-  ParticipantTrack(
-      {required this.participant, this.type = ParticipantTrackType.kUserMedia});
+  ParticipantTrack({required this.participant, this.type = ParticipantTrackType.kUserMedia});
   Participant participant;
   final ParticipantTrackType type;
 }
@@ -80,9 +79,7 @@ class ParticipantInfoWidget extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 5),
                 child: Icon(
-                  connectionQuality == ConnectionQuality.poor
-                      ? Icons.wifi_off_outlined
-                      : Icons.wifi,
+                  connectionQuality == ConnectionQuality.poor ? Icons.wifi_off_outlined : Icons.wifi,
                   color: {
                     ConnectionQuality.excellent: Colors.green,
                     ConnectionQuality.good: Colors.orange,

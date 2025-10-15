@@ -61,8 +61,7 @@ class SoundWaveformWidget extends StatefulWidget {
   State<SoundWaveformWidget> createState() => _SoundWaveformWidgetState();
 }
 
-class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
-    with TickerProviderStateMixin {
+class _SoundWaveformWidgetState extends State<SoundWaveformWidget> with TickerProviderStateMixin {
   late AnimationController controller;
   late List<double> samples;
   AudioVisualizer? _visualizer;
@@ -70,8 +69,7 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
 
   void _startVisualizer(AudioTrack track) async {
     samples = List.filled(widget.barCount, 0);
-    _visualizer ??= createVisualizer(track,
-        options: AudioVisualizerOptions(barCount: widget.barCount));
+    _visualizer ??= createVisualizer(track, options: AudioVisualizerOptions(barCount: widget.barCount));
     _listener ??= _visualizer?.createListener();
     _listener?.on<AudioVisualizerEvent>((e) {
       if (mounted) {
@@ -126,11 +124,8 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget>
           children: List.generate(
             count,
             (i) => AnimatedContainer(
-              duration: Duration(
-                  milliseconds: widget.durationInMilliseconds ~/ count),
-              margin: i == (samples.length - 1)
-                  ? EdgeInsets.zero
-                  : const EdgeInsets.only(right: 5),
+              duration: Duration(milliseconds: widget.durationInMilliseconds ~/ count),
+              margin: i == (samples.length - 1) ? EdgeInsets.zero : const EdgeInsets.only(right: 5),
               height: samples[i] < minHeight
                   ? minHeight
                   : samples[i] > maxHeight
