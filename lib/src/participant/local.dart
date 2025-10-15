@@ -1043,16 +1043,21 @@ extension RPCMethods on LocalParticipant {
     final requestId = Uuid().v4();
     final completer = Completer<String>();
 
-    final maxRoundTripLatency = Duration(seconds: 2);
+    final maxRoundTripLatency = Duration(seconds: 7);
+    final minEffectiveTimeout = const Duration(milliseconds: 1000);
 
     try {
+      final effectiveTimeout = Duration(
+        milliseconds: (params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds)
+            .clamp(minEffectiveTimeout.inMilliseconds, double.infinity)
+            .toInt(),
+      );
       await publishRpcRequest(
         destinationIdentity: params.destinationIdentity,
         requestId: requestId,
         method: params.method,
         payload: params.payload,
-        responseTimeout:
-            Duration(milliseconds: params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds),
+        responseTimeout: effectiveTimeout,
         version: kRpcVesion,
       );
 
