@@ -34,17 +34,14 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
             stats['layer-$key'] =
                 '${value.frameWidth ?? 0}x${value.frameHeight ?? 0} ${value.framesPerSecond?.toDouble() ?? 0} fps, ${event.bitrateForLayers[key] ?? 0} kbps';
           });
-          var firstStats =
-              event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
+          var firstStats = event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
           if (firstStats != null) {
             stats['encoder'] = firstStats.encoderImplementation ?? '';
             if (firstStats.mimeType != null) {
-              stats['codec'] =
-                  '${firstStats.mimeType!.split('/')[1]}/${firstStats.clockRate}';
+              stats['codec'] = '${firstStats.mimeType!.split('/')[1]}/${firstStats.clockRate}';
             }
             stats['payload'] = '${firstStats.payloadType}';
-            stats['qualityLimitationReason'] =
-                firstStats.qualityLimitationReason ?? '';
+            stats['qualityLimitationReason'] = firstStats.qualityLimitationReason ?? '';
           }
 
           this.stats['video']!.addEntries(stats.entries);
@@ -59,8 +56,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
             stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
           }
           if (event.stats.mimeType != null) {
-            stats['codec'] =
-                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}';
+            stats['codec'] = '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}';
           }
           stats['payload'] = '${event.stats.payloadType}';
           stats['size/fps'] =
@@ -83,8 +79,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         setState(() {
           stats['tx'] = '${event.currentBitrate.toInt()} kpbs';
           if (event.stats.mimeType != null) {
-            stats['codec'] =
-                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+            stats['codec'] = '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
           }
           stats['payload'] = '${event.stats.payloadType}';
           this.stats['audio']!.addEntries(stats.entries);
@@ -97,8 +92,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         setState(() {
           stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
           if (event.stats.mimeType != null) {
-            stats['codec'] =
-                '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
+            stats['codec'] = '${event.stats.mimeType!.split('/')[1]}/${event.stats.clockRate}/${event.stats.channels}';
           }
           stats['payload'] = '${event.stats.payloadType}';
           stats['jitter'] = '${event.stats.jitter} s';
@@ -118,10 +112,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
       element.dispose();
     }
     listeners.clear();
-    for (var track in [
-      ...widget.participant.videoTrackPublications,
-      ...widget.participant.audioTrackPublications
-    ]) {
+    for (var track in [...widget.participant.videoTrackPublications, ...widget.participant.audioTrackPublications]) {
       if (track.track != null) {
         _setUpListener(track.track!);
       }
@@ -156,11 +147,9 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
         horizontal: 8,
       ),
       child: Column(children: [
-        const Text('audio stats',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('audio stats', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         ...stats['audio']!.entries.map((e) => Text('${e.key}: ${e.value}')),
-        const Text('video stats',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const Text('video stats', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         ...stats['video']!.entries.map((e) => Text('${e.key}: ${e.value}')),
       ]),
     );
