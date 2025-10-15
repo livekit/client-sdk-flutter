@@ -177,7 +177,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           validateUri,
           headers: {
             'Authorization': 'Bearer $token',
-          }
+          },
         );
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
