@@ -120,6 +120,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     final rtcUri = await Utils.buildUri(
       uriString,
+      token: token,
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       reconnect: reconnect,
@@ -165,6 +166,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         // Re-build same uri for validate mode
         final validateUri = await Utils.buildUri(
           uriString,
+          token: token,
           connectOptions: connectOptions,
           roomOptions: roomOptions,
           validate: true,
