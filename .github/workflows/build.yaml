@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
       - name: Dart Format Check
-        run: dart format lib/ test/ --set-exit-if-changed
+        run: dart format . --set-exit-if-changed
 
   import-sorter-check:
     name: Import Sorter Check
