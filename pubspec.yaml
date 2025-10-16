@@ -42,6 +42,7 @@ dependencies:
   web: ^1.0.0
   mime_type: ^1.0.1
   path: ^1.9.1
+  dart_jsonwebtoken: ^3.3.1
 
   # Fix version to avoid version conflicts between WebRTC-SDK pods, which both this package and flutter_webrtc depend on.
   flutter_webrtc: 1.2.0
