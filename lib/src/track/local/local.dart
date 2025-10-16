@@ -30,14 +30,12 @@ import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../processor.dart';
+import '../processor_native.dart' if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
-
-import '../processor_native.dart'
-    if (dart.library.js_interop) '../processor_web.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
@@ -89,8 +87,7 @@ abstract class LocalTrack extends Track {
 
   TrackProcessor? get processor => _processor;
 
-  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream,
-      rtc.MediaStreamTrack mediaStreamTrack)
+  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
       : super(
           kind,
           source,
@@ -156,15 +153,13 @@ abstract class LocalTrack extends Track {
   static Future<rtc.MediaStream> createStream(
     LocalTrackOptions options,
   ) async {
-    var constraints = <String, dynamic>{
+    final constraints = <String, dynamic>{
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
               ? (options).captureScreenAudio
               : false,
-      'video': options is VideoCaptureOptions
-          ? options.toMediaConstraintsMap()
-          : false,
+      'video': options is VideoCaptureOptions ? options.toMediaConstraintsMap() : false,
     };
 
     final rtc.MediaStream stream;
@@ -179,8 +174,7 @@ abstract class LocalTrack extends Track {
 
         // Remove resolution settings to fix low-resolution screen share on Safari 17.
         // related bug: https://bugs.webkit.org/show_bug.cgi?id=263015
-        if (lkBrowser() == BrowserType.safari &&
-            lkBrowserVersion().major == 17) {
+        if (lkBrowser() == BrowserType.safari && lkBrowserVersion().major == 17) {
           constraints['video'] = true;
         }
       }
@@ -193,8 +187,7 @@ abstract class LocalTrack extends Track {
     // Check if the stream looks good
     if ((options is VideoCaptureOptions && stream.getVideoTracks().isEmpty) ||
         (options is AudioCaptureOptions && stream.getAudioTracks().isEmpty)) {
-      throw TrackCreateException(
-          'Failed to create stream, at least 1 video or audio track should exist');
+      throw TrackCreateException('Failed to create stream, at least 1 video or audio track should exist');
     }
     return stream;
   }
@@ -218,7 +211,7 @@ abstract class LocalTrack extends Track {
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    var processor = _processor;
+    final processor = _processor;
 
     await stopProcessor();
 
@@ -226,7 +219,7 @@ abstract class LocalTrack extends Track {
     try {
       await sender?.replaceTrack(newTrack);
       if (this is LocalVideoTrack) {
-        var videoTrack = this as LocalVideoTrack;
+        final videoTrack = this as LocalVideoTrack;
         await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
       }
     } catch (error) {
@@ -261,7 +254,7 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    var processorOptions = AudioProcessorOptions(
+    final processorOptions = AudioProcessorOptions(
       track: mediaStreamTrack,
     );
 

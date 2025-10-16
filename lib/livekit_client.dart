@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Flutter Client SDK to LiveKit.
-library livekit_client;
-
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/data_stream/stream_reader.dart';
@@ -44,8 +41,7 @@ export 'src/track/local/local.dart';
 export 'src/track/local/video.dart';
 export 'src/track/options.dart';
 export 'src/track/processor.dart';
-export 'src/track/processor_native.dart'
-    if (dart.library.js_interop) 'src/track/processor_web.dart';
+export 'src/track/processor_native.dart' if (dart.library.js_interop) 'src/track/processor_web.dart';
 export 'src/track/remote/audio.dart';
 export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';

@@ -110,7 +110,12 @@ class RoomOptions {
   final bool stopLocalTrackOnUnpublish;
 
   /// Options for end-to-end encryption.
+  @Deprecated('Use encryption instead')
   final E2EEOptions? e2eeOptions;
+
+  /// @experimental
+  /// Options for end-to-end encryption.
+  final E2EEOptions? encryption;
 
   /// fast track publication
   final bool fastPublish;
@@ -131,6 +136,7 @@ class RoomOptions {
     this.dynacast = false,
     this.stopLocalTrackOnUnpublish = true,
     this.e2eeOptions,
+    this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
   });
@@ -149,23 +155,17 @@ class RoomOptions {
     bool? fastPublish,
   }) {
     return RoomOptions(
-      defaultCameraCaptureOptions:
-          defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
-      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions ??
-          this.defaultScreenShareCaptureOptions,
-      defaultAudioCaptureOptions:
-          defaultAudioCaptureOptions ?? this.defaultAudioCaptureOptions,
-      defaultVideoPublishOptions:
-          defaultVideoPublishOptions ?? this.defaultVideoPublishOptions,
-      defaultAudioPublishOptions:
-          defaultAudioPublishOptions ?? this.defaultAudioPublishOptions,
-      defaultAudioOutputOptions:
-          defaultAudioOutputOptions ?? this.defaultAudioOutputOptions,
+      defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
+      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions ?? this.defaultScreenShareCaptureOptions,
+      defaultAudioCaptureOptions: defaultAudioCaptureOptions ?? this.defaultAudioCaptureOptions,
+      defaultVideoPublishOptions: defaultVideoPublishOptions ?? this.defaultVideoPublishOptions,
+      defaultAudioPublishOptions: defaultAudioPublishOptions ?? this.defaultAudioPublishOptions,
+      defaultAudioOutputOptions: defaultAudioOutputOptions ?? this.defaultAudioOutputOptions,
       adaptiveStream: adaptiveStream ?? this.adaptiveStream,
       dynacast: dynacast ?? this.dynacast,
-      stopLocalTrackOnUnpublish:
-          stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+      stopLocalTrackOnUnpublish: stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
+      encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
     );
   }
@@ -286,20 +286,17 @@ class VideoPublishOptions extends PublishOptions {
         screenShareEncoding: screenShareEncoding ?? this.screenShareEncoding,
         simulcast: simulcast ?? this.simulcast,
         videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
-        screenShareSimulcastLayers:
-            screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
+        screenShareSimulcastLayers: screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
         videoCodec: videoCodec ?? this.videoCodec,
         backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
-        degradationPreference:
-            degradationPreference ?? this.degradationPreference,
+        degradationPreference: degradationPreference ?? this.degradationPreference,
         scalabilityMode: scalabilityMode ?? this.scalabilityMode,
         name: name ?? this.name,
         stream: stream ?? this.stream,
       );
 
   @override
-  String toString() =>
-      '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
+  String toString() => '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
 }
 
 class AudioPreset {
@@ -350,8 +347,7 @@ class AudioPublishOptions extends PublishOptions {
       );
 
   @override
-  String toString() =>
-      '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red})';
+  String toString() => '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red})';
 }
 
 final backupCodecs = ['vp8', 'h264'];

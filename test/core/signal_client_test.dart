@@ -78,8 +78,7 @@ void main() {
         connectOptions: connectOptions,
         roomOptions: roomOptions,
       );
-      expect(client.events.streamCtrl.stream,
-          emits(isA<SignalJoinResponseEvent>()));
+      expect(client.events.streamCtrl.stream, emits(isA<SignalJoinResponseEvent>()));
       connector.handlers?.onData!(joinResponse.writeToBuffer());
     });
   });
@@ -112,17 +111,14 @@ final lk_rtc.SignalResponse participantJoinResponse = lk_rtc.SignalResponse(
   ),
 );
 
-final lk_rtc.SignalResponse participantDisconnectResponse =
-    lk_rtc.SignalResponse(
+final lk_rtc.SignalResponse participantDisconnectResponse = lk_rtc.SignalResponse(
   update: lk_rtc.ParticipantUpdate(
     participants: [
-      remoteParticipantData.deepCopy()
-        ..state = lk_models.ParticipantInfo_State.DISCONNECTED,
+      remoteParticipantData.deepCopy()..state = lk_models.ParticipantInfo_State.DISCONNECTED,
     ],
   ),
 );
-final lk_rtc.SignalResponse participantMetadataChangedResponse =
-    lk_rtc.SignalResponse(
+final lk_rtc.SignalResponse participantMetadataChangedResponse = lk_rtc.SignalResponse(
   update: lk_rtc.ParticipantUpdate(
     participants: [
       remoteParticipantData.deepCopy()..metadata = 'metadata_changed',
@@ -152,7 +148,6 @@ final lk_rtc.SignalResponse activeSpeakerResponse = lk_rtc.SignalResponse(
     speakers: [remoteSpeakerInfo],
   ),
 );
-final lk_rtc.SignalResponse leaveResponse =
-    lk_rtc.SignalResponse(leave: lk_rtc.LeaveRequest());
+final lk_rtc.SignalResponse leaveResponse = lk_rtc.SignalResponse(leave: lk_rtc.LeaveRequest());
 const exampleUri = 'ws://www.example.com';
 const token = 'token';

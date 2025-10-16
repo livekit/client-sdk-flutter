@@ -24,8 +24,7 @@ import '../platform.dart';
 PlatformType lkPlatformImplementation() => PlatformType.web;
 
 bool lkPlatformIsWebMobileImplementation() {
-  return (defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.android);
+  return (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android);
 }
 
 bool lkE2EESupportedImplementation() {
@@ -35,9 +34,7 @@ bool lkE2EESupportedImplementation() {
 bool lkPlatformIsTestImplementation() => false;
 
 bool isScriptTransformSupported() {
-  return web.window
-      .hasProperty('RTCRtpScriptTransform'.toJS)
-      .isDefinedAndNotNull;
+  return web.window.hasProperty('RTCRtpScriptTransform'.toJS).isDefinedAndNotNull;
 }
 
 bool isInsertableStreamSupported() {
@@ -50,9 +47,9 @@ bool isInsertableStreamSupported() {
 }
 
 BrowserType lkBrowserImplementation() {
-  var ua = web.window.navigator.userAgent;
-  var vendor = web.window.navigator.vendor;
-  var appVersion = web.window.navigator.appVersion;
+  final ua = web.window.navigator.userAgent;
+  final vendor = web.window.navigator.vendor;
+  final appVersion = web.window.navigator.appVersion;
   if (web.window.navigator.vendor.contains('Google')) {
     return BrowserType.chrome;
   }
@@ -71,8 +68,7 @@ BrowserVersion lkBrowserVersionImplementation() {
   final appVersion = web.window.navigator.appVersion;
 
   BrowserVersion chromeBased(String prefix) {
-    Match? match =
-        RegExp(prefix + r'/(\d+)\.(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
+    final Match? match = RegExp(prefix + r'/(\d+)\.(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
     if (match == null) {
       return BrowserVersion(0, 0, 0);
     }
@@ -87,7 +83,7 @@ BrowserVersion lkBrowserVersionImplementation() {
     case BrowserType.chrome:
       return chromeBased('Chrome');
     case BrowserType.firefox:
-      Match? match = RegExp(r'rv:(\d+)\.(\d+)\)').firstMatch(ua);
+      final Match? match = RegExp(r'rv:(\d+)\.(\d+)\)').firstMatch(ua);
       if (match == null) {
         return BrowserVersion(0, 0, 0);
       }
@@ -96,8 +92,7 @@ BrowserVersion lkBrowserVersionImplementation() {
       final minor = int.parse(match.group(2)!);
       return BrowserVersion(major, minor, 0);
     case BrowserType.safari:
-      Match? match =
-          RegExp(r'Version/(\d+)(\.(\d+))?(\.(\d+))?').firstMatch(appVersion);
+      final Match? match = RegExp(r'Version/(\d+)(\.(\d+))?(\.(\d+))?').firstMatch(appVersion);
       if (match == null) {
         return BrowserVersion(0, 0, 0);
       }
@@ -130,8 +125,7 @@ BrowserVersion lkBrowserVersionImplementation() {
 
       return BrowserVersion(0, 0, 0);
     case BrowserType.wkWebView:
-      Match? match =
-          RegExp(r'AppleWebKit/(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
+      final Match? match = RegExp(r'AppleWebKit/(\d+)\.(\d+)\.(\d+)').firstMatch(appVersion);
       if (match == null) {
         return BrowserVersion(0, 0, 0);
       }

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.5.2
+
+* Fix missing properties for TextStreamInfo (#881)
+* Enum for TextStreamOperationType (#882)
+* Fix stream progress (#884)
+
+## 2.5.1
+
+* Fix Publication's track property initialization (#867)
+* Fix Missing attributes in data stream (#865)
+* Fix Internal WebRTC pod version conflict (#876)
+
 ## 2.5.0+hotfix.3
 
 * fix: Fix @internal conflicting imports from package meta or flutter/foundation.

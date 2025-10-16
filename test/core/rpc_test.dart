@@ -36,7 +36,7 @@ void main() {
 
       expect(room.rpcHandlers.keys.first, 'echo');
 
-      var response = await room.rpcHandlers['echo']!(RpcInvocationData(
+      final response = await room.rpcHandlers['echo']!(RpcInvocationData(
         requestId: '1',
         callerIdentity: room.localParticipant!.identity,
         payload: 'hello',
@@ -56,7 +56,7 @@ void main() {
       });
 
       /// test performRpc
-      var response = await room.localParticipant?.performRpc(PerformRpcParams(
+      final response = await room.localParticipant?.performRpc(PerformRpcParams(
         destinationIdentity: room.localParticipant!.identity,
         method: 'echo',
         payload: 'hello',

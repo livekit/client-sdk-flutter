@@ -180,8 +180,7 @@ int parseH265NALUType(int firstByte) {
 /// @param naluType H.264 NALU type
 /// @returns True if the NALU is a slice
 bool isH264SliceNALU(int naluType) {
-  return naluType == H264NALUType.SLICE_IDR ||
-      naluType == H264NALUType.SLICE_NON_IDR;
+  return naluType == H264NALUType.SLICE_IDR || naluType == H264NALUType.SLICE_NON_IDR;
 }
 
 /// Check if H.265 NALU type is a slice
@@ -248,12 +247,12 @@ int? findSliceNALUUnencryptedBytes(
 ) {
   for (var index in naluIndices) {
     if (codec == 'h265') {
-      int type = parseH265NALUType(data[index]);
+      final int type = parseH265NALUType(data[index]);
       if (isH265SliceNALU(type)) {
         return index + 2;
       }
     } else {
-      int type = parseH264NALUType(data[index]);
+      final int type = parseH264NALUType(data[index]);
       if (isH264SliceNALU(type)) {
         return index + 2;
       }
@@ -271,11 +270,8 @@ int? findSliceNALUUnencryptedBytes(
 /// @param stream Byte stream containing NALUs
 /// @returns Array of indices where NALUs start (after the start code)
 List<int> findNALUIndices(Uint8List stream) {
-  List<int> result = [];
-  var start = 0,
-      pos = 0,
-      searchLength =
-          stream.length - 3; // Changed to -3 to handle 4-byte start codes
+  final List<int> result = [];
+  var start = 0, pos = 0, searchLength = stream.length - 3; // Changed to -3 to handle 4-byte start codes
 
   while (pos < searchLength) {
     // skip until end of current NALU - check for both 3-byte and 4-byte start codes
@@ -333,24 +329,18 @@ NALUProcessingResult processNALUsForEncryption(
   Uint8List data,
   String? knownCodec,
 ) {
-  var naluIndices = findNALUIndices(data);
-  var detectedCodec = knownCodec ?? detectCodecFromNALUs(data, naluIndices);
+  final naluIndices = findNALUIndices(data);
+  final detectedCodec = knownCodec ?? detectCodecFromNALUs(data, naluIndices);
 
   if (detectedCodec == 'unknown') {
-    return NALUProcessingResult(
-        unencryptedBytes: 0,
-        detectedCodec: detectedCodec,
-        requiresNALUProcessing: false);
+    return NALUProcessingResult(unencryptedBytes: 0, detectedCodec: detectedCodec, requiresNALUProcessing: false);
   }
 
-  var unencryptedBytes =
-      findSliceNALUUnencryptedBytes(data, naluIndices, detectedCodec);
+  final unencryptedBytes = findSliceNALUUnencryptedBytes(data, naluIndices, detectedCodec);
   if (unencryptedBytes == null) {
     throw Exception('Could not find NALU');
   }
 
   return NALUProcessingResult(
-      unencryptedBytes: unencryptedBytes,
-      detectedCodec: detectedCodec,
-      requiresNALUProcessing: true);
+      unencryptedBytes: unencryptedBytes, detectedCodec: detectedCodec, requiresNALUProcessing: true);
 }

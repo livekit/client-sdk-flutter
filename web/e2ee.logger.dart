@@ -24,7 +24,7 @@ enum LoggerLevel {
   kWARNING,
   kSEVERE,
   kSHOUT,
-  kOFF
+  kOFF,
 }
 
 final logger = Logger('E2EE.Worker');
