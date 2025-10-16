@@ -19,8 +19,7 @@ PlatformType lkPlatform() => lkPlatformImplementation();
 
 bool lkPlatformIs(PlatformType type) => lkPlatform() == type;
 
-bool lkPlatformIsMobile() =>
-    [PlatformType.iOS, PlatformType.android].contains(lkPlatform());
+bool lkPlatformIsMobile() => [PlatformType.iOS, PlatformType.android].contains(lkPlatform());
 
 bool lkPlatformIsWebMobile() => lkPlatformIsWebMobileImplementation();
 
@@ -42,8 +41,7 @@ BrowserVersion lkBrowserVersion() => lkBrowserVersionImplementation();
 /// track.enabled.
 bool skipStopForTrackMute() =>
     {PlatformType.windows}.contains(lkPlatform()) ||
-    (lkPlatformIs(PlatformType.web) &&
-        [BrowserType.firefox].contains(lkBrowser()));
+    (lkPlatformIs(PlatformType.web) && [BrowserType.firefox].contains(lkBrowser()));
 
 enum PlatformType { web, windows, linux, macOS, android, fuchsia, iOS }
 

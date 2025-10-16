@@ -19,13 +19,10 @@ var participantCryptors = <FrameCryptor>[];
 var participantDataCryptors = <E2EEDataPacketCryptor>[];
 var keyProviders = <String, KeyProvider>{};
 
-FrameCryptor getTrackCryptor(
-    String participantIdentity, String trackId, KeyProvider keyProvider) {
-  var cryptor =
-      participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+FrameCryptor getTrackCryptor(String participantIdentity, String trackId, KeyProvider keyProvider) {
+  var cryptor = participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
   if (cryptor == null) {
-    logger.info(
-        'creating new cryptor for $participantIdentity, trackId $trackId');
+    logger.info('creating new cryptor for $participantIdentity, trackId $trackId');
 
     cryptor = FrameCryptor(
       worker: self,
@@ -37,20 +34,16 @@ FrameCryptor getTrackCryptor(
     participantCryptors.add(cryptor);
   } else if (participantIdentity != cryptor.participantIdentity) {
     // assign new participant id to track cryptor and pass in correct key handler
-    cryptor.setParticipant(participantIdentity,
-        keyProvider.getParticipantKeyHandler(participantIdentity));
+    cryptor.setParticipant(participantIdentity, keyProvider.getParticipantKeyHandler(participantIdentity));
   }
   if (keyProvider.keyProviderOptions.sharedKey) {}
   return cryptor;
 }
 
-E2EEDataPacketCryptor getDataPacketCryptor(
-    String participantIdentity, String dataCryptorId, KeyProvider keyProvider) {
-  var cryptor = participantDataCryptors
-      .firstWhereOrNull((c) => c.dataCryptorId == dataCryptorId);
+E2EEDataPacketCryptor getDataPacketCryptor(String participantIdentity, String dataCryptorId, KeyProvider keyProvider) {
+  var cryptor = participantDataCryptors.firstWhereOrNull((c) => c.dataCryptorId == dataCryptorId);
   if (cryptor == null) {
-    logger.info(
-        'creating new cryptor for $participantIdentity, dataCryptorId $dataCryptorId');
+    logger.info('creating new cryptor for $participantIdentity, dataCryptorId $dataCryptorId');
 
     cryptor = E2EEDataPacketCryptor(
       worker: self,
@@ -62,23 +55,18 @@ E2EEDataPacketCryptor getDataPacketCryptor(
     participantDataCryptors.add(cryptor);
   } else if (participantIdentity != cryptor.participantIdentity) {
     // assign new participant id to track cryptor and pass in correct key handler
-    cryptor.setParticipant(participantIdentity,
-        keyProvider.getParticipantKeyHandler(participantIdentity));
+    cryptor.setParticipant(participantIdentity, keyProvider.getParticipantKeyHandler(participantIdentity));
   }
   if (keyProvider.keyProviderOptions.sharedKey) {}
   return cryptor;
 }
 
 void unsetCryptorParticipant(String trackId) {
-  participantCryptors
-      .firstWhereOrNull((c) => c.trackId == trackId)
-      ?.unsetParticipant();
+  participantCryptors.firstWhereOrNull((c) => c.trackId == trackId)?.unsetParticipant();
 }
 
 void unsetDataPacketCryptorParticipant(String dataCryptorId) {
-  participantDataCryptors
-      .firstWhereOrNull((c) => c.dataCryptorId == dataCryptorId)
-      ?.unsetParticipant();
+  participantDataCryptors.firstWhereOrNull((c) => c.dataCryptorId == dataCryptorId)?.unsetParticipant();
 }
 
 void main() async {
@@ -100,13 +88,11 @@ void main() async {
 
       final options = transformer.options as JSObject;
       final kind = options.getProperty('kind'.toJS) as JSString;
-      final participantId =
-          options.getProperty('participantId'.toJS) as JSString;
+      final participantId = options.getProperty('participantId'.toJS) as JSString;
       final trackId = options.getProperty('trackId'.toJS) as JSString;
       final codec = options.getProperty('codec'.toJS) as JSString?;
       final msgType = options.getProperty('msgType'.toJS) as JSString;
-      final keyProviderId =
-          options.getProperty('keyProviderId'.toJS) as JSString;
+      final keyProviderId = options.getProperty('keyProviderId'.toJS) as JSString;
 
       final keyProvider = keyProviders[keyProviderId.toDart];
 
@@ -115,16 +101,17 @@ void main() async {
         return;
       }
 
-      final cryptor =
-          getTrackCryptor(participantId.toDart, trackId.toDart, keyProvider);
+      final cryptor = getTrackCryptor(participantId.toDart, trackId.toDart, keyProvider);
 
       cryptor.setupTransform(
-          operation: msgType.toDart,
-          readable: transformer.readable,
-          writable: transformer.writable,
-          trackId: trackId.toDart,
-          kind: kind.toDart,
-          codec: codec?.toDart);
+        operation: msgType.toDart,
+        readable: transformer.readable,
+        writable: transformer.writable,
+        trackId: trackId.toDart,
+        kind: kind.toDart,
+        codec: codec?.toDart,
+        isReuse: false,
+      );
     }.toJS;
   }
 
@@ -140,22 +127,17 @@ void main() async {
           final keyProviderId = msg['keyProviderId'] as String;
           final keyProviderOptions = KeyOptions(
               sharedKey: options['sharedKey'],
-              ratchetSalt: Uint8List.fromList(
-                  base64Decode(options['ratchetSalt'] as String)),
+              ratchetSalt: Uint8List.fromList(base64Decode(options['ratchetSalt'] as String)),
               ratchetWindowSize: options['ratchetWindowSize'],
               failureTolerance: options['failureTolerance'] ?? -1,
               uncryptedMagicBytes: options['uncryptedMagicBytes'] != null
-                  ? Uint8List.fromList(
-                      base64Decode(options['uncryptedMagicBytes'] as String))
+                  ? Uint8List.fromList(base64Decode(options['uncryptedMagicBytes'] as String))
                   : null,
               keyRingSze: options['keyRingSize'] ?? KEYRING_SIZE,
-              discardFrameWhenCryptorNotReady:
-                  options['discardFrameWhenCryptorNotReady'] ?? false);
-          logger.config(
-              'Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
+              discardFrameWhenCryptorNotReady: options['discardFrameWhenCryptorNotReady'] ?? false);
+          logger.config('Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
 
-          final keyProvider =
-              KeyProvider(self, keyProviderId, keyProviderOptions);
+          final keyProvider = KeyProvider(self, keyProviderId, keyProviderOptions);
           keyProviders[keyProviderId] = keyProvider;
 
           self.postMessage({
@@ -182,8 +164,7 @@ void main() async {
           final enabled = msg['enabled'] as bool;
           final trackId = msg['trackId'] as String;
 
-          final cryptors =
-              participantCryptors.where((c) => c.trackId == trackId).toList();
+          final cryptors = participantCryptors.where((c) => c.trackId == trackId).toList();
           for (var cryptor in cryptors) {
             logger.config('Set enable $enabled for trackId ${cryptor.trackId}');
             cryptor.setEnabled(enabled);
@@ -234,6 +215,7 @@ void main() async {
             writable: writable,
             trackId: trackId,
             kind: kind,
+            isReuse: exist && msgType == 'decode',
           );
 
           self.postMessage({
@@ -284,11 +266,8 @@ void main() async {
             keyProvider.setSharedKey(key, keyIndex: keyIndex);
           } else {
             final participantId = msg['participantId'] as String;
-            logger.config(
-                'Set key for participant $participantId, keyIndex $keyIndex');
-            await keyProvider
-                .getParticipantKeyHandler(participantId)
-                .setKey(key, keyIndex: keyIndex);
+            logger.config('Set key for participant $participantId, keyIndex $keyIndex');
+            await keyProvider.getParticipantKeyHandler(participantId).setKey(key, keyIndex: keyIndex);
           }
 
           self.postMessage({
@@ -322,14 +301,10 @@ void main() async {
           Uint8List? newKey;
           if (keyProviderOptions.sharedKey) {
             logger.config('RatchetKey for SharedKey, keyIndex $keyIndex');
-            newKey =
-                await keyProvider.getSharedKeyHandler().ratchetKey(keyIndex);
+            newKey = await keyProvider.getSharedKeyHandler().ratchetKey(keyIndex);
           } else {
-            logger.config(
-                'RatchetKey for participant $participantId, keyIndex $keyIndex');
-            newKey = await keyProvider
-                .getParticipantKeyHandler(participantId)
-                .ratchetKey(keyIndex);
+            logger.config('RatchetKey for participant $participantId, keyIndex $keyIndex');
+            newKey = await keyProvider.getParticipantKeyHandler(participantId).ratchetKey(keyIndex);
           }
 
           self.postMessage({
@@ -348,8 +323,7 @@ void main() async {
           final keyIndex = msg['index'];
           final trackId = msg['trackId'] as String;
           logger.config('Setup key index for track $trackId');
-          final cryptors =
-              participantCryptors.where((c) => c.trackId == trackId).toList();
+          final cryptors = participantCryptors.where((c) => c.trackId == trackId).toList();
           for (var c in cryptors) {
             logger.config('Set keyIndex for trackId ${c.trackId}');
             c.setKeyIndex(keyIndex);
@@ -386,11 +360,8 @@ void main() async {
             logger.config('Export SharedKey keyIndex $keyIndex');
             key = await keyProvider.getSharedKeyHandler().exportKey(keyIndex);
           } else {
-            logger.config(
-                'Export key for participant $participantId, keyIndex $keyIndex');
-            key = await keyProvider
-                .getParticipantKeyHandler(participantId)
-                .exportKey(keyIndex);
+            logger.config('Export key for participant $participantId, keyIndex $keyIndex');
+            key = await keyProvider.getParticipantKeyHandler(participantId).exportKey(keyIndex);
           }
           self.postMessage({
             'type': 'exportKey',
@@ -404,8 +375,7 @@ void main() async {
         break;
       case 'setSifTrailer':
         {
-          final sifTrailer =
-              Uint8List.fromList(base64Decode(msg['sifTrailer'] as String));
+          final sifTrailer = Uint8List.fromList(base64Decode(msg['sifTrailer'] as String));
           final keyProviderId = msg['keyProviderId'] as String;
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
@@ -436,8 +406,7 @@ void main() async {
           final codec = msg['codec'] as String;
           final trackId = msg['trackId'] as String;
           logger.config('Update codec for trackId $trackId, codec $codec');
-          final cryptor =
-              participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+          final cryptor = participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           cryptor?.updateCodec(codec);
 
           self.postMessage({
@@ -451,8 +420,7 @@ void main() async {
         {
           final trackId = msg['trackId'] as String;
           logger.config('Dispose for trackId $trackId');
-          final cryptor =
-              participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
+          final cryptor = participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           if (cryptor != null) {
             cryptor.lastError = CryptorError.kDisposed;
             self.postMessage({
@@ -479,8 +447,7 @@ void main() async {
           final keyIndex = msg['keyIndex'] as int;
           final dataCryptorId = msg['dataCryptorId'] as String;
           final algorithmStr = msg['algorithm'] as String;
-          final algorithm =
-              Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
+          final algorithm = Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
           if (algorithm == null) {
             self.postMessage({
               'type': 'dataCryptorEncrypt',
@@ -504,11 +471,9 @@ void main() async {
             }.jsify());
             return;
           }
-          final cryptor =
-              getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
+          final cryptor = getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
           try {
-            final encryptedPacket =
-                await cryptor.encrypt(cryptor.keyHandler, data);
+            final encryptedPacket = await cryptor.encrypt(cryptor.keyHandler, data);
             self.postMessage({
               'type': 'dataCryptorEncrypt',
               'participantId': participantId,
@@ -538,8 +503,7 @@ void main() async {
           final keyIndex = msg['keyIndex'] as int;
           final dataCryptorId = msg['dataCryptorId'] as String;
           final algorithmStr = msg['algorithm'] as String;
-          final algorithm =
-              Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
+          final algorithm = Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
           if (algorithm == null) {
             self.postMessage({
               'type': 'dataCryptorDecrypt',
@@ -563,8 +527,7 @@ void main() async {
             }.jsify());
             return;
           }
-          final cryptor =
-              getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
+          final cryptor = getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
           try {
             final decryptedData = await cryptor.decrypt(
                 cryptor.keyHandler,

@@ -15,8 +15,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   final InfoType info;
 
-  BaseStreamWriter(
-      {required this.writableStream, required this.info, this.onClose});
+  BaseStreamWriter({required this.writableStream, required this.info, this.onClose});
 
   Future<void> write(T chunk) async {
     return writableStream.write(chunk);
@@ -29,10 +28,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 }
 
 class TextStreamWriter extends BaseStreamWriter<String, TextStreamInfo> {
-  TextStreamWriter(
-      {required super.writableStream,
-      required super.info,
-      required super.onClose});
+  TextStreamWriter({required super.writableStream, required super.info, required super.onClose});
 }
 
 class ByteStreamWriter extends BaseStreamWriter<Uint8List, ByteStreamInfo> {

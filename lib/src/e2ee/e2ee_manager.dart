@@ -60,12 +60,10 @@ class E2EEManager {
           }
           frameCryptor.onFrameCryptorStateChanged = (trackId, state) {
             if (kDebugMode) {
-              print(
-                  'Sender::onFrameCryptorStateChanged: $state, trackId:  $trackId');
+              print('Sender::onFrameCryptorStateChanged: $state, trackId:  $trackId');
             }
             final participant = event.participant;
-            [event.participant.events, participant.room.events]
-                .emit(TrackE2EEStateEvent(
+            [event.participant.events, participant.room.events].emit(TrackE2EEStateEvent(
               participant: participant,
               publication: event.publication,
               state: _e2eeStateFromFrameCryptoState(state),
@@ -74,8 +72,7 @@ class E2EEManager {
         })
         ..on<LocalTrackUnpublishedEvent>((event) async {
           for (var key in _frameCryptors.keys.toList()) {
-            if (key.keys.first == event.participant.identity &&
-                key.values.first == event.publication.sid) {
+            if (key.keys.first == event.participant.identity && key.values.first == event.publication.sid) {
               final frameCryptor = _frameCryptors.remove(key);
               await frameCryptor?.setEnabled(false);
               await frameCryptor?.dispose();
@@ -84,8 +81,7 @@ class E2EEManager {
         })
         ..on<TrackSubscribedEvent>((event) async {
           final codec = event.publication.mimeType.split('/')[1];
-          if (event.publication.encryptionType == EncryptionType.kNone ||
-              isSVCCodec(codec)) {
+          if (event.publication.encryptionType == EncryptionType.kNone || isSVCCodec(codec)) {
             // no need to setup frame cryptor
             return;
           }
@@ -99,12 +95,10 @@ class E2EEManager {
           }
           frameCryptor.onFrameCryptorStateChanged = (trackId, state) {
             if (kDebugMode) {
-              print(
-                  'Receiver::onFrameCryptorStateChanged: $state, trackId: $trackId');
+              print('Receiver::onFrameCryptorStateChanged: $state, trackId: $trackId');
             }
             final participant = event.participant;
-            [event.participant.events, participant.room.events]
-                .emit(TrackE2EEStateEvent(
+            [event.participant.events, participant.room.events].emit(TrackE2EEStateEvent(
               participant: participant,
               publication: event.publication,
               state: _e2eeStateFromFrameCryptoState(state),
@@ -113,17 +107,15 @@ class E2EEManager {
         })
         ..on<TrackUnsubscribedEvent>((event) async {
           for (var key in _frameCryptors.keys.toList()) {
-            if (key.keys.first == event.participant.identity &&
-                key.values.first == event.publication.sid) {
+            if (key.keys.first == event.participant.identity && key.values.first == event.publication.sid) {
               final frameCryptor = _frameCryptors.remove(key);
               await frameCryptor?.setEnabled(false);
               await frameCryptor?.dispose();
             }
           }
         });
-      _dataPacketCryptor ??=
-          await dataPacketCryptorFactory.createDataPacketCryptor(
-              algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
+      _dataPacketCryptor ??= await dataPacketCryptorFactory.createDataPacketCryptor(
+          algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     }
   }
 
@@ -157,37 +149,23 @@ class E2EEManager {
   }
 
   Future<FrameCryptor> _addRtpSender(
-      {required RTCRtpSender sender,
-      required String identity,
-      required String sid}) async {
-    final frameCryptor =
-        await frameCryptorFactory.createFrameCryptorForRtpSender(
-            participantId: identity,
-            sender: sender,
-            algorithm: _algorithm,
-            keyProvider: _keyProvider.keyProvider);
+      {required RTCRtpSender sender, required String identity, required String sid}) async {
+    final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
+        participantId: identity, sender: sender, algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    logger.info(
-        '_addRtpSender, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    logger.info('_addRtpSender, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
     await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
 
   Future<FrameCryptor> _addRtpReceiver(
-      {required RTCRtpReceiver receiver,
-      required String identity,
-      required String sid}) async {
-    final frameCryptor =
-        await frameCryptorFactory.createFrameCryptorForRtpReceiver(
-            participantId: identity,
-            receiver: receiver,
-            algorithm: _algorithm,
-            keyProvider: _keyProvider.keyProvider);
+      {required RTCRtpReceiver receiver, required String identity, required String sid}) async {
+    final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpReceiver(
+        participantId: identity, receiver: receiver, algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    logger.info(
-        '_addRtpReceiver, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
+    logger.info('_addRtpReceiver, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
     await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
     return frameCryptor;
   }
@@ -263,8 +241,7 @@ class E2EEManager {
     try {
       final decryptedData = await _dataPacketCryptor!.decrypt(
         participantId: participantIdentity,
-        encryptedPacket:
-            EncryptedPacket(data: data, keyIndex: keyIndex, iv: iv),
+        encryptedPacket: EncryptedPacket(data: data, keyIndex: keyIndex, iv: iv),
       );
       return decryptedData;
     } catch (e) {
@@ -278,9 +255,7 @@ class E2EEManager {
     if (participantId == null || _dataPacketCryptor == null) {
       throw Exception('DataPacketCryptor is not initialized');
     }
-    return await _dataPacketCryptor!.encrypt(
-        participantId: participantId,
-        keyIndex: _keyProvider.getLatestIndex(participantId),
-        data: data);
+    return await _dataPacketCryptor!
+        .encrypt(participantId: participantId, keyIndex: _keyProvider.getLatestIndex(participantId), data: data);
   }
 }
