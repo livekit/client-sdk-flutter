@@ -20,11 +20,11 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import 'package:livekit_client/src/e2ee/options.dart';
 import '../core/signal_client.dart';
 import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';

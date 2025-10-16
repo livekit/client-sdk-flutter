@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show File;
 
-import 'package:livekit_client/src/data_stream/errors.dart';
+import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
 import '../e2ee/options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
