@@ -119,7 +119,8 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   void _attachTrackListener(T track) {
     // listen for Track's muted events
     final listener = track.createListener()
-      ..on<InternalTrackMuteUpdatedEvent>((event) => _onTrackMuteUpdatedEvent(event));
+      ..on<InternalTrackMuteUpdatedEvent>(
+          (event) => _onTrackMuteUpdatedEvent(event));
     // dispose listener when the track is disposed
     track.onDispose(() => listener.dispose());
   }
