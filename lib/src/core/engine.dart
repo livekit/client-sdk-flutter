@@ -489,7 +489,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
     }
 
-    if (kIsWeb && roomOptions.e2eeOptions != null) {
+    if (kIsWeb && (roomOptions.e2eeOptions != null || roomOptions.encryption != null)) {
       rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
