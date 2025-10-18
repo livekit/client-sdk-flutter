@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io' show File;
 
+import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
+import '../e2ee/options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_models.pb.dart' show Encryption_Type, DataStream_Chunk;
 
@@ -119,6 +121,8 @@ class BaseStreamInfo {
   int timestamp;
   int size;
   Map<String, String> attributes;
+  String sendingParticipantIdentity;
+  EncryptionType encryptionType;
   BaseStreamInfo({
     required this.id,
     required this.mimeType,
@@ -126,6 +130,8 @@ class BaseStreamInfo {
     required this.timestamp,
     required this.size,
     this.attributes = const {},
+    this.sendingParticipantIdentity = '',
+    this.encryptionType = EncryptionType.kNone,
   });
 }
 
@@ -144,6 +150,8 @@ class DataStreamController<T extends DataStream_Chunk> {
   Future<void> close() => streamController.close();
 
   void write(T chunk) => streamController.add(chunk);
+
+  void error(DataStreamError error) => streamController.addError(error);
 }
 
 class ByteStreamInfo extends BaseStreamInfo {
@@ -156,6 +164,8 @@ class ByteStreamInfo extends BaseStreamInfo {
     required int timestamp,
     required int size,
     Map<String, String> attributes = const {},
+    required String sendingParticipantIdentity,
+    EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
           id: id,
           mimeType: mimeType,
@@ -163,6 +173,8 @@ class ByteStreamInfo extends BaseStreamInfo {
           timestamp: timestamp,
           size: size,
           attributes: attributes,
+          sendingParticipantIdentity: sendingParticipantIdentity,
+          encryptionType: encryptionType,
         );
 }
 
@@ -231,6 +243,8 @@ class TextStreamInfo extends BaseStreamInfo {
     this.version,
     this.generated = false,
     this.operationType,
+    required String sendingParticipantIdentity,
+    EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
           id: id,
           mimeType: mimeType,
@@ -238,6 +252,8 @@ class TextStreamInfo extends BaseStreamInfo {
           timestamp: timestamp,
           size: size,
           attributes: attributes,
+          encryptionType: encryptionType,
+          sendingParticipantIdentity: sendingParticipantIdentity,
         );
 }
 

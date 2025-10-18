@@ -266,12 +266,13 @@ extension DegradationPreferenceExt on DegradationPreference {
 
 extension RoomOptionsEx on RoomOptions {
   lk_models.Encryption_Type get lkEncryptionType {
-    return (e2eeOptions != null)
+    final e2ee = encryption ?? e2eeOptions;
+    return (e2ee != null)
         ? {
             EncryptionType.kNone: lk_models.Encryption_Type.NONE,
             EncryptionType.kGcm: lk_models.Encryption_Type.GCM,
             EncryptionType.kCustom: lk_models.Encryption_Type.CUSTOM,
-          }[e2eeOptions!.encryptionType]!
+          }[e2ee.encryptionType]!
         : lk_models.Encryption_Type.NONE;
   }
 }

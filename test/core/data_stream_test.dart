@@ -42,9 +42,11 @@ void main() {
 
   group('Stream Handler Registration', () {
     test('Register And Unregister Text And Byte Stream Handlers', () async {
-      room.registerTextStreamHandler('chat', (TextStreamReader reader, String participantIdentity) {});
+      room.registerTextStreamHandler(
+          'chat', (TextStreamReader reader, String participantIdentity) {});
 
-      room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) {});
+      room.registerByteStreamHandler(
+          'file', (ByteStreamReader reader, String participantIdentity) {});
 
       expect(room.textStreamHandlers.keys.first, 'chat');
 
@@ -60,7 +62,8 @@ void main() {
 
   group('Text Streaming', () {
     test('Send Basic Text Message', () async {
-      room.registerTextStreamHandler('chat', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('received chat message from $participantIdentity: $text');
         expect('some text !!!', text);
@@ -75,9 +78,11 @@ void main() {
     test('Send Large Text Message With Progress Tracking', () async {
       final longText = 'a' * 100000;
 
-      room.registerTextStreamHandler('chat-long-text', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat-long-text',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
-        print('received chat message from $participantIdentity: long text length: ${text.length}');
+        print(
+            'received chat message from $participantIdentity: long text length: ${text.length}');
         expect(longText, text);
       });
 
@@ -94,7 +99,8 @@ void main() {
     });
 
     test('Stream Text With Multiple Chunks', () async {
-      room.registerTextStreamHandler('chat-stream', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat-stream',
+          (TextStreamReader reader, String participantIdentity) async {
         reader.listen((chunk) {
           print(
               'received chunk: ${chunk.content.length}, total: ${reader.info?.size}, progress: ${utf8.decode(chunk.content)}');
@@ -124,14 +130,16 @@ void main() {
       for (var file in files) {
         final randomFile = File(file);
         final random = Random();
-        final bytes = List<int>.generate(100000, (index) => random.nextInt(256));
+        final bytes =
+            List<int>.generate(100000, (index) => random.nextInt(256));
         randomFile.writeAsBytesSync(bytes);
       }
 
       room.registerTextStreamHandler('chat-stream-with-files',
           (TextStreamReader reader, String participantIdentity) async {
         final receivedText = await reader.readAll();
-        print('received chat message from $participantIdentity: long text length: ${receivedText.length}');
+        print(
+            'received chat message from $participantIdentity: long text length: ${receivedText.length}');
         expect(longText, receivedText);
       });
 
@@ -170,19 +178,22 @@ void main() {
       final receivedMessages = <String>[];
 
       for (var operationType in operationTypes) {
-        room.registerTextStreamHandler('chat-operations', (TextStreamReader reader, String participantIdentity) async {
+        room.registerTextStreamHandler('chat-operations',
+            (TextStreamReader reader, String participantIdentity) async {
           final text = await reader.readAll();
           receivedMessages.add('${operationType}: ${text}');
           print('received ${operationType} message: ${text}');
         });
 
-        final info = await room.localParticipant?.sendText('Test ${operationType}',
-            options: SendTextOptions(
-              topic: 'chat-operations',
-            ));
+        final info =
+            await room.localParticipant?.sendText('Test ${operationType}',
+                options: SendTextOptions(
+                  topic: 'chat-operations',
+                ));
 
         // Test with streamText and different operation types
-        final stream = await room.localParticipant?.streamText(StreamTextOptions(
+        final stream =
+            await room.localParticipant?.streamText(StreamTextOptions(
           topic: 'chat-operations',
           type: operationType,
           version: operationType == TextStreamOperationType.update ? 2 : null,
@@ -196,9 +207,14 @@ void main() {
     });
 
     test('Text Stream With Attributes And Metadata', () async {
-      final testAttributes = {'userId': '12345', 'sessionId': 'abc123', 'priority': 'high'};
+      final testAttributes = {
+        'userId': '12345',
+        'sessionId': 'abc123',
+        'priority': 'high'
+      };
 
-      room.registerTextStreamHandler('chat-metadata', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat-metadata',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('received message with text: ${text}');
         print('received message attributes: ${reader.info?.attributes}');
@@ -212,11 +228,12 @@ void main() {
         expect(reader.info!.attributes['priority'], 'high');
       });
 
-      final info = await room.localParticipant?.sendText('Test message with metadata',
-          options: SendTextOptions(
-            topic: 'chat-metadata',
-            attributes: testAttributes,
-          ));
+      final info =
+          await room.localParticipant?.sendText('Test message with metadata',
+              options: SendTextOptions(
+                topic: 'chat-metadata',
+                attributes: testAttributes,
+              ));
       expect(info, isNotNull);
     });
 
@@ -224,7 +241,8 @@ void main() {
       const originalStreamId = 'original-stream-123';
       const replyStreamId = 'reply-stream-456';
 
-      room.registerTextStreamHandler('chat-replies', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat-replies',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('received reply message: ${text}');
         expect(text, 'This is a reply to the original message');
@@ -248,7 +266,8 @@ void main() {
     });
 
     test('Text Stream With AI Generated Flag', () async {
-      room.registerTextStreamHandler('chat-ai-generated', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('chat-ai-generated',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('received AI-generated message: ${text}');
         expect(text, 'This message was generated by AI');
@@ -266,7 +285,7 @@ void main() {
 
     test('Text Stream With File Attachments', () async {
       const attachedIds = ['file-123', 'file-456', 'file-789'];
-
+      final msg = 'Message with file attachments';
       room.registerTextStreamHandler('chat-with-attachments',
           (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
@@ -277,9 +296,9 @@ void main() {
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'chat-with-attachments',
         attachedStreamIds: attachedIds,
-        totalSize: 26, // 'Message with file attachments'.length
+        totalSize: msg.length, // 'Message with file attachments'.length
       ));
-      await stream?.write('Message with file attachments');
+      await stream?.write(msg);
       await stream?.close();
     });
   });
@@ -294,7 +313,8 @@ void main() {
       final bytes = List<int>.generate(100000, (index) => random.nextInt(256));
       randomFile.writeAsBytesSync(bytes);
 
-      room.registerByteStreamHandler('file', (ByteStreamReader reader, String participantIdentity) async {
+      room.registerByteStreamHandler('file',
+          (ByteStreamReader reader, String participantIdentity) async {
         final file = await reader.readAll();
         final fileName = 'testfiles/copy-${reader.info!.name}';
         print('received file from $participantIdentity: ${file.length}');
@@ -321,13 +341,16 @@ void main() {
     });
 
     test('Stream Raw Bytes With UTF8 Content', () async {
-      room.registerByteStreamHandler('bytes-stream', (ByteStreamReader reader, String participantIdentity) async {
+      room.registerByteStreamHandler('bytes-stream',
+          (ByteStreamReader reader, String participantIdentity) async {
         final chunks = await reader.readAll();
         final content = chunks.expand((element) => element).toList();
-        print('bytes content = ${content}, \n string content = ${utf8.decode(content)}');
+        print(
+            'bytes content = ${content}, \n string content = ${utf8.decode(content)}');
       });
 
-      final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
+      final stream =
+          await room.localParticipant?.streamBytes(StreamBytesOptions(
         topic: 'bytes-stream',
         totalSize: 30,
       ));
@@ -366,7 +389,8 @@ void main() {
         expect(content, expectedContent);
       });
 
-      final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
+      final stream =
+          await room.localParticipant?.streamBytes(StreamBytesOptions(
         topic: 'files-with-metadata',
         name: testFileName,
         mimeType: testMimeType,
@@ -386,7 +410,8 @@ void main() {
       var receivedCount = 0;
       const expectedCount = 3;
 
-      room.registerTextStreamHandler('concurrent-streams', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('concurrent-streams',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         receivedCount++;
         print('received concurrent message ${receivedCount}: ${text}');
@@ -396,7 +421,8 @@ void main() {
       final futures = <Future>[];
       for (int i = 0; i < expectedCount; i++) {
         futures.add(() async {
-          final stream = await room.localParticipant?.streamText(StreamTextOptions(
+          final stream =
+              await room.localParticipant?.streamText(StreamTextOptions(
             topic: 'concurrent-streams',
             streamId: 'stream-${i}',
             type: TextStreamOperationType.create,
@@ -417,7 +443,8 @@ void main() {
       const chunkSize = 50000; // Larger than normal chunk size
       final largeData = 'x' * chunkSize;
 
-      room.registerTextStreamHandler('large-chunks', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('large-chunks',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('received large text, length: ${text.length}');
         expect(text.length, chunkSize);
@@ -438,7 +465,8 @@ void main() {
       // Test comprehensive header data transmission
       final testCompleter = Completer<bool>();
 
-      room.registerTextStreamHandler('header-validation', (TextStreamReader reader, String participantIdentity) async {
+      room.registerTextStreamHandler('header-validation',
+          (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
         print('=== Header Validation Test ===');
         print('Received text: ${text}');
@@ -461,7 +489,7 @@ void main() {
         // Test passes if we get here without exceptions
         testCompleter.complete(true);
       });
-
+      final msg = 'Header validation test message';
       // Send a message with comprehensive options
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'header-validation',
@@ -475,10 +503,10 @@ void main() {
         },
         attachedStreamIds: ['attachment-1', 'attachment-2'],
         replyToStreamId: 'parent-message-123',
-        totalSize: 28, // Length of test message
+        totalSize: msg.length, // Length of test message
       ));
 
-      await stream?.write('Header validation test message');
+      await stream?.write(msg);
       await stream?.close();
 
       // Wait for the test to complete or timeout
