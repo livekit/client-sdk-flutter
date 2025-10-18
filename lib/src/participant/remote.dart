@@ -46,17 +46,18 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           name: name,
         );
 
-  @internal
-  RemoteParticipant.fromInfo({
+  static Future<RemoteParticipant> createFromInfo({
     required Room room,
     required lk_models.ParticipantInfo info,
-  }) : super(
-          room: room,
-          sid: info.sid,
-          identity: info.identity,
-          name: info.name,
-        ) {
-    updateFromInfo(info);
+  }) async {
+    final participant = RemoteParticipant(
+      room: room,
+      sid: info.identity,
+      identity: info.identity,
+      name: info.name,
+    );
+    await participant.updateFromInfo(info);
+    return participant;
   }
 
   /// A convenience property to get all video tracks.
@@ -192,8 +193,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final newPubs = <RemoteTrackPublication>{};
 
     for (final trackInfo in info.tracks) {
-      final RemoteTrackPublication? pub =
-          getTrackPublicationBySid(trackInfo.sid);
+      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
       if (pub == null) {
         final RemoteTrackPublication pub;
         if (trackInfo.type == lk_models.TrackType.VIDEO) {

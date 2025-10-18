@@ -636,11 +636,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return null;
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(String identity, lk_models.ParticipantInfo? info) {
+  Future<RemoteParticipant> _getOrCreateRemoteParticipant(String identity, lk_models.ParticipantInfo? info) async {
     RemoteParticipant? participant = _remoteParticipants[identity];
     if (participant != null) {
       if (info != null) {
-        participant.updateFromInfo(info);
+        await participant.updateFromInfo(info);
       }
       return participant;
     }
@@ -654,7 +654,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         name: '',
       );
     } else {
-      participant = RemoteParticipant.fromInfo(
+      participant = await RemoteParticipant.createFromInfo(
         room: this,
         info: info,
       );
@@ -689,7 +689,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         continue;
       }
 
-      final participant = _getOrCreateRemoteParticipant(info.identity, info);
+      final participant = await _getOrCreateRemoteParticipant(info.identity, info);
 
       if (isNew) {
         hasChanged = true;
