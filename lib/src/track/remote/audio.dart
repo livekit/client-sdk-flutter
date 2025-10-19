@@ -89,8 +89,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
       if (stats != null && prevStats != null && receiver != null) {
         final bitrate = computeBitrateForReceiverStats(stats, prevStats);
         _currentBitrate = bitrate;
-        events.emit(
-            AudioReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
+        events.emit(AudioReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
       }
 
       prevStats = stats;
