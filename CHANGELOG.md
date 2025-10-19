@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.3
+
+feat: Data Packet Cryptor (#873)
+feat: Add E2EE support for H265 (#864)
+fix: fix async call for update participant info (#897)
+
 ## 2.5.2
 
 * Fix missing properties for TextStreamInfo (#881)
