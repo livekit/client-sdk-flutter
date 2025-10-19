@@ -59,8 +59,7 @@ class E2EEDataPacketCryptor {
     }
 
     final sendCount = sendCount_;
-    final randomBytes =
-        Random.secure().nextInt(max(0, 0xffffffff)).toUnsigned(32);
+    final randomBytes = Random.secure().nextInt(max(0, 0xffffffff)).toUnsigned(32);
 
     iv.setUint32(0, randomBytes);
     iv.setUint32(4, timestamp);
@@ -85,8 +84,7 @@ class E2EEDataPacketCryptor {
     final keyIndex = currentKeyIndex;
 
     if (secretKey == null) {
-      logger.warning(
-          'encodeFunction: no secretKey for index $keyIndex, cannot encrypt');
+      logger.warning('encodeFunction: no secretKey for index $keyIndex, cannot encrypt');
       return null;
     }
 
@@ -128,8 +126,7 @@ class E2EEDataPacketCryptor {
   ) async {
     var ratchetCount = 0;
 
-    logger.fine(
-        'decodeFunction: data packet lenght ${encryptedPacket.data.length}');
+    logger.fine('decodeFunction: data packet lenght ${encryptedPacket.data.length}');
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;
@@ -168,34 +165,26 @@ class E2EEDataPacketCryptor {
                 )
                 .toDart) as JSArrayBuffer)
             .toDart;
-        logger.finer(
-            'decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
+        logger.finer('decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
 
         if (decrypted == null) {
           throw Exception('[decryptFrameInternal] could not decrypt');
         }
-        logger.finer(
-            'decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
+        logger.finer('decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
         if (currentkeySet != initialKeySet) {
-          logger.fine(
-              'decodeFunction::decryptFrameInternal: ratchetKey: decryption ok, newState: kKeyRatcheted');
-          await keyHandler.setKeySetFromMaterial(
-              currentkeySet, initialKeyIndex);
+          logger.fine('decodeFunction::decryptFrameInternal: ratchetKey: decryption ok, newState: kKeyRatcheted');
+          await keyHandler.setKeySetFromMaterial(currentkeySet, initialKeyIndex);
         }
       }
 
       Future<void> ratchedKeyInternal() async {
-        if (ratchetCount >= keyOptions.ratchetWindowSize ||
-            keyOptions.ratchetWindowSize <= 0) {
+        if (ratchetCount >= keyOptions.ratchetWindowSize || keyOptions.ratchetWindowSize <= 0) {
           throw Exception('[ratchedKeyInternal] cannot ratchet anymore');
         }
 
-        final newKeyBuffer = await keyHandler.ratchet(
-            currentkeySet.material, keyOptions.ratchetSalt);
-        final newMaterial = await keyHandler.ratchetMaterial(
-            currentkeySet.material, newKeyBuffer.buffer);
-        currentkeySet =
-            await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
+        final newKeyBuffer = await keyHandler.ratchet(currentkeySet.material, keyOptions.ratchetSalt);
+        final newMaterial = await keyHandler.ratchetMaterial(currentkeySet.material, newKeyBuffer.buffer);
+        currentkeySet = await keyHandler.deriveKeys(newMaterial, keyOptions.ratchetSalt);
         ratchetCount++;
         await decryptFrameInternal();
       }
@@ -211,8 +200,7 @@ class E2EEDataPacketCryptor {
       }
 
       if (decrypted == null) {
-        throw Exception(
-            '[decodeFunction] decryption failed even after ratchting');
+        throw Exception('[decodeFunction] decryption failed even after ratchting');
       }
 
       // we can now be sure that decryption was a success
