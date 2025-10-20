@@ -115,6 +115,7 @@ void main() async {
     }.toJS;
   }
 
+  // ignore: prefer_function_declarations_over_variables
   final handleMessage = (web.MessageEvent e) async {
     final msg = e.data.dartify() as Map;
     final msgType = msg['msgType'];

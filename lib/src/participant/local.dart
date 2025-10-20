@@ -53,9 +53,8 @@ import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
-import 'participant.dart';
-
 import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
+import 'participant.dart';
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
