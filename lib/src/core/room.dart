@@ -466,7 +466,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       for (final info in event.response.otherParticipants) {
         logger.fine('Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
             'tracks:${info.tracks.map((e) => e.sid)}');
-        _getOrCreateRemoteParticipant(info.identity, info);
+        await _getOrCreateRemoteParticipant(info.identity, info);
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {

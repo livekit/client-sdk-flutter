@@ -152,6 +152,7 @@ class RoomOptions {
     bool? dynacast,
     bool? stopLocalTrackOnUnpublish,
     E2EEOptions? e2eeOptions,
+    E2EEOptions? encryption,
     bool? fastPublish,
   }) {
     return RoomOptions(

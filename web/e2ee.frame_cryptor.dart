@@ -176,7 +176,7 @@ class FrameCryptor {
   }
 
   int getUnencryptedBytes(JSObject obj, String? codec) {
-    var data;
+    Uint8List? data;
     var frameType = '';
     if (obj is web.RTCEncodedVideoFrame) {
       data = obj.data.toDart.asUint8List();
@@ -187,6 +187,9 @@ class FrameCryptor {
     }
 
     if (['h264', 'h265'].contains(codec?.toLowerCase() ?? '')) {
+      if (data == null) {
+        throw StateError('Frame data is null for codec $codec');
+      }
       final result = processNALUsForEncryption(data, codec!);
       if (result.detectedCodec == 'unknown') {
         if (lastError != CryptorError.kUnsupportedCodec) {
