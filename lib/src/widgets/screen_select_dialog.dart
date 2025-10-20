@@ -95,7 +95,14 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
 
 // ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
-  ScreenSelectDialog({Key? key}) : super(key: key) {
+  ScreenSelectDialog({
+    Key? key,
+    this.titleText = 'Choose what to share',
+    this.screenTabText = 'Entire Screen',
+    this.windowTabText = 'Window',
+    this.cancelText = 'Cancel',
+    this.shareText = 'Share',
+  }) : super(key: key) {
     Future.delayed(const Duration(milliseconds: 100), () {
       _getSources();
     });
@@ -113,6 +120,13 @@ class ScreenSelectDialog extends Dialog {
       _stateSetter?.call(() {});
     }));
   }
+
+  final String titleText;
+  final String screenTabText;
+  final String windowTabText;
+  final String cancelText;
+  final String shareText;
+
   final Map<String, rtc.DesktopCapturerSource> _sources = {};
   rtc.SourceType _sourceType = rtc.SourceType.Screen;
   rtc.DesktopCapturerSource? _selectedSource;
@@ -138,8 +152,7 @@ class ScreenSelectDialog extends Dialog {
 
   Future<void> _getSources() async {
     try {
-      final sources =
-          await rtc.desktopCapturer.getSources(types: [_sourceType]);
+      final sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
       for (var element in sources) {
         if (kDebugMode) {
           print('name: ${element.name}, id: ${element.id}, type: ${element.type}');
@@ -177,11 +190,11 @@ class ScreenSelectDialog extends Dialog {
               padding: const EdgeInsets.all(10),
               child: Stack(
                 children: <Widget>[
-                  const Align(
+                  Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      'Choose what to share',
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                      titleText,
+                      style: const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                   ),
                   Align(
@@ -213,16 +226,16 @@ class ScreenSelectDialog extends Dialog {
                                       _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
                                       _getSources();
                                     }),
-                                tabs: const [
+                                tabs: [
                                   Tab(
                                       child: Text(
-                                    'Entire Screen',
-                                    style: TextStyle(color: Colors.black54),
+                                    screenTabText,
+                                    style: const TextStyle(color: Colors.black54),
                                   )),
                                   Tab(
                                       child: Text(
-                                    'Window',
-                                    style: TextStyle(color: Colors.black54),
+                                    windowTabText,
+                                    style: const TextStyle(color: Colors.black54),
                                   )),
                                 ]),
                           ),
@@ -281,9 +294,9 @@ class ScreenSelectDialog extends Dialog {
               child: OverflowBar(
                 children: <Widget>[
                   MaterialButton(
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.black54),
+                    child: Text(
+                      cancelText,
+                      style: const TextStyle(color: Colors.black54),
                     ),
                     onPressed: () {
                       _cancel(context);
@@ -291,8 +304,8 @@ class ScreenSelectDialog extends Dialog {
                   ),
                   MaterialButton(
                     color: Theme.of(context).primaryColor,
-                    child: const Text(
-                      'Share',
+                    child: Text(
+                      shareText,
                     ),
                     onPressed: () {
                       _ok(context);
