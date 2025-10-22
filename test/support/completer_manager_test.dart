@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:livekit_client/src/support/completer_manager.dart';
 
 void main() {
@@ -348,7 +349,8 @@ void main() {
           final future = manager.future;
           manager.complete('value_$i');
           await expectLater(future, completion('value_$i'));
-          if (i < 4) { // Don't reset on the last iteration
+          if (i < 4) {
+            // Don't reset on the last iteration
             manager.reset();
           }
         }
