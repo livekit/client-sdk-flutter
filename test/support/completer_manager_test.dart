@@ -111,12 +111,12 @@ void main() {
     });
 
     group('State Properties', () {
-      test('initial state should be inactive and not completed', () {
-        expect(manager.isActive, isFalse);
+      test('initial state should be active and not completed', () {
+        expect(manager.isActive, isTrue);
         expect(manager.isCompleted, isFalse);
       });
 
-      test('should be active after accessing future', () async {
+      test('should remain active after accessing future', () async {
         final future = manager.future;
         expect(manager.isActive, isTrue);
         expect(manager.isCompleted, isFalse);
@@ -275,10 +275,15 @@ void main() {
         expect(manager.isCompleted, isTrue);
       });
 
-      test('should not set timeout when no active completer', () {
-        // Should not throw
+      test('should set timeout on active completer', () async {
+        // Manager is active by default now
+        expect(manager.isActive, isTrue);
+
+        final future = manager.future;
         manager.setTimer(Duration(milliseconds: 10));
-        expect(manager.isActive, isFalse);
+
+        // Should timeout
+        await expectLater(future, throwsA(isA<TimeoutException>()));
       });
     });
 
@@ -319,9 +324,15 @@ void main() {
         );
       });
 
-      test('should not allow operations after dispose', () {
+      test('should not allow operations after dispose', () async {
+        // Capture the future before disposing to handle the error
+        final future = manager.future;
         manager.dispose();
 
+        // Dispose should complete with error
+        await expectLater(future, throwsA(isA<StateError>()));
+
+        // Further operations should return false
         final result1 = manager.complete('test');
         final result2 = manager.completeError(Exception('error'));
 
