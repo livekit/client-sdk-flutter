@@ -89,6 +89,44 @@ class Native {
     }
   }
 
+  @internal
+  static Future<bool> startAudioRenderer({
+    required String trackId,
+    required String rendererId,
+    required Map<String, dynamic> format,
+  }) async {
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'startAudioRenderer',
+        <String, dynamic>{
+          'trackId': trackId,
+          'rendererId': rendererId,
+          'format': format,
+        },
+      );
+      return result == true;
+    } catch (error) {
+      logger.warning('startAudioRenderer did throw $error');
+      return false;
+    }
+  }
+
+  @internal
+  static Future<void> stopAudioRenderer({
+    required String rendererId,
+  }) async {
+    try {
+      await channel.invokeMethod<void>(
+        'stopAudioRenderer',
+        <String, dynamic>{
+          'rendererId': rendererId,
+        },
+      );
+    } catch (error) {
+      logger.warning('stopAudioRenderer did throw $error');
+    }
+  }
+
   /// Returns OS's version as a string
   /// Currently only for iOS, macOS
   @internal
