@@ -25,7 +25,7 @@ import 'token_source.dart';
 /// - Encodes the request parameters as [TokenRequestOptions] JSON in the request body
 /// - Includes any custom headers specified via [headers]
 /// - Expects the response to be decoded as [TokenSourceResponse] JSON
-/// - Validates HTTP status codes (200) and throws appropriate errors for failures
+/// - Validates HTTP status codes (200-299) and throws appropriate errors for failures
 class EndpointTokenSource implements TokenSourceConfigurable {
   /// The URL endpoint for token generation.
   /// This should point to your backend service that generates LiveKit tokens.
@@ -54,9 +54,8 @@ class EndpointTokenSource implements TokenSourceConfigurable {
   });
 
   @override
-  Future<TokenSourceResponse> fetch([TokenRequestOptions? options]) async {
-    final requestOptions = options ?? const TokenRequestOptions();
-    final requestBody = jsonEncode(requestOptions.toRequest().toJson());
+  Future<TokenSourceResponse> fetch(TokenRequestOptions options) async {
+    final requestBody = jsonEncode(options.toRequest().toJson());
     final uri = Uri.parse(url);
     final requestHeaders = {
       'Content-Type': 'application/json',
@@ -64,11 +63,22 @@ class EndpointTokenSource implements TokenSourceConfigurable {
     };
 
     final httpClient = client ?? http.Client();
-    final response = method.toUpperCase() == 'GET'
-        ? await httpClient.get(uri, headers: requestHeaders)
-        : await httpClient.post(uri, headers: requestHeaders, body: requestBody);
+    final shouldCloseClient = client == null;
+    late final http.Response response;
 
-    if (response.statusCode != 200) {
+    try {
+      final request = http.Request(method, uri);
+      request.headers.addAll(requestHeaders);
+      request.body = requestBody;
+      final streamedResponse = await httpClient.send(request);
+      response = await http.Response.fromStream(streamedResponse);
+    } finally {
+      if (shouldCloseClient) {
+        httpClient.close();
+      }
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Error generating token from endpoint $url: received ${response.statusCode} / ${response.body}');
     }
 

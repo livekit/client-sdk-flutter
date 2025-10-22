@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import '../support/completer_manager.dart';
 import 'jwt.dart';
 import 'token_source.dart';
 
@@ -23,11 +24,11 @@ import 'token_source.dart';
 /// return `true` if the cached credentials are still valid for the given request.
 ///
 /// The default validator checks JWT expiration using [isResponseExpired].
-typedef TokenValidator = bool Function(TokenRequestOptions? options, TokenSourceResponse response);
+typedef TokenValidator = bool Function(TokenRequestOptions options, TokenSourceResponse response);
 
 /// A tuple containing the request options and response that were cached.
 class TokenStoreItem {
-  final TokenRequestOptions? options;
+  final TokenRequestOptions options;
   final TokenSourceResponse response;
 
   const TokenStoreItem({
@@ -44,7 +45,7 @@ abstract class TokenStore {
   /// Store credentials in the store.
   ///
   /// This replaces any existing cached credentials with the new ones.
-  Future<void> store(TokenRequestOptions? options, TokenSourceResponse response);
+  Future<void> store(TokenRequestOptions options, TokenSourceResponse response);
 
   /// Retrieve the cached credentials.
   ///
@@ -63,7 +64,7 @@ class InMemoryTokenStore implements TokenStore {
   TokenStoreItem? _cached;
 
   @override
-  Future<void> store(TokenRequestOptions? options, TokenSourceResponse response) async {
+  Future<void> store(TokenRequestOptions options, TokenSourceResponse response) async {
     _cached = TokenStoreItem(options: options, response: response);
   }
 
@@ -79,7 +80,7 @@ class InMemoryTokenStore implements TokenStore {
 }
 
 /// Default validator that checks JWT expiration using [isResponseExpired].
-bool _defaultValidator(TokenRequestOptions? options, TokenSourceResponse response) {
+bool _defaultValidator(TokenRequestOptions options, TokenSourceResponse response) {
   return !isResponseExpired(response);
 }
 
@@ -96,7 +97,7 @@ class CachingTokenSource implements TokenSourceConfigurable {
   final TokenSourceConfigurable _wrapped;
   final TokenStore _store;
   final TokenValidator _validator;
-  Completer<TokenSourceResponse>? _fetchInProgress;
+  final Map<TokenRequestOptions, CompleterManager<TokenSourceResponse>> _inflightRequests = {};
 
   /// Initialize a caching wrapper around any token source.
   ///
@@ -112,31 +113,32 @@ class CachingTokenSource implements TokenSourceConfigurable {
         _validator = validator ?? _defaultValidator;
 
   @override
-  Future<TokenSourceResponse> fetch([TokenRequestOptions? options]) async {
-    if (_fetchInProgress != null) {
-      return _fetchInProgress!.future;
+  Future<TokenSourceResponse> fetch(TokenRequestOptions options) async {
+    final existingManager = _inflightRequests[options];
+    if (existingManager != null && existingManager.isActive) {
+      return existingManager.future;
     }
 
-    _fetchInProgress = Completer<TokenSourceResponse>();
+    final manager = existingManager ?? CompleterManager<TokenSourceResponse>();
+    _inflightRequests[options] = manager;
+    final resultFuture = manager.future;
 
     try {
-      // Check if we have a valid cached token
       final cached = await _store.retrieve();
       if (cached != null && cached.options == options && _validator(cached.options, cached.response)) {
-        _fetchInProgress!.complete(cached.response);
-        return cached.response;
+        manager.complete(cached.response);
+        return resultFuture;
       }
 
-      final requestOptions = options ?? const TokenRequestOptions();
-      final response = await _wrapped.fetch(requestOptions);
+      final response = await _wrapped.fetch(options);
       await _store.store(options, response);
-      _fetchInProgress!.complete(response);
-      return response;
-    } catch (e) {
-      _fetchInProgress!.completeError(e);
+      manager.complete(response);
+      return resultFuture;
+    } catch (e, stackTrace) {
+      manager.completeError(e, stackTrace);
       rethrow;
     } finally {
-      _fetchInProgress = null;
+      _inflightRequests.remove(options);
     }
   }
 

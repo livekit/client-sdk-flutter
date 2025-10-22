@@ -84,7 +84,7 @@ void main() {
       expect(agents[0]['metadata'], 'agent-metadata');
     });
 
-    test('GET endpoint', () async {
+    test('GET endpoint with body', () async {
       http.Request? capturedRequest;
 
       final mockClient = MockClient((request) async {
@@ -104,13 +104,37 @@ void main() {
         client: mockClient,
       );
 
-      final response = await source.fetch();
+      final response = await source.fetch(const TokenRequestOptions());
 
       expect(response.serverUrl, 'wss://www.example.com');
       expect(response.participantToken, 'token');
 
       expect(capturedRequest, isNotNull);
       expect(capturedRequest!.method, 'GET');
+      // Body is always sent even for GET requests
+      expect(capturedRequest!.body, '{}');
+    });
+
+    test('accepts non-200 success responses', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'server_url': 'wss://www.example.com',
+            'participant_token': 'token',
+          }),
+          201,
+        );
+      });
+
+      final source = EndpointTokenSource(
+        url: 'https://example.com/token',
+        client: mockClient,
+      );
+
+      final response = await source.fetch(const TokenRequestOptions());
+
+      expect(response.serverUrl, 'wss://www.example.com');
+      expect(response.participantToken, 'token');
     });
 
     test('camelCase backward compatibility', () async {
@@ -131,7 +155,7 @@ void main() {
         client: mockClient,
       );
 
-      final response = await source.fetch();
+      final response = await source.fetch(const TokenRequestOptions());
 
       expect(response.serverUrl, 'wss://www.example.com');
       expect(response.participantToken, 'token');
@@ -155,7 +179,7 @@ void main() {
         client: mockClient,
       );
 
-      final response = await source.fetch();
+      final response = await source.fetch(const TokenRequestOptions());
 
       expect(response.serverUrl, 'wss://www.example.com');
       expect(response.participantToken, 'token');
@@ -174,7 +198,7 @@ void main() {
       );
 
       expect(
-        () => source.fetch(),
+        () => source.fetch(const TokenRequestOptions()),
         throwsA(isA<Exception>().having(
           (e) => e.toString(),
           'message',
@@ -194,7 +218,7 @@ void main() {
       );
 
       expect(
-        () => source.fetch(),
+        () => source.fetch(const TokenRequestOptions()),
         throwsA(isA<Exception>().having(
           (e) => e.toString(),
           'message',

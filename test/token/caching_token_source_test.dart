@@ -34,11 +34,11 @@ void main() {
       final cachingSource = CachingTokenSource(mockSource);
 
       // First fetch
-      final result1 = await cachingSource.fetch();
+      final result1 = await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 1);
 
       // Second fetch should use cache
-      final result2 = await cachingSource.fetch();
+      final result2 = await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 1);
       expect(result2.participantToken, result1.participantToken);
     });
@@ -57,11 +57,11 @@ void main() {
       final cachingSource = CachingTokenSource(mockSource);
 
       // First fetch with expired token
-      await cachingSource.fetch();
+      await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 1);
 
       // Second fetch should refetch due to expiration
-      await cachingSource.fetch();
+      await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 2);
     });
 
@@ -190,12 +190,35 @@ void main() {
       final cachingSource = CachingTokenSource(mockSource);
 
       // Start multiple concurrent fetches
-      final futures = List.generate(5, (_) => cachingSource.fetch());
+      final futures = List.generate(5, (_) => cachingSource.fetch(const TokenRequestOptions()));
       final results = await Future.wait(futures);
 
       // Should only fetch once despite concurrent requests
       expect(fetchCount, 1);
       expect(results.every((r) => r.participantToken == results.first.participantToken), isTrue);
+    });
+
+    test('concurrent fetches with different options fetch independently', () async {
+      var fetchCount = 0;
+      final mockSource = _MockTokenSource((options) async {
+        fetchCount++;
+        await Future.delayed(Duration(milliseconds: 50));
+        final token = _generateValidToken();
+        return TokenSourceResponse(
+          serverUrl: 'https://test.livekit.io',
+          participantToken: '$token-${options.roomName}',
+        );
+      });
+
+      final cachingSource = CachingTokenSource(mockSource);
+
+      final futureOne = cachingSource.fetch(const TokenRequestOptions(roomName: 'room-a'));
+      final futureTwo = cachingSource.fetch(const TokenRequestOptions(roomName: 'room-b'));
+
+      final responses = await Future.wait([futureOne, futureTwo]);
+
+      expect(fetchCount, 2);
+      expect(responses[0].participantToken == responses[1].participantToken, isFalse);
     });
 
     test('invalidate clears cache', () async {
@@ -211,14 +234,14 @@ void main() {
 
       final cachingSource = CachingTokenSource(mockSource);
 
-      await cachingSource.fetch();
+      await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 1);
 
       // Invalidate cache
       await cachingSource.invalidate();
 
       // Should refetch after invalidation
-      await cachingSource.fetch();
+      await cachingSource.fetch(const TokenRequestOptions());
       expect(fetchCount, 2);
     });
 
@@ -235,7 +258,7 @@ void main() {
 
       expect(await cachingSource.cachedResponse(), isNull);
 
-      final response = await cachingSource.fetch();
+      final response = await cachingSource.fetch(const TokenRequestOptions());
       expect(await cachingSource.cachedResponse(), isNotNull);
       expect((await cachingSource.cachedResponse())?.participantToken, response.participantToken);
 

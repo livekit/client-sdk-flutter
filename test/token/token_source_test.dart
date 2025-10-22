@@ -160,7 +160,7 @@ void main() {
       }
 
       final source = CustomTokenSource(customFunction);
-      final result = await source.fetch();
+      final result = await source.fetch(const TokenRequestOptions());
 
       expect(result.serverUrl, 'https://custom.livekit.io');
       expect(result.participantToken, 'custom-token');

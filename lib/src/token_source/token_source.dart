@@ -175,5 +175,5 @@ abstract class TokenSourceFixed {
 /// - [EndpointTokenSource]: For custom backend endpoints using LiveKit's JSON format
 /// - [CachingTokenSource]: For caching credentials (or use the `.cached()` extension method)
 abstract class TokenSourceConfigurable {
-  Future<TokenSourceResponse> fetch([TokenRequestOptions? options]);
+  Future<TokenSourceResponse> fetch(TokenRequestOptions options);
 }
