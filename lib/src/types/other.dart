@@ -157,13 +157,10 @@ class RTCConfiguration {
     return <String, dynamic>{
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
-      if (encodedInsertableStreams != null)
-        'encodedInsertableStreams': encodedInsertableStreams,
+      if (encodedInsertableStreams != null) 'encodedInsertableStreams': encodedInsertableStreams,
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
-      if (iceCandidatePoolSize != null)
-        'iceCandidatePoolSize': iceCandidatePoolSize,
-      if (iceTransportPolicy != null)
-        'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
+      if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
+      if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
     };
   }
 
@@ -178,8 +175,7 @@ class RTCConfiguration {
         iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
         iceServers: iceServers ?? this.iceServers,
         iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
-        encodedInsertableStreams:
-            encodedInsertableStreams ?? this.encodedInsertableStreams,
+        encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
       );
 }
 

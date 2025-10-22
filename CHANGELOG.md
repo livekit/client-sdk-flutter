@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.5.2
+
+* Fix missing properties for TextStreamInfo (#881)
+* Enum for TextStreamOperationType (#882)
+* Fix stream progress (#884)
+
 ## 2.5.1
 
 * Fix Publication's track property initialization (#867)

@@ -26,8 +26,7 @@ class SifGuard {
         // reset if we received more user frames than SIFs
         userFramesSinceSif > consecutiveSifCount ||
             // also reset if we got a new user frame and the latest SIF frame hasn't been updated in a while
-            DateTime.timestamp().millisecondsSinceEpoch - lastSifReceivedAt >
-                MAX_SIF_DURATION) {
+            DateTime.timestamp().millisecondsSinceEpoch - lastSifReceivedAt > MAX_SIF_DURATION) {
       reset();
     }
   }
@@ -35,8 +34,7 @@ class SifGuard {
   bool isSifAllowed() {
     return consecutiveSifCount < MAX_SIF_COUNT &&
         (sifSequenceStartedAt == null ||
-            DateTime.timestamp().millisecondsSinceEpoch - sifSequenceStartedAt! <
-                MAX_SIF_DURATION);
+            DateTime.timestamp().millisecondsSinceEpoch - sifSequenceStartedAt! < MAX_SIF_DURATION);
   }
 
   void reset() {

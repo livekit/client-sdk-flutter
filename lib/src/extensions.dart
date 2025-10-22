@@ -46,8 +46,7 @@ extension ICEServerExt on lk_rtc.ICEServer {
 }
 
 extension IterableExt<E> on Iterable<E> {
-  E? elementAtOrNull(int index) =>
-      (index >= 0 && index < length) ? elementAt(index) : null;
+  E? elementAtOrNull(int index) => (index >= 0 && index < length) ? elementAt(index) : null;
 }
 
 extension ObjectExt on Object {
@@ -98,16 +97,14 @@ extension RTCIceCandidateExt on rtc.RTCIceCandidate {
 }
 
 extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
-  bool isConnected() =>
-      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+  bool isConnected() => this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected;
 
   bool isDisconnected() => [
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
       ].contains(this);
 
-  bool isFailed() =>
-      this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed;
+  bool isFailed() => this == rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed;
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
@@ -238,17 +235,12 @@ extension EncryptionTypeExt on lk_models.Encryption_Type {
 extension DisconnectReasonExt on lk_models.DisconnectReason {
   DisconnectReason toSDKType() => {
         lk_models.DisconnectReason.UNKNOWN_REASON: DisconnectReason.unknown,
-        lk_models.DisconnectReason.CLIENT_INITIATED:
-            DisconnectReason.clientInitiated,
-        lk_models.DisconnectReason.DUPLICATE_IDENTITY:
-            DisconnectReason.duplicateIdentity,
-        lk_models.DisconnectReason.SERVER_SHUTDOWN:
-            DisconnectReason.serverShutdown,
-        lk_models.DisconnectReason.PARTICIPANT_REMOVED:
-            DisconnectReason.participantRemoved,
+        lk_models.DisconnectReason.CLIENT_INITIATED: DisconnectReason.clientInitiated,
+        lk_models.DisconnectReason.DUPLICATE_IDENTITY: DisconnectReason.duplicateIdentity,
+        lk_models.DisconnectReason.SERVER_SHUTDOWN: DisconnectReason.serverShutdown,
+        lk_models.DisconnectReason.PARTICIPANT_REMOVED: DisconnectReason.participantRemoved,
         lk_models.DisconnectReason.ROOM_DELETED: DisconnectReason.roomDeleted,
-        lk_models.DisconnectReason.STATE_MISMATCH:
-            DisconnectReason.stateMismatch,
+        lk_models.DisconnectReason.STATE_MISMATCH: DisconnectReason.stateMismatch,
         lk_models.DisconnectReason.JOIN_FAILURE: DisconnectReason.joinFailure,
       }[this]!;
 }
@@ -266,22 +258,21 @@ extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
 extension DegradationPreferenceExt on DegradationPreference {
   rtc.RTCDegradationPreference toRTCType() => {
         DegradationPreference.disabled: rtc.RTCDegradationPreference.DISABLED,
-        DegradationPreference.maintainFramerate:
-            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
-        DegradationPreference.maintainResolution:
-            rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
+        DegradationPreference.maintainFramerate: rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
+        DegradationPreference.maintainResolution: rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
         DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
       }[this]!;
 }
 
 extension RoomOptionsEx on RoomOptions {
   lk_models.Encryption_Type get lkEncryptionType {
-    return (e2eeOptions != null)
+    final e2ee = encryption ?? e2eeOptions;
+    return (e2ee != null)
         ? {
             EncryptionType.kNone: lk_models.Encryption_Type.NONE,
             EncryptionType.kGcm: lk_models.Encryption_Type.GCM,
             EncryptionType.kCustom: lk_models.Encryption_Type.CUSTOM,
-          }[e2eeOptions!.encryptionType]!
+          }[e2ee.encryptionType]!
         : lk_models.Encryption_Type.NONE;
   }
 }

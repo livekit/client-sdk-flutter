@@ -28,8 +28,11 @@ class MockWebSocketConnector {
 
   WebSocketOnError get onError => handlers!.onError!;
 
-  Future<LiveKitWebSocket> connect(Uri uri,
-      [WebSocketEventHandlers? options]) async {
+  Future<LiveKitWebSocket> connect(
+    Uri uri, {
+    WebSocketEventHandlers? options,
+    Map<String, String>? headers,
+  }) async {
     handlers = options;
     return MockWebSocket();
   }

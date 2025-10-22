@@ -387,8 +387,7 @@ class ParticipantStateUpdatedEvent with RoomEvent, ParticipantEvent {
 
 /// [Pariticpant]'s [ConnectionQuality] has updated.
 /// Emitted by [Room] and [Participant].
-class ParticipantConnectionQualityUpdatedEvent
-    with RoomEvent, ParticipantEvent {
+class ParticipantConnectionQualityUpdatedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;
   final ConnectionQuality connectionQuality;
   const ParticipantConnectionQualityUpdatedEvent({

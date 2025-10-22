@@ -20,10 +20,11 @@ import '../../logger.dart';
 import '../websocket.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(
-  Uri uri, [
+  Uri uri, {
   WebSocketEventHandlers? options,
-]) =>
-    LiveKitWebSocketIO.connect(uri, options);
+  Map<String, String>? headers,
+}) =>
+    LiveKitWebSocketIO.connect(uri, options: options, headers: headers);
 
 class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;
@@ -70,12 +71,13 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
   }
 
   static Future<LiveKitWebSocketIO> connect(
-    Uri uri, [
+    Uri uri, {
     WebSocketEventHandlers? options,
-  ]) async {
+    Map<String, String>? headers,
+  }) async {
     logger.fine('[WebSocketIO] Connecting(uri: ${uri.toString()})...');
     try {
-      final ws = await io.WebSocket.connect(uri.toString());
+      final ws = await io.WebSocket.connect(uri.toString(), headers: headers);
       logger.fine('[WebSocketIO] Connected');
       return LiveKitWebSocketIO._(ws, options);
     } catch (err) {
