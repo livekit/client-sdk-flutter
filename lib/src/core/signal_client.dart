@@ -142,11 +142,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt to connect
       var future = _wsConnector(
         rtcUri,
-        WebSocketEventHandlers(
+        options: WebSocketEventHandlers(
           onData: _onSocketData,
           onDispose: _onSocketDispose,
           onError: _onSocketError,
         ),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
       );
       future = future.timeout(connectOptions.timeouts.connection);
       _ws = await future;
@@ -170,7 +173,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           forceSecure: rtcUri.isSecureScheme,
         );
 
-        final validateResponse = await http.get(validateUri);
+        final validateResponse = await http.get(
+          validateUri,
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
               reason: validateResponse.statusCode >= 400
