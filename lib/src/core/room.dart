@@ -38,7 +38,6 @@ import '../participant/participant.dart';
 import '../participant/remote.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
-import '../publication/remote.dart';
 import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
