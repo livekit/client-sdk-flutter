@@ -640,10 +640,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       String identity, lk_models.ParticipantInfo? info) async {
     RemoteParticipant? participant = _remoteParticipants[identity];
     if (participant != null) {
-      if (info != null) {
-        await participant.updateFromInfo(info);
-      }
-      // Return existing participant with no new publications
+      // Return existing participant with no new publications; caller handles updates.
       return ParticipantCreationResult(
         participant: participant,
         newPublications: const [],
@@ -706,11 +703,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         // Emit connected event
         emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
         // Emit TrackPublishedEvent for each new track
-        for (final pub in result.newPublications) {
-          [events].emit(TrackPublishedEvent(
-            participant: result.participant,
-            publication: pub,
-          ));
+        if (connectionState == ConnectionState.connected) {
+          for (final pub in result.newPublications) {
+            final event = TrackPublishedEvent(
+              participant: result.participant,
+              publication: pub,
+            );
+            [result.participant.events, events].emit(event);
+          }
         }
         _sidToIdentity[info.sid] = info.identity;
       } else {
