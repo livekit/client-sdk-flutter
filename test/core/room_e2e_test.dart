@@ -68,6 +68,37 @@ void main() {
       expect(room.remoteParticipants.length, 1);
     });
 
+    test('participant join with tracks populated before connected event', () async {
+      // Track whether participant has tracks when connected event fires
+      bool participantHadTracksOnConnect = false;
+      int trackCountOnConnect = 0;
+
+      // Listen for ParticipantConnectedEvent
+      final cancel = room.events.on<ParticipantConnectedEvent>((event) {
+        // Verify participant is fully populated with tracks
+        trackCountOnConnect = event.participant.trackPublications.length;
+        participantHadTracksOnConnect = trackCountOnConnect > 0;
+      });
+
+      // Send participant join with tracks
+      ws.onData(participantJoinResponse.writeToBuffer());
+
+      // Wait for connected event
+      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+
+      // Clean up listener
+      cancel();
+
+      // Verify participant had tracks when connected event was emitted
+      expect(participantHadTracksOnConnect, isTrue,
+          reason: 'Participant should have tracks when ParticipantConnectedEvent is emitted');
+      expect(trackCountOnConnect, greaterThan(0),
+          reason: 'Participant should have at least one track when connected event fires');
+
+      // Verify the participant is in the room
+      expect(room.remoteParticipants.length, 1);
+    });
+
     test('participant disconnect', () async {
       ws.onData(participantJoinResponse.writeToBuffer());
       await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
