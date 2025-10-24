@@ -30,7 +30,7 @@ export 'src/managers/event.dart';
 export 'src/options.dart';
 export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
-export 'src/participant/remote.dart';
+export 'src/participant/remote.dart' hide ParticipantCreationResult;
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
