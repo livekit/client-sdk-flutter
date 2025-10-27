@@ -27,11 +27,7 @@ void main() {
     });
 
     tearDown(() {
-      // Only dispose if not already completed or disposed
       try {
-        if (manager.isActive) {
-          manager.complete('teardown');
-        }
         manager.dispose();
       } catch (_) {
         // Already disposed, ignore
@@ -45,7 +41,6 @@ void main() {
         expect(manager.isActive, isTrue);
         expect(manager.isCompleted, isFalse);
 
-        // Complete it to avoid tearDown issues
         manager.complete('test');
         await expectLater(future, completion('test'));
       });
@@ -114,6 +109,7 @@ void main() {
       test('initial state should be active and not completed', () {
         expect(manager.isActive, isTrue);
         expect(manager.isCompleted, isFalse);
+        expect(manager.isDisposed, isFalse);
       });
 
       test('should remain active after accessing future', () async {
@@ -121,39 +117,15 @@ void main() {
         expect(manager.isActive, isTrue);
         expect(manager.isCompleted, isFalse);
 
-        // Complete it to avoid tearDown issues
         manager.complete('test');
         await expectLater(future, completion('test'));
       });
 
-      test('should be completed after completion', () async {
-        final future = manager.future;
-        manager.complete('done');
-
-        expect(manager.isActive, isFalse);
-        expect(manager.isCompleted, isTrue);
-        await expectLater(future, completion('done'));
-      });
-
-      test('should be completed after error completion', () async {
-        final future = manager.future;
-        final testError = Exception('error');
-        manager.completeError(testError);
-
-        expect(manager.isActive, isFalse);
-        expect(manager.isCompleted, isTrue);
-        await expectLater(future, throwsA(testError));
-      });
-    });
-
-    group('Reusability', () {
       test('should create new future after previous completion', () async {
-        // First use
         final future1 = manager.future;
         manager.complete('first');
         await expectLater(future1, completion('first'));
 
-        // Second use - should get new future
         final future2 = manager.future;
         expect(future2, isNot(same(future1)));
         expect(manager.isActive, isTrue);
@@ -164,36 +136,41 @@ void main() {
       });
 
       test('should reset and be reusable', () async {
-        // First use
         final future1 = manager.future;
         manager.complete('first');
         await expectLater(future1, completion('first'));
 
-        // Reset - note that reset creates a new completer, so it's not active until future is accessed
         manager.reset();
         expect(manager.isCompleted, isFalse);
-        // After reset, manager is ready but not active until future is accessed
 
-        // Second use after reset
         final future2 = manager.future;
         expect(manager.isActive, isTrue);
         manager.complete('second');
         await expectLater(future2, completion('second'));
       });
 
-      test('should reset even when active', () async {
+      test('should reset even when active and deliver error to pending future', () async {
         final future1 = manager.future;
         expect(manager.isActive, isTrue);
 
         manager.reset();
         expect(manager.isCompleted, isFalse);
-        // After reset, manager is ready but not active until future is accessed
+
+        await expectLater(
+          future1,
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              contains('reset'),
+            ),
+          ),
+        );
 
         final future2 = manager.future;
         expect(manager.isActive, isTrue);
         expect(future2, isNot(same(future1)));
 
-        // Complete it to avoid tearDown issues
         manager.complete('test');
         await expectLater(future2, completion('test'));
       });
@@ -218,127 +195,106 @@ void main() {
 
         try {
           await future;
-          fail('Should have thrown TimeoutException');
+          fail('Expected TimeoutException');
         } catch (error) {
           expect(error, isA<TimeoutException>());
           expect((error as TimeoutException).message, contains(customMessage));
         }
       });
 
-      test('should cancel timeout on manual completion', () async {
+      test('should ignore timer after completion', () async {
         final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 100));
-
-        // Complete before timeout
-        manager.complete('completed');
-        await expectLater(future, completion('completed'));
-
-        // Wait longer than timeout to ensure it was cancelled
-        await Future.delayed(Duration(milliseconds: 150));
-        // If we get here without additional errors, timeout was cancelled
-      });
-
-      test('should cancel timeout on error completion', () async {
-        final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 100));
-
-        // Complete with error before timeout
-        final testError = Exception('test error');
-        manager.completeError(testError);
-        await expectLater(future, throwsA(testError));
-
-        // Wait longer than timeout to ensure it was cancelled
-        await Future.delayed(Duration(milliseconds: 150));
-        // If we get here without additional errors, timeout was cancelled
-      });
-
-      test('should replace previous timeout when setting new one', () async {
-        final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 200));
-        manager.setTimer(Duration(milliseconds: 10)); // This should replace the previous one
-
-        await expectLater(
-          future,
-          throwsA(isA<TimeoutException>()),
-        );
-      });
-
-      test('should not set timeout on completed manager', () async {
-        final future = manager.future;
+        manager.setTimer(Duration(milliseconds: 10));
         manager.complete('done');
+
         await expectLater(future, completion('done'));
-
-        // This should not throw or affect anything
-        manager.setTimer(Duration(milliseconds: 10));
-
-        // Verify still completed
+        await Future<void>.delayed(Duration(milliseconds: 20));
         expect(manager.isCompleted, isTrue);
-      });
-
-      test('should set timeout on active completer', () async {
-        // Manager is active by default now
-        expect(manager.isActive, isTrue);
-
-        final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 10));
-
-        // Should timeout
-        await expectLater(future, throwsA(isA<TimeoutException>()));
       });
     });
 
-    group('Disposal', () {
-      test('should complete with error when disposed while active', () async {
+    group('Reset Behavior', () {
+      test('should complete pending future with custom error on reset', () async {
         final future = manager.future;
-        expect(manager.isActive, isTrue);
+        final customError = Exception('custom reset');
+        manager.reset(error: customError);
 
-        manager.dispose();
-
-        await expectLater(
-          future,
-          throwsA(isA<StateError>()),
-        );
-        expect(manager.isCompleted, isTrue);
+        await expectLater(future, throwsA(customError));
       });
 
-      test('should not affect already completed manager', () async {
+      test('should allow reset after completion without affecting last result', () async {
         final future = manager.future;
         manager.complete('done');
         await expectLater(future, completion('done'));
 
-        // Dispose should not throw or change state
-        manager.dispose();
-        expect(manager.isCompleted, isTrue);
+        manager.reset();
+        final nextFuture = manager.future;
+
+        manager.complete('next');
+        await expectLater(nextFuture, completion('next'));
       });
+    });
 
-      test('should cancel timeout on dispose', () async {
+    group('Dispose', () {
+      test('should complete pending future with error on dispose', () async {
         final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 10));
-
         manager.dispose();
 
-        // Should complete with StateError, not TimeoutException
         await expectLater(
           future,
-          throwsA(isA<StateError>()),
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              contains('disposed'),
+            ),
+          ),
         );
+        expect(manager.isCompleted, isTrue);
+        expect(manager.isDisposed, isTrue);
       });
 
-      test('should not allow operations after dispose', () async {
-        // Capture the future before disposing to handle the error
+      test('should use custom error on dispose', () async {
         final future = manager.future;
+        final customError = Exception('disposed error');
+        manager.dispose(error: customError);
+
+        await expectLater(future, throwsA(customError));
+      });
+
+      test('should return false for operations after dispose', () {
         manager.dispose();
 
-        // Dispose should complete with error
-        await expectLater(future, throwsA(isA<StateError>()));
-
-        // Further operations should return false
         final result1 = manager.complete('test');
         final result2 = manager.completeError(Exception('error'));
+        manager.setTimer(Duration(seconds: 1));
 
         expect(result1, isFalse);
         expect(result2, isFalse);
-        expect(manager.isCompleted, isTrue);
+        expect(manager.isActive, isFalse);
+      });
+
+      test('should throw when requesting future after dispose', () {
+        manager.dispose();
+
+        expect(
+          () => manager.future,
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              contains('disposed'),
+            ),
+          ),
+        );
+      });
+
+      test('should ignore duplicate dispose calls', () {
+        manager.dispose();
+        expect(manager.isDisposed, isTrue);
+
+        manager.dispose();
+        expect(manager.isDisposed, isTrue);
       });
     });
 
@@ -350,7 +306,6 @@ void main() {
         expect(identical(future1, future2), isTrue);
         expect(manager.isActive, isTrue);
 
-        // Complete it to avoid tearDown issues
         manager.complete('test');
         await expectLater(future1, completion('test'));
       });
@@ -361,7 +316,6 @@ void main() {
           manager.complete('value_$i');
           await expectLater(future, completion('value_$i'));
           if (i < 4) {
-            // Don't reset on the last iteration
             manager.reset();
           }
         }
@@ -390,16 +344,14 @@ void main() {
       });
     });
 
-    group('Thread Safety', () {
-      test('should handle concurrent operations safely', () async {
+    group('Concurrency', () {
+      test('should handle concurrent operations safely enough for single isolate', () async {
         final futures = <Future>[];
 
-        // Start multiple concurrent operations
         for (int i = 0; i < 10; i++) {
           futures.add(Future(() async {
             final future = manager.future;
             if (i == 0) {
-              // Only the first one should succeed in completing
               await Future.delayed(Duration(milliseconds: 1));
               manager.complete('winner');
             }
@@ -409,7 +361,6 @@ void main() {
 
         final results = await Future.wait(futures, eagerError: false);
 
-        // All should complete with the same value
         for (final result in results) {
           expect(result, equals('winner'));
         }

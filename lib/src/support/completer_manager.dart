@@ -14,101 +14,140 @@
 
 import 'dart:async';
 
-/// A manager for Completer instances that provides safe completion and automatic lifecycle management.
+/// Manages a [Completer] lifecycle while exposing only its [Future].
 ///
 /// Features:
 /// - Safe completion (prevents double completion exceptions)
-/// - Automatic timeout handling
-/// - Clean state management and reusability
-/// - Only exposes Future, not the Completer itself
-/// - Thread-safe operations
+/// - Optional timeout handling
+/// - Deterministic reset and disposal semantics
+/// - Only exposes [Future], not the [Completer] itself
 class CompleterManager<T> {
   Completer<T> _completer;
   Timer? _timeoutTimer;
   bool _isCompleted = false;
+  bool _isDisposed = false;
 
-  /// Creates a new CompleterManager with an active completer.
+  /// Creates a new [CompleterManager] with an active completer.
   CompleterManager() : _completer = Completer<T>();
 
-  /// Gets the current future. Creates a new completer if previous one was completed.
+  /// The current future. Creates a new completer if the previous one finished.
+  ///
+  /// Throws [StateError] when called after [dispose].
   Future<T> get future {
+    if (_isDisposed) {
+      throw StateError('CompleterManager disposed');
+    }
     if (_isCompleted) {
-      _reset();
+      _createCompleter();
     }
     return _completer.future;
   }
 
-  /// Whether the current completer is completed.
+  /// Whether the current completer has completed (with value or error).
   bool get isCompleted => _isCompleted;
 
-  /// Whether there's an active completer waiting for completion.
-  bool get isActive => !_isCompleted;
+  /// Whether the manager is still managing an active completer.
+  bool get isActive => !_isDisposed && !_isCompleted;
 
-  /// Completes the current completer with the given value.
-  /// Returns true if successfully completed, false if already completed.
+  /// Whether [dispose] has been called.
+  bool get isDisposed => _isDisposed;
+
+  /// Completes the current completer with the given [value].
+  /// Returns `true` if successfully completed, otherwise `false`.
   bool complete([FutureOr<T>? value]) {
-    if (_isCompleted) {
+    if (_isDisposed || _isCompleted) {
       return false;
     }
 
-    _isCompleted = true;
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
-
-    _completer.complete(value);
+    _completeCurrent((completer) => completer.complete(value));
     return true;
   }
 
-  /// Completes the current completer with an error.
-  /// Returns true if successfully completed with error, false if already completed.
+  /// Completes the current completer with an [error].
+  /// Returns `true` if successfully completed, otherwise `false`.
   bool completeError(Object error, [StackTrace? stackTrace]) {
-    if (_isCompleted) {
+    if (_isDisposed || _isCompleted) {
       return false;
     }
 
-    _isCompleted = true;
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
-
-    _completer.completeError(error, stackTrace);
+    _completeCurrent((completer) => completer.completeError(error, stackTrace));
     return true;
   }
 
   /// Sets up a timeout for the current completer.
-  /// If the completer is not completed within the timeout, it will be completed with a TimeoutException.
+  /// If not completed within [timeout], completes with a [TimeoutException].
   void setTimer(Duration timeout, {String? timeoutReason}) {
-    if (_isCompleted) {
+    if (_isDisposed || _isCompleted) {
       return;
     }
 
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(timeout, () {
-      if (!_isCompleted) {
-        final reason = timeoutReason ?? 'Operation timed out after $timeout';
-        completeError(TimeoutException(reason, timeout));
+      if (_isDisposed || _isCompleted) {
+        return;
       }
+      final reason = timeoutReason ?? 'Operation timed out after $timeout';
+      completeError(TimeoutException(reason, timeout));
     });
   }
 
-  /// Resets the manager, canceling any pending operations and preparing for reuse.
-  void reset() {
-    _reset();
-  }
-
-  void _reset() {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
-    _isCompleted = false;
-    _completer = Completer<T>();
-  }
-
-  /// Disposes the manager, canceling any pending operations.
-  void dispose() {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
-    if (!_isCompleted) {
-      _completer.completeError(StateError('CompleterManager disposed'));
-      _isCompleted = true;
+  /// Resets the manager for reuse.
+  ///
+  /// Any pending future is completed with a [StateError] (or [error] if provided)
+  /// before a new completer is created.
+  void reset({Object? error, StackTrace? stackTrace}) {
+    if (_isDisposed) {
+      throw StateError('CompleterManager disposed');
     }
+
+    if (!_isCompleted) {
+      _completeCurrent(
+        (completer) => completer.completeError(
+          error ?? StateError('CompleterManager reset'),
+          stackTrace,
+        ),
+      );
+    }
+
+    _createCompleter();
+  }
+
+  /// Disposes the manager, completing any pending future with an error.
+  ///
+  /// After disposal, the manager cannot be reused; calls to [future] throw
+  /// [StateError] and completion methods return `false`.
+  void dispose({Object? error, StackTrace? stackTrace}) {
+    if (_isDisposed) {
+      return;
+    }
+
+    if (!_isCompleted) {
+      _completeCurrent(
+        (completer) => completer.completeError(
+          error ?? StateError('CompleterManager disposed'),
+          stackTrace,
+        ),
+      );
+    }
+
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    _isDisposed = true;
+  }
+
+  void _createCompleter() {
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    _completer = Completer<T>();
+    _isCompleted = false;
+  }
+
+  void _completeCurrent(
+    void Function(Completer<T> completer) complete,
+  ) {
+    _isCompleted = true;
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    complete(_completer);
   }
 }
