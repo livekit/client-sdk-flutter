@@ -24,6 +24,7 @@ import '../core/room.dart';
 import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
+import '../support/byte_ring_buffer.dart';
 import '../support/native.dart';
 import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
@@ -56,7 +57,9 @@ class PreConnectAudioBuffer {
   final int _requestSampleRate;
   int? _renderedSampleRate;
 
-  final BytesBuilder _buffer = BytesBuilder(copy: false);
+  bool _nativeRecordingStarted = false;
+  bool _hasLoggedOverflow = false;
+  final ByteRingBuffer _buffer = ByteRingBuffer(defaultMaxSize);
   Timer? _timeoutTimer;
   CancelListenFunc? _participantStateListener;
 
@@ -107,14 +110,29 @@ class PreConnectAudioBuffer {
       },
     );
 
+    if (result != true) {
+      final error = StateError('Failed to start native audio renderer ($result)');
+      logger.severe('[Preconnect audio] $error');
+      _onError?.call(error);
+      await stopRecording(withError: error);
+      await _localTrack?.stop();
+      _localTrack = null;
+      throw error;
+    }
+
     await webrtc.NativeAudioManagement.startLocalRecording();
+    _nativeRecordingStarted = true;
 
     _rendererId = rendererId;
 
     logger.info('startAudioRenderer result: $result');
 
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
-    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
+    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) async {
+      if (!_isRecording) {
+        return;
+      }
+
       try {
         // Actual sample rate of the audio data, can differ from the request sample rate
         _renderedSampleRate = event['sampleRate'] as int;
@@ -123,7 +141,14 @@ class PreConnectAudioBuffer {
         // Convert Int16 values to bytes using typed data view
         final int16List = Int16List.fromList(monoData);
         final bytes = int16List.buffer.asUint8List();
-        _buffer.add(bytes);
+
+        final didOverflow = _buffer.write(bytes);
+        if (didOverflow && !_hasLoggedOverflow) {
+          _hasLoggedOverflow = true;
+          logger.warning(
+            '[Preconnect audio] buffer exceeded ${defaultMaxSize ~/ 1024}KB, dropping oldest audio until agent is ready',
+          );
+        }
       } catch (e) {
         logger.warning('[Preconnect audio] Error parsing event: $e');
       }
@@ -176,12 +201,18 @@ class PreConnectAudioBuffer {
     _rendererId = null;
 
     // Stop native audio when errored
-    if (withError != null) {
+    if (withError != null && _nativeRecordingStarted) {
       await webrtc.NativeAudioManagement.stopLocalRecording();
     }
 
+    _nativeRecordingStarted = false;
+
     // Complete agent ready future if not already completed
-    _agentReadyManager.complete();
+    if (withError != null) {
+      _agentReadyManager.completeError(withError!);
+    } else {
+      _agentReadyManager.complete();
+    }
 
     // Emit the stopped event
     _room.events.emit(PreConnectAudioBufferStoppedEvent(
@@ -208,6 +239,7 @@ class PreConnectAudioBuffer {
 
     // Reset the _isSent flag to allow data sending on next use
     _isBufferSent = false;
+    _hasLoggedOverflow = false;
 
     logger.info('[Preconnect audio] reset');
   }
