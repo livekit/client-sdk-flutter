@@ -26,6 +26,7 @@ class CompleterManager<T> {
   Timer? _timeoutTimer;
   bool _isCompleted = false;
   bool _isDisposed = false;
+  bool _hasPendingListener = false;
 
   /// Creates a new [CompleterManager] with an active completer.
   CompleterManager() : _completer = Completer<T>();
@@ -40,6 +41,7 @@ class CompleterManager<T> {
     if (_isCompleted) {
       _createCompleter();
     }
+    _hasPendingListener = true;
     return _completer.future;
   }
 
@@ -100,13 +102,15 @@ class CompleterManager<T> {
       throw StateError('CompleterManager disposed');
     }
 
-    if (!_isCompleted) {
+    if (!_isCompleted && _hasPendingListener) {
       _completeCurrent(
         (completer) => completer.completeError(
           error ?? StateError('CompleterManager reset'),
           stackTrace,
         ),
       );
+    } else {
+      _markCompletedWithoutNotify();
     }
 
     _createCompleter();
@@ -121,13 +125,15 @@ class CompleterManager<T> {
       return;
     }
 
-    if (!_isCompleted) {
+    if (!_isCompleted && _hasPendingListener) {
       _completeCurrent(
         (completer) => completer.completeError(
           error ?? StateError('CompleterManager disposed'),
           stackTrace,
         ),
       );
+    } else {
+      _markCompletedWithoutNotify();
     }
 
     _timeoutTimer?.cancel();
@@ -140,6 +146,7 @@ class CompleterManager<T> {
     _timeoutTimer = null;
     _completer = Completer<T>();
     _isCompleted = false;
+    _hasPendingListener = false;
   }
 
   void _completeCurrent(
@@ -149,5 +156,13 @@ class CompleterManager<T> {
     _timeoutTimer?.cancel();
     _timeoutTimer = null;
     complete(_completer);
+    _hasPendingListener = false;
+  }
+
+  void _markCompletedWithoutNotify() {
+    _isCompleted = true;
+    _timeoutTimer?.cancel();
+    _timeoutTimer = null;
+    _hasPendingListener = false;
   }
 }
