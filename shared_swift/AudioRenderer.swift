@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LiveKit
+ * Copyright 2025 LiveKit
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ import AVFoundation
 import WebRTC
 
 #if os(macOS)
-    import Cocoa
-    import FlutterMacOS
+import Cocoa
+import FlutterMacOS
 #else
-    import Flutter
-    import UIKit
+import Flutter
+import UIKit
 #endif
 
 public class AudioRenderer: NSObject {
@@ -97,7 +97,7 @@ public extension AVAudioPCMBuffer {
         ]
 
         // Extract audio data based on the buffer format
-        if let floatChannelData = floatChannelData {
+        if let floatChannelData {
             // Buffer contains float data
             var channelsData: [[Float]] = []
 
@@ -109,7 +109,7 @@ public extension AVAudioPCMBuffer {
 
             result["data"] = channelsData
             result["commonFormat"] = "float32"
-        } else if let int16ChannelData = int16ChannelData {
+        } else if let int16ChannelData {
             // Buffer contains int16 data
             var channelsData: [[Int16]] = []
 
@@ -121,7 +121,7 @@ public extension AVAudioPCMBuffer {
 
             result["data"] = channelsData
             result["commonFormat"] = "int16"
-        } else if let int32ChannelData = int32ChannelData {
+        } else if let int32ChannelData {
             // Buffer contains int32 data
             var channelsData: [[Int32]] = []
 
@@ -145,7 +145,7 @@ public extension AVAudioPCMBuffer {
 
 extension AudioRenderer: RTCAudioRenderer {
     public func render(pcmBuffer: AVAudioPCMBuffer) {
-        guard let eventSink = eventSink else { return }
+        guard let eventSink else { return }
 
         // Create or update converter if needed
         if converter == nil || pcmBuffer.format != converter!.inputFormat || format != converter!.outputFormat {

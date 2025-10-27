@@ -1,27 +1,29 @@
-// Copyright 2025 LiveKit, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2025 LiveKit
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import flutter_webrtc
 import WebRTC
 
 #if os(macOS)
-    import Cocoa
-    import FlutterMacOS
+import Cocoa
+import FlutterMacOS
 #else
-    import Combine
-    import Flutter
-    import UIKit
+import Combine
+import Flutter
+import UIKit
 #endif
 
 let trackIdKey = "trackId"
@@ -51,14 +53,14 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     var binaryMessenger: FlutterBinaryMessenger?
 
     #if os(iOS)
-        var cancellable = Set<AnyCancellable>()
+    var cancellable = Set<AnyCancellable>()
     #endif
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         #if os(macOS)
-            let messenger = registrar.messenger
+        let messenger = registrar.messenger
         #else
-            let messenger = registrar.messenger()
+        let messenger = registrar.messenger()
         #endif
 
         let channel = FlutterMethodChannel(name: "livekit_client", binaryMessenger: messenger)
@@ -67,60 +69,60 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
 
         #if os(iOS)
-            BroadcastManager.shared.isBroadcastingPublisher
-                .sink { isBroadcasting in
-                    channel.invokeMethod("broadcastStateChanged", arguments: isBroadcasting)
-                }
-                .store(in: &instance.cancellable)
+        BroadcastManager.shared.isBroadcastingPublisher
+            .sink { isBroadcasting in
+                channel.invokeMethod("broadcastStateChanged", arguments: isBroadcasting)
+            }
+            .store(in: &instance.cancellable)
         #endif
     }
 
     #if !os(macOS)
-        // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
-        let categoryMap: [String: AVAudioSession.Category] = [
-            "ambient": .ambient,
-            "multiRoute": .multiRoute,
-            "playAndRecord": .playAndRecord,
-            "playback": .playback,
-            "record": .record,
-            "soloAmbient": .soloAmbient,
-        ]
+    // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
+    let categoryMap: [String: AVAudioSession.Category] = [
+        "ambient": .ambient,
+        "multiRoute": .multiRoute,
+        "playAndRecord": .playAndRecord,
+        "playback": .playback,
+        "record": .record,
+        "soloAmbient": .soloAmbient,
+    ]
 
-        // https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
-        let categoryOptionsMap: [String: AVAudioSession.CategoryOptions] = [
-            "mixWithOthers": .mixWithOthers,
-            "duckOthers": .duckOthers,
-            "interruptSpokenAudioAndMixWithOthers": .interruptSpokenAudioAndMixWithOthers,
-            "allowBluetooth": .allowBluetooth,
-            "allowBluetoothA2DP": .allowBluetoothA2DP,
-            "allowAirPlay": .allowAirPlay,
-            "defaultToSpeaker": .defaultToSpeaker,
-            //        @available(iOS 14.5, *)
-            //        "overrideMutedMicrophoneInterruption": .overrideMutedMicrophoneInterruption,
-        ]
+    // https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
+    let categoryOptionsMap: [String: AVAudioSession.CategoryOptions] = [
+        "mixWithOthers": .mixWithOthers,
+        "duckOthers": .duckOthers,
+        "interruptSpokenAudioAndMixWithOthers": .interruptSpokenAudioAndMixWithOthers,
+        "allowBluetooth": .allowBluetooth,
+        "allowBluetoothA2DP": .allowBluetoothA2DP,
+        "allowAirPlay": .allowAirPlay,
+        "defaultToSpeaker": .defaultToSpeaker,
+        //        @available(iOS 14.5, *)
+        //        "overrideMutedMicrophoneInterruption": .overrideMutedMicrophoneInterruption,
+    ]
 
-        // https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
-        let modeMap: [String: AVAudioSession.Mode] = [
-            "default": .default,
-            "gameChat": .gameChat,
-            "measurement": .measurement,
-            "moviePlayback": .moviePlayback,
-            "spokenAudio": .spokenAudio,
-            "videoChat": .videoChat,
-            "videoRecording": .videoRecording,
-            "voiceChat": .voiceChat,
-            "voicePrompt": .voicePrompt,
-        ]
+    // https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
+    let modeMap: [String: AVAudioSession.Mode] = [
+        "default": .default,
+        "gameChat": .gameChat,
+        "measurement": .measurement,
+        "moviePlayback": .moviePlayback,
+        "spokenAudio": .spokenAudio,
+        "videoChat": .videoChat,
+        "videoRecording": .videoRecording,
+        "voiceChat": .voiceChat,
+        "voicePrompt": .voicePrompt,
+    ]
 
-        private func categoryOptions(fromFlutter options: [String]) -> AVAudioSession.CategoryOptions {
-            var result: AVAudioSession.CategoryOptions = []
-            for option in categoryOptionsMap {
-                if options.contains(option.key) {
-                    result.insert(option.value)
-                }
+    private func categoryOptions(fromFlutter options: [String]) -> AVAudioSession.CategoryOptions {
+        var result: AVAudioSession.CategoryOptions = []
+        for option in categoryOptionsMap {
+            if options.contains(option.key) {
+                result.insert(option.value)
             }
-            return result
         }
+        return result
+    }
     #endif
 
     private func audioProcessors(for trackId: String) -> AudioProcessors? {
@@ -208,7 +210,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     public func parseAudioFormat(args: [String: Any?]) -> AVAudioFormat? {
         guard let commonFormatString = args[commonFormatKey] as? String,
               let sampleRate = args[sampleRateKey] as? Int,
-              let channels = args[channelsKey] as? Int else {
+              let channels = args[channelsKey] as? Int
+        else {
             return nil
         }
 
@@ -225,9 +228,9 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         return AVAudioFormat(commonFormat: commonFormat,
-        sampleRate: Double(sampleRate),
-        channels: AVAudioChannelCount(channels),
-        interleaved: false)
+                             sampleRate: Double(sampleRate),
+                             channels: AVAudioChannelCount(channels),
+                             interleaved: false)
     }
 
     public func handleStartAudioRenderer(args: [String: Any?], result: @escaping FlutterResult) {
@@ -298,75 +301,75 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     public func handleConfigureNativeAudio(args: [String: Any?], result: @escaping FlutterResult) {
         #if os(macOS)
-            result(FlutterMethodNotImplemented)
+        result(FlutterMethodNotImplemented)
         #else
 
-            let configuration = RTCAudioSessionConfiguration.webRTC()
+        let configuration = RTCAudioSessionConfiguration.webRTC()
 
-            // Category
-            if let string = args["appleAudioCategory"] as? String,
-               let category = categoryMap[string]
-            {
-                configuration.category = category.rawValue
-                print("[LiveKit] Configuring category: ", configuration.category)
+        // Category
+        if let string = args["appleAudioCategory"] as? String,
+           let category = categoryMap[string]
+        {
+            configuration.category = category.rawValue
+            print("[LiveKit] Configuring category: ", configuration.category)
+        }
+
+        // CategoryOptions
+        if let strings = args["appleAudioCategoryOptions"] as? [String] {
+            configuration.categoryOptions = categoryOptions(fromFlutter: strings)
+            print("[LiveKit] Configuring categoryOptions: ", strings)
+        }
+
+        // Mode
+        if let string = args["appleAudioMode"] as? String,
+           let mode = modeMap[string]
+        {
+            configuration.mode = mode.rawValue
+            print("[LiveKit] Configuring mode: ", configuration.mode)
+        }
+
+        // get `RTCAudioSession` and lock
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.lockForConfiguration()
+
+        var isLocked = true
+        let unlock = {
+            guard isLocked else {
+                print("[LiveKit] not locked, ignoring unlock")
+                return
             }
+            rtcSession.unlockForConfiguration()
+            isLocked = false
+        }
 
-            // CategoryOptions
-            if let strings = args["appleAudioCategoryOptions"] as? [String] {
-                configuration.categoryOptions = categoryOptions(fromFlutter: strings)
-                print("[LiveKit] Configuring categoryOptions: ", strings)
+        // always `unlock()` when exiting scope, calling multiple times has no side-effect
+        defer {
+            unlock()
+        }
+
+        do {
+            try rtcSession.setConfiguration(configuration, active: true)
+            // unlock here before configuring `AVAudioSession`
+            // unlock()
+            print("[LiveKit] RTCAudioSession Configure success")
+
+            // also configure longFormAudio
+            // let avSession = AVAudioSession.sharedInstance()
+            // try avSession.setCategory(AVAudioSession.Category(rawValue: configuration.category),
+            //                      mode: AVAudioSession.Mode(rawValue: configuration.mode),
+            //                      policy: .default,
+            //                      options: configuration.categoryOptions)
+            // print("[LiveKit] AVAudioSession Configure success")
+
+            // preferSpeakerOutput
+            if let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool {
+                try rtcSession.overrideOutputAudioPort(preferSpeakerOutput ? .speaker : .none)
             }
-
-            // Mode
-            if let string = args["appleAudioMode"] as? String,
-               let mode = modeMap[string]
-            {
-                configuration.mode = mode.rawValue
-                print("[LiveKit] Configuring mode: ", configuration.mode)
-            }
-
-            // get `RTCAudioSession` and lock
-            let rtcSession = RTCAudioSession.sharedInstance()
-            rtcSession.lockForConfiguration()
-
-            var isLocked = true
-            let unlock = {
-                guard isLocked else {
-                    print("[LiveKit] not locked, ignoring unlock")
-                    return
-                }
-                rtcSession.unlockForConfiguration()
-                isLocked = false
-            }
-
-            // always `unlock()` when exiting scope, calling multiple times has no side-effect
-            defer {
-                unlock()
-            }
-
-            do {
-                try rtcSession.setConfiguration(configuration, active: true)
-                // unlock here before configuring `AVAudioSession`
-                // unlock()
-                print("[LiveKit] RTCAudioSession Configure success")
-
-                // also configure longFormAudio
-                // let avSession = AVAudioSession.sharedInstance()
-                // try avSession.setCategory(AVAudioSession.Category(rawValue: configuration.category),
-                //                      mode: AVAudioSession.Mode(rawValue: configuration.mode),
-                //                      policy: .default,
-                //                      options: configuration.categoryOptions)
-                // print("[LiveKit] AVAudioSession Configure success")
-
-                // preferSpeakerOutput
-                if let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool {
-                    try rtcSession.overrideOutputAudioPort(preferSpeakerOutput ? .speaker : .none)
-                }
-                result(true)
-            } catch {
-                print("[LiveKit] Configure audio error: ", error)
-                result(FlutterError(code: "configure", message: error.localizedDescription, details: nil))
-            }
+            result(true)
+        } catch {
+            print("[LiveKit] Configure audio error: ", error)
+            result(FlutterError(code: "configure", message: error.localizedDescription, details: nil))
+        }
         #endif
     }
 
@@ -407,12 +410,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         #if os(iOS)
-            case "broadcastRequestActivation":
-                BroadcastManager.shared.requestActivation()
-                result(true)
-            case "broadcastRequestStop":
-                BroadcastManager.shared.requestStop()
-                result(true)
+        case "broadcastRequestActivation":
+            BroadcastManager.shared.requestActivation()
+            result(true)
+        case "broadcastRequestStop":
+            BroadcastManager.shared.requestStop()
+            result(true)
         #endif
         default:
             print("[LiveKit] method not found: ", call.method)
