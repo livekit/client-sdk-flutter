@@ -24,8 +24,8 @@ import '../core/room.dart';
 import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
-import '../support/completer_manager.dart';
 import '../support/native.dart';
+import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
@@ -60,7 +60,7 @@ class PreConnectAudioBuffer {
   Timer? _timeoutTimer;
   CancelListenFunc? _participantStateListener;
 
-  final CompleterManager<void> _agentReadyManager = CompleterManager<void>();
+  final ReusableCompleter<void> _agentReadyManager = ReusableCompleter<void>();
 
   PreConnectAudioBuffer(
     this._room, {
