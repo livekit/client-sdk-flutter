@@ -207,8 +207,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     public func parseAudioFormat(args: [String: Any?]) -> AVAudioFormat? {
         guard let commonFormatString = args[commonFormatKey] as? String,
-              let sampleRate = args[sampleRateKey] as? Double,
-              let channels = args[channelsKey] as? AVAudioChannelCount else {
+              let sampleRate = args[sampleRateKey] as? Int,
+              let channels = args[channelsKey] as? Int else {
             return nil
         }
 
@@ -224,7 +224,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return nil
         }
 
-        return AVAudioFormat(commonFormat: commonFormat, sampleRate: sampleRate, channels: channels, interleaved: false)
+        return AVAudioFormat(commonFormat: commonFormat,
+        sampleRate: Double(sampleRate),
+        channels: AVAudioChannelCount(channels),
+        interleaved: false)
     }
 
     public func handleStartAudioRenderer(args: [String: Any?], result: @escaping FlutterResult) {
