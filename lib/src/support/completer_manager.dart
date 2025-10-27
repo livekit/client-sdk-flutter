@@ -83,7 +83,7 @@ class CompleterManager<T> {
       return;
     }
 
-    _timeoutTimer?.cancel();
+    _clearTimer();
     _timeoutTimer = Timer(timeout, () {
       if (_isDisposed || _isCompleted) {
         return;
@@ -136,14 +136,12 @@ class CompleterManager<T> {
       _markCompletedWithoutNotify();
     }
 
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
+    _clearTimer();
     _isDisposed = true;
   }
 
   void _createCompleter() {
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
+    _clearTimer();
     _completer = Completer<T>();
     _isCompleted = false;
     _hasPendingListener = false;
@@ -153,16 +151,19 @@ class CompleterManager<T> {
     void Function(Completer<T> completer) complete,
   ) {
     _isCompleted = true;
-    _timeoutTimer?.cancel();
-    _timeoutTimer = null;
+    _clearTimer();
     complete(_completer);
     _hasPendingListener = false;
   }
 
   void _markCompletedWithoutNotify() {
     _isCompleted = true;
+    _clearTimer();
+    _hasPendingListener = false;
+  }
+
+  void _clearTimer() {
     _timeoutTimer?.cancel();
     _timeoutTimer = null;
-    _hasPendingListener = false;
   }
 }

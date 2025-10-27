@@ -27,10 +27,8 @@ void main() {
     });
 
     tearDown(() {
-      try {
+      if (!manager.isDisposed) {
         manager.dispose();
-      } catch (_) {
-        // Already disposed, ignore
       }
     });
 
