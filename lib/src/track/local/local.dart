@@ -30,6 +30,7 @@ import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../processor.dart';
+import '../processor_native.dart' if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
@@ -86,8 +87,7 @@ abstract class LocalTrack extends Track {
 
   TrackProcessor? get processor => _processor;
 
-  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream,
-      rtc.MediaStreamTrack mediaStreamTrack)
+  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
       : super(
           kind,
           source,
@@ -166,9 +166,7 @@ abstract class LocalTrack extends Track {
           : options is ScreenShareCaptureOptions
               ? (options).captureScreenAudio
               : false,
-      'video': options is VideoCaptureOptions
-          ? options.toMediaConstraintsMap()
-          : false,
+      'video': options is VideoCaptureOptions ? options.toMediaConstraintsMap() : false,
     };
 
     final rtc.MediaStream stream;
@@ -183,8 +181,7 @@ abstract class LocalTrack extends Track {
 
         // Remove resolution settings to fix low-resolution screen share on Safari 17.
         // related bug: https://bugs.webkit.org/show_bug.cgi?id=263015
-        if (lkBrowser() == BrowserType.safari &&
-            lkBrowserVersion().major == 17) {
+        if (lkBrowser() == BrowserType.safari && lkBrowserVersion().major == 17) {
           constraints['video'] = true;
         }
       }
@@ -197,8 +194,7 @@ abstract class LocalTrack extends Track {
     // Check if the stream looks good
     if ((options is VideoCaptureOptions && stream.getVideoTracks().isEmpty) ||
         (options is AudioCaptureOptions && stream.getAudioTracks().isEmpty)) {
-      throw TrackCreateException(
-          'Failed to create stream, at least 1 video or audio track should exist');
+      throw TrackCreateException('Failed to create stream, at least 1 video or audio track should exist');
     }
     return stream;
   }

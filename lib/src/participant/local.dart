@@ -70,8 +70,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   final Map<String, Function(String participantIdentity)> _pendingAcks = {};
 
   // RPC Pending Responses
-  final Map<String, Function(String? payload, RpcError? error)>
-      _pendingResponses = {};
+  final Map<String, Function(String? payload, RpcError? error)> _pendingResponses = {};
 
   @internal
   LocalParticipant({
@@ -97,8 +96,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   /// Handle broadcast state change (iOS only)
   void _broadcastStateChanged() {
-    final isEnabled = BroadcastManager().isBroadcasting &&
-        BroadcastManager().shouldPublishTrack;
+    final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
     setScreenShareEnabled(isEnabled);
   }
 
@@ -108,14 +106,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
-    if (audioTrackPublications.any(
-        (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (audioTrackPublications.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
     // Use defaultPublishOptions if options is null
-    publishOptions ??=
-        track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
+    publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
     final List<rtc.RTCRtpEncoding> encodings = [
       rtc.RTCRtpEncoding(
@@ -135,16 +131,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     Future<lk_models.TrackInfo> negotiate() async {
-      track.transceiver = await room.engine
-          .createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+      track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
       await room.engine.negotiate();
       return lk_models.TrackInfo();
     }
 
     late lk_models.TrackInfo trackInfo;
     if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
-      final rets = await Future.wait<lk_models.TrackInfo>(
-          [room.engine.addTrack(req), negotiate()]);
+      final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
       trackInfo = rets[0];
     } else {
       trackInfo = await room.engine.addTrack(req);
@@ -152,8 +146,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
         sendEncodings: [
-          if (publishOptions.audioBitrate > 0)
-            rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
+          if (publishOptions.audioBitrate > 0) rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
         ],
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
@@ -205,14 +198,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
-    if (videoTrackPublications.any(
-        (e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (videoTrackPublications.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
     // Use defaultPublishOptions if options is null
-    publishOptions ??=
-        track.lastPublishOptions ?? room.roomOptions.defaultVideoPublishOptions;
+    publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultVideoPublishOptions;
 
     if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
@@ -224,15 +215,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       // fallback to a supported codec if it is not supported
       if (!room.engine.enabledPublishCodecs!
           .where((c) => c.mime.startsWith('video/'))
-          .where(
-              (c) => videoCodecs.any((v) => c.mime.toLowerCase().endsWith(v)))
-          .any((c) =>
-              publishOptions?.videoCodec ==
-              mimeTypeToVideoCodecString(c.mime))) {
+          .where((c) => videoCodecs.any((v) => c.mime.toLowerCase().endsWith(v)))
+          .any((c) => publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
         publishOptions = publishOptions.copyWith(
-          videoCodec: mimeTypeToVideoCodecString(
-                  room.engine.enabledPublishCodecs![0].mime)
-              .toLowerCase(),
+          videoCodec: mimeTypeToVideoCodecString(room.engine.enabledPublishCodecs![0].mime).toLowerCase(),
         );
       }
     }
@@ -276,8 +262,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
     }
 
-    logger.fine(
-        'Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
+    logger.fine('Compute encodings with resolution: ${dimensions}, options: ${publishOptions}');
 
     // Video encodings and simulcasts
     var encodings = Utils.computeVideoEncodings(
@@ -296,8 +281,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     ];
 
-    if (publishOptions.backupVideoCodec.enabled &&
-        publishOptions.backupVideoCodec.codec != publishOptions.videoCodec) {
+    if (publishOptions.backupVideoCodec.enabled && publishOptions.backupVideoCodec.codec != publishOptions.videoCodec) {
       simulcastCodecs.add(lk_rtc.SimulcastCodec(
         codec: publishOptions.backupVideoCodec.codec.toLowerCase(),
         cid: '',
@@ -311,15 +295,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     );
 
     if (room.engine.isClosed) {
-      throw UnexpectedConnectionState(
-          'cannot publish track when not connected');
+      throw UnexpectedConnectionState('cannot publish track when not connected');
     }
 
     logger.fine('Video layers: ${layers.map((e) => e)}');
 
     Future<lk_models.TrackInfo> negotiate() async {
-      track.transceiver = await room.engine
-          .createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+      track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
 
       if (lkBrowser() != BrowserType.firefox) {
         await room.engine.setPreferredCodec(
@@ -330,8 +312,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.codec = publishOptions.videoCodec;
       }
 
-      if ([TrackSource.camera, TrackSource.screenShareVideo]
-          .contains(track.source)) {
+      if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
         final degradationPreference = publishOptions.degradationPreference ??
             getDefaultDegradationPreference(
               track,
@@ -339,12 +320,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.setDegradationPreference(degradationPreference);
       }
 
-      if (kIsWeb &&
-          lkBrowser() == BrowserType.firefox &&
-          track.kind == TrackType.AUDIO) {
+      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) &&
-          encodings?.first.maxBitrate != null) {
+      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
@@ -384,8 +362,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
     late lk_models.TrackInfo trackInfo;
     if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
-      final rets = await Future.wait<lk_models.TrackInfo>(
-          [room.engine.addTrack(req), negotiate()]);
+      final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
       trackInfo = rets[0];
     } else {
       trackInfo = await room.engine.addTrack(req);
@@ -436,8 +413,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.codec = publishOptions.videoCodec;
       }
 
-      if ([TrackSource.camera, TrackSource.screenShareVideo]
-          .contains(track.source)) {
+      if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
         final degradationPreference = publishOptions.degradationPreference ??
             getDefaultDegradationPreference(
               track,
@@ -445,12 +421,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         track.setDegradationPreference(degradationPreference);
       }
 
-      if (kIsWeb &&
-          lkBrowser() == BrowserType.firefox &&
-          track.kind == TrackType.AUDIO) {
+      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) &&
-          encodings?.first.maxBitrate != null) {
+      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
@@ -493,8 +466,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return pub;
   }
 
-  Future<void> removePublishedTrack(String trackSid,
-      {bool notify = true}) async {
+  Future<void> removePublishedTrack(String trackSid, {bool notify = true}) async {
     logger.finer('Unpublish track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -515,8 +487,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           await room.engine.publisher?.pc.removeTrack(sender);
           if (track is LocalVideoTrack) {
             track.simulcastCodecs.forEach((key, simulcastTrack) async {
-              await room.engine.publisher?.pc
-                  .removeTrack(simulcastTrack.sender!);
+              await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
             });
           }
         } catch (_) {
@@ -556,16 +527,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // 1. without this, Chrome seems to aggressively resize the SVC video stating `quality-limitation: bandwidth` even when BW isn't an issue
     // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
     final VideoDimensions dimensions = track.currentOptions.params.dimensions;
-    if (track.source == TrackSource.screenShareVideo ||
-        dimensions.height >= 1080) {
+    if (track.source == TrackSource.screenShareVideo || dimensions.height >= 1080) {
       return DegradationPreference.maintainResolution;
     }
     return DegradationPreference.balanced;
   }
 
   /// Convenience method to unpublish all tracks.
-  Future<void> unpublishAllTracks(
-      {bool notify = true, bool? stopOnUnpublish}) async {
+  Future<void> unpublishAllTracks({bool notify = true, bool? stopOnUnpublish}) async {
     final trackSids = trackPublications.keys.toSet();
     for (final trackid in trackSids) {
       await removePublishedTrack(trackid, notify: notify);
@@ -595,9 +564,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     String? topic,
   }) async {
     final packet = lk_models.DataPacket(
-      kind: reliable == true
-          ? lk_models.DataPacket_Kind.RELIABLE
-          : lk_models.DataPacket_Kind.LOSSY,
+      kind: reliable == true ? lk_models.DataPacket_Kind.RELIABLE : lk_models.DataPacket_Kind.LOSSY,
       user: lk_models.UserPacket(
         payload: data,
         participantIdentity: identity,
@@ -613,8 +580,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   /// @param metadata
   void setMetadata(String metadata) {
-    room.engine.signalClient
-        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
       name: name,
       metadata: metadata,
     ));
@@ -623,8 +589,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Sets and updates the attributes of the local participant.
   /// @attributes key-value pairs to set
   void setAttributes(Map<String, String> attributes) {
-    room.engine.signalClient
-        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
       attributes: attributes.entries,
     ));
   }
@@ -634,8 +599,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   ///  @param name
   void setName(String name) {
     super.updateName(name);
-    room.engine.signalClient
-        .sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
+    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
       name: name,
       metadata: metadata,
     ));
@@ -644,16 +608,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// A convenience property to get all video tracks.
   @override
   List<LocalTrackPublication<LocalVideoTrack>> get videoTrackPublications =>
-      trackPublications.values
-          .whereType<LocalTrackPublication<LocalVideoTrack>>()
-          .toList();
+      trackPublications.values.whereType<LocalTrackPublication<LocalVideoTrack>>().toList();
 
   /// A convenience property to get all audio tracks.
   @override
   List<LocalTrackPublication<LocalAudioTrack>> get audioTrackPublications =>
-      trackPublications.values
-          .whereType<LocalTrackPublication<LocalAudioTrack>>()
-          .toList();
+      trackPublications.values.whereType<LocalTrackPublication<LocalAudioTrack>>().toList();
 
   @override
   LocalTrackPublication? getTrackPublicationByName(String name) {
@@ -683,36 +643,28 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Shortcut for publishing a [TrackSource.camera]
-  Future<LocalTrackPublication?> setCameraEnabled(bool enabled,
-      {CameraCaptureOptions? cameraCaptureOptions}) async {
+  Future<LocalTrackPublication?> setCameraEnabled(bool enabled, {CameraCaptureOptions? cameraCaptureOptions}) async {
     cameraCaptureOptions ??= room.roomOptions.defaultCameraCaptureOptions;
-    return setSourceEnabled(TrackSource.camera, enabled,
-        cameraCaptureOptions: cameraCaptureOptions);
+    return setSourceEnabled(TrackSource.camera, enabled, cameraCaptureOptions: cameraCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.microphone]
-  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled,
-      {AudioCaptureOptions? audioCaptureOptions}) async {
+  Future<LocalTrackPublication?> setMicrophoneEnabled(bool enabled, {AudioCaptureOptions? audioCaptureOptions}) async {
     audioCaptureOptions ??= room.roomOptions.defaultAudioCaptureOptions;
-    return setSourceEnabled(TrackSource.microphone, enabled,
-        audioCaptureOptions: audioCaptureOptions);
+    return setSourceEnabled(TrackSource.microphone, enabled, audioCaptureOptions: audioCaptureOptions);
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
   Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
-      {bool? captureScreenAudio,
-      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
-    screenShareCaptureOptions ??=
-        room.roomOptions.defaultScreenShareCaptureOptions;
+      {bool? captureScreenAudio, ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
+    screenShareCaptureOptions ??= room.roomOptions.defaultScreenShareCaptureOptions;
     return setSourceEnabled(TrackSource.screenShareVideo, enabled,
-        captureScreenAudio: captureScreenAudio,
-        screenShareCaptureOptions: screenShareCaptureOptions);
+        captureScreenAudio: captureScreenAudio, screenShareCaptureOptions: screenShareCaptureOptions);
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
-  Future<LocalTrackPublication?> setSourceEnabled(
-      TrackSource source, bool enabled,
+  Future<LocalTrackPublication?> setSourceEnabled(TrackSource source, bool enabled,
       {bool? captureScreenAudio,
       AudioCaptureOptions? audioCaptureOptions,
       CameraCaptureOptions? cameraCaptureOptions,
@@ -720,17 +672,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
 
     if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
-      throw TrackCreateException(
-          'Screen sharing is not supported on mobile devices');
+      throw TrackCreateException('Screen sharing is not supported on mobile devices');
     }
 
     final publication = getTrackPublicationBySource(source);
     if (publication != null) {
       final stopOnMute = switch (publication.source) {
-        TrackSource.camera =>
-          cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
-        TrackSource.microphone =>
-          audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
+        TrackSource.camera => cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
+        TrackSource.microphone => audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
         _ => true,
       };
       if (enabled) {
@@ -738,8 +687,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } else {
         if (source == TrackSource.screenShareVideo) {
           await removePublishedTrack(publication.sid);
-          final screenAudio =
-              getTrackPublicationBySource(TrackSource.screenShareAudio);
+          final screenAudio = getTrackPublicationBySource(TrackSource.screenShareAudio);
           if (screenAudio != null) {
             await removePublishedTrack(screenAudio.sid);
           }
@@ -750,21 +698,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       return publication;
     } else if (enabled) {
       if (source == TrackSource.camera) {
-        final CameraCaptureOptions captureOptions = cameraCaptureOptions ??
-            room.roomOptions.defaultCameraCaptureOptions;
+        final CameraCaptureOptions captureOptions =
+            cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
         final track = await LocalVideoTrack.createCameraTrack(captureOptions);
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
-        final AudioCaptureOptions captureOptions =
-            audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+        final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
         final track = await LocalAudioTrack.create(captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
-        ScreenShareCaptureOptions captureOptions = screenShareCaptureOptions ??
-            room.roomOptions.defaultScreenShareCaptureOptions;
+        ScreenShareCaptureOptions captureOptions =
+            screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
 
-        if (lkPlatformIs(PlatformType.iOS) &&
-            !BroadcastManager().isBroadcasting) {
+        if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
           // Wait until broadcasting to publish track
           BroadcastManager().requestActivation();
           return null;
@@ -775,8 +721,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         /// so we publish it twice here, but only return videoTrack to user.
         if (captureScreenAudio ?? false) {
           captureOptions = captureOptions.copyWith(captureScreenAudio: true);
-          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(
-              captureOptions);
+          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
           LocalTrackPublication<LocalVideoTrack>? publication;
           for (final track in tracks) {
             if (track is LocalVideoTrack) {
@@ -789,8 +734,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           /// just return the video track publication
           return publication;
         }
-        final track =
-            await LocalVideoTrack.createScreenShareTrack(captureOptions);
+        final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
         return await publishVideoTrack(track);
       }
     }
@@ -832,8 +776,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
     room.engine.signalClient.sendUpdateSubscriptionPermissions(
       allParticipants: _allParticipantsAllowed,
-      trackPermissions:
-          _participantTrackPermissions.map((e) => e.toPBType()).toList(),
+      trackPermissions: _participantTrackPermissions.map((e) => e.toPBType()).toList(),
     );
   }
 
@@ -886,16 +829,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final encodings = Utils.computeTrackBackupEncodings(track, backupCodecOpts);
     if (encodings == null) {
-      logger.fine(
-          'backup codec has been disabled, ignoring request to add additional codec for track');
+      logger.fine('backup codec has been disabled, ignoring request to add additional codec for track');
       return;
     }
 
     final simulcastTrack = track.addSimulcastTrack(backupCodec, encodings);
     final dimensions = track.currentOptions.params.dimensions;
 
-    final layers = Utils.computeVideoLayers(
-        dimensions, encodings, isSVCCodec(backupCodec));
+    final layers = Utils.computeVideoLayers(dimensions, encodings, isSVCCodec(backupCodec));
 
     simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
       track,
@@ -935,8 +876,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     await room.engine.negotiate();
 
-    logger.info(
-        'published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
+    logger.info('published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
   }
 }
 
@@ -1088,8 +1028,7 @@ extension RPCMethods on LocalParticipant {
       } else {
         logger.warning(
             'Uncaught error returned by RPC handler for ${method}. Returning RpcError.applicationError instead. $error');
-        responseError = RpcError(
-            code: RpcError.applicationError, message: error.toString());
+        responseError = RpcError(code: RpcError.applicationError, message: error.toString());
       }
     }
 
@@ -1119,9 +1058,8 @@ extension RPCMethods on LocalParticipant {
         requestId: requestId,
         method: params.method,
         payload: params.payload,
-        responseTimeout: Duration(
-            milliseconds: params.responseTimeoutMs.inMilliseconds -
-                maxRoundTripLatency.inMilliseconds),
+        responseTimeout:
+            Duration(milliseconds: params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds),
         version: kRpcVesion,
       );
 
@@ -1160,8 +1098,7 @@ extension RPCMethods on LocalParticipant {
 }
 
 extension DataStreamParticipantMethods on LocalParticipant {
-  Future<TextStreamInfo> sendText(String text,
-      {SendTextOptions? options}) async {
+  Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) async {
     final streamId = Uuid().v4();
     final textInBytes = text.codeUnits;
     final totalTextLength = textInBytes.length;
@@ -1261,17 +1198,14 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     await room.engine.sendDataPacket(packet, reliability: true);
 
-    final writableStream = WritableStream<String>(
-        destinationIdentities: destinationIdentities!,
-        engine: room.engine,
-        streamId: streamId);
+    final writableStream =
+        WritableStream<String>(destinationIdentities: destinationIdentities!, engine: room.engine, streamId: streamId);
 
     onEngineClose() async {
       await writableStream.close();
     }
 
-    final cancelFun =
-        room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
+    final cancelFun = room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
 
     final writer = TextStreamWriter(
       writableStream: writableStream,
@@ -1316,8 +1250,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final totalChunks = (totalLength / kStreamChunkSize).ceil();
     for (var i = 0; i < totalChunks; i++) {
-      final chunkData = await reader
-          .readBytes(min((i + 1) * kStreamChunkSize, kStreamChunkSize));
+      final chunkData = await reader.readBytes(min((i + 1) * kStreamChunkSize, kStreamChunkSize));
       await writer.write(chunkData);
       options.onProgress?.call((i + 1) / totalChunks);
     }
@@ -1352,8 +1285,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     );
 
     final destinationIdentities = options?.destinationIdentities;
-    final packet = lk_models.DataPacket(
-        destinationIdentities: destinationIdentities, streamHeader: header);
+    final packet = lk_models.DataPacket(destinationIdentities: destinationIdentities, streamHeader: header);
 
     await room.engine.sendDataPacket(packet, reliability: true);
 
@@ -1367,8 +1299,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       await writableStream.close();
     }
 
-    final cancelFun =
-        room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
+    final cancelFun = room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
 
     final byteWriter = ByteStreamWriter(
       writableStream: writableStream,

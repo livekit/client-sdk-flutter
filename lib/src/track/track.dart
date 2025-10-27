@@ -32,8 +32,7 @@ import '../types/other.dart';
 /// Wrapper around a MediaStreamTrack with additional metadata.
 /// Base for [AudioTrack] and [VideoTrack],
 /// can not be instantiated directly.
-abstract class Track extends DisposableChangeNotifier
-    with EventsEmittable<TrackEvent> {
+abstract class Track extends DisposableChangeNotifier with EventsEmittable<TrackEvent> {
   static const uuid = Uuid();
   final TrackType kind;
   final TrackSource source;
@@ -63,8 +62,7 @@ abstract class Track extends DisposableChangeNotifier
 
   rtc.RTCRtpReceiver? receiver;
 
-  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack,
-      {this.receiver}) {
+  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack, {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.finer('[TrackEvent] $event, will notifyListeners()');
@@ -155,21 +153,18 @@ abstract class Track extends DisposableChangeNotifier
         mediaStreamTrack.enabled = true;
       }
     } catch (_) {
-      logger.warning(
-          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
     }
   }
 
   Future<void> disable() async {
-    logger
-        .fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
+    logger.fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
       if (_active) {
         mediaStreamTrack.enabled = false;
       }
     } catch (_) {
-      logger.warning(
-          '[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
     }
   }
 
@@ -186,8 +181,7 @@ abstract class Track extends DisposableChangeNotifier
 
   @internal
   void startMonitor() {
-    _monitorTimer ??= Timer.periodic(
-        const Duration(milliseconds: monitorFrequency), (_) async {
+    _monitorTimer ??= Timer.periodic(const Duration(milliseconds: monitorFrequency), (_) async {
       if (!await monitorStats()) {
         stopMonitor();
       }
@@ -218,8 +212,7 @@ abstract class Track extends DisposableChangeNotifier
   }
 
   @internal
-  void updateMediaStreamAndTrack(
-      rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+  void updateMediaStreamAndTrack(rtc.MediaStream stream, rtc.MediaStreamTrack track) {
     _mediaStream = stream;
     _mediaStreamTrack = track;
     events.emit(TrackStreamUpdatedEvent(
