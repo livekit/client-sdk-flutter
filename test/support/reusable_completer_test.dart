@@ -16,73 +16,73 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:livekit_client/src/support/completer_manager.dart';
+import 'package:livekit_client/src/support/reusable_completer.dart';
 
 void main() {
-  group('CompleterManager', () {
-    late CompleterManager<String> manager;
+  group('ReusableCompleter', () {
+    late ReusableCompleter<String> completer;
 
     setUp(() {
-      manager = CompleterManager<String>();
+      completer = ReusableCompleter<String>();
     });
 
     tearDown(() {
-      if (!manager.isDisposed) {
-        manager.dispose();
+      if (!completer.isDisposed) {
+        completer.dispose();
       }
     });
 
     group('Basic Functionality', () {
       test('should provide a future when accessed', () async {
-        final future = manager.future;
+        final future = completer.future;
         expect(future, isA<Future<String>>());
-        expect(manager.isActive, isTrue);
-        expect(manager.isCompleted, isFalse);
+        expect(completer.isActive, isTrue);
+        expect(completer.isCompleted, isFalse);
 
-        manager.complete('test');
+        completer.complete('test');
         await expectLater(future, completion('test'));
       });
 
       test('should complete successfully with value', () async {
-        final future = manager.future;
-        final result = manager.complete('success');
+        final future = completer.future;
+        final result = completer.complete('success');
 
         expect(result, isTrue);
-        expect(manager.isCompleted, isTrue);
-        expect(manager.isActive, isFalse);
+        expect(completer.isCompleted, isTrue);
+        expect(completer.isActive, isFalse);
         await expectLater(future, completion('success'));
       });
 
       test('should complete successfully without value', () async {
-        final manager = CompleterManager<String?>();
-        final future = manager.future;
-        final result = manager.complete();
+        final completer = ReusableCompleter<String?>();
+        final future = completer.future;
+        final result = completer.complete();
 
         expect(result, isTrue);
-        expect(manager.isCompleted, isTrue);
+        expect(completer.isCompleted, isTrue);
         await expectLater(future, completion(isNull));
-        manager.dispose();
+        completer.dispose();
       });
 
       test('should complete with error', () async {
-        final future = manager.future;
+        final future = completer.future;
         final testError = Exception('test error');
-        final result = manager.completeError(testError);
+        final result = completer.completeError(testError);
 
         expect(result, isTrue);
-        expect(manager.isCompleted, isTrue);
-        expect(manager.isActive, isFalse);
+        expect(completer.isCompleted, isTrue);
+        expect(completer.isActive, isFalse);
         await expectLater(future, throwsA(testError));
       });
 
       test('should complete with error and stack trace', () async {
-        final future = manager.future;
+        final future = completer.future;
         final testError = Exception('test error');
         final stackTrace = StackTrace.current;
-        final result = manager.completeError(testError, stackTrace);
+        final result = completer.completeError(testError, stackTrace);
 
         expect(result, isTrue);
-        expect(manager.isCompleted, isTrue);
+        expect(completer.isCompleted, isTrue);
 
         try {
           await future;
@@ -93,10 +93,10 @@ void main() {
         }
       });
 
-      test('should return false when completing already completed manager', () {
-        manager.complete('first');
-        final result1 = manager.complete('second');
-        final result2 = manager.completeError(Exception('error'));
+      test('should return false when completing already completed completer', () {
+        completer.complete('first');
+        final result1 = completer.complete('second');
+        final result2 = completer.completeError(Exception('error'));
 
         expect(result1, isFalse);
         expect(result2, isFalse);
@@ -105,54 +105,54 @@ void main() {
 
     group('State Properties', () {
       test('initial state should be active and not completed', () {
-        expect(manager.isActive, isTrue);
-        expect(manager.isCompleted, isFalse);
-        expect(manager.isDisposed, isFalse);
+        expect(completer.isActive, isTrue);
+        expect(completer.isCompleted, isFalse);
+        expect(completer.isDisposed, isFalse);
       });
 
       test('should remain active after accessing future', () async {
-        final future = manager.future;
-        expect(manager.isActive, isTrue);
-        expect(manager.isCompleted, isFalse);
+        final future = completer.future;
+        expect(completer.isActive, isTrue);
+        expect(completer.isCompleted, isFalse);
 
-        manager.complete('test');
+        completer.complete('test');
         await expectLater(future, completion('test'));
       });
 
       test('should create new future after previous completion', () async {
-        final future1 = manager.future;
-        manager.complete('first');
+        final future1 = completer.future;
+        completer.complete('first');
         await expectLater(future1, completion('first'));
 
-        final future2 = manager.future;
+        final future2 = completer.future;
         expect(future2, isNot(same(future1)));
-        expect(manager.isActive, isTrue);
-        expect(manager.isCompleted, isFalse);
+        expect(completer.isActive, isTrue);
+        expect(completer.isCompleted, isFalse);
 
-        manager.complete('second');
+        completer.complete('second');
         await expectLater(future2, completion('second'));
       });
 
       test('should reset and be reusable', () async {
-        final future1 = manager.future;
-        manager.complete('first');
+        final future1 = completer.future;
+        completer.complete('first');
         await expectLater(future1, completion('first'));
 
-        manager.reset();
-        expect(manager.isCompleted, isFalse);
+        completer.reset();
+        expect(completer.isCompleted, isFalse);
 
-        final future2 = manager.future;
-        expect(manager.isActive, isTrue);
-        manager.complete('second');
+        final future2 = completer.future;
+        expect(completer.isActive, isTrue);
+        completer.complete('second');
         await expectLater(future2, completion('second'));
       });
 
       test('should reset even when active and deliver error to pending future', () async {
-        final future1 = manager.future;
-        expect(manager.isActive, isTrue);
+        final future1 = completer.future;
+        expect(completer.isActive, isTrue);
 
-        manager.reset();
-        expect(manager.isCompleted, isFalse);
+        completer.reset();
+        expect(completer.isCompleted, isFalse);
 
         await expectLater(
           future1,
@@ -165,31 +165,31 @@ void main() {
           ),
         );
 
-        final future2 = manager.future;
-        expect(manager.isActive, isTrue);
+        final future2 = completer.future;
+        expect(completer.isActive, isTrue);
         expect(future2, isNot(same(future1)));
 
-        manager.complete('test');
+        completer.complete('test');
         await expectLater(future2, completion('test'));
       });
     });
 
     group('Timeout Functionality', () {
       test('should timeout with default message', () async {
-        final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 10));
+        final future = completer.future;
+        completer.setTimer(Duration(milliseconds: 10));
 
         await expectLater(
           future,
           throwsA(isA<TimeoutException>()),
         );
-        expect(manager.isCompleted, isTrue);
+        expect(completer.isCompleted, isTrue);
       });
 
       test('should timeout with custom message', () async {
-        final future = manager.future;
+        final future = completer.future;
         const customMessage = 'Custom timeout message';
-        manager.setTimer(Duration(milliseconds: 10), timeoutReason: customMessage);
+        completer.setTimer(Duration(milliseconds: 10), timeoutReason: customMessage);
 
         try {
           await future;
@@ -201,42 +201,42 @@ void main() {
       });
 
       test('should ignore timer after completion', () async {
-        final future = manager.future;
-        manager.setTimer(Duration(milliseconds: 10));
-        manager.complete('done');
+        final future = completer.future;
+        completer.setTimer(Duration(milliseconds: 10));
+        completer.complete('done');
 
         await expectLater(future, completion('done'));
         await Future<void>.delayed(Duration(milliseconds: 20));
-        expect(manager.isCompleted, isTrue);
+        expect(completer.isCompleted, isTrue);
       });
     });
 
     group('Reset Behavior', () {
       test('should complete pending future with custom error on reset', () async {
-        final future = manager.future;
+        final future = completer.future;
         final customError = Exception('custom reset');
-        manager.reset(error: customError);
+        completer.reset(error: customError);
 
         await expectLater(future, throwsA(customError));
       });
 
       test('should allow reset after completion without affecting last result', () async {
-        final future = manager.future;
-        manager.complete('done');
+        final future = completer.future;
+        completer.complete('done');
         await expectLater(future, completion('done'));
 
-        manager.reset();
-        final nextFuture = manager.future;
+        completer.reset();
+        final nextFuture = completer.future;
 
-        manager.complete('next');
+        completer.complete('next');
         await expectLater(nextFuture, completion('next'));
       });
     });
 
     group('Dispose', () {
       test('should complete pending future with error on dispose', () async {
-        final future = manager.future;
-        manager.dispose();
+        final future = completer.future;
+        completer.dispose();
 
         await expectLater(
           future,
@@ -248,35 +248,35 @@ void main() {
             ),
           ),
         );
-        expect(manager.isCompleted, isTrue);
-        expect(manager.isDisposed, isTrue);
+        expect(completer.isCompleted, isTrue);
+        expect(completer.isDisposed, isTrue);
       });
 
       test('should use custom error on dispose', () async {
-        final future = manager.future;
+        final future = completer.future;
         final customError = Exception('disposed error');
-        manager.dispose(error: customError);
+        completer.dispose(error: customError);
 
         await expectLater(future, throwsA(customError));
       });
 
       test('should return false for operations after dispose', () {
-        manager.dispose();
+        completer.dispose();
 
-        final result1 = manager.complete('test');
-        final result2 = manager.completeError(Exception('error'));
-        manager.setTimer(Duration(seconds: 1));
+        final result1 = completer.complete('test');
+        final result2 = completer.completeError(Exception('error'));
+        completer.setTimer(Duration(seconds: 1));
 
         expect(result1, isFalse);
         expect(result2, isFalse);
-        expect(manager.isActive, isFalse);
+        expect(completer.isActive, isFalse);
       });
 
       test('should throw when requesting future after dispose', () {
-        manager.dispose();
+        completer.dispose();
 
         expect(
-          () => manager.future,
+          () => completer.future,
           throwsA(
             isA<StateError>().having(
               (error) => error.message,
@@ -288,55 +288,55 @@ void main() {
       });
 
       test('should ignore duplicate dispose calls', () {
-        manager.dispose();
-        expect(manager.isDisposed, isTrue);
+        completer.dispose();
+        expect(completer.isDisposed, isTrue);
 
-        manager.dispose();
-        expect(manager.isDisposed, isTrue);
+        completer.dispose();
+        expect(completer.isDisposed, isTrue);
       });
     });
 
     group('Edge Cases', () {
       test('should handle multiple future accesses for same completer', () async {
-        final future1 = manager.future;
-        final future2 = manager.future;
+        final future1 = completer.future;
+        final future2 = completer.future;
 
         expect(identical(future1, future2), isTrue);
-        expect(manager.isActive, isTrue);
+        expect(completer.isActive, isTrue);
 
-        manager.complete('test');
+        completer.complete('test');
         await expectLater(future1, completion('test'));
       });
 
       test('should handle rapid complete/reset cycles', () async {
         for (int i = 0; i < 5; i++) {
-          final future = manager.future;
-          manager.complete('value_$i');
+          final future = completer.future;
+          completer.complete('value_$i');
           await expectLater(future, completion('value_$i'));
           if (i < 4) {
-            manager.reset();
+            completer.reset();
           }
         }
       });
 
       test('should work with different generic types', () async {
-        final intManager = CompleterManager<int>();
-        final intFuture = intManager.future;
-        intManager.complete(42);
+        final intCompleter = ReusableCompleter<int>();
+        final intFuture = intCompleter.future;
+        intCompleter.complete(42);
         await expectLater(intFuture, completion(42));
-        intManager.dispose();
+        intCompleter.dispose();
 
-        final boolManager = CompleterManager<bool>();
-        final boolFuture = boolManager.future;
-        boolManager.complete(true);
+        final boolCompleter = ReusableCompleter<bool>();
+        final boolFuture = boolCompleter.future;
+        boolCompleter.complete(true);
         await expectLater(boolFuture, completion(isTrue));
-        boolManager.dispose();
+        boolCompleter.dispose();
       });
 
       test('should handle Future<T> values in complete', () async {
-        final future = manager.future;
+        final future = completer.future;
         final futureValue = Future.value('async_result');
-        manager.complete(futureValue);
+        completer.complete(futureValue);
 
         await expectLater(future, completion('async_result'));
       });
@@ -348,10 +348,10 @@ void main() {
 
         for (int i = 0; i < 10; i++) {
           futures.add(Future(() async {
-            final future = manager.future;
+            final future = completer.future;
             if (i == 0) {
               await Future.delayed(Duration(milliseconds: 1));
-              manager.complete('winner');
+              completer.complete('winner');
             }
             return future;
           }));

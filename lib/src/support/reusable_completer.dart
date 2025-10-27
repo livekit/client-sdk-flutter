@@ -21,22 +21,22 @@ import 'dart:async';
 /// - Optional timeout handling
 /// - Deterministic reset and disposal semantics
 /// - Only exposes [Future], not the [Completer] itself
-class CompleterManager<T> {
+class ReusableCompleter<T> {
   Completer<T> _completer;
   Timer? _timeoutTimer;
   bool _isCompleted = false;
   bool _isDisposed = false;
   bool _hasPendingListener = false;
 
-  /// Creates a new [CompleterManager] with an active completer.
-  CompleterManager() : _completer = Completer<T>();
+  /// Creates a new [ReusableCompleter] with an active completer.
+  ReusableCompleter() : _completer = Completer<T>();
 
   /// The current future. Creates a new completer if the previous one finished.
   ///
   /// Throws [StateError] when called after [dispose].
   Future<T> get future {
     if (_isDisposed) {
-      throw StateError('CompleterManager disposed');
+      throw StateError('ReusableCompleter disposed');
     }
     if (_isCompleted) {
       _createCompleter();
@@ -48,7 +48,7 @@ class CompleterManager<T> {
   /// Whether the current completer has completed (with value or error).
   bool get isCompleted => _isCompleted;
 
-  /// Whether the manager is still managing an active completer.
+  /// Whether the completer is still managing an active future.
   bool get isActive => !_isDisposed && !_isCompleted;
 
   /// Whether [dispose] has been called.
@@ -93,19 +93,19 @@ class CompleterManager<T> {
     });
   }
 
-  /// Resets the manager for reuse.
+  /// Resets the completer for reuse.
   ///
   /// Any pending future is completed with a [StateError] (or [error] if provided)
   /// before a new completer is created.
   void reset({Object? error, StackTrace? stackTrace}) {
     if (_isDisposed) {
-      throw StateError('CompleterManager disposed');
+      throw StateError('ReusableCompleter disposed');
     }
 
     if (!_isCompleted && _hasPendingListener) {
       _completeCurrent(
         (completer) => completer.completeError(
-          error ?? StateError('CompleterManager reset'),
+          error ?? StateError('ReusableCompleter reset'),
           stackTrace,
         ),
       );
@@ -116,9 +116,9 @@ class CompleterManager<T> {
     _createCompleter();
   }
 
-  /// Disposes the manager, completing any pending future with an error.
+  /// Disposes the completer, completing any pending future with an error.
   ///
-  /// After disposal, the manager cannot be reused; calls to [future] throw
+  /// After disposal, the completer cannot be reused; calls to [future] throw
   /// [StateError] and completion methods return `false`.
   void dispose({Object? error, StackTrace? stackTrace}) {
     if (_isDisposed) {
@@ -128,7 +128,7 @@ class CompleterManager<T> {
     if (!_isCompleted && _hasPendingListener) {
       _completeCurrent(
         (completer) => completer.completeError(
-          error ?? StateError('CompleterManager disposed'),
+          error ?? StateError('ReusableCompleter disposed'),
           stackTrace,
         ),
       );
