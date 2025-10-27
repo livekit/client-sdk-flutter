@@ -655,15 +655,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return null;
   }
 
-  Future<RemoteParticipant> _getOrCreateRemoteParticipant(String identity, lk_models.ParticipantInfo? info) async {
+  Future<ParticipantCreationResult> _getOrCreateRemoteParticipant(
+      String identity, lk_models.ParticipantInfo? info) async {
     RemoteParticipant? participant = _remoteParticipants[identity];
     if (participant != null) {
-      if (info != null) {
-        await participant.updateFromInfo(info);
-      }
-      return participant;
+      // Return existing participant with no new publications; caller handles updates.
+      return ParticipantCreationResult(
+        participant: participant,
+        newPublications: const [],
+      );
     }
 
+    ParticipantCreationResult result;
     if (info == null) {
       logger.warning('RemoteParticipant.info is null identity: $identity');
       participant = RemoteParticipant(
@@ -672,16 +675,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         identity: identity,
         name: '',
       );
+      result = ParticipantCreationResult(
+        participant: participant,
+        newPublications: const [],
+      );
     } else {
-      participant = await RemoteParticipant.createFromInfo(
+      result = await RemoteParticipant.createFromInfo(
         room: this,
         info: info,
       );
     }
 
-    _remoteParticipants[identity] = participant;
-    _sidToIdentity[participant.sid] = identity;
-    return participant;
+    _remoteParticipants[result.participant.identity] = result.participant;
+    _sidToIdentity[result.participant.sid] = result.participant.identity;
+    return result;
   }
 
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
@@ -708,14 +715,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         continue;
       }
 
-      final participant = await _getOrCreateRemoteParticipant(info.identity, info);
+      final result = await _getOrCreateRemoteParticipant(info.identity, info);
 
       if (isNew) {
         hasChanged = true;
-        // fire connected event
-        emitWhenConnected(ParticipantConnectedEvent(participant: participant));
+        // Emit connected event
+        emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
+        // Emit TrackPublishedEvent for each new track
+        if (connectionState == ConnectionState.connected) {
+          for (final pub in result.newPublications) {
+            final event = TrackPublishedEvent(
+              participant: result.participant,
+              publication: pub,
+            );
+            [result.participant.events, events].emit(event);
+          }
+        }
+        _sidToIdentity[info.sid] = info.identity;
       } else {
-        final wasUpdated = await participant.updateFromInfo(info);
+        final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
         }
