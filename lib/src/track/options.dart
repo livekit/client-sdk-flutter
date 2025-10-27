@@ -125,8 +125,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         deviceId: deviceId ?? this.deviceId,
         maxFrameRate: maxFrameRate ?? this.maxFrameRate,
         params: params ?? this.params,
-        stopCameraCaptureOnMute:
-            stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+        stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
         processor: processor ?? this.processor,
       );
 }

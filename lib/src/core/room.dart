@@ -422,8 +422,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         final bool audioEnabled = audio.enabled == true || audio.track != null;
         if (audioEnabled) {
           if (audio.track != null) {
-            await _localParticipant!.publishAudioTrack(
-                audio.track as LocalAudioTrack,
+            await _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
                 publishOptions: roomOptions.defaultAudioPublishOptions);
           } else {
             await _localParticipant!
@@ -435,8 +434,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         final bool videoEnabled = video.enabled == true || video.track != null;
         if (videoEnabled) {
           if (video.track != null) {
-            await _localParticipant!.publishVideoTrack(
-                video.track as LocalVideoTrack,
+            await _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
                 publishOptions: roomOptions.defaultVideoPublishOptions);
           } else {
             await _localParticipant!
@@ -445,8 +443,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
 
         final screen = options.screen;
-        final bool screenEnabled =
-            screen.enabled == true || screen.track != null;
+        final bool screenEnabled = screen.enabled == true || screen.track != null;
         if (screenEnabled) {
           if (screen.track != null) {
             await _localParticipant!.publishVideoTrack(screen.track as LocalVideoTrack,
@@ -1270,8 +1267,7 @@ extension DataStreamRoomMethods on Room {
         version: streamHeader.textHeader.hasVersion() ? streamHeader.textHeader.version : null,
         generated: streamHeader.textHeader.hasGenerated() ? streamHeader.textHeader.generated : false,
         operationType: streamHeader.textHeader.hasOperationType()
-            ? TextStreamOperationType.fromPBType(
-                streamHeader.textHeader.operationType)
+            ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
             : null,
       );
 
