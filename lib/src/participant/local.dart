@@ -558,12 +558,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// @param topic, the topic under which the message gets published.
   Future<void> publishData(
     List<int> data, {
-    bool isReliable = false,
+    bool? reliable,
     List<String>? destinationIdentities,
     String? topic,
   }) async {
+    final publishReliably = reliable == true;
     final packet = lk_models.DataPacket(
-      kind: isReliable ? lk_models.DataPacket_Kind.RELIABLE : lk_models.DataPacket_Kind.LOSSY,
+      kind: publishReliably ? lk_models.DataPacket_Kind.RELIABLE : lk_models.DataPacket_Kind.LOSSY,
       user: lk_models.UserPacket(
         payload: data,
         participantIdentity: identity,
@@ -572,7 +573,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       ),
     );
 
-    await room.engine.sendDataPacket(packet, reliability: isReliable ? Reliability.reliable : Reliability.lossy);
+    await room.engine.sendDataPacket(packet, reliability: publishReliably ? Reliability.reliable : Reliability.lossy);
   }
 
   /// Sets and updates the metadata of the local participant.

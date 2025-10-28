@@ -25,6 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import '../mock/e2e_container.dart';
+import '../mock/e2ee_fake_manager.dart';
 
 void main() {
   E2EContainer? container;
@@ -108,6 +109,39 @@ void main() {
       }
 
       print('✅ Text stream reliability test passed: All ${messageCount} messages received correctly');
+    });
+
+    test('Reliable Text Stream With E2EE retains ordering and integrity', () async {
+      final e2eeManager = TestE2EEManager();
+      await e2eeManager.setup(room);
+      room.engine.setE2eeManager(e2eeManager);
+
+      final messages = <String>[];
+      final expectedMessages = List<String>.generate(10, (index) => 'E2EE_Message_$index');
+      final completer = Completer<void>();
+
+      room.registerTextStreamHandler('e2ee-stream', (TextStreamReader reader, String participantIdentity) async {
+        messages.add(await reader.readAll());
+        if (messages.length == expectedMessages.length && !completer.isCompleted) {
+          completer.complete();
+        }
+      });
+
+      for (final message in expectedMessages) {
+        await room.localParticipant?.sendText(
+          message,
+          options: SendTextOptions(
+            topic: 'e2ee-stream',
+          ),
+        );
+      }
+
+      await completer.future.timeout(const Duration(seconds: 5));
+
+      expect(messages, equals(expectedMessages));
+      expect(e2eeManager.encryptedPayloads, isNotEmpty);
+      expect(e2eeManager.decryptedPayloads.length, equals(e2eeManager.encryptedPayloads.length));
+      expect(e2eeManager.encryptedPayloads.length, greaterThanOrEqualTo(expectedMessages.length));
     });
 
     test('Reliable Byte Stream With Large Data Chunks', () async {

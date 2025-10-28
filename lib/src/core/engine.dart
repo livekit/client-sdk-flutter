@@ -165,6 +165,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
   bool _isReconnecting = false;
 
+  String? _reliableParticipantKey(lk_models.DataPacket packet) {
+    if (packet.hasParticipantSid() && packet.participantSid.isNotEmpty) {
+      return packet.participantSid;
+    }
+    logger.fine(
+        'Reliable packet missing participant SID (identity: ${packet.participantIdentity}), skipping dedupe handling');
+    return null;
+  }
+
   void clearReconnectTimeout() {
     if (reconnectTimeout != null) {
       reconnectTimeout?.cancel();
@@ -439,6 +448,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           kind: packet.kind,
           encryptedPacket: encryptedPacket,
           destinationIdentities: packet.destinationIdentities,
+          sequence: packet.hasSequence() ? packet.sequence : null,
+          participantSid: packet.hasParticipantSid() ? packet.participantSid : null,
         );
 
         message = rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
@@ -719,7 +730,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             state: state,
             type: Reliability.reliable,
           )));
-      _reliableDCPub?.bufferedAmountLowThreshold = 65535;
+      // Align WebRTC buffer low threshold with other SDKs (2MB) to retain enough backlog for retries.
+      _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _reliableDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.reliable] =
             (_reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!);
@@ -796,32 +808,46 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       final decryptedPacketPayload = lk_models.EncryptedPacketPayload.fromBuffer(decryptedData);
       final newDp = asDataPacket(decryptedPacketPayload);
 
-      // Handle sequence numbers for reliable packets (decrypted)
-      if (newDp.kind == lk_models.DataPacket_Kind.RELIABLE && newDp.hasSequence()) {
-        final participantKey = newDp.participantIdentity;
-        final sequence = newDp.sequence;
-        final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
-        if (sequence <= lastReceived) {
-          logger.fine('Ignoring duplicate or out-of-order packet: '
-              'sequence=$sequence, lastReceived=$lastReceived, participant=$participantKey');
-          return;
+      // Handle sequence numbers for reliable packets (encrypted outer packet)
+      if (dp.kind == lk_models.DataPacket_Kind.RELIABLE && dp.hasSequence()) {
+        final participantKey = _reliableParticipantKey(dp);
+        if (participantKey != null) {
+          final sequence = dp.sequence;
+          final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
+          if (sequence <= lastReceived) {
+            logger.fine('Ignoring duplicate or out-of-order packet: '
+                'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey');
+            return;
+          }
+          _reliableReceivedState.set(participantKey, sequence);
         }
-        _reliableReceivedState.set(participantKey, sequence);
       }
+
+      // Preserve metadata from the outer packet on the decrypted packet
+      newDp
+        ..kind = dp.kind
+        ..sequence = dp.sequence
+        ..participantIdentity = dp.participantIdentity
+        ..participantSid = dp.participantSid
+        ..destinationIdentities.addAll(dp.destinationIdentities);
 
       _emitDataPacket(newDp, encryptionType: dp.encryptedPacket.encryptionType.toLkType());
     } else {
       // Handle sequence numbers for reliable packets (plaintext)
       if (dp.kind == lk_models.DataPacket_Kind.RELIABLE && dp.hasSequence()) {
-        final participantKey = dp.participantIdentity;
-        final sequence = dp.sequence;
-        final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
-        if (sequence <= lastReceived) {
-          logger.fine('Ignoring duplicate or out-of-order packet: '
-              'sequence=$sequence, lastReceived=$lastReceived, participant=$participantKey');
-          return;
+        final participantKey = _reliableParticipantKey(dp);
+        if (participantKey != null) {
+          final sequence = dp.sequence;
+          final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
+          if (sequence <= lastReceived) {
+            logger.fine('Ignoring duplicate or out-of-order packet: '
+                'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey');
+            return;
+          }
+          _reliableReceivedState.set(participantKey, sequence);
+        } else {
+          logger.fine('Reliable packet without participant SID, skipping dedupe');
         }
-        _reliableReceivedState.set(participantKey, sequence);
       }
 
       _emitDataPacket(dp);
@@ -1133,7 +1159,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // Build data channel receive states for reliability
     final dataChannelReceiveStates = <lk_rtc.DataChannelReceiveState>[];
-    for (final participantId in _reliableReceivedState.keys) {
+    for (final participantId in List.of(_reliableReceivedState.keys)) {
       final lastSequence = _reliableReceivedState.get(participantId);
       if (lastSequence != null) {
         final receiveState = lk_rtc.DataChannelReceiveState();
