@@ -208,11 +208,7 @@ class PreConnectAudioBuffer {
     _nativeRecordingStarted = false;
 
     // Complete agent ready future if not already completed
-    if (withError != null) {
-      _agentReadyManager.completeError(withError!);
-    } else {
-      _agentReadyManager.complete();
-    }
+    withError != null ? _agentReadyManager.completeError(withError) : _agentReadyManager.complete();
 
     // Emit the stopped event
     _room.events.emit(PreConnectAudioBufferStoppedEvent(
