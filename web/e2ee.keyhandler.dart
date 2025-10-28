@@ -9,6 +9,7 @@ import 'e2ee.logger.dart';
 import 'e2ee.utils.dart';
 
 const KEYRING_SIZE = 16;
+const IV_LENGTH = 12;
 
 class KeyOptions {
   KeyOptions({
@@ -145,9 +146,7 @@ class ParticipantKeyHandler {
       return null;
     }
     try {
-      final key = await worker.crypto.subtle
-          .exportKey('raw', currentMaterial)
-          .toDart as JSArrayBuffer;
+      final key = await worker.crypto.subtle.exportKey('raw', currentMaterial).toDart as JSArrayBuffer;
       return key.toDart.asUint8List();
     } catch (e) {
       logger.warning('exportKey: $e');
@@ -167,8 +166,7 @@ class ParticipantKeyHandler {
     return newKey;
   }
 
-  Future<web.CryptoKey> ratchetMaterial(
-      web.CryptoKey currentMaterial, ByteBuffer newKeyBuffer) async {
+  Future<web.CryptoKey> ratchetMaterial(web.CryptoKey currentMaterial, ByteBuffer newKeyBuffer) async {
     final newMaterial = await worker.crypto.subtle
         .importKey(
           'raw',
@@ -187,8 +185,8 @@ class ParticipantKeyHandler {
 
   Future<void> setKey(Uint8List key, {int keyIndex = 0}) async {
     final keyMaterial = await worker.crypto.subtle
-        .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny,
-            false, ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
+        .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny, false,
+            ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
         .toDart;
 
     final keySet = await deriveKeys(
@@ -235,8 +233,7 @@ class ParticipantKeyHandler {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
     final newKey = await worker.crypto.subtle
-        .deriveBits(
-            algorithmOptions.jsify() as web.AlgorithmIdentifier, material, 256)
+        .deriveBits(algorithmOptions.jsify() as web.AlgorithmIdentifier, material, 256)
         .toDart;
     return newKey.toDart.asUint8List();
   }

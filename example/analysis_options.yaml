@@ -27,33 +27,36 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  #
-  # Enforce stricter type-checking
-  # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks
-  # https://dash-overflow.net/articles/getting_started/#step-3-disabling-_implicit-dynamic_--_implicit-cast_
-  #
+  errors:
+    constant_identifier_names: ignore
+    no_wildcard_variable_uses: ignore
+    use_super_parameters: ignore
+    avoid_print: ignore
+    use_build_context_synchronously: ignore
+    # TODO, fix the discarded_futures problems and re-enable the warnings
+    discarded_futures: ignore
+    prefer_final_locals: ignore
+    depend_on_referenced_packages: ignore
 
-  #
-  # exclude protobuf files
-  #
+  # Exclude protobuf files
   exclude:
-    - '**/*.pb.dart'
-    - '**/*.pbenum.dart'
-    - '**/*.pbjson.dart'
-    - '**/*.pbserver.dart'
+    - "**/*.pb.dart"
+    - "**/*.pbenum.dart"
+    - "**/*.pbjson.dart"
+    - "**/*.pbserver.dart"
 
 linter:
   rules:
-    #
-    # Additional recommended rules
-    #
+    # Preference of the SDK
     prefer_single_quotes: true
+    prefer_final_locals: true
     unnecessary_brace_in_string_interps: false
-    unawaited_futures: true
+    avoid_print: true
 
-    #
-    # Turn off avoid_print for example projects
-    #
-    avoid_print: false
-    depend_on_referenced_packages: false
-    use_build_context_synchronously: false
+    # Enforce this for correct async logic
+    unawaited_futures: true
+    discarded_futures: true
+
+formatter:
+  page_width: 120
+  trailing_commas: preserve

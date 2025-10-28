@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.5.3
+
+* Feat: Data Packet Cryptor (#873)
+* Feat: Add E2EE support for H265 (#864)
+* Fix: fix async call for update participant info (#897)
+* Move the accessToken to header (#891)
+* Bumpup and clamp connection timeout, fix the comment (#893)
+* Fix events emit order (#902)
+
+## 2.5.2
+
+* Fix missing properties for TextStreamInfo (#881)
+* Enum for TextStreamOperationType (#882)
+* Fix stream progress (#884)
+
 ## 2.5.1
 
 * Fix Publication's track property initialization (#867)

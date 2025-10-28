@@ -86,8 +86,7 @@ web.HTMLDivElement findOrCreateAudioContainer() {
 
 void setSinkId(String id, String deviceId) {
   final audioElement = web.document.getElementById(audioPrefix + id);
-  if (audioElement is web.HTMLAudioElement &&
-      audioElement.hasProperty('setSinkId'.toJS).toDart) {
+  if (audioElement is web.HTMLAudioElement && audioElement.hasProperty('setSinkId'.toJS).toDart) {
     audioElement.setSinkId(deviceId);
   }
 }

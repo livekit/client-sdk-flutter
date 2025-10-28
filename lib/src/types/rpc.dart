@@ -10,14 +10,17 @@ class PerformRpcParams {
   /// The payload of the request.
   String payload;
 
-  /// The maximum time the caller will wait for a response.
+  /// Timeout for receiving a response after the initial connection (in milliseconds).
+  /// If a value less than 8000 ms is provided, it will be automatically clamped to 8000 ms
+  /// to ensure sufficient time for round-trip latency buffering.
+  /// Default: 15000 ms.
   Duration responseTimeoutMs;
 
   PerformRpcParams({
     required this.destinationIdentity,
     required this.method,
     required this.payload,
-    this.responseTimeoutMs = const Duration(milliseconds: 10000),
+    this.responseTimeoutMs = const Duration(milliseconds: 15000),
   });
 }
 

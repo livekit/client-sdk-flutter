@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io' show File;
 
+import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
+import '../e2ee/options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_models.pb.dart' show Encryption_Type, DataStream_Chunk;
 
@@ -74,6 +76,12 @@ class StreamTextOptions {
     this.generated = false,
     this.attributes = const {},
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(topic: $topic, destinationIdentities: $destinationIdentities, '
+      'streamId: $streamId, totalSize: $totalSize, type: $type, version: $version, '
+      'replyToStreamId: $replyToStreamId, attachedStreamIds: $attachedStreamIds)';
 }
 
 class StreamBytesOptions {
@@ -85,6 +93,7 @@ class StreamBytesOptions {
   String? streamId;
   int? totalSize;
   Encryption_Type? encryptionType;
+
   StreamBytesOptions({
     this.name,
     this.mimeType,
@@ -95,6 +104,11 @@ class StreamBytesOptions {
     this.totalSize,
     this.encryptionType = Encryption_Type.NONE,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(name: $name, mimeType: $mimeType, topic: $topic, destinationIdentities: $destinationIdentities, '
+      'attributes: $attributes, streamId: $streamId, totalSize: $totalSize, encryptionType: $encryptionType)';
 }
 
 class ChatMessage {
@@ -119,6 +133,8 @@ class BaseStreamInfo {
   int timestamp;
   int size;
   Map<String, String> attributes;
+  String sendingParticipantIdentity;
+  EncryptionType encryptionType;
   BaseStreamInfo({
     required this.id,
     required this.mimeType,
@@ -126,6 +142,8 @@ class BaseStreamInfo {
     required this.timestamp,
     required this.size,
     this.attributes = const {},
+    this.sendingParticipantIdentity = '',
+    this.encryptionType = EncryptionType.kNone,
   });
 }
 
@@ -144,6 +162,8 @@ class DataStreamController<T extends DataStream_Chunk> {
   Future<void> close() => streamController.close();
 
   void write(T chunk) => streamController.add(chunk);
+
+  void error(DataStreamError error) => streamController.addError(error);
 }
 
 class ByteStreamInfo extends BaseStreamInfo {
@@ -156,6 +176,8 @@ class ByteStreamInfo extends BaseStreamInfo {
     required int timestamp,
     required int size,
     Map<String, String> attributes = const {},
+    required String sendingParticipantIdentity,
+    EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
           id: id,
           mimeType: mimeType,
@@ -163,7 +185,14 @@ class ByteStreamInfo extends BaseStreamInfo {
           timestamp: timestamp,
           size: size,
           attributes: attributes,
+          sendingParticipantIdentity: sendingParticipantIdentity,
+          encryptionType: encryptionType,
         );
+
+  @override
+  String toString() => '${runtimeType}'
+      '(name: $name, id: $id, mimeType: $mimeType, topic: $topic, '
+      'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }
 
 /// Operation types for text streams
@@ -231,6 +260,8 @@ class TextStreamInfo extends BaseStreamInfo {
     this.version,
     this.generated = false,
     this.operationType,
+    required String sendingParticipantIdentity,
+    EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
           id: id,
           mimeType: mimeType,
@@ -238,7 +269,14 @@ class TextStreamInfo extends BaseStreamInfo {
           timestamp: timestamp,
           size: size,
           attributes: attributes,
+          encryptionType: encryptionType,
+          sendingParticipantIdentity: sendingParticipantIdentity,
         );
+
+  @override
+  String toString() => '${runtimeType}'
+      '(id: $id, mimeType: $mimeType, topic: $topic, '
+      'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }
 
 abstract class StreamWriter<T> {

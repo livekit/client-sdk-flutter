@@ -20,7 +20,7 @@ import 'support/platform.dart' show lkPlatformIsMobile;
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
-  static const version = '2.5.1';
+  static const version = '2.5.3';
 
   /// Initialize the WebRTC plugin. If this is not manually called, will be
   /// initialized with default settings.
@@ -28,8 +28,7 @@ class LiveKitClient {
   static Future<void> initialize({bool bypassVoiceProcessing = false}) async {
     if (lkPlatformIsMobile()) {
       await rtc.WebRTC.initialize(options: {
-        if (bypassVoiceProcessing)
-          'bypassVoiceProcessing': bypassVoiceProcessing,
+        if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
       });
 
       Native.bypassVoiceProcessing = bypassVoiceProcessing;

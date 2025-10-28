@@ -31,6 +31,28 @@ import '../track/remote/video.dart';
 import '../types/other.dart';
 import 'participant.dart';
 
+/// Result of creating a RemoteParticipant with all its initial data populated.
+///
+/// This struct is returned by [RemoteParticipant.createFromInfo] and contains
+/// the fully initialized participant along with the list of track publications
+/// that were added during creation. The caller is responsible for emitting
+/// events in the correct order.
+@internal
+class ParticipantCreationResult {
+  /// The fully initialized remote participant with all basic info and tracks populated.
+  final RemoteParticipant participant;
+
+  /// List of new track publications that were added during participant creation.
+  /// The caller should emit [TrackPublishedEvent] for each of these after
+  /// emitting [ParticipantConnectedEvent].
+  final List<RemoteTrackPublication> newPublications;
+
+  const ParticipantCreationResult({
+    required this.participant,
+    required this.newPublications,
+  });
+}
+
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @internal
@@ -46,37 +68,84 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           name: name,
         );
 
+  /// Creates a fully initialized RemoteParticipant without emitting events.
+  ///
+  /// Populates the participant with all data from [info] including metadata, permissions,
+  /// and track publications. No events are emitted, allowing the caller to control event
+  /// timing and order.
+  ///
+  /// Returns [ParticipantCreationResult] with the participant and new track publications.
+  /// The caller should emit [ParticipantConnectedEvent] first, then [TrackPublishedEvent]
+  /// for each track, ensuring the participant is fully populated when connected event fires.
+  ///
+  /// @internal - Should only be called by [Room].
   @internal
-  RemoteParticipant.fromInfo({
+  static Future<ParticipantCreationResult> createFromInfo({
     required Room room,
     required lk_models.ParticipantInfo info,
-  }) : super(
-          room: room,
-          sid: info.sid,
-          identity: info.identity,
-          name: info.name,
-        ) {
-    updateFromInfo(info);
+  }) async {
+    final participant = RemoteParticipant(
+      room: room,
+      sid: info.sid,
+      identity: info.identity,
+      name: info.name,
+    );
+    // Update basic participant info (state, metadata, etc.)
+    await participant._updateBasicInfo(info);
+    // Add tracks to participant without emitting events
+    final newPubs = await participant._addTracks(info.tracks);
+    // Return result for caller to emit events in correct order
+    return ParticipantCreationResult(
+      participant: participant,
+      newPublications: newPubs,
+    );
+  }
+
+  Future<void> _updateBasicInfo(lk_models.ParticipantInfo info) async {
+    // Only call superclass updateFromInfo to update basic participant state
+    await super.updateFromInfo(info);
+  }
+
+  Future<List<RemoteTrackPublication>> _addTracks(List<lk_models.TrackInfo> tracks) async {
+    final newPubs = <RemoteTrackPublication>[];
+    for (final trackInfo in tracks) {
+      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
+      if (pub == null) {
+        final RemoteTrackPublication pub;
+        if (trackInfo.type == lk_models.TrackType.VIDEO) {
+          pub = RemoteTrackPublication<RemoteVideoTrack>(
+            participant: this,
+            info: trackInfo,
+          );
+        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
+          pub = RemoteTrackPublication<RemoteAudioTrack>(
+            participant: this,
+            info: trackInfo,
+          );
+        } else {
+          throw UnexpectedStateException('Unknown track type');
+        }
+        newPubs.add(pub);
+        addTrackPublication(pub);
+      } else {
+        pub.updateFromInfo(trackInfo);
+      }
+    }
+    return newPubs;
   }
 
   /// A convenience property to get all video tracks.
   @override
   List<RemoteTrackPublication<RemoteVideoTrack>> get videoTrackPublications =>
-      trackPublications.values
-          .whereType<RemoteTrackPublication<RemoteVideoTrack>>()
-          .toList();
+      trackPublications.values.whereType<RemoteTrackPublication<RemoteVideoTrack>>().toList();
 
   /// A convenience property to get all audio tracks.
   @override
   List<RemoteTrackPublication<RemoteAudioTrack>> get audioTrackPublications =>
-      trackPublications.values
-          .whereType<RemoteTrackPublication<RemoteAudioTrack>>()
-          .toList();
+      trackPublications.values.whereType<RemoteTrackPublication<RemoteAudioTrack>>().toList();
 
-  List<RemoteTrackPublication> get subscribedTracks => trackPublications.values
-      .where((e) => e.subscribed)
-      .cast<RemoteTrackPublication>()
-      .toList();
+  List<RemoteTrackPublication> get subscribedTracks =>
+      trackPublications.values.where((e) => e.subscribed).cast<RemoteTrackPublication>().toList();
 
   @override
   RemoteTrackPublication? getTrackPublicationByName(String name) {
@@ -122,8 +191,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
       // Wait for the metadata to arrive
       final event = await events.waitFor<TrackPublishedEvent>(
-        filter: (event) =>
-            event.participant == this && event.publication.sid == trackSid,
+        filter: (event) => event.participant == this && event.publication.sid == trackSid,
         duration: room.connectOptions.timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
           participant: this,
@@ -136,8 +204,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     // Check if track type is supported, throw if not.
-    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO]
-        .contains(pub.kind.toPBType())) {
+    if (![lk_models.TrackType.AUDIO, lk_models.TrackType.VIDEO].contains(pub.kind.toPBType())) {
       throw TrackSubscriptionExceptionEvent(
         participant: this,
         sid: trackSid,
@@ -149,12 +216,10 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     final RemoteTrack track;
     if (pub.kind == TrackType.VIDEO) {
       // video track
-      track =
-          RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
+      track = RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
     } else if (pub.kind == TrackType.AUDIO) {
       // audio track
-      track =
-          RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
+      track = RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
 
       final listener = track.createListener();
       listener.on<AudioPlaybackStarted>((event) {
@@ -173,8 +238,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     /// Apply audio output selection for the web.
     if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
-        await (track as RemoteAudioTrack)
-            .setSinkId(audioOutputOptions.deviceId!);
+        await (track as RemoteAudioTrack).setSinkId(audioOutputOptions.deviceId!);
       }
     }
 
@@ -199,34 +263,16 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       //return false;
     }
 
-    // figuring out deltas between tracks
-    final newPubs = <RemoteTrackPublication>{};
+    await _updateTracks(info.tracks);
 
-    for (final trackInfo in info.tracks) {
-      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
-      if (pub == null) {
-        final RemoteTrackPublication pub;
-        if (trackInfo.type == lk_models.TrackType.VIDEO) {
-          pub = RemoteTrackPublication<RemoteVideoTrack>(
-            participant: this,
-            info: trackInfo,
-          );
-        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
-          pub = RemoteTrackPublication<RemoteAudioTrack>(
-            participant: this,
-            info: trackInfo,
-          );
-        } else {
-          throw UnexpectedStateException('Unknown track type');
-        }
-        newPubs.add(pub);
-        addTrackPublication(pub);
-      } else {
-        pub.updateFromInfo(trackInfo);
-      }
-    }
+    return true;
+  }
 
-    // always emit events for new publications, Room will not forward them unless it's ready
+  Future<void> _updateTracks(List<lk_models.TrackInfo> tracks) async {
+    // Add new tracks
+    final newPubs = await _addTracks(tracks);
+
+    // Emit events for new publications
     for (final pub in newPubs) {
       final event = TrackPublishedEvent(
         participant: this,
@@ -237,19 +283,15 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
-    // remove any published track that is not in the info
-    final validSids = info.tracks.map((e) => e.sid);
-    final removeSids =
-        trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
+    // Remove any published track that is not in the info
+    final validSids = tracks.map((e) => e.sid);
+    final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
-
-    return true;
   }
 
-  Future<void> removePublishedTrack(String trackSid,
-      {bool notify = true}) async {
+  Future<void> removePublishedTrack(String trackSid, {bool notify = true}) async {
     logger.finer('removePublishedTrack track sid: $trackSid, notify: $notify');
     final pub = trackPublications.remove(trackSid);
     if (pub == null) {
@@ -287,8 +329,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   }
 
   @internal
-  lk_models.ParticipantTracks participantTracks() =>
-      lk_models.ParticipantTracks(
+  lk_models.ParticipantTracks participantTracks() => lk_models.ParticipantTracks(
         participantSid: sid,
         trackSids: trackPublications.values.map((e) => e.sid),
       );

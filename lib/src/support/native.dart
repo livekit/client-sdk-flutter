@@ -35,8 +35,7 @@ class Native {
   static bool bypassVoiceProcessing = false;
 
   @internal
-  static Future<bool> configureAudio(
-      NativeAudioConfiguration configuration) async {
+  static Future<bool> configureAudio(NativeAudioConfiguration configuration) async {
     try {
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
@@ -76,8 +75,7 @@ class Native {
   }
 
   @internal
-  static Future<void> stopVisualizer(String trackId,
-      {required String visualizerId}) async {
+  static Future<void> stopVisualizer(String trackId, {required String visualizerId}) async {
     try {
       await channel.invokeMethod<void>(
         'stopVisualizer',
@@ -88,6 +86,44 @@ class Native {
       );
     } catch (error) {
       logger.warning('stopVisualizer did throw $error');
+    }
+  }
+
+  @internal
+  static Future<bool> startAudioRenderer({
+    required String trackId,
+    required String rendererId,
+    required Map<String, dynamic> format,
+  }) async {
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'startAudioRenderer',
+        <String, dynamic>{
+          'trackId': trackId,
+          'rendererId': rendererId,
+          'format': format,
+        },
+      );
+      return result == true;
+    } catch (error) {
+      logger.warning('startAudioRenderer did throw $error');
+      return false;
+    }
+  }
+
+  @internal
+  static Future<void> stopAudioRenderer({
+    required String rendererId,
+  }) async {
+    try {
+      await channel.invokeMethod<void>(
+        'stopAudioRenderer',
+        <String, dynamic>{
+          'rendererId': rendererId,
+        },
+      );
+    } catch (error) {
+      logger.warning('stopAudioRenderer did throw $error');
     }
   }
 

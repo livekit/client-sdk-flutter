@@ -20,13 +20,26 @@ analyzer:
     constant_identifier_names: ignore
     no_wildcard_variable_uses: ignore
     use_super_parameters: ignore
+    avoid_print: ignore
+    use_build_context_synchronously: ignore
+    discarded_futures: ignore
+    prefer_final_locals: ignore
+    depend_on_referenced_packages: ignore
+
+    # Suppress noisy or harmless warnings
+    deprecated_member_use_from_same_package: ignore
+    unused_element_parameter: ignore
+    unintended_html_in_doc_comment: ignore
+    implementation_imports: ignore
+    invalid_runtime_check_with_js_interop_types: ignore
+    unnecessary_import: ignore
 
   # Exclude protobuf files
   exclude:
-    - '**/*.pb.dart'
-    - '**/*.pbenum.dart'
-    - '**/*.pbjson.dart'
-    - '**/*.pbserver.dart'
+    - "**/*.pb.dart"
+    - "**/*.pbenum.dart"
+    - "**/*.pbjson.dart"
+    - "**/*.pbserver.dart"
     # - 'web/*.dart'
 
 linter:
@@ -35,7 +48,12 @@ linter:
     prefer_single_quotes: true
     prefer_final_locals: true
     unnecessary_brace_in_string_interps: false
+    avoid_print: true
 
     # Enforce this for correct async logic
     unawaited_futures: true
     discarded_futures: true
+
+formatter:
+  page_width: 120
+  trailing_commas: preserve

@@ -22,8 +22,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:livekit_client/livekit_client.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import '../mock/e2e_container.dart';
 
 void main() {
@@ -266,7 +266,7 @@ void main() {
 
     test('Text Stream With File Attachments', () async {
       const attachedIds = ['file-123', 'file-456', 'file-789'];
-
+      final msg = 'Message with file attachments';
       room.registerTextStreamHandler('chat-with-attachments',
           (TextStreamReader reader, String participantIdentity) async {
         final text = await reader.readAll();
@@ -277,9 +277,9 @@ void main() {
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'chat-with-attachments',
         attachedStreamIds: attachedIds,
-        totalSize: 26, // 'Message with file attachments'.length
+        totalSize: msg.length, // 'Message with file attachments'.length
       ));
-      await stream?.write('Message with file attachments');
+      await stream?.write(msg);
       await stream?.close();
     });
   });
@@ -461,7 +461,7 @@ void main() {
         // Test passes if we get here without exceptions
         testCompleter.complete(true);
       });
-
+      final msg = 'Header validation test message';
       // Send a message with comprehensive options
       final stream = await room.localParticipant?.streamText(StreamTextOptions(
         topic: 'header-validation',
@@ -475,10 +475,10 @@ void main() {
         },
         attachedStreamIds: ['attachment-1', 'attachment-2'],
         replyToStreamId: 'parent-message-123',
-        totalSize: 28, // Length of test message
+        totalSize: msg.length, // Length of test message
       ));
 
-      await stream?.write('Header validation test message');
+      await stream?.write(msg);
       await stream?.close();
 
       // Wait for the test to complete or timeout

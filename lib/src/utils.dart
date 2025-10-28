@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -185,7 +186,7 @@ class Utils {
       scheme: validate ? httpScheme : wsScheme,
       pathSegments: pathSegments,
       queryParameters: <String, String>{
-        'access_token': token,
+        if (kIsWeb) 'access_token': token,
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
@@ -198,11 +199,9 @@ class Utils {
         if (clientInfo != null) ...{
           if (clientInfo.hasOs()) 'os': clientInfo.os,
           if (clientInfo.hasOsVersion()) 'os_version': clientInfo.osVersion,
-          if (clientInfo.hasDeviceModel())
-            'device_model': clientInfo.deviceModel,
+          if (clientInfo.hasDeviceModel()) 'device_model': clientInfo.deviceModel,
           if (clientInfo.hasBrowser()) 'browser': clientInfo.browser,
-          if (clientInfo.hasBrowserVersion())
-            'browser_version': clientInfo.browserVersion,
+          if (clientInfo.hasBrowserVersion()) 'browser_version': clientInfo.browserVersion,
         },
       },
     );
@@ -217,8 +216,7 @@ class Utils {
     }
 
     final a = dimensions.aspect();
-    if ((a - VideoDimensionsHelpers.aspect169).abs() <
-        (a - VideoDimensionsHelpers.aspect43).abs()) {
+    if ((a - VideoDimensionsHelpers.aspect169).abs() < (a - VideoDimensionsHelpers.aspect43).abs()) {
       return VideoParametersPresets.all169;
     }
 
@@ -228,23 +226,18 @@ class Utils {
   static List<VideoParameters> _computeDefaultScreenShareSimulcastParams({
     required VideoParameters original,
   }) {
-    final layers = [
-      rtc.RTCRtpEncoding(scaleResolutionDownBy: 2, maxFramerate: 3)
-    ];
+    final layers = [rtc.RTCRtpEncoding(scaleResolutionDownBy: 2, maxFramerate: 3)];
     return layers.map((e) {
       final scale = e.scaleResolutionDownBy ?? 1;
       final fps = e.maxFramerate ?? 3;
 
       return VideoParameters(
-        dimensions: VideoDimensions((original.dimensions.width / scale).floor(),
-            (original.dimensions.height / scale).floor()),
+        dimensions:
+            VideoDimensions((original.dimensions.width / scale).floor(), (original.dimensions.height / scale).floor()),
         encoding: VideoEncoding(
           maxBitrate: math.max(
             150 * 1000,
-            (original.encoding!.maxBitrate /
-                    (math.pow(scale, 2) *
-                        (original.encoding!.maxFramerate / fps)))
-                .floor(),
+            (original.encoding!.maxBitrate / (math.pow(scale, 2) * (original.encoding!.maxFramerate / fps))).floor(),
           ),
           maxFramerate: fps,
         ),
@@ -260,8 +253,7 @@ class Utils {
       return _computeDefaultScreenShareSimulcastParams(original: original);
     }
     final a = original.dimensions.aspect();
-    if ((a - VideoDimensionsHelpers.aspect169).abs() <
-        (a - VideoDimensionsHelpers.aspect43).abs()) {
+    if ((a - VideoDimensionsHelpers.aspect169).abs() < (a - VideoDimensionsHelpers.aspect43).abs()) {
       return VideoParametersPresets.defaultSimulcast169;
     }
 
@@ -293,12 +285,10 @@ class Utils {
     if (codec != null) {
       switch (codec) {
         case 'av1':
-          result =
-              result.copyWith(maxBitrate: (result.maxBitrate * 0.7).toInt());
+          result = result.copyWith(maxBitrate: (result.maxBitrate * 0.7).toInt());
           break;
         case 'vp9':
-          result =
-              result.copyWith(maxBitrate: (result.maxBitrate * 0.85).toInt());
+          result = result.copyWith(maxBitrate: (result.maxBitrate * 0.85).toInt());
           break;
         default:
           break;
@@ -399,10 +389,7 @@ class Utils {
 
     final scalabilityMode = options.scalabilityMode;
 
-    if ((videoEncoding == null &&
-            !options.simulcast &&
-            scalabilityMode == null) ||
-        dimensions == null) {
+    if ((videoEncoding == null && !options.simulcast && scalabilityMode == null) || dimensions == null) {
       // don't set encoding when we are not simulcasting and user isn't restricting
       // encoding parameters
       return [rtc.RTCRtpEncoding()];
@@ -434,9 +421,7 @@ class Utils {
       logger.info('using svc with scalabilityMode ${scalabilityMode}');
       final List<rtc.RTCRtpEncoding> encodings = [];
       if (lkPlatformIs(PlatformType.web) &&
-          (lkBrowser() == BrowserType.safari ||
-              lkBrowser() == BrowserType.chrome &&
-                  lkBrowserVersion().major < 113)) {
+          (lkBrowser() == BrowserType.safari || lkBrowser() == BrowserType.chrome && lkBrowserVersion().major < 113)) {
         final sm = ScalabilityMode(scalabilityMode);
         for (var i = 0; i < sm.spatial; i += 1) {
           // in legacy SVC, scaleResolutionDownBy cannot be set
@@ -458,14 +443,11 @@ class Utils {
     }
 
     // compute simulcast encodings
-    final userParams = isScreenShare
-        ? options.screenShareSimulcastLayers
-        : options.videoSimulcastLayers;
+    final userParams = isScreenShare ? options.screenShareSimulcastLayers : options.videoSimulcastLayers;
 
     final params = (userParams.isNotEmpty
             ? userParams
-            : _computeDefaultSimulcastParams(
-                isScreenShare: isScreenShare, original: original))
+            : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
         .sorted();
 
     final VideoParameters lowPreset = params.first;
@@ -531,8 +513,7 @@ class Utils {
       final maxBitrate = encodings[0].maxBitrate ?? 0;
       for (var i = 0; i < sm.spatial; i++) {
         layers.add(lk_models.VideoLayer(
-          quality: lk_models.VideoQuality.valueOf(
-              lk_models.VideoQuality.HIGH.value - i),
+          quality: lk_models.VideoQuality.valueOf(lk_models.VideoQuality.HIGH.value - i),
           width: (dimensions.width / math.pow(2, i)).floor(),
           height: (dimensions.height / math.pow(2, i)).floor(),
           bitrate: (maxBitrate / math.pow(3, i)).ceil(),
@@ -696,8 +677,7 @@ Map mapDiff(Map left, Map right) {
     rightCopy.remove(leftKey);
   });
 
-  return {...diff, ...rightCopy}
-    ..removeWhere((key, value) => (value is Map && value.isEmpty));
+  return {...diff, ...rightCopy}..removeWhere((key, value) => (value is Map && value.isEmpty));
 }
 
 int compareVersions(String v1, String v2) {
