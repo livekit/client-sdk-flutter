@@ -382,7 +382,7 @@ class ParticipantStateUpdatedEvent with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(participant: ${participant})';
+  String toString() => '${runtimeType}(participant: ${participant}, state: ${state})';
 }
 
 /// [Pariticpant]'s [ConnectionQuality] has updated.
@@ -587,4 +587,34 @@ class TrackProcessorUpdateEvent with TrackEvent {
   @override
   String toString() => '${runtimeType}'
       'track: ${track})';
+}
+
+/// Pre-connect audio buffer has started recording.
+/// Emitted by [Room].
+class PreConnectAudioBufferStartedEvent with RoomEvent {
+  final int sampleRate;
+  final Duration timeout;
+  const PreConnectAudioBufferStartedEvent({
+    required this.sampleRate,
+    required this.timeout,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(sampleRate: ${sampleRate}, timeout: ${timeout})';
+}
+
+/// Pre-connect audio buffer has stopped recording.
+/// Emitted by [Room].
+class PreConnectAudioBufferStoppedEvent with RoomEvent {
+  final int bufferedSize;
+  final bool isBufferSent;
+  const PreConnectAudioBufferStoppedEvent({
+    required this.bufferedSize,
+    required this.isBufferSent,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(bufferedSize: ${bufferedSize}, isDataSent: ${isBufferSent})';
 }

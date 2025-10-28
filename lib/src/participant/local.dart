@@ -123,6 +123,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       encryption: room.roomOptions.lkEncryptionType,
     );
 
+    // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
+    req.audioFeatures.addAll([
+      if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
+      if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
+    ]);
+
     Future<lk_models.TrackInfo> negotiate() async {
       track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
       await room.engine.negotiate();
