@@ -43,9 +43,9 @@ import '../support/websocket.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
+import '../types/other.dart';
 import '../utils/data_packet_buffer.dart';
 import '../utils/ttl_map.dart';
-import '../types/other.dart';
 import 'signal_client.dart';
 import 'transport.dart';
 
@@ -155,6 +155,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void setE2eeManager(E2EEManager? e2eeManager) {
     _e2eeManager = e2eeManager;
   }
+
   // E2E reliability for data channels
   int _reliableDataSequence = 1;
   final DataPacketBuffer _reliableMessageBuffer = DataPacketBuffer(
@@ -377,8 +378,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await channel.send(item.message);
         logger.fine('Resent reliable message with sequence ${item.sequence}');
       } catch (e) {
-        logger
-            .warning('Failed to resend reliable message ${item.sequence}: $e');
+        logger.warning('Failed to resend reliable message ${item.sequence}: $e');
       }
     }
   }
@@ -388,7 +388,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet, {
     Reliability reliability = Reliability.lossy,
   }) async {
-
     // Add sequence number for reliable packets
     if (reliability == Reliability.reliable) {
       packet.sequence = _reliableDataSequence++;
@@ -402,8 +401,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await _publisherEnsureConnected();
 
       // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliability) !=
-          rtc.RTCDataChannelState.RTCDataChannelOpen) {
+      if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
         logger.fine('Waiting for data channel ${reliability} to open...');
         await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
           filter: (event) => event.type == reliability,
@@ -462,17 +460,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    logger.fine(
-        'sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
+    logger.fine('sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
     await channel.send(message);
 
-    _dcBufferStatus[reliability] = await channel.getBufferedAmount() <=
-        channel.bufferedAmountLowThreshold!;
+    _dcBufferStatus[reliability] = await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!;
 
     // Align buffer with WebRTC buffer for reliable packets
     if (reliability == Reliability.reliable) {
-      _reliableMessageBuffer
-          .alignBufferedAmount(await channel.getBufferedAmount());
+      _reliableMessageBuffer.alignBufferedAmount(await channel.getBufferedAmount());
     }
   }
 

@@ -14,8 +14,8 @@
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
-import '../proto/livekit_models.pb.dart' as lk_models;
 import '../logger.dart' show logger;
+import '../proto/livekit_models.pb.dart' as lk_models;
 
 class BufferedDataPacket {
   final lk_models.DataPacket packet;
