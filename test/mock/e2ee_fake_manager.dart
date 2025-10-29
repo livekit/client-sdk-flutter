@@ -15,9 +15,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/e2ee/e2ee_manager.dart';
-import 'package:livekit_client/src/e2ee/key_provider.dart';
 
 class TestKeyProvider implements rtc.KeyProvider {
   TestKeyProvider({this.id = 'test-key-provider'});

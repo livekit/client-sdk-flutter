@@ -16,16 +16,21 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/internal/events.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import '../mock/e2e_container.dart';
 import '../mock/e2ee_fake_manager.dart';
+import '../mock/peerconnection_mock.dart';
 
 void main() {
   E2EContainer? container;
@@ -120,8 +125,10 @@ void main() {
       final expectedMessages = List<String>.generate(10, (index) => 'E2EE_Message_$index');
       final completer = Completer<void>();
 
+      final duplicateDetector = <String>{};
       room.registerTextStreamHandler('e2ee-stream', (TextStreamReader reader, String participantIdentity) async {
         messages.add(await reader.readAll());
+        expect(duplicateDetector.add(messages.last), isTrue, reason: 'Duplicate reliable message detected');
         if (messages.length == expectedMessages.length && !completer.isCompleted) {
           completer.complete();
         }
@@ -142,6 +149,46 @@ void main() {
       expect(e2eeManager.encryptedPayloads, isNotEmpty);
       expect(e2eeManager.decryptedPayloads.length, equals(e2eeManager.encryptedPayloads.length));
       expect(e2eeManager.encryptedPayloads.length, greaterThanOrEqualTo(expectedMessages.length));
+    });
+
+    test('Reliable packets ignore duplicates based on sequence', () async {
+      final received = <lk_models.UserPacket>[];
+      final firstMessageCompleter = Completer<void>();
+
+      final cancel = room.engine.events.on<EngineDataPacketReceivedEvent>((event) {
+        if (event.kind == lk_models.DataPacket_Kind.RELIABLE && event.identity == 'remote-dup') {
+          received.add(event.packet);
+          if (!firstMessageCompleter.isCompleted) {
+            firstMessageCompleter.complete();
+          }
+        }
+      });
+
+      final channel = findMockDataChannelByLabel('_reliable', requireListener: true);
+      expect(channel, isNotNull, reason: 'Mock reliable data channel should exist');
+
+      final packet = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: 'remote-dup',
+        participantSid: 'remote-dup-sid',
+        user: lk_models.UserPacket(
+          payload: utf8.encode('duplicate-test'),
+          participantIdentity: 'remote-dup',
+        ),
+      );
+
+      await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
+
+      await firstMessageCompleter.future.timeout(const Duration(seconds: 3));
+
+      expect(packet.hasSequence(), isTrue);
+      final duplicatePacket = packet.deepCopy()..sequence = packet.sequence;
+      channel!.onMessage?.call(rtc.RTCDataChannelMessage.fromBinary(duplicatePacket.writeToBuffer()));
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(received.length, equals(1), reason: 'Duplicate packet should be ignored');
+
+      await cancel();
     });
 
     test('Reliable Byte Stream With Large Data Chunks', () async {

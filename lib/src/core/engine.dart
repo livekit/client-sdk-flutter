@@ -711,7 +711,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             type: Reliability.lossy,
           )));
       // _onDCStateUpdated(Reliability.lossy, state)
-      _lossyDCPub?.bufferedAmountLowThreshold = 65535;
+      _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _lossyDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
       };
@@ -730,7 +730,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
             state: state,
             type: Reliability.reliable,
           )));
-      // Align WebRTC buffer low threshold with other SDKs (2MB) to retain enough backlog for retries.
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _reliableDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.reliable] =
