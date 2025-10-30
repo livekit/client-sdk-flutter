@@ -94,6 +94,113 @@ void main() {
 
       expect(isResponseExpired(response), isTrue);
     });
+
+    test('hasValidToken returns true for valid token', () {
+      final now = DateTime.timestamp();
+      final exp = (now.millisecondsSinceEpoch ~/ 1000) + 3600;
+
+      final token = _generateToken(exp: exp);
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.hasValidToken(currentTime: now), isTrue);
+    });
+
+    test('hasValidToken returns false when exp is within tolerance window', () {
+      final now = DateTime.timestamp();
+      final exp = (now.millisecondsSinceEpoch ~/ 1000) + 30; // +30 seconds
+
+      final token = _generateToken(exp: exp);
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.hasValidToken(currentTime: now), isFalse);
+    });
+
+    test('hasValidToken respects custom tolerance', () {
+      final now = DateTime.timestamp();
+      final exp = (now.millisecondsSinceEpoch ~/ 1000) + 30; // +30 seconds
+
+      final token = _generateToken(exp: exp);
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.hasValidToken(tolerance: const Duration(seconds: 10), currentTime: now), isTrue);
+      expect(response.hasValidToken(tolerance: const Duration(seconds: 60), currentTime: now), isFalse);
+    });
+
+    test('hasValidToken respects not-before claim', () {
+      final now = DateTime.timestamp();
+      final nbf = (now.millisecondsSinceEpoch ~/ 1000) + 120; // +2 minutes
+      final exp = (now.millisecondsSinceEpoch ~/ 1000) + 3600; // +1 hour
+
+      final token = _generateToken(nbf: nbf, exp: exp);
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.hasValidToken(currentTime: now), isFalse);
+      expect(response.hasValidToken(currentTime: now.add(const Duration(minutes: 5))), isTrue);
+    });
+  });
+
+  group('LiveKitJwtPayload', () {
+    test('parses claims and grants from token', () {
+      final now = DateTime.timestamp();
+      final exp = (now.millisecondsSinceEpoch ~/ 1000) + 3600;
+      final token = _generateToken(
+        exp: exp,
+        iat: now.millisecondsSinceEpoch ~/ 1000,
+        issuer: 'livekit',
+        subject: 'participant-123',
+        name: 'Alice',
+        metadata: '{"key":"value"}',
+        attributes: {'role': 'host'},
+        video: {
+          'room': 'demo-room',
+          'room_join': true,
+          'room_create': true,
+          'can_publish': true,
+          'can_publish_data': true,
+          'can_publish_sources': ['camera', 'screen'],
+          'hidden': false,
+          'recorder': true,
+        },
+      );
+
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      final payload = response.jwtPayload;
+      expect(payload, isNotNull);
+      expect(payload!.issuer, 'livekit');
+      expect(payload.identity, 'participant-123');
+      expect(payload.name, 'Alice');
+      expect(payload.metadata, '{"key":"value"}');
+      expect(payload.attributes, {'role': 'host'});
+      expect(payload.expiresAt, isNotNull);
+      expect(payload.issuedAt, isNotNull);
+
+      final grant = payload.video;
+      expect(grant, isNotNull);
+      expect(grant!.room, 'demo-room');
+      expect(grant.roomJoin, isTrue);
+      expect(grant.roomCreate, isTrue);
+      expect(grant.canPublish, isTrue);
+      expect(grant.canPublishData, isTrue);
+      expect(grant.canPublishSources, ['camera', 'screen']);
+      expect(grant.hidden, isFalse);
+      expect(grant.recorder, isTrue);
+    });
   });
 
   group('LiteralTokenSource', () {
@@ -316,11 +423,30 @@ void main() {
   });
 }
 
-String _generateToken({int? nbf, int? exp, bool includeExp = true}) {
+String _generateToken({
+  int? nbf,
+  int? exp,
+  bool includeExp = true,
+  int? iat,
+  String? issuer,
+  String? subject,
+  String? name,
+  String? metadata,
+  Map<String, String>? attributes,
+  Map<String, dynamic>? video,
+}) {
   final payload = <String, dynamic>{
-    'sub': 'test-participant',
-    'video': {'room': 'test-room', 'roomJoin': true},
+    'sub': subject ?? 'test-participant',
+    'video': video ??
+        {
+          'room': 'test-room',
+          'room_join': true,
+        },
   };
+
+  if (issuer != null) {
+    payload['iss'] = issuer;
+  }
 
   if (nbf != null) {
     payload['nbf'] = nbf;
@@ -328,6 +454,22 @@ String _generateToken({int? nbf, int? exp, bool includeExp = true}) {
 
   if (includeExp && exp != null) {
     payload['exp'] = exp;
+  }
+
+  if (iat != null) {
+    payload['iat'] = iat;
+  }
+
+  if (name != null) {
+    payload['name'] = name;
+  }
+
+  if (metadata != null) {
+    payload['metadata'] = metadata;
+  }
+
+  if (attributes != null) {
+    payload['attributes'] = Map<String, String>.from(attributes);
   }
 
   final jwt = JWT(payload);
