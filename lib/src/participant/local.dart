@@ -65,27 +65,42 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   // RPC Pending Responses
   final Map<String, Function(String? payload, RpcError? error)> _pendingResponses = {};
 
-  @internal
-  LocalParticipant({
+  LocalParticipant._({
     required Room room,
-    required lk_models.ParticipantInfo info,
+    required String sid,
+    required String identity,
+    required String name,
   }) : super(
           room: room,
-          sid: info.sid,
-          identity: info.identity,
-          name: info.name,
-        ) {
-    // updateFromInfo() is sync, no need to wait here.
-    unawaited(updateFromInfo(info));
+          sid: sid,
+          identity: identity,
+          name: name,
+        );
+
+  @internal
+  static Future<LocalParticipant> createFromInfo({
+    required Room room,
+    required lk_models.ParticipantInfo info,
+  }) async {
+    final participant = LocalParticipant._(
+      room: room,
+      sid: info.sid,
+      identity: info.identity,
+      name: info.name,
+    );
+
+    await participant.updateFromInfo(info);
 
     if (lkPlatformIs(PlatformType.iOS)) {
-      BroadcastManager().addListener(_broadcastStateChanged);
+      BroadcastManager().addListener(participant._broadcastStateChanged);
     }
 
-    onDispose(() async {
-      BroadcastManager().removeListener(_broadcastStateChanged);
-      await unpublishAllTracks();
+    participant.onDispose(() async {
+      BroadcastManager().removeListener(participant._broadcastStateChanged);
+      await participant.unpublishAllTracks();
     });
+
+    return participant;
   }
 
   /// Handle broadcast state change (iOS only)

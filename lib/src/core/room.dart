@@ -422,7 +422,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
 
-      _localParticipant ??= LocalParticipant(
+      _localParticipant ??= await LocalParticipant.createFromInfo(
         room: this,
         info: event.response.participant,
       );
