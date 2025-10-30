@@ -41,52 +41,61 @@ Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
     findOrCreateAudioContainer().append(audioElement);
     _audioElements[id] = audioElement;
   }
-
-  if (audioElement is! web.HTMLAudioElement) {
+  if (!audioElement.instanceOfString('HTMLAudioElement')) {
     return;
   }
+  final audio = audioElement as web.HTMLAudioElement;
   final audioStream = web.MediaStream();
   audioStream.addTrack(track.jsTrack);
   audioElement.srcObject = audioStream;
-  return audioElement.play().toDart;
+  return audio.play().toDart;
 }
 
 Future<bool> startAllAudioElement() async {
-  for (final element in _audioElements.values) {
-    if (element is web.HTMLAudioElement) {
-      await element.play().toDart;
+  for (final el in _audioElements.values) {
+    if (el.instanceOfString('HTMLAudioElement')) {
+      final audio = el as web.HTMLAudioElement;
+      await audio.play().toDart;
     }
   }
   return _audioContext.state == 'running';
 }
 
 void stopAudio(String id) {
-  final audioElement = web.document.getElementById(audioPrefix + id);
-  if (audioElement != null) {
-    if (audioElement is web.HTMLAudioElement) {
-      audioElement.srcObject = null;
+  final el = web.document.getElementById(audioPrefix + id);
+  if (el != null) {
+    if (el.instanceOfString('HTMLAudioElement')) {
+      (el as web.HTMLAudioElement).srcObject = null;
     }
     _audioElements.remove(id);
-    audioElement.remove();
+    el.remove();
   }
 }
 
 web.HTMLDivElement findOrCreateAudioContainer() {
-  var div = web.document.getElementById(audioContainerId);
-  if (div != null) {
-    return div as web.HTMLDivElement;
+  final existing = web.document.getElementById(audioContainerId);
+  if (existing != null) {
+    if (existing.instanceOfString('HTMLDivElement')) {
+      return existing as web.HTMLDivElement;
+    }
+    // If something else already exists with that ID, replace it to keep behavior sane.
+    existing.remove();
   }
 
-  div = web.HTMLDivElement();
-  div.id = audioContainerId;
-  (div as web.HTMLDivElement).style.display = 'none';
+  final div = web.HTMLDivElement()
+    ..id = audioContainerId
+    ..style.display = 'none';
+
   web.document.body?.append(div);
   return div;
 }
 
 void setSinkId(String id, String deviceId) {
-  final audioElement = web.document.getElementById(audioPrefix + id);
-  if (audioElement is web.HTMLAudioElement && audioElement.hasProperty('setSinkId'.toJS).toDart) {
-    audioElement.setSinkId(deviceId);
+  final el = web.document.getElementById(audioPrefix + id);
+  if (el != null && el.instanceOfString('HTMLAudioElement')) {
+    final audio = el as web.HTMLAudioElement;
+    if (audio.hasProperty('setSinkId'.toJS).toDart) {
+      audio.setSinkId(deviceId);
+    }
   }
 }

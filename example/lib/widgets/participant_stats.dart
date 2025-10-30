@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'dart:async';
 
 enum StatsType {
   kUnknown,
@@ -22,19 +23,19 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
   Map<String, Map<String, String>> stats = {'audio': {}, 'video': {}};
 
   void _setUpListener(Track track) {
-    var listener = track.createListener();
+    final listener = track.createListener();
     listeners.add(listener);
     if (track is LocalVideoTrack) {
       statsType = StatsType.kLocalVideoSender;
       listener.on<VideoSenderStatsEvent>((event) {
-        Map<String, String> stats = {};
+        final stats = <String, String>{};
         setState(() {
           stats['tx'] = 'total sent ${event.currentBitrate.toInt()} kpbs';
           event.stats.forEach((key, value) {
             stats['layer-$key'] =
                 '${value.frameWidth ?? 0}x${value.frameHeight ?? 0} ${value.framesPerSecond?.toDouble() ?? 0} fps, ${event.bitrateForLayers[key] ?? 0} kbps';
           });
-          var firstStats = event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
+          final firstStats = event.stats['f'] ?? event.stats['h'] ?? event.stats['q'];
           if (firstStats != null) {
             stats['encoder'] = firstStats.encoderImplementation ?? '';
             if (firstStats.mimeType != null) {
@@ -50,7 +51,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
     } else if (track is RemoteVideoTrack) {
       statsType = StatsType.kRemoteVideoReceiver;
       listener.on<VideoReceiverStatsEvent>((event) {
-        Map<String, String> stats = {};
+        final stats = <String, String>{};
         setState(() {
           if (!event.currentBitrate.isNaN) {
             stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
@@ -75,7 +76,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
     } else if (track is LocalAudioTrack) {
       statsType = StatsType.kLocalAudioSender;
       listener.on<AudioSenderStatsEvent>((event) {
-        Map<String, String> stats = {};
+        final stats = <String, String>{};
         setState(() {
           stats['tx'] = '${event.currentBitrate.toInt()} kpbs';
           if (event.stats.mimeType != null) {
@@ -88,7 +89,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
     } else if (track is RemoteAudioTrack) {
       statsType = StatsType.kRemoteAudioReceiver;
       listener.on<AudioReceiverStatsEvent>((event) {
-        Map<String, String> stats = {};
+        final stats = <String, String>{};
         setState(() {
           stats['rx'] = '${event.currentBitrate.toInt()} kpbs';
           if (event.stats.mimeType != null) {
@@ -109,7 +110,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
 
   _onParticipantChanged() {
     for (var element in listeners) {
-      element.dispose();
+      unawaited(element.dispose());
     }
     listeners.clear();
     for (var track in [...widget.participant.videoTrackPublications, ...widget.participant.audioTrackPublications]) {
@@ -130,7 +131,7 @@ class _ParticipantStatsWidgetState extends State<ParticipantStatsWidget> {
   @override
   void deactivate() {
     for (var element in listeners) {
-      element.dispose();
+      unawaited(element.dispose());
     }
     widget.participant.removeListener(_onParticipantChanged);
     super.deactivate();

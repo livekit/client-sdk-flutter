@@ -238,7 +238,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     /// Apply audio output selection for the web.
     if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
-        await (track as RemoteAudioTrack).setSinkId(audioOutputOptions.deviceId!);
+        (track as RemoteAudioTrack).setSinkId(audioOutputOptions.deviceId!);
       }
     }
 

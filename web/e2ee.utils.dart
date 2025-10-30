@@ -63,8 +63,8 @@ bool needsRbspUnescaping(Uint8List frameData) {
 }
 
 Uint8List parseRbsp(Uint8List stream) {
-  List<int> dataOut = [];
-  var length = stream.length;
+  final List<int> dataOut = [];
+  final length = stream.length;
   for (var i = 0; i < stream.length;) {
     // Be careful about over/underflow here. byte_length_ - 3 can underflow, and
     // i + 3 can overflow, but byte_length_ - i can't, because i < byte_length_
@@ -88,10 +88,10 @@ const kZerosInStartSequence = 2;
 const kEmulationByte = 3;
 
 Uint8List writeRbsp(Uint8List dataIn) {
-  List<int> dataOut = [];
+  final List<int> dataOut = [];
   var numConsecutiveZeros = 0;
   for (var i = 0; i < dataIn.length; ++i) {
-    var byte = dataIn[i];
+    final byte = dataIn[i];
     if (byte <= kEmulationByte && numConsecutiveZeros >= kZerosInStartSequence) {
       // Need to escape.
       dataOut.add(kEmulationByte);

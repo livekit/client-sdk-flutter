@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
@@ -6,6 +7,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:web/web.dart' as web;
+// ignore: depend_on_referenced_packages
 import 'package:webrtc_interface/webrtc_interface.dart' show Algorithm;
 import 'e2ee.data_packet_cryptor.dart';
 import 'e2ee.frame_cryptor.dart';
@@ -103,7 +105,7 @@ void main() async {
 
       final cryptor = getTrackCryptor(participantId.toDart, trackId.toDart, keyProvider);
 
-      cryptor.setupTransform(
+      unawaited(cryptor.setupTransform(
         operation: msgType.toDart,
         readable: transformer.readable,
         writable: transformer.writable,
@@ -111,7 +113,7 @@ void main() async {
         kind: kind.toDart,
         codec: codec?.toDart,
         isReuse: false,
-      );
+      ));
     }.toJS;
   }
 
@@ -264,7 +266,7 @@ void main() async {
           final keyProviderOptions = keyProvider.keyProviderOptions;
           if (keyProviderOptions.sharedKey) {
             logger.config('Set SharedKey keyIndex $keyIndex');
-            keyProvider.setSharedKey(key, keyIndex: keyIndex);
+            await keyProvider.setSharedKey(key, keyIndex: keyIndex);
           } else {
             final participantId = msg['participantId'] as String;
             logger.config('Set key for participant $participantId, keyIndex $keyIndex');
@@ -575,6 +577,6 @@ void main() async {
   };
 
   self.onmessage = (web.MessageEvent e) {
-    handleMessage(e);
+    unawaited(handleMessage(e));
   }.toJS;
 }
