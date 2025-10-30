@@ -714,7 +714,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
         if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
           // Wait until broadcasting to publish track
-          BroadcastManager().requestActivation();
+          await BroadcastManager().requestActivation();
           return null;
         }
 

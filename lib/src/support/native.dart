@@ -164,18 +164,18 @@ class Native {
   }
 
   @internal
-  static void broadcastRequestActivation() {
+  static Future<void> broadcastRequestActivation() async {
     try {
-      unawaited(channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{}));
+      await channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{});
     } catch (error) {
       logger.warning('broadcastRequestActivation did throw error: ${error}');
     }
   }
 
   @internal
-  static void broadcastRequestStop() {
+  static Future<void> broadcastRequestStop() async {
     try {
-      unawaited(channel.invokeMethod('broadcastRequestStop', <String, dynamic>{}));
+      await channel.invokeMethod('broadcastRequestStop', <String, dynamic>{});
     } catch (error) {
       logger.warning('broadcastRequestStop did throw error: ${error}');
     }
