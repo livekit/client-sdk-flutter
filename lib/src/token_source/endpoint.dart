@@ -18,6 +18,29 @@ import 'package:http/http.dart' as http;
 
 import 'token_source.dart';
 
+/// Error thrown when the token server responds with a non-success HTTP status code.
+class TokenSourceHttpException implements Exception {
+  /// The endpoint that returned the error.
+  final Uri uri;
+
+  /// The HTTP status code returned by the endpoint.
+  final int statusCode;
+
+  /// The raw response body returned by the endpoint.
+  final String body;
+
+  const TokenSourceHttpException({
+    required this.uri,
+    required this.statusCode,
+    required this.body,
+  });
+
+  @override
+  String toString() {
+    return 'TokenSourceHttpException(statusCode: $statusCode, uri: $uri, body: $body)';
+  }
+}
+
 /// A token source that fetches credentials via HTTP requests from a custom backend.
 ///
 /// This implementation:
@@ -29,7 +52,7 @@ import 'token_source.dart';
 class EndpointTokenSource implements TokenSourceConfigurable {
   /// The URL endpoint for token generation.
   /// This should point to your backend service that generates LiveKit tokens.
-  final String url;
+  final Uri uri;
 
   /// The HTTP method to use for the token request (defaults to "POST").
   final String method;
@@ -47,16 +70,15 @@ class EndpointTokenSource implements TokenSourceConfigurable {
   /// - [headers]: Additional HTTP headers (optional)
   /// - [client]: Custom HTTP client for testing (optional)
   EndpointTokenSource({
-    required this.url,
+    required Uri url,
     this.method = 'POST',
     this.headers = const {},
     this.client,
-  });
+  }) : uri = url;
 
   @override
   Future<TokenSourceResponse> fetch(TokenRequestOptions options) async {
     final requestBody = jsonEncode(options.toRequest().toJson());
-    final uri = Uri.parse(url);
     final requestHeaders = {
       'Content-Type': 'application/json',
       ...headers,
@@ -79,7 +101,11 @@ class EndpointTokenSource implements TokenSourceConfigurable {
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Error generating token from endpoint $url: received ${response.statusCode} / ${response.body}');
+      throw TokenSourceHttpException(
+        uri: uri,
+        statusCode: response.statusCode,
+        body: response.body,
+      );
     }
 
     final responseBody = jsonDecode(response.body) as Map<String, dynamic>;

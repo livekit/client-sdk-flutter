@@ -29,9 +29,16 @@ class SandboxTokenSource extends EndpointTokenSource {
   SandboxTokenSource({
     required String sandboxId,
   }) : super(
-          url: 'https://cloud-api.livekit.io/api/v2/sandbox/connection-details',
+          url: Uri.parse('https://cloud-api.livekit.io/api/v2/sandbox/connection-details'),
           headers: {
-            'X-Sandbox-ID': sandboxId,
+            'X-Sandbox-ID': _sanitizeSandboxId(sandboxId),
           },
         );
+}
+
+String _sanitizeSandboxId(String sandboxId) {
+  var sanitized = sandboxId;
+  sanitized = sanitized.replaceFirst(RegExp(r'^[^a-zA-Z0-9]+'), '');
+  sanitized = sanitized.replaceFirst(RegExp(r'[^a-zA-Z0-9]+$'), '');
+  return sanitized;
 }

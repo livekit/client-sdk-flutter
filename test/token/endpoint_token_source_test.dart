@@ -41,7 +41,7 @@ void main() {
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         method: 'POST',
         headers: {'hello': 'world'},
         client: mockClient,
@@ -99,7 +99,7 @@ void main() {
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         method: 'GET',
         client: mockClient,
       );
@@ -127,7 +127,7 @@ void main() {
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         client: mockClient,
       );
 
@@ -151,7 +151,7 @@ void main() {
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         client: mockClient,
       );
 
@@ -175,7 +175,7 @@ void main() {
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         client: mockClient,
       );
 
@@ -187,43 +187,44 @@ void main() {
       expect(response.roomName, isNull);
     });
 
-    test('error response throws exception', () async {
+    test('error response throws structured exception', () async {
       final mockClient = MockClient((request) async {
         return http.Response('Not Found', 404);
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         client: mockClient,
       );
 
       expect(
         () => source.fetch(const TokenRequestOptions()),
-        throwsA(isA<Exception>().having(
-          (e) => e.toString(),
-          'message',
-          contains('404'),
-        )),
+        throwsA(
+          isA<TokenSourceHttpException>()
+              .having((e) => e.statusCode, 'statusCode', 404)
+              .having((e) => e.body, 'body', 'Not Found')
+              .having((e) => e.uri.toString(), 'uri', 'https://example.com/token'),
+        ),
       );
     });
 
-    test('server error response throws exception', () async {
+    test('server error response throws structured exception', () async {
       final mockClient = MockClient((request) async {
         return http.Response('Internal Server Error', 500);
       });
 
       final source = EndpointTokenSource(
-        url: 'https://example.com/token',
+        url: Uri.parse('https://example.com/token'),
         client: mockClient,
       );
 
       expect(
         () => source.fetch(const TokenRequestOptions()),
-        throwsA(isA<Exception>().having(
-          (e) => e.toString(),
-          'message',
-          contains('500'),
-        )),
+        throwsA(
+          isA<TokenSourceHttpException>()
+              .having((e) => e.statusCode, 'statusCode', 500)
+              .having((e) => e.body, 'body', 'Internal Server Error'),
+        ),
       );
     });
   });

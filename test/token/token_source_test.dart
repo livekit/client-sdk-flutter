@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:livekit_client/src/token_source/custom.dart';
 import 'package:livekit_client/src/token_source/jwt.dart';
 import 'package:livekit_client/src/token_source/literal.dart';
+import 'package:livekit_client/src/token_source/sandbox.dart';
 import 'package:livekit_client/src/token_source/room_configuration.dart';
 import 'package:livekit_client/src/token_source/token_source.dart';
 
@@ -200,6 +201,15 @@ void main() {
       expect(grant.canPublishSources, ['camera', 'screen']);
       expect(grant.hidden, isFalse);
       expect(grant.recorder, isTrue);
+    });
+  });
+
+  group('SandboxTokenSource', () {
+    test('sanitizes sandbox id and uses default base URL', () {
+      final source = SandboxTokenSource(sandboxId: '  sandbox-123  ');
+
+      expect(source.uri.toString(), 'https://cloud-api.livekit.io/api/v2/sandbox/connection-details');
+      expect(source.headers['X-Sandbox-ID'], 'sandbox-123');
     });
   });
 
