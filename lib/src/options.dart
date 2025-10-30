@@ -324,12 +324,17 @@ class AudioPublishOptions extends PublishOptions {
   /// max audio bitrate
   final int audioBitrate;
 
+  /// Mark this audio as originating from a pre-connect buffer.
+  /// Used to populate protobuf audioFeatures (TF_PRECONNECT_BUFFER).
+  final bool preConnect;
+
   const AudioPublishOptions({
     super.name,
     super.stream,
     this.dtx = true,
     this.red = true,
     this.audioBitrate = AudioPreset.music,
+    this.preConnect = false,
   });
 
   AudioPublishOptions copyWith({
@@ -338,6 +343,7 @@ class AudioPublishOptions extends PublishOptions {
     String? name,
     String? stream,
     bool? red,
+    bool? preConnect,
   }) =>
       AudioPublishOptions(
         dtx: dtx ?? this.dtx,
@@ -345,10 +351,12 @@ class AudioPublishOptions extends PublishOptions {
         name: name ?? this.name,
         stream: stream ?? this.stream,
         red: red ?? this.red,
+        preConnect: preConnect ?? this.preConnect,
       );
 
   @override
-  String toString() => '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red})';
+  String toString() =>
+      '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red}, preConnect: ${preConnect})';
 }
 
 final backupCodecs = ['vp8', 'h264'];

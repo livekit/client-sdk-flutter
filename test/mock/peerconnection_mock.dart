@@ -18,6 +18,18 @@ import 'datachannel_mock.dart';
 
 List<MockDataChannel> _dataChannels = [];
 
+MockDataChannel? findMockDataChannelByLabel(String label, {bool requireListener = false}) {
+  for (final dc in _dataChannels) {
+    if (dc.label == label) {
+      if (requireListener && dc.onMessage == null) {
+        continue;
+      }
+      return dc;
+    }
+  }
+  return null;
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';

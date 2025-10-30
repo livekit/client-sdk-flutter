@@ -14,6 +14,7 @@
 
 export 'src/constants.dart';
 export 'src/core/room.dart';
+export 'src/core/room_preconnect.dart';
 export 'src/data_stream/stream_reader.dart';
 export 'src/data_stream/stream_writer.dart';
 export 'src/e2ee/e2ee_manager.dart';
@@ -31,6 +32,7 @@ export 'src/options.dart';
 export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/remote.dart' hide ParticipantCreationResult;
+export 'src/preconnect/pre_connect_audio_buffer.dart';
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
