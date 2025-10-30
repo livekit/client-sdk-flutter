@@ -487,7 +487,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       for (final info in event.response.otherParticipants) {
         logger.fine('Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
             'tracks:${info.tracks.map((e) => e.sid)}');
-        await _getOrCreateRemoteParticipant(info.identity, info);
+        await _getOrCreateRemoteParticipant(info);
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
@@ -657,9 +657,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return null;
   }
 
-  Future<ParticipantCreationResult> _getOrCreateRemoteParticipant(
-      String identity, lk_models.ParticipantInfo? info) async {
-    RemoteParticipant? participant = _remoteParticipants[identity];
+  Future<ParticipantCreationResult> _getOrCreateRemoteParticipant(lk_models.ParticipantInfo info) async {
+    if (!info.hasIdentity() || !info.hasSid()) {
+      throw Exception('ParticipantInfo must have identity and sid');
+    }
+
+    final participant = _remoteParticipants[info.identity];
     if (participant != null) {
       // Return existing participant with no new publications; caller handles updates.
       return ParticipantCreationResult(
@@ -668,25 +671,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     }
 
-    ParticipantCreationResult result;
-    if (info == null) {
-      logger.warning('RemoteParticipant.info is null identity: $identity');
-      participant = RemoteParticipant(
-        room: this,
-        sid: '',
-        identity: identity,
-        name: '',
-      );
-      result = ParticipantCreationResult(
-        participant: participant,
-        newPublications: const [],
-      );
-    } else {
-      result = await RemoteParticipant.createFromInfo(
-        room: this,
-        info: info,
-      );
-    }
+    final result = await RemoteParticipant.createFromInfo(
+      room: this,
+      info: info,
+    );
 
     _remoteParticipants[result.participant.identity] = result.participant;
     _sidToIdentity[result.participant.sid] = result.participant.identity;
@@ -717,7 +705,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         continue;
       }
 
-      final result = await _getOrCreateRemoteParticipant(info.identity, info);
+      final result = await _getOrCreateRemoteParticipant(info);
 
       if (isNew) {
         hasChanged = true;

@@ -55,8 +55,7 @@ class ParticipantCreationResult {
 
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant<RemoteTrackPublication> {
-  @internal
-  RemoteParticipant({
+  RemoteParticipant._({
     required Room room,
     required String sid,
     required String identity,
@@ -84,7 +83,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     required Room room,
     required lk_models.ParticipantInfo info,
   }) async {
-    final participant = RemoteParticipant(
+    final participant = RemoteParticipant._(
       room: room,
       sid: info.sid,
       identity: info.identity,
