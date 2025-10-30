@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import '../support/completer_manager.dart';
+import '../support/reusable_completer.dart';
 import 'jwt.dart';
 import 'token_source.dart';
 
@@ -97,7 +97,7 @@ class CachingTokenSource implements TokenSourceConfigurable {
   final TokenSourceConfigurable _wrapped;
   final TokenStore _store;
   final TokenValidator _validator;
-  final Map<TokenRequestOptions, CompleterManager<TokenSourceResponse>> _inflightRequests = {};
+  final Map<TokenRequestOptions, ReusableCompleter<TokenSourceResponse>> _inflightRequests = {};
 
   /// Initialize a caching wrapper around any token source.
   ///
@@ -114,28 +114,28 @@ class CachingTokenSource implements TokenSourceConfigurable {
 
   @override
   Future<TokenSourceResponse> fetch(TokenRequestOptions options) async {
-    final existingManager = _inflightRequests[options];
-    if (existingManager != null && existingManager.isActive) {
-      return existingManager.future;
+    final existingCompleter = _inflightRequests[options];
+    if (existingCompleter != null && existingCompleter.isActive) {
+      return existingCompleter.future;
     }
 
-    final manager = existingManager ?? CompleterManager<TokenSourceResponse>();
-    _inflightRequests[options] = manager;
-    final resultFuture = manager.future;
+    final completer = existingCompleter ?? ReusableCompleter<TokenSourceResponse>();
+    _inflightRequests[options] = completer;
+    final resultFuture = completer.future;
 
     try {
       final cached = await _store.retrieve();
       if (cached != null && cached.options == options && _validator(cached.options, cached.response)) {
-        manager.complete(cached.response);
+        completer.complete(cached.response);
         return resultFuture;
       }
 
       final response = await _wrapped.fetch(options);
       await _store.store(options, response);
-      manager.complete(response);
+      completer.complete(response);
       return resultFuture;
     } catch (e, stackTrace) {
-      manager.completeError(e, stackTrace);
+      completer.completeError(e, stackTrace);
       rethrow;
     } finally {
       _inflightRequests.remove(options);
