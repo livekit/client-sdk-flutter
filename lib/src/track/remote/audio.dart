@@ -67,7 +67,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
     return didStop;
   }
 
-  Future<void> setSinkId(String deviceId) async {
+  void setSinkId(String deviceId) {
     audio.setSinkId(getCid(), deviceId);
     _deviceId = deviceId;
   }

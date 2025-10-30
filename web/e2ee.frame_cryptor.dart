@@ -178,9 +178,10 @@ class FrameCryptor {
   int getUnencryptedBytes(JSObject obj, String? codec) {
     Uint8List? data;
     var frameType = '';
-    if (obj is web.RTCEncodedVideoFrame) {
-      data = obj.data.toDart.asUint8List();
-      if (obj.hasProperty('type'.toJS).toDart) {
+    if (obj.instanceOfString('RTCEncodedVideoFrame')) {
+      final frame = obj as web.RTCEncodedVideoFrame;
+      data = frame.data.toDart.asUint8List();
+      if (frame.hasProperty('type'.toJS).toDart) {
         frameType = obj.type;
         logger.finer('frameType: $frameType');
       }
@@ -226,26 +227,30 @@ class FrameCryptor {
     var synchronizationSource = 0;
     var timestamp = 0;
     var frameType = '';
-    if (frameObj is web.RTCEncodedVideoFrame) {
-      buffer = frameObj.data.toDart.asUint8List();
-      if (frameObj.hasProperty('type'.toJS).toDart) {
-        frameType = frameObj.type;
+    if (frameObj.instanceOfString('RTCEncodedVideoFrame')) {
+      final frame = frameObj as web.RTCEncodedVideoFrame;
+
+      buffer = frame.data.toDart.asUint8List();
+      if (frame.hasProperty('type'.toJS).toDart) {
+        frameType = frame.type;
         logger.finer('frameType: $frameType');
       }
-      synchronizationSource = frameObj.getMetadata().synchronizationSource;
-      if (frameObj.getMetadata().hasProperty('rtpTimestamp'.toJS).toDart) {
-        timestamp = frameObj.getMetadata().rtpTimestamp.toInt();
-      } else if (frameObj.hasProperty('timestamp'.toJS).toDart) {
-        timestamp = (frameObj.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
+      final meta = frame.getMetadata();
+      synchronizationSource = meta.synchronizationSource;
+      if (meta.hasProperty('rtpTimestamp'.toJS).toDart) {
+        timestamp = meta.rtpTimestamp.toInt();
+      } else if (frame.hasProperty('timestamp'.toJS).toDart) {
+        timestamp = (frame.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
       }
-    } else if (frameObj is web.RTCEncodedAudioFrame) {
-      buffer = frameObj.data.toDart.asUint8List();
-      synchronizationSource = frameObj.getMetadata().synchronizationSource;
-
-      if (frameObj.getMetadata().hasProperty('rtpTimestamp'.toJS).toDart) {
-        timestamp = frameObj.getMetadata().rtpTimestamp.toInt();
-      } else if (frameObj.hasProperty('timestamp'.toJS).toDart) {
-        timestamp = (frameObj.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
+    } else if (frameObj.instanceOfString('RTCEncodedAudioFrame')) {
+      final frame = frameObj as web.RTCEncodedAudioFrame;
+      buffer = frame.data.toDart.asUint8List();
+      final meta = frame.getMetadata();
+      synchronizationSource = meta.synchronizationSource;
+      if (meta.hasProperty('rtpTimestamp'.toJS).toDart) {
+        timestamp = meta.rtpTimestamp.toInt();
+      } else if (frame.hasProperty('timestamp'.toJS).toDart) {
+        timestamp = (frame.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
       }
       frameType = 'audio';
     } else {
@@ -261,11 +266,9 @@ class FrameCryptor {
   }
 
   void enqueueFrame(JSObject frameObj, web.TransformStreamDefaultController controller, BytesBuilder buffer) {
-    if (frameObj is web.RTCEncodedVideoFrame) {
-      frameObj.data = buffer.toBytes().buffer.toJS;
-    } else if (frameObj is web.RTCEncodedAudioFrame) {
-      frameObj.data = buffer.toBytes().buffer.toJS;
-    }
+    final jsBuffer = buffer.toBytes().buffer.toJS;
+    // No need for runtime type checks; set the JS 'data' property for both audio/video frames.
+    frameObj.setProperty('data'.toJS, jsBuffer);
     controller.enqueue(frameObj);
   }
 
@@ -276,7 +279,10 @@ class FrameCryptor {
     try {
       if (!enabled ||
           // skip for encryption for empty dtx frames
+          // TODO, fix the invalid_runtime_check_with_js_interop_types warnings.
+          // ignore: invalid_runtime_check_with_js_interop_types
           ((frameObj is web.RTCEncodedVideoFrame && frameObj.data.toDart.lengthInBytes == 0) ||
+              // ignore: invalid_runtime_check_with_js_interop_types
               (frameObj is web.RTCEncodedAudioFrame && frameObj.data.toDart.lengthInBytes == 0))) {
         if (keyOptions.discardFrameWhenCryptorNotReady) {
           return;

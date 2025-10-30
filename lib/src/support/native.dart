@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 
 import 'package:meta/meta.dart';
 
+import 'dart:async';
 import '../logger.dart';
 import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
@@ -164,7 +165,7 @@ class Native {
   @internal
   static void broadcastRequestActivation() {
     try {
-      channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{});
+      unawaited(channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{}));
     } catch (error) {
       logger.warning('broadcastRequestActivation did throw error: ${error}');
     }
@@ -173,7 +174,7 @@ class Native {
   @internal
   static void broadcastRequestStop() {
     try {
-      channel.invokeMethod('broadcastRequestStop', <String, dynamic>{});
+      unawaited(channel.invokeMethod('broadcastRequestStop', <String, dynamic>{}));
     } catch (error) {
       logger.warning('broadcastRequestStop did throw error: ${error}');
     }

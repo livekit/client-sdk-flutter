@@ -75,7 +75,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           identity: info.identity,
           name: info.name,
         ) {
-    updateFromInfo(info);
+    // updateFromInfo() is sync, no need to wait here.
+    unawaited(updateFromInfo(info));
 
     if (lkPlatformIs(PlatformType.iOS)) {
       BroadcastManager().addListener(_broadcastStateChanged);
@@ -90,7 +91,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Handle broadcast state change (iOS only)
   void _broadcastStateChanged() {
     final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
-    setScreenShareEnabled(isEnabled);
+    // Listener must stay sync (void), so use unawaited here.
+    unawaited(setScreenShareEnabled(isEnabled));
   }
 
   /// Publish an [AudioTrack] to the [Room].
@@ -176,9 +178,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await room.applyAudioSpeakerSettings();
 
     final listener = track.createListener();
-    listener.on((TrackEndedEvent event) {
+    listener.on((TrackEndedEvent event) async {
       logger.fine('TrackEndedEvent: ${event.track}');
-      removePublishedTrack(pub.sid);
+      await removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(
@@ -316,7 +318,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             getDefaultDegradationPreference(
               track,
             );
-        track.setDegradationPreference(degradationPreference);
+        await track.setDegradationPreference(degradationPreference);
       }
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
@@ -417,7 +419,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             getDefaultDegradationPreference(
               track,
             );
-        track.setDegradationPreference(degradationPreference);
+        await track.setDegradationPreference(degradationPreference);
       }
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
@@ -452,9 +454,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.processor?.onPublish(room);
 
     final listener = track.createListener();
-    listener.on((TrackEndedEvent event) {
+    listener.on((TrackEndedEvent event) async {
       logger.fine('TrackEndedEvent: ${event.track}');
-      removePublishedTrack(pub.sid);
+      await removePublishedTrack(pub.sid);
     });
 
     [events, room.events].emit(LocalTrackPublishedEvent(

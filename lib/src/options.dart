@@ -165,6 +165,7 @@ class RoomOptions {
       adaptiveStream: adaptiveStream ?? this.adaptiveStream,
       dynacast: dynacast ?? this.dynacast,
       stopLocalTrackOnUnpublish: stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+      // ignore: deprecated_member_use_from_same_package
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
       encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
