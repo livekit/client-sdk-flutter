@@ -102,7 +102,7 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget> with TickerPr
         duration: Duration(
           milliseconds: widget.durationInMilliseconds,
         ))
-      ..repeat();  // ignore: discarded_futures
+      ..repeat(); // ignore: discarded_futures
   }
 
   @override
