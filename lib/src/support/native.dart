@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 import 'package:meta/meta.dart';
 
-import 'dart:async';
 import '../logger.dart';
 import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
