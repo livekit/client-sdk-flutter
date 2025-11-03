@@ -164,7 +164,7 @@ extension CachedTokenSource on TokenSourceConfigurable {
   ///   - store: The store implementation to use for caching (defaults to in-memory store)
   ///   - validator: A function to determine if cached credentials are still valid (defaults to JWT expiration check)
   /// - Returns: A caching token source that wraps this token source
-  TokenSourceConfigurable cached({
+  CachingTokenSource cached({
     TokenStore? store,
     TokenValidator? validator,
   }) =>

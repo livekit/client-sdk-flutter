@@ -18,8 +18,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:livekit_client/src/token_source/custom.dart';
 import 'package:livekit_client/src/token_source/jwt.dart';
 import 'package:livekit_client/src/token_source/literal.dart';
-import 'package:livekit_client/src/token_source/sandbox.dart';
 import 'package:livekit_client/src/token_source/room_configuration.dart';
+import 'package:livekit_client/src/token_source/sandbox.dart';
 import 'package:livekit_client/src/token_source/token_source.dart';
 
 void main() {
@@ -354,7 +354,7 @@ void main() {
       expect(request.roomConfiguration!.agents![0].metadata, '{"key":"value"}');
     });
 
-    test('toRequest() creates null roomConfiguration when no agent fields', () {
+    test('toRequest() creates empty roomConfiguration when no agent fields', () {
       const options = TokenRequestOptions(
         roomName: 'test-room',
         participantName: 'test-participant',
@@ -364,7 +364,8 @@ void main() {
 
       expect(request.roomName, 'test-room');
       expect(request.participantName, 'test-participant');
-      expect(request.roomConfiguration, isNull);
+      expect(request.roomConfiguration, isNotNull);
+      expect(request.roomConfiguration!.agents, isNull);
     });
 
     test('TokenSourceRequest.toJson() produces correct wire format', () {

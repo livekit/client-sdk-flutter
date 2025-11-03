@@ -112,7 +112,7 @@ void main() {
       expect(capturedRequest, isNotNull);
       expect(capturedRequest!.method, 'GET');
       // Body is always sent even for GET requests
-      expect(capturedRequest!.body, '{}');
+      expect(capturedRequest!.body, '{"room_config":{}}');
     });
 
     test('accepts non-200 success responses', () async {
@@ -298,7 +298,9 @@ void main() {
 
       final json = options.toRequest().toJson();
 
-      expect(json, isEmpty);
+      expect(json.keys, contains('room_config'));
+      expect(json['room_config'], isMap);
+      expect((json['room_config'] as Map), isEmpty);
     });
 
     test('only includes non-null fields', () {
@@ -313,6 +315,8 @@ void main() {
       expect(json.containsKey('room_name'), isTrue);
       expect(json.containsKey('participant_name'), isFalse);
       expect(json.containsKey('participant_identity'), isTrue);
+      expect(json.containsKey('room_config'), isTrue);
+      expect((json['room_config'] as Map), isEmpty);
     });
   });
 

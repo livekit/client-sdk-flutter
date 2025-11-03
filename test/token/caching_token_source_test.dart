@@ -333,9 +333,7 @@ class _MockTokenSource implements TokenSourceConfigurable {
   _MockTokenSource(this._fetchFn);
 
   @override
-  Future<TokenSourceResponse> fetch([TokenRequestOptions? options]) {
-    return _fetchFn(options ?? const TokenRequestOptions());
-  }
+  Future<TokenSourceResponse> fetch(TokenRequestOptions options) => _fetchFn(options);
 }
 
 String _generateValidToken() {

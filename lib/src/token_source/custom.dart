@@ -31,8 +31,5 @@ class CustomTokenSource implements TokenSourceConfigurable {
   CustomTokenSource(CustomTokenFunction function) : _function = function;
 
   @override
-  Future<TokenSourceResponse> fetch([TokenRequestOptions? options]) async {
-    final requestOptions = options ?? const TokenRequestOptions();
-    return await _function(requestOptions);
-  }
+  Future<TokenSourceResponse> fetch(TokenRequestOptions options) async => _function(options);
 }

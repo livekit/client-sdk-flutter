@@ -61,7 +61,7 @@ class TokenRequestOptions {
       participantIdentity: participantIdentity,
       participantMetadata: participantMetadata,
       participantAttributes: participantAttributes,
-      roomConfiguration: agents != null ? RoomConfiguration(agents: agents) : null,
+      roomConfiguration: RoomConfiguration(agents: agents),
     );
   }
 
