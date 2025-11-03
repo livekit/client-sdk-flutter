@@ -524,12 +524,12 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return simulcastCodecInfo;
   }
 
-  void setDegradationPreference(DegradationPreference preference) {
+  Future<void> setDegradationPreference(DegradationPreference preference) async {
     final params = sender?.parameters;
     if (params == null) {
       return;
     }
     params.degradationPreference = preference.toRTCType();
-    sender?.setParameters(params);
+    await sender?.setParameters(params);
   }
 }

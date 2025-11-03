@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../exts.dart';
@@ -44,12 +45,12 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     _subscription = Hardware.instance.onDeviceChange.stream.listen((List<MediaDevice> devices) {
       _loadDevices(devices);
     });
-    Hardware.instance.enumerateDevices().then(_loadDevices);
+    unawaited(Hardware.instance.enumerateDevices().then(_loadDevices));
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    unawaited(_subscription?.cancel());
     participant.removeListener(_onChange);
     super.dispose();
   }
@@ -140,7 +141,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           return;
         }
         print('DesktopCapturerSource: ${source.id}');
-        var track = await LocalVideoTrack.createScreenShareTrack(
+        final track = await LocalVideoTrack.createScreenShareTrack(
           ScreenShareCaptureOptions(
             sourceId: source.id,
             maxFrameRate: 15.0,
@@ -154,7 +155,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
     if (lkPlatformIs(PlatformType.android)) {
       // Android specific
-      bool hasCapturePermission = await Helper.requestCapturePermission();
+      final hasCapturePermission = await Helper.requestCapturePermission();
       if (!hasCapturePermission) {
         return;
       }
@@ -187,6 +188,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
     }
 
     if (lkPlatformIsWebMobile()) {
+      if (!mounted) return;
       await context.showErrorDialog('Screen share is not supported on mobile web');
       return;
     }
@@ -218,6 +220,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           allParticipantsAllowed: result,
         );
       } catch (error) {
+        if (!mounted) return;
         await context.showErrorDialog(error);
       }
     }

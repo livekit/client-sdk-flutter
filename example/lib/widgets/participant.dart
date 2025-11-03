@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/theme.dart';
 
+import 'dart:async';
 import 'no_video.dart';
 import 'participant_info.dart';
 import 'participant_stats.dart';
@@ -97,7 +98,7 @@ abstract class _ParticipantWidgetState<T extends ParticipantWidget> extends Stat
   @override
   void dispose() {
     widget.participant.removeListener(_onParticipantChanged);
-    _listener?.dispose();
+    unawaited(_listener?.dispose());
     super.dispose();
   }
 

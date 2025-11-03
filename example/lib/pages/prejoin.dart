@@ -61,12 +61,12 @@ class _PreJoinPageState extends State<PreJoinPage> {
   void initState() {
     super.initState();
     _subscription = Hardware.instance.onDeviceChange.stream.listen(_loadDevices);
-    Hardware.instance.enumerateDevices().then(_loadDevices);
+    unawaited(Hardware.instance.enumerateDevices().then(_loadDevices));
   }
 
   @override
   void deactivate() {
-    _subscription?.cancel();
+    unawaited(_subscription?.cancel());
     super.deactivate();
   }
 
@@ -151,7 +151,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    unawaited(_subscription?.cancel());
     super.dispose();
   }
 
@@ -160,16 +160,16 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     setState(() {});
 
-    var args = widget.args;
+    final args = widget.args;
 
     try {
       //create new room
-      var cameraEncoding = const VideoEncoding(
+      const cameraEncoding = VideoEncoding(
         maxBitrate: 5 * 1000 * 1000,
         maxFramerate: 30,
       );
 
-      var screenEncoding = const VideoEncoding(
+      const screenEncoding = VideoEncoding(
         maxBitrate: 3 * 1000 * 1000,
         maxFramerate: 15,
       );
@@ -226,12 +226,14 @@ class _PreJoinPageState extends State<PreJoinPage> {
         ),
       );
 
+      if (!context.mounted) return;
       await Navigator.push<void>(
         context,
         MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
       );
     } catch (error) {
       print('Could not connect $error');
+      if (!context.mounted) return;
       await context.showErrorDialog(error);
     } finally {
       setState(() {
@@ -243,6 +245,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
   void _actionBack(BuildContext context) async {
     await _setEnableVideo(false);
     await _setEnableAudio(false);
+    if (!context.mounted) return;
     Navigator.of(context).pop();
   }
 

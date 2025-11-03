@@ -55,7 +55,7 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
   @override
   void deactivate() {
     for (var element in _subscriptions) {
-      element.cancel();
+      unawaited(element.cancel());
     }
     super.deactivate();
   }
@@ -96,8 +96,8 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
 // ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
   ScreenSelectDialog({Key? key}) : super(key: key) {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _getSources();
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      await _getSources();
     });
     _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
       _sources[source.id] = source;
@@ -120,18 +120,18 @@ class ScreenSelectDialog extends Dialog {
   StateSetter? _stateSetter;
   Timer? _timer;
 
-  void _ok(BuildContext context) {
+  Future<void> _ok(BuildContext context) async {
     _timer?.cancel();
     for (var element in _subscriptions) {
-      element.cancel();
+      await element.cancel();
     }
     Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
-  void _cancel(BuildContext context) {
+  Future<void> _cancel(BuildContext context) async {
     _timer?.cancel();
     for (var element in _subscriptions) {
-      element.cancel();
+      await element.cancel();
     }
     Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
@@ -146,7 +146,7 @@ class ScreenSelectDialog extends Dialog {
       }
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-        rtc.desktopCapturer.updateSources(types: [_sourceType]);
+        unawaited(rtc.desktopCapturer.updateSources(types: [_sourceType]));
       });
       _sources.clear();
       for (var element in sources) {
@@ -187,7 +187,7 @@ class ScreenSelectDialog extends Dialog {
                     alignment: Alignment.topRight,
                     child: InkWell(
                       child: const Icon(Icons.close),
-                      onTap: () => _cancel(context),
+                      onTap: () async => await _cancel(context),
                     ),
                   ),
                 ],
@@ -208,10 +208,11 @@ class ScreenSelectDialog extends Dialog {
                           Container(
                             constraints: const BoxConstraints.expand(height: 24),
                             child: TabBar(
-                                onTap: (value) => Future.delayed(const Duration(milliseconds: 300), () {
-                                      _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
-                                      _getSources();
-                                    }),
+                                onTap: (value) async {
+                                  await Future.delayed(const Duration(milliseconds: 300));
+                                  _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
+                                  await _getSources();
+                                },
                                 tabs: const [
                                   Tab(
                                       child: Text(
@@ -284,8 +285,8 @@ class ScreenSelectDialog extends Dialog {
                       'Cancel',
                       style: TextStyle(color: Colors.black54),
                     ),
-                    onPressed: () {
-                      _cancel(context);
+                    onPressed: () async {
+                      await _cancel(context);
                     },
                   ),
                   MaterialButton(
@@ -293,8 +294,8 @@ class ScreenSelectDialog extends Dialog {
                     child: const Text(
                       'Share',
                     ),
-                    onPressed: () {
-                      _ok(context);
+                    onPressed: () async {
+                      await _ok(context);
                     },
                   ),
                 ],

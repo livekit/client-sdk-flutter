@@ -73,6 +73,8 @@ abstract class TrackPublication<T extends Track> extends Disposable {
         name = info.name,
         kind = info.type.toLKType(),
         source = info.source.toLKType(),
+        // TODO, figure out the replacements to simulcast, width, height.
+        // ignore: deprecated_member_use_from_same_package
         _simulcasted = info.simulcast,
         _metadataMuted = info.muted,
         _mimeType = info.mimeType,
@@ -85,10 +87,12 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   bool get isScreenShare => kind == TrackType.VIDEO && source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
+    // ignore: deprecated_member_use_from_same_package
     _simulcasted = info.simulcast;
     _mimeType = info.mimeType;
     _metadataMuted = info.muted;
     if (info.type == lk_models.TrackType.VIDEO) {
+      // ignore: deprecated_member_use_from_same_package
       _dimensions = VideoDimensions(info.width, info.height);
     }
     latestInfo = info;
