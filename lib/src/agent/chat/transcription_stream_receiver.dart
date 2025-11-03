@@ -16,12 +16,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
-
 import '../../core/room.dart';
 import '../../data_stream/stream_reader.dart';
 import '../../logger.dart';
-import '../../participant/participant.dart';
+import '../../types/data_stream.dart';
 import 'message.dart';
 import 'message_receiver.dart';
 
@@ -69,6 +67,12 @@ class TranscriptionStreamReceiver implements MessageReceiver {
     _room.registerTextStreamHandler(topic, (TextStreamReader reader, String participantIdentity) {
       reader.listen(
         (chunk) {
+          final info = reader.info;
+          if (info == null) {
+            logger.warning('Received transcription chunk without metadata.');
+            return;
+          }
+
           if (chunk.content.isEmpty) {
             return;
           }
@@ -87,7 +91,7 @@ class TranscriptionStreamReceiver implements MessageReceiver {
 
           final message = _processIncoming(
             text,
-            reader,
+            info,
             participantIdentity,
           );
           if (!_controller!.isClosed) {
@@ -100,10 +104,13 @@ class TranscriptionStreamReceiver implements MessageReceiver {
           }
         },
         onDone: () {
-          final attributes = reader.info.attributes;
-          final segmentId = _extractSegmentId(attributes, reader.info.id);
-          final key = _PartialMessageId(segmentId: segmentId, participantId: participantIdentity);
-          _partialMessages.remove(key);
+          final info = reader.info;
+          if (info != null) {
+            final attributes = info.attributes;
+            final segmentId = _extractSegmentId(attributes, info.id);
+            final key = _PartialMessageId(segmentId: segmentId, participantId: participantIdentity);
+            _partialMessages.remove(key);
+          }
         },
         cancelOnError: true,
       );
@@ -120,22 +127,24 @@ class TranscriptionStreamReceiver implements MessageReceiver {
       return;
     }
     _controllerClosed = true;
-    _controller?.close();
+    final controller = _controller;
     _controller = null;
+    if (controller != null) {
+      unawaited(controller.close());
+    }
   }
 
   ReceivedMessage _processIncoming(
     String chunk,
-    TextStreamReader reader,
+    TextStreamInfo info,
     String participantIdentity,
   ) {
-    final attributes = _TranscriptionAttributes.from(reader.info.attributes);
-    final segmentId = _extractSegmentId(reader.info.attributes, reader.info.id);
+    final attributes = _TranscriptionAttributes.from(info.attributes);
+    final segmentId = _extractSegmentId(info.attributes, info.id);
     final key = _PartialMessageId(segmentId: segmentId, participantId: participantIdentity);
-    final currentStreamId = reader.info.id;
+    final currentStreamId = info.id;
 
-    final DateTime timestamp =
-        DateTime.fromMillisecondsSinceEpoch(reader.info.timestamp, isUtc: true).toLocal();
+    final DateTime timestamp = DateTime.fromMillisecondsSinceEpoch(info.timestamp, isUtc: true).toLocal();
 
     final existing = _partialMessages[key];
     if (existing != null) {
@@ -197,9 +206,12 @@ class TranscriptionStreamReceiver implements MessageReceiver {
     _partialMessages.clear();
     if (!_controllerClosed) {
       _controllerClosed = true;
-      await _controller?.close();
+      final controller = _controller;
+      _controller = null;
+      if (controller != null) {
+        await controller.close();
+      }
     }
-    _controller = null;
   }
 }
 
@@ -214,9 +226,7 @@ class _PartialMessageId {
 
   @override
   bool operator ==(Object other) =>
-      other is _PartialMessageId &&
-      other.segmentId == segmentId &&
-      other.participantId == participantId;
+      other is _PartialMessageId && other.segmentId == segmentId && other.participantId == participantId;
 
   @override
   int get hashCode => Object.hash(segmentId, participantId);

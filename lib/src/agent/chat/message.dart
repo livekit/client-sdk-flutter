@@ -42,10 +42,7 @@ class ReceivedMessage {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ReceivedMessage &&
-        other.id == id &&
-        other.timestamp == timestamp &&
-        other.content == content;
+    return other is ReceivedMessage && other.id == id && other.timestamp == timestamp && other.content == content;
   }
 
   @override

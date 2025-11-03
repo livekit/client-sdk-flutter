@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:collection/collection.dart';
 
 import '../participant/participant.dart';
 import '../participant/remote.dart';
-import '../publication/remote.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
-import '../track/track.dart';
 import '../types/attribute_typings.dart';
 import '../types/other.dart';
+import 'constants.dart';
 
 /// Represents a LiveKit Agent.
 ///
@@ -129,7 +129,7 @@ class Agent extends ChangeNotifier {
   }
 
   AgentState? _readAgentState(Participant participant) {
-    final rawState = participant.attributes[_AttributeKeys.agentState];
+    final rawState = participant.attributes[lkAgentStateAttributeKey];
     if (rawState == null) {
       return null;
     }
@@ -171,7 +171,7 @@ class Agent extends ChangeNotifier {
     final publishOnBehalf = participant.identity;
     final room = participant.room;
     return room.remoteParticipants.values.firstWhereOrNull(
-      (p) => p.attributes[_AttributeKeys.publishOnBehalf] == publishOnBehalf,
+      (p) => p.attributes[lkPublishOnBehalfAttributeKey] == publishOnBehalf,
     );
   }
 }
@@ -192,9 +192,4 @@ enum _AgentLifecycle {
   connecting,
   connected,
   failed,
-}
-
-class _AttributeKeys {
-  static const agentState = 'lk.agent.state';
-  static const publishOnBehalf = 'lk.publish_on_behalf';
 }

@@ -75,7 +75,7 @@ class Session extends DisposableChangeNotifier {
 
     onDispose(() async {
       _agent.removeListener(notifyListeners);
-      _roomListener?.dispose();
+      await _roomListener?.dispose();
       await _cancelReceiverSubscriptions();
       await Future.wait(_receivers.toSet().map((receiver) => receiver.dispose()));
       _agentTimeoutTimer?.cancel();

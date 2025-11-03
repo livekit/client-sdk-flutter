@@ -17,6 +17,7 @@ import 'package:collection/collection.dart';
 import '../core/room.dart';
 import '../participant/remote.dart';
 import '../types/other.dart';
+import 'constants.dart';
 
 extension AgentRoom on Room {
   /// All agent participants currently in the room.
@@ -25,7 +26,7 @@ extension AgentRoom on Room {
           if (participant.kind != ParticipantKind.AGENT) {
             return false;
           }
-          final publishOnBehalf = participant.attributes['lk.publish_on_behalf'];
+          final publishOnBehalf = participant.attributes[lkPublishOnBehalfAttributeKey];
           return publishOnBehalf == null || publishOnBehalf.isEmpty;
         },
       );
