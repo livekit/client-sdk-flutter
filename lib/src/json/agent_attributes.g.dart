@@ -1,0 +1,66 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'agent_attributes.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AgentAttributes _$AgentAttributesFromJson(Map<String, dynamic> json) =>
+    AgentAttributes(
+      lkAgentInputs: (json['lkAgentInputs'] as List<dynamic>?)
+          ?.map((e) => $enumDecode(_$AgentInputEnumMap, e))
+          .toList(),
+      lkAgentOutputs: (json['lkAgentOutputs'] as List<dynamic>?)
+          ?.map((e) => $enumDecode(_$AgentOutputEnumMap, e))
+          .toList(),
+      lkAgentState:
+          $enumDecodeNullable(_$AgentStateEnumMap, json['lk.agent.state']),
+      lkPublishOnBehalf: json['lk.publish_on_behalf'] as String?,
+    );
+
+Map<String, dynamic> _$AgentAttributesToJson(AgentAttributes instance) =>
+    <String, dynamic>{
+      'lkAgentInputs':
+          instance.lkAgentInputs?.map((e) => _$AgentInputEnumMap[e]!).toList(),
+      'lkAgentOutputs': instance.lkAgentOutputs
+          ?.map((e) => _$AgentOutputEnumMap[e]!)
+          .toList(),
+      'lk.agent.state': _$AgentStateEnumMap[instance.lkAgentState],
+      'lk.publish_on_behalf': instance.lkPublishOnBehalf,
+    };
+
+const _$AgentInputEnumMap = {
+  AgentInput.AUDIO: 'audio',
+  AgentInput.TEXT: 'text',
+  AgentInput.VIDEO: 'video',
+};
+
+const _$AgentOutputEnumMap = {
+  AgentOutput.AUDIO: 'audio',
+  AgentOutput.TRANSCRIPTION: 'transcription',
+};
+
+const _$AgentStateEnumMap = {
+  AgentState.IDLE: 'idle',
+  AgentState.INITIALIZING: 'initializing',
+  AgentState.LISTENING: 'listening',
+  AgentState.SPEAKING: 'speaking',
+  AgentState.THINKING: 'thinking',
+};
+
+TranscriptionAttributes _$TranscriptionAttributesFromJson(
+        Map<String, dynamic> json) =>
+    TranscriptionAttributes(
+      lkSegmentId: json['lk.segment_id'] as String?,
+      lkTranscribedTrackId: json['lk.transcribed_track_id'] as String?,
+      lkTranscriptionFinal: _boolFromJson(json['lk.transcription_final']),
+    );
+
+Map<String, dynamic> _$TranscriptionAttributesToJson(
+        TranscriptionAttributes instance) =>
+    <String, dynamic>{
+      'lk.segment_id': instance.lkSegmentId,
+      'lk.transcribed_track_id': instance.lkTranscribedTrackId,
+      'lk.transcription_final': _boolToJson(instance.lkTranscriptionFinal),
+    };
