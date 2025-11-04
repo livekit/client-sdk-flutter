@@ -14,9 +14,13 @@
 
 import 'dart:async';
 
+import 'package:json_annotation/json_annotation.dart';
+
 import '../support/reusable_completer.dart';
 import 'jwt.dart';
 import 'token_source.dart';
+
+part 'caching.g.dart';
 
 /// A validator function that determines if cached credentials are still valid.
 ///
@@ -27,6 +31,7 @@ import 'token_source.dart';
 typedef TokenValidator = bool Function(TokenRequestOptions options, TokenSourceResponse response);
 
 /// A tuple containing the request options and response that were cached.
+@JsonSerializable()
 class TokenStoreItem {
   final TokenRequestOptions options;
   final TokenSourceResponse response;
@@ -35,6 +40,9 @@ class TokenStoreItem {
     required this.options,
     required this.response,
   });
+
+  factory TokenStoreItem.fromJson(Map<String, dynamic> json) => _$TokenStoreItemFromJson(json);
+  Map<String, dynamic> toJson() => _$TokenStoreItemToJson(this);
 }
 
 /// Protocol for storing and retrieving cached token credentials.
