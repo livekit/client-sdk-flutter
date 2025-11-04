@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import '../extensions.dart';
 import '../participant/participant.dart';
 
-typedef CancelListenFunc = Function();
+typedef CancelListenFunc = Future<void> Function();
 
 /// Protocol version to use when connecting to server.
 /// Usually it's not recommended to change this.
