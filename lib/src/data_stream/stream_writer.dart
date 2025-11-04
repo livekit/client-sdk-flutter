@@ -11,7 +11,7 @@ import '../utils.dart';
 
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
-  Function()? onClose;
+  Future<void> Function()? onClose;
 
   final InfoType info;
 
@@ -23,7 +23,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   Future<void> close() async {
     await writableStream.close();
-    onClose?.call();
+    await onClose?.call();
   }
 }
 

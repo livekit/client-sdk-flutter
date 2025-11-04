@@ -223,7 +223,7 @@ class PreConnectAudioBuffer {
   Future<void> reset() async {
     await stopRecording();
     _timeoutTimer?.cancel();
-    _participantStateListener?.call();
+    await _participantStateListener?.call();
     _participantStateListener = null;
     _buffer.clear();
 
