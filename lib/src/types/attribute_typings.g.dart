@@ -16,10 +16,12 @@ AgentAttributes _$AgentAttributesFromJson(Map<String, dynamic> json) => AgentAtt
     );
 
 Map<String, dynamic> _$AgentAttributesToJson(AgentAttributes instance) => <String, dynamic>{
-      'lk.agent.inputs': instance.lkAgentInputs?.map((e) => _$AgentInputEnumMap[e]!).toList(),
-      'lk.agent.outputs': instance.lkAgentOutputs?.map((e) => _$AgentOutputEnumMap[e]!).toList(),
-      'lk.agent.state': _$AgentStateEnumMap[instance.lkAgentState],
-      'lk.publish_on_behalf': instance.lkPublishOnBehalf,
+      if (instance.lkAgentInputs?.map((e) => _$AgentInputEnumMap[e]!).toList() case final value?)
+        'lk.agent.inputs': value,
+      if (instance.lkAgentOutputs?.map((e) => _$AgentOutputEnumMap[e]!).toList() case final value?)
+        'lk.agent.outputs': value,
+      if (_$AgentStateEnumMap[instance.lkAgentState] case final value?) 'lk.agent.state': value,
+      if (instance.lkPublishOnBehalf case final value?) 'lk.publish_on_behalf': value,
     };
 
 const _$AgentInputEnumMap = {
@@ -48,7 +50,7 @@ TranscriptionAttributes _$TranscriptionAttributesFromJson(Map<String, dynamic> j
     );
 
 Map<String, dynamic> _$TranscriptionAttributesToJson(TranscriptionAttributes instance) => <String, dynamic>{
-      'lk.segment_id': instance.lkSegmentId,
-      'lk.transcribed_track_id': instance.lkTranscribedTrackId,
-      'lk.transcription_final': instance.lkTranscriptionFinal,
+      if (instance.lkSegmentId case final value?) 'lk.segment_id': value,
+      if (instance.lkTranscribedTrackId case final value?) 'lk.transcribed_track_id': value,
+      if (instance.lkTranscriptionFinal case final value?) 'lk.transcription_final': value,
     };

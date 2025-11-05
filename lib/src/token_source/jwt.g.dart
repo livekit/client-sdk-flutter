@@ -22,16 +22,16 @@ LiveKitVideoGrant _$LiveKitVideoGrantFromJson(Map<String, dynamic> json) => Live
     );
 
 Map<String, dynamic> _$LiveKitVideoGrantToJson(LiveKitVideoGrant instance) => <String, dynamic>{
-      'room': instance.room,
-      'room_create': instance.roomCreate,
-      'room_join': instance.roomJoin,
-      'room_list': instance.roomList,
-      'room_record': instance.roomRecord,
-      'room_admin': instance.roomAdmin,
-      'can_publish': instance.canPublish,
-      'can_subscribe': instance.canSubscribe,
-      'can_publish_data': instance.canPublishData,
-      'can_publish_sources': instance.canPublishSources,
-      'hidden': instance.hidden,
-      'recorder': instance.recorder,
+      if (instance.room case final value?) 'room': value,
+      if (instance.roomCreate case final value?) 'room_create': value,
+      if (instance.roomJoin case final value?) 'room_join': value,
+      if (instance.roomList case final value?) 'room_list': value,
+      if (instance.roomRecord case final value?) 'room_record': value,
+      if (instance.roomAdmin case final value?) 'room_admin': value,
+      if (instance.canPublish case final value?) 'can_publish': value,
+      if (instance.canSubscribe case final value?) 'can_subscribe': value,
+      if (instance.canPublishData case final value?) 'can_publish_data': value,
+      if (instance.canPublishSources case final value?) 'can_publish_sources': value,
+      if (instance.hidden case final value?) 'hidden': value,
+      if (instance.recorder case final value?) 'recorder': value,
     };

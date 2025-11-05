@@ -12,6 +12,6 @@ TokenStoreItem _$TokenStoreItemFromJson(Map<String, dynamic> json) => TokenStore
     );
 
 Map<String, dynamic> _$TokenStoreItemToJson(TokenStoreItem instance) => <String, dynamic>{
-      'options': instance.options,
-      'response': instance.response,
+      'options': instance.options.toJson(),
+      'response': instance.response.toJson(),
     };
