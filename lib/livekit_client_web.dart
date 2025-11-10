@@ -23,8 +23,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 // package as the core of your plugin.
 
 // ignore: unused_import
-import 'package:web/web.dart' as web
-    show document, HTMLScriptElement; // import_sorter: keep
+import 'package:web/web.dart' as web show document, HTMLScriptElement; // import_sorter: keep
 
 /// A web implementation of the Livekit plugin.
 class LiveKitWebPlugin {

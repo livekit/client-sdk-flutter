@@ -18,9 +18,7 @@ enum AudioContextState {
   closed('closed');
 
   final String value;
-  static AudioContextState fromValue(String value) =>
-      values.firstWhere((e) => e.value == value);
-  static Iterable<AudioContextState> fromValues(Iterable<String> values) =>
-      values.map(fromValue);
+  static AudioContextState fromValue(String value) => values.firstWhere((e) => e.value == value);
+  static Iterable<AudioContextState> fromValues(Iterable<String> values) => values.map(fromValue);
   const AudioContextState(this.value);
 }

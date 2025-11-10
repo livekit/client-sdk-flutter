@@ -36,8 +36,7 @@ mixin _Disposer {
       logger.finer('[${objectId}] dispose()');
       _isDisposed = true;
       if (_disposeFuncs.isNotEmpty) {
-        logger.finer(
-            '[$objectId] running ${_disposeFuncs.length} dispose funcs...');
+        logger.finer('[$objectId] running ${_disposeFuncs.length} dispose funcs...');
         // call dispose funcs in reverse order
         for (final disposeFunc in _disposeFuncs.reversed) {
           await disposeFunc();

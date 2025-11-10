@@ -23,8 +23,7 @@ import 'package:livekit_client/src/utils.dart' show splitUtf8;
 
 void main() {
   group('splitUtf8 tests', () {
-    test('handles a string with mixed single and multi-byte utf8 characters',
-        () {
+    test('handles a string with mixed single and multi-byte utf8 characters', () {
       expect(splitUtf8('a😊b', 4), [
         utf8.encode('a'),
         utf8.encode('😊'),
@@ -39,9 +38,7 @@ void main() {
       ]);
     });
 
-    test(
-        'splits a string with special characters into chunks of the given size',
-        () {
+    test('splits a string with special characters into chunks of the given size', () {
       expect(splitUtf8('héllo wörld', 5), [
         utf8.encode('héll'),
         utf8.encode('o wö'),

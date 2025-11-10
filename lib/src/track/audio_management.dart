@@ -30,12 +30,10 @@ enum AudioTrackState {
   localAndRemote,
 }
 
-typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(
-    AudioTrackState state);
+typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(AudioTrackState state);
 
 // it's possible to set custom function here to customize audio session configuration
-ConfigureNativeAudioFunc onConfigureNativeAudio =
-    defaultNativeAudioConfigurationFunc;
+ConfigureNativeAudioFunc onConfigureNativeAudio = defaultNativeAudioConfigurationFunc;
 
 final _trackCounterLock = sync.Lock();
 AudioTrackState _audioTrackState = AudioTrackState.none;
@@ -150,12 +148,10 @@ AudioTrackState _computeAudioTrackState() {
   return AudioTrackState.none;
 }
 
-Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(
-    AudioTrackState state) async {
+Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(AudioTrackState state) async {
   if (state == AudioTrackState.none) {
     return NativeAudioConfiguration.soloAmbient;
-  } else if (state == AudioTrackState.remoteOnly &&
-      Hardware.instance.preferSpeakerOutput) {
+  } else if (state == AudioTrackState.remoteOnly && Hardware.instance.preferSpeakerOutput) {
     return NativeAudioConfiguration.playback;
   }
 
@@ -169,11 +165,9 @@ class NativeAudioManagement {
     // Audio configuration for Android.
     if (lkPlatformIs(PlatformType.android)) {
       if (Native.bypassVoiceProcessing) {
-        await rtc.Helper.setAndroidAudioConfiguration(
-            rtc.AndroidAudioConfiguration.media);
+        await rtc.Helper.setAndroidAudioConfiguration(rtc.AndroidAudioConfiguration.media);
       } else {
-        await rtc.Helper.setAndroidAudioConfiguration(
-            rtc.AndroidAudioConfiguration.communication);
+        await rtc.Helper.setAndroidAudioConfiguration(rtc.AndroidAudioConfiguration.communication);
       }
     }
   }

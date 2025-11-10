@@ -13,37 +13,68 @@
 # limitations under the License.
 
 name: Build
+permissions:
+  contents: read
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  dart-format-and-analyze-check:
-    name: Dart Format/Analyze/Test Check
+  dart-format-check:
+    name: Dart Format Check
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '17.x'
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Dart Format Check
-        run: dart format lib/ test/ --set-exit-if-changed
+        run: dart format . --set-exit-if-changed
+
+  import-sorter-check:
+    name: Import Sorter Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
+
+  version-consistency-check:
+    name: Version Consistency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Check version consistency
         run: dart run scripts/check_version.dart
+
+  dart-analyze-check:
+    name: Dart Analyze Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Dart Analyze Check
         run: flutter analyze
+
+  dart-test-check:
+    name: Dart Test Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
 
@@ -52,16 +83,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
         with:
-          java-version: '17.x'
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+          java-version: "17.x"
       - name: Build for Android
         working-directory: ./example
         run: flutter build apk
@@ -71,12 +97,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Install xcode platform support for iOS
         run: xcodebuild -downloadPlatform iOS
       - name: Build for iOS
@@ -88,12 +111,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Build for Windows
         working-directory: ./example
         run: flutter build windows --release
@@ -103,12 +123,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
@@ -118,16 +135,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+          java-version: "17.x"
       - name: Run apt update
         run: sudo apt-get update
       - name: Install ninja-build libgtk-3-dev
@@ -141,16 +153,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+          java-version: "17.x"
       - name: Build for Web
         working-directory: ./example
         run: flutter build web
@@ -160,16 +167,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter
         with:
-          java-version: '12.x'
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Install project dependencies
-        run: flutter pub get
+          java-version: "17.x"
       - name: Build for Web
         working-directory: ./example
         run: flutter build web --wasm

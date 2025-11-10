@@ -32,8 +32,7 @@ bool lkPlatformIsWebMobileImplementation() {
   return false;
 }
 
-bool lkPlatformIsTestImplementation() =>
-    !kIsWeb && !kIsWasm && Platform.environment.containsKey('FLUTTER_TEST');
+bool lkPlatformIsTestImplementation() => !kIsWeb && !kIsWasm && Platform.environment.containsKey('FLUTTER_TEST');
 
 bool lkE2EESupportedImplementation() {
   return [

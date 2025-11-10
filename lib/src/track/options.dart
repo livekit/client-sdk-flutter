@@ -20,9 +20,7 @@ import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';
 import 'processor.dart';
-
-import 'processor_native.dart'
-    if (dart.library.js_interop) 'processor_web.dart';
+import 'processor_native.dart' if (dart.library.js_interop) 'processor_web.dart';
 
 /// A type that represents front or back of the camera.
 enum CameraPosition {
@@ -87,9 +85,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
   Map<String, dynamic> toMediaConstraintsMap() {
     final constraints = <String, dynamic>{
       ...super.toMediaConstraintsMap(),
-      if (deviceId == null)
-        'facingMode':
-            cameraPosition == CameraPosition.front ? 'user' : 'environment'
+      if (deviceId == null) 'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment'
     };
     if (deviceId != null && deviceId!.isNotEmpty) {
       if (kIsWeb) {
@@ -123,8 +119,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         cameraPosition: cameraPosition ?? this.cameraPosition,
         deviceId: deviceId ?? this.deviceId,
         maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        stopCameraCaptureOnMute:
-            stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+        stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
       );
 }
 
@@ -172,8 +167,7 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     String? selfBrowserSurface,
   }) =>
       ScreenShareCaptureOptions(
-        useiOSBroadcastExtension:
-            useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
+        useiOSBroadcastExtension: useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
         captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
         params: params ?? this.params,
         sourceId: sourceId ?? deviceId,
@@ -215,13 +209,13 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 
   /// The deviceId of the capture device to use.
   /// Available deviceIds can be obtained through `flutter_webrtc`:
-  /// <pre>
+  /// ```dart
   /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
   ///
   /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
   /// // or
   /// List<DesktopCapturerSource> desktopSources = await rtc.desktopCapturer.getSources(types: [rtc.SourceType.Screen, rtc.SourceType.Window]);
-  /// </pre>
+  /// ```
   final String? deviceId;
 
   // Limit the maximum frameRate of the capture device.
@@ -238,19 +232,18 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   });
 
   @override
-  Map<String, dynamic> toMediaConstraintsMap() =>
-      params.toMediaConstraintsMap();
+  Map<String, dynamic> toMediaConstraintsMap() => params.toMediaConstraintsMap();
 }
 
 /// Options used when creating a [LocalAudioTrack].
 class AudioCaptureOptions extends LocalTrackOptions {
   /// The deviceId of the capture device to use.
   /// Available deviceIds can be obtained through `flutter_webrtc`:
-  /// <pre>
+  /// ```
   /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
   ///
   /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
-  /// </pre>
+  /// ```
   final String? deviceId;
 
   /// Attempt to use noiseSuppression option (if supported by the platform)
@@ -346,9 +339,7 @@ class AudioCaptureOptions extends LocalTrackOptions {
           constraints['deviceId'] = {'ideal': deviceId};
         }
       } else {
-        constraints['optional']
-            .cast<Map<String, dynamic>>()
-            .add(<String, dynamic>{'sourceId': deviceId});
+        constraints['optional'].cast<Map<String, dynamic>>().add(<String, dynamic>{'sourceId': deviceId});
       }
     }
     return constraints;

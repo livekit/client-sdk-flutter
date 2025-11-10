@@ -9,15 +9,13 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
-
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
-  Function()? onClose;
+  Future<void> Function()? onClose;
 
   final InfoType info;
 
-  BaseStreamWriter(
-      {required this.writableStream, required this.info, this.onClose});
+  BaseStreamWriter({required this.writableStream, required this.info, this.onClose});
 
   Future<void> write(T chunk) async {
     return writableStream.write(chunk);
@@ -25,15 +23,12 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   Future<void> close() async {
     await writableStream.close();
-    onClose?.call();
+    await onClose?.call();
   }
 }
 
 class TextStreamWriter extends BaseStreamWriter<String, TextStreamInfo> {
-  TextStreamWriter(
-      {required super.writableStream,
-      required super.info,
-      required super.onClose});
+  TextStreamWriter({required super.writableStream, required super.info, required super.onClose});
 }
 
 class ByteStreamWriter extends BaseStreamWriter<Uint8List, ByteStreamInfo> {
@@ -49,7 +44,7 @@ class WritableStream<T> implements StreamWriter<T> {
   int chunkId = 0;
   List<String>? destinationIdentities;
   Engine engine;
-  
+
   WritableStream({
     required this.streamId,
     required this.engine,
@@ -62,10 +57,11 @@ class WritableStream<T> implements StreamWriter<T> {
       streamId: streamId,
     );
     final trailerPacket = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
-    await engine.sendDataPacket(trailerPacket, reliability: true);
+    await engine.sendDataPacket(trailerPacket, reliability: Reliability.reliable);
   }
 
   @override
@@ -78,10 +74,11 @@ class WritableStream<T> implements StreamWriter<T> {
         chunkIndex: Int64(chunkId),
       );
       final chunkPacket = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );
-      await engine.sendDataPacket(chunkPacket, reliability: true);
+      await engine.sendDataPacket(chunkPacket, reliability: Reliability.reliable);
       chunkId += 1;
     }
   }

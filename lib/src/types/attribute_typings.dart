@@ -5,17 +5,14 @@
 
 import 'dart:convert';
 
-AgentAttributes agentAttributesFromJson(String str) =>
-    AgentAttributes.fromJson(json.decode(str));
+AgentAttributes agentAttributesFromJson(String str) => AgentAttributes.fromJson(json.decode(str));
 
-String agentAttributesToJson(AgentAttributes data) =>
-    json.encode(data.toJson());
+String agentAttributesToJson(AgentAttributes data) => json.encode(data.toJson());
 
 TranscriptionAttributes transcriptionAttributesFromJson(String str) =>
     TranscriptionAttributes.fromJson(json.decode(str));
 
-String transcriptionAttributesToJson(TranscriptionAttributes data) =>
-    json.encode(data.toJson());
+String transcriptionAttributesToJson(TranscriptionAttributes data) => json.encode(data.toJson());
 
 class AgentAttributes {
   List<AgentInput>? lkAgentInputs;
@@ -30,29 +27,22 @@ class AgentAttributes {
     this.lkPublishOnBehalf,
   });
 
-  factory AgentAttributes.fromJson(Map<String, dynamic> json) =>
-      AgentAttributes(
+  factory AgentAttributes.fromJson(Map<String, dynamic> json) => AgentAttributes(
         lkAgentInputs: json['lk.agent.inputs'] == null
             ? []
-            : List<AgentInput>.from(
-                json['lk.agent.inputs']!.map((x) => agentInputValues.map[x]!)),
+            : List<AgentInput>.from(json['lk.agent.inputs']!.map((x) => agentInputValues.map[x]!)),
         lkAgentOutputs: json['lk.agent.outputs'] == null
             ? []
-            : List<AgentOutput>.from(json['lk.agent.outputs']!
-                .map((x) => agentOutputValues.map[x]!)),
+            : List<AgentOutput>.from(json['lk.agent.outputs']!.map((x) => agentOutputValues.map[x]!)),
         lkAgentState: agentStateValues.map[json['lk.agent.state']]!,
         lkPublishOnBehalf: json['lk.publish_on_behalf'],
       );
 
   Map<String, dynamic> toJson() => {
-        'lk.agent.inputs': lkAgentInputs == null
-            ? []
-            : List<dynamic>.from(
-                lkAgentInputs!.map((x) => agentInputValues.reverse[x])),
-        'lk.agent.outputs': lkAgentOutputs == null
-            ? []
-            : List<dynamic>.from(
-                lkAgentOutputs!.map((x) => agentOutputValues.reverse[x])),
+        'lk.agent.inputs':
+            lkAgentInputs == null ? [] : List<dynamic>.from(lkAgentInputs!.map((x) => agentInputValues.reverse[x])),
+        'lk.agent.outputs':
+            lkAgentOutputs == null ? [] : List<dynamic>.from(lkAgentOutputs!.map((x) => agentOutputValues.reverse[x])),
         'lk.agent.state': agentStateValues.reverse[lkAgentState],
         'lk.publish_on_behalf': lkPublishOnBehalf,
       };
@@ -60,16 +50,11 @@ class AgentAttributes {
 
 enum AgentInput { AUDIO, TEXT, VIDEO }
 
-final agentInputValues = EnumValues({
-  'audio': AgentInput.AUDIO,
-  'text': AgentInput.TEXT,
-  'video': AgentInput.VIDEO
-});
+final agentInputValues = EnumValues({'audio': AgentInput.AUDIO, 'text': AgentInput.TEXT, 'video': AgentInput.VIDEO});
 
 enum AgentOutput { AUDIO, TRANSCRIPTION }
 
-final agentOutputValues = EnumValues(
-    {'audio': AgentOutput.AUDIO, 'transcription': AgentOutput.TRANSCRIPTION});
+final agentOutputValues = EnumValues({'audio': AgentOutput.AUDIO, 'transcription': AgentOutput.TRANSCRIPTION});
 
 enum AgentState { IDLE, INITIALIZING, LISTENING, SPEAKING, THINKING }
 
@@ -98,8 +83,7 @@ class TranscriptionAttributes {
     this.lkTranscriptionFinal,
   });
 
-  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) =>
-      TranscriptionAttributes(
+  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) => TranscriptionAttributes(
         lkSegmentId: json['lk.segment_id'],
         lkTranscribedTrackId: json['lk.transcribed_track_id'],
         lkTranscriptionFinal: json['lk.transcription_final'],

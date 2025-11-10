@@ -185,7 +185,7 @@ abstract class EventsListenable<T> extends Disposable {
       // cast to E
       await then(event);
       // cancel after 1 event
-      cancelFunc?.call();
+      await cancelFunc?.call();
     });
     return cancelFunc;
   }

@@ -16,6 +16,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
@@ -37,8 +38,7 @@ abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class EngineSubscriberPeerStateUpdatedEvent
-    extends EnginePeerStateUpdatedEvent {
+class EngineSubscriberPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
   const EngineSubscriberPeerStateUpdatedEvent({
     required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
@@ -48,8 +48,7 @@ class EngineSubscriberPeerStateUpdatedEvent
         );
 
   @override
-  String toString() =>
-      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
+  String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -62,8 +61,7 @@ class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
           isPrimary: isPrimary,
         );
   @override
-  String toString() =>
-      '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
+  String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -115,8 +113,7 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
   });
 
   @override
-  String toString() =>
-      'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
+  String toString() => 'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
 }
 
 //
@@ -359,8 +356,7 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
   bool get canReconnect => request.canReconnect;
   lk_rtc.LeaveRequest_Action get action => request.action;
   lk_models.DisconnectReason get reason => request.reason;
-  lk_rtc.RegionSettings? get regions =>
-      request.hasReason() ? request.regions : null;
+  lk_rtc.RegionSettings? get regions => request.hasReason() ? request.regions : null;
   final lk_rtc.LeaveRequest request;
   const SignalLeaveEvent({
     required this.request,
@@ -504,19 +500,23 @@ class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
 class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Header header;
   final String identity;
+  final EncryptionType encryptionType;
   const EngineDataStreamHeaderEvent({
     required this.header,
     required this.identity,
+    required this.encryptionType,
   });
 }
 
 @internal
 class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Chunk chunk;
+  final EncryptionType encryptionType;
   final String identity;
   const EngineDataStreamChunkEvent({
     required this.chunk,
     required this.identity,
+    required this.encryptionType,
   });
 }
 
@@ -524,9 +524,11 @@ class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
 class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
   final lk_models.DataStream_Trailer trailer;
   final String identity;
+  final EncryptionType encryptionType;
   const EngineDataStreamTrailerEvent({
     required this.trailer,
     required this.identity,
+    required this.encryptionType,
   });
 }
 
@@ -543,8 +545,7 @@ abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class PublisherDataChannelStateUpdatedEvent
-    extends DataChannelStateUpdatedEvent {
+class PublisherDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent {
   PublisherDataChannelStateUpdatedEvent({
     required bool isPrimary,
     required Reliability type,
@@ -557,8 +558,7 @@ class PublisherDataChannelStateUpdatedEvent
 }
 
 @internal
-class SubscriberDataChannelStateUpdatedEvent
-    extends DataChannelStateUpdatedEvent {
+class SubscriberDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent {
   SubscriberDataChannelStateUpdatedEvent({
     required bool isPrimary,
     required Reliability type,

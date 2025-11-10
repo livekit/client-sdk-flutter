@@ -24,8 +24,7 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Play Audio'),
-          content: const Text(
-              'You need to manually activate audio PlayBack for iOS Safari !'),
+          content: const Text('You need to manually activate audio PlayBack for iOS Safari !'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -43,8 +42,7 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('UnPublish'),
-          content:
-              const Text('Would you like to un-publish your Camera & Mic ?'),
+          content: const Text('Would you like to un-publish your Camera & Mic ?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -126,8 +124,7 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Send data'),
-          content: const Text(
-              'This will send a sample data to all participants in the room'),
+          content: const Text('This will send a sample data to all participants in the room'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -155,14 +152,11 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
-  Future<bool?> showRecordingStatusChangedDialog(bool isActiveRecording) =>
-      showDialog<bool>(
+  Future<bool?> showRecordingStatusChangedDialog(bool isActiveRecording) => showDialog<bool>(
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Room recording reminder'),
-          content: Text(isActiveRecording
-              ? 'Room recording is active.'
-              : 'Room recording is stoped.'),
+          content: Text(isActiveRecording ? 'Room recording is active.' : 'Room recording is stoped.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
@@ -176,8 +170,7 @@ extension LKExampleExt on BuildContext {
         context: this,
         builder: (ctx) => AlertDialog(
           title: const Text('Allow subscription'),
-          content: const Text(
-              'Allow all participants to subscribe tracks published by local participant?'),
+          content: const Text('Allow all participants to subscribe tracks published by local participant?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -191,8 +184,7 @@ extension LKExampleExt on BuildContext {
         ),
       );
 
-  Future<SimulateScenarioResult?> showSimulateScenarioDialog() =>
-      showDialog<SimulateScenarioResult>(
+  Future<SimulateScenarioResult?> showSimulateScenarioDialog() => showDialog<SimulateScenarioResult>(
         context: this,
         builder: (ctx) => SimpleDialog(
           title: const Text('Simulate Scenario'),

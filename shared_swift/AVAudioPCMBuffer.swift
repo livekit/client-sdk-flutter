@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LiveKit
+ * Copyright 2025 LiveKit
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,28 @@ import Accelerate
 import AVFoundation
 
 public extension AVAudioPCMBuffer {
+    /// Copies a range of an AVAudioPCMBuffer.
+    func copySegment(from startFrame: AVAudioFramePosition, to endFrame: AVAudioFramePosition) -> AVAudioPCMBuffer {
+        let framesToCopy = AVAudioFrameCount(endFrame - startFrame)
+        let segment = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: framesToCopy)!
+
+        let sampleSize = format.streamDescription.pointee.mBytesPerFrame
+
+        let srcPtr = UnsafeMutableAudioBufferListPointer(mutableAudioBufferList)
+        let dstPtr = UnsafeMutableAudioBufferListPointer(segment.mutableAudioBufferList)
+        for (src, dst) in zip(srcPtr, dstPtr) {
+            memcpy(dst.mData, src.mData?.advanced(by: Int(startFrame) * Int(sampleSize)), Int(framesToCopy) * Int(sampleSize))
+        }
+
+        segment.frameLength = framesToCopy
+        return segment
+    }
+
+    /// Copies a full segment from 0 to frameLength. frameCapacity will be equal to frameLength.
+    func copySegment() -> AVAudioPCMBuffer {
+        copySegment(from: 0, to: AVAudioFramePosition(frameLength))
+    }
+
     func resample(toSampleRate targetSampleRate: Double) -> AVAudioPCMBuffer? {
         let sourceFormat = format
 
