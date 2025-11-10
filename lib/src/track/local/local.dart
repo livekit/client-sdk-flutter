@@ -86,6 +86,9 @@ abstract class LocalTrack extends Track {
   bool _stopped = false;
 
   TrackProcessor? _processor;
+  
+  // Store original sender parameters to restore on unmute
+  rtc.RTCRtpParameters? _originalSenderParameters;
 
   TrackProcessor? get processor => _processor;
 
@@ -103,30 +106,77 @@ abstract class LocalTrack extends Track {
     };
   }
 
-  /// Mutes this [LocalTrack]. This will stop the sending of track data
+  /// Mutes this [LocalTrack]. This will zero the audio frames
   /// and notify the [RemoteParticipant] with [TrackMutedEvent].
   /// Returns true if muted, false if unchanged.
   Future<bool> mute({bool stopOnMute = true}) async {
     logger.fine('LocalTrack.mute() muted: $muted');
     if (muted) return false; // already muted
-    await disable();
-    if (!skipStopForTrackMute() && stopOnMute) {
-      await stop();
+    
+    // For audio tracks, zero the frames by manipulating sender parameters
+    if (this is AudioTrack && sender != null) {
+      try {
+        final parameters = sender!.parameters;
+        // Store original parameters if not already stored
+        if (_originalSenderParameters == null) {
+          _originalSenderParameters = parameters;
+        }
+        // Zero out the audio by setting maxBitrate to 0 for all encodings
+        if (parameters.encodings != null && parameters.encodings!.isNotEmpty) {
+          for (var encoding in parameters.encodings!) {
+            encoding.maxBitrate = 0;
+          }
+          await sender!.setParameters(parameters);
+        }
+      } catch (error) {
+        logger.warning('Failed to modify sender parameters on mute: $error');
+      }
+    } else {
+      // For video tracks, use the original disable logic
+      await disable();
+      if (!skipStopForTrackMute() && stopOnMute) {
+        await stop();
+      }
     }
+    
     updateMuted(true, shouldSendSignal: true);
     return true;
   }
 
-  /// Un-mutes this [LocalTrack]. This will re-start the sending of track data
+  /// Un-mutes this [LocalTrack]. This will restore the audio frames to normal
   /// and notify the [RemoteParticipant] with [TrackUnmutedEvent].
   /// Returns true if un-muted, false if unchanged.
   Future<bool> unmute({bool stopOnMute = true}) async {
     logger.fine('LocalTrack.unmute() muted: $muted');
     if (!muted) return false; // already un-muted
-    if (!skipStopForTrackMute() && stopOnMute) {
-      await restartTrack();
+    
+    // For audio tracks, restore the frames by restoring sender parameters
+    if (this is AudioTrack && sender != null) {
+      try {
+        if (_originalSenderParameters != null) {
+          // Restore the original sender parameters
+          await sender!.setParameters(_originalSenderParameters!);
+        } else {
+          // If no stored parameters, reset to allow full bitrate
+          final parameters = sender!.parameters;
+          if (parameters.encodings != null && parameters.encodings!.isNotEmpty) {
+            for (var encoding in parameters.encodings!) {
+              encoding.maxBitrate = null; // Remove bitrate limitation
+            }
+            await sender!.setParameters(parameters);
+          }
+        }
+      } catch (error) {
+        logger.warning('Failed to restore sender parameters on unmute: $error');
+      }
+    } else {
+      // For video tracks, use the original enable logic
+      if (!skipStopForTrackMute() && stopOnMute) {
+        await restartTrack();
+      }
+      await enable();
     }
-    await enable();
+    
     updateMuted(false, shouldSendSignal: true);
     return true;
   }
