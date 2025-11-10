@@ -247,7 +247,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await events.waitFor<EngineJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw ConnectException('Timed out waiting for SignalJoinResponseEvent',
-            reason: ConnectionErrorReason.Timeout),
+            reason: ConnectionErrorReason.timeout),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -853,7 +853,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  void _emitDataPacket(lk_models.DataPacket dp, {EncryptionType encryptionType = EncryptionType.kNone}) {
+  void _emitDataPacket(lk_models.DataPacket dp, {EncryptionType encryptionType = EncryptionType.none}) {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
       events.emit(EngineActiveSpeakersUpdateEvent(
@@ -1003,7 +1003,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           filter: (event) => !event.state.contains(ConnectivityResult.none),
           onTimeout: () => throw ConnectException(
               'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent',
-              reason: ConnectionErrorReason.Timeout),
+              reason: ConnectionErrorReason.timeout),
         );
       }
 
@@ -1060,7 +1060,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
       onTimeout: () => throw ConnectException('resumeConnection: Timed out waiting for SignalReconnectedEvent',
-          reason: ConnectionErrorReason.Timeout),
+          reason: ConnectionErrorReason.timeout),
     );
 
     logger.fine('resumeConnection: reason: ${reason.name}');

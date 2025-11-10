@@ -47,25 +47,25 @@ enum ConnectionState {
 
 /// The type of participant.
 enum ParticipantKind {
-  STANDARD,
-  INGRESS,
-  EGRESS,
-  SIP,
-  AGENT,
+  standard,
+  ingress,
+  egress,
+  sip,
+  agent,
 }
 
 /// The type of track.
 enum TrackType {
-  AUDIO,
-  VIDEO,
-  DATA,
+  audio,
+  video,
+  data,
 }
 
 /// Video quality used for publishing video tracks.
 enum VideoQuality {
-  LOW,
-  MEDIUM,
-  HIGH,
+  low,
+  medium,
+  high,
 }
 
 /// Connection quality between the [Participant] and server.

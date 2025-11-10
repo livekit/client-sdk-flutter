@@ -142,11 +142,11 @@ extension ConnectionQualityExt on lk_models.ConnectionQuality {
 extension VideoQualityExt on lk_models.VideoQuality {
   VideoQuality toLKType() =>
       {
-        lk_models.VideoQuality.HIGH: VideoQuality.HIGH,
-        lk_models.VideoQuality.MEDIUM: VideoQuality.MEDIUM,
-        lk_models.VideoQuality.LOW: VideoQuality.LOW,
+        lk_models.VideoQuality.HIGH: VideoQuality.high,
+        lk_models.VideoQuality.MEDIUM: VideoQuality.medium,
+        lk_models.VideoQuality.LOW: VideoQuality.low,
       }[this] ??
-      VideoQuality.LOW;
+      VideoQuality.low;
 
   String toRid() => {
         lk_models.VideoQuality.HIGH: 'f',
@@ -157,27 +157,27 @@ extension VideoQualityExt on lk_models.VideoQuality {
 
 extension PBVideoQualityExt on VideoQuality {
   lk_models.VideoQuality toPBType() => {
-        VideoQuality.HIGH: lk_models.VideoQuality.HIGH,
-        VideoQuality.MEDIUM: lk_models.VideoQuality.MEDIUM,
-        VideoQuality.LOW: lk_models.VideoQuality.LOW,
+        VideoQuality.high: lk_models.VideoQuality.HIGH,
+        VideoQuality.medium: lk_models.VideoQuality.MEDIUM,
+        VideoQuality.low: lk_models.VideoQuality.LOW,
       }[this]!;
 }
 
 extension TrackTypeExt on lk_models.TrackType {
   TrackType toLKType() =>
       {
-        lk_models.TrackType.AUDIO: TrackType.AUDIO,
-        lk_models.TrackType.VIDEO: TrackType.VIDEO,
-        lk_models.TrackType.DATA: TrackType.DATA,
+        lk_models.TrackType.AUDIO: TrackType.audio,
+        lk_models.TrackType.VIDEO: TrackType.video,
+        lk_models.TrackType.DATA: TrackType.data,
       }[this] ??
-      TrackType.AUDIO;
+      TrackType.audio;
 }
 
 extension PBTrackTypeExt on TrackType {
   lk_models.TrackType toPBType() => {
-        TrackType.AUDIO: lk_models.TrackType.AUDIO,
-        TrackType.VIDEO: lk_models.TrackType.VIDEO,
-        TrackType.DATA: lk_models.TrackType.DATA,
+        TrackType.audio: lk_models.TrackType.AUDIO,
+        TrackType.video: lk_models.TrackType.VIDEO,
+        TrackType.data: lk_models.TrackType.DATA,
       }[this]!;
 }
 
@@ -226,9 +226,9 @@ extension WidgetsBindingCompatible on WidgetsBinding {
 
 extension EncryptionTypeExt on lk_models.Encryption_Type {
   EncryptionType toLkType() => {
-        lk_models.Encryption_Type.NONE: EncryptionType.kNone,
-        lk_models.Encryption_Type.GCM: EncryptionType.kGcm,
-        lk_models.Encryption_Type.CUSTOM: EncryptionType.kCustom,
+        lk_models.Encryption_Type.NONE: EncryptionType.none,
+        lk_models.Encryption_Type.GCM: EncryptionType.gcm,
+        lk_models.Encryption_Type.CUSTOM: EncryptionType.custom,
       }[this]!;
 }
 
@@ -247,11 +247,11 @@ extension DisconnectReasonExt on lk_models.DisconnectReason {
 
 extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
   ParticipantKind toLKType() => {
-        lk_models.ParticipantInfo_Kind.STANDARD: ParticipantKind.STANDARD,
-        lk_models.ParticipantInfo_Kind.INGRESS: ParticipantKind.INGRESS,
-        lk_models.ParticipantInfo_Kind.EGRESS: ParticipantKind.EGRESS,
-        lk_models.ParticipantInfo_Kind.SIP: ParticipantKind.SIP,
-        lk_models.ParticipantInfo_Kind.AGENT: ParticipantKind.AGENT,
+        lk_models.ParticipantInfo_Kind.STANDARD: ParticipantKind.standard,
+        lk_models.ParticipantInfo_Kind.INGRESS: ParticipantKind.ingress,
+        lk_models.ParticipantInfo_Kind.EGRESS: ParticipantKind.egress,
+        lk_models.ParticipantInfo_Kind.SIP: ParticipantKind.sip,
+        lk_models.ParticipantInfo_Kind.AGENT: ParticipantKind.agent,
       }[this]!;
 }
 
@@ -270,9 +270,9 @@ extension RoomOptionsEx on RoomOptions {
     final e2ee = encryption ?? e2eeOptions;
     return (e2ee != null)
         ? {
-            EncryptionType.kNone: lk_models.Encryption_Type.NONE,
-            EncryptionType.kGcm: lk_models.Encryption_Type.GCM,
-            EncryptionType.kCustom: lk_models.Encryption_Type.CUSTOM,
+            EncryptionType.none: lk_models.Encryption_Type.NONE,
+            EncryptionType.gcm: lk_models.Encryption_Type.GCM,
+            EncryptionType.custom: lk_models.Encryption_Type.CUSTOM,
           }[e2ee.encryptionType]!
         : lk_models.Encryption_Type.NONE;
   }

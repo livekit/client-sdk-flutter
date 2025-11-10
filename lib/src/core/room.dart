@@ -290,7 +290,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null && e is WebSocketException ||
-          (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed)) {
+          (e is ConnectException && e.reason != ConnectionErrorReason.notAllowed)) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -1249,7 +1249,7 @@ extension DataStreamRoomMethods on Room {
     if (_textStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A text stream handler for topic "${topic}" has already been set.',
-        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+        reason: DataStreamErrorReason.handlerAlreadyRegistered,
       );
     }
     _textStreamHandlers[topic] = callback;
@@ -1263,7 +1263,7 @@ extension DataStreamRoomMethods on Room {
     if (_byteStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A byte stream handler for topic "${topic}" has already been set.',
-        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+        reason: DataStreamErrorReason.handlerAlreadyRegistered,
       );
     }
     _byteStreamHandlers[topic] = callback;
@@ -1304,7 +1304,7 @@ extension DataStreamRoomMethods on Room {
       if (_byteStreamControllers.containsKey(streamHeader.streamId)) {
         throw DataStreamError(
           message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
+          reason: DataStreamErrorReason.alreadyOpened,
         );
       }
 
@@ -1349,7 +1349,7 @@ extension DataStreamRoomMethods on Room {
       if (_textStreamControllers.containsKey(streamHeader.streamId)) {
         throw DataStreamError(
           message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
+          reason: DataStreamErrorReason.alreadyOpened,
         );
       }
 
@@ -1371,7 +1371,7 @@ extension DataStreamRoomMethods on Room {
           DataStreamError(
             message:
                 'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+            reason: DataStreamErrorReason.encryptionTypeMismatch,
           ),
         );
 
@@ -1389,7 +1389,7 @@ extension DataStreamRoomMethods on Room {
           DataStreamError(
             message:
                 'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+            reason: DataStreamErrorReason.encryptionTypeMismatch,
           ),
         );
 
@@ -1410,7 +1410,7 @@ extension DataStreamRoomMethods on Room {
           DataStreamError(
             message:
                 'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+            reason: DataStreamErrorReason.encryptionTypeMismatch,
           ),
         );
 
@@ -1433,7 +1433,7 @@ extension DataStreamRoomMethods on Room {
           DataStreamError(
             message:
                 'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+            reason: DataStreamErrorReason.encryptionTypeMismatch,
           ),
         );
 
@@ -1460,7 +1460,7 @@ extension DataStreamRoomMethods on Room {
         byteStreamsBeingSentByDisconnectingParticipant.isNotEmpty) {
       final abnormalEndError = DataStreamError(
         message: 'Participant ${participantIdentity} unexpectedly disconnected in the middle of sending data',
-        reason: DataStreamErrorReason.AbnormalEnd,
+        reason: DataStreamErrorReason.abnormalEnd,
       );
       for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);

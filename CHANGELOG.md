@@ -292,7 +292,7 @@ There are several breaking changes between v1 and v2. Please consult our [migrat
 * `Room.{audio/video}Tracks` was renamed to `Room.{audio/video}TrackPublications`
 * `LocalParticipant.publishData` now uses participant identity as destinations instead of participant sids.
 * `Room.sid` now changed to `await room.getSid();`.
-* Removed `VideoQuality.OFF` from `VideoQuality` enum.
+* Removed `VideoQuality.off` from `VideoQuality` enum.
 
 ## Removal of previously deprecated APIs
 

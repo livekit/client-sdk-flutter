@@ -118,7 +118,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-          TrackType.AUDIO,
+          TrackType.audio,
           source,
           stream,
           track,

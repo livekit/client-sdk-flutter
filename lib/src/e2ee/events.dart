@@ -15,13 +15,13 @@
 import '../../livekit_client.dart';
 
 enum E2EEState {
-  kNew,
-  kOk,
-  kKeyRatcheted,
-  kMissingKey,
-  kEncryptionFailed,
-  kDecryptionFailed,
-  kInternalError,
+  newState,
+  ok,
+  keyRatcheted,
+  missingKey,
+  encryptionFailed,
+  decryptionFailed,
+  internalError,
 }
 
 /// The [E2EEState] on the track.

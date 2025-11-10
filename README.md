@@ -426,7 +426,7 @@ class _VideoViewState extends State<VideoView> {
 
   void _onParticipantChanged() {
     var subscribedVideos = widget.participant.videoTracks.values.where((pub) {
-      return pub.kind == TrackType.VIDEO &&
+      return pub.kind == TrackType.video &&
           !pub.isScreenShare &&
           pub.subscribed;
     });

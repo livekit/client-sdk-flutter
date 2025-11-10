@@ -27,7 +27,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
   RemoteVideoTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
       : super(
-          TrackType.VIDEO,
+          TrackType.video,
           source,
           stream,
           track,

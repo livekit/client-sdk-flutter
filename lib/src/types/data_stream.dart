@@ -143,7 +143,7 @@ class BaseStreamInfo {
     required this.size,
     this.attributes = const {},
     this.sendingParticipantIdentity = '',
-    this.encryptionType = EncryptionType.kNone,
+    this.encryptionType = EncryptionType.none,
   });
 }
 
@@ -177,7 +177,7 @@ class ByteStreamInfo extends BaseStreamInfo {
     required int size,
     Map<String, String> attributes = const {},
     required String sendingParticipantIdentity,
-    EncryptionType encryptionType = EncryptionType.kNone,
+    EncryptionType encryptionType = EncryptionType.none,
   }) : super(
           id: id,
           mimeType: mimeType,
@@ -261,7 +261,7 @@ class TextStreamInfo extends BaseStreamInfo {
     this.generated = false,
     this.operationType,
     required String sendingParticipantIdentity,
-    EncryptionType encryptionType = EncryptionType.kNone,
+    EncryptionType encryptionType = EncryptionType.none,
   }) : super(
           id: id,
           mimeType: mimeType,

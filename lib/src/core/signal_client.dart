@@ -114,7 +114,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
       if (_connectivityResult.contains(ConnectivityResult.none)) {
         logger.warning('no internet connection');
-        throw ConnectException('no internet connection', reason: ConnectionErrorReason.InternalError, statusCode: 503);
+        throw ConnectException('no internet connection', reason: ConnectionErrorReason.internalError, statusCode: 503);
       }
     }
 
@@ -182,8 +182,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
               reason: validateResponse.statusCode >= 400
-                  ? ConnectionErrorReason.NotAllowed
-                  : ConnectionErrorReason.InternalError,
+                  ? ConnectionErrorReason.notAllowed
+                  : ConnectionErrorReason.internalError,
               statusCode: validateResponse.statusCode);
         }
       } catch (error) {
