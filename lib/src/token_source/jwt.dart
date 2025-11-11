@@ -13,8 +13,11 @@
 // limitations under the License.
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'token_source.dart';
+
+part 'jwt.g.dart';
 
 /// Parsed payload for a LiveKit-issued JWT.
 class LiveKitJwtPayload {
@@ -114,17 +117,37 @@ class LiveKitJwtPayload {
 }
 
 /// LiveKit-specific video grants embedded within a JWT.
+@JsonSerializable()
 class LiveKitVideoGrant {
   final String? room;
+
+  @JsonKey(name: 'room_create')
   final bool? roomCreate;
+
+  @JsonKey(name: 'room_join')
   final bool? roomJoin;
+
+  @JsonKey(name: 'room_list')
   final bool? roomList;
+
+  @JsonKey(name: 'room_record')
   final bool? roomRecord;
+
+  @JsonKey(name: 'room_admin')
   final bool? roomAdmin;
+
+  @JsonKey(name: 'can_publish')
   final bool? canPublish;
+
+  @JsonKey(name: 'can_subscribe')
   final bool? canSubscribe;
+
+  @JsonKey(name: 'can_publish_data')
   final bool? canPublishData;
+
+  @JsonKey(name: 'can_publish_sources')
   final List<String>? canPublishSources;
+
   final bool? hidden;
   final bool? recorder;
 
@@ -143,20 +166,8 @@ class LiveKitVideoGrant {
     this.recorder,
   });
 
-  factory LiveKitVideoGrant.fromJson(Map<String, dynamic> json) => LiveKitVideoGrant(
-        room: json['room'] as String?,
-        roomCreate: json['room_create'] as bool?,
-        roomJoin: json['room_join'] as bool?,
-        roomList: json['room_list'] as bool?,
-        roomRecord: json['room_record'] as bool?,
-        roomAdmin: json['room_admin'] as bool?,
-        canPublish: json['can_publish'] as bool?,
-        canSubscribe: json['can_subscribe'] as bool?,
-        canPublishData: json['can_publish_data'] as bool?,
-        canPublishSources: (json['can_publish_sources'] as List?)?.map((dynamic item) => item.toString()).toList(),
-        hidden: json['hidden'] as bool?,
-        recorder: json['recorder'] as bool?,
-      );
+  factory LiveKitVideoGrant.fromJson(Map<String, dynamic> json) => _$LiveKitVideoGrantFromJson(json);
+  Map<String, dynamic> toJson() => _$LiveKitVideoGrantToJson(this);
 }
 
 extension TokenSourceJwt on TokenSourceResponse {

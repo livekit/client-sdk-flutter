@@ -5,6 +5,10 @@
 
 import 'dart:convert';
 
+import 'package:json_annotation/json_annotation.dart';
+
+part 'attribute_typings.g.dart';
+
 AgentAttributes agentAttributesFromJson(String str) => AgentAttributes.fromJson(json.decode(str));
 
 String agentAttributesToJson(AgentAttributes data) => json.encode(data.toJson());
@@ -14,10 +18,18 @@ TranscriptionAttributes transcriptionAttributesFromJson(String str) =>
 
 String transcriptionAttributesToJson(TranscriptionAttributes data) => json.encode(data.toJson());
 
+@JsonSerializable()
 class AgentAttributes {
+  @JsonKey(name: 'lk.agent.inputs')
   List<AgentInput>? lkAgentInputs;
+
+  @JsonKey(name: 'lk.agent.outputs')
   List<AgentOutput>? lkAgentOutputs;
+
+  @JsonKey(name: 'lk.agent.state')
   AgentState? lkAgentState;
+
+  @JsonKey(name: 'lk.publish_on_behalf')
   String? lkPublishOnBehalf;
 
   AgentAttributes({
@@ -27,54 +39,55 @@ class AgentAttributes {
     this.lkPublishOnBehalf,
   });
 
-  factory AgentAttributes.fromJson(Map<String, dynamic> json) => AgentAttributes(
-        lkAgentInputs: json['lk.agent.inputs'] == null
-            ? []
-            : List<AgentInput>.from(json['lk.agent.inputs']!.map((x) => agentInputValues.map[x]!)),
-        lkAgentOutputs: json['lk.agent.outputs'] == null
-            ? []
-            : List<AgentOutput>.from(json['lk.agent.outputs']!.map((x) => agentOutputValues.map[x]!)),
-        lkAgentState: agentStateValues.map[json['lk.agent.state']]!,
-        lkPublishOnBehalf: json['lk.publish_on_behalf'],
-      );
-
-  Map<String, dynamic> toJson() => {
-        'lk.agent.inputs':
-            lkAgentInputs == null ? [] : List<dynamic>.from(lkAgentInputs!.map((x) => agentInputValues.reverse[x])),
-        'lk.agent.outputs':
-            lkAgentOutputs == null ? [] : List<dynamic>.from(lkAgentOutputs!.map((x) => agentOutputValues.reverse[x])),
-        'lk.agent.state': agentStateValues.reverse[lkAgentState],
-        'lk.publish_on_behalf': lkPublishOnBehalf,
-      };
+  factory AgentAttributes.fromJson(Map<String, dynamic> json) => _$AgentAttributesFromJson(json);
+  Map<String, dynamic> toJson() => _$AgentAttributesToJson(this);
 }
 
-enum AgentInput { AUDIO, TEXT, VIDEO }
+@JsonEnum()
+enum AgentInput {
+  @JsonValue('audio')
+  audio,
+  @JsonValue('text')
+  text,
+  @JsonValue('video')
+  video,
+}
 
-final agentInputValues = EnumValues({'audio': AgentInput.AUDIO, 'text': AgentInput.TEXT, 'video': AgentInput.VIDEO});
+@JsonEnum()
+enum AgentOutput {
+  @JsonValue('audio')
+  audio,
+  @JsonValue('transcription')
+  transcription,
+}
 
-enum AgentOutput { AUDIO, TRANSCRIPTION }
-
-final agentOutputValues = EnumValues({'audio': AgentOutput.AUDIO, 'transcription': AgentOutput.TRANSCRIPTION});
-
-enum AgentState { IDLE, INITIALIZING, LISTENING, SPEAKING, THINKING }
-
-final agentStateValues = EnumValues({
-  'idle': AgentState.IDLE,
-  'initializing': AgentState.INITIALIZING,
-  'listening': AgentState.LISTENING,
-  'speaking': AgentState.SPEAKING,
-  'thinking': AgentState.THINKING
-});
+@JsonEnum()
+enum AgentState {
+  @JsonValue('idle')
+  idle,
+  @JsonValue('initializing')
+  initializing,
+  @JsonValue('listening')
+  listening,
+  @JsonValue('speaking')
+  speaking,
+  @JsonValue('thinking')
+  thinking,
+}
 
 ///Schema for transcription-related attributes
+@JsonSerializable()
 class TranscriptionAttributes {
   ///The segment id of the transcription
+  @JsonKey(name: 'lk.segment_id')
   String? lkSegmentId;
 
   ///The associated track id of the transcription
+  @JsonKey(name: 'lk.transcribed_track_id')
   String? lkTranscribedTrackId;
 
   ///Whether the transcription is final
+  @JsonKey(name: 'lk.transcription_final')
   bool? lkTranscriptionFinal;
 
   TranscriptionAttributes({
@@ -83,27 +96,6 @@ class TranscriptionAttributes {
     this.lkTranscriptionFinal,
   });
 
-  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) => TranscriptionAttributes(
-        lkSegmentId: json['lk.segment_id'],
-        lkTranscribedTrackId: json['lk.transcribed_track_id'],
-        lkTranscriptionFinal: json['lk.transcription_final'],
-      );
-
-  Map<String, dynamic> toJson() => {
-        'lk.segment_id': lkSegmentId,
-        'lk.transcribed_track_id': lkTranscribedTrackId,
-        'lk.transcription_final': lkTranscriptionFinal,
-      };
-}
-
-class EnumValues<T> {
-  Map<String, T> map;
-  late Map<T, String> reverseMap;
-
-  EnumValues(this.map);
-
-  Map<T, String> get reverse {
-    reverseMap = map.map((k, v) => MapEntry(v, k));
-    return reverseMap;
-  }
+  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) => _$TranscriptionAttributesFromJson(json);
+  Map<String, dynamic> toJson() => _$TranscriptionAttributesToJson(this);
 }
