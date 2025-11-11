@@ -77,8 +77,8 @@ class RegionUrlProvider {
       throw ConnectException(
           'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
           reason: regionSettingsResponse.statusCode == 401
-              ? ConnectionErrorReason.NotAllowed
-              : ConnectionErrorReason.InternalError,
+              ? ConnectionErrorReason.notAllowed
+              : ConnectionErrorReason.internalError,
           statusCode: regionSettingsResponse.statusCode);
     }
   }

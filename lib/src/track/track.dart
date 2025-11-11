@@ -79,9 +79,9 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
-      case TrackType.AUDIO:
+      case TrackType.audio:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio;
-      case TrackType.VIDEO:
+      case TrackType.video:
         return rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo;
       // this should never happen
       default:

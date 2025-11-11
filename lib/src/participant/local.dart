@@ -321,7 +321,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await track.setDegradationPreference(degradationPreference);
       }
 
-      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
+      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.audio) {
         //TOOD:
       } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
@@ -422,7 +422,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await track.setDegradationPreference(degradationPreference);
       }
 
-      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
+      if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.audio) {
         //TOOD:
       } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(

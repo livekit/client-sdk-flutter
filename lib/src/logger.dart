@@ -15,16 +15,16 @@
 import 'package:logging/logging.dart';
 
 enum LoggerLevel {
-  kALL,
-  kFINEST,
-  kFINER,
-  kFINE,
-  kCONFIG,
-  kINFO,
-  kWARNING,
-  kSEVERE,
-  kSHOUT,
-  kOFF,
+  all,
+  finest,
+  finer,
+  fine,
+  config,
+  info,
+  warning,
+  severe,
+  shout,
+  off,
 }
 
 final logger = Logger('livekit');
@@ -37,34 +37,34 @@ void disableLogging() {
 /// set the logging level
 void setLoggingLevel(LoggerLevel level) {
   switch (level) {
-    case LoggerLevel.kALL:
+    case LoggerLevel.all:
       logger.level = Level.ALL;
       break;
-    case LoggerLevel.kFINEST:
+    case LoggerLevel.finest:
       logger.level = Level.FINEST;
       break;
-    case LoggerLevel.kFINER:
+    case LoggerLevel.finer:
       logger.level = Level.FINER;
       break;
-    case LoggerLevel.kFINE:
+    case LoggerLevel.fine:
       logger.level = Level.FINE;
       break;
-    case LoggerLevel.kCONFIG:
+    case LoggerLevel.config:
       logger.level = Level.CONFIG;
       break;
-    case LoggerLevel.kINFO:
+    case LoggerLevel.info:
       logger.level = Level.INFO;
       break;
-    case LoggerLevel.kWARNING:
+    case LoggerLevel.warning:
       logger.level = Level.WARNING;
       break;
-    case LoggerLevel.kSEVERE:
+    case LoggerLevel.severe:
       logger.level = Level.SEVERE;
       break;
-    case LoggerLevel.kSHOUT:
+    case LoggerLevel.shout:
       logger.level = Level.SHOUT;
       break;
-    case LoggerLevel.kOFF:
+    case LoggerLevel.off:
       logger.level = Level.OFF;
       break;
   }

@@ -9,7 +9,7 @@ class AudioProcessorOptions extends ProcessorOptions {
     required MediaStreamTrack track,
     this.audioElement,
     this.audioContext,
-  }) : super(kind: TrackType.AUDIO, track: track);
+  }) : super(kind: TrackType.audio, track: track);
 
   HTMLAudioElement? audioElement;
   AudioContext? audioContext;
@@ -18,5 +18,5 @@ class AudioProcessorOptions extends ProcessorOptions {
 class VideoProcessorOptions extends ProcessorOptions {
   VideoProcessorOptions({
     required MediaStreamTrack track,
-  }) : super(kind: TrackType.VIDEO, track: track);
+  }) : super(kind: TrackType.video, track: track);
 }

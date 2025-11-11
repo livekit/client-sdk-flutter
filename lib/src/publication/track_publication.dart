@@ -59,7 +59,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   bool get subscribed => track != null;
 
   EncryptionType get encryptionType {
-    if (latestInfo == null) return EncryptionType.kNone;
+    if (latestInfo == null) return EncryptionType.none;
     return latestInfo!.encryption.toLkType();
   }
 
@@ -84,7 +84,7 @@ abstract class TrackPublication<T extends Track> extends Disposable {
   }
 
   /// True when the track is published with source [TrackSource.screenShareVideo].
-  bool get isScreenShare => kind == TrackType.VIDEO && source == TrackSource.screenShareVideo;
+  bool get isScreenShare => kind == TrackType.video && source == TrackSource.screenShareVideo;
 
   void updateFromInfo(lk_models.TrackInfo info) {
     // ignore: deprecated_member_use_from_same_package

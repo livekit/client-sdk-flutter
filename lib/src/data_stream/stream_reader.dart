@@ -37,13 +37,13 @@ abstract class BaseStreamReader<T extends BaseStreamInfo, U> {
       throw DataStreamError(
         message:
             'Not enough chunk(s) received - expected $_totalByteSize bytes of data total, only received $_bytesReceived bytes',
-        reason: DataStreamErrorReason.Incomplete,
+        reason: DataStreamErrorReason.incomplete,
       );
     } else if (_bytesReceived > _totalByteSize) {
       throw DataStreamError(
         message:
             'Extra chunk(s) received - expected $_totalByteSize bytes of data total, received $_bytesReceived bytes',
-        reason: DataStreamErrorReason.LengthExceeded,
+        reason: DataStreamErrorReason.lengthExceeded,
       );
     }
   }
@@ -115,7 +115,7 @@ class TextStreamReader extends BaseStreamReader<TextStreamInfo, String> with Str
       } catch (e) {
         throw DataStreamError(
           message: 'Failed to decode chunk data: $e',
-          reason: DataStreamErrorReason.DecodeFailed,
+          reason: DataStreamErrorReason.decodeFailed,
         );
       }
     }
