@@ -13,10 +13,14 @@
 // limitations under the License.
 
 import 'package:collection/collection.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'room_configuration.dart';
 
+part 'token_source.g.dart';
+
 /// Request parameters for generating connection credentials.
+@JsonSerializable()
 class TokenRequestOptions {
   /// The name of the room to connect to. Required for most token generation scenarios.
   final String? roomName;
@@ -48,6 +52,9 @@ class TokenRequestOptions {
     this.agentName,
     this.agentMetadata,
   });
+
+  factory TokenRequestOptions.fromJson(Map<String, dynamic> json) => _$TokenRequestOptionsFromJson(json);
+  Map<String, dynamic> toJson() => _$TokenRequestOptionsToJson(this);
 
   /// Converts this options object to a wire-format request.
   TokenSourceRequest toRequest() {
@@ -97,12 +104,24 @@ class TokenRequestOptions {
 ///
 /// This is an internal wire format class that separates the public API ([TokenRequestOptions])
 /// from the JSON structure sent over the network.
+@JsonSerializable()
 class TokenSourceRequest {
+  @JsonKey(name: 'room_name')
   final String? roomName;
+
+  @JsonKey(name: 'participant_name')
   final String? participantName;
+
+  @JsonKey(name: 'participant_identity')
   final String? participantIdentity;
+
+  @JsonKey(name: 'participant_metadata')
   final String? participantMetadata;
+
+  @JsonKey(name: 'participant_attributes')
   final Map<String, String>? participantAttributes;
+
+  @JsonKey(name: 'room_config')
   final RoomConfiguration? roomConfiguration;
 
   const TokenSourceRequest({
@@ -114,30 +133,27 @@ class TokenSourceRequest {
     this.roomConfiguration,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      if (roomName != null) 'room_name': roomName,
-      if (participantName != null) 'participant_name': participantName,
-      if (participantIdentity != null) 'participant_identity': participantIdentity,
-      if (participantMetadata != null) 'participant_metadata': participantMetadata,
-      if (participantAttributes != null) 'participant_attributes': participantAttributes,
-      if (roomConfiguration != null) 'room_config': roomConfiguration!.toJson(),
-    };
-  }
+  factory TokenSourceRequest.fromJson(Map<String, dynamic> json) => _$TokenSourceRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$TokenSourceRequestToJson(this);
 }
 
 /// Response containing the credentials needed to connect to a LiveKit room.
+@JsonSerializable()
 class TokenSourceResponse {
   /// The WebSocket URL for the LiveKit server. Use this to establish the connection.
+  @JsonKey(name: 'server_url')
   final String serverUrl;
 
   /// The JWT token containing participant permissions and metadata. Required for authentication.
+  @JsonKey(name: 'participant_token')
   final String participantToken;
 
   /// The display name for the participant in the room. May be null if not specified.
+  @JsonKey(name: 'participant_name')
   final String? participantName;
 
   /// The name of the room the participant will join. May be null if not specified.
+  @JsonKey(name: 'room_name')
   final String? roomName;
 
   const TokenSourceResponse({
@@ -147,14 +163,20 @@ class TokenSourceResponse {
     this.roomName,
   });
 
+  /// Factory constructor supporting both snake_case and camelCase for backward compatibility.
   factory TokenSourceResponse.fromJson(Map<String, dynamic> json) {
-    return TokenSourceResponse(
-      serverUrl: (json['server_url'] ?? json['serverUrl']) as String,
-      participantToken: (json['participant_token'] ?? json['participantToken']) as String,
-      participantName: (json['participant_name'] ?? json['participantName']) as String?,
-      roomName: (json['room_name'] ?? json['roomName']) as String?,
-    );
+    // Normalize camelCase to snake_case for backward compatibility
+    final normalized = <String, dynamic>{
+      'server_url': json['server_url'] ?? json['serverUrl'],
+      'participant_token': json['participant_token'] ?? json['participantToken'],
+      if (json['participant_name'] != null || json['participantName'] != null)
+        'participant_name': json['participant_name'] ?? json['participantName'],
+      if (json['room_name'] != null || json['roomName'] != null) 'room_name': json['room_name'] ?? json['roomName'],
+    };
+    return _$TokenSourceResponseFromJson(normalized);
   }
+
+  Map<String, dynamic> toJson() => _$TokenSourceResponseToJson(this);
 }
 
 /// A token source that returns a fixed set of credentials without configurable options.
