@@ -91,8 +91,7 @@ class TranscriptionAttributes {
   @JsonKey(name: 'lk.transcription_final', fromJson: _boolFromJson, toJson: _boolToJson)
   final bool? lkTranscriptionFinal;
 
-  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) =>
-      _$TranscriptionAttributesFromJson(json);
+  factory TranscriptionAttributes.fromJson(Map<String, dynamic> json) => _$TranscriptionAttributesFromJson(json);
 
   Map<String, dynamic> toJson() => _$TranscriptionAttributesToJson(this);
 }

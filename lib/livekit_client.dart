@@ -57,7 +57,7 @@ export 'src/track/remote/audio.dart';
 export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';
 export 'src/track/track.dart';
-export 'src/types/attribute_typings.dart';
+export 'src/json/agent_attributes.dart';
 export 'src/types/data_stream.dart';
 export 'src/types/other.dart';
 export 'src/types/participant_permissions.dart';

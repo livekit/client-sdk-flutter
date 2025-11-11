@@ -16,3 +16,5 @@
 const lkAgentStateAttributeKey = 'lk.agent.state';
 const lkPublishOnBehalfAttributeKey = 'lk.publish_on_behalf';
 const lkAgentNameAttributeKey = 'lk.agent_name';
+const lkAgentInputsAttributeKey = 'lk.agent.inputs';
+const lkAgentOutputsAttributeKey = 'lk.agent.outputs';

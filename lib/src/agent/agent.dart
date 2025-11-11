@@ -16,11 +16,11 @@ import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
 
+import '../json/agent_attributes.dart';
 import '../participant/participant.dart';
 import '../participant/remote.dart';
 import '../track/remote/audio.dart';
 import '../track/remote/video.dart';
-import '../types/attribute_typings.dart';
 import '../types/other.dart';
 import 'constants.dart';
 
