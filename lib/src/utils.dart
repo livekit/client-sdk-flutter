@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -185,7 +186,7 @@ class Utils {
       scheme: validate ? httpScheme : wsScheme,
       pathSegments: pathSegments,
       queryParameters: <String, String>{
-        'access_token': token,
+        if (kIsWeb) 'access_token': token,
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',

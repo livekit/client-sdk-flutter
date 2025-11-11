@@ -8,101 +8,9 @@ import 'package:web/web.dart' as web;
 import 'e2ee.keyhandler.dart';
 import 'e2ee.logger.dart';
 import 'e2ee.sfi_guard.dart';
+import 'e2ee.nalu_utils.dart';
 
 const IV_LENGTH = 12;
-
-const kNaluTypeMask = 0x1f;
-
-/// Coded slice of a non-IDR picture
-const SLICE_NON_IDR = 1;
-
-/// Coded slice data partition A
-const SLICE_PARTITION_A = 2;
-
-/// Coded slice data partition B
-const SLICE_PARTITION_B = 3;
-
-/// Coded slice data partition C
-const SLICE_PARTITION_C = 4;
-
-/// Coded slice of an IDR picture
-const SLICE_IDR = 5;
-
-/// Supplemental enhancement information
-const SEI = 6;
-
-/// Sequence parameter set
-const SPS = 7;
-
-/// Picture parameter set
-const PPS = 8;
-
-/// Access unit delimiter
-const AUD = 9;
-
-/// End of sequence
-const END_SEQ = 10;
-
-/// End of stream
-const END_STREAM = 11;
-
-/// Filler data
-const FILLER_DATA = 12;
-
-/// Sequence parameter set extension
-const SPS_EXT = 13;
-
-/// Prefix NAL unit
-const PREFIX_NALU = 14;
-
-/// Subset sequence parameter set
-const SUBSET_SPS = 15;
-
-/// Depth parameter set
-const DPS = 16;
-
-// 17, 18 reserved
-
-/// Coded slice of an auxiliary coded picture without partitioning
-const SLICE_AUX = 19;
-
-/// Coded slice extension
-const SLICE_EXT = 20;
-
-/// Coded slice extension for a depth view component or a 3D-AVC texture view component
-const SLICE_LAYER_EXT = 21;
-
-// 22, 23 reserved
-
-List<int> findNALUIndices(Uint8List stream) {
-  final result = <int>[];
-  var start = 0, pos = 0, searchLength = stream.length - 2;
-  while (pos < searchLength) {
-    // skip until end of current NALU
-    while (pos < searchLength && !(stream[pos] == 0 && stream[pos + 1] == 0 && stream[pos + 2] == 1)) {
-      pos++;
-    }
-    if (pos >= searchLength) pos = stream.length;
-    // remove trailing zeros from current NALU
-    var end = pos;
-    while (end > start && stream[end - 1] == 0) {
-      end--;
-    }
-    // save current NALU
-    if (start == 0) {
-      if (end != start) throw Exception('byte stream contains leading data');
-    } else {
-      result.add(start);
-    }
-    // begin new NALU
-    start = pos = pos + 3;
-  }
-  return result;
-}
-
-int parseNALUType(int startByte) {
-  return startByte & kNaluTypeMask;
-}
 
 enum CryptorError {
   kNew,
@@ -268,7 +176,7 @@ class FrameCryptor {
   }
 
   int getUnencryptedBytes(JSObject obj, String? codec) {
-    Uint8List data = Uint8List(0);
+    Uint8List? data;
     var frameType = '';
     if (obj is web.RTCEncodedVideoFrame) {
       data = obj.data.toDart.asUint8List();
@@ -278,23 +186,29 @@ class FrameCryptor {
       }
     }
 
-    if (codec != null && codec.toLowerCase() == 'h264') {
-      final naluIndices = findNALUIndices(data);
-      for (var index in naluIndices) {
-        final type = parseNALUType(data[index]);
-        switch (type) {
-          case SLICE_IDR:
-          case SLICE_NON_IDR:
-            // skipping
-            logger.finer('unEncryptedBytes NALU of type $type, offset ${index + 2}');
-            return index + 2;
-          default:
-            logger.finer('skipping NALU of type $type');
-            break;
-        }
+    if (['h264', 'h265'].contains(codec?.toLowerCase() ?? '')) {
+      if (data == null) {
+        throw StateError('Frame data is null for codec $codec');
       }
-      throw Exception('Could not find NALU');
+      final result = processNALUsForEncryption(data, codec!);
+      if (result.detectedCodec == 'unknown') {
+        if (lastError != CryptorError.kUnsupportedCodec) {
+          lastError = CryptorError.kUnsupportedCodec;
+          postMessage({
+            'type': 'cryptorState',
+            'msgType': 'event',
+            'participantId': participantIdentity,
+            'trackId': trackId,
+            'kind': kind,
+            'state': 'unsupportedCodec',
+            'error': 'Unsupported codec for track $trackId, detected codec ${result.detectedCodec}'
+          });
+        }
+        throw Exception('Unsupported codec for track $trackId');
+      }
+      return result.unencryptedBytes;
     }
+
     switch (frameType) {
       case 'key':
         return 10;
@@ -373,7 +287,7 @@ class FrameCryptor {
 
       final srcFrame = readFrameInfo(frameObj);
 
-      logger.finer(
+      logger.fine(
           'encodeFunction: buffer ${srcFrame.buffer.length}, synchronizationSource ${srcFrame.ssrc} frameType ${srcFrame.frameType}');
 
       final secretKey = keyHandler.getKeySet(currentKeyIndex)?.encryptionKey;
@@ -465,7 +379,7 @@ class FrameCryptor {
     final srcFrame = readFrameInfo(frameObj);
     var ratchetCount = 0;
 
-    logger.finer('decodeFunction: frame length ${srcFrame.buffer.length}');
+    logger.fine('decodeFunction: frame lenght ${srcFrame.buffer.length}');
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;
@@ -476,8 +390,9 @@ class FrameCryptor {
         srcFrame.buffer.isEmpty) {
       sifGuard.recordUserFrame();
       if (keyOptions.discardFrameWhenCryptorNotReady) return;
-      logger.fine('enqueing empty dtx frame');
+      logger.fine('enqueing empty frame');
       controller.enqueue(frameObj);
+      logger.finer('enqueing silent frame');
       return;
     }
 
@@ -497,11 +412,14 @@ class FrameCryptor {
                 .add(Uint8List.fromList(srcFrame.buffer.sublist(0, srcFrame.buffer.length - (magicBytes.length + 1))));
             logger.fine('encodeFunction: enqueing silent frame');
             enqueueFrame(frameObj, controller, finalBuffer);
-            return;
+            logger.fine('ecodeFunction: enqueing silent frame');
+            controller.enqueue(frameObj);
           } else {
-            logger.fine('encodeFunction: SIF limit reached, dropping frame');
-            return;
+            logger.finer('ecodeFunction: SIF limit reached, dropping frame');
           }
+          logger.finer('ecodeFunction: enqueing silent frame');
+          controller.enqueue(frameObj);
+          return;
         } else {
           sifGuard.recordUserFrame();
         }
@@ -641,11 +559,9 @@ class FrameCryptor {
         });
       }
 
-      logger.finer(
+      logger.fine(
           'decodeFunction[CryptorError.kOk]: decryption success kind $kind, headerLength: $headerLength, timestamp: ${srcFrame.timestamp}, ssrc: ${srcFrame.ssrc}, data length: ${srcFrame.buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e, s) {
-      logger.info('decodeFunction[CryptorError.kDecryptError]: $e, $s');
-
+    } catch (e) {
       if (lastError != CryptorError.kDecryptError) {
         lastError = CryptorError.kDecryptError;
         postMessage({

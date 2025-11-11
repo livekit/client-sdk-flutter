@@ -31,9 +31,13 @@ class E2EEManager {
   final Map<Map<String, String>, FrameCryptor> _frameCryptors = {};
   final BaseKeyProvider _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
+  DataPacketCryptor? _dataPacketCryptor;
   bool _enabled = true;
+  bool _encryptionEnabled = false;
   EventsListener<RoomEvent>? _listener;
-  E2EEManager(this._keyProvider);
+  E2EEManager(this._keyProvider, {bool dcEncryptionEnabled = false}) {
+    _encryptionEnabled = dcEncryptionEnabled;
+  }
 
   Future<void> setup(Room room) async {
     if (_room != room) {
@@ -110,6 +114,8 @@ class E2EEManager {
             }
           }
         });
+      _dataPacketCryptor ??= await dataPacketCryptorFactory.createDataPacketCryptor(
+          algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
     }
   }
 
@@ -137,6 +143,9 @@ class E2EEManager {
       await frameCryptor.dispose();
     }
     _frameCryptors.clear();
+
+    await _dataPacketCryptor?.dispose();
+    _dataPacketCryptor = null;
   }
 
   Future<FrameCryptor> _addRtpSender(
@@ -216,5 +225,37 @@ class E2EEManager {
       case FrameCryptorState.FrameCryptorStateKeyRatcheted:
         return E2EEState.kKeyRatcheted;
     }
+  }
+
+  bool get isDataChannelEncryptionEnabled => _enabled && _encryptionEnabled;
+
+  Future<Uint8List?> handleEncryptedData({
+    required Uint8List data,
+    required Uint8List iv,
+    required String participantIdentity,
+    required int keyIndex,
+  }) async {
+    if (_dataPacketCryptor == null) {
+      throw Exception('DataPacketCryptor is not initialized');
+    }
+    try {
+      final decryptedData = await _dataPacketCryptor!.decrypt(
+        participantId: participantIdentity,
+        encryptedPacket: EncryptedPacket(data: data, keyIndex: keyIndex, iv: iv),
+      );
+      return decryptedData;
+    } catch (e) {
+      logger.warning('handleEncryptedData error: $e');
+      return null;
+    }
+  }
+
+  Future<EncryptedPacket> encryptData({required Uint8List data}) async {
+    final participantId = _room?.localParticipant?.identity;
+    if (participantId == null || _dataPacketCryptor == null) {
+      throw Exception('DataPacketCryptor is not initialized');
+    }
+    return await _dataPacketCryptor!
+        .encrypt(participantId: participantId, keyIndex: _keyProvider.getLatestIndex(participantId), data: data);
   }
 }

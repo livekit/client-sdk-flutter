@@ -31,6 +31,28 @@ import '../track/remote/video.dart';
 import '../types/other.dart';
 import 'participant.dart';
 
+/// Result of creating a RemoteParticipant with all its initial data populated.
+///
+/// This struct is returned by [RemoteParticipant.createFromInfo] and contains
+/// the fully initialized participant along with the list of track publications
+/// that were added during creation. The caller is responsible for emitting
+/// events in the correct order.
+@internal
+class ParticipantCreationResult {
+  /// The fully initialized remote participant with all basic info and tracks populated.
+  final RemoteParticipant participant;
+
+  /// List of new track publications that were added during participant creation.
+  /// The caller should emit [TrackPublishedEvent] for each of these after
+  /// emitting [ParticipantConnectedEvent].
+  final List<RemoteTrackPublication> newPublications;
+
+  const ParticipantCreationResult({
+    required this.participant,
+    required this.newPublications,
+  });
+}
+
 /// Represents other participant in the [Room].
 class RemoteParticipant extends Participant<RemoteTrackPublication> {
   @internal
@@ -46,17 +68,70 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
           name: name,
         );
 
+  /// Creates a fully initialized RemoteParticipant without emitting events.
+  ///
+  /// Populates the participant with all data from [info] including metadata, permissions,
+  /// and track publications. No events are emitted, allowing the caller to control event
+  /// timing and order.
+  ///
+  /// Returns [ParticipantCreationResult] with the participant and new track publications.
+  /// The caller should emit [ParticipantConnectedEvent] first, then [TrackPublishedEvent]
+  /// for each track, ensuring the participant is fully populated when connected event fires.
+  ///
+  /// @internal - Should only be called by [Room].
   @internal
-  RemoteParticipant.fromInfo({
+  static Future<ParticipantCreationResult> createFromInfo({
     required Room room,
     required lk_models.ParticipantInfo info,
-  }) : super(
-          room: room,
-          sid: info.sid,
-          identity: info.identity,
-          name: info.name,
-        ) {
-    updateFromInfo(info);
+  }) async {
+    final participant = RemoteParticipant(
+      room: room,
+      sid: info.sid,
+      identity: info.identity,
+      name: info.name,
+    );
+    // Update basic participant info (state, metadata, etc.)
+    await participant._updateBasicInfo(info);
+    // Add tracks to participant without emitting events
+    final newPubs = await participant._addTracks(info.tracks);
+    // Return result for caller to emit events in correct order
+    return ParticipantCreationResult(
+      participant: participant,
+      newPublications: newPubs,
+    );
+  }
+
+  Future<void> _updateBasicInfo(lk_models.ParticipantInfo info) async {
+    // Only call superclass updateFromInfo to update basic participant state
+    await super.updateFromInfo(info);
+  }
+
+  Future<List<RemoteTrackPublication>> _addTracks(List<lk_models.TrackInfo> tracks) async {
+    final newPubs = <RemoteTrackPublication>[];
+    for (final trackInfo in tracks) {
+      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
+      if (pub == null) {
+        final RemoteTrackPublication pub;
+        if (trackInfo.type == lk_models.TrackType.VIDEO) {
+          pub = RemoteTrackPublication<RemoteVideoTrack>(
+            participant: this,
+            info: trackInfo,
+          );
+        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
+          pub = RemoteTrackPublication<RemoteAudioTrack>(
+            participant: this,
+            info: trackInfo,
+          );
+        } else {
+          throw UnexpectedStateException('Unknown track type');
+        }
+        newPubs.add(pub);
+        addTrackPublication(pub);
+      } else {
+        pub.updateFromInfo(trackInfo);
+      }
+    }
+    return newPubs;
   }
 
   /// A convenience property to get all video tracks.
@@ -188,34 +263,16 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       //return false;
     }
 
-    // figuring out deltas between tracks
-    final newPubs = <RemoteTrackPublication>{};
+    await _updateTracks(info.tracks);
 
-    for (final trackInfo in info.tracks) {
-      final RemoteTrackPublication? pub = getTrackPublicationBySid(trackInfo.sid);
-      if (pub == null) {
-        final RemoteTrackPublication pub;
-        if (trackInfo.type == lk_models.TrackType.VIDEO) {
-          pub = RemoteTrackPublication<RemoteVideoTrack>(
-            participant: this,
-            info: trackInfo,
-          );
-        } else if (trackInfo.type == lk_models.TrackType.AUDIO) {
-          pub = RemoteTrackPublication<RemoteAudioTrack>(
-            participant: this,
-            info: trackInfo,
-          );
-        } else {
-          throw UnexpectedStateException('Unknown track type');
-        }
-        newPubs.add(pub);
-        addTrackPublication(pub);
-      } else {
-        pub.updateFromInfo(trackInfo);
-      }
-    }
+    return true;
+  }
 
-    // always emit events for new publications, Room will not forward them unless it's ready
+  Future<void> _updateTracks(List<lk_models.TrackInfo> tracks) async {
+    // Add new tracks
+    final newPubs = await _addTracks(tracks);
+
+    // Emit events for new publications
     for (final pub in newPubs) {
       final event = TrackPublishedEvent(
         participant: this,
@@ -226,14 +283,12 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       }
     }
 
-    // remove any published track that is not in the info
-    final validSids = info.tracks.map((e) => e.sid);
+    // Remove any published track that is not in the info
+    final validSids = tracks.map((e) => e.sid);
     final removeSids = trackPublications.keys.where((e) => !validSids.contains(e)).toSet();
     for (final sid in removeSids) {
       await removePublishedTrack(sid);
     }
-
-    return true;
   }
 
   Future<void> removePublishedTrack(String trackSid, {bool notify = true}) async {

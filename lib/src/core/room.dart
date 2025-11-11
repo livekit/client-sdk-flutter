@@ -21,8 +21,10 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
+import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -222,13 +224,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }) async {
     var roomOptions = this.roomOptions;
     connectOptions ??= ConnectOptions();
-    if (roomOptions.e2eeOptions != null) {
+    if ((roomOptions.encryption != null || roomOptions.e2eeOptions != null) && engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
-      _e2eeManager = E2EEManager(roomOptions.e2eeOptions!.keyProvider);
+      final e2eeOptions = roomOptions.encryption ?? roomOptions.e2eeOptions;
+      _e2eeManager = E2EEManager(e2eeOptions!.keyProvider, dcEncryptionEnabled: roomOptions.encryption != null);
       await _e2eeManager!.setup(this);
+      engine.setE2eeManager(_e2eeManager);
+    } else {
+      _e2eeManager = engine.e2eeManager;
+    }
 
+    if (_e2eeManager != null) {
       // Disable backup codec when e2ee is enabled
       roomOptions = roomOptions.copyWith(
         defaultVideoPublishOptions: roomOptions.defaultVideoPublishOptions.copyWith(
@@ -458,7 +466,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       for (final info in event.response.otherParticipants) {
         logger.fine('Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
             'tracks:${info.tracks.map((e) => e.sid)}');
-        _getOrCreateRemoteParticipant(info.identity, info);
+        await _getOrCreateRemoteParticipant(info.identity, info);
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
@@ -628,15 +636,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     return null;
   }
 
-  RemoteParticipant _getOrCreateRemoteParticipant(String identity, lk_models.ParticipantInfo? info) {
+  Future<ParticipantCreationResult> _getOrCreateRemoteParticipant(
+      String identity, lk_models.ParticipantInfo? info) async {
     RemoteParticipant? participant = _remoteParticipants[identity];
     if (participant != null) {
-      if (info != null) {
-        participant.updateFromInfo(info);
-      }
-      return participant;
+      // Return existing participant with no new publications; caller handles updates.
+      return ParticipantCreationResult(
+        participant: participant,
+        newPublications: const [],
+      );
     }
 
+    ParticipantCreationResult result;
     if (info == null) {
       logger.warning('RemoteParticipant.info is null identity: $identity');
       participant = RemoteParticipant(
@@ -645,16 +656,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         identity: identity,
         name: '',
       );
+      result = ParticipantCreationResult(
+        participant: participant,
+        newPublications: const [],
+      );
     } else {
-      participant = RemoteParticipant.fromInfo(
+      result = await RemoteParticipant.createFromInfo(
         room: this,
         info: info,
       );
     }
 
-    _remoteParticipants[identity] = participant;
-    _sidToIdentity[participant.sid] = identity;
-    return participant;
+    _remoteParticipants[result.participant.identity] = result.participant;
+    _sidToIdentity[result.participant.sid] = result.participant.identity;
+    return result;
   }
 
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
@@ -681,14 +696,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         continue;
       }
 
-      final participant = _getOrCreateRemoteParticipant(info.identity, info);
+      final result = await _getOrCreateRemoteParticipant(info.identity, info);
 
       if (isNew) {
         hasChanged = true;
-        // fire connected event
-        emitWhenConnected(ParticipantConnectedEvent(participant: participant));
+        // Emit connected event
+        emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
+        // Emit TrackPublishedEvent for each new track
+        if (connectionState == ConnectionState.connected) {
+          for (final pub in result.newPublications) {
+            final event = TrackPublishedEvent(
+              participant: result.participant,
+              publication: pub,
+            );
+            [result.participant.events, events].emit(event);
+          }
+        }
+        _sidToIdentity[info.sid] = info.identity;
       } else {
-        final wasUpdated = await participant.updateFromInfo(info);
+        final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
         }
@@ -854,6 +880,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     if (participant == null) {
       return false;
     }
+
+    validateParticipantHasNoActiveDataStreams(identity);
 
     await participant.removeAllPublishedTracks(notify: true);
 
@@ -1183,20 +1211,23 @@ extension RoomRPCMethods on Room {
 extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
     _engineListener
-      ..on<EngineDataStreamHeaderEvent>((event) {
-        handleStreamHeader(event.header, event.identity);
+      ..on<EngineDataStreamHeaderEvent>((event) async {
+        await handleStreamHeader(event.header, event.identity, event.encryptionType);
       })
       ..on<EngineDataStreamChunkEvent>((event) async {
-        handleStreamChunk(event.chunk);
+        handleStreamChunk(event.chunk, event.encryptionType);
       })
-      ..on<EngineDataStreamTrailerEvent>((event) {
-        handleStreamTrailer(event.trailer);
+      ..on<EngineDataStreamTrailerEvent>((event) async {
+        await handleStreamTrailer(event.trailer, event.encryptionType);
       });
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
-    if (_textStreamHandlers[topic] != null) {
-      throw Exception('A text stream handler for topic "${topic}" has already been set.');
+    if (_textStreamHandlers.containsKey(topic)) {
+      throw DataStreamError(
+        message: 'A text stream handler for topic "${topic}" has already been set.',
+        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+      );
     }
     _textStreamHandlers[topic] = callback;
   }
@@ -1206,8 +1237,11 @@ extension DataStreamRoomMethods on Room {
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
-    if (_byteStreamHandlers[topic] != null) {
-      throw Exception('A byte stream handler for topic "${topic}" has already been set.');
+    if (_byteStreamHandlers.containsKey(topic)) {
+      throw DataStreamError(
+        message: 'A byte stream handler for topic "${topic}" has already been set.',
+        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+      );
     }
     _byteStreamHandlers[topic] = callback;
   }
@@ -1216,7 +1250,8 @@ extension DataStreamRoomMethods on Room {
     _byteStreamHandlers.remove(topic);
   }
 
-  Future<void> handleStreamHeader(lk_models.DataStream_Header streamHeader, String participantIdentity) async {
+  Future<void> handleStreamHeader(
+      lk_models.DataStream_Header streamHeader, String participantIdentity, EncryptionType encryptionType) async {
     if (streamHeader.hasByteHeader()) {
       final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
 
@@ -1233,6 +1268,8 @@ extension DataStreamRoomMethods on Room {
         topic: streamHeader.topic,
         timestamp: streamHeader.timestamp.toInt(),
         attributes: streamHeader.attributes,
+        encryptionType: encryptionType,
+        sendingParticipantIdentity: participantIdentity,
       );
 
       final streamController = DataStreamController<lk_models.DataStream_Chunk>(
@@ -1240,6 +1277,13 @@ extension DataStreamRoomMethods on Room {
         streamController: StreamController<lk_models.DataStream_Chunk>(),
         startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
+
+      if (_byteStreamControllers.containsKey(streamHeader.streamId)) {
+        throw DataStreamError(
+          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
+          reason: DataStreamErrorReason.AlreadyOpened,
+        );
+      }
 
       _byteStreamControllers[streamHeader.streamId] = streamController;
 
@@ -1269,6 +1313,8 @@ extension DataStreamRoomMethods on Room {
         operationType: streamHeader.textHeader.hasOperationType()
             ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
             : null,
+        encryptionType: encryptionType,
+        sendingParticipantIdentity: participantIdentity,
       );
 
       final streamController = DataStreamController<lk_models.DataStream_Chunk>(
@@ -1276,6 +1322,13 @@ extension DataStreamRoomMethods on Room {
         streamController: StreamController<lk_models.DataStream_Chunk>(),
         startTime: DateTime.timestamp().millisecondsSinceEpoch,
       );
+
+      if (_textStreamControllers.containsKey(streamHeader.streamId)) {
+        throw DataStreamError(
+          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
+          reason: DataStreamErrorReason.AlreadyOpened,
+        );
+      }
 
       _textStreamControllers[streamHeader.streamId] = streamController;
 
@@ -1286,38 +1339,113 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
-  void handleStreamChunk(lk_models.DataStream_Chunk chunk) {
+  void handleStreamChunk(lk_models.DataStream_Chunk chunk, EncryptionType encryptionType) {
     final fileBuffer = _byteStreamControllers[chunk.streamId];
+
     if (fileBuffer != null) {
+      if (fileBuffer.info.encryptionType != encryptionType) {
+        fileBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
+        _byteStreamControllers.remove(chunk.streamId);
+      }
+
       if (chunk.content.isNotEmpty) {
         fileBuffer.write(chunk);
       }
     }
     final textBuffer = _textStreamControllers[chunk.streamId];
     if (textBuffer != null) {
+      if (textBuffer.info.encryptionType != encryptionType) {
+        textBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
+        logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
+        _textStreamControllers.remove(chunk.streamId);
+      }
       if (chunk.content.isNotEmpty) {
         textBuffer.write(chunk);
       }
     }
   }
 
-  void handleStreamTrailer(lk_models.DataStream_Trailer trailer) {
+  Future<void> handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
     final textBuffer = _textStreamControllers[trailer.streamId];
     if (textBuffer != null) {
-      textBuffer.info.attributes = {
-        ...textBuffer.info.attributes,
-        ...trailer.attributes,
-      };
-      textBuffer.close();
-      _textStreamControllers.remove(trailer.streamId);
+      if (textBuffer.info.encryptionType != encryptionType) {
+        textBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
+        _textStreamControllers.remove(trailer.streamId);
+        return;
+      } else {
+        textBuffer.info.attributes = {
+          ...textBuffer.info.attributes,
+          ...trailer.attributes,
+        };
+        await textBuffer.close();
+        _textStreamControllers.remove(trailer.streamId);
+      }
     }
 
     final fileBuffer = _byteStreamControllers[trailer.streamId];
     if (fileBuffer != null) {
-      {
-        fileBuffer.info.attributes = {...fileBuffer.info.attributes, ...trailer.attributes};
-        fileBuffer.close();
+      if (fileBuffer.info.encryptionType != encryptionType) {
+        fileBuffer.error(
+          DataStreamError(
+            message:
+                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
+            reason: DataStreamErrorReason.EncryptionTypeMismatch,
+          ),
+        );
+
         _byteStreamControllers.remove(trailer.streamId);
+        return;
+      } else {
+        fileBuffer.info.attributes = {...fileBuffer.info.attributes, ...trailer.attributes};
+        await fileBuffer.close();
+        _byteStreamControllers.remove(trailer.streamId);
+      }
+    }
+  }
+
+  void validateParticipantHasNoActiveDataStreams(String participantIdentity) {
+    // Terminate any in flight data stream receives from the given participant
+    final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
+        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
+        .toList();
+
+    final byteStreamsBeingSentByDisconnectingParticipant = _byteStreamControllers.values
+        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
+        .toList();
+    if (textStreamsBeingSentByDisconnectingParticipant.isNotEmpty ||
+        byteStreamsBeingSentByDisconnectingParticipant.isNotEmpty) {
+      final abnormalEndError = DataStreamError(
+        message: 'Participant ${participantIdentity} unexpectedly disconnected in the middle of sending data',
+        reason: DataStreamErrorReason.AbnormalEnd,
+      );
+      for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
+        controller.error(abnormalEndError);
+        _byteStreamControllers.remove(controller.info.id);
+      }
+      for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
+        controller.error(abnormalEndError);
+        _textStreamControllers.remove(controller.info.id);
       }
     }
   }

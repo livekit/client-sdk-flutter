@@ -9,6 +9,7 @@ import 'e2ee.logger.dart';
 import 'e2ee.utils.dart';
 
 const KEYRING_SIZE = 16;
+const IV_LENGTH = 12;
 
 class KeyOptions {
   KeyOptions({
