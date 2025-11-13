@@ -25,6 +25,7 @@ import '../logger.dart';
 import '../managers/event.dart';
 import '../participant/remote.dart';
 import '../support/disposable.dart';
+import '../token_source/jwt.dart';
 import '../token_source/token_source.dart';
 import '../types/other.dart';
 import 'agent.dart';
@@ -177,36 +178,43 @@ class Session extends DisposableChangeNotifier {
 
     final Duration timeout = _options.agentConnectTimeout;
 
-    Future<void> connect() async {
+    Future<bool> connect() async {
       final response = await _tokenSourceConfiguration.fetch();
       await room.connect(
         response.serverUrl,
         response.participantToken,
       );
+      return response.dispatchesAgent();
     }
 
     try {
+      final bool dispatchesAgent;
       if (_options.preConnectAudio) {
-        await room.withPreConnectAudio(
+        dispatchesAgent = await room.withPreConnectAudio(
           () async {
             _setConnectionState(ConnectionState.connecting);
             _agent.connecting(buffering: true);
-            await connect();
+            return connect();
           },
           timeout: timeout,
         );
       } else {
         _setConnectionState(ConnectionState.connecting);
         _agent.connecting(buffering: false);
-        await connect();
+        dispatchesAgent = await connect();
         await room.localParticipant?.setMicrophoneEnabled(true);
       }
 
-      _agentTimeoutTimer = Timer(timeout, () {
-        if (isConnected && !_agent.isConnected) {
-          _agent.failed(AgentFailure.timeout);
-        }
-      });
+      if (dispatchesAgent) {
+        _agentTimeoutTimer = Timer(timeout, () {
+          if (isConnected && !_agent.isConnected) {
+            _agent.failed(AgentFailure.timeout);
+          }
+        });
+      } else {
+        _agentTimeoutTimer?.cancel();
+        _agentTimeoutTimer = null;
+      }
     } catch (error, stackTrace) {
       logger.warning('Session.start() failed: $error', error, stackTrace);
       _setError(SessionError.connection(error));
@@ -300,27 +308,26 @@ class Session extends DisposableChangeNotifier {
   }
 
   void _handleRoomEvent(RoomEvent event) {
+    bool shouldUpdateAgent = false;
+
     if (event is RoomConnectedEvent || event is RoomReconnectedEvent) {
       _setConnectionState(ConnectionState.connected);
+      shouldUpdateAgent = true;
     } else if (event is RoomReconnectingEvent) {
       _setConnectionState(ConnectionState.reconnecting);
+      shouldUpdateAgent = true;
     } else if (event is RoomDisconnectedEvent) {
       _setConnectionState(ConnectionState.disconnected);
       _agent.disconnected();
+      shouldUpdateAgent = true;
     }
 
-    switch (event) {
-      case ParticipantConnectedEvent _:
-      case ParticipantDisconnectedEvent _:
-      case ParticipantAttributesChanged _:
-      case TrackPublishedEvent _:
-      case TrackUnpublishedEvent _:
-      case RoomConnectedEvent _:
-      case RoomReconnectedEvent _:
-      case RoomReconnectingEvent _:
-        _updateAgent();
-      default:
-        break;
+    if (event is ParticipantEvent) {
+      shouldUpdateAgent = true;
+    }
+
+    if (shouldUpdateAgent) {
+      _updateAgent();
     }
   }
 
@@ -336,6 +343,8 @@ class Session extends DisposableChangeNotifier {
     final RemoteParticipant? firstAgent = room.agentParticipants.firstOrNull;
     if (firstAgent != null) {
       _agent.connected(firstAgent);
+    } else if (_agent.isConnected) {
+      _agent.failed(AgentFailure.left);
     } else {
       _agent.connecting(buffering: _options.preConnectAudio);
     }

@@ -55,16 +55,50 @@ class Agent extends ChangeNotifier {
   RemoteVideoTrack? get avatarVideoTrack => _avatarVideoTrack;
   RemoteVideoTrack? _avatarVideoTrack;
 
-  /// Indicates whether the agent is connected.
-  bool get isConnected => switch (_state) {
-        _AgentLifecycle.connected => true,
-        _AgentLifecycle.connecting => false,
-        _AgentLifecycle.disconnected => false,
-        _AgentLifecycle.failed => false,
-      };
+  /// Indicates whether the agent is connected and ready for conversation.
+  bool get isConnected {
+    if (_state != _AgentLifecycle.connected) {
+      return false;
+    }
+    return switch (_agentState) {
+      AgentState.LISTENING || AgentState.THINKING || AgentState.SPEAKING => true,
+      _ => false,
+    };
+  }
 
   /// Whether the agent is buffering audio prior to connecting.
   bool get isBuffering => _state == _AgentLifecycle.connecting && _isBuffering;
+
+  /// Whether the agent can currently listen for user input.
+  bool get canListen {
+    if (_state == _AgentLifecycle.connecting) {
+      return _isBuffering;
+    }
+    if (_state == _AgentLifecycle.connected) {
+      return switch (_agentState) {
+        AgentState.LISTENING || AgentState.THINKING || AgentState.SPEAKING => true,
+        _ => false,
+      };
+    }
+    return false;
+  }
+
+  /// Whether the agent is pending initialization.
+  bool get isPending {
+    if (_state == _AgentLifecycle.connecting) {
+      return !_isBuffering;
+    }
+    if (_state == _AgentLifecycle.connected) {
+      return switch (_agentState) {
+        AgentState.IDLE || AgentState.INITIALIZING => true,
+        _ => false,
+      };
+    }
+    return false;
+  }
+
+  /// Whether the agent finished or failed its session.
+  bool get isFinished => _state == _AgentLifecycle.disconnected || _state == _AgentLifecycle.failed;
 
   _AgentLifecycle _state = _AgentLifecycle.disconnected;
   bool _isBuffering = false;
@@ -179,11 +213,15 @@ class Agent extends ChangeNotifier {
 /// Describes why an [Agent] failed to connect.
 enum AgentFailure {
   /// The agent did not connect within the allotted timeout.
-  timeout;
+  timeout,
+
+  /// The agent left the room unexpectedly.
+  left;
 
   /// A human-readable error message.
   String get message => switch (this) {
         AgentFailure.timeout => 'Agent did not connect',
+        AgentFailure.left => 'Agent left the room unexpectedly',
       };
 }
 

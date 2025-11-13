@@ -174,6 +174,14 @@ void main() {
           'hidden': false,
           'recorder': true,
         },
+        roomConfig: {
+          'agents': [
+            {
+              'agent_name': 'demo-agent',
+              'metadata': '{"foo":"bar"}',
+            }
+          ]
+        },
       );
 
       final response = TokenSourceResponse(
@@ -201,6 +209,42 @@ void main() {
       expect(grant.canPublishSources, ['camera', 'screen']);
       expect(grant.hidden, isFalse);
       expect(grant.recorder, isTrue);
+
+      final config = payload.roomConfiguration;
+      expect(config, isNotNull);
+      expect(config!.agents, isNotNull);
+      expect(config.agents, hasLength(1));
+      expect(config.agents!.first.agentName, 'demo-agent');
+      expect(config.agents!.first.metadata, '{"foo":"bar"}');
+    });
+  });
+
+  group('TokenSourceResponse', () {
+    test('dispatchesAgent returns true when JWT config includes agents', () {
+      final token = _generateToken(
+        roomConfig: {
+          'agents': [
+            {'agent_name': 'assistant'}
+          ]
+        },
+      );
+
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.dispatchesAgent(), isTrue);
+    });
+
+    test('dispatchesAgent returns false when JWT lacks agents', () {
+      final token = _generateToken();
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      expect(response.dispatchesAgent(), isFalse);
     });
   });
 
@@ -445,6 +489,7 @@ String _generateToken({
   String? metadata,
   Map<String, String>? attributes,
   Map<String, dynamic>? video,
+  Map<String, dynamic>? roomConfig,
 }) {
   final payload = <String, dynamic>{
     'sub': subject ?? 'test-participant',
@@ -481,6 +526,10 @@ String _generateToken({
 
   if (attributes != null) {
     payload['attributes'] = Map<String, String>.from(attributes);
+  }
+
+  if (roomConfig != null) {
+    payload['roomConfig'] = roomConfig;
   }
 
   final jwt = JWT(payload);
