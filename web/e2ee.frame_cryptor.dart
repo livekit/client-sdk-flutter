@@ -265,7 +265,11 @@ class FrameCryptor {
     );
   }
 
-  void enqueueFrame(JSObject frameObj, web.TransformStreamDefaultController controller, BytesBuilder buffer) {
+  void enqueueFrame(
+    JSObject frameObj,
+    web.TransformStreamDefaultController controller,
+    BytesBuilder buffer,
+  ) {
     final jsBuffer = buffer.toBytes().buffer.toJS;
     // No need for runtime type checks; set the JS 'data' property for both audio/video frames.
     frameObj.setProperty('data'.toJS, jsBuffer);
@@ -385,7 +389,7 @@ class FrameCryptor {
     final srcFrame = readFrameInfo(frameObj);
     var ratchetCount = 0;
 
-    logger.fine('decodeFunction: frame lenght ${srcFrame.buffer.length}');
+    logger.fine('decodeFunction: frame length ${srcFrame.buffer.length}');
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;
@@ -396,9 +400,8 @@ class FrameCryptor {
         srcFrame.buffer.isEmpty) {
       sifGuard.recordUserFrame();
       if (keyOptions.discardFrameWhenCryptorNotReady) return;
-      logger.fine('enqueing empty frame');
+      logger.fine('enqueing empty dtx frame');
       controller.enqueue(frameObj);
-      logger.finer('enqueing silent frame');
       return;
     }
 
@@ -412,20 +415,18 @@ class FrameCryptor {
           sifGuard.recordSif();
           if (sifGuard.isSifAllowed()) {
             final frameType = srcFrame.buffer.sublist(srcFrame.buffer.length - 1)[0];
-            logger.finer('encodeFunction: skip unencrypted frame, type $frameType');
+            logger.finer('decodeFunction: skip unencrypted frame, type $frameType');
             final finalBuffer = BytesBuilder();
             finalBuffer
                 .add(Uint8List.fromList(srcFrame.buffer.sublist(0, srcFrame.buffer.length - (magicBytes.length + 1))));
-            logger.fine('encodeFunction: enqueing silent frame');
+            logger.fine('decodeFunction: enqueing silent frame src: ${srcFrame.buffer}');
             enqueueFrame(frameObj, controller, finalBuffer);
-            logger.fine('ecodeFunction: enqueing silent frame');
-            controller.enqueue(frameObj);
+            logger.fine('decodeFunction: enqueing done');
+            return;
           } else {
-            logger.finer('ecodeFunction: SIF limit reached, dropping frame');
+            logger.warning('decodeFunction: SIF limit reached, dropping frame');
+            return;
           }
-          logger.finer('ecodeFunction: enqueing silent frame');
-          controller.enqueue(frameObj);
-          return;
         } else {
           sifGuard.recordUserFrame();
         }
@@ -567,7 +568,8 @@ class FrameCryptor {
 
       logger.fine(
           'decodeFunction[CryptorError.kOk]: decryption success kind $kind, headerLength: $headerLength, timestamp: ${srcFrame.timestamp}, ssrc: ${srcFrame.ssrc}, data length: ${srcFrame.buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e) {
+    } catch (e, s) {
+      logger.warning('decodeFunction[CryptorError.kDecryptError]: $e, $s');
       if (lastError != CryptorError.kDecryptError) {
         lastError = CryptorError.kDecryptError;
         postMessage({
