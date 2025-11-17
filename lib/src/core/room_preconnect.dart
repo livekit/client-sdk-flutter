@@ -26,6 +26,7 @@ extension RoomPreConnect on Room {
     Duration timeout = const Duration(seconds: 10),
     PreConnectOnError? onError,
   }) async {
+    preConnectAudioBuffer.setErrorHandler(onError);
     await preConnectAudioBuffer.startRecording(timeout: timeout);
     try {
       final result = await operation();
