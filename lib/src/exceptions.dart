@@ -22,9 +22,9 @@ abstract class LiveKitException implements Exception {
 }
 
 enum ConnectionErrorReason {
-  NotAllowed,
-  InternalError,
-  Timeout,
+  notAllowed,
+  internalError,
+  timeout,
 }
 
 /// An exception occured while attempting to connect.

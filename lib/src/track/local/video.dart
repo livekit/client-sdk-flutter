@@ -180,7 +180,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
     this.currentOptions,
-  ) : super(TrackType.VIDEO, source, stream, track);
+  ) : super(TrackType.video, source, stream, track);
 
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([

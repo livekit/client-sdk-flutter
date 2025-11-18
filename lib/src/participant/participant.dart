@@ -66,7 +66,7 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
 
   /// kind of [Participant]
   ParticipantKind get kind => _kind;
-  ParticipantKind _kind = ParticipantKind.STANDARD;
+  ParticipantKind _kind = ParticipantKind.standard;
 
   /// When the participant had last spoken.
   DateTime? lastSpokeAt;
@@ -124,12 +124,12 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
     } else if (hasVideo) {
       return videoTrackPublications.first.encryptionType;
     } else {
-      return EncryptionType.kNone;
+      return EncryptionType.none;
     }
   }
 
   bool get isEncrypted => [...audioTrackPublications, ...videoTrackPublications]
-      .every((track) => track.encryptionType != EncryptionType.kNone);
+      .every((track) => track.encryptionType != EncryptionType.none);
 
   @internal
   bool get hasInfo => _participantInfo != null;
@@ -291,10 +291,10 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
     if (result != null) return result;
     // try to find by compatibility
     return trackPublications.values.where((e) => e.source == TrackSource.unknown).firstWhereOrNull((e) =>
-        (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
-        (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||
-        (source == TrackSource.screenShareVideo && e.kind == TrackType.VIDEO) ||
-        (source == TrackSource.screenShareAudio && e.kind == TrackType.AUDIO));
+        (source == TrackSource.microphone && e.kind == TrackType.audio) ||
+        (source == TrackSource.camera && e.kind == TrackType.video) ||
+        (source == TrackSource.screenShareVideo && e.kind == TrackType.video) ||
+        (source == TrackSource.screenShareAudio && e.kind == TrackType.audio));
   }
 
   /// Convenience property to check whether [TrackSource.camera] is published or not.

@@ -46,7 +46,7 @@ class E2EEManager {
       _listener = _room!.createListener();
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
-          if (event.publication.encryptionType == EncryptionType.kNone ||
+          if (event.publication.encryptionType == EncryptionType.none ||
               isSVCCodec(event.publication.track?.codec ?? '')) {
             // no need to setup frame cryptor
             return;
@@ -81,7 +81,7 @@ class E2EEManager {
         })
         ..on<TrackSubscribedEvent>((event) async {
           final codec = event.publication.mimeType.split('/')[1];
-          if (event.publication.encryptionType == EncryptionType.kNone || isSVCCodec(codec)) {
+          if (event.publication.encryptionType == EncryptionType.none || isSVCCodec(codec)) {
             // no need to setup frame cryptor
             return;
           }
@@ -211,19 +211,19 @@ class E2EEManager {
   E2EEState _e2eeStateFromFrameCryptoState(FrameCryptorState state) {
     switch (state) {
       case FrameCryptorState.FrameCryptorStateNew:
-        return E2EEState.kNew;
+        return E2EEState.newState;
       case FrameCryptorState.FrameCryptorStateOk:
-        return E2EEState.kOk;
+        return E2EEState.ok;
       case FrameCryptorState.FrameCryptorStateMissingKey:
-        return E2EEState.kMissingKey;
+        return E2EEState.missingKey;
       case FrameCryptorState.FrameCryptorStateEncryptionFailed:
-        return E2EEState.kEncryptionFailed;
+        return E2EEState.encryptionFailed;
       case FrameCryptorState.FrameCryptorStateDecryptionFailed:
-        return E2EEState.kDecryptionFailed;
+        return E2EEState.decryptionFailed;
       case FrameCryptorState.FrameCryptorStateInternalError:
-        return E2EEState.kInternalError;
+        return E2EEState.internalError;
       case FrameCryptorState.FrameCryptorStateKeyRatcheted:
-        return E2EEState.kKeyRatcheted;
+        return E2EEState.keyRatcheted;
     }
   }
 

@@ -47,7 +47,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   int? _fps;
   int get fps => _fps ?? 0;
 
-  VideoQuality _videoQuality = VideoQuality.HIGH;
+  VideoQuality _videoQuality = VideoQuality.high;
   VideoQuality get videoQuality => _videoQuality;
 
   /// The server may pause the track when they are bandwidth limitations and resume
@@ -299,7 +299,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       trackSids: [sid],
       disabled: !_enabled,
     );
-    if (kind == TrackType.VIDEO) {
+    if (kind == TrackType.video) {
       settings.quality = _videoQuality.toPBType();
       if (_fps != null) settings.fps = _fps!;
     }

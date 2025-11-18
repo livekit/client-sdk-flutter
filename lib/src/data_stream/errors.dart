@@ -1,24 +1,24 @@
 enum DataStreamErrorReason {
   // Unable to open a stream with the same ID more than once.
-  AlreadyOpened,
+  alreadyOpened,
 
   // Stream closed abnormally by remote participant.
-  AbnormalEnd,
+  abnormalEnd,
 
   // Incoming chunk data could not be decoded.
-  DecodeFailed,
+  decodeFailed,
 
   // Read length exceeded total length specified in stream header.
-  LengthExceeded,
+  lengthExceeded,
 
   // Read length less than total length specified in stream header.
-  Incomplete,
+  incomplete,
 
   // Unable to register a stream handler more than once.
-  HandlerAlreadyRegistered,
+  handlerAlreadyRegistered,
 
   // Encryption type mismatch.
-  EncryptionTypeMismatch,
+  encryptionTypeMismatch,
 }
 
 class DataStreamError implements Exception {

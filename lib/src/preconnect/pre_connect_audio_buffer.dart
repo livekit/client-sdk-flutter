@@ -156,7 +156,7 @@ class PreConnectAudioBuffer {
 
     // Listen for agent readiness; when active, attempt to send buffer once.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
-        filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
+        filter: (event) => event.participant.kind == ParticipantKind.agent && event.state == ParticipantState.active,
         (event) async {
       logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
       try {

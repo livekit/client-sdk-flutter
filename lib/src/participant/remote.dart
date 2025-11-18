@@ -214,10 +214,10 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // create Track
     final RemoteTrack track;
-    if (pub.kind == TrackType.VIDEO) {
+    if (pub.kind == TrackType.video) {
       // video track
       track = RemoteVideoTrack(pub.source, stream, mediaTrack, receiver: receiver);
-    } else if (pub.kind == TrackType.AUDIO) {
+    } else if (pub.kind == TrackType.audio) {
       // audio track
       track = RemoteAudioTrack(pub.source, stream, mediaTrack, receiver: receiver);
 
@@ -236,7 +236,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     }
 
     /// Apply audio output selection for the web.
-    if (pub.kind == TrackType.AUDIO && lkPlatformIs(PlatformType.web)) {
+    if (pub.kind == TrackType.audio && lkPlatformIs(PlatformType.web)) {
       if (audioOutputOptions.deviceId != null) {
         (track as RemoteAudioTrack).setSinkId(audioOutputOptions.deviceId!);
       }
