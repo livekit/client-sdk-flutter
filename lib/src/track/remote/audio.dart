@@ -31,6 +31,16 @@ import '../web/_audio_api.dart'
 class RemoteAudioTrack extends RemoteTrack
     with AudioTrack, RemoteAudioManagementMixin {
   String? _deviceId;
+  double _volume = 1.0;
+  double get volume => _volume;
+
+  Future<void> setVolume(double newVolume) async {
+    final double clamped = newVolume.clamp(0.0, 4.0).toDouble();
+    _volume = clamped;
+    try {
+      await rtc.Helper.setVolume(clamped, mediaStreamTrack);
+    } catch (_) {}
+  }
   RemoteAudioTrack(
       TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})
