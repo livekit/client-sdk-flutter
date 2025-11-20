@@ -176,17 +176,21 @@ class FrameCryptor {
   }
 
   int getUnencryptedBytes(JSObject obj, String? codec) {
-    var data;
+    Uint8List? data;
     var frameType = '';
-    if (obj is web.RTCEncodedVideoFrame) {
-      data = obj.data.toDart.asUint8List();
-      if (obj.hasProperty('type'.toJS).toDart) {
+    if (obj.instanceOfString('RTCEncodedVideoFrame')) {
+      final frame = obj as web.RTCEncodedVideoFrame;
+      data = frame.data.toDart.asUint8List();
+      if (frame.hasProperty('type'.toJS).toDart) {
         frameType = obj.type;
         logger.finer('frameType: $frameType');
       }
     }
 
     if (['h264', 'h265'].contains(codec?.toLowerCase() ?? '')) {
+      if (data == null) {
+        throw StateError('Frame data is null for codec $codec');
+      }
       final result = processNALUsForEncryption(data, codec!);
       if (result.detectedCodec == 'unknown') {
         if (lastError != CryptorError.kUnsupportedCodec) {
@@ -223,26 +227,30 @@ class FrameCryptor {
     var synchronizationSource = 0;
     var timestamp = 0;
     var frameType = '';
-    if (frameObj is web.RTCEncodedVideoFrame) {
-      buffer = frameObj.data.toDart.asUint8List();
-      if (frameObj.hasProperty('type'.toJS).toDart) {
-        frameType = frameObj.type;
+    if (frameObj.instanceOfString('RTCEncodedVideoFrame')) {
+      final frame = frameObj as web.RTCEncodedVideoFrame;
+
+      buffer = frame.data.toDart.asUint8List();
+      if (frame.hasProperty('type'.toJS).toDart) {
+        frameType = frame.type;
         logger.finer('frameType: $frameType');
       }
-      synchronizationSource = frameObj.getMetadata().synchronizationSource;
-      if (frameObj.getMetadata().hasProperty('rtpTimestamp'.toJS).toDart) {
-        timestamp = frameObj.getMetadata().rtpTimestamp.toInt();
-      } else if (frameObj.hasProperty('timestamp'.toJS).toDart) {
-        timestamp = (frameObj.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
+      final meta = frame.getMetadata();
+      synchronizationSource = meta.synchronizationSource;
+      if (meta.hasProperty('rtpTimestamp'.toJS).toDart) {
+        timestamp = meta.rtpTimestamp.toInt();
+      } else if (frame.hasProperty('timestamp'.toJS).toDart) {
+        timestamp = (frame.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
       }
-    } else if (frameObj is web.RTCEncodedAudioFrame) {
-      buffer = frameObj.data.toDart.asUint8List();
-      synchronizationSource = frameObj.getMetadata().synchronizationSource;
-
-      if (frameObj.getMetadata().hasProperty('rtpTimestamp'.toJS).toDart) {
-        timestamp = frameObj.getMetadata().rtpTimestamp.toInt();
-      } else if (frameObj.hasProperty('timestamp'.toJS).toDart) {
-        timestamp = (frameObj.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
+    } else if (frameObj.instanceOfString('RTCEncodedAudioFrame')) {
+      final frame = frameObj as web.RTCEncodedAudioFrame;
+      buffer = frame.data.toDart.asUint8List();
+      final meta = frame.getMetadata();
+      synchronizationSource = meta.synchronizationSource;
+      if (meta.hasProperty('rtpTimestamp'.toJS).toDart) {
+        timestamp = meta.rtpTimestamp.toInt();
+      } else if (frame.hasProperty('timestamp'.toJS).toDart) {
+        timestamp = (frame.getProperty('timestamp'.toJS) as JSNumber).toDartInt;
       }
       frameType = 'audio';
     } else {
@@ -257,12 +265,14 @@ class FrameCryptor {
     );
   }
 
-  void enqueueFrame(JSObject frameObj, web.TransformStreamDefaultController controller, BytesBuilder buffer) {
-    if (frameObj is web.RTCEncodedVideoFrame) {
-      frameObj.data = buffer.toBytes().buffer.toJS;
-    } else if (frameObj is web.RTCEncodedAudioFrame) {
-      frameObj.data = buffer.toBytes().buffer.toJS;
-    }
+  void enqueueFrame(
+    JSObject frameObj,
+    web.TransformStreamDefaultController controller,
+    BytesBuilder buffer,
+  ) {
+    final jsBuffer = buffer.toBytes().buffer.toJS;
+    // No need for runtime type checks; set the JS 'data' property for both audio/video frames.
+    frameObj.setProperty('data'.toJS, jsBuffer);
     controller.enqueue(frameObj);
   }
 
@@ -273,7 +283,10 @@ class FrameCryptor {
     try {
       if (!enabled ||
           // skip for encryption for empty dtx frames
+          // TODO, fix the invalid_runtime_check_with_js_interop_types warnings.
+          // ignore: invalid_runtime_check_with_js_interop_types
           ((frameObj is web.RTCEncodedVideoFrame && frameObj.data.toDart.lengthInBytes == 0) ||
+              // ignore: invalid_runtime_check_with_js_interop_types
               (frameObj is web.RTCEncodedAudioFrame && frameObj.data.toDart.lengthInBytes == 0))) {
         if (keyOptions.discardFrameWhenCryptorNotReady) {
           return;
@@ -376,7 +389,7 @@ class FrameCryptor {
     final srcFrame = readFrameInfo(frameObj);
     var ratchetCount = 0;
 
-    logger.fine('decodeFunction: frame lenght ${srcFrame.buffer.length}');
+    logger.fine('decodeFunction: frame length ${srcFrame.buffer.length}');
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;
@@ -387,9 +400,8 @@ class FrameCryptor {
         srcFrame.buffer.isEmpty) {
       sifGuard.recordUserFrame();
       if (keyOptions.discardFrameWhenCryptorNotReady) return;
-      logger.fine('enqueing empty frame');
+      logger.fine('enqueing empty dtx frame');
       controller.enqueue(frameObj);
-      logger.finer('enqueing silent frame');
       return;
     }
 
@@ -403,20 +415,18 @@ class FrameCryptor {
           sifGuard.recordSif();
           if (sifGuard.isSifAllowed()) {
             final frameType = srcFrame.buffer.sublist(srcFrame.buffer.length - 1)[0];
-            logger.finer('encodeFunction: skip unencrypted frame, type $frameType');
+            logger.finer('decodeFunction: skip unencrypted frame, type $frameType');
             final finalBuffer = BytesBuilder();
             finalBuffer
                 .add(Uint8List.fromList(srcFrame.buffer.sublist(0, srcFrame.buffer.length - (magicBytes.length + 1))));
-            logger.fine('encodeFunction: enqueing silent frame');
+            logger.fine('decodeFunction: enqueing silent frame src: ${srcFrame.buffer}');
             enqueueFrame(frameObj, controller, finalBuffer);
-            logger.fine('ecodeFunction: enqueing silent frame');
-            controller.enqueue(frameObj);
+            logger.fine('decodeFunction: enqueing done');
+            return;
           } else {
-            logger.finer('ecodeFunction: SIF limit reached, dropping frame');
+            logger.warning('decodeFunction: SIF limit reached, dropping frame');
+            return;
           }
-          logger.finer('ecodeFunction: enqueing silent frame');
-          controller.enqueue(frameObj);
-          return;
         } else {
           sifGuard.recordUserFrame();
         }
@@ -558,7 +568,8 @@ class FrameCryptor {
 
       logger.fine(
           'decodeFunction[CryptorError.kOk]: decryption success kind $kind, headerLength: $headerLength, timestamp: ${srcFrame.timestamp}, ssrc: ${srcFrame.ssrc}, data length: ${srcFrame.buffer.length}, decrypted length: ${finalBuffer.toBytes().length}, keyindex $keyIndex iv $iv');
-    } catch (e) {
+    } catch (e, s) {
+      logger.warning('decodeFunction[CryptorError.kDecryptError]: $e, $s');
       if (lastError != CryptorError.kDecryptError) {
         lastError = CryptorError.kDecryptError;
         postMessage({

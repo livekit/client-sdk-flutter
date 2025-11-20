@@ -209,13 +209,13 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 
   /// The deviceId of the capture device to use.
   /// Available deviceIds can be obtained through `flutter_webrtc`:
-  /// <pre>
+  /// ```dart
   /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
   ///
   /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
   /// // or
   /// List<DesktopCapturerSource> desktopSources = await rtc.desktopCapturer.getSources(types: [rtc.SourceType.Screen, rtc.SourceType.Window]);
-  /// </pre>
+  /// ```
   final String? deviceId;
 
   // Limit the maximum frameRate of the capture device.
@@ -239,11 +239,11 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 class AudioCaptureOptions extends LocalTrackOptions {
   /// The deviceId of the capture device to use.
   /// Available deviceIds can be obtained through `flutter_webrtc`:
-  /// <pre>
+  /// ```
   /// import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
   ///
   /// List<MediaDeviceInfo> devices = await rtc.navigator.mediaDevices.enumerateDevices();
-  /// </pre>
+  /// ```
   final String? deviceId;
 
   /// Attempt to use noiseSuppression option (if supported by the platform)

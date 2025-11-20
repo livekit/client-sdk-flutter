@@ -52,11 +52,11 @@ class MediaDevice {
 class Hardware {
   Hardware._internal() {
     rtc.navigator.mediaDevices.ondevicechange = _onDeviceChange;
-    enumerateDevices().then((devices) {
+    unawaited(enumerateDevices().then((devices) {
       selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
       selectedAudioOutput ??= devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
       selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
-    });
+    }));
   }
 
   static final Hardware instance = Hardware._internal();

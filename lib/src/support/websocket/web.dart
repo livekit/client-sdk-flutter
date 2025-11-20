@@ -25,9 +25,10 @@ import '../websocket.dart';
 // ignore: avoid_web_libraries_in_flutter
 
 Future<LiveKitWebSocketWeb> lkWebSocketConnect(
-  Uri uri, [
+  Uri uri, {
   WebSocketEventHandlers? options,
-]) =>
+  Map<String, String>? headers, // |headers| will be ignored on web
+}) =>
     LiveKitWebSocketWeb.connect(uri, options);
 
 class LiveKitWebSocketWeb extends LiveKitWebSocket {
@@ -39,6 +40,7 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
   LiveKitWebSocketWeb._(
     this._ws, [
     this.options,
+    Map<String, String>? headers, // ignore: unused_element_parameter
   ]) {
     _ws.binaryType = 'arraybuffer';
     _messageSubscription = _ws.onMessage.listen((_) {

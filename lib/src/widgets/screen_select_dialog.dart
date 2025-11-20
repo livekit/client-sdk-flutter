@@ -55,7 +55,7 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
   @override
   void deactivate() {
     for (var element in _subscriptions) {
-      element.cancel();
+      unawaited(element.cancel());
     }
     super.deactivate();
   }
@@ -134,18 +134,18 @@ class ScreenSelectDialog extends Dialog {
   StateSetter? _stateSetter;
   Timer? _timer;
 
-  void _ok(BuildContext context) {
+  Future<void> _ok(BuildContext context) async {
     _timer?.cancel();
     for (var element in _subscriptions) {
-      element.cancel();
+      await element.cancel();
     }
     Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
-  void _cancel(BuildContext context) {
+  Future<void> _cancel(BuildContext context) async {
     _timer?.cancel();
     for (var element in _subscriptions) {
-      element.cancel();
+      await element.cancel();
     }
     Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
@@ -160,7 +160,7 @@ class ScreenSelectDialog extends Dialog {
       }
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-        rtc.desktopCapturer.updateSources(types: [_sourceType]);
+        unawaited(rtc.desktopCapturer.updateSources(types: [_sourceType]));
       });
       _sources.clear();
       for (var element in sources) {
@@ -201,7 +201,7 @@ class ScreenSelectDialog extends Dialog {
                     alignment: Alignment.topRight,
                     child: InkWell(
                       child: const Icon(Icons.close),
-                      onTap: () => _cancel(context),
+                      onTap: () async => await _cancel(context),
                     ),
                   ),
                 ],
@@ -298,8 +298,8 @@ class ScreenSelectDialog extends Dialog {
                       cancelText,
                       style: const TextStyle(color: Colors.black54),
                     ),
-                    onPressed: () {
-                      _cancel(context);
+                    onPressed: () async {
+                      await _cancel(context);
                     },
                   ),
                   MaterialButton(
@@ -307,8 +307,8 @@ class ScreenSelectDialog extends Dialog {
                     child: Text(
                       shareText,
                     ),
-                    onPressed: () {
-                      _ok(context);
+                    onPressed: () async {
+                      await _ok(context);
                     },
                   ),
                 ],

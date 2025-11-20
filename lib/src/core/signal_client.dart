@@ -142,11 +142,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt to connect
       var future = _wsConnector(
         rtcUri,
-        WebSocketEventHandlers(
+        options: WebSocketEventHandlers(
           onData: _onSocketData,
           onDispose: _onSocketDispose,
           onError: _onSocketError,
         ),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
       );
       future = future.timeout(connectOptions.timeouts.connection);
       _ws = await future;
@@ -170,7 +173,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           forceSecure: rtcUri.isSecureScheme,
         );
 
-        final validateResponse = await http.get(validateUri);
+        final validateResponse = await http.get(
+          validateUri,
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
               reason: validateResponse.statusCode >= 400
@@ -458,6 +466,7 @@ extension SignalClientRequests on SignalClient {
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
     required List<String> trackSidsDisabled,
+    List<lk_rtc.DataChannelReceiveState>? dataChannelReceiveStates,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
@@ -466,6 +475,7 @@ extension SignalClientRequests on SignalClient {
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,
           trackSidsDisabled: trackSidsDisabled,
+          datachannelReceiveStates: dataChannelReceiveStates,
         ),
       ));
 

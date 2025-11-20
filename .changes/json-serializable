@@ -1,0 +1,1 @@
+patch type="changed" "Migrate manual json serialization to json_serializable code generation"

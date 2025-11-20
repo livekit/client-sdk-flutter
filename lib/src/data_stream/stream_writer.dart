@@ -11,7 +11,7 @@ import '../utils.dart';
 
 class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
   final StreamWriter<T> writableStream;
-  Function()? onClose;
+  Future<void> Function()? onClose;
 
   final InfoType info;
 
@@ -23,7 +23,7 @@ class BaseStreamWriter<T, InfoType extends BaseStreamInfo> {
 
   Future<void> close() async {
     await writableStream.close();
-    onClose?.call();
+    await onClose?.call();
   }
 }
 
@@ -57,10 +57,11 @@ class WritableStream<T> implements StreamWriter<T> {
       streamId: streamId,
     );
     final trailerPacket = lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
       destinationIdentities: destinationIdentities,
       streamTrailer: trailer,
     );
-    await engine.sendDataPacket(trailerPacket, reliability: true);
+    await engine.sendDataPacket(trailerPacket, reliability: Reliability.reliable);
   }
 
   @override
@@ -73,10 +74,11 @@ class WritableStream<T> implements StreamWriter<T> {
         chunkIndex: Int64(chunkId),
       );
       final chunkPacket = lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
         destinationIdentities: destinationIdentities,
         streamChunk: chunk,
       );
-      await engine.sendDataPacket(chunkPacket, reliability: true);
+      await engine.sendDataPacket(chunkPacket, reliability: Reliability.reliable);
       chunkId += 1;
     }
   }

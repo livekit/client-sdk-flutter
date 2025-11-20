@@ -44,7 +44,7 @@ class _RoomPageState extends State<RoomPage> {
     });
 
     if (lkPlatformIs(PlatformType.android)) {
-      Hardware.instance.setSpeakerphoneOn(true);
+      unawaited(Hardware.instance.setSpeakerphoneOn(true));
     }
 
     if (lkPlatformIsDesktop()) {
@@ -58,13 +58,15 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void dispose() {
     // always dispose listener
-    (() async {
-      widget.room.removeListener(_onRoomDidUpdate);
-      await _listener.dispose();
-      await widget.room.dispose();
-    })();
+    widget.room.removeListener(_onRoomDidUpdate);
+    unawaited(_disposeRoomAsync());
     onWindowShouldClose = null;
     super.dispose();
+  }
+
+  Future<void> _disposeRoomAsync() async {
+    await _listener.dispose();
+    await widget.room.dispose();
   }
 
   /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
@@ -81,7 +83,7 @@ class _RoomPageState extends State<RoomPage> {
       _sortParticipants();
     })
     ..on<RoomRecordingStatusChanged>((event) {
-      context.showRecordingStatusChangedDialog(event.activeRecording);
+      unawaited(context.showRecordingStatusChangedDialog(event.activeRecording));
     })
     ..on<RoomAttemptReconnectEvent>((event) {
       print('Attempting to reconnect ${event.attempt}/${event.maxAttemptsRetry}, '
@@ -112,12 +114,12 @@ class _RoomPageState extends State<RoomPage> {
       } catch (err) {
         print('Failed to decode: $err');
       }
-      context.showDataReceivedDialog(decoded);
+      unawaited(context.showDataReceivedDialog(decoded));
     })
     ..on<AudioPlaybackStatusChanged>((event) async {
       if (!widget.room.canPlaybackAudio) {
         print('Audio playback failed for iOS Safari ..........');
-        bool? yesno = await context.showPlayAudioManuallyDialog();
+        final yesno = await context.showPlayAudioManuallyDialog();
         if (yesno == true) {
           await widget.room.startAudio();
         }
@@ -126,18 +128,21 @@ class _RoomPageState extends State<RoomPage> {
 
   void _askPublish() async {
     final result = await context.showPublishDialog();
+    if (!mounted) return;
     if (result != true) return;
     // video will fail when running in ios simulator
     try {
       await widget.room.localParticipant?.setCameraEnabled(true);
     } catch (error) {
       print('could not publish video: $error');
+      if (!mounted) return;
       await context.showErrorDialog(error);
     }
     try {
       await widget.room.localParticipant?.setMicrophoneEnabled(true);
     } catch (error) {
       print('could not publish audio: $error');
+      if (!mounted) return;
       await context.showErrorDialog(error);
     }
   }
@@ -151,8 +156,8 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void _sortParticipants() {
-    List<ParticipantTrack> userMediaTracks = [];
-    List<ParticipantTrack> screenTracks = [];
+    final userMediaTracks = <ParticipantTrack>[];
+    final screenTracks = <ParticipantTrack>[];
     for (var participant in widget.room.remoteParticipants.values) {
       for (var t in participant.videoTrackPublications) {
         if (t.isScreenShare) {

@@ -6,6 +6,7 @@ import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'dart:async';
 import '../exts.dart';
 
 class ConnectPage extends StatefulWidget {
@@ -43,9 +44,9 @@ class _ConnectPageState extends State<ConnectPage> {
   @override
   void initState() {
     super.initState();
-    _readPrefs();
+    unawaited(_readPrefs());
     if (lkPlatformIs(PlatformType.android)) {
-      _checkPermissions();
+      unawaited(_checkPermissions());
     }
   }
 
@@ -124,10 +125,10 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      var url = _uriCtrl.text;
-      var token = _tokenCtrl.text;
-      var e2eeKey = _sharedKeyCtrl.text;
-
+      final url = _uriCtrl.text;
+      final token = _tokenCtrl.text;
+      final e2eeKey = _sharedKeyCtrl.text;
+      if (!ctx.mounted) return;
       await Navigator.push<void>(
         ctx,
         MaterialPageRoute(
@@ -147,6 +148,7 @@ class _ConnectPageState extends State<ConnectPage> {
       );
     } catch (error) {
       print('Could not connect $error');
+      if (!ctx.mounted) return;
       await ctx.showErrorDialog(error);
     } finally {
       setState(() {

@@ -87,11 +87,7 @@ class ByteStreamReader extends BaseStreamReader<ByteStreamInfo, List<Uint8List>>
 class TextStreamReader extends BaseStreamReader<TextStreamInfo, String> with Stream<DataStream_Chunk> {
   Map<num, DataStream_Chunk> receivedChunks = {};
 
-  TextStreamReader(
-    TextStreamInfo info,
-    DataStreamController<DataStream_Chunk> stream,
-    num? totalChunkCount,
-  ) : super(info, stream, totalChunkCount);
+  TextStreamReader(super.info, super.stream, super.totalChunkCount);
 
   @override
   void handleChunkReceived(DataStream_Chunk chunk) {

@@ -56,7 +56,8 @@ class KeyProvider {
         keyOptions: keyProviderOptions,
       );
       if (sharedKey.isNotEmpty) {
-        keys.setKey(sharedKey);
+        // Should be able to set the key without waiting here.
+        unawaited(keys.setKey(sharedKey));
       }
       //keys.on(KeyHandlerEvent.KeyRatcheted, emitRatchetedKeys);
       participantKeys[participantIdentity] = keys;
@@ -73,10 +74,10 @@ class KeyProvider {
     return sharedKeyHandler!;
   }
 
-  void setSharedKey(Uint8List key, {int keyIndex = 0}) {
+  Future<void> setSharedKey(Uint8List key, {int keyIndex = 0}) async {
     logger.info('setting shared key');
     sharedKey = key;
-    getSharedKeyHandler().setKey(key, keyIndex: keyIndex);
+    await getSharedKeyHandler().setKey(key, keyIndex: keyIndex);
   }
 
   void setSifTrailer(Uint8List sifTrailer) {
@@ -208,8 +209,7 @@ class ParticipantKeyHandler {
   /// Derives a set of keys from the master key.
   /// See https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.1
   Future<KeySet> deriveKeys(web.CryptoKey material, Uint8List salt) async {
-    final algorithmName =
-        material.algorithm.getProperty('name'.toJS) as JSString;
+    final algorithmName = material.algorithm.getProperty('name'.toJS) as JSString;
     final algorithmOptions = getAlgoOptions(algorithmName.toDart, salt);
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#HKDF
     // https://developer.mozilla.org/en-US/docs/Web/API/HkdfParams

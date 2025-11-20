@@ -20,6 +20,8 @@ analyzer:
     constant_identifier_names: ignore
     no_wildcard_variable_uses: ignore
     use_super_parameters: ignore
+    avoid_print: ignore
+    deprecated_member_use_from_same_package: ignore
 
   # Exclude protobuf files
   exclude:
