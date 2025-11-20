@@ -18,8 +18,10 @@ import 'package:meta/meta.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
+import '../participant/remote.dart' show RemoteParticipant;
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../publication/remote.dart' show RemoteTrackPublication;
 import '../track/local/local.dart';
 import '../track/options.dart';
 import '../track/track.dart';
@@ -304,6 +306,25 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
     required this.cid,
     required this.track,
   });
+}
+
+/// Internal event for track publication metadata arrival.
+/// Used by addSubscribedMediaTrack to wait for publication metadata.
+/// This event always fires regardless of connection state.
+/// Apps should listen to TrackPublishedEvent instead (only fires when connected).
+@internal
+class InternalTrackPublishedEvent with ParticipantEvent, InternalEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
+
+  const InternalTrackPublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
 }
 
 @internal

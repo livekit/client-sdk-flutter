@@ -189,8 +189,8 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     if (pub == null) {
       logger.fine('addSubscribedMediaTrack() pub is null, will wait...');
       logger.fine('addSubscribedMediaTrack() tracks: $trackPublications');
-      // Wait for the metadata to arrive
-      final event = await events.waitFor<TrackPublishedEvent>(
+      // Wait for the metadata to arrive (using internal event)
+      final event = await events.waitFor<InternalTrackPublishedEvent>(
         filter: (event) => event.participant == this && event.publication.sid == trackSid,
         duration: room.connectOptions.timeouts.publish,
         onTimeout: () => throw TrackSubscriptionExceptionEvent(
@@ -274,15 +274,19 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
     // Emit events for new publications
     for (final pub in newPubs) {
-      final event = TrackPublishedEvent(
+      // Always emit internal event (for addSubscribedMediaTrack)
+      events.emit(InternalTrackPublishedEvent(
         participant: this,
         publication: pub,
-      );
-      // Always emit to participant.events (internal, for addSubscribedMediaTrack)
-      events.emit(event);
-      // Only emit to room events when connected (external, for apps)
+      ));
+
+      // Only emit public event when connected (for apps)
       if (room.connectionState == ConnectionState.connected) {
-        room.events.emit(event);
+        final event = TrackPublishedEvent(
+          participant: this,
+          publication: pub,
+        );
+        [events, room.events].emit(event);
       }
     }
 
