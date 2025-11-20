@@ -739,13 +739,12 @@ class SubscriberDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEven
 }
 
 @internal
-class TrackEndedEvent with TrackEvent {
+class TrackEndedEvent with TrackEvent, InternalEvent {
   final Track track;
   const TrackEndedEvent({
     required this.track,
   });
 
   @override
-  String toString() => '${runtimeType}'
-      '(track: ${track})';
+  String toString() => '${runtimeType}(track: ${track})';
 }
