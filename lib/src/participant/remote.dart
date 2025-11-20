@@ -278,8 +278,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
         participant: this,
         publication: pub,
       );
+      // Always emit to participant.events (internal, for addSubscribedMediaTrack)
+      events.emit(event);
+      // Only emit to room events when connected (external, for apps)
       if (room.connectionState == ConnectionState.connected) {
-        [events, room.events].emit(event);
+        room.events.emit(event);
       }
     }
 

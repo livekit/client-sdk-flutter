@@ -724,14 +724,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         // Emit connected event
         emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
         // Emit TrackPublishedEvent for each new track
-        if (connectionState == ConnectionState.connected) {
-          for (final pub in result.newPublications) {
-            final event = TrackPublishedEvent(
-              participant: result.participant,
-              publication: pub,
-            );
-            [result.participant.events, events].emit(event);
-          }
+        for (final pub in result.newPublications) {
+          final event = TrackPublishedEvent(
+            participant: result.participant,
+            publication: pub,
+          );
+          // Always emit to participant.events (internal, for addSubscribedMediaTrack)
+          result.participant.events.emit(event);
+          // Only emit to room events when connected (external, for apps)
+          emitWhenConnected(event);
         }
         _sidToIdentity[info.sid] = info.identity;
       } else {
