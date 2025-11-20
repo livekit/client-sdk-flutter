@@ -30,7 +30,11 @@ import 'types/participant_state.dart' show ParticipantState;
 import 'types/transcription_segment.dart';
 
 /// Base type for all LiveKit events.
-mixin LiveKitEvent {}
+mixin LiveKitEvent {
+  /// Every event must provide a useful textual representation for logging.
+  @override
+  String toString();
+}
 
 /// Base type for all [Room] events.
 mixin RoomEvent implements LiveKitEvent {}
@@ -56,7 +60,7 @@ class RoomConnectedEvent with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(room: ${room})';
+  String toString() => '${runtimeType}(room: ${room}, metadata: ${metadata})';
 }
 
 /// When the connection to the server has been interrupted and it's attempting
@@ -81,7 +85,9 @@ class RoomAttemptReconnectEvent with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}()';
+  String toString() => '${runtimeType}'
+      '(attempt: ${attempt}, maxAttemptsRetry: ${maxAttemptsRetry}, '
+      'nextRetryDelaysInMs: ${nextRetryDelaysInMs})';
 }
 
 /// Connection to room is re-established. All existing state is preserved.
@@ -115,7 +121,7 @@ class RoomMetadataChangedEvent with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}()';
+  String toString() => '${runtimeType}(metadata: ${metadata})';
 }
 
 /// Participant's attributes have changed.
@@ -130,7 +136,8 @@ class ParticipantAttributesChanged with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(participant: ${participant})';
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, attributes: ${attributes})';
 }
 
 /// Room recording status has changed.
@@ -238,8 +245,7 @@ class LocalTrackSubscribedEvent with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
-      '(trakSid: ${trackSid}})';
+  String toString() => '${runtimeType}(trackSid: ${trackSid})';
 }
 
 /// The local participant has unpublished one of their [Track].
@@ -287,6 +293,10 @@ class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
     this.sid,
     required this.reason,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, sid: ${sid}, reason: ${reason})';
 }
 
 /// The [LocalParticipant] has unsubscribed from a track published by a
@@ -370,7 +380,8 @@ class ParticipantMetadataUpdatedEvent with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(participant: ${participant})';
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, metadata: ${metadata})';
 }
 
 class ParticipantStateUpdatedEvent with RoomEvent, ParticipantEvent {
@@ -417,7 +428,7 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, data: ${data})';
+      '(participant: ${participant}, topic: ${topic}, data: ${data})';
 }
 
 /// The participant's isSpeaking property has changed
@@ -470,7 +481,8 @@ class ParticipantPermissionsUpdatedEvent with RoomEvent, ParticipantEvent {
 
   @override
   String toString() => '${runtimeType}'
-      '(participant: ${participant}, permissions: ${permissions})';
+      '(participant: ${participant}, permissions: ${permissions}, '
+      'oldPermissions: ${oldPermissions})';
 }
 
 /// Transcription event received from the server.
@@ -483,6 +495,11 @@ class TranscriptionEvent with RoomEvent, ParticipantEvent {
     required this.publication,
     required this.segments,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication}, '
+      'segments: ${segments})';
 }
 
 class ParticipantNameUpdatedEvent with RoomEvent, ParticipantEvent {
@@ -505,8 +522,7 @@ class AudioPlaybackStatusChanged with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
-      'Audio Playback Status Changed, isPlaying: ${isPlaying})';
+  String toString() => '${runtimeType}(isPlaying: ${isPlaying})';
 }
 
 class AudioSenderStatsEvent with TrackEvent {
@@ -519,7 +535,7 @@ class AudioSenderStatsEvent with TrackEvent {
 
   @override
   String toString() => '${runtimeType}'
-      'stats: ${stats})';
+      '(stats: ${stats}, currentBitrate: ${currentBitrate})';
 }
 
 class VideoSenderStatsEvent with TrackEvent {
@@ -534,7 +550,8 @@ class VideoSenderStatsEvent with TrackEvent {
 
   @override
   String toString() => '${runtimeType}'
-      'stats: ${stats})';
+      '(stats: ${stats}, bitrateForLayers: ${bitrateForLayers}, '
+      'currentBitrate: ${currentBitrate})';
 }
 
 class AudioReceiverStatsEvent with TrackEvent {
@@ -547,7 +564,7 @@ class AudioReceiverStatsEvent with TrackEvent {
 
   @override
   String toString() => '${runtimeType}'
-      'stats: ${stats})';
+      '(stats: ${stats}, currentBitrate: ${currentBitrate})';
 }
 
 class VideoReceiverStatsEvent with TrackEvent {
@@ -560,7 +577,7 @@ class VideoReceiverStatsEvent with TrackEvent {
 
   @override
   String toString() => '${runtimeType}'
-      'stats: ${stats})';
+      '(stats: ${stats}, currentBitrate: ${currentBitrate})';
 }
 
 class AudioVisualizerEvent with TrackEvent {
@@ -572,8 +589,7 @@ class AudioVisualizerEvent with TrackEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
-      'track: ${track})';
+  String toString() => '${runtimeType}(track: ${track}, event: ${event})';
 }
 
 class TrackProcessorUpdateEvent with TrackEvent {
@@ -586,7 +602,7 @@ class TrackProcessorUpdateEvent with TrackEvent {
 
   @override
   String toString() => '${runtimeType}'
-      'track: ${track})';
+      '(track: ${track}, processor: ${processor})';
 }
 
 /// Pre-connect audio buffer has started recording.
