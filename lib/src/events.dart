@@ -111,7 +111,7 @@ class RoomDisconnectedEvent with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}($reason)';
+  String toString() => '${runtimeType}(reason: ${reason})';
 }
 
 /// Room metadata has changed.
@@ -153,7 +153,7 @@ class RoomRecordingStatusChanged with RoomEvent {
   });
 
   @override
-  String toString() => '${runtimeType}(activeRecording = $activeRecording)';
+  String toString() => '${runtimeType}(activeRecording: ${activeRecording})';
 }
 
 /// When a new [RemoteParticipant] joins *after* the current participant has connected
