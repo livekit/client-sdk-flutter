@@ -25,8 +25,6 @@ import '../track/options.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 
-mixin InternalEvent implements LiveKitEvent {}
-
 @internal
 abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
   final rtc.RTCPeerConnectionState state;

@@ -51,6 +51,9 @@ mixin EngineEvent implements LiveKitEvent {}
 /// Base type for all [SignalClient] events.
 mixin SignalEvent implements LiveKitEvent {}
 
+/// Base type for internal-only events.
+mixin InternalEvent implements LiveKitEvent {}
+
 class RoomConnectedEvent with RoomEvent {
   final Room room;
   final String? metadata;
