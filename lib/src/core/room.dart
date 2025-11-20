@@ -371,7 +371,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
-      emitWhenConnected(TrackSubscriptionPermissionChangedEvent(
+      emitIfConnected(TrackSubscriptionPermissionChangedEvent(
         participant: participant,
         publication: publication,
         state: publication.subscriptionState,
@@ -380,10 +380,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<SignalRoomUpdateEvent>((event) async {
       _metadata = event.room.metadata;
       _roomInfo = event.room;
-      emitWhenConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
+      emitIfConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
       if (_isRecording != event.room.activeRecording) {
         _isRecording = event.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+        emitIfConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
     })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
@@ -416,7 +416,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (_isRecording != event.response.room.activeRecording) {
         _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+        emitIfConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
 
       logger.fine('[Engine] Received JoinResponse, '
@@ -722,7 +722,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (isNew) {
         hasChanged = true;
         // Emit connected event
-        emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
+        emitIfConnected(ParticipantConnectedEvent(participant: result.participant));
         // Emit TrackPublishedEvent for each new track
         for (final pub in result.newPublications) {
           final event = TrackPublishedEvent(
@@ -732,7 +732,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           // Always emit to participant.events (internal, for addSubscribedMediaTrack)
           result.participant.events.emit(event);
           // Only emit to room events when connected (external, for apps)
-          emitWhenConnected(event);
+          emitIfConnected(event);
         }
         _sidToIdentity[info.sid] = info.identity;
       } else {
@@ -770,7 +770,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final activeSpeakers = lastSpeakers.values.toList();
     activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
     _activeSpeakers = activeSpeakers;
-    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitIfConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   // from data channel
@@ -803,7 +803,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     _activeSpeakers = activeSpeakers;
-    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitIfConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onSignalConnectionQualityUpdateEvent(List<lk_rtc.ConnectionQualityInfo> updates) {
@@ -837,7 +837,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (trackPublication == null) continue;
       // update the stream state
       await trackPublication.updateStreamState(update.state.toLKType());
-      emitWhenConnected(TrackStreamStateUpdatedEvent(
+      emitIfConnected(TrackStreamStateUpdatedEvent(
         participant: participant,
         publication: trackPublication,
         streamState: update.state.toLKType(),
@@ -907,7 +907,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     await participant.removeAllPublishedTracks(notify: true);
 
-    emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
+    emitIfConnected(ParticipantDisconnectedEvent(participant: participant));
     return true;
   }
 
@@ -980,7 +980,7 @@ extension RoomPrivateMethods on Room {
   }
 
   @internal
-  void emitWhenConnected(RoomEvent event) {
+  void emitIfConnected(RoomEvent event) {
     if (connectionState == ConnectionState.connected) {
       events.emit(event);
     }
