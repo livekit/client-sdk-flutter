@@ -15,6 +15,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
@@ -57,6 +58,11 @@ class EventsEmitter<T> extends EventsListenable<T> {
       logger.warning('failed to emit event ${event} on a disposed emitter');
       return;
     }
+
+    if (logger.isLoggable(Level.FINEST)) {
+      logger.finest('[${objectId}] emit $event');
+    }
+
     // queue mode
     if (_queueMode) {
       _queue.add(event);
