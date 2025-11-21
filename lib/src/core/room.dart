@@ -588,7 +588,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
-      final participant = _getRemoteParticipantBySid(participantSid);
+      var participant = _getRemoteParticipantBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
           throw TrackSubscriptionExceptionEvent(
@@ -597,11 +597,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           );
         }
         if (participant == null) {
-          throw TrackSubscriptionExceptionEvent(
-            participant: participant,
-            sid: trackSid,
-            reason: TrackSubscribeFailReason.noParticipantFound,
-          );
+          logger.fine('EngineTrackAddedEvent participant is null, waiting for participant metadata...');
+          // Wait for participant metadata to arrive
+          try {
+            final availableEvent = await events.waitFor<InternalParticipantAvailableEvent>(
+              filter: (event) => event.participantSid == participantSid,
+              duration: connectOptions.timeouts.publish,
+            );
+            participant = availableEvent.participant;
+            logger.fine('EngineTrackAddedEvent participant metadata received');
+          } catch (e) {
+            logger.severe('EngineTrackAddedEvent timeout waiting for participant metadata: $e');
+          }
+
+          if (participant == null) {
+            throw TrackSubscriptionExceptionEvent(
+              participant: participant,
+              sid: trackSid,
+              reason: TrackSubscribeFailReason.noParticipantFound,
+            );
+          }
         }
         await participant.addSubscribedMediaTrack(
           event.track,
@@ -611,11 +626,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           audioOutputOptions: roomOptions.defaultAudioOutputOptions,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
-        logger.severe('addSubscribedMediaTrack() throwed ${event}');
+        logger.severe('Track subscription failed: ${event}');
         events.emit(event);
       } catch (exception) {
         // We don't want to pass up any exception so catch everything here.
-        logger.warning('Unknown exception on addSubscribedMediaTrack() ${exception}');
+        logger.warning('Unknown exception during track subscription: ${exception}');
       }
     });
 
@@ -678,6 +693,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _remoteParticipants[result.participant.identity] = result.participant;
     _sidToIdentity[result.participant.sid] = result.participant.identity;
+
+    // Emit internal event for tracks waiting for participant metadata
+    events.emit(InternalParticipantAvailableEvent(
+      participant: result.participant,
+    ));
+
     return result;
   }
 
@@ -726,10 +747,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           ));
         }
         _sidToIdentity[info.sid] = info.identity;
+
+        // Emit internal event for tracks waiting for participant metadata
+        events.emit(InternalParticipantAvailableEvent(
+          participant: result.participant,
+        ));
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
+
+          // Emit internal event for tracks waiting for participant metadata
+          events.emit(InternalParticipantAvailableEvent(
+            participant: result.participant,
+          ));
         }
       }
     }

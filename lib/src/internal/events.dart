@@ -420,6 +420,23 @@ class InternalTrackPublishedEvent with ParticipantEvent, InternalEvent {
       '(participant: ${participant}, publication: ${publication})';
 }
 
+/// Internal event fired when a participant becomes available (added to _sidToIdentity map).
+/// Used by EngineTrackAddedEvent handler to wait for participant metadata when tracks arrive
+/// before participant info is processed from JoinResponse or ParticipantUpdate.
+@internal
+class InternalParticipantAvailableEvent with RoomEvent, InternalEvent {
+  final RemoteParticipant participant;
+
+  const InternalParticipantAvailableEvent({
+    required this.participant,
+  });
+
+  String get participantSid => participant.sid;
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant.sid})';
+}
+
 @internal
 class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
   final String trackSid;
