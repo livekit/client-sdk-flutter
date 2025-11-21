@@ -211,6 +211,10 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   @internal
   Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('${runtimeType}.updateFromInfo(info: $info)');
+    if (_participantInfo != null && _participantInfo!.sid == info.sid && _participantInfo!.version > info.version) {
+      // Ignore out-of-order updates.
+      return false;
+    }
 
     identity = info.identity;
     sid = info.sid;
