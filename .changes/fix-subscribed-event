@@ -1,0 +1,1 @@
+patch type="fixed" "Fix race condition causing track subscriptions to fail when metadata arrives before connection completes"
