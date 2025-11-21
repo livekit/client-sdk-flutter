@@ -371,7 +371,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
-      emitWhenConnected(TrackSubscriptionPermissionChangedEvent(
+      emitIfConnected(TrackSubscriptionPermissionChangedEvent(
         participant: participant,
         publication: publication,
         state: publication.subscriptionState,
@@ -380,10 +380,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<SignalRoomUpdateEvent>((event) async {
       _metadata = event.room.metadata;
       _roomInfo = event.room;
-      emitWhenConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
+      emitIfConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
       if (_isRecording != event.room.activeRecording) {
         _isRecording = event.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+        emitIfConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
     })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
@@ -416,7 +416,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (_isRecording != event.response.room.activeRecording) {
         _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+        emitIfConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
       }
 
       logger.fine('[Engine] Received JoinResponse, '
@@ -588,7 +588,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
-      final participant = _getRemoteParticipantBySid(participantSid);
+      var participant = _getRemoteParticipantBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
           throw TrackSubscriptionExceptionEvent(
@@ -597,11 +597,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           );
         }
         if (participant == null) {
-          throw TrackSubscriptionExceptionEvent(
-            participant: participant,
-            sid: trackSid,
-            reason: TrackSubscribeFailReason.noParticipantFound,
-          );
+          logger.fine('EngineTrackAddedEvent participant is null, waiting for participant metadata...');
+          // Wait for participant metadata to arrive
+          try {
+            final availableEvent = await events.waitFor<InternalParticipantAvailableEvent>(
+              filter: (event) => event.participantSid == participantSid,
+              duration: connectOptions.timeouts.publish,
+            );
+            participant = availableEvent.participant;
+            logger.fine('EngineTrackAddedEvent participant metadata received');
+          } catch (e) {
+            logger.severe('EngineTrackAddedEvent timeout waiting for participant metadata: $e');
+          }
+
+          if (participant == null) {
+            throw TrackSubscriptionExceptionEvent(
+              participant: participant,
+              sid: trackSid,
+              reason: TrackSubscribeFailReason.noParticipantFound,
+            );
+          }
         }
         await participant.addSubscribedMediaTrack(
           event.track,
@@ -611,11 +626,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           audioOutputOptions: roomOptions.defaultAudioOutputOptions,
         );
       } on TrackSubscriptionExceptionEvent catch (event) {
-        logger.severe('addSubscribedMediaTrack() throwed ${event}');
+        logger.severe('Track subscription failed: ${event}');
         events.emit(event);
       } catch (exception) {
         // We don't want to pass up any exception so catch everything here.
-        logger.warning('Unknown exception on addSubscribedMediaTrack() ${exception}');
+        logger.warning('Unknown exception during track subscription: ${exception}');
       }
     });
 
@@ -678,6 +693,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _remoteParticipants[result.participant.identity] = result.participant;
     _sidToIdentity[result.participant.sid] = result.participant.identity;
+
+    // Emit internal event for tracks waiting for participant metadata
+    events.emit(InternalParticipantAvailableEvent(
+      participant: result.participant,
+    ));
+
     return result;
   }
 
@@ -710,22 +731,36 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (isNew) {
         hasChanged = true;
         // Emit connected event
-        emitWhenConnected(ParticipantConnectedEvent(participant: result.participant));
+        emitIfConnected(ParticipantConnectedEvent(participant: result.participant));
         // Emit TrackPublishedEvent for each new track
-        if (connectionState == ConnectionState.connected) {
-          for (final pub in result.newPublications) {
-            final event = TrackPublishedEvent(
-              participant: result.participant,
-              publication: pub,
-            );
-            [result.participant.events, events].emit(event);
-          }
+        for (final pub in result.newPublications) {
+          // Always emit internal event (for addSubscribedMediaTrack)
+          result.participant.events.emit(InternalTrackPublishedEvent(
+            participant: result.participant,
+            publication: pub,
+          ));
+
+          // Only emit public event when connected (for apps)
+          emitIfConnected(TrackPublishedEvent(
+            participant: result.participant,
+            publication: pub,
+          ));
         }
         _sidToIdentity[info.sid] = info.identity;
+
+        // Emit internal event for tracks waiting for participant metadata
+        events.emit(InternalParticipantAvailableEvent(
+          participant: result.participant,
+        ));
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
+
+          // Emit internal event for tracks waiting for participant metadata
+          events.emit(InternalParticipantAvailableEvent(
+            participant: result.participant,
+          ));
         }
       }
     }
@@ -757,7 +792,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final activeSpeakers = lastSpeakers.values.toList();
     activeSpeakers.sort((a, b) => b.audioLevel.compareTo(a.audioLevel));
     _activeSpeakers = activeSpeakers;
-    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitIfConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   // from data channel
@@ -790,7 +825,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     _activeSpeakers = activeSpeakers;
-    emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
+    emitIfConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
   void _onSignalConnectionQualityUpdateEvent(List<lk_rtc.ConnectionQualityInfo> updates) {
@@ -824,7 +859,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (trackPublication == null) continue;
       // update the stream state
       await trackPublication.updateStreamState(update.state.toLKType());
-      emitWhenConnected(TrackStreamStateUpdatedEvent(
+      emitIfConnected(TrackStreamStateUpdatedEvent(
         participant: participant,
         publication: trackPublication,
         streamState: update.state.toLKType(),
@@ -894,7 +929,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     await participant.removeAllPublishedTracks(notify: true);
 
-    emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
+    emitIfConnected(ParticipantDisconnectedEvent(participant: participant));
     return true;
   }
 
@@ -967,7 +1002,7 @@ extension RoomPrivateMethods on Room {
   }
 
   @internal
-  void emitWhenConnected(RoomEvent event) {
+  void emitIfConnected(RoomEvent event) {
     if (connectionState == ConnectionState.connected) {
       events.emit(event);
     }

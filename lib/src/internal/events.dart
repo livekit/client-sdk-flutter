@@ -18,8 +18,10 @@ import 'package:meta/meta.dart';
 
 import '../e2ee/options.dart';
 import '../events.dart';
+import '../participant/remote.dart' show RemoteParticipant;
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../publication/remote.dart' show RemoteTrackPublication;
 import '../track/local/local.dart';
 import '../track/options.dart';
 import '../track/track.dart';
@@ -397,6 +399,42 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
 
   @override
   String toString() => '${runtimeType}(cid: ${cid}, track: ${track})';
+}
+
+/// Internal event for track publication metadata arrival.
+/// Used by addSubscribedMediaTrack to wait for publication metadata.
+/// This event always fires regardless of connection state.
+/// Apps should listen to TrackPublishedEvent instead (only fires when connected).
+@internal
+class InternalTrackPublishedEvent with ParticipantEvent, InternalEvent {
+  final RemoteParticipant participant;
+  final RemoteTrackPublication publication;
+
+  const InternalTrackPublishedEvent({
+    required this.participant,
+    required this.publication,
+  });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participant: ${participant}, publication: ${publication})';
+}
+
+/// Internal event fired when a participant becomes available (added to _sidToIdentity map).
+/// Used by EngineTrackAddedEvent handler to wait for participant metadata when tracks arrive
+/// before participant info is processed from JoinResponse or ParticipantUpdate.
+@internal
+class InternalParticipantAvailableEvent with RoomEvent, InternalEvent {
+  final RemoteParticipant participant;
+
+  const InternalParticipantAvailableEvent({
+    required this.participant,
+  });
+
+  String get participantSid => participant.sid;
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant.sid})';
 }
 
 @internal
