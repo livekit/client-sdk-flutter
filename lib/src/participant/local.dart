@@ -1233,13 +1233,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
 
     final cancelFun = room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
 
-    final writer = TextStreamWriter(
-      writableStream: writableStream,
-      info: info,
-      onClose: () {
-        cancelFun?.call();
-      },
-    );
+    final writer = TextStreamWriter(writableStream: writableStream, info: info, onClose: cancelFun);
 
     return writer;
   }
@@ -1335,9 +1329,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     final byteWriter = ByteStreamWriter(
       writableStream: writableStream,
       info: info,
-      onClose: () {
-        cancelFun?.call();
-      },
+      onClose: cancelFun,
     );
 
     return byteWriter;

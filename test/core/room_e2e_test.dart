@@ -87,7 +87,7 @@ void main() {
       await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
 
       // Clean up listener
-      cancel();
+      await cancel();
 
       // Verify participant had tracks when connected event was emitted
       expect(participantHadTracksOnConnect, isTrue,
