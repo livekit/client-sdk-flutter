@@ -54,6 +54,7 @@ import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
 import '../utils.dart' show unpackStreamId;
 import 'engine.dart';
+import 'pending_track_queue.dart';
 
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
@@ -135,6 +136,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   @internal
   late final PreConnectAudioBuffer preConnectAudioBuffer;
 
+  // Pending subscriber tracks keyed by participantSid, for tracks arriving before metadata or before the room connected.
+  late final PendingTrackQueue _pendingTrackQueue;
+
   // for testing
   @internal
   Map<String, RpcRequestHandler> get rpcHandlers => _rpcHandlers;
@@ -152,6 +156,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     Engine? engine,
   }) : engine = engine ??
             Engine(
+              connectOptions: connectOptions,
               roomOptions: roomOptions,
             ) {
     //
@@ -161,11 +166,21 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _signalListener = this.engine.signalClient.createListener();
     _setUpSignalListeners();
 
+    _pendingTrackQueue = PendingTrackQueue(
+      ttl: this.engine.connectOptions.timeouts.subscribe,
+      emitException: (event) => events.emit(event),
+    );
+
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
+    events.on<InternalParticipantAvailableEvent>(
+      (event) => _flushPendingTracks(participant: event.participant),
+    );
+    // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
+    events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
 
     _setupRpcListeners();
 
@@ -596,12 +611,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             reason: TrackSubscribeFailReason.invalidServerResponse,
           );
         }
-        if (participant == null) {
-          throw TrackSubscriptionExceptionEvent(
-            participant: participant,
-            sid: trackSid,
-            reason: TrackSubscribeFailReason.noParticipantFound,
+
+        final shouldDefer = connectionState != ConnectionState.connected || participant == null;
+        if (shouldDefer) {
+          _pendingTrackQueue.enqueue(
+            track: event.track,
+            stream: event.stream,
+            receiver: event.receiver,
+            participantSid: participantSid,
+            trackSid: trackSid,
+            connectionState: connectionState,
           );
+          return;
         }
         await participant.addSubscribedMediaTrack(
           event.track,
@@ -678,6 +699,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _remoteParticipants[result.participant.identity] = result.participant;
     _sidToIdentity[result.participant.sid] = result.participant.identity;
+    events.emit(InternalParticipantAvailableEvent(participant: result.participant));
     return result;
   }
 
@@ -722,10 +744,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _sidToIdentity[info.sid] = info.identity;
+        events.emit(InternalParticipantAvailableEvent(participant: result.participant));
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
+          events.emit(InternalParticipantAvailableEvent(participant: result.participant));
         }
       }
     }
@@ -759,6 +783,32 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _activeSpeakers = activeSpeakers;
     emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
+
+  Future<void> _flushPendingTracks({RemoteParticipant? participant}) => _pendingTrackQueue.flush(
+        isConnected: connectionState == ConnectionState.connected,
+        participantSid: participant?.sid,
+        subscriber: (pending) async {
+          final target = participant ?? _getRemoteParticipantBySid(pending.participantSid);
+          if (target == null) return false;
+          try {
+            await target.addSubscribedMediaTrack(
+              pending.track,
+              pending.stream,
+              pending.trackSid,
+              receiver: pending.receiver,
+              audioOutputOptions: roomOptions.defaultAudioOutputOptions,
+            );
+            return true;
+          } on TrackSubscriptionExceptionEvent catch (event) {
+            logger.severe('Track subscription failed during flush: ${event}');
+            events.emit(event);
+            return true;
+          } catch (exception) {
+            logger.warning('Unknown exception during pending track flush: ${exception}');
+            return false;
+          }
+        },
+      );
 
   // from data channel
   // updates are sent only when there's a change to speaker ordering

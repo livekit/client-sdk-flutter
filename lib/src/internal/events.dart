@@ -16,6 +16,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import 'package:livekit_client/src/participant/remote.dart' show RemoteParticipant;
 import '../e2ee/options.dart';
 import '../events.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -457,6 +458,20 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
 
   @override
   String toString() => '${runtimeType}(speakers: ${speakers})';
+}
+
+/// Internal event fired when a participant becomes available (added to _sidToIdentity map).
+/// Used by EngineTrackAddedEvent handler to wait/flush tracks that arrived before metadata.
+@internal
+class InternalParticipantAvailableEvent with RoomEvent, InternalEvent {
+  final RemoteParticipant participant;
+
+  const InternalParticipantAvailableEvent({required this.participant});
+
+  String get participantSid => participant.sid;
+
+  @override
+  String toString() => '${runtimeType}(participant: ${participant.sid})';
 }
 
 @internal
