@@ -15,9 +15,11 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:synchronized/synchronized.dart' as sync;
 
+import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
@@ -57,6 +59,12 @@ class EventsEmitter<T> extends EventsListenable<T> {
       logger.warning('failed to emit event ${event} on a disposed emitter');
       return;
     }
+
+    if (logger.isLoggable(Level.FINEST)) {
+      final scope = event is InternalEvent ? 'internal' : 'public';
+      logger.finest('[${objectId}] emit ($scope) $event');
+    }
+
     // queue mode
     if (_queueMode) {
       _queue.add(event);
