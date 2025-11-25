@@ -176,9 +176,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-    events.on<InternalParticipantAvailableEvent>(
-      (event) => _flushPendingTracks(participant: event.participant),
-    );
     // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
     events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
 
@@ -700,7 +697,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     _remoteParticipants[result.participant.identity] = result.participant;
     _sidToIdentity[result.participant.sid] = result.participant.identity;
-    events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+    await _flushPendingTracks(participant: result.participant);
     return result;
   }
 
@@ -745,12 +742,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _sidToIdentity[info.sid] = info.identity;
-        events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+        await _flushPendingTracks(participant: result.participant);
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _sidToIdentity[info.sid] = info.identity;
-          events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+          await _flushPendingTracks(participant: result.participant);
         }
       }
     }
