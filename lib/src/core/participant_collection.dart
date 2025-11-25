@@ -40,13 +40,6 @@ class ParticipantCollection<T extends Participant> extends IterableBase<T> {
     _bySid.clear();
   }
 
-  Iterable<T> removeAll() {
-    final copy = _byIdentity.values.toList();
-    _byIdentity.clear();
-    _bySid.clear();
-    return copy;
-  }
-
   bool removeByIdentity(String identity) {
     final participant = _byIdentity.remove(identity);
     if (participant != null) {

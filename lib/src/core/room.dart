@@ -519,20 +519,22 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineFullRestartingEvent>((event) async {
       events.emit(const RoomReconnectingEvent());
 
-      // clean up RemoteParticipants
-      final copy = _remoteParticipants.removeAll().toList();
-      _activeSpeakers.clear();
       // reset params
       _name = null;
       _metadata = null;
       _serverVersion = null;
       _serverRegion = null;
 
-      for (final participant in copy) {
+      _activeSpeakers.clear();
+
+      // Clean up RemoteParticipants
+      for (final participant in _remoteParticipants) {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
         await participant.removeAllPublishedTracks(notify: false);
         await participant.dispose();
       }
+      _remoteParticipants.clear();
+
       notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
@@ -963,13 +965,11 @@ extension RoomPrivateMethods on Room {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
-    final participants = _remoteParticipants.removeAll().toList();
-    for (final participant in participants) {
+    for (final participant in _remoteParticipants) {
       await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
-
     _remoteParticipants.clear();
     _pendingTrackQueue.clear();
 
