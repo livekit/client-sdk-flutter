@@ -247,6 +247,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }) async {
     var roomOptions = this.roomOptions;
     connectOptions ??= ConnectOptions();
+    _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
     // ignore: deprecated_member_use_from_same_package
     if ((roomOptions.encryption != null || roomOptions.e2eeOptions != null) && engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
@@ -991,6 +992,7 @@ extension RoomPrivateMethods on Room {
     }
     _remoteParticipants.clear();
     _sidToIdentity.clear();
+    _pendingTrackQueue.clear();
 
     // clean up LocalParticipant
     await localParticipant?.unpublishAllTracks();
