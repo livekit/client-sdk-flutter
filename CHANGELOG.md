@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.5.4
+
+* Added pre-connect audio buffering
+* Added token source API with caching and endpoint helpers
+* Enabled software AEC/NS/AGC for Linux
+* Added event logging with public/internal tagging
+* Migrated manual JSON serialization to json_serializable code generation
+* Re-enabled Flutter lint warnings and fixed existing issues
+* Improved reliable data channel buffering, sequencing, and added integration tests
+* Fixed race condition with pending tracks
+
 ## 2.5.3
 
 * Feat: Data Packet Cryptor (#873)
