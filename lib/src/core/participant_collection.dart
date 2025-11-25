@@ -35,6 +35,11 @@ class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   bool containsIdentity(String identity) => _byIdentity.containsKey(identity);
   bool containsSid(String sid) => _bySid.containsKey(sid);
 
+  void clear() {
+    _byIdentity.clear();
+    _bySid.clear();
+  }
+
   Iterable<T> removeAll() {
     final copy = _byIdentity.values.toList();
     _byIdentity.clear();
