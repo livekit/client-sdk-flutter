@@ -525,15 +525,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _serverVersion = null;
       _serverRegion = null;
 
+      final participants = _remoteParticipants.toList();
+      _remoteParticipants.clear();
       _activeSpeakers.clear();
-
-      // Clean up RemoteParticipants
-      for (final participant in _remoteParticipants) {
+      for (final participant in participants) {
         events.emit(ParticipantDisconnectedEvent(participant: participant));
         await participant.removeAllPublishedTracks(notify: false);
         await participant.dispose();
       }
-      _remoteParticipants.clear();
 
       notifyListeners();
     })
@@ -965,12 +964,13 @@ extension RoomPrivateMethods on Room {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
-    for (final participant in _remoteParticipants) {
+    final participants = _remoteParticipants.toList();
+    _remoteParticipants.clear();
+    for (final participant in participants) {
       await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
-    _remoteParticipants.clear();
     _pendingTrackQueue.clear();
 
     // clean up LocalParticipant
