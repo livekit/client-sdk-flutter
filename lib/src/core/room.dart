@@ -850,7 +850,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     for (final update in updates) {
       // try to find RemoteParticipant
       final participant = _remoteParticipants.bySid[update.participantSid];
-      if (participant == null) continue;
+      if (participant == null) {
+        logger.warning('Participant not found for sid ${update.participantSid}');
+        continue;
+      }
       // try to find RemoteTrackPublication
       final trackPublication = participant.trackPublications[update.trackSid];
       if (trackPublication == null) continue;
