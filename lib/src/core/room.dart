@@ -920,9 +920,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<bool> _handleParticipantDisconnect(String identity) async {
-    final participant = _remoteParticipants.byIdentity[identity];
-    final removed = _remoteParticipants.removeByIdentity(identity);
-    if (!removed || participant == null) return false;
+    final participant = _remoteParticipants.removeByIdentity(identity);
+    if (participant == null) return false;
 
     validateParticipantHasNoActiveDataStreams(identity);
 
