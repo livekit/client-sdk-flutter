@@ -6,20 +6,17 @@ part of 'room_configuration.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RoomAgentDispatch _$RoomAgentDispatchFromJson(Map<String, dynamic> json) =>
-    RoomAgentDispatch(
+RoomAgentDispatch _$RoomAgentDispatchFromJson(Map<String, dynamic> json) => RoomAgentDispatch(
       agentName: json['agent_name'] as String?,
       metadata: json['metadata'] as String?,
     );
 
-Map<String, dynamic> _$RoomAgentDispatchToJson(RoomAgentDispatch instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$RoomAgentDispatchToJson(RoomAgentDispatch instance) => <String, dynamic>{
       if (instance.agentName case final value?) 'agent_name': value,
       if (instance.metadata case final value?) 'metadata': value,
     };
 
-RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) =>
-    RoomConfiguration(
+RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) => RoomConfiguration(
       name: json['name'] as String?,
       emptyTimeout: (json['empty_timeout'] as num?)?.toInt(),
       departureTimeout: (json['departure_timeout'] as num?)?.toInt(),
@@ -33,19 +30,14 @@ RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$RoomConfigurationToJson(RoomConfiguration instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$RoomConfigurationToJson(RoomConfiguration instance) => <String, dynamic>{
       if (instance.name case final value?) 'name': value,
       if (instance.emptyTimeout case final value?) 'empty_timeout': value,
-      if (instance.departureTimeout case final value?)
-        'departure_timeout': value,
+      if (instance.departureTimeout case final value?) 'departure_timeout': value,
       if (instance.maxParticipants case final value?) 'max_participants': value,
       if (instance.metadata case final value?) 'metadata': value,
-      if (instance.minPlayoutDelay case final value?)
-        'min_playout_delay': value,
-      if (instance.maxPlayoutDelay case final value?)
-        'max_playout_delay': value,
+      if (instance.minPlayoutDelay case final value?) 'min_playout_delay': value,
+      if (instance.maxPlayoutDelay case final value?) 'max_playout_delay': value,
       if (instance.syncStreams case final value?) 'sync_streams': value,
-      if (instance.agents?.map((e) => e.toJson()).toList() case final value?)
-        'agents': value,
+      if (instance.agents?.map((e) => e.toJson()).toList() case final value?) 'agents': value,
     };
