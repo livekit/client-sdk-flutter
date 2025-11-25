@@ -176,9 +176,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-    events.on<InternalParticipantAvailableEvent>(
-      (event) => _flushPendingTracks(participant: event.participant),
-    );
     // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
     events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
 
@@ -247,6 +244,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }) async {
     var roomOptions = this.roomOptions;
     connectOptions ??= ConnectOptions();
+    _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
     // ignore: deprecated_member_use_from_same_package
     if ((roomOptions.encryption != null || roomOptions.e2eeOptions != null) && engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
@@ -687,7 +685,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     _remoteParticipants.set(result.participant);
-    events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+    await _flushPendingTracks(participant: result.participant);
     return result;
   }
 
@@ -732,12 +730,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _remoteParticipants.set(result.participant);
-        events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+        await _flushPendingTracks(participant: result.participant);
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _remoteParticipants.set(result.participant);
-          events.emit(InternalParticipantAvailableEvent(participant: result.participant));
+          await _flushPendingTracks(participant: result.participant);
         }
       }
     }
@@ -971,6 +969,9 @@ extension RoomPrivateMethods on Room {
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
+
+    _remoteParticipants.clear();
+    _pendingTrackQueue.clear();
 
     // clean up LocalParticipant
     await localParticipant?.unpublishAllTracks();

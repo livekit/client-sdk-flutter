@@ -26,7 +26,7 @@ typedef TrackExceptionEmitter = void Function(TrackSubscriptionExceptionEvent ev
 @internal
 class PendingTrackQueue {
   final int maxSize;
-  final Duration ttl;
+  Duration ttl;
   final TrackExceptionEmitter emitException;
 
   // keyed by participant sid
@@ -37,6 +37,14 @@ class PendingTrackQueue {
     required this.emitException,
     this.maxSize = 100,
   });
+
+  void updateTtl(Duration ttl) {
+    this.ttl = ttl;
+  }
+
+  void clear() {
+    _pending.clear();
+  }
 
   void enqueue({
     required rtc.MediaStreamTrack track,

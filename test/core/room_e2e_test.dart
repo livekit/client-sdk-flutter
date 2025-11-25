@@ -60,8 +60,10 @@ void main() {
 
   group('room updates', () {
     test('participant join', () async {
+      final publicEventsStream = room.events.streamCtrl.stream.where((event) => event is! InternalEvent);
+
       expect(
-        room.events.streamCtrl.stream,
+        publicEventsStream,
         emitsInOrder(<Matcher>[
           predicate<ParticipantStateUpdatedEvent>((event) => event.participant.sid == remoteParticipantData.sid),
           predicate<ParticipantConnectedEvent>(
