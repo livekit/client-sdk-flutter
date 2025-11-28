@@ -102,7 +102,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? url;
   String? token;
 
-  late ConnectOptions connectOptions;
+  ConnectOptions connectOptions;
   RoomOptions roomOptions;
   FastConnectOptions? fastConnectOptions;
 
@@ -188,6 +188,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Engine({
+    required this.connectOptions,
     required this.roomOptions,
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
