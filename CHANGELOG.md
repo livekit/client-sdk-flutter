@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.5.5
+
+* Session API
+
 ## 2.5.4
 
 * Added pre-connect audio buffering
