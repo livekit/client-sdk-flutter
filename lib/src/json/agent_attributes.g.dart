@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'attribute_typings.dart';
+part of 'agent_attributes.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -25,32 +25,32 @@ Map<String, dynamic> _$AgentAttributesToJson(AgentAttributes instance) => <Strin
     };
 
 const _$AgentInputEnumMap = {
-  AgentInput.audio: 'audio',
-  AgentInput.text: 'text',
-  AgentInput.video: 'video',
+  AgentInput.AUDIO: 'audio',
+  AgentInput.TEXT: 'text',
+  AgentInput.VIDEO: 'video',
 };
 
 const _$AgentOutputEnumMap = {
-  AgentOutput.audio: 'audio',
-  AgentOutput.transcription: 'transcription',
+  AgentOutput.AUDIO: 'audio',
+  AgentOutput.TRANSCRIPTION: 'transcription',
 };
 
 const _$AgentStateEnumMap = {
-  AgentState.idle: 'idle',
-  AgentState.initializing: 'initializing',
-  AgentState.listening: 'listening',
-  AgentState.speaking: 'speaking',
-  AgentState.thinking: 'thinking',
+  AgentState.IDLE: 'idle',
+  AgentState.INITIALIZING: 'initializing',
+  AgentState.LISTENING: 'listening',
+  AgentState.SPEAKING: 'speaking',
+  AgentState.THINKING: 'thinking',
 };
 
 TranscriptionAttributes _$TranscriptionAttributesFromJson(Map<String, dynamic> json) => TranscriptionAttributes(
       lkSegmentId: json['lk.segment_id'] as String?,
       lkTranscribedTrackId: json['lk.transcribed_track_id'] as String?,
-      lkTranscriptionFinal: json['lk.transcription_final'] as bool?,
+      lkTranscriptionFinal: _boolFromJson(json['lk.transcription_final']),
     );
 
 Map<String, dynamic> _$TranscriptionAttributesToJson(TranscriptionAttributes instance) => <String, dynamic>{
       if (instance.lkSegmentId case final value?) 'lk.segment_id': value,
       if (instance.lkTranscribedTrackId case final value?) 'lk.transcribed_track_id': value,
-      if (instance.lkTranscriptionFinal case final value?) 'lk.transcription_final': value,
+      if (_boolToJson(instance.lkTranscriptionFinal) case final value?) 'lk.transcription_final': value,
     };
