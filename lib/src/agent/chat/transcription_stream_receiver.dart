@@ -33,10 +33,16 @@ class TranscriptionStreamReceiver implements MessageReceiver {
   TranscriptionStreamReceiver({
     required Room room,
     this.topic = 'lk.transcription',
-  }) : _room = room;
+    void Function(String topic, TextStreamHandler handler)? registerHandler,
+    void Function(String topic)? unregisterHandler,
+  })  : _room = room,
+        _registerHandler = registerHandler ?? room.registerTextStreamHandler,
+        _unregisterHandler = unregisterHandler ?? room.unregisterTextStreamHandler;
 
   final Room _room;
   final String topic;
+  final void Function(String, TextStreamHandler) _registerHandler;
+  final void Function(String) _unregisterHandler;
 
   StreamController<ReceivedMessage>? _controller;
   bool _registered = false;
@@ -51,20 +57,20 @@ class TranscriptionStreamReceiver implements MessageReceiver {
     }
 
     _controller = StreamController<ReceivedMessage>.broadcast(
-      onListen: _registerHandler,
+      onListen: _registerRoomHandler,
       onCancel: _handleCancel,
     );
     _controllerClosed = false;
     return _controller!.stream;
   }
 
-  void _registerHandler() {
+  void _registerRoomHandler() {
     if (_registered) {
       return;
     }
     _registered = true;
 
-    _room.registerTextStreamHandler(topic, (TextStreamReader reader, String participantIdentity) {
+    _registerHandler(topic, (TextStreamReader reader, String participantIdentity) {
       reader.listen(
         (chunk) {
           final info = reader.info;
@@ -119,7 +125,7 @@ class TranscriptionStreamReceiver implements MessageReceiver {
 
   void _handleCancel() {
     if (_registered) {
-      _room.unregisterTextStreamHandler(topic);
+      _unregisterHandler(topic);
       _registered = false;
     }
     _partialMessages.clear();
