@@ -19,6 +19,10 @@ targets:
         - example/**
     builders:
       json_serializable:
+        generate_for:
+          include:
+            - lib/src/json/**.dart
+            - lib/src/token_source/**.dart
         options:
           include_if_null: false
           explicit_to_json: true
