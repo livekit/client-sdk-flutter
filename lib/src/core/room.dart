@@ -332,7 +332,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
-    ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
+    ..on<SignalParticipantUpdateEvent>((event) async {
+      await _onParticipantUpdateEvent(event.participants);
+
+      // Flush pending tracks after participant updates are processed.
+      // This handles the case where tracks arrived before participant metadata,
+      // got queued, and now the track publications have finally arrived in this update.
+      // This is the second flush opportunity that fixes the race condition where
+      // the first flush (in _onParticipantUpdateEvent) happens before publications are ready.
+      for (final info in event.participants) {
+        if (info.tracks.isEmpty) continue;
+        final participant = _remoteParticipants.bySid[info.sid];
+        if (participant != null) {
+          logger.fine(
+            'Track publications updated for ${info.identity} '
+            '(${info.tracks.length} tracks), flushing pending queue',
+          );
+          await _flushPendingTracks(participant: participant);
+        }
+      }
+    })
     ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>((event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>((event) => _onSignalStreamStateUpdateEvent(event.updates))
@@ -787,7 +806,18 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             );
             return true;
           } on TrackSubscriptionExceptionEvent catch (event) {
-            logger.severe('Track subscription failed during flush: ${event}');
+            // Differentiate between transient and permanent failures
+            final isTransient = event.reason == TrackSubscribeFailReason.notTrackMetadataFound;
+
+            if (isTransient) {
+              logger.fine('Track subscription temporarily failed: metadata not ready yet for '
+                  'trackSid:${pending.trackSid} participantSid:${pending.participantSid}, '
+                  'will retry on next flush');
+              return false; // Keep in queue for retry
+            }
+
+            // Permanent failure
+            logger.severe('Track subscription failed permanently during flush: ${event}');
             events.emit(event);
             return true;
           } catch (exception) {
