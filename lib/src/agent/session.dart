@@ -156,8 +156,9 @@ class Session extends DisposableChangeNotifier {
       };
 
   final LinkedHashMap<String, ReceivedMessage> _messages = LinkedHashMap();
+  UnmodifiableListView<ReceivedMessage> _messagesView = UnmodifiableListView<ReceivedMessage>(const []);
 
-  List<ReceivedMessage> get messages => List.unmodifiable(_messages.values);
+  List<ReceivedMessage> get messages => _messagesView;
 
   final List<MessageSender> _senders = [];
   final List<MessageReceiver> _receivers = [];
@@ -269,6 +270,7 @@ class Session extends DisposableChangeNotifier {
               (message) => MapEntry(message.id, message),
             ),
       );
+    _refreshMessagesView();
     notifyListeners();
   }
 
@@ -288,6 +290,7 @@ class Session extends DisposableChangeNotifier {
           final shouldNotify = existing != message;
           _messages[message.id] = message;
           if (shouldNotify) {
+            _refreshMessagesView();
             notifyListeners();
           }
         },
@@ -298,6 +301,10 @@ class Session extends DisposableChangeNotifier {
       );
       _receiverSubscriptions.add(subscription);
     }
+  }
+
+  void _refreshMessagesView() {
+    _messagesView = UnmodifiableListView(_messages.values.toList(growable: false));
   }
 
   Future<void> _cancelReceiverSubscriptions() async {
