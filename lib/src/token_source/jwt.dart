@@ -15,6 +15,7 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'room_configuration.dart';
 import 'token_source.dart';
 
 part 'jwt.g.dart';
@@ -71,6 +72,18 @@ class LiveKitJwtPayload {
     final raw = _claims['video'];
     if (raw is Map) {
       return LiveKitVideoGrant.fromJson(Map<String, dynamic>.from(raw));
+    }
+    return null;
+  }
+
+  /// Room configuration embedded in the token, if present.
+  RoomConfiguration? get roomConfiguration {
+    final raw = _claims['roomConfig'] ?? _claims['room_config'];
+    if (raw is Map<String, dynamic>) {
+      return RoomConfiguration.fromJson(Map<String, dynamic>.from(raw));
+    }
+    if (raw is Map) {
+      return RoomConfiguration.fromJson(Map<String, dynamic>.from(raw));
     }
     return null;
   }
@@ -202,6 +215,12 @@ extension TokenSourceJwt on TokenSourceResponse {
     }
 
     return true;
+  }
+
+  /// Returns `true` when the token's room configuration dispatches at least one agent.
+  bool dispatchesAgent() {
+    final agents = jwtPayload?.roomConfiguration?.agents;
+    return agents != null && agents.isNotEmpty;
   }
 }
 

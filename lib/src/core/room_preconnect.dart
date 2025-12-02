@@ -26,17 +26,25 @@ extension RoomPreConnect on Room {
     Duration timeout = const Duration(seconds: 10),
     PreConnectOnError? onError,
   }) async {
+    preConnectAudioBuffer.setErrorHandler(onError);
     await preConnectAudioBuffer.startRecording(timeout: timeout);
     try {
       final result = await operation();
-      await preConnectAudioBuffer.agentReadyFuture;
+      unawaited(() async {
+        try {
+          await preConnectAudioBuffer.agentReadyFuture;
+        } catch (error, stackTrace) {
+          logger.warning('[Preconnect] agent readiness wait failed: $error', error, stackTrace);
+        } finally {
+          await preConnectAudioBuffer.reset();
+        }
+      }());
       return result;
     } catch (error) {
       await preConnectAudioBuffer.stopRecording(withError: error);
+      await preConnectAudioBuffer.reset();
       logger.warning('[Preconnect] operation failed with error: $error');
       rethrow;
-    } finally {
-      await preConnectAudioBuffer.reset();
     }
   }
 }
