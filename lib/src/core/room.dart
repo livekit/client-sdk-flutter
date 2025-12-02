@@ -627,7 +627,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           );
         }
 
-        final shouldDefer = connectionState != ConnectionState.connected || participant == null;
+        // Defer track subscription if:
+        // 1. Room not connected yet (tracks arrived pre-connection)
+        // 2. Participant not known yet (tracks arrived before participant metadata)
+        // 3. Track publication not known yet (tracks arrived before track metadata)
+        final shouldDefer = connectionState != ConnectionState.connected ||
+            participant == null ||
+            participant.getTrackPublicationBySid(trackSid) == null;
         if (shouldDefer) {
           _pendingTrackQueue.enqueue(
             track: event.track,
