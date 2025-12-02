@@ -270,7 +270,7 @@ class Session extends DisposableChangeNotifier {
               (message) => MapEntry(message.id, message),
             ),
       );
-    _refreshMessagesView();
+    _updateMessagesView();
     notifyListeners();
   }
 
@@ -290,7 +290,7 @@ class Session extends DisposableChangeNotifier {
           final shouldNotify = existing != message;
           _messages[message.id] = message;
           if (shouldNotify) {
-            _refreshMessagesView();
+            _updateMessagesView();
             notifyListeners();
           }
         },
@@ -303,7 +303,7 @@ class Session extends DisposableChangeNotifier {
     }
   }
 
-  void _refreshMessagesView() {
+  void _updateMessagesView() {
     _messagesView = UnmodifiableListView(_messages.values.toList(growable: false));
   }
 
