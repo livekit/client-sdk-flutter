@@ -71,7 +71,7 @@ class Hardware {
 
   bool? get speakerOn => _preferSpeakerOutput;
 
-  bool _preferSpeakerOutput = true;
+  bool _preferSpeakerOutput = false;
 
   bool get preferSpeakerOutput => _preferSpeakerOutput;
 
