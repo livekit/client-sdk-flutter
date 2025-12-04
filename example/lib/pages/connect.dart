@@ -29,6 +29,7 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
   static const _storeKeyMultiCodec = 'multi-codec';
+  static const _storeKeyPreferredCodec = 'preferred-codec';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -96,6 +97,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
+      _preferredCodec = prefs.getString(_storeKeyPreferredCodec) ?? 'VP8';
     });
   }
 
@@ -110,6 +112,7 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
+    await prefs.setString(_storeKeyPreferredCodec, _preferredCodec);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -317,10 +320,11 @@ class _ConnectPageState extends State<ConnectPage> {
                               color: Colors.blueAccent,
                             ),
                             onChanged: (String? value) {
-                              // This is called when the user selects an item.
+                              if (value == null) return;
                               setState(() {
-                                _preferredCodec = value!;
+                                _preferredCodec = value;
                               });
+                              unawaited(_writePrefs());
                             },
                             items: ['Preferred Codec', 'AV1', 'VP9', 'VP8', 'H264', 'H265']
                                 .map<DropdownMenuItem<String>>((String value) {

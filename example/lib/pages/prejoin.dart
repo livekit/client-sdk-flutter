@@ -5,6 +5,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/exts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme.dart';
 import 'room.dart';
@@ -43,6 +44,9 @@ class PreJoinPage extends StatefulWidget {
 }
 
 class _PreJoinPageState extends State<PreJoinPage> {
+  static const _prefKeyEnableVideo = 'prejoin-enable-video';
+  static const _prefKeyEnableAudio = 'prejoin-enable-audio';
+
   List<MediaDevice> _audioInputs = [];
   List<MediaDevice> _videoInputs = [];
   StreamSubscription? _subscription;
@@ -60,8 +64,14 @@ class _PreJoinPageState extends State<PreJoinPage> {
   @override
   void initState() {
     super.initState();
+    unawaited(_initStateAsync());
+  }
+
+  Future<void> _initStateAsync() async {
+    await _readPrefs();
     _subscription = Hardware.instance.onDeviceChange.stream.listen(_loadDevices);
-    unawaited(Hardware.instance.enumerateDevices().then(_loadDevices));
+    final devices = await Hardware.instance.enumerateDevices();
+    await _loadDevices(devices);
   }
 
   @override
@@ -70,7 +80,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
     super.deactivate();
   }
 
-  void _loadDevices(List<MediaDevice> devices) async {
+  Future<void> _loadDevices(List<MediaDevice> devices) async {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
 
@@ -98,6 +108,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
   Future<void> _setEnableVideo(value) async {
     _enableVideo = value;
+    await _writePrefs();
     if (!_enableVideo) {
       await _videoTrack?.stop();
       _videoTrack = null;
@@ -109,6 +120,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
   Future<void> _setEnableAudio(value) async {
     _enableAudio = value;
+    await _writePrefs();
     if (!_enableAudio) {
       await _audioTrack?.stop();
       _audioTrack = null;
@@ -119,6 +131,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
   }
 
   Future<void> _changeLocalAudioTrack() async {
+    if (!_enableAudio) return;
     if (_audioTrack != null) {
       await _audioTrack!.stop();
       _audioTrack = null;
@@ -135,6 +148,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
   }
 
   Future<void> _changeLocalVideoTrack() async {
+    if (!_enableVideo) return;
     if (_videoTrack != null) {
       await _videoTrack!.stop();
       _videoTrack = null;
@@ -247,6 +261,20 @@ class _PreJoinPageState extends State<PreJoinPage> {
     await _setEnableAudio(false);
     if (!context.mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _readPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _enableVideo = prefs.getBool(_prefKeyEnableVideo) ?? true;
+      _enableAudio = prefs.getBool(_prefKeyEnableAudio) ?? true;
+    });
+  }
+
+  Future<void> _writePrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKeyEnableVideo, _enableVideo);
+    await prefs.setBool(_prefKeyEnableAudio, _enableAudio);
   }
 
   @override
