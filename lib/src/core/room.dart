@@ -55,7 +55,7 @@ import '../types/transcription_segment.dart';
 import '../utils.dart' show unpackStreamId;
 import 'engine.dart';
 import 'participant_collection.dart';
-import 'pending_track_queue.dart' as pending_queue hide logger;
+import 'pending_track_queue.dart' as pending_queue;
 
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
@@ -838,7 +838,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> _performPendingTrackFlush({RemoteParticipant? participant}) async {
-    late final result;
+    late final pending_queue.PendingTrackQueueFlushResult result;
     try {
       result = await _pendingTrackQueue.flush(
         isConnected: connectionState == ConnectionState.connected,
