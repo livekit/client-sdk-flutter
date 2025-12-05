@@ -720,12 +720,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _pendingTrackQueue.removeParticipant(info.sid, reason: 'sid reused');
     }
     if (participant != null) {
-      _pendingTrackQueue.refreshParticipant(participant.sid, reason: 'participant reused');
-      // Return existing participant with no new publications; caller handles updates.
-      return ParticipantCreationResult(
-        participant: participant,
-        newPublications: const [],
-      );
+      // If the participant has a different sid, they disconnected and rejoined.
+      // Remove the old participant and create a new one.
+      if (participant.sid != info.sid) {
+        logger.fine('Participant ${info.identity} rejoined with new sid ${info.sid} (old: ${participant.sid})');
+        await _handleParticipantDisconnect(info.identity);
+        // Fall through to create new participant
+      } else {
+        _pendingTrackQueue.refreshParticipant(participant.sid, reason: 'participant reused');
+        // Return existing participant with no new publications; caller handles updates.
+        return ParticipantCreationResult(
+          participant: participant,
+          newPublications: const [],
+        );
+      }
     }
 
     final result = await RemoteParticipant.createFromInfo(
