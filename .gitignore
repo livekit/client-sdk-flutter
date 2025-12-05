@@ -89,8 +89,3 @@ lib/generated_plugin_registrant.dart
 
 # Test files - ignore any binary files in testfiles directory
 testfiles/*.bin
-
-# Log files
-logs.txt
-logsduringleave.txt
-logsduringleaveandrejoin.txt
