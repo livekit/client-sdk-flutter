@@ -53,7 +53,7 @@ class PreConnectAudioBuffer {
   EventChannel? _eventChannel;
   StreamSubscription? _streamSubscription;
 
-  final PreConnectOnError? _onError;
+  PreConnectOnError? _onError;
   final int _requestSampleRate;
   int? _renderedSampleRate;
 
@@ -300,5 +300,10 @@ class PreConnectAudioBuffer {
 
     logger.info(
         '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
+  }
+
+  /// Updates the callback invoked when pre-connect audio fails.
+  void setErrorHandler(PreConnectOnError? onError) {
+    _onError = onError;
   }
 }

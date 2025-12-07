@@ -25,8 +25,6 @@ import '../track/options.dart';
 import '../track/track.dart';
 import '../types/other.dart';
 
-mixin InternalEvent implements LiveKitEvent {}
-
 @internal
 abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
   final rtc.RTCPeerConnectionState state;
@@ -35,6 +33,9 @@ abstract class EnginePeerStateUpdatedEvent with EngineEvent, InternalEvent {
     required this.state,
     required this.isPrimary,
   });
+
+  @override
+  String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
 
 @internal
@@ -72,6 +73,9 @@ class TrackStreamUpdatedEvent with TrackEvent, InternalEvent {
     required this.track,
     required this.stream,
   });
+
+  @override
+  String toString() => '${runtimeType}(track: ${track}, stream: ${stream})';
 }
 
 @internal
@@ -80,6 +84,9 @@ class AudioPlaybackStarted with TrackEvent, EngineEvent, InternalEvent {
   const AudioPlaybackStarted({
     required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}(track: ${track})';
 }
 
 @internal
@@ -88,6 +95,9 @@ class AudioPlaybackFailed with TrackEvent, EngineEvent, InternalEvent {
   const AudioPlaybackFailed({
     required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}(track: ${track})';
 }
 
 @internal
@@ -98,6 +108,9 @@ class LocalTrackOptionsUpdatedEvent with TrackEvent, InternalEvent {
     required this.track,
     required this.options,
   });
+
+  @override
+  String toString() => '${runtimeType}(track: ${track}, options: ${options})';
 }
 
 // Used to notify muted state from Track to TrackPublication.
@@ -113,7 +126,7 @@ class InternalTrackMuteUpdatedEvent with TrackEvent, InternalEvent {
   });
 
   @override
-  String toString() => 'TrackMuteUpdatedEvent(track: ${track}, muted: ${muted})';
+  String toString() => '${runtimeType}(track: ${track}, muted: ${muted}, shouldSendSignal: ${shouldSendSignal})';
 }
 
 //
@@ -127,6 +140,9 @@ class SignalJoinResponseEvent with SignalEvent, InternalEvent {
   const SignalJoinResponseEvent({
     required this.response,
   });
+
+  @override
+  String toString() => '${runtimeType}(response: ${response})';
 }
 
 @internal
@@ -136,6 +152,9 @@ class SignalReconnectResponseEvent with SignalEvent, InternalEvent {
   const SignalReconnectResponseEvent({
     required this.response,
   });
+
+  @override
+  String toString() => '${runtimeType}(response: ${response})';
 }
 
 @internal
@@ -146,6 +165,9 @@ class SignalConnectivityChangedEvent with SignalEvent, InternalEvent {
     required this.oldState,
     required this.state,
   });
+
+  @override
+  String toString() => '${runtimeType}(oldState: ${oldState}, state: ${state})';
 }
 
 @internal
@@ -154,16 +176,25 @@ class EngineJoinResponseEvent with EngineEvent, InternalEvent {
   const EngineJoinResponseEvent({
     required this.response,
   });
+
+  @override
+  String toString() => '${runtimeType}(response: ${response})';
 }
 
 @internal
 class EngineConnectingEvent with InternalEvent, EngineEvent {
   const EngineConnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class EngineConnectedEvent with InternalEvent, SignalEvent, EngineEvent {
   const EngineConnectedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
@@ -172,11 +203,17 @@ class EngineDisconnectedEvent with InternalEvent, EngineEvent {
   EngineDisconnectedEvent({
     this.reason,
   });
+
+  @override
+  String toString() => '${runtimeType}(reason: ${reason})';
 }
 
 @internal
 class EngineClosingEvent with InternalEvent, EngineEvent {
   const EngineClosingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
@@ -185,11 +222,17 @@ class EngineLocalTrackSubscribedEvent with InternalEvent, EngineEvent {
   const EngineLocalTrackSubscribedEvent({
     required this.trackSid,
   });
+
+  @override
+  String toString() => '${runtimeType}(trackSid: ${trackSid})';
 }
 
 @internal
 class EngineFullRestartingEvent with InternalEvent, EngineEvent {
   const EngineFullRestartingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
@@ -202,46 +245,75 @@ class EngineAttemptReconnectEvent with InternalEvent, EngineEvent {
     required this.maxAttempts,
     required this.nextRetryDelaysInMs,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(attempt: ${attempt}, maxAttempts: ${maxAttempts}, '
+      'nextRetryDelaysInMs: ${nextRetryDelaysInMs})';
 }
 
 @internal
 class EngineRestartedEvent with InternalEvent, EngineEvent {
   const EngineRestartedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class EngineReconnectingEvent with InternalEvent, EngineEvent {
   const EngineReconnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class EngineResumedEvent with InternalEvent, EngineEvent {
   const EngineResumedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class EngineResumingEvent with InternalEvent, EngineEvent {
   const EngineResumingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class SignalConnectedEvent with SignalEvent, InternalEvent {
   const SignalConnectedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class SignalConnectingEvent with SignalEvent, InternalEvent {
   const SignalConnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class SignalReconnectingEvent with SignalEvent, InternalEvent {
   const SignalReconnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
 class SignalReconnectedEvent with SignalEvent, InternalEvent, EngineEvent {
   const SignalReconnectedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
 }
 
 @internal
@@ -250,6 +322,9 @@ class SignalDisconnectedEvent with SignalEvent, InternalEvent {
   SignalDisconnectedEvent({
     this.reason,
   });
+
+  @override
+  String toString() => '${runtimeType}(reason: ${reason})';
 }
 
 @internal
@@ -258,6 +333,9 @@ class SignalOfferEvent with SignalEvent, InternalEvent {
   const SignalOfferEvent({
     required this.sd,
   });
+
+  @override
+  String toString() => '${runtimeType}(sd: ${sd})';
 }
 
 @internal
@@ -266,6 +344,9 @@ class SignalAnswerEvent with SignalEvent, InternalEvent {
   const SignalAnswerEvent({
     required this.sd,
   });
+
+  @override
+  String toString() => '${runtimeType}(sd: ${sd})';
 }
 
 @internal
@@ -276,6 +357,9 @@ class SignalTrickleEvent with SignalEvent, InternalEvent {
     required this.candidate,
     required this.target,
   });
+
+  @override
+  String toString() => '${runtimeType}(candidate: ${candidate}, target: ${target})';
 }
 
 @internal
@@ -285,6 +369,9 @@ class SignalParticipantUpdateEvent with SignalEvent, InternalEvent {
   const SignalParticipantUpdateEvent({
     required this.participants,
   });
+
+  @override
+  String toString() => '${runtimeType}(participants: ${participants})';
 }
 
 @internal
@@ -293,6 +380,9 @@ class SignalConnectionQualityUpdateEvent with SignalEvent, InternalEvent {
   const SignalConnectionQualityUpdateEvent({
     required this.updates,
   });
+
+  @override
+  String toString() => '${runtimeType}(updates: ${updates})';
 }
 
 @internal
@@ -304,6 +394,9 @@ class SignalLocalTrackPublishedEvent with SignalEvent, InternalEvent {
     required this.cid,
     required this.track,
   });
+
+  @override
+  String toString() => '${runtimeType}(cid: ${cid}, track: ${track})';
 }
 
 @internal
@@ -313,6 +406,9 @@ class SignalTrackUnpublishedEvent with SignalEvent, InternalEvent {
   const SignalTrackUnpublishedEvent({
     required this.trackSid,
   });
+
+  @override
+  String toString() => '${runtimeType}(trackSid: ${trackSid})';
 }
 
 @internal
@@ -322,6 +418,9 @@ class SignalLocalTrackSubscribedEvent with SignalEvent, InternalEvent {
   const SignalLocalTrackSubscribedEvent({
     required this.trackSid,
   });
+
+  @override
+  String toString() => '${runtimeType}(trackSid: ${trackSid})';
 }
 
 @internal
@@ -329,6 +428,9 @@ class SignalRoomUpdateEvent with SignalEvent, InternalEvent {
   final lk_models.Room room;
 
   const SignalRoomUpdateEvent({required this.room});
+
+  @override
+  String toString() => '${runtimeType}(room: ${room})';
 }
 
 @internal
@@ -340,6 +442,9 @@ class SignalSpeakersChangedEvent with SignalEvent, InternalEvent {
   const SignalSpeakersChangedEvent({
     required this.speakers,
   });
+
+  @override
+  String toString() => '${runtimeType}(speakers: ${speakers})';
 }
 
 @internal
@@ -349,6 +454,9 @@ class EngineActiveSpeakersUpdateEvent with EngineEvent, InternalEvent {
   const EngineActiveSpeakersUpdateEvent({
     required this.speakers,
   });
+
+  @override
+  String toString() => '${runtimeType}(speakers: ${speakers})';
 }
 
 @internal
@@ -361,6 +469,10 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
   const SignalLeaveEvent({
     required this.request,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(canReconnect: ${canReconnect}, action: ${action}, reason: ${reason}, regions: ${regions})';
 }
 
 @internal
@@ -371,6 +483,9 @@ class SignalRemoteMuteTrackEvent with SignalEvent, InternalEvent {
     required this.sid,
     required this.muted,
   });
+
+  @override
+  String toString() => '${runtimeType}(sid: ${sid}, muted: ${muted})';
 }
 
 @internal
@@ -379,6 +494,9 @@ class SignalStreamStateUpdatedEvent with SignalEvent, InternalEvent {
   const SignalStreamStateUpdatedEvent({
     required this.updates,
   });
+
+  @override
+  String toString() => '${runtimeType}(updates: ${updates})';
 }
 
 @internal
@@ -391,6 +509,11 @@ class SignalSubscribedQualityUpdatedEvent with SignalEvent, InternalEvent {
     required this.subscribedCodecs,
     required this.subscribedQualities,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(trackSid: ${trackSid}, subscribedQualities: ${subscribedQualities}, '
+      'subscribedCodecs: ${subscribedCodecs})';
 }
 
 @internal
@@ -403,6 +526,10 @@ class SignalSubscriptionPermissionUpdateEvent with SignalEvent, InternalEvent {
     required this.trackSid,
     required this.allowed,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(participantSid: ${participantSid}, trackSid: ${trackSid}, allowed: ${allowed})';
 }
 
 @internal
@@ -411,6 +538,9 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
   const SignalTokenUpdatedEvent({
     required this.token,
   });
+
+  @override
+  String toString() => '${runtimeType}(token: ${token})';
 }
 
 // ----------------------------------------------------------------------
@@ -427,6 +557,9 @@ class EngineTrackAddedEvent with EngineEvent, InternalEvent {
     required this.stream,
     required this.receiver,
   });
+
+  @override
+  String toString() => '${runtimeType}(track: ${track}, stream: ${stream}, receiver: ${receiver})';
 }
 
 @internal
@@ -439,6 +572,9 @@ class EngineDataPacketReceivedEvent with EngineEvent, InternalEvent {
     required this.kind,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}(packet: ${packet}, kind: ${kind}, identity: ${identity})';
 }
 
 @internal
@@ -449,6 +585,10 @@ class EngineTranscriptionReceivedEvent with EngineEvent, InternalEvent {
     required this.transcription,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(transcription: ${transcription}, identity: ${identity})';
 }
 
 @internal
@@ -459,6 +599,9 @@ class EngineSipDtmfReceivedEvent with EngineEvent, InternalEvent {
     required this.dtmf,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}(dtmf: ${dtmf}, identity: ${identity})';
 }
 
 @internal
@@ -470,6 +613,9 @@ class EngineRPCRequestReceivedEvent with EngineEvent, InternalEvent {
     required this.request,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}(request: ${request}, identity: ${identity})';
 }
 
 @internal
@@ -483,6 +629,9 @@ class EngineRPCResponseReceivedEvent with EngineEvent, InternalEvent {
     required this.response,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}(response: ${response}, identity: ${identity})';
 }
 
 @internal
@@ -494,6 +643,9 @@ class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
     required this.ack,
     required this.identity,
   });
+
+  @override
+  String toString() => '${runtimeType}(ack: ${ack}, identity: ${identity})';
 }
 
 @internal
@@ -506,6 +658,10 @@ class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
     required this.identity,
     required this.encryptionType,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(header: ${header}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
 @internal
@@ -518,6 +674,10 @@ class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
     required this.identity,
     required this.encryptionType,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(chunk: ${chunk}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
 @internal
@@ -530,6 +690,10 @@ class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
     required this.identity,
     required this.encryptionType,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(trailer: ${trailer}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
 @internal
@@ -542,6 +706,10 @@ abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
     required this.type,
     required this.state,
   });
+
+  @override
+  String toString() => '${runtimeType}'
+      '(isPrimary: ${isPrimary}, type: ${type}, state: ${state})';
 }
 
 @internal
@@ -571,13 +739,12 @@ class SubscriberDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEven
 }
 
 @internal
-class TrackEndedEvent with TrackEvent {
+class TrackEndedEvent with TrackEvent, InternalEvent {
   final Track track;
   const TrackEndedEvent({
     required this.track,
   });
 
   @override
-  String toString() => '${runtimeType}'
-      '(track: ${track})';
+  String toString() => '${runtimeType}(track: ${track})';
 }
