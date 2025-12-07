@@ -61,7 +61,7 @@ class Agent extends ChangeNotifier {
       return false;
     }
     return switch (_agentState) {
-      AgentState.LISTENING || AgentState.THINKING || AgentState.SPEAKING => true,
+      AgentState.listening || AgentState.thinking || AgentState.speaking => true,
       _ => false,
     };
   }
@@ -76,7 +76,7 @@ class Agent extends ChangeNotifier {
     }
     if (_state == _AgentLifecycle.connected) {
       return switch (_agentState) {
-        AgentState.LISTENING || AgentState.THINKING || AgentState.SPEAKING => true,
+        AgentState.listening || AgentState.thinking || AgentState.speaking => true,
         _ => false,
       };
     }
@@ -90,7 +90,7 @@ class Agent extends ChangeNotifier {
     }
     if (_state == _AgentLifecycle.connected) {
       return switch (_agentState) {
-        AgentState.IDLE || AgentState.INITIALIZING => true,
+        AgentState.idle || AgentState.initializing => true,
         _ => false,
       };
     }
@@ -169,15 +169,15 @@ class Agent extends ChangeNotifier {
     }
     switch (rawState) {
       case 'idle':
-        return AgentState.IDLE;
+        return AgentState.idle;
       case 'initializing':
-        return AgentState.INITIALIZING;
+        return AgentState.initializing;
       case 'listening':
-        return AgentState.LISTENING;
+        return AgentState.listening;
       case 'speaking':
-        return AgentState.SPEAKING;
+        return AgentState.speaking;
       case 'thinking':
-        return AgentState.THINKING;
+        return AgentState.thinking;
       default:
         return null;
     }

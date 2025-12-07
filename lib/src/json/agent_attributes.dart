@@ -45,33 +45,33 @@ class AgentAttributes {
 @JsonEnum(alwaysCreate: true)
 enum AgentInput {
   @JsonValue('audio')
-  AUDIO,
+  audio,
   @JsonValue('text')
-  TEXT,
+  text,
   @JsonValue('video')
-  VIDEO,
+  video,
 }
 
 @JsonEnum(alwaysCreate: true)
 enum AgentOutput {
   @JsonValue('audio')
-  AUDIO,
+  audio,
   @JsonValue('transcription')
-  TRANSCRIPTION,
+  transcription,
 }
 
 @JsonEnum(alwaysCreate: true)
 enum AgentState {
   @JsonValue('idle')
-  IDLE,
+  idle,
   @JsonValue('initializing')
-  INITIALIZING,
+  initializing,
   @JsonValue('listening')
-  LISTENING,
+  listening,
   @JsonValue('speaking')
-  SPEAKING,
+  speaking,
   @JsonValue('thinking')
-  THINKING,
+  thinking,
 }
 
 @JsonSerializable()
