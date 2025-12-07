@@ -103,9 +103,7 @@ class ScreenSelectDialog extends Dialog {
     this.cancelText = 'Cancel',
     this.shareText = 'Share',
   }) : super(key: key) {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _getSources();
-    });
+    Timer(const Duration(milliseconds: 100), _getSources);
     _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
@@ -222,9 +220,9 @@ class ScreenSelectDialog extends Dialog {
                           Container(
                             constraints: const BoxConstraints.expand(height: 24),
                             child: TabBar(
-                                onTap: (value) => Future.delayed(const Duration(milliseconds: 300), () {
+                                onTap: (value) => Timer(const Duration(milliseconds: 300), () {
                                       _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
-                                      _getSources();
+                                      unawaited(_getSources());
                                     }),
                                 tabs: [
                                   Tab(
