@@ -20,7 +20,7 @@ homepage: https://github.com/livekit/client-sdk-flutter
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
-  flutter: ">=3.27.1"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter_web_plugins:
