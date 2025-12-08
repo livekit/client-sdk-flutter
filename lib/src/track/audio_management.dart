@@ -26,8 +26,6 @@ import 'remote/remote.dart';
 enum AudioTrackState {
   none,
   remoteOnly,
-  localOnly,
-  localAndRemote,
 }
 
 typedef ConfigureNativeAudioFunc = Future<NativeAudioConfiguration> Function(AudioTrackState state);
@@ -137,21 +135,14 @@ Future<void> _onAudioTrackCountDidChange() async {
 }
 
 AudioTrackState _computeAudioTrackState() {
-  if (_localTrackCount > 0 && _remoteTrackCount == 0) {
-    return AudioTrackState.localOnly;
-  } else if (_localTrackCount == 0 && _remoteTrackCount > 0) {
+  if (_localTrackCount == 0 && _remoteTrackCount > 0) {
     return AudioTrackState.remoteOnly;
-  } else if (_localTrackCount > 0 && _remoteTrackCount > 0) {
-    return AudioTrackState.localAndRemote;
   }
-  // Default
   return AudioTrackState.none;
 }
 
 Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(AudioTrackState state) async {
-  if (state == AudioTrackState.none) {
-    return NativeAudioConfiguration.soloAmbient;
-  } else if (state == AudioTrackState.remoteOnly && Hardware.instance.preferSpeakerOutput) {
+  if (state == AudioTrackState.remoteOnly && Hardware.instance.preferSpeakerOutput) {
     return NativeAudioConfiguration.playback;
   }
 

@@ -200,4 +200,9 @@ class Hardware {
     selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
     onDeviceChange.add(devices);
   }
+
+  void reset() {
+    _preferSpeakerOutput = false;
+    _forceSpeakerOutput = false;
+  }
 }
