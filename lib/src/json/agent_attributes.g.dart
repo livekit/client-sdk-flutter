@@ -25,22 +25,22 @@ Map<String, dynamic> _$AgentAttributesToJson(AgentAttributes instance) => <Strin
     };
 
 const _$AgentInputEnumMap = {
-  AgentInput.AUDIO: 'audio',
-  AgentInput.TEXT: 'text',
-  AgentInput.VIDEO: 'video',
+  AgentInput.audio: 'audio',
+  AgentInput.text: 'text',
+  AgentInput.video: 'video',
 };
 
 const _$AgentOutputEnumMap = {
-  AgentOutput.AUDIO: 'audio',
-  AgentOutput.TRANSCRIPTION: 'transcription',
+  AgentOutput.audio: 'audio',
+  AgentOutput.transcription: 'transcription',
 };
 
 const _$AgentStateEnumMap = {
-  AgentState.IDLE: 'idle',
-  AgentState.INITIALIZING: 'initializing',
-  AgentState.LISTENING: 'listening',
-  AgentState.SPEAKING: 'speaking',
-  AgentState.THINKING: 'thinking',
+  AgentState.idle: 'idle',
+  AgentState.initializing: 'initializing',
+  AgentState.listening: 'listening',
+  AgentState.speaking: 'speaking',
+  AgentState.thinking: 'thinking',
 };
 
 TranscriptionAttributes _$TranscriptionAttributesFromJson(Map<String, dynamic> json) => TranscriptionAttributes(

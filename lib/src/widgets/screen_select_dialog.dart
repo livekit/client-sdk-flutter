@@ -95,10 +95,15 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
 
 // ignore: must_be_immutable
 class ScreenSelectDialog extends Dialog {
-  ScreenSelectDialog({Key? key}) : super(key: key) {
-    Future.delayed(const Duration(milliseconds: 100), () async {
-      await _getSources();
-    });
+  ScreenSelectDialog({
+    Key? key,
+    this.titleText = 'Choose what to share',
+    this.screenTabText = 'Entire Screen',
+    this.windowTabText = 'Window',
+    this.cancelText = 'Cancel',
+    this.shareText = 'Share',
+  }) : super(key: key) {
+    Timer(const Duration(milliseconds: 100), _getSources);
     _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
       _sources[source.id] = source;
       _stateSetter?.call(() {});
@@ -113,6 +118,13 @@ class ScreenSelectDialog extends Dialog {
       _stateSetter?.call(() {});
     }));
   }
+
+  final String titleText;
+  final String screenTabText;
+  final String windowTabText;
+  final String cancelText;
+  final String shareText;
+
   final Map<String, rtc.DesktopCapturerSource> _sources = {};
   rtc.SourceType _sourceType = rtc.SourceType.Screen;
   rtc.DesktopCapturerSource? _selectedSource;
@@ -176,11 +188,11 @@ class ScreenSelectDialog extends Dialog {
               padding: const EdgeInsets.all(10),
               child: Stack(
                 children: <Widget>[
-                  const Align(
+                  Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      'Choose what to share',
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                      titleText,
+                      style: const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                   ),
                   Align(
@@ -208,21 +220,20 @@ class ScreenSelectDialog extends Dialog {
                           Container(
                             constraints: const BoxConstraints.expand(height: 24),
                             child: TabBar(
-                                onTap: (value) async {
-                                  await Future.delayed(const Duration(milliseconds: 300));
-                                  _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
-                                  await _getSources();
-                                },
-                                tabs: const [
+                                onTap: (value) => Timer(const Duration(milliseconds: 300), () {
+                                      _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
+                                      unawaited(_getSources());
+                                    }),
+                                tabs: [
                                   Tab(
                                       child: Text(
-                                    'Entire Screen',
-                                    style: TextStyle(color: Colors.black54),
+                                    screenTabText,
+                                    style: const TextStyle(color: Colors.black54),
                                   )),
                                   Tab(
                                       child: Text(
-                                    'Window',
-                                    style: TextStyle(color: Colors.black54),
+                                    windowTabText,
+                                    style: const TextStyle(color: Colors.black54),
                                   )),
                                 ]),
                           ),
@@ -281,9 +292,9 @@ class ScreenSelectDialog extends Dialog {
               child: OverflowBar(
                 children: <Widget>[
                   MaterialButton(
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.black54),
+                    child: Text(
+                      cancelText,
+                      style: const TextStyle(color: Colors.black54),
                     ),
                     onPressed: () async {
                       await _cancel(context);
@@ -291,8 +302,8 @@ class ScreenSelectDialog extends Dialog {
                   ),
                   MaterialButton(
                     color: Theme.of(context).primaryColor,
-                    child: const Text(
-                      'Share',
+                    child: Text(
+                      shareText,
                     ),
                     onPressed: () async {
                       await _ok(context);
