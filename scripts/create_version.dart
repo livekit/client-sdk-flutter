@@ -108,15 +108,15 @@ class SemanticVersion {
   });
 
   factory SemanticVersion.parse(String versionString) {
-    final parts = versionString.split('.');
-    if (parts.length != 3) {
+    final match = RegExp(r'^(\d+)\.(\d+)\.(\d+)(?:[+-].*)?$').firstMatch(versionString);
+    if (match == null) {
       throw FormatException('Invalid version format: $versionString');
     }
 
     return SemanticVersion(
-      major: int.parse(parts[0]),
-      minor: int.parse(parts[1]),
-      patch: int.parse(parts[2]),
+      major: int.parse(match.group(1)!),
+      minor: int.parse(match.group(2)!),
+      patch: int.parse(match.group(3)!),
     );
   }
 
