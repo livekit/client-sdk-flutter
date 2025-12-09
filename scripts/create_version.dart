@@ -23,7 +23,7 @@ import 'dart:io';
 ///
 /// Where:
 /// - level: One of [patch, minor, major] indicating the version bump level
-/// - kind: One of [added, changed, fixed] indicating the type of change
+/// - kind: One of [added, changed, fixed, refactor, performance, security, deprecated, removed, docs, chore]
 /// - description: A detailed description of the change
 ///
 /// Examples:
@@ -60,8 +60,15 @@ class _Color {
 
 enum ChangeKind {
   added,
+  changed,
   fixed,
-  changed;
+  refactor,
+  performance,
+  security,
+  deprecated,
+  removed,
+  docs,
+  chore;
 
   static ChangeKind? fromString(String value) {
     return ChangeKind.values.where((e) => e.name == value).firstOrNull;
@@ -202,13 +209,23 @@ String generateChangelogEntry(SemanticVersion version, List<Change> changes) {
   buffer.writeln('## $version');
   buffer.writeln();
 
-  // Group changes by kind
-  final added = changes.where((c) => c.kind == ChangeKind.added).toList();
-  final changed = changes.where((c) => c.kind == ChangeKind.changed).toList();
-  final fixed = changes.where((c) => c.kind == ChangeKind.fixed).toList();
+  String prefixFor(ChangeKind kind) => switch (kind) {
+        ChangeKind.added => 'Added',
+        ChangeKind.changed => 'Changed',
+        ChangeKind.fixed => 'Fixed',
+        ChangeKind.refactor => 'Refactor',
+        ChangeKind.performance => 'Performance',
+        ChangeKind.security => 'Security',
+        ChangeKind.deprecated => 'Deprecated',
+        ChangeKind.removed => 'Removed',
+        ChangeKind.docs => 'Docs',
+        ChangeKind.chore => 'Chore',
+      };
 
-  for (final change in [...added, ...changed, ...fixed]) {
-    buffer.writeln('* ${change.description}');
+  for (final kind in ChangeKind.values) {
+    for (final change in changes.where((c) => c.kind == kind)) {
+      buffer.writeln('* ${prefixFor(change.kind)}: ${change.description}');
+    }
   }
 
   buffer.writeln();
