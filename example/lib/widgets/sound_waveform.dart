@@ -40,6 +40,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'dart:async';
 
 class SoundWaveformWidget extends StatefulWidget {
   final int barCount;
@@ -67,7 +68,7 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget> with TickerPr
   AudioVisualizer? _visualizer;
   EventsListener<AudioVisualizerEvent>? _listener;
 
-  void _startVisualizer(AudioTrack track) async {
+  Future<void> _startVisualizer(AudioTrack track) async {
     samples = List.filled(widget.barCount, 0);
     _visualizer ??= createVisualizer(track, options: AudioVisualizerOptions(barCount: widget.barCount));
     _listener ??= _visualizer?.createListener();
@@ -94,14 +95,14 @@ class _SoundWaveformWidgetState extends State<SoundWaveformWidget> with TickerPr
   void initState() {
     super.initState();
 
-    _startVisualizer(widget.audioTrack);
+    unawaited(_startVisualizer(widget.audioTrack));
 
     controller = AnimationController(
         vsync: this,
         duration: Duration(
           milliseconds: widget.durationInMilliseconds,
         ))
-      ..repeat();
+      ..repeat(); // ignore: discarded_futures
   }
 
   @override

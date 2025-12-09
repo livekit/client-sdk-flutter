@@ -6,6 +6,7 @@ import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'dart:async';
 import '../exts.dart';
 
 class ConnectPage extends StatefulWidget {
@@ -28,6 +29,7 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyE2EE = 'e2ee';
   static const _storeKeySharedKey = 'shared-key';
   static const _storeKeyMultiCodec = 'multi-codec';
+  static const _storeKeyPreferredCodec = 'preferred-codec';
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
@@ -43,9 +45,9 @@ class _ConnectPageState extends State<ConnectPage> {
   @override
   void initState() {
     super.initState();
-    _readPrefs();
+    unawaited(_readPrefs());
     if (lkPlatformIs(PlatformType.android)) {
-      _checkPermissions();
+      unawaited(_checkPermissions());
     }
   }
 
@@ -95,6 +97,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
+      _preferredCodec = prefs.getString(_storeKeyPreferredCodec) ?? 'VP8';
     });
   }
 
@@ -109,6 +112,7 @@ class _ConnectPageState extends State<ConnectPage> {
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
+    await prefs.setString(_storeKeyPreferredCodec, _preferredCodec);
   }
 
   Future<void> _connect(BuildContext ctx) async {
@@ -124,10 +128,10 @@ class _ConnectPageState extends State<ConnectPage> {
       print('Connecting with url: ${_uriCtrl.text}, '
           'token: ${_tokenCtrl.text}...');
 
-      var url = _uriCtrl.text;
-      var token = _tokenCtrl.text;
-      var e2eeKey = _sharedKeyCtrl.text;
-
+      final url = _uriCtrl.text;
+      final token = _tokenCtrl.text;
+      final e2eeKey = _sharedKeyCtrl.text;
+      if (!ctx.mounted) return;
       await Navigator.push<void>(
         ctx,
         MaterialPageRoute(
@@ -147,6 +151,7 @@ class _ConnectPageState extends State<ConnectPage> {
       );
     } catch (error) {
       print('Could not connect $error');
+      if (!ctx.mounted) return;
       await ctx.showErrorDialog(error);
     } finally {
       setState(() {
@@ -315,10 +320,11 @@ class _ConnectPageState extends State<ConnectPage> {
                               color: Colors.blueAccent,
                             ),
                             onChanged: (String? value) {
-                              // This is called when the user selects an item.
+                              if (value == null) return;
                               setState(() {
-                                _preferredCodec = value!;
+                                _preferredCodec = value;
                               });
+                              unawaited(_writePrefs());
                             },
                             items: ['Preferred Codec', 'AV1', 'VP9', 'VP8', 'H264', 'H265']
                                 .map<DropdownMenuItem<String>>((String value) {

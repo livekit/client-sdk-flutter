@@ -15,9 +15,14 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:logging/logging.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/internal/events.dart';
 import '../mock/e2e_container.dart';
 import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
@@ -28,6 +33,12 @@ void main() {
   late Room room;
   late MockWebSocketConnector ws;
   setUp(() async {
+    // configure logs for debugging
+    Logger.root.level = Level.FINEST;
+    Logger.root.onRecord.listen((record) {
+      print('[${record.level.name}]: ${record.message}');
+    });
+
     container = E2EContainer();
     room = container.room;
     ws = container.wsConnector;
@@ -49,8 +60,10 @@ void main() {
 
   group('room updates', () {
     test('participant join', () async {
+      final publicEventsStream = room.events.streamCtrl.stream.where((event) => event is! InternalEvent);
+
       expect(
-        room.events.streamCtrl.stream,
+        publicEventsStream,
         emitsInOrder(<Matcher>[
           predicate<ParticipantStateUpdatedEvent>((event) => event.participant.sid == remoteParticipantData.sid),
           predicate<ParticipantConnectedEvent>(
@@ -87,7 +100,7 @@ void main() {
       await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
 
       // Clean up listener
-      cancel();
+      await cancel();
 
       // Verify participant had tracks when connected event was emitted
       expect(participantHadTracksOnConnect, isTrue,
@@ -167,5 +180,144 @@ void main() {
           emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)));
       ws.onData(leaveResponse.writeToBuffer());
     });
+
+    test('tracks arriving before participant metadata are handled once metadata arrives', () async {
+      final fakeStream = _FakeMediaStream('${remoteParticipantData.sid}|remote_stream');
+      final fakeTrack = _FakeMediaStreamTrack(
+        id: remoteAudioTrack.sid,
+        kind: 'audio',
+      );
+
+      var subscriptionException = false;
+      room.events.on<TrackSubscriptionExceptionEvent>((event) {
+        subscriptionException = true;
+      });
+
+      // Emit onTrack before participant update arrives.
+      container.engine.events.emit(EngineTrackAddedEvent(
+        track: fakeTrack,
+        stream: fakeStream,
+        receiver: null,
+      ));
+
+      // Now deliver participant metadata.
+      ws.onData(participantJoinResponse.writeToBuffer());
+
+      // Track should eventually subscribe once metadata is available.
+      final trackSubscribed = await room.events.waitFor<TrackSubscribedEvent>(
+        duration: const Duration(seconds: 1),
+      );
+
+      expect(subscriptionException, isFalse, reason: 'Track subscription should not fail when metadata arrives later');
+      expect(trackSubscribed.participant.sid, remoteParticipantData.sid);
+      expect(trackSubscribed.publication.track, isNotNull);
+    });
   });
+}
+
+class _FakeMediaStream extends rtc.MediaStream {
+  final List<rtc.MediaStreamTrack> _tracks = [];
+
+  _FakeMediaStream(String id) : super(id, 'fake-owner');
+
+  @override
+  bool? get active => true;
+
+  @override
+  Future<void> addTrack(rtc.MediaStreamTrack track, {bool addToNative = true}) async {
+    _tracks.add(track);
+  }
+
+  @override
+  Future<rtc.MediaStream> clone() async => _FakeMediaStream('${id}_clone');
+
+  @override
+  List<rtc.MediaStreamTrack> getAudioTracks() => _tracks.where((t) => t.kind == 'audio').toList();
+
+  @override
+  Future<void> getMediaTracks() async {}
+
+  @override
+  List<rtc.MediaStreamTrack> getTracks() => List<rtc.MediaStreamTrack>.from(_tracks);
+
+  @override
+  List<rtc.MediaStreamTrack> getVideoTracks() => _tracks.where((t) => t.kind == 'video').toList();
+
+  @override
+  Future<void> removeTrack(rtc.MediaStreamTrack track, {bool removeFromNative = true}) async {
+    _tracks.remove(track);
+  }
+}
+
+class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
+  @override
+  rtc.StreamTrackCallback? onEnded;
+
+  @override
+  rtc.StreamTrackCallback? onMute;
+
+  @override
+  rtc.StreamTrackCallback? onUnMute;
+
+  @override
+  bool enabled;
+
+  @override
+  final String id;
+
+  @override
+  final String kind;
+
+  @override
+  String? get label => '$kind-track';
+
+  @override
+  bool? get muted => false;
+
+  _FakeMediaStreamTrack({
+    required this.id,
+    required this.kind,
+    this.enabled = true,
+  });
+
+  @override
+  Future<void> applyConstraints([Map<String, dynamic>? constraints]) async {}
+
+  @override
+  Future<rtc.MediaStreamTrack> clone() async => _FakeMediaStreamTrack(id: id, kind: kind, enabled: enabled);
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> adaptRes(int width, int height) async {}
+
+  @override
+  Map<String, dynamic> getConstraints() => const {};
+
+  @override
+  Map<String, dynamic> getSettings() => const {};
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  void enableSpeakerphone(bool enable) {}
+
+  @override
+  Future<ByteBuffer> captureFrame() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> hasTorch() async => false;
+
+  @override
+  Future<void> setTorch(bool torch) async {}
+
+  @override
+  Future<bool> switchCamera() async => false;
+
+  @override
+  String toString() => 'FakeMediaStreamTrack(id: $id, kind: $kind, enabled: $enabled)';
 }

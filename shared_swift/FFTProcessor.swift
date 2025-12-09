@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LiveKit
+ * Copyright 2025 LiveKit
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,14 +72,14 @@ public class FFTResult {
 }
 
 class FFTProcessor {
-    public enum WindowType {
+    enum WindowType {
         case none
         case hanning
         case hamming
     }
 
-    public let bufferSize: vDSP_Length
-    public let windowType: WindowType
+    let bufferSize: vDSP_Length
+    let windowType: WindowType
 
     private let bufferHalfSize: vDSP_Length
     private let bufferLog2Size: vDSP_Length

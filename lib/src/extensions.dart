@@ -266,6 +266,7 @@ extension DegradationPreferenceExt on DegradationPreference {
 
 extension RoomOptionsEx on RoomOptions {
   lk_models.Encryption_Type get lkEncryptionType {
+    // ignore: deprecated_member_use_from_same_package
     final e2ee = encryption ?? e2eeOptions;
     return (e2ee != null)
         ? {

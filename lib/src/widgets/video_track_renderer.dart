@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -119,15 +120,16 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       details.localPosition.dy / constraints.maxHeight,
     );
 
-    rtc.Helper.setFocusPoint(videoTrack, point);
-    rtc.Helper.setExposurePoint(videoTrack, point);
+    // Don't wait here as it will slow down the UI unnecessarily.
+    unawaited(rtc.Helper.setFocusPoint(videoTrack, point));
+    unawaited(rtc.Helper.setExposurePoint(videoTrack, point));
   }
 
   void disposeRenderer() {
     try {
       _renderer?.onResize = null;
       _renderer?.srcObject = null;
-      _renderer?.dispose();
+      unawaited(_renderer?.dispose());
       _renderer = null;
     } catch (e) {
       logger.warning('Got error disposing renderer: $e');
@@ -142,17 +144,18 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
     _internalKey = widget.track.addViewKey();
     if (kIsWeb) {
-      () async {
+      unawaited(() async {
         await _initializeRenderer();
+        if (!mounted) return;
         setState(() => _rendererReadyForWeb = true);
-      }();
+      }());
     }
   }
 
   @override
   void dispose() {
     widget.track.removeViewKey(_internalKey);
-    _listener?.dispose();
+    unawaited(_listener?.dispose());
     if (widget.autoDisposeRenderer) {
       disposeRenderer();
     }
@@ -187,9 +190,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.track != oldWidget.track) {
       oldWidget.track.removeViewKey(_internalKey);
       _internalKey = widget.track.addViewKey();
-      (() async {
+      unawaited(() async {
         await _attach();
-      })();
+      }());
     }
 
     if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {
@@ -220,10 +223,10 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
-        onViewReady: (controller) {
+        onViewReady: (controller) async {
           _renderer = controller;
           _renderer?.srcObject = widget.track.mediaStream;
-          _attach();
+          await _attach();
         },
       );
     }

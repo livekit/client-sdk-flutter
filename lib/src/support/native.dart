@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 import 'package:meta/meta.dart';
@@ -89,6 +91,44 @@ class Native {
     }
   }
 
+  @internal
+  static Future<bool> startAudioRenderer({
+    required String trackId,
+    required String rendererId,
+    required Map<String, dynamic> format,
+  }) async {
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'startAudioRenderer',
+        <String, dynamic>{
+          'trackId': trackId,
+          'rendererId': rendererId,
+          'format': format,
+        },
+      );
+      return result == true;
+    } catch (error) {
+      logger.warning('startAudioRenderer did throw $error');
+      return false;
+    }
+  }
+
+  @internal
+  static Future<void> stopAudioRenderer({
+    required String rendererId,
+  }) async {
+    try {
+      await channel.invokeMethod<void>(
+        'stopAudioRenderer',
+        <String, dynamic>{
+          'rendererId': rendererId,
+        },
+      );
+    } catch (error) {
+      logger.warning('stopAudioRenderer did throw $error');
+    }
+  }
+
   /// Returns OS's version as a string
   /// Currently only for iOS, macOS
   @internal
@@ -124,18 +164,18 @@ class Native {
   }
 
   @internal
-  static void broadcastRequestActivation() {
+  static Future<void> broadcastRequestActivation() async {
     try {
-      channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{});
+      await channel.invokeMethod('broadcastRequestActivation', <String, dynamic>{});
     } catch (error) {
       logger.warning('broadcastRequestActivation did throw error: ${error}');
     }
   }
 
   @internal
-  static void broadcastRequestStop() {
+  static Future<void> broadcastRequestStop() async {
     try {
-      channel.invokeMethod('broadcastRequestStop', <String, dynamic>{});
+      await channel.invokeMethod('broadcastRequestStop', <String, dynamic>{});
     } catch (error) {
       logger.warning('broadcastRequestStop did throw error: ${error}');
     }
