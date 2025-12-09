@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.6.0
+
+* Session API
+* Allow customizing screen share dialog labels for localization
+
 ## 2.5.4
 
 * Added pre-connect audio buffering
