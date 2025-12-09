@@ -429,7 +429,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Micriphone:'),
+                      const Text('Microphone:'),
                       Switch(
                         value: _enableAudio,
                         onChanged: (value) => _setEnableAudio(value),
@@ -444,7 +444,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                       isExpanded: true,
                       disabledHint: const Text('Disable Microphone'),
                       hint: const Text(
-                        'Select Micriphone',
+                        'Select Microphone',
                       ),
                       items: _enableAudio
                           ? _audioInputs
