@@ -285,7 +285,7 @@ class TrackSubscribedEvent with RoomEvent, ParticipantEvent {
       'track: ${track})';
 }
 
-/// An error has occured during track subscription.
+/// An error has occurred during track subscription.
 /// Emitted by [Room] and [RemoteParticipant].
 class TrackSubscriptionExceptionEvent with RoomEvent, ParticipantEvent {
   final RemoteParticipant? participant;

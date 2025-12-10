@@ -126,7 +126,7 @@ class E2EEDataPacketCryptor {
   ) async {
     var ratchetCount = 0;
 
-    logger.fine('decodeFunction: data packet lenght ${encryptedPacket.data.length}');
+    logger.fine('decodeFunction: data packet length ${encryptedPacket.data.length}');
 
     ByteBuffer? decrypted;
     KeySet? initialKeySet;

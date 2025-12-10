@@ -3537,7 +3537,7 @@ s=p}while(true)switch(s){case 0:a1={}
 a1.a=0
 e=$.v()
 d=a5.a
-e.i(B.l,"decodeFunction: data packet lenght "+d.length,null,null)
+e.i(B.l,"decodeFunction: data packet length "+d.length,null,null)
 a1.b=a1.c=null
 m=0
 p=4
@@ -3793,7 +3793,7 @@ s=p}while(true)switch(s){case 0:a6={}
 a7=n.b2(b0)
 a6.a=0
 c=$.v()
-c.i(B.l,"decodeFunction: frame lenght "+a7.d.length,null,null)
+c.i(B.l,"decodeFunction: frame length "+a7.d.length,null,null)
 a6.b=a6.c=null
 a6.d=n.x
 if(!n.gaZ()||a7.d.length===0){n.z.b3()

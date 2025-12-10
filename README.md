@@ -221,7 +221,7 @@ room.localParticipant.setScreenShareEnabled(true);
 
 On Android, you will have to use a [media projection foreground service](https://developer.android.com/develop/background-work/services/fg-service-types#media-projection).
 
-In our example, we use the `flutter_background` package to handle this. In the app's AndroidManifest.xml file, declare the service with the appropriate types and permissions as following:
+In our example, we use the `flutter_background` package to handle this. In the app's AndroidManifest.xml file, declare the service with the appropriate types and permissions as follows:
 
 ```xml title="AndroidManifest.xml"
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -248,7 +248,7 @@ other apps. See [setup guide](https://github.com/flutter-webrtc/flutter-webrtc/w
 
 #### Desktop(Windows/macOS)
 
-On dekstop you can use `ScreenSelectDialog` to select the window or screen you want to share.
+On desktop you can use `ScreenSelectDialog` to select the window or screen you want to share.
 
 ```dart
 try {
@@ -282,10 +282,10 @@ By default, the native platform can support E2EE without any settings, but for f
 # for example app
 dart compile js web/e2ee.worker.dart -o example/web/e2ee.worker.dart.js -m
 # for your project
-export YOU_PROJECT_DIR=your_project_dir
+export YOUR_PROJECT_DIR=your_project_dir
 git clone https://github.com/livekit/client-sdk-flutter.git
 cd client-sdk-flutter && flutter pub get
-dart compile js web/e2ee.worker.dart -o ${YOU_PROJECT_DIR}/web/e2ee.worker.dart.js -m
+dart compile js web/e2ee.worker.dart -o ${YOUR_PROJECT_DIR}/web/e2ee.worker.dart.js -m
 ```
 
 ### Advanced track manipulation
@@ -460,7 +460,7 @@ class _VideoViewState extends State<VideoView> {
 
 ### Mute, unmute local tracks
 
-On `LocalTrackPublication`s, you could control if the track is muted by setting its `muted` property. Changing the mute status will generate an `onTrackMuted` or `onTrack Unmuted` delegate call for the local participant. Other participant will receive the status change as well.
+On `LocalTrackPublication`s, you could control if the track is muted by setting its `muted` property. Changing the mute status will generate an `onTrackMuted` or `onTrack Unmuted` delegate call for the local participant. Other participants will receive the status change as well.
 
 ```dart
 // mute track
