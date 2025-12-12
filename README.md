@@ -460,7 +460,7 @@ class _VideoViewState extends State<VideoView> {
 
 ### Mute, unmute local tracks
 
-On `LocalTrackPublication`s, you could control if the track is muted by setting its `muted` property. Changing the mute status will generate an `onTrackMuted` or `onTrack Unmuted` delegate call for the local participant. Other participants will receive the status change as well.
+On `LocalTrackPublication`s, you can control whether the track is muted by setting its `muted` property. Changing the mute status will emit a `TrackMutedEvent` or `TrackUnmutedEvent` for the local participant. Other participants will receive the status change as well.
 
 ```dart
 // mute track
