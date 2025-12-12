@@ -100,7 +100,7 @@ extension SocketConnection: StreamDelegate {
                 streamHasSpaceAvailable?()
             }
         case .errorOccurred:
-            os_log(.debug, log: broadcastLogger, "client stream error occured: \(String(describing: aStream.streamError))")
+            os_log(.debug, log: broadcastLogger, "client stream error occurred: \(String(describing: aStream.streamError))")
             close()
             notifyDidClose(error: aStream.streamError)
 
