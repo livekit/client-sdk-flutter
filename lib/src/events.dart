@@ -321,7 +321,7 @@ class TrackUnsubscribedEvent with RoomEvent, ParticipantEvent {
       'track: ${track})';
 }
 
-/// A Participant has muted one of the track.
+/// A Participant has muted one of the tracks.
 /// Emitted by [RemoteParticipant] and [LocalParticipant].
 class TrackMutedEvent with RoomEvent, ParticipantEvent {
   final Participant participant;

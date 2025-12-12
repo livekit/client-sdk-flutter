@@ -177,9 +177,9 @@ class E2EEDataPacketCryptor {
         }
       }
 
-      Future<void> ratchedKeyInternal() async {
+      Future<void> ratchetKeyInternal() async {
         if (ratchetCount >= keyOptions.ratchetWindowSize || keyOptions.ratchetWindowSize <= 0) {
-          throw Exception('[ratchedKeyInternal] cannot ratchet anymore');
+          throw Exception('[ratchetKeyInternal] cannot ratchet anymore');
         }
 
         final newKeyBuffer = await keyHandler.ratchet(currentkeySet.material, keyOptions.ratchetSalt);
@@ -196,11 +196,11 @@ class E2EEDataPacketCryptor {
         await decryptFrameInternal();
       } catch (e) {
         logger.finer('decodeFunction: kInternalError catch $e');
-        await ratchedKeyInternal();
+        await ratchetKeyInternal();
       }
 
       if (decrypted == null) {
-        throw Exception('[decodeFunction] decryption failed even after ratchting');
+        throw Exception('[decodeFunction] decryption failed even after ratcheting');
       }
 
       // we can now be sure that decryption was a success
