@@ -25,7 +25,8 @@ extension RoomPreConnect on Room {
   /// latency: the microphone starts recording before [Room.connect] completes,
   /// and the buffered audio is sent to the agent once it becomes active.
   ///
-  /// If [operation] throws, the buffer is stopped, flushed, and reset.
+  /// If [operation] throws, recording is stopped and the buffer is reset
+  /// (discarding any buffered audio).
   ///
   /// Example:
   /// ```dart

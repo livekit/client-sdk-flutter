@@ -36,7 +36,7 @@ typedef PreConnectOnError = void Function(Object error);
 
 /// Captures and buffers microphone audio before a room connection completes.
 ///
-/// This is used by [Room.withPreConnectAudio] to reduce perceived latency for
+/// This is used by `Room.withPreConnectAudio` to reduce perceived latency for
 /// voice agent experiences: the microphone can begin recording while the app is
 /// still connecting and dispatching an agent, then the buffered audio is sent
 /// once the agent becomes active.
