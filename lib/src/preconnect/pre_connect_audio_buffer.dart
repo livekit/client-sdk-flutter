@@ -34,7 +34,17 @@ import '../types/participant_state.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
+/// Captures and buffers microphone audio before a room connection completes.
+///
+/// This is used by [Room.withPreConnectAudio] to reduce perceived latency for
+/// voice agent experiences: the microphone can begin recording while the app is
+/// still connecting and dispatching an agent, then the buffered audio is sent
+/// once the agent becomes active.
+///
+/// Audio is buffered in memory (bounded by [defaultMaxSize]); if it overflows,
+/// the oldest audio is dropped until the agent is ready.
 class PreConnectAudioBuffer {
+  /// Topic used to send the buffered audio stream to agents.
   static const String dataTopic = 'lk.agent.pre-connect-audio-buffer';
 
   static const int defaultMaxSize = 10 * 1024 * 1024; // 10MB
@@ -72,16 +82,33 @@ class PreConnectAudioBuffer {
   })  : _onError = onError,
         _requestSampleRate = sampleRate;
 
-  // Getters
+  /// Whether pre-connect recording is currently active.
   bool get isRecording => _isRecording;
+
+  /// Number of buffered bytes currently stored.
   int get bufferedSize => _buffer.length;
+
+  /// The local audio track used for recording while pre-connecting.
   LocalAudioTrack? get localTrack => _localTrack;
 
   Future<LocalTrackPublishedEvent>? _localTrackPublishedEvent;
 
-  /// Future that completes when an agent is ready.
+  /// Completes when an agent becomes active and the buffer has been sent.
+  ///
+  /// If the configured timeout elapses before an agent becomes active, this
+  /// future completes with an error.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
 
+  /// Starts capturing audio into an in-memory buffer.
+  ///
+  /// [timeout] controls how long to wait for an agent to become active. When the
+  /// agent becomes active, buffered audio is sent automatically and
+  /// [agentReadyFuture] completes. If the timeout is reached first,
+  /// [agentReadyFuture] completes with an error and callers should [reset] the
+  /// buffer.
+  ///
+  /// - Note: Ensure microphone permissions are granted before calling this, or
+  ///   audio capture may fail depending on platform.
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {
@@ -180,6 +207,11 @@ class PreConnectAudioBuffer {
     ));
   }
 
+  /// Stops recording and releases native audio capture resources.
+  ///
+  /// If [withError] is provided, [agentReadyFuture] completes with that error.
+  /// Otherwise, [agentReadyFuture] completes successfully (if not already
+  /// completed).
   Future<void> stopRecording({Object? withError}) async {
     if (!_isRecording) return;
     _isRecording = false;
@@ -219,7 +251,8 @@ class PreConnectAudioBuffer {
     logger.info('[Preconnect audio] stopped recording');
   }
 
-  // Clean-up & reset for re-use
+  /// Stops recording and clears buffered audio and listeners so the instance
+  /// can be reused.
   Future<void> reset() async {
     await stopRecording();
     _timeoutTimer?.cancel();
@@ -240,12 +273,19 @@ class PreConnectAudioBuffer {
     logger.info('[Preconnect audio] reset');
   }
 
-  // Dispose the audio buffer and clean up all resources.
+  /// Disposes this buffer (alias for [reset]).
   Future<void> dispose() async {
     await reset();
     logger.info('[Preconnect audio] disposed');
   }
 
+  /// Sends the currently buffered audio to one or more agent identities.
+  ///
+  /// This is a one-shot operation; repeated calls are ignored after the buffer
+  /// has been sent.
+  ///
+  /// The stream is written to [topic] (default: [dataTopic]) and includes
+  /// attributes that help the agent interpret the raw audio payload.
   Future<void> sendAudioData({
     required List<String> agents,
     String topic = dataTopic,
