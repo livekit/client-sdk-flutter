@@ -1,0 +1,2 @@
+patch type="docs" "Fix typos and inconsistencies in README and CHANGELOG"
+patch type="fixed" "Correct spelling in E2EE log and error messages"

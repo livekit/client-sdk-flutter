@@ -27,7 +27,7 @@ enum ConnectionErrorReason {
   Timeout,
 }
 
-/// An exception occured while attempting to connect.
+/// An exception occurred while attempting to connect.
 /// Common reasons:
 /// - Invalid token (make sure your token is generated correctly)
 /// - Network condition is not good
@@ -42,7 +42,7 @@ class ConnectException extends LiveKitException {
   }) : super._(msg);
 }
 
-/// An exception occured while attempting to disconnect.
+/// An exception occurred while attempting to disconnect.
 /// Common reasons:
 /// - Network condition is not good.
 /// - SFU deploy behind a NAT and not configured correctly.
