@@ -21,7 +21,6 @@ import '../events.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../managers/event.dart';
-import '../utils.dart';
 import 'events.dart';
 import 'key_provider.dart';
 import 'options.dart';
