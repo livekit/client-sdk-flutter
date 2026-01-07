@@ -567,6 +567,8 @@ const refreshSubscribedCodecAfterNewCodec = 5000;
 
 bool isSVCCodec(String codec) => ['vp9', 'av1'].contains(codec.toLowerCase());
 
+bool isAV1Codec(String codec) => codec.toLowerCase() == 'av1';
+
 class ScalabilityMode {
   late num spatial;
 
