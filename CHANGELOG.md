@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.6.1
+
+* Fixed: Enable E2EE for VP9 codec
+* Fixed: Correct spelling in E2EE log and error messages
+* Fixed: Ensure all dispose functions are executed even if one throws
+* Fixed: Fix microphone label typo in example app prejoin audio settings
+* Docs: Fix typos and inconsistencies in README and CHANGELOG
+
 ## 2.6.0
 
 * Session API

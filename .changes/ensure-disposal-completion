@@ -1,1 +1,0 @@
-patch type="fixed" "Ensure all dispose functions are executed even if one throws"
