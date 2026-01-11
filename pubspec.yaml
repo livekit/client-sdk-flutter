@@ -36,7 +36,7 @@ dependencies:
   logging: ^1.1.0
   uuid: ^4.5.1
   synchronized: ^3.0.0+3
-  protobuf: ^4.2.0
+  protobuf: ">=6.0.0 <7.0.0"
   device_info_plus: ^12.2.0
   sdp_transform: ^0.3.2
   web: ^1.0.0
