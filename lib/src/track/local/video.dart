@@ -185,10 +185,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   /// Creates a LocalVideoTrack from camera input.
   static Future<LocalVideoTrack> createCameraTrack([
     CameraCaptureOptions? options,
+    rtc.MediaStream? processedStream,
   ]) async {
     options ??= const CameraCaptureOptions();
 
-    final stream = await LocalTrack.createStream(options);
+    final stream = processedStream ?? await LocalTrack.createStream(options);
     final track = LocalVideoTrack._(
       TrackSource.camera,
       stream,
