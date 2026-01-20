@@ -46,6 +46,7 @@ class _Path {
   static const version = '.version';
   static const changelog = 'CHANGELOG.md';
   static const pubspec = 'pubspec.yaml';
+  static const readme = 'README.md';
   static const livekitVersion = 'lib/src/livekit.dart';
   static const iosPodspec = 'ios/livekit_client.podspec';
   static const macosPodspec = 'macos/livekit_client.podspec';
@@ -286,6 +287,13 @@ void updateVersionFiles(SemanticVersion version) {
     _Path.macosPodspec,
     RegExp(r"s\.version\s*=\s*'[^']*'"),
     "s.version             = '$version'",
+  );
+
+  // Update README.md installation snippet
+  replaceVersionInFile(
+    _Path.readme,
+    RegExp(r'^\s*livekit_client:\s+.*$', multiLine: true),
+    '  livekit_client: ^$version',
   );
 }
 

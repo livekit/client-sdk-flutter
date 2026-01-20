@@ -47,7 +47,7 @@ class E2EEManager {
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
           if (event.publication.encryptionType == EncryptionType.kNone ||
-              isSVCCodec(event.publication.track?.codec ?? '')) {
+              isAV1Codec(event.publication.track?.codec ?? '')) {
             // no need to setup frame cryptor
             return;
           }
@@ -81,7 +81,7 @@ class E2EEManager {
         })
         ..on<TrackSubscribedEvent>((event) async {
           final codec = event.publication.mimeType.split('/')[1];
-          if (event.publication.encryptionType == EncryptionType.kNone || isSVCCodec(codec)) {
+          if (event.publication.encryptionType == EncryptionType.kNone || isAV1Codec(codec)) {
             // no need to setup frame cryptor
             return;
           }

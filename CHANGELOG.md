@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.6.1
+
+* Fixed: Enable E2EE for VP9 codec
+* Fixed: Correct spelling in E2EE log and error messages
+* Fixed: Ensure all dispose functions are executed even if one throws
+* Fixed: Fix microphone label typo in example app prejoin audio settings
+* Docs: Fix typos and inconsistencies in README and CHANGELOG
+
 ## 2.6.0
 
 * Session API
@@ -62,7 +70,7 @@
 * fix: memory leak visualizer stop android (#831)
 * fix: ensure engine always has correct device id if switching camera fails (#820)
 * fix: Always emit RoomDisconnectedEvent when the reason is clientInitiated. (#821)
-* fix: sif frame enqueing with e2ee (#822)
+* fix: sif frame enqueuing with e2ee (#822)
 * fix: update camera `deviceId` when track is null (#814)
 * feat: Audio Visualizer for Windows/Linux. (#739)
 
