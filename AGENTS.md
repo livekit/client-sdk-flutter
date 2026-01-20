@@ -60,7 +60,7 @@ Key components:
 ## WebRTC
 
 WebRTC provides the underlying media transport. The Flutter SDK wraps native WebRTC via
-platform-specific implementations in `android/`, `ios/`, `macos/`, `windows/`, `linux/`, `web/`,
+platform-specific implementations in `android/`, `ios/`, `macOS/`, `windows/`, `linux/`, `web/`,
 and shared code in `shared_cpp/` and `shared_swift/`. Dart APIs in `core/` and `track/` shield
 consumers from platform differences.
 
