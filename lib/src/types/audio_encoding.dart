@@ -20,8 +20,13 @@ import 'priority.dart';
 /// A type that represents audio encoding information.
 @immutable
 class AudioEncoding {
+  /// Maximum bitrate for the audio track.
   final int maxBitrate;
+
+  /// Priority for bandwidth allocation.
   final Priority? bitratePriority;
+
+  /// Priority for DSCP marking. Requires `RTCConfiguration.enableDscp` to be true.
   final Priority? networkPriority;
 
   const AudioEncoding({

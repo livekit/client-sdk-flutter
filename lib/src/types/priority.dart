@@ -16,9 +16,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 /// Priority levels for RTP encoding parameters.
 ///
-/// - `bitratePriority` controls WebRTC internal bandwidth allocation between streams.
-/// - `networkPriority` controls DSCP marking for network-level QoS.
-///   Requires `ConnectOptions.enableDscp` to be true.
+/// `bitratePriority` controls WebRTC internal bandwidth allocation between streams.
+/// `networkPriority` controls DSCP marking for network-level QoS.
 enum Priority {
   veryLow,
   low,

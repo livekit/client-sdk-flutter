@@ -20,9 +20,16 @@ import 'priority.dart';
 /// A type that represents video encoding information.
 @immutable
 class VideoEncoding implements Comparable<VideoEncoding> {
+  /// Maximum framerate for the video track.
   final int maxFramerate;
+
+  /// Maximum bitrate for the video track.
   final int maxBitrate;
+
+  /// Priority for bandwidth allocation.
   final Priority? bitratePriority;
+
+  /// Priority for DSCP marking. Requires `RTCConfiguration.enableDscp` to be true.
   final Priority? networkPriority;
 
   const VideoEncoding({
