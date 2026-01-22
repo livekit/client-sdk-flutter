@@ -179,7 +179,10 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         setState(() {});
       });
     _renderer?.onResize = () {
-      final videoValue = (_renderer as ValueNotifier<rtc.RTCVideoValue>).value;
+      final videoValue = (_renderer as ValueNotifier<rtc.RTCVideoValue>?)?.value;
+      if (videoValue == null) {
+        return;
+      }
       final double width;
       final double height;
       if (videoValue.rotation % 180 == 0) {
