@@ -61,16 +61,11 @@ class ConnectOptions {
 
   final Timeouts timeouts;
 
-  /// Allows DSCP codes to be set on outgoing packets when network priority is used.
-  /// Defaults to false.
-  final bool enableDscp;
-
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v12,
     this.timeouts = Timeouts.defaultTimeouts,
-    this.enableDscp = false,
   });
 }
 

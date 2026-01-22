@@ -576,10 +576,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
-    if (connectOptions.enableDscp) {
-      rtcConfiguration = rtcConfiguration.copyWith(enableDscp: true);
-    }
-
     return rtcConfiguration;
   }
 
