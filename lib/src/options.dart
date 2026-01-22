@@ -17,6 +17,7 @@ import 'e2ee/options.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
+import 'types/audio_encoding.dart';
 import 'types/other.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -60,11 +61,16 @@ class ConnectOptions {
 
   final Timeouts timeouts;
 
+  /// Allows DSCP codes to be set on outgoing packets when network priority is used.
+  /// Defaults to false.
+  final bool enableDscp;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v12,
     this.timeouts = Timeouts.defaultTimeouts,
+    this.enableDscp = false,
   });
 }
 
@@ -314,6 +320,9 @@ class AudioPreset {
 class AudioPublishOptions extends PublishOptions {
   static const defaultMicrophoneName = 'microphone';
 
+  /// Preferred encoding parameters.
+  final AudioEncoding? encoding;
+
   /// Whether to enable DTX (Discontinuous Transmission) or not.
   /// https://en.wikipedia.org/wiki/Discontinuous_transmission
   /// Defaults to true.
@@ -322,7 +331,8 @@ class AudioPublishOptions extends PublishOptions {
   /// red (Redundant Audio Data)
   final bool? red;
 
-  /// max audio bitrate
+  /// Max audio bitrate used when [encoding] is not set.
+  /// Ignored if [encoding] is provided.
   final int audioBitrate;
 
   /// Mark this audio as originating from a pre-connect buffer.
@@ -332,6 +342,7 @@ class AudioPublishOptions extends PublishOptions {
   const AudioPublishOptions({
     super.name,
     super.stream,
+    this.encoding,
     this.dtx = true,
     this.red = true,
     this.audioBitrate = AudioPreset.music,
@@ -339,6 +350,7 @@ class AudioPublishOptions extends PublishOptions {
   });
 
   AudioPublishOptions copyWith({
+    AudioEncoding? encoding,
     bool? dtx,
     int? audioBitrate,
     String? name,
@@ -347,6 +359,7 @@ class AudioPublishOptions extends PublishOptions {
     bool? preConnect,
   }) =>
       AudioPublishOptions(
+        encoding: encoding ?? this.encoding,
         dtx: dtx ?? this.dtx,
         audioBitrate: audioBitrate ?? this.audioBitrate,
         name: name ?? this.name,
@@ -357,7 +370,7 @@ class AudioPublishOptions extends PublishOptions {
 
   @override
   String toString() =>
-      '${runtimeType}(dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red}, preConnect: ${preConnect})';
+      '${runtimeType}(encoding: ${encoding}, dtx: ${dtx}, audioBitrate: ${audioBitrate}, red: ${red}, preConnect: ${preConnect})';
 }
 
 final backupCodecs = ['vp8', 'h264'];

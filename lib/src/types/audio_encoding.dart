@@ -17,29 +17,25 @@ import 'package:meta/meta.dart';
 
 import 'priority.dart';
 
-/// A type that represents video encoding information.
+/// A type that represents audio encoding information.
 @immutable
-class VideoEncoding implements Comparable<VideoEncoding> {
-  final int maxFramerate;
+class AudioEncoding {
   final int maxBitrate;
   final Priority? bitratePriority;
   final Priority? networkPriority;
 
-  const VideoEncoding({
-    required this.maxFramerate,
+  const AudioEncoding({
     required this.maxBitrate,
     this.bitratePriority,
     this.networkPriority,
   });
 
-  VideoEncoding copyWith({
-    int? maxFramerate,
+  AudioEncoding copyWith({
     int? maxBitrate,
     Priority? bitratePriority,
     Priority? networkPriority,
   }) =>
-      VideoEncoding(
-        maxFramerate: maxFramerate ?? this.maxFramerate,
+      AudioEncoding(
         maxBitrate: maxBitrate ?? this.maxBitrate,
         bitratePriority: bitratePriority ?? this.bitratePriority,
         networkPriority: networkPriority ?? this.networkPriority,
@@ -47,52 +43,40 @@ class VideoEncoding implements Comparable<VideoEncoding> {
 
   @override
   String toString() =>
-      '${runtimeType}(maxFramerate: ${maxFramerate}, maxBitrate: ${maxBitrate}, bitratePriority: ${bitratePriority}, networkPriority: ${networkPriority})';
-
-  // ----------------------------------------------------------------------
-  // equality
+      '${runtimeType}(maxBitrate: ${maxBitrate}, bitratePriority: ${bitratePriority}, networkPriority: ${networkPriority})';
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is VideoEncoding &&
-          maxFramerate == other.maxFramerate &&
+      other is AudioEncoding &&
           maxBitrate == other.maxBitrate &&
           bitratePriority == other.bitratePriority &&
           networkPriority == other.networkPriority;
 
   @override
-  int get hashCode => Object.hash(maxFramerate, maxBitrate, bitratePriority, networkPriority);
+  int get hashCode => Object.hash(maxBitrate, bitratePriority, networkPriority);
 
-  // ----------------------------------------------------------------------
-  // Comparable
+  static const presetTelephone = AudioEncoding(maxBitrate: 12000);
+  static const presetSpeech = AudioEncoding(maxBitrate: 24000);
+  static const presetMusic = AudioEncoding(maxBitrate: 48000);
+  static const presetMusicStereo = AudioEncoding(maxBitrate: 64000);
+  static const presetMusicHighQuality = AudioEncoding(maxBitrate: 96000);
+  static const presetMusicHighQualityStereo = AudioEncoding(maxBitrate: 128000);
 
-  @override
-  int compareTo(VideoEncoding other) {
-    // compare bitrates
-    final result = maxBitrate.compareTo(other.maxBitrate);
-    // if bitrates are the same, compare by fps
-    if (result == 0) {
-      return maxFramerate.compareTo(other.maxFramerate);
-    }
-
-    return result;
-  }
+  static const presets = [
+    presetTelephone,
+    presetSpeech,
+    presetMusic,
+    presetMusicStereo,
+    presetMusicHighQuality,
+    presetMusicHighQualityStereo,
+  ];
 }
 
-/// Convenience extension for [VideoEncoding].
-extension VideoEncodingExt on VideoEncoding {
-  rtc.RTCRtpEncoding toRTCRtpEncoding({
-    String? rid,
-    double? scaleResolutionDownBy = 1.0,
-    int? numTemporalLayers,
-  }) =>
-      rtc.RTCRtpEncoding(
-        rid: rid,
-        scaleResolutionDownBy: scaleResolutionDownBy,
-        maxFramerate: maxFramerate,
+/// Convenience extension for [AudioEncoding].
+extension AudioEncodingExt on AudioEncoding {
+  rtc.RTCRtpEncoding toRTCRtpEncoding() => rtc.RTCRtpEncoding(
         maxBitrate: maxBitrate,
-        numTemporalLayers: numTemporalLayers,
         priority: (bitratePriority ?? Priority.low).toRtcpPriorityType(),
         networkPriority: networkPriority?.toRtcpPriorityType(),
       );

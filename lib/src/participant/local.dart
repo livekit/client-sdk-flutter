@@ -51,6 +51,7 @@ import '../track/options.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
+import '../types/priority.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
@@ -123,9 +124,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
+    final audioEncoding = publishOptions.encoding;
+    final maxAudioBitrate = audioEncoding?.maxBitrate ?? publishOptions.audioBitrate;
     final List<rtc.RTCRtpEncoding> encodings = [
       rtc.RTCRtpEncoding(
-        maxBitrate: publishOptions.audioBitrate,
+        maxBitrate: maxAudioBitrate,
+        priority: (audioEncoding?.bitratePriority ?? Priority.low).toRtcpPriorityType(),
+        networkPriority: audioEncoding?.networkPriority?.toRtcpPriorityType(),
       )
     ];
 
@@ -162,7 +167,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
         sendEncodings: [
-          if (publishOptions.audioBitrate > 0) rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
+          if (maxAudioBitrate > 0)
+            rtc.RTCRtpEncoding(
+              maxBitrate: maxAudioBitrate,
+              priority: (audioEncoding?.bitratePriority ?? Priority.low).toRtcpPriorityType(),
+              networkPriority: audioEncoding?.networkPriority?.toRtcpPriorityType(),
+            ),
         ],
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)

@@ -140,12 +140,14 @@ class RTCConfiguration {
   final List<RTCIceServer>? iceServers;
   final RTCIceTransportPolicy? iceTransportPolicy;
   final bool? encodedInsertableStreams;
+  final bool? enableDscp;
 
   const RTCConfiguration({
     this.iceCandidatePoolSize,
     this.iceServers,
     this.iceTransportPolicy,
     this.encodedInsertableStreams,
+    this.enableDscp,
   });
 
   Map<String, dynamic> toMap() {
@@ -158,6 +160,7 @@ class RTCConfiguration {
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
       if (encodedInsertableStreams != null) 'encodedInsertableStreams': encodedInsertableStreams,
+      if (enableDscp != null) 'enableDscp': enableDscp,
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
       if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
       if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
@@ -170,12 +173,14 @@ class RTCConfiguration {
     List<RTCIceServer>? iceServers,
     RTCIceTransportPolicy? iceTransportPolicy,
     bool? encodedInsertableStreams,
+    bool? enableDscp,
   }) =>
       RTCConfiguration(
         iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
         iceServers: iceServers ?? this.iceServers,
         iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
         encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
+        enableDscp: enableDscp ?? this.enableDscp,
       );
 }
 
