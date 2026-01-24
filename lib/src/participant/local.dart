@@ -874,6 +874,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               : VideoPublishOptions.defaultCameraName),
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
+      muted: track.muted,
       layers: layers,
       sid: publication.sid,
       simulcastCodecs: <lk_rtc.SimulcastCodec>[
