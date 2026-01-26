@@ -91,7 +91,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       _selectedVideoDevice = null;
     }
 
-    if (_audioInputs.isNotEmpty) {
+    if (_enableAudio && _audioInputs.isNotEmpty) {
       if (_selectedAudioDevice == null) {
         _selectedAudioDevice = _audioInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
@@ -101,7 +101,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       }
     }
 
-    if (_videoInputs.isNotEmpty) {
+    if (_enableVideo && _videoInputs.isNotEmpty) {
       if (_selectedVideoDevice == null) {
         _selectedVideoDevice = _videoInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
