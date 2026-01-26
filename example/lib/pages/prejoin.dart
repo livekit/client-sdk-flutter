@@ -84,6 +84,13 @@ class _PreJoinPageState extends State<PreJoinPage> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
 
+    if (_selectedAudioDevice != null && !_audioInputs.contains(_selectedAudioDevice)) {
+      _selectedAudioDevice = null;
+    }
+    if (_selectedVideoDevice != null && !_videoInputs.contains(_selectedVideoDevice)) {
+      _selectedVideoDevice = null;
+    }
+
     if (_audioInputs.isNotEmpty) {
       if (_selectedAudioDevice == null) {
         _selectedAudioDevice = _audioInputs.first;
@@ -112,7 +119,11 @@ class _PreJoinPageState extends State<PreJoinPage> {
     if (!_enableVideo) {
       await _videoTrack?.stop();
       _videoTrack = null;
+      _selectedVideoDevice = null;
     } else {
+      if (_selectedVideoDevice == null && _videoInputs.isNotEmpty) {
+        _selectedVideoDevice = _videoInputs.first;
+      }
       await _changeLocalVideoTrack();
     }
     setState(() {});
@@ -124,7 +135,11 @@ class _PreJoinPageState extends State<PreJoinPage> {
     if (!_enableAudio) {
       await _audioTrack?.stop();
       _audioTrack = null;
+      _selectedAudioDevice = null;
     } else {
+      if (_selectedAudioDevice == null && _audioInputs.isNotEmpty) {
+        _selectedAudioDevice = _audioInputs.first;
+      }
       await _changeLocalAudioTrack();
     }
     setState(() {});
