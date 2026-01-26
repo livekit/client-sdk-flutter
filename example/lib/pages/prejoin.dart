@@ -87,8 +87,16 @@ class _PreJoinPageState extends State<PreJoinPage> {
     if (_selectedAudioDevice != null && !_audioInputs.contains(_selectedAudioDevice)) {
       _selectedAudioDevice = null;
     }
+    if (_audioInputs.isEmpty) {
+      await _audioTrack?.stop();
+      _audioTrack = null;
+    }
     if (_selectedVideoDevice != null && !_videoInputs.contains(_selectedVideoDevice)) {
       _selectedVideoDevice = null;
+    }
+    if (_videoInputs.isEmpty) {
+      await _videoTrack?.stop();
+      _videoTrack = null;
     }
 
     if (_enableAudio && _audioInputs.isNotEmpty) {
