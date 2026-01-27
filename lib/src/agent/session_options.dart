@@ -30,21 +30,32 @@ class SessionOptions {
   /// to a failed state.
   final Duration agentConnectTimeout;
 
+  /// Whether to enable the microphone by default when the session starts.
+  ///
+  /// If set to `true`, the microphone will be enabled automatically after connecting
+  /// to the room. If set to `false`, the microphone will remain disabled until
+  /// explicitly enabled.
+  /// Defaults to `true`.
+  final bool defaultMicrophoneEnabled;
+
   SessionOptions({
     Room? room,
     this.preConnectAudio = true,
     this.agentConnectTimeout = const Duration(seconds: 20),
+    this.defaultMicrophoneEnabled = true,
   }) : room = room ?? Room();
 
   SessionOptions copyWith({
     Room? room,
     bool? preConnectAudio,
     Duration? agentConnectTimeout,
+    bool? defaultMicrophoneEnabled,
   }) {
     return SessionOptions(
       room: room ?? this.room,
       preConnectAudio: preConnectAudio ?? this.preConnectAudio,
       agentConnectTimeout: agentConnectTimeout ?? this.agentConnectTimeout,
+      defaultMicrophoneEnabled: defaultMicrophoneEnabled ?? this.defaultMicrophoneEnabled,
     );
   }
 }
