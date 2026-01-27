@@ -103,8 +103,9 @@ class _PreJoinPageState extends State<PreJoinPage> {
       if (_selectedAudioDevice == null) {
         _selectedAudioDevice = _audioInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
+          if (!mounted) return;
           await _changeLocalAudioTrack();
-          setState(() {});
+          if (mounted) setState(() {});
         });
       }
     }
@@ -113,12 +114,13 @@ class _PreJoinPageState extends State<PreJoinPage> {
       if (_selectedVideoDevice == null) {
         _selectedVideoDevice = _videoInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
+          if (!mounted) return;
           await _changeLocalVideoTrack();
-          setState(() {});
+          if (mounted) setState(() {});
         });
       }
     }
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _setEnableVideo(value) async {
