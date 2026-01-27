@@ -84,26 +84,43 @@ class _PreJoinPageState extends State<PreJoinPage> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
 
-    if (_audioInputs.isNotEmpty) {
+    if (_selectedAudioDevice != null && !_audioInputs.contains(_selectedAudioDevice)) {
+      _selectedAudioDevice = null;
+    }
+    if (_audioInputs.isEmpty) {
+      await _audioTrack?.stop();
+      _audioTrack = null;
+    }
+    if (_selectedVideoDevice != null && !_videoInputs.contains(_selectedVideoDevice)) {
+      _selectedVideoDevice = null;
+    }
+    if (_videoInputs.isEmpty) {
+      await _videoTrack?.stop();
+      _videoTrack = null;
+    }
+
+    if (_enableAudio && _audioInputs.isNotEmpty) {
       if (_selectedAudioDevice == null) {
         _selectedAudioDevice = _audioInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
+          if (!mounted) return;
           await _changeLocalAudioTrack();
-          setState(() {});
+          if (mounted) setState(() {});
         });
       }
     }
 
-    if (_videoInputs.isNotEmpty) {
+    if (_enableVideo && _videoInputs.isNotEmpty) {
       if (_selectedVideoDevice == null) {
         _selectedVideoDevice = _videoInputs.first;
         Future.delayed(const Duration(milliseconds: 100), () async {
+          if (!mounted) return;
           await _changeLocalVideoTrack();
-          setState(() {});
+          if (mounted) setState(() {});
         });
       }
     }
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Future<void> _setEnableVideo(value) async {
@@ -112,7 +129,11 @@ class _PreJoinPageState extends State<PreJoinPage> {
     if (!_enableVideo) {
       await _videoTrack?.stop();
       _videoTrack = null;
+      _selectedVideoDevice = null;
     } else {
+      if (_selectedVideoDevice == null && _videoInputs.isNotEmpty) {
+        _selectedVideoDevice = _videoInputs.first;
+      }
       await _changeLocalVideoTrack();
     }
     setState(() {});
@@ -124,7 +145,11 @@ class _PreJoinPageState extends State<PreJoinPage> {
     if (!_enableAudio) {
       await _audioTrack?.stop();
       _audioTrack = null;
+      _selectedAudioDevice = null;
     } else {
+      if (_selectedAudioDevice == null && _audioInputs.isNotEmpty) {
+        _selectedAudioDevice = _audioInputs.first;
+      }
       await _changeLocalAudioTrack();
     }
     setState(() {});
