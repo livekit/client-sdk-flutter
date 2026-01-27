@@ -139,6 +139,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
+      muted: track.muted,
       stream: buildStreamId(publishOptions, track.source),
       disableDtx: !publishOptions.dtx,
       disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
@@ -371,7 +372,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       source: track.source.toPBType(),
       encryption: room.roomOptions.lkEncryptionType,
       simulcastCodecs: simulcastCodecs,
-      muted: false,
+      muted: track.muted,
       stream: buildStreamId(publishOptions, track.source),
     );
 
