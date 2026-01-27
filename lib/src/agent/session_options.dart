@@ -40,7 +40,7 @@ class SessionOptions {
 
   SessionOptions({
     Room? room,
-    this.preConnectAudio = true,
+    this.preConnectAudio = false,
     this.agentConnectTimeout = const Duration(seconds: 20),
     this.defaultMicrophoneEnabled = true,
   }) : room = room ?? Room();
