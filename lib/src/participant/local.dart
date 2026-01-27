@@ -52,7 +52,6 @@ import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
-import '../types/priority.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
