@@ -349,8 +349,7 @@ class AudioPublishOptions extends PublishOptions {
       );
 
   @override
-  String toString() =>
-      '${runtimeType}(encoding: ${encoding}, dtx: ${dtx}, red: ${red}, preConnect: ${preConnect})';
+  String toString() => '${runtimeType}(encoding: ${encoding}, dtx: ${dtx}, red: ${red}, preConnect: ${preConnect})';
 }
 
 final backupCodecs = ['vp8', 'h264'];
