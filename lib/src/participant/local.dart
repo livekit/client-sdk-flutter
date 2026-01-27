@@ -48,6 +48,7 @@ import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
@@ -124,13 +125,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    final audioEncoding = publishOptions.encoding;
-    final maxAudioBitrate = audioEncoding?.maxBitrate ?? publishOptions.audioBitrate;
+    final audioEncoding = publishOptions.encoding ?? AudioEncoding.presetMusic;
     final List<rtc.RTCRtpEncoding> encodings = [
       rtc.RTCRtpEncoding(
-        maxBitrate: maxAudioBitrate,
-        priority: (audioEncoding?.bitratePriority ?? Priority.low).toRtcpPriorityType(),
-        networkPriority: audioEncoding?.networkPriority?.toRtcpPriorityType(),
+        maxBitrate: audioEncoding.maxBitrate,
+        priority: (audioEncoding.bitratePriority ?? Priority.low).toRtcpPriorityType(),
+        networkPriority: audioEncoding.networkPriority?.toRtcpPriorityType(),
       )
     ];
 
@@ -168,11 +168,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
         sendEncodings: [
-          if (maxAudioBitrate > 0)
+          if (audioEncoding.maxBitrate > 0)
             rtc.RTCRtpEncoding(
-              maxBitrate: maxAudioBitrate,
-              priority: (audioEncoding?.bitratePriority ?? Priority.low).toRtcpPriorityType(),
-              networkPriority: audioEncoding?.networkPriority?.toRtcpPriorityType(),
+              maxBitrate: audioEncoding.maxBitrate,
+              priority: (audioEncoding.bitratePriority ?? Priority.low).toRtcpPriorityType(),
+              networkPriority: audioEncoding.networkPriority?.toRtcpPriorityType(),
             ),
         ],
       );
