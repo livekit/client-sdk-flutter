@@ -151,6 +151,10 @@ class Session extends DisposableChangeNotifier {
   SessionOptions get options => _options;
 
   set options(SessionOptions value) {
+    if (!identical(value.room, room)) {
+      // Keep Session.room authoritative to avoid split-brain state.
+      value = value.copyWith(room: room);
+    }
     _options = value;
     notifyListeners();
   }
