@@ -140,6 +140,7 @@ class RTCConfiguration {
   final List<RTCIceServer>? iceServers;
   final RTCIceTransportPolicy? iceTransportPolicy;
   final bool? encodedInsertableStreams;
+
   /// Allows DSCP codes to be set on outgoing packets.
   /// No effect on web platforms.
   final bool? enableDscp;
