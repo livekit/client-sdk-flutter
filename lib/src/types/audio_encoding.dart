@@ -26,7 +26,7 @@ class AudioEncoding {
   /// Priority for bandwidth allocation.
   final Priority? bitratePriority;
 
-  /// Priority for DSCP marking. Requires `RTCConfiguration.enableDscp` to be true.
+  /// Priority for DSCP marking. Requires `RTCConfiguration.isDscpEnabled` to be true.
   final Priority? networkPriority;
 
   const AudioEncoding({

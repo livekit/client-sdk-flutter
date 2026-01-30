@@ -143,14 +143,14 @@ class RTCConfiguration {
 
   /// Allows DSCP codes to be set on outgoing packets.
   /// No effect on web platforms.
-  final bool? enableDscp;
+  final bool? isDscpEnabled;
 
   const RTCConfiguration({
     this.iceCandidatePoolSize,
     this.iceServers,
     this.iceTransportPolicy,
     this.encodedInsertableStreams,
-    this.enableDscp,
+    this.isDscpEnabled,
   });
 
   Map<String, dynamic> toMap() {
@@ -163,7 +163,7 @@ class RTCConfiguration {
       // only supports unified plan
       'sdpSemantics': 'unified-plan',
       if (encodedInsertableStreams != null) 'encodedInsertableStreams': encodedInsertableStreams,
-      if (enableDscp != null) 'enableDscp': enableDscp,
+      if (isDscpEnabled != null) 'enableDscp': isDscpEnabled,
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
       if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
       if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
@@ -176,14 +176,14 @@ class RTCConfiguration {
     List<RTCIceServer>? iceServers,
     RTCIceTransportPolicy? iceTransportPolicy,
     bool? encodedInsertableStreams,
-    bool? enableDscp,
+    bool? isDscpEnabled,
   }) =>
       RTCConfiguration(
         iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
         iceServers: iceServers ?? this.iceServers,
         iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
         encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
-        enableDscp: enableDscp ?? this.enableDscp,
+        isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
       );
 }
 
