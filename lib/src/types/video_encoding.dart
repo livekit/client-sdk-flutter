@@ -77,13 +77,18 @@ class VideoEncoding implements Comparable<VideoEncoding> {
   @override
   int compareTo(VideoEncoding other) {
     // compare bitrates
-    final result = maxBitrate.compareTo(other.maxBitrate);
-    // if bitrates are the same, compare by fps
-    if (result == 0) {
-      return maxFramerate.compareTo(other.maxFramerate);
-    }
+    var result = maxBitrate.compareTo(other.maxBitrate);
+    if (result != 0) return result;
 
-    return result;
+    // compare by fps
+    result = maxFramerate.compareTo(other.maxFramerate);
+    if (result != 0) return result;
+
+    // compare by priority fields for consistency with == and hashCode
+    result = (bitratePriority?.index ?? -1).compareTo(other.bitratePriority?.index ?? -1);
+    if (result != 0) return result;
+
+    return (networkPriority?.index ?? -1).compareTo(other.networkPriority?.index ?? -1);
   }
 }
 
