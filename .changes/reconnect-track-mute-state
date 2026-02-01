@@ -1,1 +1,0 @@
-patch type="fixed" "Set correct mute state in add-track requests after reconnect"
