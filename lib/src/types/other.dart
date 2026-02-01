@@ -141,8 +141,13 @@ class RTCConfiguration {
   final RTCIceTransportPolicy? iceTransportPolicy;
   final bool? encodedInsertableStreams;
 
-  /// Allows DSCP codes to be set on outgoing packets.
-  /// No effect on web platforms.
+  /// Allows DSCP (Differentiated Services Code Point) codes to be set on
+  /// outgoing packets for network level QoS.
+  ///
+  /// This is a best effort hint and network routers may ignore DSCP markings.
+  /// Required for `networkPriority` to take effect.
+  ///
+  /// Ignored on web platforms.
   final bool? isDscpEnabled;
 
   const RTCConfiguration({
