@@ -100,7 +100,7 @@ extension VideoEncodingExt on VideoEncoding {
         maxFramerate: maxFramerate,
         maxBitrate: maxBitrate,
         numTemporalLayers: numTemporalLayers,
-        priority: (bitratePriority ?? Priority.low).toRtcpPriorityType(),
+        priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
         networkPriority: networkPriority?.toRtcpPriorityType(),
       );
 }

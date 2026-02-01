@@ -82,7 +82,7 @@ class AudioEncoding {
 extension AudioEncodingExt on AudioEncoding {
   rtc.RTCRtpEncoding toRTCRtpEncoding() => rtc.RTCRtpEncoding(
         maxBitrate: maxBitrate,
-        priority: (bitratePriority ?? Priority.low).toRtcpPriorityType(),
+        priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
         networkPriority: networkPriority?.toRtcpPriorityType(),
       );
 }

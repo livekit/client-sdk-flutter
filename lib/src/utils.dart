@@ -429,7 +429,7 @@ class Utils {
             rid: videoRids[2 - i],
             maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
             maxFramerate: original.encoding!.maxFramerate,
-            priority: (videoEncoding.bitratePriority ?? Priority.low).toRtcpPriorityType(),
+            priority: videoEncoding.bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
             networkPriority: videoEncoding.networkPriority?.toRtcpPriorityType(),
           ));
         }
