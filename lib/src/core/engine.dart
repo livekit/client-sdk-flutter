@@ -39,6 +39,7 @@ import '../publication/local.dart';
 import '../support/disposable.dart';
 import '../support/platform.dart' show lkPlatformIsTest, lkPlatformIs, PlatformType;
 import '../support/region_url_provider.dart';
+import '../support/value_or_absent.dart';
 import '../support/websocket.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -562,18 +563,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // The server provided iceServers are only used if
     // the client's iceServers are not set.
     if (rtcConfiguration.iceServers == null && serverProvidedIceServers.isNotEmpty) {
-      rtcConfiguration = connectOptions.rtcConfiguration.copyWith(iceServers: serverProvidedIceServers);
+      rtcConfiguration = connectOptions.rtcConfiguration.copyWith(iceServers: Value(serverProvidedIceServers));
     }
 
     // set forceRelay if server response is enabled
     if (serverResponseForceRelay == lk_models.ClientConfigSetting.ENABLED) {
       rtcConfiguration = rtcConfiguration.copyWith(
-        iceTransportPolicy: RTCIceTransportPolicy.relay,
+        iceTransportPolicy: Value(RTCIceTransportPolicy.relay),
       );
     }
 
     if (kIsWeb && (roomOptions.e2eeOptions != null || roomOptions.encryption != null)) {
-      rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
+      rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: Value(true));
     }
 
     return rtcConfiguration;

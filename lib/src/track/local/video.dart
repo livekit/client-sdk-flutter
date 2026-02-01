@@ -26,6 +26,7 @@ import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../../stats/stats.dart';
 import '../../support/platform.dart';
+import '../../support/value_or_absent.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import 'audio.dart';
@@ -242,7 +243,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     if (options == null) {
       options = const ScreenShareCaptureOptions(captureScreenAudio: true);
     } else {
-      options = options.copyWith(captureScreenAudio: true);
+      options = options.copyWith(captureScreenAudio: Value(true));
     }
     final stream = await LocalTrack.createStream(options);
 
@@ -299,12 +300,12 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     }
 
     if (fastSwitch) {
-      currentOptions = options.copyWith(deviceId: deviceId);
+      currentOptions = options.copyWith(deviceId: Value(deviceId));
       await rtc.Helper.switchCamera(mediaStreamTrack, deviceId, mediaStream);
       return;
     }
 
-    await restartTrack(options.copyWith(deviceId: deviceId));
+    await restartTrack(options.copyWith(deviceId: Value(deviceId)));
 
     await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
   }
