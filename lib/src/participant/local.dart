@@ -104,6 +104,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return participant;
   }
 
+  @override
+  @internal
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
+    final didUpdate = await super.updateFromInfo(info);
+    if (!didUpdate) return false;
+
+    // Reconcile local mute state with the server's copy.
+    for (final trackInfo in info.tracks) {
+      final pub = trackPublications[trackInfo.sid];
+      if (pub == null) continue;
+
+      final localMuted = pub.muted;
+      if (localMuted != trackInfo.muted) {
+        logger.fine(
+          'updating server mute state after reconcile, track: ${trackInfo.sid}, muted: $localMuted',
+        );
+        try {
+          room.engine.signalClient.sendMuteTrack(trackInfo.sid, localMuted);
+        } catch (e) {
+          logger.warning('Failed to update server mute state after reconcile: $e');
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Handle broadcast state change (iOS only)
   void _broadcastStateChanged() {
     final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
@@ -870,6 +897,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               : VideoPublishOptions.defaultCameraName),
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
+      muted: track.muted,
       layers: layers,
       sid: publication.sid,
       simulcastCodecs: <lk_rtc.SimulcastCodec>[
