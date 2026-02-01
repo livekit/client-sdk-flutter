@@ -2,8 +2,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:math' as math;
 
-import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamTrackWeb;
-import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamWeb;
+import 'package:dart_webrtc/dart_webrtc.dart' show MediaStreamTrackWeb, MediaStreamWeb;
 import 'package:web/web.dart' as web;
 
 import '../../track/local/local.dart' show AudioTrack;
