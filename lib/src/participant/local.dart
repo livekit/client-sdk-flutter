@@ -48,6 +48,7 @@ import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
@@ -123,11 +124,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    final List<rtc.RTCRtpEncoding> encodings = [
-      rtc.RTCRtpEncoding(
-        maxBitrate: publishOptions.audioBitrate,
-      )
-    ];
+    final audioEncoding = publishOptions.encoding ?? AudioEncoding.presetMusic;
+    final List<rtc.RTCRtpEncoding> encodings = [audioEncoding.toRTCRtpEncoding()];
 
     final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
@@ -162,9 +160,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
-        sendEncodings: [
-          if (publishOptions.audioBitrate > 0) rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
-        ],
+        sendEncodings: encodings,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
       track.transceiver = await room.engine.publisher?.pc.addTransceiver(
