@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.6.2
+
+* Added: Bitrate priority control APIs
+* Fixed: Windows: stop camera after unpublishing video track
+* Fixed: Keep mute state in sync with server
+* Fixed: Fix example prejoin device dropdown handling
+* Chore: Mark LocalVideoTrack constructor as internal for consistency with LocalAudioTrack
+* Chore: Update protobuf dependency to v6.0.0
+* Chore: Skip iOS platform download in CI
+
 ## 2.6.1
 
 * Fixed: Enable E2EE for VP9 codec

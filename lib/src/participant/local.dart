@@ -48,6 +48,7 @@ import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
@@ -103,6 +104,33 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     return participant;
   }
 
+  @override
+  @internal
+  Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
+    final didUpdate = await super.updateFromInfo(info);
+    if (!didUpdate) return false;
+
+    // Reconcile local mute state with the server's copy.
+    for (final trackInfo in info.tracks) {
+      final pub = trackPublications[trackInfo.sid];
+      if (pub == null) continue;
+
+      final localMuted = pub.muted;
+      if (localMuted != trackInfo.muted) {
+        logger.fine(
+          'updating server mute state after reconcile, track: ${trackInfo.sid}, muted: $localMuted',
+        );
+        try {
+          room.engine.signalClient.sendMuteTrack(trackInfo.sid, localMuted);
+        } catch (e) {
+          logger.warning('Failed to update server mute state after reconcile: $e');
+        }
+      }
+    }
+
+    return true;
+  }
+
   /// Handle broadcast state change (iOS only)
   void _broadcastStateChanged() {
     final isEnabled = BroadcastManager().isBroadcasting && BroadcastManager().shouldPublishTrack;
@@ -123,17 +151,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // Use defaultPublishOptions if options is null
     publishOptions ??= track.lastPublishOptions ?? room.roomOptions.defaultAudioPublishOptions;
 
-    final List<rtc.RTCRtpEncoding> encodings = [
-      rtc.RTCRtpEncoding(
-        maxBitrate: publishOptions.audioBitrate,
-      )
-    ];
+    final audioEncoding = publishOptions.encoding ?? AudioEncoding.presetMusic;
+    final List<rtc.RTCRtpEncoding> encodings = [audioEncoding.toRTCRtpEncoding()];
 
     final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
       name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
+      muted: track.muted,
       stream: buildStreamId(publishOptions, track.source),
       disableDtx: !publishOptions.dtx,
       disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
@@ -161,9 +187,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       final transceiverInit = rtc.RTCRtpTransceiverInit(
         direction: rtc.TransceiverDirection.SendOnly,
-        sendEncodings: [
-          if (publishOptions.audioBitrate > 0) rtc.RTCRtpEncoding(maxBitrate: publishOptions.audioBitrate),
-        ],
+        sendEncodings: encodings,
       );
       // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
       track.transceiver = await room.engine.publisher?.pc.addTransceiver(
@@ -361,7 +385,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       source: track.source.toPBType(),
       encryption: room.roomOptions.lkEncryptionType,
       simulcastCodecs: simulcastCodecs,
-      muted: false,
+      muted: track.muted,
       stream: buildStreamId(publishOptions, track.source),
     );
 
@@ -873,6 +897,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               : VideoPublishOptions.defaultCameraName),
       type: track.kind.toPBType(),
       source: track.source.toPBType(),
+      muted: track.muted,
       layers: layers,
       sid: publication.sid,
       simulcastCodecs: <lk_rtc.SimulcastCodec>[
