@@ -33,6 +33,7 @@ import 'options.dart';
 import 'support/platform.dart';
 import 'track/local/video.dart';
 import 'types/other.dart';
+import 'types/priority.dart';
 import 'types/video_dimensions.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -428,6 +429,8 @@ class Utils {
             rid: videoRids[2 - i],
             maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
             maxFramerate: original.encoding!.maxFramerate,
+            priority: videoEncoding.bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
+            networkPriority: videoEncoding.networkPriority?.toRtcpPriorityType(),
           ));
         }
       } else {
