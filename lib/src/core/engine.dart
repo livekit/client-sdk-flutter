@@ -506,7 +506,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   @internal
   Future<void> ensurePublisherConnected() async {
     _publisherConnectionFuture ??= _publisherEnsureConnected();
-    await _publisherConnectionFuture;
+    try {
+      await _publisherConnectionFuture;
+    } catch (_) {
+      _publisherConnectionFuture = null;
+      rethrow;
+    }
   }
 
   lk_models.EncryptedPacketPayload? asEncryptablePacket(lk_models.DataPacket packet) {
@@ -1123,6 +1128,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       await publisher?.dispose();
       publisher = null;
+
+      _publisherConnectionFuture = null;
 
       await subscriber?.dispose();
       subscriber = null;
