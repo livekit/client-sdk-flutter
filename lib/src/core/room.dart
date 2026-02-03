@@ -1130,7 +1130,7 @@ extension RoomHardwareManagementMethods on Room {
     );
 
     try {
-      if (track != null && selectedVideoInputDeviceId != device.deviceId) {
+      if (track != null && currentDeviceId != device.deviceId) {
         await track.switchCamera(device.deviceId);
         Hardware.instance.selectedVideoInput = device;
       }
