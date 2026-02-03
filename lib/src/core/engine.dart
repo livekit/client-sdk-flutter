@@ -165,6 +165,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
   bool _isReconnecting = false;
 
+  Future<void>? _publisherConnectionFuture;
+
   String? _reliableParticipantKey(lk_models.DataPacket packet) {
     if (packet.hasParticipantSid() && packet.participantSid.isNotEmpty) {
       return packet.participantSid;
@@ -408,7 +410,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     if (_subscriberPrimary) {
       // make sure publisher transport is connected
-      await _publisherEnsureConnected();
+      await ensurePublisherConnected();
 
       // wait for data channel to open (if not already)
       if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
@@ -498,6 +500,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           duration: connectOptions.timeouts.peerConnection,
         );
       }
+    }
+  }
+
+  @internal
+  Future<void> ensurePublisherConnected() async {
+    _publisherConnectionFuture ??= _publisherEnsureConnected();
+    try {
+      await _publisherConnectionFuture;
+    } catch (_) {
+      _publisherConnectionFuture = null;
+      rethrow;
     }
   }
 
@@ -633,6 +646,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     publisher?.pc.onConnectionState = (state) async {
+      if ([
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected
+      ].contains(state)) {
+        _publisherConnectionFuture = null;
+      }
       events.emit(EnginePublisherPeerStateUpdatedEvent(
         state: state,
         isPrimary: !_subscriberPrimary,
@@ -1109,6 +1129,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await publisher?.dispose();
       publisher = null;
 
+      _publisherConnectionFuture = null;
+
       await subscriber?.dispose();
       subscriber = null;
 
@@ -1131,8 +1153,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
 
       if (_hasPublished) {
-        await _publisherEnsureConnected();
+        await ensurePublisherConnected();
       }
+
       fullReconnectOnNext = false;
       _regionUrlProvider?.resetAttempts();
       events.emit(const EngineRestartedEvent());
