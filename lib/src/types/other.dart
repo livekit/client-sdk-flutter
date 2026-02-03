@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 
 import '../extensions.dart';
 import '../participant/participant.dart';
+import '../support/value_or_absent.dart';
 
 typedef CancelListenFunc = Future<void> Function();
 
@@ -177,18 +178,18 @@ class RTCConfiguration {
 
   // Returns new options with updated properties
   RTCConfiguration copyWith({
-    int? iceCandidatePoolSize,
-    List<RTCIceServer>? iceServers,
-    RTCIceTransportPolicy? iceTransportPolicy,
-    bool? encodedInsertableStreams,
-    bool? isDscpEnabled,
+    ValueOrAbsent<int?> iceCandidatePoolSize = const Absent(),
+    ValueOrAbsent<List<RTCIceServer>?> iceServers = const Absent(),
+    ValueOrAbsent<RTCIceTransportPolicy?> iceTransportPolicy = const Absent(),
+    ValueOrAbsent<bool?> encodedInsertableStreams = const Absent(),
+    ValueOrAbsent<bool?> isDscpEnabled = const Absent(),
   }) =>
       RTCConfiguration(
-        iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
-        iceServers: iceServers ?? this.iceServers,
-        iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
-        encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
-        isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
+        iceCandidatePoolSize: iceCandidatePoolSize.valueOr(this.iceCandidatePoolSize),
+        iceServers: iceServers.valueOr(this.iceServers),
+        iceTransportPolicy: iceTransportPolicy.valueOr(this.iceTransportPolicy),
+        encodedInsertableStreams: encodedInsertableStreams.valueOr(this.encodedInsertableStreams),
+        isDscpEnabled: isDscpEnabled.valueOr(this.isDscpEnabled),
       );
 }
 

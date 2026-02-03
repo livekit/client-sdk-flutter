@@ -21,6 +21,7 @@ import '../logger.dart';
 import '../support/native.dart';
 import '../support/native_audio.dart';
 import '../support/platform.dart';
+import '../support/value_or_absent.dart';
 import '../track/audio_management.dart';
 
 class MediaDevice {
@@ -151,9 +152,9 @@ class Hardware {
           config = await onConfigureNativeAudio.call(audioTrackState);
           if (_preferSpeakerOutput && _forceSpeakerOutput) {
             config = config.copyWith(
-              appleAudioCategoryOptions: {
+              appleAudioCategoryOptions: Value({
                 AppleAudioCategoryOption.defaultToSpeaker,
-              },
+              }),
             );
           }
           logger.fine('configuring for ${audioTrackState} using ${config}...');

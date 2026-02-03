@@ -23,6 +23,7 @@ import '../../logger.dart';
 import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
+import '../../support/value_or_absent.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart';
@@ -39,7 +40,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     if (currentOptions.deviceId == deviceId) {
       return;
     }
-    currentOptions = currentOptions.copyWith(deviceId: deviceId);
+    currentOptions = currentOptions.copyWith(deviceId: Value(deviceId));
     if (!muted) {
       await restartTrack();
     }
