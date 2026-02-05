@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data' show Uint8List;
+
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
