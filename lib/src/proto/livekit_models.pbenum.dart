@@ -395,6 +395,9 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
   /// Connectors participants
   static const ParticipantInfo_Kind CONNECTOR = ParticipantInfo_Kind._(7, _omitEnumNames ? '' : 'CONNECTOR');
 
+  /// Bridge participants
+  static const ParticipantInfo_Kind BRIDGE = ParticipantInfo_Kind._(8, _omitEnumNames ? '' : 'BRIDGE');
+
   static const $core.List<ParticipantInfo_Kind> values = <ParticipantInfo_Kind>[
     STANDARD,
     INGRESS,
@@ -402,9 +405,10 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
     SIP,
     AGENT,
     CONNECTOR,
+    BRIDGE,
   ];
 
-  static final $core.List<ParticipantInfo_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 7);
+  static final $core.List<ParticipantInfo_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 8);
   static ParticipantInfo_Kind? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -420,15 +424,18 @@ class ParticipantInfo_KindDetail extends $pb.ProtobufEnum {
       ParticipantInfo_KindDetail._(2, _omitEnumNames ? '' : 'CONNECTOR_WHATSAPP');
   static const ParticipantInfo_KindDetail CONNECTOR_TWILIO =
       ParticipantInfo_KindDetail._(3, _omitEnumNames ? '' : 'CONNECTOR_TWILIO');
+  static const ParticipantInfo_KindDetail BRIDGE_RTSP =
+      ParticipantInfo_KindDetail._(4, _omitEnumNames ? '' : 'BRIDGE_RTSP');
 
   static const $core.List<ParticipantInfo_KindDetail> values = <ParticipantInfo_KindDetail>[
     CLOUD_AGENT,
     FORWARDED,
     CONNECTOR_WHATSAPP,
     CONNECTOR_TWILIO,
+    BRIDGE_RTSP,
   ];
 
-  static final $core.List<ParticipantInfo_KindDetail?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static final $core.List<ParticipantInfo_KindDetail?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
   static ParticipantInfo_KindDetail? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
