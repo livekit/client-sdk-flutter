@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
