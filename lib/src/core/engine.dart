@@ -1372,9 +1372,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           await handleReconnect(ClientDisconnectReason.leaveReconnect);
           break;
         case lk_rtc.LeaveRequest_Action.RESUME:
+          fullReconnectOnNext = false;
           // reconnect immediately instead of waiting for next attempt
           await handleReconnect(ClientDisconnectReason.leaveReconnect);
+          break;
         default:
+          // Fallback for protocol version < 13: check canReconnect field
+          if (event.canReconnect) {
+            fullReconnectOnNext = true;
+            await handleReconnect(ClientDisconnectReason.leaveReconnect);
+          }
           break;
       }
     });
