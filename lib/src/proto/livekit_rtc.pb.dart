@@ -5097,12 +5097,14 @@ class ConnectionSettings extends $pb.GeneratedMessage {
     $core.bool? adaptiveStream,
     $core.bool? subscriberAllowPause,
     $core.bool? disableIceLite,
+    $core.bool? autoSubscribeDataTrack,
   }) {
     final result = create();
     if (autoSubscribe != null) result.autoSubscribe = autoSubscribe;
     if (adaptiveStream != null) result.adaptiveStream = adaptiveStream;
     if (subscriberAllowPause != null) result.subscriberAllowPause = subscriberAllowPause;
     if (disableIceLite != null) result.disableIceLite = disableIceLite;
+    if (autoSubscribeDataTrack != null) result.autoSubscribeDataTrack = autoSubscribeDataTrack;
     return result;
   }
 
@@ -5121,6 +5123,7 @@ class ConnectionSettings extends $pb.GeneratedMessage {
     ..aOB(2, _omitFieldNames ? '' : 'adaptiveStream')
     ..aOB(3, _omitFieldNames ? '' : 'subscriberAllowPause')
     ..aOB(4, _omitFieldNames ? '' : 'disableIceLite')
+    ..aOB(5, _omitFieldNames ? '' : 'autoSubscribeDataTrack')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5176,6 +5179,15 @@ class ConnectionSettings extends $pb.GeneratedMessage {
   $core.bool hasDisableIceLite() => $_has(3);
   @$pb.TagNumber(4)
   void clearDisableIceLite() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get autoSubscribeDataTrack => $_getBF(4);
+  @$pb.TagNumber(5)
+  set autoSubscribeDataTrack($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasAutoSubscribeDataTrack() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAutoSubscribeDataTrack() => $_clearField(5);
 }
 
 class JoinRequest extends $pb.GeneratedMessage {
