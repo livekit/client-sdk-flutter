@@ -18,7 +18,7 @@ class RegionUrlProvider {
 
   int lastUpdateAt = 0;
 
-  int settingsCacheTime = 3000;
+  int settingsCacheTime = 5000; // 5 seconds
 
   RegionUrlProvider({required String url, required this.token}) : serverUrl = Uri.parse(url);
 
@@ -36,7 +36,7 @@ class RegionUrlProvider {
     if (!isCloud()) {
       throw Exception('region availability is only supported for LiveKit Cloud domains');
     }
-    if (regionSettings == null || DateTime.timestamp().microsecondsSinceEpoch - lastUpdateAt > settingsCacheTime) {
+    if (regionSettings == null || DateTime.timestamp().millisecondsSinceEpoch - lastUpdateAt > settingsCacheTime) {
       regionSettings = await fetchRegionSettings();
     }
     final regionsLeft = regionSettings?.regions.where(
@@ -71,7 +71,7 @@ class RegionUrlProvider {
       final regionSettings = lk_models.RegionSettings(
         regions: regions,
       );
-      lastUpdateAt = DateTime.timestamp().microsecondsSinceEpoch;
+      lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
       return regionSettings;
     } else {
       throw ConnectException(
