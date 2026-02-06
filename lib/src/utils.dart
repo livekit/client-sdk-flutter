@@ -15,8 +15,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';

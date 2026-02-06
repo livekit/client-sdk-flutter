@@ -17,8 +17,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:async/async.dart';
 import 'package:fixnum/fixnum.dart';
