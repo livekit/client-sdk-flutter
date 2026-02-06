@@ -199,7 +199,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   Future<void> sendLeave() async {
     _sendRequest(lk_rtc.SignalRequest(
-        leave: lk_rtc.LeaveRequest(canReconnect: false, reason: lk_models.DisconnectReason.CLIENT_INITIATED)));
+        leave: lk_rtc.LeaveRequest(
+      reason: lk_models.DisconnectReason.CLIENT_INITIATED,
+      // server doesn't process this field, keeping it here to indicate the intent of a full disconnect
+      action: lk_rtc.LeaveRequest_Action.DISCONNECT,
+    )));
   }
 
   // resets internal state to a re-usable state
