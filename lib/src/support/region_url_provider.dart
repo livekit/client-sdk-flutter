@@ -18,7 +18,7 @@ class RegionUrlProvider {
 
   int lastUpdateAt = 0;
 
-  int settingsCacheTime = 3000;
+  int settingsCacheTime = 5000; // 5 seconds
 
   RegionUrlProvider({required String url, required this.token}) : serverUrl = Uri.parse(url);
 
@@ -71,7 +71,7 @@ class RegionUrlProvider {
       final regionSettings = lk_models.RegionSettings(
         regions: regions,
       );
-      lastUpdateAt = DateTime.timestamp().microsecondsSinceEpoch;
+      lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
       return regionSettings;
     } else {
       throw ConnectException(
