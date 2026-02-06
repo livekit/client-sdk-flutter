@@ -1355,34 +1355,25 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('updating regions');
         _regionUrlProvider?.setServerReportedRegions(event.regions!);
       }
-      switch (event.action) {
-        case lk_rtc.LeaveRequest_Action.DISCONNECT:
-          if (connectionState == ConnectionState.reconnecting) {
-            logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
-            return;
-          }
-          await signalClient.cleanUp();
-          fullReconnectOnNext = false;
-          await disconnect();
-          events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
-          break;
-        case lk_rtc.LeaveRequest_Action.RECONNECT:
-          fullReconnectOnNext = true;
-          // reconnect immediately instead of waiting for next attempt
-          await handleReconnect(ClientDisconnectReason.leaveReconnect);
-          break;
-        case lk_rtc.LeaveRequest_Action.RESUME:
-          fullReconnectOnNext = false;
-          // reconnect immediately instead of waiting for next attempt
-          await handleReconnect(ClientDisconnectReason.leaveReconnect);
-          break;
-        default:
-          // Fallback for protocol version < 13: check canReconnect field
-          if (event.canReconnect) {
-            fullReconnectOnNext = true;
-            await handleReconnect(ClientDisconnectReason.leaveReconnect);
-          }
-          break;
+      if (event.action == lk_rtc.LeaveRequest_Action.RESUME) {
+        fullReconnectOnNext = false;
+        // reconnect immediately instead of waiting for next attempt
+        await handleReconnect(ClientDisconnectReason.leaveReconnect);
+      } else if (event.action == lk_rtc.LeaveRequest_Action.RECONNECT ||
+          // canReconnect is deprecated in protocol version >= 13
+          event.canReconnect) {
+        fullReconnectOnNext = true;
+        // reconnect immediately instead of waiting for next attempt
+        await handleReconnect(ClientDisconnectReason.leaveReconnect);
+      } else {
+        if (connectionState == ConnectionState.reconnecting) {
+          logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
+          return;
+        }
+        await signalClient.cleanUp();
+        fullReconnectOnNext = false;
+        await disconnect();
+        events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
       }
     });
 
