@@ -15,8 +15,9 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
