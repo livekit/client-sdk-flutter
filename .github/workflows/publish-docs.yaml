@@ -21,4 +21,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
           AWS_DEFAULT_REGION: "us-east-1"
-        run: aws s3 cp doc/api/ s3://livekit-docs/client-sdk-flutter/ --recursive
+        run: aws s3 cp doc/api/ s3://${{ secrets.DOCS_DEPLOY_BUCKET }}/client-sdk-flutter/ --recursive
