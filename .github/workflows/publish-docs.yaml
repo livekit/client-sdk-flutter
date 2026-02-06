@@ -1,0 +1,24 @@
+name: Publish docs
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish-docs:
+    name: Publish docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - run: flutter pub get
+      - name: Generate dartdoc
+        run: dart doc
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
+          AWS_DEFAULT_REGION: "us-east-1"
+        run: aws s3 cp doc/api/ s3://livekit-docs/client-sdk-flutter/ --recursive
