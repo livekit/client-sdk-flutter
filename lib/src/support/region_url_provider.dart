@@ -36,7 +36,7 @@ class RegionUrlProvider {
     if (!isCloud()) {
       throw Exception('region availability is only supported for LiveKit Cloud domains');
     }
-    if (regionSettings == null || DateTime.timestamp().microsecondsSinceEpoch - lastUpdateAt > settingsCacheTime) {
+    if (regionSettings == null || DateTime.timestamp().millisecondsSinceEpoch - lastUpdateAt > settingsCacheTime) {
       regionSettings = await fetchRegionSettings();
     }
     final regionsLeft = regionSettings?.regions.where(
