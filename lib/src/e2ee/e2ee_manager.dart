@@ -141,7 +141,7 @@ class E2EEManager {
     await _listener?.cancelAll();
     await _listener?.dispose();
     _listener = null;
-    for (var frameCryptor in _frameCryptors.values) {
+    for (var frameCryptor in _frameCryptors.values.toList()) {
       await frameCryptor.dispose();
     }
     _frameCryptors.clear();
@@ -178,7 +178,7 @@ class E2EEManager {
   /// without encryption/decryption
   Future<void> setEnabled(bool enabled) async {
     _enabled = enabled;
-    for (var frameCryptor in _frameCryptors.entries) {
+    for (var frameCryptor in _frameCryptors.entries.toList()) {
       await frameCryptor.value.setEnabled(enabled);
     }
   }
@@ -189,7 +189,7 @@ class E2EEManager {
   /// if null, use local participant.
   Future<void> setKeyIndex(int keyIndex, {String? participantIdentity}) async {
     participantIdentity ??= _room?.localParticipant?.identity;
-    for (var item in _frameCryptors.entries) {
+    for (var item in _frameCryptors.entries.toList()) {
       if (item.key.keys.first == participantIdentity) {
         await item.value.setKeyIndex(keyIndex);
       }
@@ -202,7 +202,7 @@ class E2EEManager {
   /// @return the key index and -1 if not found
   Future<int> getKeyIndex(String? participantIdentity) async {
     participantIdentity ??= _room?.localParticipant?.identity;
-    for (var item in _frameCryptors.entries) {
+    for (var item in _frameCryptors.entries.toList()) {
       if (item.key.keys.first == participantIdentity) {
         return await item.value.keyIndex;
       }

@@ -539,8 +539,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
 
-      for (var participant in _remoteParticipants) {
-        for (var pub in participant.trackPublications.values) {
+      for (var participant in _remoteParticipants.toList()) {
+        for (var pub in participant.trackPublications.values.toList()) {
           if (pub.subscribed) {
             pub.sendUpdateTrackSettings();
           }
@@ -936,8 +936,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final trackSids = <String>[];
     final trackSidsDisabled = <String>[];
 
-    for (var participant in _remoteParticipants) {
-      for (var track in participant.trackPublications.values) {
+    for (var participant in _remoteParticipants.toList()) {
+      for (var track in participant.trackPublications.values.toList()) {
         if (track.subscribed != autoSubscribe) {
           trackSids.add(track.sid);
         }
@@ -1084,7 +1084,7 @@ extension RoomHardwareManagementMethods on Room {
   /// Set audio output device.
   Future<void> setAudioOutputDevice(MediaDevice device) async {
     if (lkPlatformIs(PlatformType.web)) {
-      for (final participant in _remoteParticipants) {
+      for (final participant in _remoteParticipants.toList()) {
         for (final audioTrack in participant.audioTrackPublications) {
           audioTrack.track?.setSinkId(device.deviceId);
         }

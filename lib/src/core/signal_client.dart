@@ -517,10 +517,11 @@ extension SignalClientInternalMethods on SignalClient {
     // queue is empty
     if (_queue.isEmpty) return;
     // send requests
-    for (final request in _queue) {
+    final queueCopy = List.of(_queue);
+    _queue.clear();
+    for (final request in queueCopy) {
       _sendRequest(request, enqueueIfReconnecting: false);
     }
-    _queue.clear();
   }
 
   @internal

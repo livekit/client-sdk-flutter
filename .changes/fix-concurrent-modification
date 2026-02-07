@@ -1,0 +1,1 @@
+patch type="fixed" "Fix concurrent modification on collection iteration during async operations"
