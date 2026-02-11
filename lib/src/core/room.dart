@@ -922,7 +922,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final participant = _remoteParticipants.removeByIdentity(identity);
     if (participant == null) return false;
 
-    validateParticipantHasNoActiveDataStreams(identity);
+    await validateParticipantHasNoActiveDataStreams(identity);
 
     await participant.removeAllPublishedTracks(notify: true);
 
@@ -1464,7 +1464,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
-  void validateParticipantHasNoActiveDataStreams(String participantIdentity) {
+  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
     // Terminate any in flight data stream receives from the given participant
     final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
         .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
@@ -1481,12 +1481,12 @@ extension DataStreamRoomMethods on Room {
       );
       for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
-        controller.close();
+        await controller.close();
         _byteStreamControllers.remove(controller.info.id);
       }
       for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
-        controller.close();
+        await controller.close();
         _textStreamControllers.remove(controller.info.id);
       }
     }
