@@ -15,6 +15,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../support/value_or_absent.dart';
 import 'priority.dart';
 
 /// A type that represents audio encoding information.
@@ -36,14 +37,14 @@ class AudioEncoding {
   });
 
   AudioEncoding copyWith({
-    int? maxBitrate,
-    Priority? bitratePriority,
-    Priority? networkPriority,
+    ValueOrAbsent<int> maxBitrate = const Absent(),
+    ValueOrAbsent<Priority?> bitratePriority = const Absent(),
+    ValueOrAbsent<Priority?> networkPriority = const Absent(),
   }) =>
       AudioEncoding(
-        maxBitrate: maxBitrate ?? this.maxBitrate,
-        bitratePriority: bitratePriority ?? this.bitratePriority,
-        networkPriority: networkPriority ?? this.networkPriority,
+        maxBitrate: maxBitrate.valueOr(this.maxBitrate),
+        bitratePriority: bitratePriority.valueOr(this.bitratePriority),
+        networkPriority: networkPriority.valueOr(this.networkPriority),
       );
 
   @override

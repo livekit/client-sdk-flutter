@@ -41,6 +41,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
+import '../support/value_or_absent.dart';
 import '../support/websocket.dart' show WebSocketException;
 import '../track/audio_management.dart';
 import '../track/local/audio.dart';
@@ -261,9 +262,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     if (_e2eeManager != null) {
       // Disable backup codec when e2ee is enabled
       roomOptions = roomOptions.copyWith(
-        defaultVideoPublishOptions: roomOptions.defaultVideoPublishOptions.copyWith(
-          backupVideoCodec: const BackupVideoCodec(enabled: false),
-        ),
+        defaultVideoPublishOptions: Value(roomOptions.defaultVideoPublishOptions.copyWith(
+          backupVideoCodec: Value(const BackupVideoCodec(enabled: false)),
+        )),
       );
     }
 
@@ -448,7 +449,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         logger.info('Publishing preconnect audio track');
         await _localParticipant!.publishAudioTrack(
           preConnectAudioBuffer.localTrack!,
-          publishOptions: roomOptions.defaultAudioPublishOptions.copyWith(preConnect: true),
+          publishOptions: roomOptions.defaultAudioPublishOptions.copyWith(preConnect: Value(true)),
         );
       }
 
@@ -1094,9 +1095,9 @@ extension RoomHardwareManagementMethods on Room {
       await Hardware.instance.selectAudioOutput(device);
     }
     engine.roomOptions = engine.roomOptions.copyWith(
-      defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
-        deviceId: device.deviceId,
-      ),
+      defaultAudioOutputOptions: Value(roomOptions.defaultAudioOutputOptions.copyWith(
+        deviceId: Value(device.deviceId),
+      )),
     );
   }
 
@@ -1111,9 +1112,9 @@ extension RoomHardwareManagementMethods on Room {
       await Hardware.instance.selectAudioInput(device);
     }
     engine.roomOptions = engine.roomOptions.copyWith(
-      defaultAudioCaptureOptions: roomOptions.defaultAudioCaptureOptions.copyWith(
-        deviceId: device.deviceId,
-      ),
+      defaultAudioCaptureOptions: Value(roomOptions.defaultAudioCaptureOptions.copyWith(
+        deviceId: Value(device.deviceId),
+      )),
     );
   }
 
@@ -1125,7 +1126,8 @@ extension RoomHardwareManagementMethods on Room {
 
     // Always update roomOptions so future tracks use the correct device
     engine.roomOptions = engine.roomOptions.copyWith(
-      defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions.copyWith(deviceId: device.deviceId),
+      defaultCameraCaptureOptions:
+          Value(roomOptions.defaultCameraCaptureOptions.copyWith(deviceId: Value(device.deviceId))),
     );
 
     try {
@@ -1136,7 +1138,8 @@ extension RoomHardwareManagementMethods on Room {
     } catch (e) {
       // if the switching actually fails, reset it to the previous deviceId
       engine.roomOptions = engine.roomOptions.copyWith(
-        defaultCameraCaptureOptions: roomOptions.defaultCameraCaptureOptions.copyWith(deviceId: currentDeviceId),
+        defaultCameraCaptureOptions:
+            Value(roomOptions.defaultCameraCaptureOptions.copyWith(deviceId: Value(currentDeviceId))),
       );
     }
   }
@@ -1149,9 +1152,9 @@ extension RoomHardwareManagementMethods on Room {
     if (lkPlatformIsMobile()) {
       await Hardware.instance.setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
       engine.roomOptions = engine.roomOptions.copyWith(
-        defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
-          speakerOn: speakerOn,
-        ),
+        defaultAudioOutputOptions: Value(roomOptions.defaultAudioOutputOptions.copyWith(
+          speakerOn: Value(speakerOn),
+        )),
       );
     }
   }

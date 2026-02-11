@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'value_or_absent.dart';
+
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
 enum AppleAudioCategory {
   soloAmbient,
@@ -139,15 +141,15 @@ class NativeAudioConfiguration {
       };
 
   NativeAudioConfiguration copyWith({
-    AppleAudioCategory? appleAudioCategory,
-    Set<AppleAudioCategoryOption>? appleAudioCategoryOptions,
-    AppleAudioMode? appleAudioMode,
-    bool? preferSpeakerOutput,
+    ValueOrAbsent<AppleAudioCategory?> appleAudioCategory = const Absent(),
+    ValueOrAbsent<Set<AppleAudioCategoryOption>?> appleAudioCategoryOptions = const Absent(),
+    ValueOrAbsent<AppleAudioMode?> appleAudioMode = const Absent(),
+    ValueOrAbsent<bool?> preferSpeakerOutput = const Absent(),
   }) =>
       NativeAudioConfiguration(
-        appleAudioCategory: appleAudioCategory ?? this.appleAudioCategory,
-        appleAudioCategoryOptions: appleAudioCategoryOptions ?? this.appleAudioCategoryOptions,
-        appleAudioMode: appleAudioMode ?? this.appleAudioMode,
-        preferSpeakerOutput: preferSpeakerOutput ?? this.preferSpeakerOutput,
+        appleAudioCategory: appleAudioCategory.valueOr(this.appleAudioCategory),
+        appleAudioCategoryOptions: appleAudioCategoryOptions.valueOr(this.appleAudioCategoryOptions),
+        appleAudioMode: appleAudioMode.valueOr(this.appleAudioMode),
+        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
       );
 }

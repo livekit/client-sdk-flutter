@@ -20,6 +20,7 @@ import '../logger.dart';
 import '../support/native.dart';
 import '../support/native_audio.dart';
 import '../support/platform.dart';
+import '../support/value_or_absent.dart';
 import 'local/local.dart';
 import 'remote/remote.dart';
 
@@ -115,9 +116,9 @@ Future<void> _onAudioTrackCountDidChange() async {
 
       if (Hardware.instance.forceSpeakerOutput) {
         config = config.copyWith(
-          appleAudioCategoryOptions: {
+          appleAudioCategoryOptions: Value({
             AppleAudioCategoryOption.defaultToSpeaker,
-          },
+          }),
         );
       }
     }
