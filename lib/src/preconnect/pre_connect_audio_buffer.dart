@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -41,8 +40,8 @@ typedef PreConnectOnError = void Function(Object error);
 /// still connecting and dispatching an agent, then the buffered audio is sent
 /// once the agent becomes active.
 ///
-/// Audio is buffered in memory (bounded by [defaultMaxSize]); if it overflows,
-/// the oldest audio is dropped until the agent is ready.
+/// Audio is buffered in memory and bounded by [defaultMaxSize].
+/// If it overflows, the oldest audio is dropped until the agent is ready.
 class PreConnectAudioBuffer {
   /// Topic used to send the buffered audio stream to agents.
   static const String dataTopic = 'lk.agent.pre-connect-audio-buffer';
@@ -66,6 +65,7 @@ class PreConnectAudioBuffer {
   PreConnectOnError? _onError;
   final int _requestSampleRate;
   int? _renderedSampleRate;
+  int? _renderedChannels;
 
   bool _nativeRecordingStarted = false;
   bool _hasLoggedOverflow = false;
@@ -107,8 +107,8 @@ class PreConnectAudioBuffer {
   /// [agentReadyFuture] completes with an error and callers should [reset] the
   /// buffer.
   ///
-  /// - Note: Ensure microphone permissions are granted before calling this, or
-  ///   audio capture may fail depending on platform.
+  /// Ensure microphone permissions are granted before calling this.
+  /// Audio capture may fail without permissions.
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {
@@ -161,13 +161,11 @@ class PreConnectAudioBuffer {
       }
 
       try {
-        // Actual sample rate of the audio data, can differ from the request sample rate
+        // Audio format can differ from what was requested.
         _renderedSampleRate = event['sampleRate'] as int;
-        final dataChannels = event['data'] as List<dynamic>;
-        final monoData = dataChannels[0].cast<int>();
-        // Convert Int16 values to bytes using typed data view
-        final int16List = Int16List.fromList(monoData);
-        final bytes = int16List.buffer.asUint8List();
+        _renderedChannels = event['channels'] as int;
+        // Native sends raw interleaved PCM bytes.
+        final Uint8List bytes = event['data'] as Uint8List;
 
         final didOverflow = _buffer.write(bytes);
         if (didOverflow && !_hasLoggedOverflow) {
@@ -181,7 +179,7 @@ class PreConnectAudioBuffer {
       }
     });
 
-    // Listen for agent readiness; when active, attempt to send buffer once.
+    // Listen for agent readiness and send the buffer when active.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
         filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
         (event) async {
@@ -260,7 +258,7 @@ class PreConnectAudioBuffer {
     _participantStateListener = null;
     _buffer.clear();
 
-    // Don't stop the local track - it will continue to be used by the Room
+    // Keep the local track because the Room still uses it.
     _localTrack = null;
 
     _agentReadyManager.reset();
@@ -269,6 +267,7 @@ class PreConnectAudioBuffer {
     // Reset the _isSent flag to allow data sending on next use
     _isBufferSent = false;
     _hasLoggedOverflow = false;
+    _renderedChannels = null;
 
     logger.info('[Preconnect audio] reset');
   }
@@ -281,8 +280,8 @@ class PreConnectAudioBuffer {
 
   /// Sends the currently buffered audio to one or more agent identities.
   ///
-  /// This is a one-shot operation; repeated calls are ignored after the buffer
-  /// has been sent.
+  /// This is a one shot operation.
+  /// Repeated calls are ignored after the buffer has been sent.
   ///
   /// The stream is written to [topic] (default: [dataTopic]) and includes
   /// attributes that help the agent interpret the raw audio payload.
@@ -294,9 +293,14 @@ class PreConnectAudioBuffer {
     if (agents.isEmpty) return;
 
     final sampleRate = _renderedSampleRate;
+    final rawChannels = _renderedChannels ?? 1;
+    final channels = rawChannels > 0 ? rawChannels : 1;
     if (sampleRate == null) {
       logger.severe('[Preconnect audio] renderedSampleRate is null');
       return;
+    }
+    if (rawChannels <= 0) {
+      logger.warning('[Preconnect audio] Invalid rendered channels: $rawChannels. Falling back to mono.');
     }
 
     // Wait for local track published event
@@ -320,7 +324,7 @@ class PreConnectAudioBuffer {
       topic: topic,
       attributes: {
         'sampleRate': sampleRate.toString(),
-        'channels': '1',
+        'channels': channels.toString(),
         'trackId': localTrackSid,
       },
       totalSize: data.length,
@@ -334,9 +338,10 @@ class PreConnectAudioBuffer {
     await writer.close();
 
     // Compute seconds of audio data sent
-    final int bytesPerSample = 2; // Assuming 16-bit audio
-    final int totalSamples = data.length ~/ bytesPerSample;
-    final double secondsOfAudio = totalSamples / sampleRate;
+    final int bytesPerSample = 2; // 16-bit audio
+    final int bytesPerFrame = bytesPerSample * channels;
+    final int totalFrames = data.length ~/ bytesPerFrame;
+    final double secondsOfAudio = totalFrames / sampleRate;
 
     logger.info(
         '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
