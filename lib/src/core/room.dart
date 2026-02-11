@@ -1396,9 +1396,7 @@ extension DataStreamRoomMethods on Room {
         );
 
         _byteStreamControllers.remove(chunk.streamId);
-      }
-
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         fileBuffer.write(chunk);
       }
     }
@@ -1415,8 +1413,7 @@ extension DataStreamRoomMethods on Room {
 
         logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
         _textStreamControllers.remove(chunk.streamId);
-      }
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         textBuffer.write(chunk);
       }
     }
@@ -1484,10 +1481,12 @@ extension DataStreamRoomMethods on Room {
       );
       for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        controller.close();
         _byteStreamControllers.remove(controller.info.id);
       }
       for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        controller.close();
         _textStreamControllers.remove(controller.info.id);
       }
     }
