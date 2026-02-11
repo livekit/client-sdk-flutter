@@ -166,7 +166,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
   bool _isReconnecting = false;
 
-  Future<void>? _publisherConnectionFuture;
+  Completer<void>? _publisherConnectionCompleter;
 
   String? _reliableParticipantKey(lk_models.DataPacket packet) {
     if (packet.hasParticipantSid() && packet.participantSid.isNotEmpty) {
@@ -507,13 +507,32 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   @internal
   Future<void> ensurePublisherConnected() async {
-    _publisherConnectionFuture ??= _publisherEnsureConnected();
+    if (_publisherConnectionCompleter != null && !_publisherConnectionCompleter!.isCompleted) {
+      return _publisherConnectionCompleter!.future;
+    }
+    final completer = Completer<void>();
+    _publisherConnectionCompleter = completer;
     try {
-      await _publisherConnectionFuture;
-    } catch (_) {
-      _publisherConnectionFuture = null;
+      await _publisherEnsureConnected();
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    } catch (e) {
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
+      _publisherConnectionCompleter = null;
       rethrow;
     }
+  }
+
+  void _resetPublisherConnection() {
+    final completer = _publisherConnectionCompleter;
+    if (completer != null && !completer.isCompleted) {
+      completer
+          .completeError(ConnectException('Publisher connection reset', reason: ConnectionErrorReason.InternalError));
+    }
+    _publisherConnectionCompleter = null;
   }
 
   lk_models.EncryptedPacketPayload? asEncryptablePacket(lk_models.DataPacket packet) {
@@ -653,7 +672,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected
       ].contains(state)) {
-        _publisherConnectionFuture = null;
+        _resetPublisherConnection();
       }
       events.emit(EnginePublisherPeerStateUpdatedEvent(
         state: state,
@@ -1131,7 +1150,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await publisher?.dispose();
       publisher = null;
 
-      _publisherConnectionFuture = null;
+      _resetPublisherConnection();
 
       await subscriber?.dispose();
       subscriber = null;
