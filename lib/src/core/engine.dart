@@ -487,11 +487,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _publisherEnsureConnected() async {
-    if ((await publisher?.pc.getConnectionState())?.isConnected() != true) {
+    final state = await publisher?.pc.getConnectionState();
+    if (state?.isConnected() != true) {
       logger.fine('Publisher is not connected...');
 
       // start negotiation
-      if (await publisher?.pc.getConnectionState() != rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
+      if (state != rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
         await negotiate();
       }
       if (!lkPlatformIsTest()) {
