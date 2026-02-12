@@ -506,24 +506,32 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  Future<void> ensurePublisherConnected() async {
-    if (_publisherConnectionCompleter != null && !_publisherConnectionCompleter!.isCompleted) {
-      return _publisherConnectionCompleter!.future;
+  Future<void> ensurePublisherConnected() {
+    final existing = _publisherConnectionCompleter;
+    if (existing != null && !existing.isCompleted) {
+      return existing.future;
     }
+
     final completer = Completer<void>();
     _publisherConnectionCompleter = completer;
-    try {
-      await _publisherEnsureConnected();
-      if (!completer.isCompleted) {
-        completer.complete();
-      }
-    } catch (e) {
-      if (!completer.isCompleted) {
-        completer.completeError(e);
-      }
-      _publisherConnectionCompleter = null;
-      rethrow;
-    }
+
+    unawaited(
+      _publisherEnsureConnected().then((_) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      }, onError: (Object error, StackTrace stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
+      }).whenComplete(() {
+        if (identical(_publisherConnectionCompleter, completer)) {
+          _publisherConnectionCompleter = null;
+        }
+      }),
+    );
+
+    return completer.future;
   }
 
   void _resetPublisherConnection() {
