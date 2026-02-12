@@ -1,0 +1,1 @@
+patch type="fixed" "Fix crash when writing to closed data stream controllers"

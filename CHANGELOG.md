@@ -1,13 +1,5 @@
 # CHANGELOG
 
-## 2.6.3
-
-* Fixed: Use explicit show clauses for foundation imports
-* Fixed: Fix concurrent modification on collection iteration during async operations
-* Fixed: Fix crash when writing to closed data stream controllers
-* Fixed: Fix region URL provider cache using wrong time unit and wrong field check for regions in leave event
-* Chore: Update protobuf to v1.44.0
-
 ## 2.6.2
 
 * Added: Bitrate priority control APIs
