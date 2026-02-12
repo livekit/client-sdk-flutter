@@ -76,11 +76,7 @@ jobs:
 
           if [ -n "$BREAKING_LINES" ]; then
             echo "has_breaking=true" >> "$GITHUB_OUTPUT"
-            {
-              echo "details<<EOF"
-              echo "$DIFF_OUTPUT"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
+            echo "$DIFF_OUTPUT" > "$RUNNER_TEMP/breaking_changes.txt"
           else
             echo "has_breaking=false" >> "$GITHUB_OUTPUT"
             echo "No breaking changes detected"
@@ -90,10 +86,18 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            const path = require('path');
+
             const changesetCount = parseInt('${{ steps.changeset.outputs.count }}');
             const hasMajor = '${{ steps.changeset.outputs.has_major }}' === 'true';
             const hasBreaking = '${{ steps.breaking.outputs.has_breaking }}' === 'true';
-            const details = `${{ steps.breaking.outputs.details }}`.trim();
+
+            let details = '';
+            if (hasBreaking) {
+              const detailsPath = path.join(process.env.RUNNER_TEMP, 'breaking_changes.txt');
+              try { details = fs.readFileSync(detailsPath, 'utf8').trim(); } catch {}
+            }
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
