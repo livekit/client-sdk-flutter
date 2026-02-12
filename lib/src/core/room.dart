@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
-
-import 'package:flutter/foundation.dart' hide internal;
+import 'dart:typed_data' show Uint8List;
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
@@ -576,8 +575,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
 
-      for (var participant in _remoteParticipants) {
-        for (var pub in participant.trackPublications.values) {
+      for (var participant in _remoteParticipants.toList()) {
+        for (var pub in participant.trackPublications.values.toList()) {
           if (pub.subscribed) {
             pub.sendUpdateTrackSettings();
           }
@@ -1039,7 +1038,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final participant = _remoteParticipants.removeByIdentity(identity);
     if (participant == null) return false;
 
-    validateParticipantHasNoActiveDataStreams(identity);
+    await validateParticipantHasNoActiveDataStreams(identity);
 
     _pendingTrackQueue.removeParticipant(participant.sid, reason: 'remote disconnect');
 
@@ -1055,8 +1054,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final trackSids = <String>[];
     final trackSidsDisabled = <String>[];
 
-    for (var participant in _remoteParticipants) {
-      for (var track in participant.trackPublications.values) {
+    for (var participant in _remoteParticipants.toList()) {
+      for (var track in participant.trackPublications.values.toList()) {
         if (track.subscribed != autoSubscribe) {
           trackSids.add(track.sid);
         }
@@ -1205,7 +1204,7 @@ extension RoomHardwareManagementMethods on Room {
   /// Set audio output device.
   Future<void> setAudioOutputDevice(MediaDevice device) async {
     if (lkPlatformIs(PlatformType.web)) {
-      for (final participant in _remoteParticipants) {
+      for (final participant in _remoteParticipants.toList()) {
         for (final audioTrack in participant.audioTrackPublications) {
           audioTrack.track?.setSinkId(device.deviceId);
         }
@@ -1517,9 +1516,7 @@ extension DataStreamRoomMethods on Room {
         );
 
         _byteStreamControllers.remove(chunk.streamId);
-      }
-
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         fileBuffer.write(chunk);
       }
     }
@@ -1536,8 +1533,7 @@ extension DataStreamRoomMethods on Room {
 
         logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
         _textStreamControllers.remove(chunk.streamId);
-      }
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         textBuffer.write(chunk);
       }
     }
@@ -1588,7 +1584,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
-  void validateParticipantHasNoActiveDataStreams(String participantIdentity) {
+  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
     // Terminate any in flight data stream receives from the given participant
     final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
         .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
@@ -1605,10 +1601,12 @@ extension DataStreamRoomMethods on Room {
       );
       for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        await controller.close();
         _byteStreamControllers.remove(controller.info.id);
       }
       for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        await controller.close();
         _textStreamControllers.remove(controller.info.id);
       }
     }

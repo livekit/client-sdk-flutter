@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
@@ -175,7 +176,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   }
 
   // Private constructor
-  LocalVideoTrack._(
+  @internal
+  LocalVideoTrack(
     TrackSource source,
     rtc.MediaStream stream,
     rtc.MediaStreamTrack track,
@@ -189,7 +191,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     options ??= const CameraCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
-    final track = LocalVideoTrack._(
+    final track = LocalVideoTrack(
       TrackSource.camera,
       stream,
       stream.getVideoTracks().first,
@@ -218,7 +220,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     options ??= const ScreenShareCaptureOptions();
 
     final stream = await LocalTrack.createStream(options);
-    return LocalVideoTrack._(
+    return LocalVideoTrack(
       TrackSource.screenShareVideo,
       stream,
       stream.getVideoTracks().first,
@@ -247,7 +249,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     final stream = await LocalTrack.createStream(options);
 
     final List<LocalTrack> tracks = [
-      LocalVideoTrack._(
+      LocalVideoTrack(
         TrackSource.screenShareVideo,
         stream,
         stream.getVideoTracks().first,

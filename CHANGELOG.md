@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 2.6.2
+
+* Added: Bitrate priority control APIs
+* Fixed: Windows: stop camera after unpublishing video track
+* Fixed: Keep mute state in sync with server
+* Fixed: Fix example prejoin device dropdown handling
+* Chore: Mark LocalVideoTrack constructor as internal for consistency with LocalAudioTrack
+* Chore: Update protobuf dependency to v6.0.0
+* Chore: Skip iOS platform download in CI
+
+## 2.6.1
+
+* Fixed: Enable E2EE for VP9 codec
+* Fixed: Correct spelling in E2EE log and error messages
+* Fixed: Ensure all dispose functions are executed even if one throws
+* Fixed: Fix microphone label typo in example app prejoin audio settings
+* Docs: Fix typos and inconsistencies in README and CHANGELOG
+
 ## 2.6.0
 
 * Session API

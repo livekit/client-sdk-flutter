@@ -1,14 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_models.proto
-//
+// Generated from livekit_models.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
@@ -129,6 +129,23 @@ class TrackSource extends $pb.ProtobufEnum {
   static TrackSource? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const TrackSource._(super.value, super.name);
+}
+
+class DataTrackExtensionID extends $pb.ProtobufEnum {
+  static const DataTrackExtensionID DTEI_INVALID = DataTrackExtensionID._(0, _omitEnumNames ? '' : 'DTEI_INVALID');
+  static const DataTrackExtensionID DTEI_PARTICIPANT_SID =
+      DataTrackExtensionID._(1, _omitEnumNames ? '' : 'DTEI_PARTICIPANT_SID');
+
+  static const $core.List<DataTrackExtensionID> values = <DataTrackExtensionID>[
+    DTEI_INVALID,
+    DTEI_PARTICIPANT_SID,
+  ];
+
+  static final $core.List<DataTrackExtensionID?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static DataTrackExtensionID? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const DataTrackExtensionID._(super.value, super.name);
 }
 
 class VideoQuality extends $pb.ProtobufEnum {
@@ -375,15 +392,23 @@ class ParticipantInfo_Kind extends $pb.ProtobufEnum {
   /// LiveKit agents
   static const ParticipantInfo_Kind AGENT = ParticipantInfo_Kind._(4, _omitEnumNames ? '' : 'AGENT');
 
+  /// Connectors participants
+  static const ParticipantInfo_Kind CONNECTOR = ParticipantInfo_Kind._(7, _omitEnumNames ? '' : 'CONNECTOR');
+
+  /// Bridge participants
+  static const ParticipantInfo_Kind BRIDGE = ParticipantInfo_Kind._(8, _omitEnumNames ? '' : 'BRIDGE');
+
   static const $core.List<ParticipantInfo_Kind> values = <ParticipantInfo_Kind>[
     STANDARD,
     INGRESS,
     EGRESS,
     SIP,
     AGENT,
+    CONNECTOR,
+    BRIDGE,
   ];
 
-  static final $core.List<ParticipantInfo_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static final $core.List<ParticipantInfo_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 8);
   static ParticipantInfo_Kind? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -395,13 +420,22 @@ class ParticipantInfo_KindDetail extends $pb.ProtobufEnum {
       ParticipantInfo_KindDetail._(0, _omitEnumNames ? '' : 'CLOUD_AGENT');
   static const ParticipantInfo_KindDetail FORWARDED =
       ParticipantInfo_KindDetail._(1, _omitEnumNames ? '' : 'FORWARDED');
+  static const ParticipantInfo_KindDetail CONNECTOR_WHATSAPP =
+      ParticipantInfo_KindDetail._(2, _omitEnumNames ? '' : 'CONNECTOR_WHATSAPP');
+  static const ParticipantInfo_KindDetail CONNECTOR_TWILIO =
+      ParticipantInfo_KindDetail._(3, _omitEnumNames ? '' : 'CONNECTOR_TWILIO');
+  static const ParticipantInfo_KindDetail BRIDGE_RTSP =
+      ParticipantInfo_KindDetail._(4, _omitEnumNames ? '' : 'BRIDGE_RTSP');
 
   static const $core.List<ParticipantInfo_KindDetail> values = <ParticipantInfo_KindDetail>[
     CLOUD_AGENT,
     FORWARDED,
+    CONNECTOR_WHATSAPP,
+    CONNECTOR_TWILIO,
+    BRIDGE_RTSP,
   ];
 
-  static final $core.List<ParticipantInfo_KindDetail?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static final $core.List<ParticipantInfo_KindDetail?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
   static ParticipantInfo_KindDetail? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
