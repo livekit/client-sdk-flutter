@@ -1,1 +1,0 @@
-patch type="fixed" "Fix publisher connection causing redundant renegotiations on lower-end devices"
