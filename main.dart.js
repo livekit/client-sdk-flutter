@@ -29640,7 +29640,7 @@ k=A.P([B.Z2,"2",B.Z3,"3",B.Z4,"4",B.Z5,"5",B.Z6,"6",B.Z7,"7",B.Z8,"8",B.Z9,"9",B
 k.toString
 l.m(0,"protocol",k)
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.6.2")
+l.m(0,"version","2.6.3")
 l.m(0,"network",m)
 if(o!=null){i=A.u(i,i)
 k=o.a
