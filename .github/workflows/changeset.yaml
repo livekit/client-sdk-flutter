@@ -1,0 +1,191 @@
+# Copyright 2025 LiveKit, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Changeset Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  changeset:
+    name: Changeset & Breaking Change Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changeset entries
+        id: changeset
+        run: |
+          count=$(find .changes -maxdepth 1 -type f ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+          has_major=false
+          if [ "$count" -gt 0 ]; then
+            if grep -rq '^major ' .changes/ 2>/dev/null; then
+              has_major=true
+            fi
+          fi
+          echo "has_major=$has_major" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Detect breaking changes
+        id: breaking
+        run: |
+          BASE_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "")
+          if [ -z "$BASE_TAG" ]; then
+            echo "No base tag found, skipping breaking change detection"
+            echo "has_breaking=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Comparing public API against $BASE_TAG"
+
+          dart pub global activate dart_apitool
+          REPO_URL="git://${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}:${BASE_TAG}"
+
+          DIFF_OUTPUT=$(dart-apitool diff \
+            --old "$REPO_URL" \
+            --new . \
+            --force-use-flutter 2>&1) || true
+
+          echo "--- dart-apitool output ---"
+          echo "$DIFF_OUTPUT"
+          echo "---"
+
+          # Extract breaking changes from the output
+          BREAKING_LINES=$(echo "$DIFF_OUTPUT" | grep -i "breaking" || true)
+
+          if [ -n "$BREAKING_LINES" ]; then
+            echo "has_breaking=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "details<<EOF"
+              echo "$DIFF_OUTPUT"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has_breaking=false" >> "$GITHUB_OUTPUT"
+            echo "No breaking changes detected"
+          fi
+
+      - name: Manage PR comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changesetCount = parseInt('${{ steps.changeset.outputs.count }}');
+            const hasMajor = '${{ steps.changeset.outputs.has_major }}' === 'true';
+            const hasBreaking = '${{ steps.breaking.outputs.has_breaking }}' === 'true';
+            const details = `${{ steps.breaking.outputs.details }}`.trim();
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            // --- Changeset missing comment ---
+            const changesetMarker = '<!-- changeset-check -->';
+            const existingChangeset = comments.find(c => c.body.includes(changesetMarker));
+
+            if (changesetCount === 0) {
+              const body = [
+                changesetMarker,
+                '> [!WARNING]',
+                '> **No changeset found**',
+                '>',
+                '> If this PR includes user-facing changes, please add a changeset file in `.changes/`',
+                '',
+                '**Format:** `level type="kind" "description"`',
+                '',
+                '```',
+                'patch type="fixed" "Fix audio frame generation"',
+                'minor type="added" "Add support for custom audio processing"',
+                'major type="changed" "Breaking: Rename Room.connect() to Room.join()"',
+                '```',
+              ].join('\n');
+
+              if (existingChangeset) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingChangeset.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body,
+                });
+              }
+            } else if (existingChangeset) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingChangeset.id,
+              });
+            }
+
+            // --- Breaking change without major changeset comment ---
+            const breakingMarker = '<!-- breaking-change-check -->';
+            const existingBreaking = comments.find(c => c.body.includes(breakingMarker));
+
+            if (hasBreaking && !hasMajor) {
+              const body = [
+                breakingMarker,
+                '> [!CAUTION]',
+                '> **Breaking change detected without major changeset**',
+                '',
+                '`dart-apitool` detected the following breaking changes:',
+                '',
+                '```',
+                details,
+                '```',
+                '',
+                'If this is intentional, please add a changeset with `major` level in `.changes/`:',
+                '```',
+                'major type="changed" "Description of breaking change"',
+                '```',
+              ].join('\n');
+
+              if (existingBreaking) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingBreaking.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body,
+                });
+              }
+            } else if (existingBreaking) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingBreaking.id,
+              });
+            }
