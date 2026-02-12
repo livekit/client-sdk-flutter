@@ -212,6 +212,46 @@ void main() {
       expect(trackSubscribed.participant.sid, remoteParticipantData.sid);
       expect(trackSubscribed.publication.track, isNotNull);
     });
+
+    test('pending queue is cleared when participant disconnects', () async {
+      ws.onData(participantJoinResponse.writeToBuffer());
+      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+
+      room.pendingTrackQueue.enqueue(
+        track: _FakeMediaStreamTrack(id: 'queued_track', kind: 'audio'),
+        stream: _FakeMediaStream('${remoteParticipantData.sid}|queued_stream'),
+        receiver: null,
+        participantSid: remoteParticipantData.sid,
+        trackSid: 'queued_track',
+        connectionState: ConnectionState.connected,
+      );
+      expect(room.pendingTrackQueue.stats.totalEntries, 1);
+
+      ws.onData(participantDisconnectResponse.writeToBuffer());
+      await room.events.waitFor<ParticipantDisconnectedEvent>(duration: const Duration(seconds: 1));
+
+      expect(room.pendingTrackQueue.stats.totalEntries, 0);
+    });
+
+    test('engine restart clears pending queue entries', () async {
+      ws.onData(participantJoinResponse.writeToBuffer());
+      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+
+      room.pendingTrackQueue.enqueue(
+        track: _FakeMediaStreamTrack(id: 'queued_track', kind: 'audio'),
+        stream: _FakeMediaStream('${remoteParticipantData.sid}|queued_stream'),
+        receiver: null,
+        participantSid: remoteParticipantData.sid,
+        trackSid: 'queued_track',
+        connectionState: ConnectionState.connected,
+      );
+      expect(room.pendingTrackQueue.stats.totalEntries, 1);
+
+      container.engine.events.emit(const EngineFullRestartingEvent());
+      await room.events.waitFor<RoomReconnectingEvent>(duration: const Duration(seconds: 1));
+
+      expect(room.pendingTrackQueue.stats.totalEntries, 0);
+    });
   });
 }
 
