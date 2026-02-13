@@ -35,6 +35,7 @@ enum ProtocolVersion {
   v10,
   v11,
   v12,
+  v13, // Regions in leave request, canReconnect obsoleted by action
 }
 
 /// Connection state type used throughout the SDK.
