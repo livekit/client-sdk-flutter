@@ -52,7 +52,7 @@ Future<dynamic> startAudio(String id, rtc.MediaStreamTrack track) async {
 }
 
 Future<bool> startAllAudioElement() async {
-  for (final el in _audioElements.values) {
+  for (final el in _audioElements.values.toList()) {
     if (el.instanceOfString('HTMLAudioElement')) {
       final audio = el as web.HTMLAudioElement;
       await audio.play().toDart;

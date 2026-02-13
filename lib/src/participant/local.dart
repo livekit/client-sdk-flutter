@@ -996,6 +996,7 @@ extension RPCMethods on LocalParticipant {
     await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
   }
 
+  @internal
   void handleIncomingRpcAck(String requestId) {
     final handler = _pendingAcks[requestId];
     if (handler != null) {
@@ -1006,6 +1007,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   void handleIncomingRpcResponse(
     String requestId,
     String? payload,
@@ -1020,6 +1022,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   Future<void> handleIncomingRpcRequest(
     String callerIdentity,
     String requestId,
