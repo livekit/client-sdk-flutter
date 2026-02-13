@@ -362,6 +362,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return newCodecs;
   }
 
+  @internal
   Future<void> updatePublishingLayers(
     LocalTrack? track,
     List<lk_rtc.SubscribedQuality> layers,

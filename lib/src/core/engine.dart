@@ -68,6 +68,7 @@ const defaultRetryDelaysInMs = [
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
+  @internal
   final SignalClient signalClient;
 
   final PeerConnectionCreate _peerConnectionCreate;
@@ -978,6 +979,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  @internal
   Future<void> handleReconnect(ClientDisconnectReason reason) async {
     if (_isClosed) {
       logger.fine('handleReconnect: engine is closed, skip');
