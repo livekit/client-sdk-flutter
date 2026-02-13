@@ -50,20 +50,13 @@ jobs:
       - name: Detect breaking changes
         id: breaking
         run: |
-          BASE_TAG=$(git describe --tags --abbrev=0 origin/main 2>/dev/null || echo "")
-          if [ -z "$BASE_TAG" ]; then
-            echo "No base tag found, skipping breaking change detection"
-            echo "has_breaking=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Comparing public API against $BASE_TAG"
+          echo "Comparing public API against main"
 
           dart pub global activate dart_apitool
-          REPO_URL="git://${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}:${BASE_TAG}"
+          BASE_REF="git://${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}:main"
 
           DIFF_OUTPUT=$(dart-apitool diff \
-            --old "$REPO_URL" \
+            --old "$BASE_REF" \
             --new . \
             --force-use-flutter 2>&1) || true
 
