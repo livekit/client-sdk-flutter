@@ -76,66 +76,79 @@ extension AudioRenderer: FlutterStreamHandler {
 }
 
 public extension AVAudioPCMBuffer {
-    func serialize() -> [String: Any] {
-        // The format of the data:
-        // {
-        //   "sampleRate": 48000.0,
-        //   "channelCount": 2,
-        //   "frameLength": 480,
-        //   "format": "float32", // or "int16", "int32", "unknown"
-        //   "data": [
-        //     [/* channel 0 audio samples */],
-        //     [/* channel 1 audio samples */]
-        //   ]
-        // }
+    /// Serializes audio data as raw interleaved bytes.
+    ///
+    /// Mono buffers are copied directly.
+    /// Multi-channel buffers are interleaved in sample order.
+    ///
+    /// Uses `FlutterStandardTypedData` to send a binary payload.
+    func serializeAsBytes() -> [String: Any] {
+        let channels = Int(format.channelCount)
+        let frames = Int(frameLength)
 
-        // Create the result dictionary to send to Flutter
         var result: [String: Any] = [
             "sampleRate": UInt(format.sampleRate),
-            "channels": UInt(format.channelCount),
-            "frameLength": UInt(frameLength),
+            "channels": UInt(channels),
         ]
 
-        // Extract audio data based on the buffer format
-        if let floatChannelData {
-            // Buffer contains float data
-            var channelsData: [[Float]] = []
-
-            for channel in 0 ..< Int(format.channelCount) {
-                let channelPointer = floatChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer<Float32>(start: channelPointer, count: Int(frameLength)))
-                channelsData.append(channelArray)
+        if let int16ChannelData {
+            let data: Data
+            if channels == 1 {
+                // Fast path for mono.
+                data = Data(bytes: int16ChannelData[0], count: frames * MemoryLayout<Int16>.size)
+            } else {
+                // Interleave channels
+                var bytes = Data(count: frames * channels * MemoryLayout<Int16>.size)
+                bytes.withUnsafeMutableBytes { raw in
+                    let out = raw.bindMemory(to: Int16.self)
+                    for frame in 0..<frames {
+                        for ch in 0..<channels {
+                            out[frame * channels + ch] = int16ChannelData[ch][frame]
+                        }
+                    }
+                }
+                data = bytes
             }
-
-            result["data"] = channelsData
-            result["commonFormat"] = "float32"
-        } else if let int16ChannelData {
-            // Buffer contains int16 data
-            var channelsData: [[Int16]] = []
-
-            for channel in 0 ..< Int(format.channelCount) {
-                let channelPointer = int16ChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer<Int16>(start: channelPointer, count: Int(frameLength)))
-                channelsData.append(channelArray)
-            }
-
-            result["data"] = channelsData
+            result["data"] = FlutterStandardTypedData(bytes: data)
             result["commonFormat"] = "int16"
-        } else if let int32ChannelData {
-            // Buffer contains int32 data
-            var channelsData: [[Int32]] = []
-
-            for channel in 0 ..< Int(format.channelCount) {
-                let channelPointer = int32ChannelData[channel]
-                let channelArray = Array(UnsafeBufferPointer<Int32>(start: channelPointer, count: Int(frameLength)))
-                channelsData.append(channelArray)
+        } else if let floatChannelData {
+            let data: Data
+            if channels == 1 {
+                data = Data(bytes: floatChannelData[0], count: frames * MemoryLayout<Float32>.size)
+            } else {
+                var bytes = Data(count: frames * channels * MemoryLayout<Float32>.size)
+                bytes.withUnsafeMutableBytes { raw in
+                    let out = raw.bindMemory(to: Float32.self)
+                    for frame in 0..<frames {
+                        for ch in 0..<channels {
+                            out[frame * channels + ch] = floatChannelData[ch][frame]
+                        }
+                    }
+                }
+                data = bytes
             }
-
-            result["data"] = channelsData
+            result["data"] = FlutterStandardTypedData(bytes: data)
+            result["commonFormat"] = "float32"
+        } else if let int32ChannelData {
+            let data: Data
+            if channels == 1 {
+                data = Data(bytes: int32ChannelData[0], count: frames * MemoryLayout<Int32>.size)
+            } else {
+                var bytes = Data(count: frames * channels * MemoryLayout<Int32>.size)
+                bytes.withUnsafeMutableBytes { raw in
+                    let out = raw.bindMemory(to: Int32.self)
+                    for frame in 0..<frames {
+                        for ch in 0..<channels {
+                            out[frame * channels + ch] = int32ChannelData[ch][frame]
+                        }
+                    }
+                }
+                data = bytes
+            }
+            result["data"] = FlutterStandardTypedData(bytes: data)
             result["commonFormat"] = "int32"
         } else {
-            // Fallback - send minimal info if no recognizable data format
-            result["data"] = []
+            result["data"] = FlutterStandardTypedData(bytes: Data())
             result["commonFormat"] = "unknown"
         }
 
@@ -159,7 +172,7 @@ extension AudioRenderer: RTCAudioRenderer {
             return
         }
 
-        let serializedBuffer = convertedBuffer.serialize()
+        let serializedBuffer = convertedBuffer.serializeAsBytes()
 
         // Send the result to Flutter on the main thread
         DispatchQueue.main.async {
