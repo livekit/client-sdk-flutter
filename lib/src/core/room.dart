@@ -109,6 +109,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   UnmodifiableListView<Participant> get activeSpeakers => UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
 
+  @internal
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
@@ -1293,6 +1294,7 @@ extension DataStreamRoomMethods on Room {
     _byteStreamHandlers.remove(topic);
   }
 
+  @internal
   Future<void> handleStreamHeader(
       lk_models.DataStream_Header streamHeader, String participantIdentity, EncryptionType encryptionType) async {
     if (streamHeader.hasByteHeader()) {
@@ -1382,6 +1384,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
+  @internal
   void handleStreamChunk(lk_models.DataStream_Chunk chunk, EncryptionType encryptionType) {
     final fileBuffer = _byteStreamControllers[chunk.streamId];
 
@@ -1419,6 +1422,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
+  @internal
   Future<void> handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
     final textBuffer = _textStreamControllers[trailer.streamId];
     if (textBuffer != null) {
@@ -1464,6 +1468,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
+  @internal
   Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
     // Terminate any in flight data stream receives from the given participant
     final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
