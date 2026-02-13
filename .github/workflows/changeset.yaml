@@ -105,91 +105,71 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            // --- Changeset missing comment ---
-            const changesetMarker = '<!-- changeset-check -->';
-            const existingChangeset = comments.find(c => c.body.includes(changesetMarker));
-
-            if (changesetCount === 0) {
-              const body = [
-                changesetMarker,
-                '> [!WARNING]',
-                '> **No changeset found**',
-                '>',
-                '> If this PR includes user-facing changes, please add a changeset file in `.changes/`',
-                '',
-                '**Format:** `level type="kind" "description"`',
-                '',
-                '```',
-                'patch type="fixed" "Fix audio frame generation"',
-                'minor type="added" "Add support for custom audio processing"',
-                'major type="changed" "Breaking: Rename Room.connect() to Room.join()"',
-                '```',
-              ].join('\n');
-
-              if (existingChangeset) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingChangeset.id,
-                  body,
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  body,
-                });
-              }
-            } else if (existingChangeset) {
-              await github.rest.issues.deleteComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingChangeset.id,
-              });
+            // Minimize a comment via GraphQL (collapses with "resolved" reason)
+            async function minimizeComment(commentId) {
+              await github.graphql(`
+                mutation($id: ID!) {
+                  minimizeComment(input: { subjectId: $id, classifier: RESOLVED }) {
+                    minimizedComment { isMinimized }
+                  }
+                }
+              `, { id: commentId });
             }
 
-            // --- Breaking change without major changeset comment ---
-            const breakingMarker = '<!-- breaking-change-check -->';
-            const existingBreaking = comments.find(c => c.body.includes(breakingMarker));
-
-            if (hasBreaking && !hasMajor) {
-              const body = [
-                breakingMarker,
-                '> [!CAUTION]',
-                '> **Breaking change detected without major changeset**',
-                '',
-                '`dart-apitool` detected the following breaking changes:',
-                '',
-                '```',
-                details,
-                '```',
-                '',
-                'If this is intentional, please add a changeset with `major` level in `.changes/`:',
-                '```',
-                'major type="changed" "Description of breaking change"',
-                '```',
-              ].join('\n');
-
-              if (existingBreaking) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingBreaking.id,
-                  body,
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  body,
-                });
+            // Create or update a comment; minimize the existing one if resolved
+            async function upsertOrResolve(marker, shouldShow, bodyLines) {
+              const existing = comments.find(c => c.body.includes(marker));
+              if (shouldShow) {
+                const body = [marker, ...bodyLines].join('\n');
+                if (existing) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existing.id,
+                    body,
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    body,
+                  });
+                }
+              } else if (existing) {
+                await minimizeComment(existing.node_id);
               }
-            } else if (existingBreaking) {
-              await github.rest.issues.deleteComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingBreaking.id,
-              });
             }
+
+            // --- Changeset missing ---
+            await upsertOrResolve('<!-- changeset-check -->', changesetCount === 0, [
+              '> [!WARNING]',
+              '> **No changeset found**',
+              '>',
+              '> If this PR includes user-facing changes, please add a changeset file in `.changes/`',
+              '',
+              '**Format:** `level type="kind" "description"`',
+              '',
+              '```',
+              'patch type="fixed" "Fix audio frame generation"',
+              'minor type="added" "Add support for custom audio processing"',
+              'major type="changed" "Breaking: Rename Room.connect() to Room.join()"',
+              '```',
+            ]);
+
+            // --- Breaking change without major changeset ---
+            await upsertOrResolve('<!-- breaking-change-check -->', hasBreaking && !hasMajor, [
+              '> [!CAUTION]',
+              '> **Breaking change detected without major changeset**',
+              '',
+              '`dart-apitool` detected the following breaking changes:',
+              '',
+              '```',
+              details,
+              '```',
+              '',
+              'If this is intentional, please add a changeset with `major` level in `.changes/`:',
+              '```',
+              'major type="changed" "Description of breaking change"',
+              '```',
+            ]);
