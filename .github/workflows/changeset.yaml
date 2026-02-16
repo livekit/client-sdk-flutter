@@ -64,8 +64,8 @@ jobs:
           echo "$DIFF_OUTPUT"
           echo "---"
 
-          # Extract breaking changes from the output
-          BREAKING_LINES=$(echo "$DIFF_OUTPUT" | grep -i "breaking" || true)
+          # Check for "BREAKING CHANGES" header in the output (not "No breaking changes!")
+          BREAKING_LINES=$(echo "$DIFF_OUTPUT" | grep "^BREAKING CHANGES" || true)
 
           if [ -n "$BREAKING_LINES" ]; then
             echo "has_breaking=true" >> "$GITHUB_OUTPUT"
