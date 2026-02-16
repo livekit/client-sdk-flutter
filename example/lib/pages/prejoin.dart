@@ -268,7 +268,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       if (!context.mounted) return;
       await Navigator.push<void>(
         context,
-        MaterialPageRoute(builder: (_) => RoomPage(room, listener)),
+        MaterialPageRoute(builder: (_) => RoomPage(room, listener, fastConnection: true)),
       );
     } catch (error) {
       print('Could not connect $error');

@@ -14,7 +14,9 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier, VoidCallback;
+
+import 'package:meta/meta.dart';
 
 import '../extensions.dart';
 import '../logger.dart';

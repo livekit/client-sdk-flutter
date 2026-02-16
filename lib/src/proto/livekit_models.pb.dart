@@ -1569,6 +1569,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? ssrc,
     $core.int? spatialLayer,
     $core.String? rid,
+    $core.int? repairSsrc,
   }) {
     final result = create();
     if (quality != null) result.quality = quality;
@@ -1578,6 +1579,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     if (ssrc != null) result.ssrc = ssrc;
     if (spatialLayer != null) result.spatialLayer = spatialLayer;
     if (rid != null) result.rid = rid;
+    if (repairSsrc != null) result.repairSsrc = repairSsrc;
     return result;
   }
 
@@ -1598,6 +1600,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     ..aI(5, _omitFieldNames ? '' : 'ssrc', fieldType: $pb.PbFieldType.OU3)
     ..aI(6, _omitFieldNames ? '' : 'spatialLayer')
     ..aOS(7, _omitFieldNames ? '' : 'rid')
+    ..aI(8, _omitFieldNames ? '' : 'repairSsrc', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1681,6 +1684,15 @@ class VideoLayer extends $pb.GeneratedMessage {
   $core.bool hasRid() => $_has(6);
   @$pb.TagNumber(7)
   void clearRid() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get repairSsrc => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set repairSsrc($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasRepairSsrc() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearRepairSsrc() => $_clearField(8);
 }
 
 enum DataPacket_Value {

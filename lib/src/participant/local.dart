@@ -17,8 +17,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:async/async.dart';
 import 'package:fixnum/fixnum.dart';
@@ -995,6 +996,7 @@ extension RPCMethods on LocalParticipant {
     await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
   }
 
+  @internal
   void handleIncomingRpcAck(String requestId) {
     final handler = _pendingAcks[requestId];
     if (handler != null) {
@@ -1005,6 +1007,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   void handleIncomingRpcResponse(
     String requestId,
     String? payload,
@@ -1019,6 +1022,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   Future<void> handleIncomingRpcRequest(
     String callerIdentity,
     String requestId,

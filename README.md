@@ -46,7 +46,7 @@ Include this package to your `pubspec.yaml`
 ```yaml
 ---
 dependencies:
-  livekit_client: ^2.6.2
+  livekit_client: ^2.6.3
 ```
 
 ### iOS
