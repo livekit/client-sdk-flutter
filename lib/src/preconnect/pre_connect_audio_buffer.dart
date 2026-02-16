@@ -15,6 +15,8 @@
 import 'dart:async';
 import 'dart:typed_data' show Uint8List;
 
+import 'package:flutter/services.dart' show EventChannel;
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
