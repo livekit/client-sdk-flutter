@@ -132,6 +132,7 @@ class AudioRenderer(
     val result = mutableMapOf<String, Any>(
       "sampleRate" to sampleRate,
       "channels" to outChannels,
+      "frameLength" to numberOfFrames,
     )
 
     val buffer = audioData.duplicate()

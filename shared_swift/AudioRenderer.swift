@@ -89,6 +89,7 @@ public extension AVAudioPCMBuffer {
         var result: [String: Any] = [
             "sampleRate": UInt(format.sampleRate),
             "channels": UInt(channels),
+            "frameLength": UInt(frames),
         ]
 
         if let int16ChannelData {
