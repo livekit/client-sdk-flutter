@@ -79,6 +79,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
           params: captureOptions.params,
           deviceId: captureOptions.deviceId,
           maxFrameRate: captureOptions.maxFrameRate,
+          processor: captureOptions.processor,
         );
 
   @override
@@ -108,18 +109,24 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   // Returns new options with updated properties
   CameraCaptureOptions copyWith({
-    VideoParameters? params,
     CameraPosition? cameraPosition,
+    CameraFocusMode? focusMode,
+    CameraExposureMode? exposureMode,
     String? deviceId,
     double? maxFrameRate,
+    VideoParameters? params,
     bool? stopCameraCaptureOnMute,
+    TrackProcessor<VideoProcessorOptions>? processor,
   }) =>
       CameraCaptureOptions(
-        params: params ?? this.params,
         cameraPosition: cameraPosition ?? this.cameraPosition,
+        focusMode: focusMode ?? this.focusMode,
+        exposureMode: exposureMode ?? this.exposureMode,
         deviceId: deviceId ?? this.deviceId,
         maxFrameRate: maxFrameRate ?? this.maxFrameRate,
+        params: params ?? this.params,
         stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+        processor: processor ?? this.processor,
       );
 }
 
