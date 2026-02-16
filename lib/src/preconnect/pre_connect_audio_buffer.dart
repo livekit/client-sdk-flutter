@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/services.dart';
 
