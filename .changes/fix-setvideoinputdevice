@@ -1,1 +1,1 @@
-patch type="fixed" "Fix setVideoInputDevice not switching camera (#863)"
+patch type="fixed" "Fix setVideoInputDevice not switching camera"
