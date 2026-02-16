@@ -168,10 +168,7 @@ extension AudioRenderer: RTCAudioRenderer {
 
         let convertedBuffer = converter!.convert(from: pcmBuffer)
 
-        guard convertedBuffer.frameLength == UInt32(format.sampleRate / 100) else {
-            print("Converted buffer frame length does not match target format sample rate: \(convertedBuffer.frameLength) != \(format.sampleRate / 100) skipping this frame...")
-            return
-        }
+        guard convertedBuffer.frameLength > 0 else { return }
 
         let serializedBuffer = convertedBuffer.serializeAsBytes()
 
