@@ -27,6 +27,7 @@ import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
 import './support/native.dart';
+import './support/value_or_absent.dart';
 import 'extensions.dart';
 import 'livekit.dart';
 import 'logger.dart';
@@ -286,10 +287,10 @@ class Utils {
     if (codec != null) {
       switch (codec) {
         case 'av1':
-          result = result.copyWith(maxBitrate: (result.maxBitrate * 0.7).toInt());
+          result = result.copyWith(maxBitrate: Value((result.maxBitrate * 0.7).toInt()));
           break;
         case 'vp9':
-          result = result.copyWith(maxBitrate: (result.maxBitrate * 0.85).toInt());
+          result = result.copyWith(maxBitrate: Value((result.maxBitrate * 0.85).toInt()));
           break;
         default:
           break;

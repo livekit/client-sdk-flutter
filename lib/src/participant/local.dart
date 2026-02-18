@@ -45,6 +45,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/platform.dart';
+import '../support/value_or_absent.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -248,7 +249,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     if (publishOptions.videoCodec.toLowerCase() != publishOptions.videoCodec) {
       publishOptions = publishOptions.copyWith(
-        videoCodec: publishOptions.videoCodec.toLowerCase(),
+        videoCodec: Value(publishOptions.videoCodec.toLowerCase()),
       );
     }
 
@@ -259,7 +260,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           .where((c) => videoCodecs.any((v) => c.mime.toLowerCase().endsWith(v)))
           .any((c) => publishOptions?.videoCodec == mimeTypeToVideoCodecString(c.mime))) {
         publishOptions = publishOptions.copyWith(
-          videoCodec: mimeTypeToVideoCodecString(room.engine.enabledPublishCodecs![0].mime).toLowerCase(),
+          videoCodec: Value(mimeTypeToVideoCodecString(room.engine.enabledPublishCodecs![0].mime).toLowerCase()),
         );
       }
     }
@@ -268,19 +269,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final isSVC = isSVCCodec(publishOptions.videoCodec);
     if (isSVC) {
       if (!room.roomOptions.dynacast) {
-        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: true);
+        room.engine.roomOptions = room.roomOptions.copyWith(dynacast: Value(true));
       }
 
       if (publishOptions.scalabilityMode == null) {
         publishOptions = publishOptions.copyWith(
-          scalabilityMode: 'L3T3_KEY',
+          scalabilityMode: Value('L3T3_KEY'),
         );
       }
 
       // vp9 svc with screenshare has problem to encode, always use L1T3 here
       if (track.source == TrackSource.screenShareVideo) {
         publishOptions = publishOptions.copyWith(
-          scalabilityMode: 'L1T3',
+          scalabilityMode: Value('L1T3'),
         );
       }
     }
@@ -295,8 +296,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         final settings = track.mediaStreamTrack.getSettings();
         if ((settings['width'] is int && settings['width'] as int > 0) &&
             (settings['height'] is int && settings['height'] as int > 0)) {
-          dimensions = dimensions.copyWith(width: settings['width'] as int);
-          dimensions = dimensions.copyWith(height: settings['height'] as int);
+          dimensions = dimensions.copyWith(width: Value(settings['width'] as int));
+          dimensions = dimensions.copyWith(height: Value(settings['height'] as int));
         }
       } catch (_) {
         logger.warning('Failed to call `mediaStreamTrack.getSettings()`');
@@ -420,7 +421,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             'requested a different codec than specified by serverRequested: ${publishOptions.videoCodec}, server: ${updatedCodec}',
           );
           publishOptions = publishOptions.copyWith(
-            videoCodec: updatedCodec,
+            videoCodec: Value(updatedCodec),
           );
           // recompute encodings since bitrates/etc could have changed
           encodings = Utils.computeVideoEncodings(
@@ -762,7 +763,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         /// track separately, it has to be returned once in getDisplayMedia,
         /// so we publish it twice here, but only return videoTrack to user.
         if (captureScreenAudio ?? false) {
-          captureOptions = captureOptions.copyWith(captureScreenAudio: true);
+          captureOptions = captureOptions.copyWith(captureScreenAudio: Value(true));
           final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
           LocalTrackPublication<LocalVideoTrack>? publication;
           for (final track in tracks) {
@@ -856,7 +857,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     var options = room.roomOptions.defaultVideoPublishOptions;
-    options = options.copyWith(simulcast: backupCodecOpts.simulcast);
+    options = options.copyWith(simulcast: Value(backupCodecOpts.simulcast));
 
     if (backupCodec.toLowerCase() == publication.track?.codec?.toLowerCase()) {
       // not needed, same codec already published

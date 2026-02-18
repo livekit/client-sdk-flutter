@@ -15,6 +15,7 @@
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../support/value_or_absent.dart';
 import 'priority.dart';
 
 /// A type that represents video encoding information.
@@ -40,16 +41,16 @@ class VideoEncoding implements Comparable<VideoEncoding> {
   });
 
   VideoEncoding copyWith({
-    int? maxFramerate,
-    int? maxBitrate,
-    Priority? bitratePriority,
-    Priority? networkPriority,
+    ValueOrAbsent<int> maxFramerate = const Absent(),
+    ValueOrAbsent<int> maxBitrate = const Absent(),
+    ValueOrAbsent<Priority?> bitratePriority = const Absent(),
+    ValueOrAbsent<Priority?> networkPriority = const Absent(),
   }) =>
       VideoEncoding(
-        maxFramerate: maxFramerate ?? this.maxFramerate,
-        maxBitrate: maxBitrate ?? this.maxBitrate,
-        bitratePriority: bitratePriority ?? this.bitratePriority,
-        networkPriority: networkPriority ?? this.networkPriority,
+        maxFramerate: maxFramerate.valueOr(this.maxFramerate),
+        maxBitrate: maxBitrate.valueOr(this.maxBitrate),
+        bitratePriority: bitratePriority.valueOr(this.bitratePriority),
+        networkPriority: networkPriority.valueOr(this.networkPriority),
       );
 
   @override

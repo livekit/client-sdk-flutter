@@ -46,6 +46,7 @@ export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
 export 'src/support/platform.dart';
+export 'src/support/value_or_absent.dart';
 export 'src/track/audio_visualizer.dart';
 export 'src/track/local/audio.dart';
 export 'src/track/local/local.dart';
