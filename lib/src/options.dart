@@ -121,6 +121,10 @@ class RoomOptions {
   /// fast track publication
   final bool fastPublish;
 
+  /// Maximum number of pending subscriber tracks kept while waiting for
+  /// metadata. Helps balance memory use against resilience to reconnect storms.
+  final int pendingTrackQueueMaxSize;
+
   /// deprecated, use [createVisualizer] instead
   /// please refer to example/lib/widgets/sound_waveform.dart
   @Deprecated('Use createVisualizer instead')
@@ -140,6 +144,7 @@ class RoomOptions {
     this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
+    this.pendingTrackQueueMaxSize = 100,
   });
 
   RoomOptions copyWith({
@@ -155,6 +160,7 @@ class RoomOptions {
     E2EEOptions? e2eeOptions,
     E2EEOptions? encryption,
     bool? fastPublish,
+    int? pendingTrackQueueMaxSize,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
@@ -170,6 +176,7 @@ class RoomOptions {
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
       encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
+      pendingTrackQueueMaxSize: pendingTrackQueueMaxSize ?? this.pendingTrackQueueMaxSize,
     );
   }
 }

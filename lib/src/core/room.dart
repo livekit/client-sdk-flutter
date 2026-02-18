@@ -54,7 +54,7 @@ import '../types/transcription_segment.dart';
 import '../utils.dart' show unpackStreamId;
 import 'engine.dart';
 import 'participant_collection.dart';
-import 'pending_track_queue.dart';
+import 'pending_track_queue.dart' as pending_queue;
 
 /// Room is the primary construct for LiveKit conferences. It contains a
 /// group of [Participant]s, each publishing and subscribing to [Track]s.
@@ -137,7 +137,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late final PreConnectAudioBuffer preConnectAudioBuffer;
 
   // Pending subscriber tracks keyed by participantSid, for tracks arriving before metadata or before the room connected.
-  late final PendingTrackQueue _pendingTrackQueue;
+  late final pending_queue.PendingTrackQueue _pendingTrackQueue;
+  Future<void> _pendingTrackFlushChain = Future.value();
+  Timer? _pendingTrackRetryTimer;
+  static const Duration _pendingTrackRetryDelay = Duration(milliseconds: 200);
+
+  @visibleForTesting
+  pending_queue.PendingTrackQueue get pendingTrackQueue => _pendingTrackQueue;
 
   // for testing
   @internal
@@ -166,9 +172,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _signalListener = this.engine.signalClient.createListener();
     _setUpSignalListeners();
 
-    _pendingTrackQueue = PendingTrackQueue(
-      ttl: this.engine.connectOptions.timeouts.subscribe,
+    _pendingTrackQueue = pending_queue.PendingTrackQueue(
+      metadataTimeout: this.engine.connectOptions.timeouts.subscribe,
       emitException: (event) => events.emit(event),
+      maxSize: roomOptions.pendingTrackQueueMaxSize,
     );
 
     // Any event emitted will trigger ChangeNotifier
@@ -176,8 +183,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.finer('[RoomEvent] $event, will notifyListeners()');
       notifyListeners();
     });
-    // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
+    // Keep lifecycle-based flushing/refresh as fallbacks in case tracks arrive before metadata.
     events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
+    events.on<RoomReconnectedEvent>((event) => _flushPendingTracks());
+    events.on<RoomReconnectingEvent>((event) => _pendingTrackQueue.refreshAll(reason: 'room reconnecting'));
+    events.on<RoomAttemptReconnectEvent>((event) => _pendingTrackQueue.refreshAll(reason: 'attempt reconnect'));
 
     _setupRpcListeners();
 
@@ -244,7 +254,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }) async {
     var roomOptions = this.roomOptions;
     connectOptions ??= ConnectOptions();
-    _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
+    _pendingTrackQueue.updateTimeouts(connectOptions.timeouts.subscribe);
     // ignore: deprecated_member_use_from_same_package
     if ((roomOptions.encryption != null || roomOptions.e2eeOptions != null) && engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
@@ -332,7 +342,26 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
-    ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
+    ..on<SignalParticipantUpdateEvent>((event) async {
+      await _onParticipantUpdateEvent(event.participants);
+
+      // Flush pending tracks after participant updates are processed.
+      // This handles the case where tracks arrived before participant metadata,
+      // got queued, and now the track publications have finally arrived in this update.
+      // This is the second flush opportunity that fixes the race condition where
+      // the first flush (in _onParticipantUpdateEvent) happens before publications are ready.
+      for (final info in event.participants) {
+        if (info.tracks.isEmpty) continue;
+        final participant = _remoteParticipants.bySid[info.sid];
+        if (participant != null) {
+          logger.fine(
+            'Track publications updated for ${info.identity} '
+            '(${info.tracks.length} tracks), flushing pending queue',
+          );
+          await _flushPendingTracks(participant: participant);
+        }
+      }
+    })
     ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>((event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>((event) => _onSignalStreamStateUpdateEvent(event.updates))
@@ -518,6 +547,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<EngineFullRestartingEvent>((event) async {
       events.emit(const RoomReconnectingEvent());
+      _pendingTrackQueue.clear(reason: 'engine full restart');
+      _cancelPendingTrackRetry();
 
       // reset params
       _name = null;
@@ -536,6 +567,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       notifyListeners();
     })
+    ..on<EngineReconnectingEvent>((event) async {
+      events.emit(const RoomReconnectingEvent());
+      _pendingTrackQueue.refreshAll(reason: 'engine reconnecting');
+      notifyListeners();
+    })
     ..on<EngineRestartedEvent>((event) async {
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
@@ -548,6 +584,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
       events.emit(const RoomReconnectedEvent());
+      await _flushPendingTracks();
       notifyListeners();
     })
     ..on<EngineResumingEvent>((event) async {
@@ -608,7 +645,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           );
         }
 
-        final shouldDefer = connectionState != ConnectionState.connected || participant == null;
+        // Defer track subscription if:
+        // 1. Room not connected yet (tracks arrived pre-connection)
+        // 2. Participant not known yet (tracks arrived before participant metadata)
+        // 3. Track publication not known yet (tracks arrived before track metadata)
+        final shouldDefer = connectionState != ConnectionState.connected ||
+            participant == null ||
+            participant.getTrackPublicationBySid(trackSid) == null;
         if (shouldDefer) {
           _pendingTrackQueue.enqueue(
             track: event.track,
@@ -672,12 +715,25 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     final participant = _remoteParticipants.byIdentity[info.identity];
+    final sidMatch = _remoteParticipants.bySid[info.sid];
+    if (sidMatch != null && sidMatch.identity != info.identity) {
+      _pendingTrackQueue.removeParticipant(info.sid, reason: 'sid reused');
+    }
     if (participant != null) {
-      // Return existing participant with no new publications; caller handles updates.
-      return ParticipantCreationResult(
-        participant: participant,
-        newPublications: const [],
-      );
+      // If the participant has a different sid, they disconnected and rejoined.
+      // Remove the old participant and create a new one.
+      if (participant.sid != info.sid) {
+        logger.fine('Participant ${info.identity} rejoined with new sid ${info.sid} (old: ${participant.sid})');
+        await _handleParticipantDisconnect(info.identity);
+        // Fall through to create new participant
+      } else {
+        _pendingTrackQueue.refreshParticipant(participant.sid, reason: 'participant reused');
+        // Return existing participant with no new publications; caller handles updates.
+        return ParticipantCreationResult(
+          participant: participant,
+          newPublications: const [],
+        );
+      }
     }
 
     final result = await RemoteParticipant.createFromInfo(
@@ -686,6 +742,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     _remoteParticipants.set(result.participant);
+    _pendingTrackQueue.refreshParticipant(result.participant.sid, reason: 'participant created');
     await _flushPendingTracks(participant: result.participant);
     return result;
   }
@@ -731,11 +788,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _remoteParticipants.set(result.participant);
+        _pendingTrackQueue.refreshParticipant(result.participant.sid, reason: 'metadata update (new participant)');
         await _flushPendingTracks(participant: result.participant);
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _remoteParticipants.set(result.participant);
+          _pendingTrackQueue.refreshParticipant(result.participant.sid, reason: 'metadata update');
           await _flushPendingTracks(participant: result.participant);
         }
       }
@@ -771,12 +830,28 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     emitWhenConnected(ActiveSpeakersChangedEvent(speakers: activeSpeakers));
   }
 
-  Future<void> _flushPendingTracks({RemoteParticipant? participant}) => _pendingTrackQueue.flush(
+  Future<void> _flushPendingTracks({RemoteParticipant? participant}) {
+    _pendingTrackFlushChain = _pendingTrackFlushChain.then(
+      (_) => _performPendingTrackFlush(participant: participant),
+    );
+    return _pendingTrackFlushChain;
+  }
+
+  Future<void> _performPendingTrackFlush({RemoteParticipant? participant}) async {
+    late final pending_queue.PendingTrackQueueFlushResult result;
+    try {
+      result = await _pendingTrackQueue.flush(
         isConnected: connectionState == ConnectionState.connected,
         participantSid: participant?.sid,
         subscriber: (pending) async {
           final target = participant ?? _remoteParticipants.bySid[pending.participantSid];
-          if (target == null) return false;
+          if (target == null) {
+            logger.fine(
+              'Pending track still waiting for participantSid:${pending.participantSid} '
+              'trackSid:${pending.trackSid}',
+            );
+            return false;
+          }
           try {
             await target.addSubscribedMediaTrack(
               pending.track,
@@ -787,15 +862,56 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             );
             return true;
           } on TrackSubscriptionExceptionEvent catch (event) {
-            logger.severe('Track subscription failed during flush: ${event}');
+            final isTransient = event.reason == TrackSubscribeFailReason.notTrackMetadataFound;
+
+            if (isTransient) {
+              logger.fine(
+                'Track subscription temporarily failed: metadata not ready yet for '
+                'trackSid:${pending.trackSid} participantSid:${pending.participantSid}, '
+                'will retry on next flush',
+              );
+              return false;
+            }
+
+            logger.severe('Track subscription failed permanently during flush: ${event}');
             events.emit(event);
             return true;
-          } catch (exception) {
-            logger.warning('Unknown exception during pending track flush: ${exception}');
+          } catch (exception, stack) {
+            logger.warning('Unknown exception during pending track flush: ${exception}', exception, stack);
             return false;
           }
         },
       );
+    } catch (error, stack) {
+      logger.severe('Pending track flush failed', error, stack);
+      return;
+    }
+
+    if (result.skippedForDisconnect) {
+      _pendingTrackQueue.refreshAll(reason: 'flush skipped (disconnected)');
+    }
+
+    if (result.needsRetry) {
+      _schedulePendingTrackRetry();
+    } else {
+      _cancelPendingTrackRetry();
+    }
+  }
+
+  void _schedulePendingTrackRetry() {
+    if (_pendingTrackRetryTimer?.isActive ?? false) {
+      return;
+    }
+    _pendingTrackRetryTimer = Timer(_pendingTrackRetryDelay, () {
+      _pendingTrackRetryTimer = null;
+      unawaited(_flushPendingTracks());
+    });
+  }
+
+  void _cancelPendingTrackRetry() {
+    _pendingTrackRetryTimer?.cancel();
+    _pendingTrackRetryTimer = null;
+  }
 
   // from data channel
   // updates are sent only when there's a change to speaker ordering
@@ -925,6 +1041,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     await validateParticipantHasNoActiveDataStreams(identity);
 
+    _pendingTrackQueue.removeParticipant(participant.sid, reason: 'remote disconnect');
+
     await participant.removeAllPublishedTracks(notify: true);
 
     emitWhenConnected(ParticipantDisconnectedEvent(participant: participant));
@@ -969,11 +1087,13 @@ extension RoomPrivateMethods on Room {
     final participants = _remoteParticipants.toList();
     _remoteParticipants.clear();
     for (final participant in participants) {
+      _pendingTrackQueue.removeParticipant(participant.sid, reason: 'room cleanup');
       await participant.removeAllPublishedTracks(notify: false);
       // RemoteParticipant is responsible for disposing resources
       await participant.dispose();
     }
-    _pendingTrackQueue.clear();
+    _pendingTrackQueue.clear(reason: 'room cleanup');
+    _cancelPendingTrackRetry();
 
     // clean up LocalParticipant
     await localParticipant?.unpublishAllTracks();
