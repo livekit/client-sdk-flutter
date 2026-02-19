@@ -159,11 +159,22 @@ class DataStreamController<T extends DataStream_Chunk> {
     this.endTime,
   });
 
-  Future<void> close() => streamController.close();
+  bool get isClosed => streamController.isClosed;
 
-  void write(T chunk) => streamController.add(chunk);
+  Future<void> close() {
+    if (isClosed) return Future.value();
+    return streamController.close();
+  }
 
-  void error(DataStreamError error) => streamController.addError(error);
+  void write(T chunk) {
+    if (isClosed) return;
+    streamController.add(chunk);
+  }
+
+  void error(DataStreamError error) {
+    if (isClosed) return;
+    streamController.addError(error);
+  }
 }
 
 class ByteStreamInfo extends BaseStreamInfo {

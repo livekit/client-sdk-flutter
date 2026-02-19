@@ -187,7 +187,7 @@ void pffft_zconvolve_accumulate(PFFFT_Setup* setup,
 void* pffft_aligned_malloc(size_t nb_bytes);
 void pffft_aligned_free(void*);
 
-/* return 4 or 1 wether support SSE/Altivec instructions was enable when
+/* return 4 or 1 whether support for SSE/Altivec instructions was enabled when
  * building pffft.c */
 int pffft_simd_size();
 

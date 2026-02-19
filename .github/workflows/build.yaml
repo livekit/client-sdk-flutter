@@ -100,8 +100,13 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
-      - name: Install xcode platform support for iOS
-        run: xcodebuild -downloadPlatform iOS
+      - name: Ensure iOS SDK is available
+        run: |
+          if xcodebuild -showsdks | grep -q "iphoneos"; then
+            echo "iOS SDK already installed"
+          else
+            xcodebuild -downloadPlatform iOS
+          fi
       - name: Build for iOS
         working-directory: ./example
         run: flutter build ios --release --no-codesign

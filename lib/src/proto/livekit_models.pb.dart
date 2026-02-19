@@ -1,22 +1,22 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_models.proto
-//
+// Generated from livekit_models.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $1;
 
-import 'google/protobuf/timestamp.pb.dart' as $0;
-import 'livekit_metrics.pb.dart' as $1;
+import 'livekit_metrics.pb.dart' as $0;
 import 'livekit_models.pbenum.dart';
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
@@ -45,11 +45,11 @@ class Pagination extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Pagination',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'afterId')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'limit', $pb.PbFieldType.O3)
+    ..aI(2, _omitFieldNames ? '' : 'limit')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Pagination clone() => Pagination()..mergeFromMessage(this);
+  Pagination clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Pagination copyWith(void Function(Pagination) updates) =>
       super.copyWith((message) => updates(message as Pagination)) as Pagination;
@@ -61,7 +61,6 @@ class Pagination extends $pb.GeneratedMessage {
   static Pagination create() => Pagination._();
   @$core.override
   Pagination createEmptyInstance() => create();
-  static $pb.PbList<Pagination> createRepeated() => $pb.PbList<Pagination>();
   @$core.pragma('dart2js:noInline')
   static Pagination getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Pagination>(create);
   static Pagination? _defaultInstance;
@@ -108,7 +107,7 @@ class TokenPagination extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TokenPagination clone() => TokenPagination()..mergeFromMessage(this);
+  TokenPagination clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TokenPagination copyWith(void Function(TokenPagination) updates) =>
       super.copyWith((message) => updates(message as TokenPagination)) as TokenPagination;
@@ -120,7 +119,6 @@ class TokenPagination extends $pb.GeneratedMessage {
   static TokenPagination create() => TokenPagination._();
   @$core.override
   TokenPagination createEmptyInstance() => create();
-  static $pb.PbList<TokenPagination> createRepeated() => $pb.PbList<TokenPagination>();
   @$core.pragma('dart2js:noInline')
   static TokenPagination getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TokenPagination>(create);
@@ -169,7 +167,7 @@ class ListUpdate extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ListUpdate clone() => ListUpdate()..mergeFromMessage(this);
+  ListUpdate clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ListUpdate copyWith(void Function(ListUpdate) updates) =>
       super.copyWith((message) => updates(message as ListUpdate)) as ListUpdate;
@@ -181,7 +179,6 @@ class ListUpdate extends $pb.GeneratedMessage {
   static ListUpdate create() => ListUpdate._();
   @$core.override
   ListUpdate createEmptyInstance() => create();
-  static $pb.PbList<ListUpdate> createRepeated() => $pb.PbList<ListUpdate>();
   @$core.pragma('dart2js:noInline')
   static ListUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ListUpdate>(create);
   static ListUpdate? _defaultInstance;
@@ -251,22 +248,22 @@ class Room extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sid')
     ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'emptyTimeout', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'maxParticipants', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'emptyTimeout', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'maxParticipants', fieldType: $pb.PbFieldType.OU3)
     ..aInt64(5, _omitFieldNames ? '' : 'creationTime')
     ..aOS(6, _omitFieldNames ? '' : 'turnPassword')
-    ..pc<Codec>(7, _omitFieldNames ? '' : 'enabledCodecs', $pb.PbFieldType.PM, subBuilder: Codec.create)
+    ..pPM<Codec>(7, _omitFieldNames ? '' : 'enabledCodecs', subBuilder: Codec.create)
     ..aOS(8, _omitFieldNames ? '' : 'metadata')
-    ..a<$core.int>(9, _omitFieldNames ? '' : 'numParticipants', $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'numParticipants', fieldType: $pb.PbFieldType.OU3)
     ..aOB(10, _omitFieldNames ? '' : 'activeRecording')
-    ..a<$core.int>(11, _omitFieldNames ? '' : 'numPublishers', $pb.PbFieldType.OU3)
+    ..aI(11, _omitFieldNames ? '' : 'numPublishers', fieldType: $pb.PbFieldType.OU3)
     ..aOM<TimedVersion>(13, _omitFieldNames ? '' : 'version', subBuilder: TimedVersion.create)
-    ..a<$core.int>(14, _omitFieldNames ? '' : 'departureTimeout', $pb.PbFieldType.OU3)
+    ..aI(14, _omitFieldNames ? '' : 'departureTimeout', fieldType: $pb.PbFieldType.OU3)
     ..aInt64(15, _omitFieldNames ? '' : 'creationTimeMs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Room clone() => Room()..mergeFromMessage(this);
+  Room clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Room copyWith(void Function(Room) updates) => super.copyWith((message) => updates(message as Room)) as Room;
 
@@ -277,7 +274,6 @@ class Room extends $pb.GeneratedMessage {
   static Room create() => Room._();
   @$core.override
   Room createEmptyInstance() => create();
-  static $pb.PbList<Room> createRepeated() => $pb.PbList<Room>();
   @$core.pragma('dart2js:noInline')
   static Room getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Room>(create);
   static Room? _defaultInstance;
@@ -431,7 +427,7 @@ class Codec extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Codec clone() => Codec()..mergeFromMessage(this);
+  Codec clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Codec copyWith(void Function(Codec) updates) => super.copyWith((message) => updates(message as Codec)) as Codec;
 
@@ -442,7 +438,6 @@ class Codec extends $pb.GeneratedMessage {
   static Codec create() => Codec._();
   @$core.override
   Codec createEmptyInstance() => create();
-  static $pb.PbList<Codec> createRepeated() => $pb.PbList<Codec>();
   @$core.pragma('dart2js:noInline')
   static Codec getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Codec>(create);
   static Codec? _defaultInstance;
@@ -490,12 +485,12 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PlayoutDelay',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'enabled')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'min', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'max', $pb.PbFieldType.OU3)
+    ..aI(2, _omitFieldNames ? '' : 'min', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'max', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PlayoutDelay clone() => PlayoutDelay()..mergeFromMessage(this);
+  PlayoutDelay clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PlayoutDelay copyWith(void Function(PlayoutDelay) updates) =>
       super.copyWith((message) => updates(message as PlayoutDelay)) as PlayoutDelay;
@@ -507,7 +502,6 @@ class PlayoutDelay extends $pb.GeneratedMessage {
   static PlayoutDelay create() => PlayoutDelay._();
   @$core.override
   PlayoutDelay createEmptyInstance() => create();
-  static $pb.PbList<PlayoutDelay> createRepeated() => $pb.PbList<PlayoutDelay>();
   @$core.pragma('dart2js:noInline')
   static PlayoutDelay getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PlayoutDelay>(create);
   static PlayoutDelay? _defaultInstance;
@@ -589,7 +583,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParticipantPermission clone() => ParticipantPermission()..mergeFromMessage(this);
+  ParticipantPermission clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParticipantPermission copyWith(void Function(ParticipantPermission) updates) =>
       super.copyWith((message) => updates(message as ParticipantPermission)) as ParticipantPermission;
@@ -601,7 +595,6 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   static ParticipantPermission create() => ParticipantPermission._();
   @$core.override
   ParticipantPermission createEmptyInstance() => create();
-  static $pb.PbList<ParticipantPermission> createRepeated() => $pb.PbList<ParticipantPermission>();
   @$core.pragma('dart2js:noInline')
   static ParticipantPermission getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantPermission>(create);
@@ -720,6 +713,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     DisconnectReason? disconnectReason,
     $fixnum.Int64? joinedAtMs,
     $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
+    $core.Iterable<DataTrackInfo>? dataTracks,
   }) {
     final result = create();
     if (sid != null) result.sid = sid;
@@ -738,6 +732,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (disconnectReason != null) result.disconnectReason = disconnectReason;
     if (joinedAtMs != null) result.joinedAtMs = joinedAtMs;
     if (kindDetails != null) result.kindDetails.addAll(kindDetails);
+    if (dataTracks != null) result.dataTracks.addAll(dataTracks);
     return result;
   }
 
@@ -753,40 +748,32 @@ class ParticipantInfo extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sid')
     ..aOS(2, _omitFieldNames ? '' : 'identity')
-    ..e<ParticipantInfo_State>(3, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE,
-        defaultOrMaker: ParticipantInfo_State.JOINING,
-        valueOf: ParticipantInfo_State.valueOf,
-        enumValues: ParticipantInfo_State.values)
-    ..pc<TrackInfo>(4, _omitFieldNames ? '' : 'tracks', $pb.PbFieldType.PM, subBuilder: TrackInfo.create)
+    ..aE<ParticipantInfo_State>(3, _omitFieldNames ? '' : 'state', enumValues: ParticipantInfo_State.values)
+    ..pPM<TrackInfo>(4, _omitFieldNames ? '' : 'tracks', subBuilder: TrackInfo.create)
     ..aOS(5, _omitFieldNames ? '' : 'metadata')
     ..aInt64(6, _omitFieldNames ? '' : 'joinedAt')
     ..aOS(9, _omitFieldNames ? '' : 'name')
-    ..a<$core.int>(10, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
+    ..aI(10, _omitFieldNames ? '' : 'version', fieldType: $pb.PbFieldType.OU3)
     ..aOM<ParticipantPermission>(11, _omitFieldNames ? '' : 'permission', subBuilder: ParticipantPermission.create)
     ..aOS(12, _omitFieldNames ? '' : 'region')
     ..aOB(13, _omitFieldNames ? '' : 'isPublisher')
-    ..e<ParticipantInfo_Kind>(14, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE,
-        defaultOrMaker: ParticipantInfo_Kind.STANDARD,
-        valueOf: ParticipantInfo_Kind.valueOf,
-        enumValues: ParticipantInfo_Kind.values)
+    ..aE<ParticipantInfo_Kind>(14, _omitFieldNames ? '' : 'kind', enumValues: ParticipantInfo_Kind.values)
     ..m<$core.String, $core.String>(15, _omitFieldNames ? '' : 'attributes',
         entryClassName: 'ParticipantInfo.AttributesEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('livekit'))
-    ..e<DisconnectReason>(16, _omitFieldNames ? '' : 'disconnectReason', $pb.PbFieldType.OE,
-        defaultOrMaker: DisconnectReason.UNKNOWN_REASON,
-        valueOf: DisconnectReason.valueOf,
-        enumValues: DisconnectReason.values)
+    ..aE<DisconnectReason>(16, _omitFieldNames ? '' : 'disconnectReason', enumValues: DisconnectReason.values)
     ..aInt64(17, _omitFieldNames ? '' : 'joinedAtMs')
     ..pc<ParticipantInfo_KindDetail>(18, _omitFieldNames ? '' : 'kindDetails', $pb.PbFieldType.KE,
         valueOf: ParticipantInfo_KindDetail.valueOf,
         enumValues: ParticipantInfo_KindDetail.values,
         defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
+    ..pPM<DataTrackInfo>(19, _omitFieldNames ? '' : 'dataTracks', subBuilder: DataTrackInfo.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParticipantInfo clone() => ParticipantInfo()..mergeFromMessage(this);
+  ParticipantInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParticipantInfo copyWith(void Function(ParticipantInfo) updates) =>
       super.copyWith((message) => updates(message as ParticipantInfo)) as ParticipantInfo;
@@ -798,7 +785,6 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   static ParticipantInfo create() => ParticipantInfo._();
   @$core.override
   ParticipantInfo createEmptyInstance() => create();
-  static $pb.PbList<ParticipantInfo> createRepeated() => $pb.PbList<ParticipantInfo>();
   @$core.pragma('dart2js:noInline')
   static ParticipantInfo getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantInfo>(create);
@@ -935,6 +921,9 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(18)
   $pb.PbList<ParticipantInfo_KindDetail> get kindDetails => $_getList(15);
+
+  @$pb.TagNumber(19)
+  $pb.PbList<DataTrackInfo> get dataTracks => $_getList(16);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -953,7 +942,7 @@ class Encryption extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Encryption clone() => Encryption()..mergeFromMessage(this);
+  Encryption clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Encryption copyWith(void Function(Encryption) updates) =>
       super.copyWith((message) => updates(message as Encryption)) as Encryption;
@@ -965,7 +954,6 @@ class Encryption extends $pb.GeneratedMessage {
   static Encryption create() => Encryption._();
   @$core.override
   Encryption createEmptyInstance() => create();
-  static $pb.PbList<Encryption> createRepeated() => $pb.PbList<Encryption>();
   @$core.pragma('dart2js:noInline')
   static Encryption getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Encryption>(create);
   static Encryption? _defaultInstance;
@@ -1004,16 +992,13 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'mimeType')
     ..aOS(2, _omitFieldNames ? '' : 'mid')
     ..aOS(3, _omitFieldNames ? '' : 'cid')
-    ..pc<VideoLayer>(4, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: VideoLayer.create)
-    ..e<VideoLayer_Mode>(5, _omitFieldNames ? '' : 'videoLayerMode', $pb.PbFieldType.OE,
-        defaultOrMaker: VideoLayer_Mode.MODE_UNUSED,
-        valueOf: VideoLayer_Mode.valueOf,
-        enumValues: VideoLayer_Mode.values)
+    ..pPM<VideoLayer>(4, _omitFieldNames ? '' : 'layers', subBuilder: VideoLayer.create)
+    ..aE<VideoLayer_Mode>(5, _omitFieldNames ? '' : 'videoLayerMode', enumValues: VideoLayer_Mode.values)
     ..aOS(6, _omitFieldNames ? '' : 'sdpCid')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimulcastCodecInfo clone() => SimulcastCodecInfo()..mergeFromMessage(this);
+  SimulcastCodecInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimulcastCodecInfo copyWith(void Function(SimulcastCodecInfo) updates) =>
       super.copyWith((message) => updates(message as SimulcastCodecInfo)) as SimulcastCodecInfo;
@@ -1025,7 +1010,6 @@ class SimulcastCodecInfo extends $pb.GeneratedMessage {
   static SimulcastCodecInfo create() => SimulcastCodecInfo._();
   @$core.override
   SimulcastCodecInfo createEmptyInstance() => create();
-  static $pb.PbList<SimulcastCodecInfo> createRepeated() => $pb.PbList<SimulcastCodecInfo>();
   @$core.pragma('dart2js:noInline')
   static SimulcastCodecInfo getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SimulcastCodecInfo>(create);
@@ -1090,8 +1074,8 @@ class TrackInfo extends $pb.GeneratedMessage {
     TrackType? type,
     $core.String? name,
     $core.bool? muted,
-    @$core.Deprecated('This field is deprecated.') $core.int? width,
-    @$core.Deprecated('This field is deprecated.') $core.int? height,
+    $core.int? width,
+    $core.int? height,
     @$core.Deprecated('This field is deprecated.') $core.bool? simulcast,
     @$core.Deprecated('This field is deprecated.') $core.bool? disableDtx,
     TrackSource? source,
@@ -1142,39 +1126,32 @@ class TrackInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TrackInfo',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sid')
-    ..e<TrackType>(2, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
-        defaultOrMaker: TrackType.AUDIO, valueOf: TrackType.valueOf, enumValues: TrackType.values)
+    ..aE<TrackType>(2, _omitFieldNames ? '' : 'type', enumValues: TrackType.values)
     ..aOS(3, _omitFieldNames ? '' : 'name')
     ..aOB(4, _omitFieldNames ? '' : 'muted')
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
     ..aOB(7, _omitFieldNames ? '' : 'simulcast')
     ..aOB(8, _omitFieldNames ? '' : 'disableDtx')
-    ..e<TrackSource>(9, _omitFieldNames ? '' : 'source', $pb.PbFieldType.OE,
-        defaultOrMaker: TrackSource.UNKNOWN, valueOf: TrackSource.valueOf, enumValues: TrackSource.values)
-    ..pc<VideoLayer>(10, _omitFieldNames ? '' : 'layers', $pb.PbFieldType.PM, subBuilder: VideoLayer.create)
+    ..aE<TrackSource>(9, _omitFieldNames ? '' : 'source', enumValues: TrackSource.values)
+    ..pPM<VideoLayer>(10, _omitFieldNames ? '' : 'layers', subBuilder: VideoLayer.create)
     ..aOS(11, _omitFieldNames ? '' : 'mimeType')
     ..aOS(12, _omitFieldNames ? '' : 'mid')
-    ..pc<SimulcastCodecInfo>(13, _omitFieldNames ? '' : 'codecs', $pb.PbFieldType.PM,
-        subBuilder: SimulcastCodecInfo.create)
+    ..pPM<SimulcastCodecInfo>(13, _omitFieldNames ? '' : 'codecs', subBuilder: SimulcastCodecInfo.create)
     ..aOB(14, _omitFieldNames ? '' : 'stereo')
     ..aOB(15, _omitFieldNames ? '' : 'disableRed')
-    ..e<Encryption_Type>(16, _omitFieldNames ? '' : 'encryption', $pb.PbFieldType.OE,
-        defaultOrMaker: Encryption_Type.NONE, valueOf: Encryption_Type.valueOf, enumValues: Encryption_Type.values)
+    ..aE<Encryption_Type>(16, _omitFieldNames ? '' : 'encryption', enumValues: Encryption_Type.values)
     ..aOS(17, _omitFieldNames ? '' : 'stream')
     ..aOM<TimedVersion>(18, _omitFieldNames ? '' : 'version', subBuilder: TimedVersion.create)
     ..pc<AudioTrackFeature>(19, _omitFieldNames ? '' : 'audioFeatures', $pb.PbFieldType.KE,
         valueOf: AudioTrackFeature.valueOf,
         enumValues: AudioTrackFeature.values,
         defaultEnumValue: AudioTrackFeature.TF_STEREO)
-    ..e<BackupCodecPolicy>(20, _omitFieldNames ? '' : 'backupCodecPolicy', $pb.PbFieldType.OE,
-        defaultOrMaker: BackupCodecPolicy.PREFER_REGRESSION,
-        valueOf: BackupCodecPolicy.valueOf,
-        enumValues: BackupCodecPolicy.values)
+    ..aE<BackupCodecPolicy>(20, _omitFieldNames ? '' : 'backupCodecPolicy', enumValues: BackupCodecPolicy.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TrackInfo clone() => TrackInfo()..mergeFromMessage(this);
+  TrackInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TrackInfo copyWith(void Function(TrackInfo) updates) =>
       super.copyWith((message) => updates(message as TrackInfo)) as TrackInfo;
@@ -1186,7 +1163,6 @@ class TrackInfo extends $pb.GeneratedMessage {
   static TrackInfo create() => TrackInfo._();
   @$core.override
   TrackInfo createEmptyInstance() => create();
-  static $pb.PbList<TrackInfo> createRepeated() => $pb.PbList<TrackInfo>();
   @$core.pragma('dart2js:noInline')
   static TrackInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TrackInfo>(create);
   static TrackInfo? _defaultInstance;
@@ -1229,30 +1205,22 @@ class TrackInfo extends $pb.GeneratedMessage {
 
   /// original width of video (unset for audio)
   /// clients may receive a lower resolution version with simulcast
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.int get width => $_getIZ(4);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   set width($core.int value) => $_setUnsignedInt32(4, value);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   $core.bool hasWidth() => $_has(4);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(5)
   void clearWidth() => $_clearField(5);
 
   /// original height of video (unset for audio)
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.int get height => $_getIZ(5);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   set height($core.int value) => $_setUnsignedInt32(5, value);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   $core.bool hasHeight() => $_has(5);
-  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(6)
   void clearHeight() => $_clearField(6);
 
@@ -1385,6 +1353,212 @@ class TrackInfo extends $pb.GeneratedMessage {
   void clearBackupCodecPolicy() => $_clearField(20);
 }
 
+class DataTrackInfo extends $pb.GeneratedMessage {
+  factory DataTrackInfo({
+    $core.int? pubHandle,
+    $core.String? sid,
+    $core.String? name,
+    Encryption_Type? encryption,
+  }) {
+    final result = create();
+    if (pubHandle != null) result.pubHandle = pubHandle;
+    if (sid != null) result.sid = sid;
+    if (name != null) result.name = name;
+    if (encryption != null) result.encryption = encryption;
+    return result;
+  }
+
+  DataTrackInfo._();
+
+  factory DataTrackInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackInfo.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'pubHandle', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(2, _omitFieldNames ? '' : 'sid')
+    ..aOS(3, _omitFieldNames ? '' : 'name')
+    ..aE<Encryption_Type>(4, _omitFieldNames ? '' : 'encryption', enumValues: Encryption_Type.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackInfo copyWith(void Function(DataTrackInfo) updates) =>
+      super.copyWith((message) => updates(message as DataTrackInfo)) as DataTrackInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackInfo create() => DataTrackInfo._();
+  @$core.override
+  DataTrackInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackInfo>(create);
+  static DataTrackInfo? _defaultInstance;
+
+  /// Client-assigned, 16-bit identifier that will be attached to packets sent by the publisher.
+  @$pb.TagNumber(1)
+  $core.int get pubHandle => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set pubHandle($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPubHandle() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPubHandle() => $_clearField(1);
+
+  /// Server-assigned track identifier.
+  @$pb.TagNumber(2)
+  $core.String get sid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set sid($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSid() => $_clearField(2);
+
+  /// Human-readable identifier (e.g., `geoLocation`, `servoPosition.x`, etc.), unique per publisher.
+  @$pb.TagNumber(3)
+  $core.String get name => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set name($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasName() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearName() => $_clearField(3);
+
+  /// Method used for end-to-end encryption (E2EE) on packet payloads.
+  @$pb.TagNumber(4)
+  Encryption_Type get encryption => $_getN(3);
+  @$pb.TagNumber(4)
+  set encryption(Encryption_Type value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasEncryption() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearEncryption() => $_clearField(4);
+}
+
+class DataTrackExtensionParticipantSid extends $pb.GeneratedMessage {
+  factory DataTrackExtensionParticipantSid({
+    DataTrackExtensionID? id,
+    $core.String? participantSid,
+  }) {
+    final result = create();
+    if (id != null) result.id = id;
+    if (participantSid != null) result.participantSid = participantSid;
+    return result;
+  }
+
+  DataTrackExtensionParticipantSid._();
+
+  factory DataTrackExtensionParticipantSid.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackExtensionParticipantSid.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackExtensionParticipantSid',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aE<DataTrackExtensionID>(1, _omitFieldNames ? '' : 'id', enumValues: DataTrackExtensionID.values)
+    ..aOS(2, _omitFieldNames ? '' : 'participantSid')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackExtensionParticipantSid clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackExtensionParticipantSid copyWith(void Function(DataTrackExtensionParticipantSid) updates) =>
+      super.copyWith((message) => updates(message as DataTrackExtensionParticipantSid))
+          as DataTrackExtensionParticipantSid;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackExtensionParticipantSid create() => DataTrackExtensionParticipantSid._();
+  @$core.override
+  DataTrackExtensionParticipantSid createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackExtensionParticipantSid getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackExtensionParticipantSid>(create);
+  static DataTrackExtensionParticipantSid? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  DataTrackExtensionID get id => $_getN(0);
+  @$pb.TagNumber(1)
+  set id(DataTrackExtensionID value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get participantSid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set participantSid($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasParticipantSid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearParticipantSid() => $_clearField(2);
+}
+
+class DataTrackSubscriptionOptions extends $pb.GeneratedMessage {
+  factory DataTrackSubscriptionOptions({
+    $core.int? targetFps,
+  }) {
+    final result = create();
+    if (targetFps != null) result.targetFps = targetFps;
+    return result;
+  }
+
+  DataTrackSubscriptionOptions._();
+
+  factory DataTrackSubscriptionOptions.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackSubscriptionOptions.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackSubscriptionOptions',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'targetFps', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSubscriptionOptions clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSubscriptionOptions copyWith(void Function(DataTrackSubscriptionOptions) updates) =>
+      super.copyWith((message) => updates(message as DataTrackSubscriptionOptions)) as DataTrackSubscriptionOptions;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSubscriptionOptions create() => DataTrackSubscriptionOptions._();
+  @$core.override
+  DataTrackSubscriptionOptions createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSubscriptionOptions getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackSubscriptionOptions>(create);
+  static DataTrackSubscriptionOptions? _defaultInstance;
+
+  /// Rate in frames per second (FPS) the subscriber wants to receive frames at.
+  /// If omitted, the subscriber defaults to the publisher's fps
+  @$pb.TagNumber(1)
+  $core.int get targetFps => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set targetFps($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTargetFps() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTargetFps() => $_clearField(1);
+}
+
 /// provide information about available spatial layers
 class VideoLayer extends $pb.GeneratedMessage {
   factory VideoLayer({
@@ -1395,6 +1569,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     $core.int? ssrc,
     $core.int? spatialLayer,
     $core.String? rid,
+    $core.int? repairSsrc,
   }) {
     final result = create();
     if (quality != null) result.quality = quality;
@@ -1404,6 +1579,7 @@ class VideoLayer extends $pb.GeneratedMessage {
     if (ssrc != null) result.ssrc = ssrc;
     if (spatialLayer != null) result.spatialLayer = spatialLayer;
     if (rid != null) result.rid = rid;
+    if (repairSsrc != null) result.repairSsrc = repairSsrc;
     return result;
   }
 
@@ -1417,18 +1593,18 @@ class VideoLayer extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VideoLayer',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<VideoQuality>(1, _omitFieldNames ? '' : 'quality', $pb.PbFieldType.OE,
-        defaultOrMaker: VideoQuality.LOW, valueOf: VideoQuality.valueOf, enumValues: VideoQuality.values)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'width', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'height', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'bitrate', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'ssrc', $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'spatialLayer', $pb.PbFieldType.O3)
+    ..aE<VideoQuality>(1, _omitFieldNames ? '' : 'quality', enumValues: VideoQuality.values)
+    ..aI(2, _omitFieldNames ? '' : 'width', fieldType: $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'height', fieldType: $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'bitrate', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'ssrc', fieldType: $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'spatialLayer')
     ..aOS(7, _omitFieldNames ? '' : 'rid')
+    ..aI(8, _omitFieldNames ? '' : 'repairSsrc', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  VideoLayer clone() => VideoLayer()..mergeFromMessage(this);
+  VideoLayer clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   VideoLayer copyWith(void Function(VideoLayer) updates) =>
       super.copyWith((message) => updates(message as VideoLayer)) as VideoLayer;
@@ -1440,7 +1616,6 @@ class VideoLayer extends $pb.GeneratedMessage {
   static VideoLayer create() => VideoLayer._();
   @$core.override
   VideoLayer createEmptyInstance() => create();
-  static $pb.PbList<VideoLayer> createRepeated() => $pb.PbList<VideoLayer>();
   @$core.pragma('dart2js:noInline')
   static VideoLayer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoLayer>(create);
   static VideoLayer? _defaultInstance;
@@ -1509,6 +1684,15 @@ class VideoLayer extends $pb.GeneratedMessage {
   $core.bool hasRid() => $_has(6);
   @$pb.TagNumber(7)
   void clearRid() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get repairSsrc => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set repairSsrc($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasRepairSsrc() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearRepairSsrc() => $_clearField(8);
 }
 
 enum DataPacket_Value {
@@ -1538,7 +1722,7 @@ class DataPacket extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? destinationIdentities,
     SipDTMF? sipDtmf,
     Transcription? transcription,
-    $1.MetricsBatch? metrics,
+    $0.MetricsBatch? metrics,
     ChatMessage? chatMessage,
     RpcRequest? rpcRequest,
     RpcAck? rpcAck,
@@ -1599,15 +1783,14 @@ class DataPacket extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataPacket',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..oo(0, [2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18])
-    ..e<DataPacket_Kind>(1, _omitFieldNames ? '' : 'kind', $pb.PbFieldType.OE,
-        defaultOrMaker: DataPacket_Kind.RELIABLE, valueOf: DataPacket_Kind.valueOf, enumValues: DataPacket_Kind.values)
+    ..aE<DataPacket_Kind>(1, _omitFieldNames ? '' : 'kind', enumValues: DataPacket_Kind.values)
     ..aOM<UserPacket>(2, _omitFieldNames ? '' : 'user', subBuilder: UserPacket.create)
     ..aOM<ActiveSpeakerUpdate>(3, _omitFieldNames ? '' : 'speaker', subBuilder: ActiveSpeakerUpdate.create)
     ..aOS(4, _omitFieldNames ? '' : 'participantIdentity')
     ..pPS(5, _omitFieldNames ? '' : 'destinationIdentities')
     ..aOM<SipDTMF>(6, _omitFieldNames ? '' : 'sipDtmf', subBuilder: SipDTMF.create)
     ..aOM<Transcription>(7, _omitFieldNames ? '' : 'transcription', subBuilder: Transcription.create)
-    ..aOM<$1.MetricsBatch>(8, _omitFieldNames ? '' : 'metrics', subBuilder: $1.MetricsBatch.create)
+    ..aOM<$0.MetricsBatch>(8, _omitFieldNames ? '' : 'metrics', subBuilder: $0.MetricsBatch.create)
     ..aOM<ChatMessage>(9, _omitFieldNames ? '' : 'chatMessage', subBuilder: ChatMessage.create)
     ..aOM<RpcRequest>(10, _omitFieldNames ? '' : 'rpcRequest', subBuilder: RpcRequest.create)
     ..aOM<RpcAck>(11, _omitFieldNames ? '' : 'rpcAck', subBuilder: RpcAck.create)
@@ -1615,13 +1798,13 @@ class DataPacket extends $pb.GeneratedMessage {
     ..aOM<DataStream_Header>(13, _omitFieldNames ? '' : 'streamHeader', subBuilder: DataStream_Header.create)
     ..aOM<DataStream_Chunk>(14, _omitFieldNames ? '' : 'streamChunk', subBuilder: DataStream_Chunk.create)
     ..aOM<DataStream_Trailer>(15, _omitFieldNames ? '' : 'streamTrailer', subBuilder: DataStream_Trailer.create)
-    ..a<$core.int>(16, _omitFieldNames ? '' : 'sequence', $pb.PbFieldType.OU3)
+    ..aI(16, _omitFieldNames ? '' : 'sequence', fieldType: $pb.PbFieldType.OU3)
     ..aOS(17, _omitFieldNames ? '' : 'participantSid')
     ..aOM<EncryptedPacket>(18, _omitFieldNames ? '' : 'encryptedPacket', subBuilder: EncryptedPacket.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataPacket clone() => DataPacket()..mergeFromMessage(this);
+  DataPacket clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataPacket copyWith(void Function(DataPacket) updates) =>
       super.copyWith((message) => updates(message as DataPacket)) as DataPacket;
@@ -1633,12 +1816,37 @@ class DataPacket extends $pb.GeneratedMessage {
   static DataPacket create() => DataPacket._();
   @$core.override
   DataPacket createEmptyInstance() => create();
-  static $pb.PbList<DataPacket> createRepeated() => $pb.PbList<DataPacket>();
   @$core.pragma('dart2js:noInline')
   static DataPacket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataPacket>(create);
   static DataPacket? _defaultInstance;
 
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
+  @$pb.TagNumber(18)
   DataPacket_Value whichValue() => _DataPacket_ValueByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
+  @$pb.TagNumber(13)
+  @$pb.TagNumber(14)
+  @$pb.TagNumber(15)
+  @$pb.TagNumber(18)
   void clearValue() => $_clearField($_whichOneof(0));
 
   @$core.Deprecated('This field is deprecated.')
@@ -1718,15 +1926,15 @@ class DataPacket extends $pb.GeneratedMessage {
   Transcription ensureTranscription() => $_ensure(6);
 
   @$pb.TagNumber(8)
-  $1.MetricsBatch get metrics => $_getN(7);
+  $0.MetricsBatch get metrics => $_getN(7);
   @$pb.TagNumber(8)
-  set metrics($1.MetricsBatch value) => $_setField(8, value);
+  set metrics($0.MetricsBatch value) => $_setField(8, value);
   @$pb.TagNumber(8)
   $core.bool hasMetrics() => $_has(7);
   @$pb.TagNumber(8)
   void clearMetrics() => $_clearField(8);
   @$pb.TagNumber(8)
-  $1.MetricsBatch ensureMetrics() => $_ensure(7);
+  $0.MetricsBatch ensureMetrics() => $_ensure(7);
 
   @$pb.TagNumber(9)
   ChatMessage get chatMessage => $_getN(8);
@@ -1862,15 +2070,14 @@ class EncryptedPacket extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'EncryptedPacket',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<Encryption_Type>(1, _omitFieldNames ? '' : 'encryptionType', $pb.PbFieldType.OE,
-        defaultOrMaker: Encryption_Type.NONE, valueOf: Encryption_Type.valueOf, enumValues: Encryption_Type.values)
+    ..aE<Encryption_Type>(1, _omitFieldNames ? '' : 'encryptionType', enumValues: Encryption_Type.values)
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'iv', $pb.PbFieldType.OY)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'keyIndex', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'keyIndex', fieldType: $pb.PbFieldType.OU3)
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'encryptedValue', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EncryptedPacket clone() => EncryptedPacket()..mergeFromMessage(this);
+  EncryptedPacket clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EncryptedPacket copyWith(void Function(EncryptedPacket) updates) =>
       super.copyWith((message) => updates(message as EncryptedPacket)) as EncryptedPacket;
@@ -1882,7 +2089,6 @@ class EncryptedPacket extends $pb.GeneratedMessage {
   static EncryptedPacket create() => EncryptedPacket._();
   @$core.override
   EncryptedPacket createEmptyInstance() => create();
-  static $pb.PbList<EncryptedPacket> createRepeated() => $pb.PbList<EncryptedPacket>();
   @$core.pragma('dart2js:noInline')
   static EncryptedPacket getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EncryptedPacket>(create);
@@ -1994,7 +2200,7 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EncryptedPacketPayload clone() => EncryptedPacketPayload()..mergeFromMessage(this);
+  EncryptedPacketPayload clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EncryptedPacketPayload copyWith(void Function(EncryptedPacketPayload) updates) =>
       super.copyWith((message) => updates(message as EncryptedPacketPayload)) as EncryptedPacketPayload;
@@ -2006,13 +2212,28 @@ class EncryptedPacketPayload extends $pb.GeneratedMessage {
   static EncryptedPacketPayload create() => EncryptedPacketPayload._();
   @$core.override
   EncryptedPacketPayload createEmptyInstance() => create();
-  static $pb.PbList<EncryptedPacketPayload> createRepeated() => $pb.PbList<EncryptedPacketPayload>();
   @$core.pragma('dart2js:noInline')
   static EncryptedPacketPayload getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EncryptedPacketPayload>(create);
   static EncryptedPacketPayload? _defaultInstance;
 
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   EncryptedPacketPayload_Value whichValue() => _EncryptedPacketPayload_ValueByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
+  @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearValue() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2125,11 +2346,11 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ActiveSpeakerUpdate',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<SpeakerInfo>(1, _omitFieldNames ? '' : 'speakers', $pb.PbFieldType.PM, subBuilder: SpeakerInfo.create)
+    ..pPM<SpeakerInfo>(1, _omitFieldNames ? '' : 'speakers', subBuilder: SpeakerInfo.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ActiveSpeakerUpdate clone() => ActiveSpeakerUpdate()..mergeFromMessage(this);
+  ActiveSpeakerUpdate clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ActiveSpeakerUpdate copyWith(void Function(ActiveSpeakerUpdate) updates) =>
       super.copyWith((message) => updates(message as ActiveSpeakerUpdate)) as ActiveSpeakerUpdate;
@@ -2141,7 +2362,6 @@ class ActiveSpeakerUpdate extends $pb.GeneratedMessage {
   static ActiveSpeakerUpdate create() => ActiveSpeakerUpdate._();
   @$core.override
   ActiveSpeakerUpdate createEmptyInstance() => create();
-  static $pb.PbList<ActiveSpeakerUpdate> createRepeated() => $pb.PbList<ActiveSpeakerUpdate>();
   @$core.pragma('dart2js:noInline')
   static ActiveSpeakerUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ActiveSpeakerUpdate>(create);
@@ -2175,12 +2395,12 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SpeakerInfo',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'sid')
-    ..a<$core.double>(2, _omitFieldNames ? '' : 'level', $pb.PbFieldType.OF)
+    ..aD(2, _omitFieldNames ? '' : 'level', fieldType: $pb.PbFieldType.OF)
     ..aOB(3, _omitFieldNames ? '' : 'active')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SpeakerInfo clone() => SpeakerInfo()..mergeFromMessage(this);
+  SpeakerInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SpeakerInfo copyWith(void Function(SpeakerInfo) updates) =>
       super.copyWith((message) => updates(message as SpeakerInfo)) as SpeakerInfo;
@@ -2192,7 +2412,6 @@ class SpeakerInfo extends $pb.GeneratedMessage {
   static SpeakerInfo create() => SpeakerInfo._();
   @$core.override
   SpeakerInfo createEmptyInstance() => create();
-  static $pb.PbList<SpeakerInfo> createRepeated() => $pb.PbList<SpeakerInfo>();
   @$core.pragma('dart2js:noInline')
   static SpeakerInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SpeakerInfo>(create);
   static SpeakerInfo? _defaultInstance;
@@ -2277,7 +2496,7 @@ class UserPacket extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UserPacket clone() => UserPacket()..mergeFromMessage(this);
+  UserPacket clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UserPacket copyWith(void Function(UserPacket) updates) =>
       super.copyWith((message) => updates(message as UserPacket)) as UserPacket;
@@ -2289,7 +2508,6 @@ class UserPacket extends $pb.GeneratedMessage {
   static UserPacket create() => UserPacket._();
   @$core.override
   UserPacket createEmptyInstance() => create();
-  static $pb.PbList<UserPacket> createRepeated() => $pb.PbList<UserPacket>();
   @$core.pragma('dart2js:noInline')
   static UserPacket getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<UserPacket>(create);
   static UserPacket? _defaultInstance;
@@ -2412,12 +2630,12 @@ class SipDTMF extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SipDTMF',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'code', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'code', fieldType: $pb.PbFieldType.OU3)
     ..aOS(4, _omitFieldNames ? '' : 'digit')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SipDTMF clone() => SipDTMF()..mergeFromMessage(this);
+  SipDTMF clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SipDTMF copyWith(void Function(SipDTMF) updates) =>
       super.copyWith((message) => updates(message as SipDTMF)) as SipDTMF;
@@ -2429,7 +2647,6 @@ class SipDTMF extends $pb.GeneratedMessage {
   static SipDTMF create() => SipDTMF._();
   @$core.override
   SipDTMF createEmptyInstance() => create();
-  static $pb.PbList<SipDTMF> createRepeated() => $pb.PbList<SipDTMF>();
   @$core.pragma('dart2js:noInline')
   static SipDTMF getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SipDTMF>(create);
   static SipDTMF? _defaultInstance;
@@ -2478,12 +2695,11 @@ class Transcription extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(2, _omitFieldNames ? '' : 'transcribedParticipantIdentity')
     ..aOS(3, _omitFieldNames ? '' : 'trackId')
-    ..pc<TranscriptionSegment>(4, _omitFieldNames ? '' : 'segments', $pb.PbFieldType.PM,
-        subBuilder: TranscriptionSegment.create)
+    ..pPM<TranscriptionSegment>(4, _omitFieldNames ? '' : 'segments', subBuilder: TranscriptionSegment.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Transcription clone() => Transcription()..mergeFromMessage(this);
+  Transcription clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Transcription copyWith(void Function(Transcription) updates) =>
       super.copyWith((message) => updates(message as Transcription)) as Transcription;
@@ -2495,7 +2711,6 @@ class Transcription extends $pb.GeneratedMessage {
   static Transcription create() => Transcription._();
   @$core.override
   Transcription createEmptyInstance() => create();
-  static $pb.PbList<Transcription> createRepeated() => $pb.PbList<Transcription>();
   @$core.pragma('dart2js:noInline')
   static Transcription getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Transcription>(create);
   static Transcription? _defaultInstance;
@@ -2562,7 +2777,7 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TranscriptionSegment clone() => TranscriptionSegment()..mergeFromMessage(this);
+  TranscriptionSegment clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TranscriptionSegment copyWith(void Function(TranscriptionSegment) updates) =>
       super.copyWith((message) => updates(message as TranscriptionSegment)) as TranscriptionSegment;
@@ -2574,7 +2789,6 @@ class TranscriptionSegment extends $pb.GeneratedMessage {
   static TranscriptionSegment create() => TranscriptionSegment._();
   @$core.override
   TranscriptionSegment createEmptyInstance() => create();
-  static $pb.PbList<TranscriptionSegment> createRepeated() => $pb.PbList<TranscriptionSegment>();
   @$core.pragma('dart2js:noInline')
   static TranscriptionSegment getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TranscriptionSegment>(create);
@@ -2673,7 +2887,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ChatMessage clone() => ChatMessage()..mergeFromMessage(this);
+  ChatMessage clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ChatMessage copyWith(void Function(ChatMessage) updates) =>
       super.copyWith((message) => updates(message as ChatMessage)) as ChatMessage;
@@ -2685,7 +2899,6 @@ class ChatMessage extends $pb.GeneratedMessage {
   static ChatMessage create() => ChatMessage._();
   @$core.override
   ChatMessage createEmptyInstance() => create();
-  static $pb.PbList<ChatMessage> createRepeated() => $pb.PbList<ChatMessage>();
   @$core.pragma('dart2js:noInline')
   static ChatMessage getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatMessage>(create);
   static ChatMessage? _defaultInstance;
@@ -2775,12 +2988,12 @@ class RpcRequest extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'method')
     ..aOS(3, _omitFieldNames ? '' : 'payload')
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'responseTimeoutMs', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
+    ..aI(4, _omitFieldNames ? '' : 'responseTimeoutMs', fieldType: $pb.PbFieldType.OU3)
+    ..aI(5, _omitFieldNames ? '' : 'version', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RpcRequest clone() => RpcRequest()..mergeFromMessage(this);
+  RpcRequest clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RpcRequest copyWith(void Function(RpcRequest) updates) =>
       super.copyWith((message) => updates(message as RpcRequest)) as RpcRequest;
@@ -2792,7 +3005,6 @@ class RpcRequest extends $pb.GeneratedMessage {
   static RpcRequest create() => RpcRequest._();
   @$core.override
   RpcRequest createEmptyInstance() => create();
-  static $pb.PbList<RpcRequest> createRepeated() => $pb.PbList<RpcRequest>();
   @$core.pragma('dart2js:noInline')
   static RpcRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RpcRequest>(create);
   static RpcRequest? _defaultInstance;
@@ -2866,7 +3078,7 @@ class RpcAck extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RpcAck clone() => RpcAck()..mergeFromMessage(this);
+  RpcAck clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RpcAck copyWith(void Function(RpcAck) updates) => super.copyWith((message) => updates(message as RpcAck)) as RpcAck;
 
@@ -2877,7 +3089,6 @@ class RpcAck extends $pb.GeneratedMessage {
   static RpcAck create() => RpcAck._();
   @$core.override
   RpcAck createEmptyInstance() => create();
-  static $pb.PbList<RpcAck> createRepeated() => $pb.PbList<RpcAck>();
   @$core.pragma('dart2js:noInline')
   static RpcAck getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RpcAck>(create);
   static RpcAck? _defaultInstance;
@@ -2929,7 +3140,7 @@ class RpcResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RpcResponse clone() => RpcResponse()..mergeFromMessage(this);
+  RpcResponse clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RpcResponse copyWith(void Function(RpcResponse) updates) =>
       super.copyWith((message) => updates(message as RpcResponse)) as RpcResponse;
@@ -2941,12 +3152,15 @@ class RpcResponse extends $pb.GeneratedMessage {
   static RpcResponse create() => RpcResponse._();
   @$core.override
   RpcResponse createEmptyInstance() => create();
-  static $pb.PbList<RpcResponse> createRepeated() => $pb.PbList<RpcResponse>();
   @$core.pragma('dart2js:noInline')
   static RpcResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RpcResponse>(create);
   static RpcResponse? _defaultInstance;
 
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
   RpcResponse_Value whichValue() => _RpcResponse_ValueByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(2)
+  @$pb.TagNumber(3)
   void clearValue() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3002,13 +3216,13 @@ class RpcError extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RpcError',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'code', fieldType: $pb.PbFieldType.OU3)
     ..aOS(2, _omitFieldNames ? '' : 'message')
     ..aOS(3, _omitFieldNames ? '' : 'data')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RpcError clone() => RpcError()..mergeFromMessage(this);
+  RpcError clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RpcError copyWith(void Function(RpcError) updates) =>
       super.copyWith((message) => updates(message as RpcError)) as RpcError;
@@ -3020,7 +3234,6 @@ class RpcError extends $pb.GeneratedMessage {
   static RpcError create() => RpcError._();
   @$core.override
   RpcError createEmptyInstance() => create();
-  static $pb.PbList<RpcError> createRepeated() => $pb.PbList<RpcError>();
   @$core.pragma('dart2js:noInline')
   static RpcError getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RpcError>(create);
   static RpcError? _defaultInstance;
@@ -3080,7 +3293,7 @@ class ParticipantTracks extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParticipantTracks clone() => ParticipantTracks()..mergeFromMessage(this);
+  ParticipantTracks clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParticipantTracks copyWith(void Function(ParticipantTracks) updates) =>
       super.copyWith((message) => updates(message as ParticipantTracks)) as ParticipantTracks;
@@ -3092,7 +3305,6 @@ class ParticipantTracks extends $pb.GeneratedMessage {
   static ParticipantTracks create() => ParticipantTracks._();
   @$core.override
   ParticipantTracks createEmptyInstance() => create();
-  static $pb.PbList<ParticipantTracks> createRepeated() => $pb.PbList<ParticipantTracks>();
   @$core.pragma('dart2js:noInline')
   static ParticipantTracks getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ParticipantTracks>(create);
@@ -3144,20 +3356,17 @@ class ServerInfo extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ServerInfo',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<ServerInfo_Edition>(1, _omitFieldNames ? '' : 'edition', $pb.PbFieldType.OE,
-        defaultOrMaker: ServerInfo_Edition.Standard,
-        valueOf: ServerInfo_Edition.valueOf,
-        enumValues: ServerInfo_Edition.values)
+    ..aE<ServerInfo_Edition>(1, _omitFieldNames ? '' : 'edition', enumValues: ServerInfo_Edition.values)
     ..aOS(2, _omitFieldNames ? '' : 'version')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'protocol', $pb.PbFieldType.O3)
+    ..aI(3, _omitFieldNames ? '' : 'protocol')
     ..aOS(4, _omitFieldNames ? '' : 'region')
     ..aOS(5, _omitFieldNames ? '' : 'nodeId')
     ..aOS(6, _omitFieldNames ? '' : 'debugInfo')
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'agentProtocol', $pb.PbFieldType.O3)
+    ..aI(7, _omitFieldNames ? '' : 'agentProtocol')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ServerInfo clone() => ServerInfo()..mergeFromMessage(this);
+  ServerInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ServerInfo copyWith(void Function(ServerInfo) updates) =>
       super.copyWith((message) => updates(message as ServerInfo)) as ServerInfo;
@@ -3169,7 +3378,6 @@ class ServerInfo extends $pb.GeneratedMessage {
   static ServerInfo create() => ServerInfo._();
   @$core.override
   ServerInfo createEmptyInstance() => create();
-  static $pb.PbList<ServerInfo> createRepeated() => $pb.PbList<ServerInfo>();
   @$core.pragma('dart2js:noInline')
   static ServerInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ServerInfo>(create);
   static ServerInfo? _defaultInstance;
@@ -3279,10 +3487,9 @@ class ClientInfo extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ClientInfo',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<ClientInfo_SDK>(1, _omitFieldNames ? '' : 'sdk', $pb.PbFieldType.OE,
-        defaultOrMaker: ClientInfo_SDK.UNKNOWN, valueOf: ClientInfo_SDK.valueOf, enumValues: ClientInfo_SDK.values)
+    ..aE<ClientInfo_SDK>(1, _omitFieldNames ? '' : 'sdk', enumValues: ClientInfo_SDK.values)
     ..aOS(2, _omitFieldNames ? '' : 'version')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'protocol', $pb.PbFieldType.O3)
+    ..aI(3, _omitFieldNames ? '' : 'protocol')
     ..aOS(4, _omitFieldNames ? '' : 'os')
     ..aOS(5, _omitFieldNames ? '' : 'osVersion')
     ..aOS(6, _omitFieldNames ? '' : 'deviceModel')
@@ -3294,7 +3501,7 @@ class ClientInfo extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ClientInfo clone() => ClientInfo()..mergeFromMessage(this);
+  ClientInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ClientInfo copyWith(void Function(ClientInfo) updates) =>
       super.copyWith((message) => updates(message as ClientInfo)) as ClientInfo;
@@ -3306,7 +3513,6 @@ class ClientInfo extends $pb.GeneratedMessage {
   static ClientInfo create() => ClientInfo._();
   @$core.override
   ClientInfo createEmptyInstance() => create();
-  static $pb.PbList<ClientInfo> createRepeated() => $pb.PbList<ClientInfo>();
   @$core.pragma('dart2js:noInline')
   static ClientInfo getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientInfo>(create);
   static ClientInfo? _defaultInstance;
@@ -3445,19 +3651,13 @@ class ClientConfiguration extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOM<VideoConfiguration>(1, _omitFieldNames ? '' : 'video', subBuilder: VideoConfiguration.create)
     ..aOM<VideoConfiguration>(2, _omitFieldNames ? '' : 'screen', subBuilder: VideoConfiguration.create)
-    ..e<ClientConfigSetting>(3, _omitFieldNames ? '' : 'resumeConnection', $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
+    ..aE<ClientConfigSetting>(3, _omitFieldNames ? '' : 'resumeConnection', enumValues: ClientConfigSetting.values)
     ..aOM<DisabledCodecs>(4, _omitFieldNames ? '' : 'disabledCodecs', subBuilder: DisabledCodecs.create)
-    ..e<ClientConfigSetting>(5, _omitFieldNames ? '' : 'forceRelay', $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
+    ..aE<ClientConfigSetting>(5, _omitFieldNames ? '' : 'forceRelay', enumValues: ClientConfigSetting.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ClientConfiguration clone() => ClientConfiguration()..mergeFromMessage(this);
+  ClientConfiguration clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ClientConfiguration copyWith(void Function(ClientConfiguration) updates) =>
       super.copyWith((message) => updates(message as ClientConfiguration)) as ClientConfiguration;
@@ -3469,7 +3669,6 @@ class ClientConfiguration extends $pb.GeneratedMessage {
   static ClientConfiguration create() => ClientConfiguration._();
   @$core.override
   ClientConfiguration createEmptyInstance() => create();
-  static $pb.PbList<ClientConfiguration> createRepeated() => $pb.PbList<ClientConfiguration>();
   @$core.pragma('dart2js:noInline')
   static ClientConfiguration getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ClientConfiguration>(create);
@@ -3547,14 +3746,11 @@ class VideoConfiguration extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VideoConfiguration',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<ClientConfigSetting>(1, _omitFieldNames ? '' : 'hardwareEncoder', $pb.PbFieldType.OE,
-        defaultOrMaker: ClientConfigSetting.UNSET,
-        valueOf: ClientConfigSetting.valueOf,
-        enumValues: ClientConfigSetting.values)
+    ..aE<ClientConfigSetting>(1, _omitFieldNames ? '' : 'hardwareEncoder', enumValues: ClientConfigSetting.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  VideoConfiguration clone() => VideoConfiguration()..mergeFromMessage(this);
+  VideoConfiguration clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   VideoConfiguration copyWith(void Function(VideoConfiguration) updates) =>
       super.copyWith((message) => updates(message as VideoConfiguration)) as VideoConfiguration;
@@ -3566,7 +3762,6 @@ class VideoConfiguration extends $pb.GeneratedMessage {
   static VideoConfiguration create() => VideoConfiguration._();
   @$core.override
   VideoConfiguration createEmptyInstance() => create();
-  static $pb.PbList<VideoConfiguration> createRepeated() => $pb.PbList<VideoConfiguration>();
   @$core.pragma('dart2js:noInline')
   static VideoConfiguration getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VideoConfiguration>(create);
@@ -3603,12 +3798,12 @@ class DisabledCodecs extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DisabledCodecs',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..pc<Codec>(1, _omitFieldNames ? '' : 'codecs', $pb.PbFieldType.PM, subBuilder: Codec.create)
-    ..pc<Codec>(2, _omitFieldNames ? '' : 'publish', $pb.PbFieldType.PM, subBuilder: Codec.create)
+    ..pPM<Codec>(1, _omitFieldNames ? '' : 'codecs', subBuilder: Codec.create)
+    ..pPM<Codec>(2, _omitFieldNames ? '' : 'publish', subBuilder: Codec.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DisabledCodecs clone() => DisabledCodecs()..mergeFromMessage(this);
+  DisabledCodecs clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DisabledCodecs copyWith(void Function(DisabledCodecs) updates) =>
       super.copyWith((message) => updates(message as DisabledCodecs)) as DisabledCodecs;
@@ -3620,7 +3815,6 @@ class DisabledCodecs extends $pb.GeneratedMessage {
   static DisabledCodecs create() => DisabledCodecs._();
   @$core.override
   DisabledCodecs createEmptyInstance() => create();
-  static $pb.PbList<DisabledCodecs> createRepeated() => $pb.PbList<DisabledCodecs>();
   @$core.pragma('dart2js:noInline')
   static DisabledCodecs getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DisabledCodecs>(create);
   static DisabledCodecs? _defaultInstance;
@@ -3636,8 +3830,8 @@ class DisabledCodecs extends $pb.GeneratedMessage {
 
 class RTPDrift extends $pb.GeneratedMessage {
   factory RTPDrift({
-    $0.Timestamp? startTime,
-    $0.Timestamp? endTime,
+    $1.Timestamp? startTime,
+    $1.Timestamp? endTime,
     $core.double? duration,
     $fixnum.Int64? startTimestamp,
     $fixnum.Int64? endTimestamp,
@@ -3669,9 +3863,9 @@ class RTPDrift extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RTPDrift',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $0.Timestamp.create)
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
+    ..aOM<$1.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $1.Timestamp.create)
+    ..aD(3, _omitFieldNames ? '' : 'duration')
     ..a<$fixnum.Int64>(4, _omitFieldNames ? '' : 'startTimestamp', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'endTimestamp', $pb.PbFieldType.OU6,
@@ -3679,12 +3873,12 @@ class RTPDrift extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(6, _omitFieldNames ? '' : 'rtpClockTicks', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aInt64(7, _omitFieldNames ? '' : 'driftSamples')
-    ..a<$core.double>(8, _omitFieldNames ? '' : 'driftMs', $pb.PbFieldType.OD)
-    ..a<$core.double>(9, _omitFieldNames ? '' : 'clockRate', $pb.PbFieldType.OD)
+    ..aD(8, _omitFieldNames ? '' : 'driftMs')
+    ..aD(9, _omitFieldNames ? '' : 'clockRate')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RTPDrift clone() => RTPDrift()..mergeFromMessage(this);
+  RTPDrift clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RTPDrift copyWith(void Function(RTPDrift) updates) =>
       super.copyWith((message) => updates(message as RTPDrift)) as RTPDrift;
@@ -3696,32 +3890,31 @@ class RTPDrift extends $pb.GeneratedMessage {
   static RTPDrift create() => RTPDrift._();
   @$core.override
   RTPDrift createEmptyInstance() => create();
-  static $pb.PbList<RTPDrift> createRepeated() => $pb.PbList<RTPDrift>();
   @$core.pragma('dart2js:noInline')
   static RTPDrift getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPDrift>(create);
   static RTPDrift? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.Timestamp get startTime => $_getN(0);
+  $1.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($0.Timestamp value) => $_setField(1, value);
+  set startTime($1.Timestamp value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasStartTime() => $_has(0);
   @$pb.TagNumber(1)
   void clearStartTime() => $_clearField(1);
   @$pb.TagNumber(1)
-  $0.Timestamp ensureStartTime() => $_ensure(0);
+  $1.Timestamp ensureStartTime() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $0.Timestamp get endTime => $_getN(1);
+  $1.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($0.Timestamp value) => $_setField(2, value);
+  set endTime($1.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasEndTime() => $_has(1);
   @$pb.TagNumber(2)
   void clearEndTime() => $_clearField(2);
   @$pb.TagNumber(2)
-  $0.Timestamp ensureEndTime() => $_ensure(1);
+  $1.Timestamp ensureEndTime() => $_ensure(1);
 
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
@@ -3789,8 +3982,8 @@ class RTPDrift extends $pb.GeneratedMessage {
 
 class RTPStats extends $pb.GeneratedMessage {
   factory RTPStats({
-    $0.Timestamp? startTime,
-    $0.Timestamp? endTime,
+    $1.Timestamp? startTime,
+    $1.Timestamp? endTime,
     $core.double? duration,
     $core.int? packets,
     $core.double? packetRate,
@@ -3816,15 +4009,15 @@ class RTPStats extends $pb.GeneratedMessage {
     $core.int? nacks,
     $core.int? nackMisses,
     $core.int? plis,
-    $0.Timestamp? lastPli,
+    $1.Timestamp? lastPli,
     $core.int? firs,
-    $0.Timestamp? lastFir,
+    $1.Timestamp? lastFir,
     $core.int? rttCurrent,
     $core.int? rttMax,
     $core.int? keyFrames,
-    $0.Timestamp? lastKeyFrame,
+    $1.Timestamp? lastKeyFrame,
     $core.int? layerLockPlis,
-    $0.Timestamp? lastLayerLockPli,
+    $1.Timestamp? lastLayerLockPli,
     $core.int? nackAcks,
     $core.int? nackRepeated,
     $fixnum.Int64? headerBytes,
@@ -3894,50 +4087,50 @@ class RTPStats extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RTPStats',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..aOM<$0.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $0.Timestamp.create)
-    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $0.Timestamp.create)
-    ..a<$core.double>(3, _omitFieldNames ? '' : 'duration', $pb.PbFieldType.OD)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'packets', $pb.PbFieldType.OU3)
-    ..a<$core.double>(5, _omitFieldNames ? '' : 'packetRate', $pb.PbFieldType.OD)
+    ..aOM<$1.Timestamp>(1, _omitFieldNames ? '' : 'startTime', subBuilder: $1.Timestamp.create)
+    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'endTime', subBuilder: $1.Timestamp.create)
+    ..aD(3, _omitFieldNames ? '' : 'duration')
+    ..aI(4, _omitFieldNames ? '' : 'packets', fieldType: $pb.PbFieldType.OU3)
+    ..aD(5, _omitFieldNames ? '' : 'packetRate')
     ..a<$fixnum.Int64>(6, _omitFieldNames ? '' : 'bytes', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(7, _omitFieldNames ? '' : 'bitrate', $pb.PbFieldType.OD)
-    ..a<$core.int>(8, _omitFieldNames ? '' : 'packetsLost', $pb.PbFieldType.OU3)
-    ..a<$core.double>(9, _omitFieldNames ? '' : 'packetLossRate', $pb.PbFieldType.OD)
-    ..a<$core.double>(10, _omitFieldNames ? '' : 'packetLossPercentage', $pb.PbFieldType.OF)
-    ..a<$core.int>(11, _omitFieldNames ? '' : 'packetsDuplicate', $pb.PbFieldType.OU3)
-    ..a<$core.double>(12, _omitFieldNames ? '' : 'packetDuplicateRate', $pb.PbFieldType.OD)
+    ..aD(7, _omitFieldNames ? '' : 'bitrate')
+    ..aI(8, _omitFieldNames ? '' : 'packetsLost', fieldType: $pb.PbFieldType.OU3)
+    ..aD(9, _omitFieldNames ? '' : 'packetLossRate')
+    ..aD(10, _omitFieldNames ? '' : 'packetLossPercentage', fieldType: $pb.PbFieldType.OF)
+    ..aI(11, _omitFieldNames ? '' : 'packetsDuplicate', fieldType: $pb.PbFieldType.OU3)
+    ..aD(12, _omitFieldNames ? '' : 'packetDuplicateRate')
     ..a<$fixnum.Int64>(13, _omitFieldNames ? '' : 'bytesDuplicate', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(14, _omitFieldNames ? '' : 'bitrateDuplicate', $pb.PbFieldType.OD)
-    ..a<$core.int>(15, _omitFieldNames ? '' : 'packetsPadding', $pb.PbFieldType.OU3)
-    ..a<$core.double>(16, _omitFieldNames ? '' : 'packetPaddingRate', $pb.PbFieldType.OD)
+    ..aD(14, _omitFieldNames ? '' : 'bitrateDuplicate')
+    ..aI(15, _omitFieldNames ? '' : 'packetsPadding', fieldType: $pb.PbFieldType.OU3)
+    ..aD(16, _omitFieldNames ? '' : 'packetPaddingRate')
     ..a<$fixnum.Int64>(17, _omitFieldNames ? '' : 'bytesPadding', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
-    ..a<$core.double>(18, _omitFieldNames ? '' : 'bitratePadding', $pb.PbFieldType.OD)
-    ..a<$core.int>(19, _omitFieldNames ? '' : 'packetsOutOfOrder', $pb.PbFieldType.OU3)
-    ..a<$core.int>(20, _omitFieldNames ? '' : 'frames', $pb.PbFieldType.OU3)
-    ..a<$core.double>(21, _omitFieldNames ? '' : 'frameRate', $pb.PbFieldType.OD)
-    ..a<$core.double>(22, _omitFieldNames ? '' : 'jitterCurrent', $pb.PbFieldType.OD)
-    ..a<$core.double>(23, _omitFieldNames ? '' : 'jitterMax', $pb.PbFieldType.OD)
+    ..aD(18, _omitFieldNames ? '' : 'bitratePadding')
+    ..aI(19, _omitFieldNames ? '' : 'packetsOutOfOrder', fieldType: $pb.PbFieldType.OU3)
+    ..aI(20, _omitFieldNames ? '' : 'frames', fieldType: $pb.PbFieldType.OU3)
+    ..aD(21, _omitFieldNames ? '' : 'frameRate')
+    ..aD(22, _omitFieldNames ? '' : 'jitterCurrent')
+    ..aD(23, _omitFieldNames ? '' : 'jitterMax')
     ..m<$core.int, $core.int>(24, _omitFieldNames ? '' : 'gapHistogram',
         entryClassName: 'RTPStats.GapHistogramEntry',
         keyFieldType: $pb.PbFieldType.O3,
         valueFieldType: $pb.PbFieldType.OU3,
         packageName: const $pb.PackageName('livekit'))
-    ..a<$core.int>(25, _omitFieldNames ? '' : 'nacks', $pb.PbFieldType.OU3)
-    ..a<$core.int>(26, _omitFieldNames ? '' : 'nackMisses', $pb.PbFieldType.OU3)
-    ..a<$core.int>(27, _omitFieldNames ? '' : 'plis', $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(28, _omitFieldNames ? '' : 'lastPli', subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(29, _omitFieldNames ? '' : 'firs', $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(30, _omitFieldNames ? '' : 'lastFir', subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(31, _omitFieldNames ? '' : 'rttCurrent', $pb.PbFieldType.OU3)
-    ..a<$core.int>(32, _omitFieldNames ? '' : 'rttMax', $pb.PbFieldType.OU3)
-    ..a<$core.int>(33, _omitFieldNames ? '' : 'keyFrames', $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(34, _omitFieldNames ? '' : 'lastKeyFrame', subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(35, _omitFieldNames ? '' : 'layerLockPlis', $pb.PbFieldType.OU3)
-    ..aOM<$0.Timestamp>(36, _omitFieldNames ? '' : 'lastLayerLockPli', subBuilder: $0.Timestamp.create)
-    ..a<$core.int>(37, _omitFieldNames ? '' : 'nackAcks', $pb.PbFieldType.OU3)
-    ..a<$core.int>(38, _omitFieldNames ? '' : 'nackRepeated', $pb.PbFieldType.OU3)
+    ..aI(25, _omitFieldNames ? '' : 'nacks', fieldType: $pb.PbFieldType.OU3)
+    ..aI(26, _omitFieldNames ? '' : 'nackMisses', fieldType: $pb.PbFieldType.OU3)
+    ..aI(27, _omitFieldNames ? '' : 'plis', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$1.Timestamp>(28, _omitFieldNames ? '' : 'lastPli', subBuilder: $1.Timestamp.create)
+    ..aI(29, _omitFieldNames ? '' : 'firs', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$1.Timestamp>(30, _omitFieldNames ? '' : 'lastFir', subBuilder: $1.Timestamp.create)
+    ..aI(31, _omitFieldNames ? '' : 'rttCurrent', fieldType: $pb.PbFieldType.OU3)
+    ..aI(32, _omitFieldNames ? '' : 'rttMax', fieldType: $pb.PbFieldType.OU3)
+    ..aI(33, _omitFieldNames ? '' : 'keyFrames', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$1.Timestamp>(34, _omitFieldNames ? '' : 'lastKeyFrame', subBuilder: $1.Timestamp.create)
+    ..aI(35, _omitFieldNames ? '' : 'layerLockPlis', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$1.Timestamp>(36, _omitFieldNames ? '' : 'lastLayerLockPli', subBuilder: $1.Timestamp.create)
+    ..aI(37, _omitFieldNames ? '' : 'nackAcks', fieldType: $pb.PbFieldType.OU3)
+    ..aI(38, _omitFieldNames ? '' : 'nackRepeated', fieldType: $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(39, _omitFieldNames ? '' : 'headerBytes', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(40, _omitFieldNames ? '' : 'headerBytesDuplicate', $pb.PbFieldType.OU6,
@@ -3951,7 +4144,7 @@ class RTPStats extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RTPStats clone() => RTPStats()..mergeFromMessage(this);
+  RTPStats clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RTPStats copyWith(void Function(RTPStats) updates) =>
       super.copyWith((message) => updates(message as RTPStats)) as RTPStats;
@@ -3963,32 +4156,31 @@ class RTPStats extends $pb.GeneratedMessage {
   static RTPStats create() => RTPStats._();
   @$core.override
   RTPStats createEmptyInstance() => create();
-  static $pb.PbList<RTPStats> createRepeated() => $pb.PbList<RTPStats>();
   @$core.pragma('dart2js:noInline')
   static RTPStats getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPStats>(create);
   static RTPStats? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $0.Timestamp get startTime => $_getN(0);
+  $1.Timestamp get startTime => $_getN(0);
   @$pb.TagNumber(1)
-  set startTime($0.Timestamp value) => $_setField(1, value);
+  set startTime($1.Timestamp value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasStartTime() => $_has(0);
   @$pb.TagNumber(1)
   void clearStartTime() => $_clearField(1);
   @$pb.TagNumber(1)
-  $0.Timestamp ensureStartTime() => $_ensure(0);
+  $1.Timestamp ensureStartTime() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $0.Timestamp get endTime => $_getN(1);
+  $1.Timestamp get endTime => $_getN(1);
   @$pb.TagNumber(2)
-  set endTime($0.Timestamp value) => $_setField(2, value);
+  set endTime($1.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasEndTime() => $_has(1);
   @$pb.TagNumber(2)
   void clearEndTime() => $_clearField(2);
   @$pb.TagNumber(2)
-  $0.Timestamp ensureEndTime() => $_ensure(1);
+  $1.Timestamp ensureEndTime() => $_ensure(1);
 
   @$pb.TagNumber(3)
   $core.double get duration => $_getN(2);
@@ -4210,15 +4402,15 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearPlis() => $_clearField(27);
 
   @$pb.TagNumber(28)
-  $0.Timestamp get lastPli => $_getN(27);
+  $1.Timestamp get lastPli => $_getN(27);
   @$pb.TagNumber(28)
-  set lastPli($0.Timestamp value) => $_setField(28, value);
+  set lastPli($1.Timestamp value) => $_setField(28, value);
   @$pb.TagNumber(28)
   $core.bool hasLastPli() => $_has(27);
   @$pb.TagNumber(28)
   void clearLastPli() => $_clearField(28);
   @$pb.TagNumber(28)
-  $0.Timestamp ensureLastPli() => $_ensure(27);
+  $1.Timestamp ensureLastPli() => $_ensure(27);
 
   @$pb.TagNumber(29)
   $core.int get firs => $_getIZ(28);
@@ -4230,15 +4422,15 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearFirs() => $_clearField(29);
 
   @$pb.TagNumber(30)
-  $0.Timestamp get lastFir => $_getN(29);
+  $1.Timestamp get lastFir => $_getN(29);
   @$pb.TagNumber(30)
-  set lastFir($0.Timestamp value) => $_setField(30, value);
+  set lastFir($1.Timestamp value) => $_setField(30, value);
   @$pb.TagNumber(30)
   $core.bool hasLastFir() => $_has(29);
   @$pb.TagNumber(30)
   void clearLastFir() => $_clearField(30);
   @$pb.TagNumber(30)
-  $0.Timestamp ensureLastFir() => $_ensure(29);
+  $1.Timestamp ensureLastFir() => $_ensure(29);
 
   @$pb.TagNumber(31)
   $core.int get rttCurrent => $_getIZ(30);
@@ -4268,15 +4460,15 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearKeyFrames() => $_clearField(33);
 
   @$pb.TagNumber(34)
-  $0.Timestamp get lastKeyFrame => $_getN(33);
+  $1.Timestamp get lastKeyFrame => $_getN(33);
   @$pb.TagNumber(34)
-  set lastKeyFrame($0.Timestamp value) => $_setField(34, value);
+  set lastKeyFrame($1.Timestamp value) => $_setField(34, value);
   @$pb.TagNumber(34)
   $core.bool hasLastKeyFrame() => $_has(33);
   @$pb.TagNumber(34)
   void clearLastKeyFrame() => $_clearField(34);
   @$pb.TagNumber(34)
-  $0.Timestamp ensureLastKeyFrame() => $_ensure(33);
+  $1.Timestamp ensureLastKeyFrame() => $_ensure(33);
 
   @$pb.TagNumber(35)
   $core.int get layerLockPlis => $_getIZ(34);
@@ -4288,15 +4480,15 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearLayerLockPlis() => $_clearField(35);
 
   @$pb.TagNumber(36)
-  $0.Timestamp get lastLayerLockPli => $_getN(35);
+  $1.Timestamp get lastLayerLockPli => $_getN(35);
   @$pb.TagNumber(36)
-  set lastLayerLockPli($0.Timestamp value) => $_setField(36, value);
+  set lastLayerLockPli($1.Timestamp value) => $_setField(36, value);
   @$pb.TagNumber(36)
   $core.bool hasLastLayerLockPli() => $_has(35);
   @$pb.TagNumber(36)
   void clearLastLayerLockPli() => $_clearField(36);
   @$pb.TagNumber(36)
-  $0.Timestamp ensureLastLayerLockPli() => $_ensure(35);
+  $1.Timestamp ensureLastLayerLockPli() => $_ensure(35);
 
   @$pb.TagNumber(37)
   $core.int get nackAcks => $_getIZ(36);
@@ -4420,19 +4612,19 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RTCPSenderReportState',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'rtpTimestamp', $pb.PbFieldType.OU3)
+    ..aI(1, _omitFieldNames ? '' : 'rtpTimestamp', fieldType: $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'rtpTimestampExt', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$fixnum.Int64>(3, _omitFieldNames ? '' : 'ntpTimestamp', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aInt64(4, _omitFieldNames ? '' : 'at')
     ..aInt64(5, _omitFieldNames ? '' : 'atAdjusted')
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'packets', $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'packets', fieldType: $pb.PbFieldType.OU3)
     ..a<$fixnum.Int64>(7, _omitFieldNames ? '' : 'octets', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RTCPSenderReportState clone() => RTCPSenderReportState()..mergeFromMessage(this);
+  RTCPSenderReportState clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RTCPSenderReportState copyWith(void Function(RTCPSenderReportState) updates) =>
       super.copyWith((message) => updates(message as RTCPSenderReportState)) as RTCPSenderReportState;
@@ -4444,7 +4636,6 @@ class RTCPSenderReportState extends $pb.GeneratedMessage {
   static RTCPSenderReportState create() => RTCPSenderReportState._();
   @$core.override
   RTCPSenderReportState createEmptyInstance() => create();
-  static $pb.PbList<RTCPSenderReportState> createRepeated() => $pb.PbList<RTCPSenderReportState>();
   @$core.pragma('dart2js:noInline')
   static RTCPSenderReportState getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTCPSenderReportState>(create);
@@ -4556,7 +4747,7 @@ class RTPForwarderState extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..oo(0, [7])
     ..aOB(1, _omitFieldNames ? '' : 'started')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'referenceLayerSpatial', $pb.PbFieldType.O3)
+    ..aI(2, _omitFieldNames ? '' : 'referenceLayerSpatial')
     ..aInt64(3, _omitFieldNames ? '' : 'preStartTime')
     ..a<$fixnum.Int64>(4, _omitFieldNames ? '' : 'extFirstTimestamp', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
@@ -4564,12 +4755,12 @@ class RTPForwarderState extends $pb.GeneratedMessage {
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOM<RTPMungerState>(6, _omitFieldNames ? '' : 'rtpMunger', subBuilder: RTPMungerState.create)
     ..aOM<VP8MungerState>(7, _omitFieldNames ? '' : 'vp8Munger', subBuilder: VP8MungerState.create)
-    ..pc<RTCPSenderReportState>(8, _omitFieldNames ? '' : 'senderReportState', $pb.PbFieldType.PM,
+    ..pPM<RTCPSenderReportState>(8, _omitFieldNames ? '' : 'senderReportState',
         subBuilder: RTCPSenderReportState.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RTPForwarderState clone() => RTPForwarderState()..mergeFromMessage(this);
+  RTPForwarderState clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RTPForwarderState copyWith(void Function(RTPForwarderState) updates) =>
       super.copyWith((message) => updates(message as RTPForwarderState)) as RTPForwarderState;
@@ -4581,13 +4772,14 @@ class RTPForwarderState extends $pb.GeneratedMessage {
   static RTPForwarderState create() => RTPForwarderState._();
   @$core.override
   RTPForwarderState createEmptyInstance() => create();
-  static $pb.PbList<RTPForwarderState> createRepeated() => $pb.PbList<RTPForwarderState>();
   @$core.pragma('dart2js:noInline')
   static RTPForwarderState getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPForwarderState>(create);
   static RTPForwarderState? _defaultInstance;
 
+  @$pb.TagNumber(7)
   RTPForwarderState_CodecMunger whichCodecMunger() => _RTPForwarderState_CodecMungerByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(7)
   void clearCodecMunger() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4703,7 +4895,7 @@ class RTPMungerState extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  RTPMungerState clone() => RTPMungerState()..mergeFromMessage(this);
+  RTPMungerState clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   RTPMungerState copyWith(void Function(RTPMungerState) updates) =>
       super.copyWith((message) => updates(message as RTPMungerState)) as RTPMungerState;
@@ -4715,7 +4907,6 @@ class RTPMungerState extends $pb.GeneratedMessage {
   static RTPMungerState create() => RTPMungerState._();
   @$core.override
   RTPMungerState createEmptyInstance() => create();
-  static $pb.PbList<RTPMungerState> createRepeated() => $pb.PbList<RTPMungerState>();
   @$core.pragma('dart2js:noInline')
   static RTPMungerState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RTPMungerState>(create);
   static RTPMungerState? _defaultInstance;
@@ -4806,17 +4997,17 @@ class VP8MungerState extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'VP8MungerState',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'extLastPictureId', $pb.PbFieldType.O3)
+    ..aI(1, _omitFieldNames ? '' : 'extLastPictureId')
     ..aOB(2, _omitFieldNames ? '' : 'pictureIdUsed')
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'lastTl0PicIdx', $pb.PbFieldType.OU3)
+    ..aI(3, _omitFieldNames ? '' : 'lastTl0PicIdx', fieldType: $pb.PbFieldType.OU3)
     ..aOB(4, _omitFieldNames ? '' : 'tl0PicIdxUsed')
     ..aOB(5, _omitFieldNames ? '' : 'tidUsed')
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'lastKeyIdx', $pb.PbFieldType.OU3)
+    ..aI(6, _omitFieldNames ? '' : 'lastKeyIdx', fieldType: $pb.PbFieldType.OU3)
     ..aOB(7, _omitFieldNames ? '' : 'keyIdxUsed')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  VP8MungerState clone() => VP8MungerState()..mergeFromMessage(this);
+  VP8MungerState clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   VP8MungerState copyWith(void Function(VP8MungerState) updates) =>
       super.copyWith((message) => updates(message as VP8MungerState)) as VP8MungerState;
@@ -4828,7 +5019,6 @@ class VP8MungerState extends $pb.GeneratedMessage {
   static VP8MungerState create() => VP8MungerState._();
   @$core.override
   VP8MungerState createEmptyInstance() => create();
-  static $pb.PbList<VP8MungerState> createRepeated() => $pb.PbList<VP8MungerState>();
   @$core.pragma('dart2js:noInline')
   static VP8MungerState getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<VP8MungerState>(create);
   static VP8MungerState? _defaultInstance;
@@ -4919,11 +5109,11 @@ class TimedVersion extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'TimedVersion',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aInt64(1, _omitFieldNames ? '' : 'unixMicro')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'ticks', $pb.PbFieldType.O3)
+    ..aI(2, _omitFieldNames ? '' : 'ticks')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TimedVersion clone() => TimedVersion()..mergeFromMessage(this);
+  TimedVersion clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TimedVersion copyWith(void Function(TimedVersion) updates) =>
       super.copyWith((message) => updates(message as TimedVersion)) as TimedVersion;
@@ -4935,7 +5125,6 @@ class TimedVersion extends $pb.GeneratedMessage {
   static TimedVersion create() => TimedVersion._();
   @$core.override
   TimedVersion createEmptyInstance() => create();
-  static $pb.PbList<TimedVersion> createRepeated() => $pb.PbList<TimedVersion>();
   @$core.pragma('dart2js:noInline')
   static TimedVersion getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TimedVersion>(create);
   static TimedVersion? _defaultInstance;
@@ -4988,18 +5177,16 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataStream.TextHeader',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..e<DataStream_OperationType>(1, _omitFieldNames ? '' : 'operationType', $pb.PbFieldType.OE,
-        defaultOrMaker: DataStream_OperationType.CREATE,
-        valueOf: DataStream_OperationType.valueOf,
+    ..aE<DataStream_OperationType>(1, _omitFieldNames ? '' : 'operationType',
         enumValues: DataStream_OperationType.values)
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'version', $pb.PbFieldType.O3)
+    ..aI(2, _omitFieldNames ? '' : 'version')
     ..aOS(3, _omitFieldNames ? '' : 'replyToStreamId')
     ..pPS(4, _omitFieldNames ? '' : 'attachedStreamIds')
     ..aOB(5, _omitFieldNames ? '' : 'generated')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream_TextHeader clone() => DataStream_TextHeader()..mergeFromMessage(this);
+  DataStream_TextHeader clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream_TextHeader copyWith(void Function(DataStream_TextHeader) updates) =>
       super.copyWith((message) => updates(message as DataStream_TextHeader)) as DataStream_TextHeader;
@@ -5011,7 +5198,6 @@ class DataStream_TextHeader extends $pb.GeneratedMessage {
   static DataStream_TextHeader create() => DataStream_TextHeader._();
   @$core.override
   DataStream_TextHeader createEmptyInstance() => create();
-  static $pb.PbList<DataStream_TextHeader> createRepeated() => $pb.PbList<DataStream_TextHeader>();
   @$core.pragma('dart2js:noInline')
   static DataStream_TextHeader getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream_TextHeader>(create);
@@ -5082,7 +5268,7 @@ class DataStream_ByteHeader extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream_ByteHeader clone() => DataStream_ByteHeader()..mergeFromMessage(this);
+  DataStream_ByteHeader clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream_ByteHeader copyWith(void Function(DataStream_ByteHeader) updates) =>
       super.copyWith((message) => updates(message as DataStream_ByteHeader)) as DataStream_ByteHeader;
@@ -5094,7 +5280,6 @@ class DataStream_ByteHeader extends $pb.GeneratedMessage {
   static DataStream_ByteHeader create() => DataStream_ByteHeader._();
   @$core.override
   DataStream_ByteHeader createEmptyInstance() => create();
-  static $pb.PbList<DataStream_ByteHeader> createRepeated() => $pb.PbList<DataStream_ByteHeader>();
   @$core.pragma('dart2js:noInline')
   static DataStream_ByteHeader getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream_ByteHeader>(create);
@@ -5160,8 +5345,7 @@ class DataStream_Header extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'topic')
     ..aOS(4, _omitFieldNames ? '' : 'mimeType')
     ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'totalLength', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
-    ..e<Encryption_Type>(7, _omitFieldNames ? '' : 'encryptionType', $pb.PbFieldType.OE,
-        defaultOrMaker: Encryption_Type.NONE, valueOf: Encryption_Type.valueOf, enumValues: Encryption_Type.values)
+    ..aE<Encryption_Type>(7, _omitFieldNames ? '' : 'encryptionType', enumValues: Encryption_Type.values)
     ..m<$core.String, $core.String>(8, _omitFieldNames ? '' : 'attributes',
         entryClassName: 'DataStream.Header.AttributesEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -5172,7 +5356,7 @@ class DataStream_Header extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream_Header clone() => DataStream_Header()..mergeFromMessage(this);
+  DataStream_Header clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream_Header copyWith(void Function(DataStream_Header) updates) =>
       super.copyWith((message) => updates(message as DataStream_Header)) as DataStream_Header;
@@ -5184,13 +5368,16 @@ class DataStream_Header extends $pb.GeneratedMessage {
   static DataStream_Header create() => DataStream_Header._();
   @$core.override
   DataStream_Header createEmptyInstance() => create();
-  static $pb.PbList<DataStream_Header> createRepeated() => $pb.PbList<DataStream_Header>();
   @$core.pragma('dart2js:noInline')
   static DataStream_Header getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream_Header>(create);
   static DataStream_Header? _defaultInstance;
 
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
   DataStream_Header_ContentHeader whichContentHeader() => _DataStream_Header_ContentHeaderByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(9)
+  @$pb.TagNumber(10)
   void clearContentHeader() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -5308,12 +5495,12 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'streamId')
     ..a<$fixnum.Int64>(2, _omitFieldNames ? '' : 'chunkIndex', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'content', $pb.PbFieldType.OY)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'version', $pb.PbFieldType.O3)
+    ..aI(4, _omitFieldNames ? '' : 'version')
     ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'iv', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream_Chunk clone() => DataStream_Chunk()..mergeFromMessage(this);
+  DataStream_Chunk clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream_Chunk copyWith(void Function(DataStream_Chunk) updates) =>
       super.copyWith((message) => updates(message as DataStream_Chunk)) as DataStream_Chunk;
@@ -5325,7 +5512,6 @@ class DataStream_Chunk extends $pb.GeneratedMessage {
   static DataStream_Chunk create() => DataStream_Chunk._();
   @$core.override
   DataStream_Chunk createEmptyInstance() => create();
-  static $pb.PbList<DataStream_Chunk> createRepeated() => $pb.PbList<DataStream_Chunk>();
   @$core.pragma('dart2js:noInline')
   static DataStream_Chunk getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream_Chunk>(create);
@@ -5415,7 +5601,7 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream_Trailer clone() => DataStream_Trailer()..mergeFromMessage(this);
+  DataStream_Trailer clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream_Trailer copyWith(void Function(DataStream_Trailer) updates) =>
       super.copyWith((message) => updates(message as DataStream_Trailer)) as DataStream_Trailer;
@@ -5427,7 +5613,6 @@ class DataStream_Trailer extends $pb.GeneratedMessage {
   static DataStream_Trailer create() => DataStream_Trailer._();
   @$core.override
   DataStream_Trailer createEmptyInstance() => create();
-  static $pb.PbList<DataStream_Trailer> createRepeated() => $pb.PbList<DataStream_Trailer>();
   @$core.pragma('dart2js:noInline')
   static DataStream_Trailer getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream_Trailer>(create);
@@ -5471,7 +5656,7 @@ class DataStream extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  DataStream clone() => DataStream()..mergeFromMessage(this);
+  DataStream clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   DataStream copyWith(void Function(DataStream) updates) =>
       super.copyWith((message) => updates(message as DataStream)) as DataStream;
@@ -5483,20 +5668,70 @@ class DataStream extends $pb.GeneratedMessage {
   static DataStream create() => DataStream._();
   @$core.override
   DataStream createEmptyInstance() => create();
-  static $pb.PbList<DataStream> createRepeated() => $pb.PbList<DataStream>();
   @$core.pragma('dart2js:noInline')
   static DataStream getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataStream>(create);
   static DataStream? _defaultInstance;
+}
+
+class FilterParams extends $pb.GeneratedMessage {
+  factory FilterParams({
+    $core.Iterable<$core.String>? includeEvents,
+    $core.Iterable<$core.String>? excludeEvents,
+  }) {
+    final result = create();
+    if (includeEvents != null) result.includeEvents.addAll(includeEvents);
+    if (excludeEvents != null) result.excludeEvents.addAll(excludeEvents);
+    return result;
+  }
+
+  FilterParams._();
+
+  factory FilterParams.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory FilterParams.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'FilterParams',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'includeEvents')
+    ..pPS(2, _omitFieldNames ? '' : 'excludeEvents')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FilterParams clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  FilterParams copyWith(void Function(FilterParams) updates) =>
+      super.copyWith((message) => updates(message as FilterParams)) as FilterParams;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static FilterParams create() => FilterParams._();
+  @$core.override
+  FilterParams createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static FilterParams getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<FilterParams>(create);
+  static FilterParams? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.String> get includeEvents => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.String> get excludeEvents => $_getList(1);
 }
 
 class WebhookConfig extends $pb.GeneratedMessage {
   factory WebhookConfig({
     $core.String? url,
     $core.String? signingKey,
+    FilterParams? filterParams,
   }) {
     final result = create();
     if (url != null) result.url = url;
     if (signingKey != null) result.signingKey = signingKey;
+    if (filterParams != null) result.filterParams = filterParams;
     return result;
   }
 
@@ -5512,10 +5747,11 @@ class WebhookConfig extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'url')
     ..aOS(2, _omitFieldNames ? '' : 'signingKey')
+    ..aOM<FilterParams>(3, _omitFieldNames ? '' : 'filterParams', subBuilder: FilterParams.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  WebhookConfig clone() => WebhookConfig()..mergeFromMessage(this);
+  WebhookConfig clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   WebhookConfig copyWith(void Function(WebhookConfig) updates) =>
       super.copyWith((message) => updates(message as WebhookConfig)) as WebhookConfig;
@@ -5527,7 +5763,6 @@ class WebhookConfig extends $pb.GeneratedMessage {
   static WebhookConfig create() => WebhookConfig._();
   @$core.override
   WebhookConfig createEmptyInstance() => create();
-  static $pb.PbList<WebhookConfig> createRepeated() => $pb.PbList<WebhookConfig>();
   @$core.pragma('dart2js:noInline')
   static WebhookConfig getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<WebhookConfig>(create);
   static WebhookConfig? _defaultInstance;
@@ -5549,6 +5784,17 @@ class WebhookConfig extends $pb.GeneratedMessage {
   $core.bool hasSigningKey() => $_has(1);
   @$pb.TagNumber(2)
   void clearSigningKey() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  FilterParams get filterParams => $_getN(2);
+  @$pb.TagNumber(3)
+  set filterParams(FilterParams value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasFilterParams() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearFilterParams() => $_clearField(3);
+  @$pb.TagNumber(3)
+  FilterParams ensureFilterParams() => $_ensure(2);
 }
 
 class SubscribedAudioCodec extends $pb.GeneratedMessage {
@@ -5578,7 +5824,7 @@ class SubscribedAudioCodec extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SubscribedAudioCodec clone() => SubscribedAudioCodec()..mergeFromMessage(this);
+  SubscribedAudioCodec clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SubscribedAudioCodec copyWith(void Function(SubscribedAudioCodec) updates) =>
       super.copyWith((message) => updates(message as SubscribedAudioCodec)) as SubscribedAudioCodec;
@@ -5590,7 +5836,6 @@ class SubscribedAudioCodec extends $pb.GeneratedMessage {
   static SubscribedAudioCodec create() => SubscribedAudioCodec._();
   @$core.override
   SubscribedAudioCodec createEmptyInstance() => create();
-  static $pb.PbList<SubscribedAudioCodec> createRepeated() => $pb.PbList<SubscribedAudioCodec>();
   @$core.pragma('dart2js:noInline')
   static SubscribedAudioCodec getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SubscribedAudioCodec>(create);

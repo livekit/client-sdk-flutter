@@ -49,6 +49,14 @@ import 'session_options.dart';
 /// be sent with [sendText], and the message history can be inspected or restored
 /// via [messages], [getMessageHistory], and [restoreMessageHistory].
 ///
+/// Message transport is pluggable: you can provide custom [MessageSender] and
+/// [MessageReceiver] implementations to integrate with different channels. By
+/// default, [Session] uses:
+/// - [TextMessageSender] (topic `'lk.chat'`) to send user text and emit loopback
+///   messages for immediate UI updates.
+/// - [TranscriptionStreamReceiver] (topic `'lk.transcription'`) to receive agent
+///   and user transcripts as a message stream.
+///
 /// The session is designed to be observed from Flutter widgets (it extends
 /// [ChangeNotifier] through [DisposableChangeNotifier]) in the same way that the
 /// Swift implementation conforms to `ObservableObject`.

@@ -1,14 +1,15 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_metrics.proto
-//
+// Generated from livekit_metrics.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
+// ignore_for_file: unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -184,15 +185,27 @@ const MetricsRecordingHeader$json = {
   '1': 'MetricsRecordingHeader',
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'enable_user_data_training', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'enableUserDataTraining', '17': true},
+    {'1': 'duration', '3': 3, '4': 1, '5': 4, '10': 'duration'},
+    {'1': 'start_time', '3': 4, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startTime'},
+    {'1': 'room_tags', '3': 5, '4': 3, '5': 11, '6': '.livekit.MetricsRecordingHeader.RoomTagsEntry', '10': 'roomTags'},
   ],
-  '8': [
-    {'1': '_enable_user_data_training'},
+  '3': [MetricsRecordingHeader_RoomTagsEntry$json],
+};
+
+@$core.Deprecated('Use metricsRecordingHeaderDescriptor instead')
+const MetricsRecordingHeader_RoomTagsEntry$json = {
+  '1': 'RoomTagsEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
   ],
+  '7': {'7': true},
 };
 
 /// Descriptor for `MetricsRecordingHeader`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List metricsRecordingHeaderDescriptor =
-    $convert.base64Decode('ChZNZXRyaWNzUmVjb3JkaW5nSGVhZGVyEhcKB3Jvb21faWQYASABKAlSBnJvb21JZBI+Chllbm'
-        'FibGVfdXNlcl9kYXRhX3RyYWluaW5nGAIgASgISABSFmVuYWJsZVVzZXJEYXRhVHJhaW5pbmeI'
-        'AQFCHAoaX2VuYWJsZV91c2VyX2RhdGFfdHJhaW5pbmc=');
+    $convert.base64Decode('ChZNZXRyaWNzUmVjb3JkaW5nSGVhZGVyEhcKB3Jvb21faWQYASABKAlSBnJvb21JZBIaCghkdX'
+        'JhdGlvbhgDIAEoBFIIZHVyYXRpb24SOQoKc3RhcnRfdGltZRgEIAEoCzIaLmdvb2dsZS5wcm90'
+        'b2J1Zi5UaW1lc3RhbXBSCXN0YXJ0VGltZRJKCglyb29tX3RhZ3MYBSADKAsyLS5saXZla2l0Lk'
+        '1ldHJpY3NSZWNvcmRpbmdIZWFkZXIuUm9vbVRhZ3NFbnRyeVIIcm9vbVRhZ3MaOwoNUm9vbVRh'
+        'Z3NFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');

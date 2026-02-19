@@ -11,7 +11,7 @@ proto:
 	}
 
 format:
-	dart format lib/src/proto
+	dart format -l 120 lib/src/proto
 
 e2ee: dart compile js ./web/e2ee.worker.dart -o ./example/web/e2ee.worker.dart.js
 

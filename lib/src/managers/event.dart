@@ -133,7 +133,9 @@ abstract class EventsListenable<T> extends Disposable {
     if (_listeners.isNotEmpty) {
       // Stop listening to all events
       logger.finer('${objectId} cancelling ${_listeners.length} listeners(s)');
-      for (final listener in _listeners) {
+      final listenersCopy = List.of(_listeners);
+      _listeners.clear();
+      for (final listener in listenersCopy) {
         await listener.cancel();
       }
     }

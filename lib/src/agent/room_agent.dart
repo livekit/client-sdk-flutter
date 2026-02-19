@@ -21,6 +21,12 @@ import 'constants.dart';
 
 extension AgentRoom on Room {
   /// All agent participants currently in the room.
+  ///
+  /// - Note: This excludes participants that are publishing on behalf of
+  ///   another participant (for example, "avatar worker" participants). Those
+  ///   workers can be discovered by filtering [remoteParticipants] for
+  ///   participants whose `lk.publish_on_behalf` attribute matches the agent's
+  ///   identity.
   Iterable<RemoteParticipant> get agentParticipants => remoteParticipants.values.where(
         (participant) {
           if (participant.kind != ParticipantKind.AGENT) {

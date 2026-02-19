@@ -19,8 +19,31 @@ import '../preconnect/pre_connect_audio_buffer.dart';
 import 'room.dart';
 
 extension RoomPreConnect on Room {
-  /// Wrap an async operation while a pre-connect audio buffer records.
-  /// Stops and flushes on error.
+  /// Runs an async [operation] while a pre-connect audio buffer records.
+  ///
+  /// This is primarily used for voice agent experiences to reduce perceived
+  /// latency: the microphone starts recording before [Room.connect] completes,
+  /// and the buffered audio is sent to the agent once it becomes active.
+  ///
+  /// If [operation] throws, recording is stopped and the buffer is reset
+  /// (discarding any buffered audio).
+  ///
+  /// Example:
+  /// ```dart
+  /// await room.withPreConnectAudio(
+  ///   () async {
+  ///     final creds = await tokenService.fetch();
+  ///     await room.connect(creds.serverUrl, creds.participantToken);
+  ///     return true;
+  ///   },
+  ///   timeout: const Duration(seconds: 20),
+  ///   onError: (error) => logger.warning('Preconnect failed: $error'),
+  /// );
+  /// ```
+  ///
+  /// - Note: Ensure microphone permissions are granted early in your app
+  ///   lifecycle so pre-connect can start without additional prompts.
+  /// - SeeAlso: [PreConnectAudioBuffer]
   Future<T> withPreConnectAudio<T>(
     Future<T> Function() operation, {
     Duration timeout = const Duration(seconds: 10),

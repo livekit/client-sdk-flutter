@@ -39,9 +39,7 @@ BrowserVersion lkBrowserVersion() => lkBrowserVersionImplementation();
 
 /// skips stop/replaceTrack for the following platforms and only toggles
 /// track.enabled.
-bool skipStopForTrackMute() =>
-    {PlatformType.windows}.contains(lkPlatform()) ||
-    (lkPlatformIs(PlatformType.web) && [BrowserType.firefox].contains(lkBrowser()));
+bool skipStopForTrackMute() => (lkPlatformIs(PlatformType.web) && [BrowserType.firefox].contains(lkBrowser()));
 
 enum PlatformType { web, windows, linux, macOS, android, fuchsia, iOS }
 

@@ -400,7 +400,7 @@ class FrameCryptor {
         srcFrame.buffer.isEmpty) {
       sifGuard.recordUserFrame();
       if (keyOptions.discardFrameWhenCryptorNotReady) return;
-      logger.fine('enqueing empty dtx frame');
+      logger.fine('enqueuing empty dtx frame');
       controller.enqueue(frameObj);
       return;
     }
@@ -419,9 +419,9 @@ class FrameCryptor {
             final finalBuffer = BytesBuilder();
             finalBuffer
                 .add(Uint8List.fromList(srcFrame.buffer.sublist(0, srcFrame.buffer.length - (magicBytes.length + 1))));
-            logger.fine('decodeFunction: enqueing silent frame src: ${srcFrame.buffer}');
+            logger.fine('decodeFunction: enqueuing silent frame src: ${srcFrame.buffer}');
             enqueueFrame(frameObj, controller, finalBuffer);
-            logger.fine('decodeFunction: enqueing done');
+            logger.fine('decodeFunction: enqueuing done');
             return;
           } else {
             logger.warning('decodeFunction: SIF limit reached, dropping frame');
@@ -514,9 +514,9 @@ class FrameCryptor {
         }
       }
 
-      Future<void> ratchedKeyInternal() async {
+      Future<void> ratchetKeyInternal() async {
         if (ratchetCount >= keyOptions.ratchetWindowSize || keyOptions.ratchetWindowSize <= 0) {
-          throw Exception('[ratchedKeyInternal] cannot ratchet anymore');
+          throw Exception('[ratchetKeyInternal] cannot ratchet anymore');
         }
 
         final newKeyBuffer = await keyHandler.ratchet(currentkeySet.material, keyOptions.ratchetSalt);
@@ -534,11 +534,11 @@ class FrameCryptor {
       } catch (e) {
         lastError = CryptorError.kInternalError;
         logger.finer('decodeFunction: kInternalError catch $e');
-        await ratchedKeyInternal();
+        await ratchetKeyInternal();
       }
 
       if (decrypted == null) {
-        throw Exception('[decodeFunction] decryption failed even after ratchting');
+        throw Exception('[decodeFunction] decryption failed even after ratcheting');
       }
 
       // we can now be sure that decryption was a success

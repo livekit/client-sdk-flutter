@@ -14,7 +14,9 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier, VoidCallback;
+
+import 'package:meta/meta.dart';
 
 import '../extensions.dart';
 import '../logger.dart';
@@ -39,7 +41,11 @@ mixin _Disposer {
         logger.finer('[$objectId] running ${_disposeFuncs.length} dispose funcs...');
         // call dispose funcs in reverse order
         for (final disposeFunc in _disposeFuncs.reversed) {
-          await disposeFunc();
+          try {
+            await disposeFunc();
+          } catch (e, stack) {
+            logger.warning('[$objectId] error during dispose: $e', e, stack);
+          }
         }
         _disposeFuncs.clear();
         logger.finer('[$objectId] dispose complete.');

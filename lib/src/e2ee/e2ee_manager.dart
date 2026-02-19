@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data' show Uint8List;
+
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -47,7 +49,7 @@ class E2EEManager {
       _listener!
         ..on<LocalTrackPublishedEvent>((event) async {
           if (event.publication.encryptionType == EncryptionType.kNone ||
-              isSVCCodec(event.publication.track?.codec ?? '')) {
+              isAV1Codec(event.publication.track?.codec ?? '')) {
             // no need to setup frame cryptor
             return;
           }
@@ -81,7 +83,7 @@ class E2EEManager {
         })
         ..on<TrackSubscribedEvent>((event) async {
           final codec = event.publication.mimeType.split('/')[1];
-          if (event.publication.encryptionType == EncryptionType.kNone || isSVCCodec(codec)) {
+          if (event.publication.encryptionType == EncryptionType.kNone || isAV1Codec(codec)) {
             // no need to setup frame cryptor
             return;
           }
@@ -139,7 +141,7 @@ class E2EEManager {
     await _listener?.cancelAll();
     await _listener?.dispose();
     _listener = null;
-    for (var frameCryptor in _frameCryptors.values) {
+    for (var frameCryptor in _frameCryptors.values.toList()) {
       await frameCryptor.dispose();
     }
     _frameCryptors.clear();
@@ -176,7 +178,7 @@ class E2EEManager {
   /// without encryption/decryption
   Future<void> setEnabled(bool enabled) async {
     _enabled = enabled;
-    for (var frameCryptor in _frameCryptors.entries) {
+    for (var frameCryptor in _frameCryptors.entries.toList()) {
       await frameCryptor.value.setEnabled(enabled);
     }
   }
@@ -187,7 +189,7 @@ class E2EEManager {
   /// if null, use local participant.
   Future<void> setKeyIndex(int keyIndex, {String? participantIdentity}) async {
     participantIdentity ??= _room?.localParticipant?.identity;
-    for (var item in _frameCryptors.entries) {
+    for (var item in _frameCryptors.entries.toList()) {
       if (item.key.keys.first == participantIdentity) {
         await item.value.setKeyIndex(keyIndex);
       }
@@ -200,7 +202,7 @@ class E2EEManager {
   /// @return the key index and -1 if not found
   Future<int> getKeyIndex(String? participantIdentity) async {
     participantIdentity ??= _room?.localParticipant?.identity;
-    for (var item in _frameCryptors.entries) {
+    for (var item in _frameCryptors.entries.toList()) {
       if (item.key.keys.first == participantIdentity) {
         return await item.value.keyIndex;
       }

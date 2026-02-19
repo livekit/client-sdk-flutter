@@ -31,7 +31,7 @@ class Timeouts {
 
   static const Timeouts defaultTimeouts = Timeouts(
     connection: Duration(seconds: 10),
-    debounce: Duration(milliseconds: 100),
+    debounce: Duration(milliseconds: 20),
     publish: Duration(seconds: 10),
     subscribe: Duration(seconds: 10),
     peerConnection: Duration(seconds: 10),

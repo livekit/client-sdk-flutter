@@ -25,10 +25,48 @@ import 'message_receiver.dart';
 
 /// Converts LiveKit transcription text streams into [ReceivedMessage]s.
 ///
-/// Each stream corresponds to a single message (agent or user). The stream
-/// yields textual updates which are aggregated until the message is finalized.
-/// When a new message for the same participant arrives, previous partial
-/// content is purged so that memory usage remains bounded.
+/// This receiver is intended for agent-powered transcription streams produced by
+/// the LiveKit Agents framework (text streams require `livekit-agents >= 1.0.0`).
+///
+/// The receiver listens on a text stream [topic] (default: `'lk.transcription'`)
+/// and aggregates chunked updates into a single [ReceivedMessage] per transcript
+/// segment.
+///
+/// ## Text stream semantics
+///
+/// - **Agent transcripts**: the agent emits a new text stream for each message.
+///   The stream yields chunks that should be appended until the transcript is
+///   finalized.
+/// - **User transcripts**: the agent may resend the full transcription text for
+///   a segment on each update (until finalized).
+///
+/// ## Message identity / diffing
+///
+/// The segment id (`lk.segment_id`) is stable across the lifetime of a transcript
+/// segment. This receiver uses it as [ReceivedMessage.id], which makes it safe
+/// to use for UI diffing (e.g. `ListView` keys). If `lk.segment_id` is missing,
+/// the text stream id is used as a fallback.
+///
+/// When a new segment for the same participant arrives, older partial segments
+/// are removed to keep memory usage bounded.
+///
+/// ## Example (agent transcript chunks)
+///
+/// Incoming chunks (same segment id):
+/// ```text
+/// { segment_id: "1", content: "Hello" }
+/// { segment_id: "1", content: " world" }
+/// { segment_id: "1", content: "!" }
+/// ```
+///
+/// Output messages:
+/// ```text
+/// ReceivedMessage(id: "1", content: AgentTranscript("Hello"))
+/// ReceivedMessage(id: "1", content: AgentTranscript("Hello world"))
+/// ReceivedMessage(id: "1", content: AgentTranscript("Hello world!"))
+/// ```
+///
+/// - SeeAlso: https://docs.livekit.io/agents/
 class TranscriptionStreamReceiver implements MessageReceiver {
   TranscriptionStreamReceiver({
     required Room room,
