@@ -1399,18 +1399,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await handleReconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         // DISCONNECT or v12 server with canReconnect=false
-        if (connectionState == ConnectionState.reconnecting) {
-          logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
-          return;
-        }
         await signalClient.cleanUp();
         fullReconnectOnNext = false;
-        await disconnect();
-        events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
+        await disconnect(reason: event.reason.toSDKType());
       }
     });
 
-  Future<void> disconnect() async {
+  Future<void> disconnect({
+    DisconnectReason reason = DisconnectReason.clientInitiated,
+  }) async {
     _isClosed = true;
     events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
@@ -1421,11 +1418,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await signalClient.cleanUp();
         await _signalListener.cancelAll();
         clearPendingReconnect();
-        events.emit(EngineDisconnectedEvent(
-          reason: DisconnectReason.clientInitiated,
-        ));
       }
       await cleanUp();
+      events.emit(EngineDisconnectedEvent(reason: reason));
     }
   }
 
