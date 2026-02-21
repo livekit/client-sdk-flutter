@@ -1403,6 +1403,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fullReconnectOnNext = false;
         await disconnect(reason: event.reason.toSDKType());
       }
+    })
+    ..on<SignalRequestResponseEvent>((event) async {
+      events.emit(EngineRequestResponseEvent(response: event.response));
+    })
+    ..on<SignalRoomMovedEvent>((event) async {
+      logger.fine('[Signal] RoomMoved received, room: ${event.response.room.name}');
+      if (event.response.hasParticipant()) {
+        signalClient.participantSid = event.response.participant.sid;
+      }
+      events.emit(EngineRoomMovedEvent(response: event.response));
     });
 
   Future<void> disconnect({

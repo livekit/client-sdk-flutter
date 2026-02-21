@@ -637,3 +637,13 @@ class PreConnectAudioBufferStoppedEvent with RoomEvent {
   String toString() => '${runtimeType}'
       '(bufferedSize: ${bufferedSize}, isDataSent: ${isBufferSent})';
 }
+
+/// Fired when the participant has been moved to a different room by the server.
+/// Emitted by [Room].
+class RoomMovedEvent with RoomEvent {
+  final String roomName;
+  const RoomMovedEvent({required this.roomName});
+
+  @override
+  String toString() => '${runtimeType}(roomName: $roomName)';
+}

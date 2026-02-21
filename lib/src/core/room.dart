@@ -579,6 +579,40 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>((event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
+    ..on<EngineRequestResponseEvent>((event) {
+      localParticipant?.handleSignalRequestResponse(event.response);
+    })
+    ..on<EngineRoomMovedEvent>((event) async {
+      final response = event.response;
+      logger.fine('Room moved to: ${response.room.name}');
+
+      // Update room info
+      if (response.hasRoom()) {
+        _metadata = response.room.metadata;
+        _roomInfo = response.room;
+      }
+
+      // Disconnect all remote participants
+      final identities = _remoteParticipants.byIdentity.keys.toList();
+      for (final identity in identities) {
+        await _handleParticipantDisconnect(identity);
+      }
+
+      // Emit public event
+      events.emit(RoomMovedEvent(roomName: response.room.name));
+
+      // Update local participant info
+      if (response.hasParticipant()) {
+        await localParticipant?.updateFromInfo(response.participant);
+      }
+
+      // Add new participants
+      if (response.otherParticipants.isNotEmpty) {
+        await _onParticipantUpdateEvent(response.otherParticipants);
+      }
+
+      notifyListeners();
+    })
     ..on<AudioPlaybackStarted>((event) {
       _handleAudioPlaybackStarted();
     })

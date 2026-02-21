@@ -543,9 +543,46 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
   String toString() => '${runtimeType}(token: ${token})';
 }
 
+@internal
+class SignalRequestResponseEvent with SignalEvent, InternalEvent {
+  final lk_rtc.RequestResponse response;
+  const SignalRequestResponseEvent({required this.response});
+
+  @override
+  String toString() => '${runtimeType}'
+      '(requestId: ${response.requestId}, reason: ${response.reason})';
+}
+
+@internal
+class SignalRoomMovedEvent with SignalEvent, InternalEvent {
+  final lk_rtc.RoomMovedResponse response;
+  const SignalRoomMovedEvent({required this.response});
+
+  @override
+  String toString() => '${runtimeType}(room: ${response.room.name})';
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------
+
+@internal
+class EngineRequestResponseEvent with EngineEvent, InternalEvent {
+  final lk_rtc.RequestResponse response;
+  const EngineRequestResponseEvent({required this.response});
+
+  @override
+  String toString() => '${runtimeType}(requestId: ${response.requestId})';
+}
+
+@internal
+class EngineRoomMovedEvent with EngineEvent, InternalEvent {
+  final lk_rtc.RoomMovedResponse response;
+  const EngineRoomMovedEvent({required this.response});
+
+  @override
+  String toString() => '${runtimeType}(room: ${response.room.name})';
+}
 
 @internal
 class EngineTrackAddedEvent with EngineEvent, InternalEvent {
