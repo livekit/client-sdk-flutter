@@ -1381,35 +1381,33 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       token = event.token;
     })
     ..on<SignalLeaveEvent>((event) async {
+      logger.fine('[Signal] Leave received, action: ${event.action}, reason: ${event.reason}');
       if (event.regions != null && _regionUrlProvider != null) {
         logger.fine('updating regions');
         _regionUrlProvider?.setServerReportedRegions(event.regions!);
       }
-      switch (event.action) {
-        case lk_rtc.LeaveRequest_Action.DISCONNECT:
-          if (connectionState == ConnectionState.reconnecting) {
-            logger.warning('[Signal] Received Leave while engine is reconnecting, ignoring...');
-            return;
-          }
-          await signalClient.cleanUp();
-          fullReconnectOnNext = false;
-          await disconnect();
-          events.emit(EngineDisconnectedEvent(reason: event.reason.toSDKType()));
-          break;
-        case lk_rtc.LeaveRequest_Action.RECONNECT:
-          fullReconnectOnNext = true;
-          // reconnect immediately instead of waiting for next attempt
-          await handleReconnect(ClientDisconnectReason.leaveReconnect);
-          break;
-        case lk_rtc.LeaveRequest_Action.RESUME:
-          // reconnect immediately instead of waiting for next attempt
-          await handleReconnect(ClientDisconnectReason.leaveReconnect);
-        default:
-          break;
+      // Protocol v13: LeaveRequest.action replaces the deprecated canReconnect boolean.
+      // canReconnect is still checked for backward compatibility with v12 servers
+      // (where action defaults to DISCONNECT=0 since it's unset).
+      if (event.action == lk_rtc.LeaveRequest_Action.RESUME) {
+        fullReconnectOnNext = false;
+        // reconnect immediately instead of waiting for next attempt
+        await handleReconnect(ClientDisconnectReason.leaveReconnect);
+      } else if (event.action == lk_rtc.LeaveRequest_Action.RECONNECT || event.canReconnect) {
+        fullReconnectOnNext = true;
+        // reconnect immediately instead of waiting for next attempt
+        await handleReconnect(ClientDisconnectReason.leaveReconnect);
+      } else {
+        // DISCONNECT or v12 server with canReconnect=false
+        await signalClient.cleanUp();
+        fullReconnectOnNext = false;
+        await disconnect(reason: event.reason.toSDKType());
       }
     });
 
-  Future<void> disconnect() async {
+  Future<void> disconnect({
+    DisconnectReason reason = DisconnectReason.clientInitiated,
+  }) async {
     _isClosed = true;
     events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
@@ -1420,11 +1418,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await signalClient.cleanUp();
         await _signalListener.cancelAll();
         clearPendingReconnect();
-        events.emit(EngineDisconnectedEvent(
-          reason: DisconnectReason.clientInitiated,
-        ));
       }
       await cleanUp();
+      events.emit(EngineDisconnectedEvent(reason: reason));
     }
   }
 
