@@ -105,6 +105,14 @@ class AudioRenderer(
     }
   }
 
+  /**
+   * Converts audio data to raw interleaved bytes.
+   *
+   * If source and target channel counts match, data is copied directly.
+   * If target requests fewer channels, the first channels are kept and interleaved.
+   *
+   * Sends raw byte arrays instead of boxed sample lists.
+   */
   private fun convertAudioData(
     audioData: ByteBuffer,
     bitsPerSample: Int,
@@ -112,168 +120,139 @@ class AudioRenderer(
     numberOfChannels: Int,
     numberOfFrames: Int
   ): Map<String, Any> {
-    // Create result similar to iOS implementation
+    require(bitsPerSample == 16 || bitsPerSample == 32) {
+      "Unsupported bitsPerSample: $bitsPerSample"
+    }
+    require(numberOfChannels > 0) {
+      "Invalid numberOfChannels: $numberOfChannels"
+    }
+
+    val outChannels = targetFormat.numberOfChannels.coerceAtMost(numberOfChannels)
+
     val result = mutableMapOf<String, Any>(
       "sampleRate" to sampleRate,
-      "channels" to numberOfChannels,
-      "frameLength" to numberOfFrames
+      "channels" to outChannels,
+      "frameLength" to numberOfFrames,
     )
 
-    // Convert based on target format
+    val buffer = audioData.duplicate()
+    buffer.order(ByteOrder.LITTLE_ENDIAN)
+    buffer.rewind()
+
     when (targetFormat.commonFormat) {
       "int16" -> {
         result["commonFormat"] = "int16"
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
       }
-
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] =
-          convertToFloat32(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["data"] = extractAsFloat32Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
       }
-
       else -> {
-        result["commonFormat"] = "int16" // Default fallback
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["commonFormat"] = "int16"
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
       }
     }
 
     return result
   }
 
-  private fun convertToInt16(
-    audioData: ByteBuffer,
+  private fun extractAsInt16Bytes(
+    buffer: ByteBuffer,
     bitsPerSample: Int,
-    numberOfChannels: Int,
+    srcChannels: Int,
+    outChannels: Int,
     numberOfFrames: Int
-  ): List<List<Int>> {
-    val channelsData = mutableListOf<List<Int>>()
+  ): ByteArray {
+    // Fast path for int16 with matching channel count.
+    if (bitsPerSample == 16 && srcChannels == outChannels) {
+      val totalBytes = numberOfFrames * outChannels * 2
+      val out = ByteArray(totalBytes)
+      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
+      return out
+    }
 
-    // Prepare buffer for reading
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
+    val out = ByteArray(numberOfFrames * outChannels * 2)
+    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
 
     when (bitsPerSample) {
       16 -> {
-        // Already 16-bit, just reformat by channels
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0) // Start from beginning for each channel
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 2
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 2
             if (byteIndex + 1 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sample = buffer.short.toInt()
-              channelData.add(sample)
+              outBuf.putShort((frame * outChannels + ch) * 2, buffer.short)
             }
           }
-          channelsData.add(channelData)
         }
       }
-
       32 -> {
-        // Convert from 32-bit to 16-bit
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 4
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 4
             if (byteIndex + 3 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sample32 = buffer.int
-              // Convert 32-bit to 16-bit by right-shifting
-              val sample16 = (sample32 shr 16).toShort().toInt()
-              channelData.add(sample16)
+              val sample16 = (buffer.int shr 16).toShort()
+              outBuf.putShort((frame * outChannels + ch) * 2, sample16)
             }
           }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format, return empty data
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
         }
       }
     }
 
-    return channelsData
+    return out
   }
 
-  private fun convertToFloat32(
-    audioData: ByteBuffer,
+  private fun extractAsFloat32Bytes(
+    buffer: ByteBuffer,
     bitsPerSample: Int,
-    numberOfChannels: Int,
+    srcChannels: Int,
+    outChannels: Int,
     numberOfFrames: Int
-  ): List<List<Float>> {
-    val channelsData = mutableListOf<List<Float>>()
+  ): ByteArray {
+    // Fast path for float32 with matching channel count.
+    if (bitsPerSample == 32 && srcChannels == outChannels) {
+      val totalBytes = numberOfFrames * outChannels * 4
+      val out = ByteArray(totalBytes)
+      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
+      return out
+    }
 
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
+    val out = ByteArray(numberOfFrames * outChannels * 4)
+    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
 
     when (bitsPerSample) {
       16 -> {
-        // Convert from 16-bit to float32
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 2
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 2
             if (byteIndex + 1 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sample16 = buffer.short
-              // Convert to float (-1.0 to 1.0)
-              val sampleFloat = sample16.toFloat() / Short.MAX_VALUE
-              channelData.add(sampleFloat)
+              val sampleFloat = buffer.short.toFloat() / Short.MAX_VALUE
+              outBuf.putFloat((frame * outChannels + ch) * 4, sampleFloat)
             }
           }
-          channelsData.add(channelData)
         }
       }
-
       32 -> {
-        // Assume 32-bit float input
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 4
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 4
             if (byteIndex + 3 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sampleFloat = buffer.float
-              channelData.add(sampleFloat)
+              outBuf.putFloat((frame * outChannels + ch) * 4, buffer.float)
             }
           }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
         }
       }
     }
 
-    return channelsData
+    return out
   }
 }
 
