@@ -130,24 +130,6 @@ public extension AVAudioPCMBuffer {
             }
             result["data"] = FlutterStandardTypedData(bytes: data)
             result["commonFormat"] = "float32"
-        } else if let int32ChannelData {
-            let data: Data
-            if channels == 1 {
-                data = Data(bytes: int32ChannelData[0], count: frames * MemoryLayout<Int32>.size)
-            } else {
-                var bytes = Data(count: frames * channels * MemoryLayout<Int32>.size)
-                bytes.withUnsafeMutableBytes { raw in
-                    let out = raw.bindMemory(to: Int32.self)
-                    for frame in 0..<frames {
-                        for ch in 0..<channels {
-                            out[frame * channels + ch] = int32ChannelData[ch][frame]
-                        }
-                    }
-                }
-                data = bytes
-            }
-            result["data"] = FlutterStandardTypedData(bytes: data)
-            result["commonFormat"] = "int32"
         } else {
             result["data"] = FlutterStandardTypedData(bytes: Data())
             result["commonFormat"] = "unknown"

@@ -268,6 +268,7 @@ class PreConnectAudioBuffer {
     // Reset the _isSent flag to allow data sending on next use
     _isBufferSent = false;
     _hasLoggedOverflow = false;
+    _renderedSampleRate = null;
     _renderedChannels = null;
 
     logger.info('[Preconnect audio] reset');
