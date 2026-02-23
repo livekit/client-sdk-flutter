@@ -33,6 +33,7 @@ import '../processor.dart';
 import '../processor_native.dart' if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
+import '../../preconnect/audio_frame_capture.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
@@ -60,6 +61,74 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
+  AudioFrameCapture? _audioCapture;
+  final List<AudioFrameCallback> _audioRenderers = [];
+  StreamSubscription? _audioFrameSubscription;
+
+  /// Register a callback to receive raw PCM audio frames from this track.
+  ///
+  /// Returns a function that, when called, removes this renderer.
+  /// When the last renderer is removed, audio capture stops automatically.
+  CancelListenFunc addAudioRenderer({
+    required AudioFrameCallback onFrame,
+    int sampleRate = 24000,
+    int channels = 1,
+    String commonFormat = 'int16',
+  }) {
+    _audioRenderers.add(onFrame);
+
+    if (_audioRenderers.length == 1) {
+      _startAudioCapture(
+        sampleRate: sampleRate,
+        channels: channels,
+        commonFormat: commonFormat,
+      );
+    }
+
+    return () async {
+      _audioRenderers.remove(onFrame);
+      if (_audioRenderers.isEmpty) {
+        await _stopAudioCapture();
+      }
+    };
+  }
+
+  Future<void> _startAudioCapture({
+    required int sampleRate,
+    required int channels,
+    required String commonFormat,
+  }) async {
+    final capture = createAudioFrameCapture();
+    _audioCapture = capture;
+    final rendererId = Track.uuid.v4();
+
+    final result = await capture.start(
+      track: mediaStreamTrack,
+      rendererId: rendererId,
+      sampleRate: sampleRate,
+      channels: channels,
+      commonFormat: commonFormat,
+    );
+
+    if (!result) {
+      logger.warning('Failed to start audio capture for renderer');
+      return;
+    }
+
+    _audioFrameSubscription = capture.frameStream.listen((frame) {
+      for (final renderer in List.of(_audioRenderers)) {
+        renderer(frame);
+      }
+    });
+  }
+
+  Future<void> _stopAudioCapture() async {
+    await _audioFrameSubscription?.cancel();
+    _audioFrameSubscription = null;
+    await _audioCapture?.stop();
+    _audioCapture = null;
+  }
+
   @override
   Future<void> onStarted() async {
     logger.fine('AudioTrack.onStarted()');
@@ -68,6 +137,8 @@ mixin AudioTrack on Track {
   @override
   Future<void> onStopped() async {
     logger.fine('AudioTrack.onStopped()');
+    await _stopAudioCapture();
+    _audioRenderers.clear();
   }
 }
 

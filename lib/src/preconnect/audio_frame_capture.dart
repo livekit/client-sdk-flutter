@@ -56,5 +56,8 @@ abstract class AudioFrameCapture {
   Future<void> stop();
 }
 
+/// Callback for receiving audio frames.
+typedef AudioFrameCallback = void Function(AudioFrame frame);
+
 /// Factory that returns the platform-appropriate implementation.
 AudioFrameCapture createAudioFrameCapture() => createAudioFrameCaptureImpl();
