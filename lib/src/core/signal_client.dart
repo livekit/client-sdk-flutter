@@ -455,11 +455,6 @@ extension SignalClientRequests on SignalClient {
       ));
 
   @internal
-  void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
-        leave: lk_rtc.LeaveRequest(),
-      ));
-
-  @internal
   void sendSyncState({
     required lk_rtc.SessionDescription? answer,
     required lk_rtc.UpdateSubscription subscription,
