@@ -18,6 +18,7 @@ package io.livekit.plugin
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import org.webrtc.AudioTrackSink
@@ -34,10 +35,14 @@ class AudioRenderer(
   private val rendererId: String,
   private val targetFormat: RendererAudioFormat
 ) : EventChannel.StreamHandler, AudioTrackSink {
+  companion object {
+    private const val TAG = "LKAudioRenderer"
+  }
 
   private var eventChannel: EventChannel? = null
   private var eventSink: EventChannel.EventSink? = null
   private var isAttached = false
+  private var droppedFrameCount = 0L
 
   private val handler: Handler by lazy {
     Handler(Looper.getMainLooper())
@@ -79,201 +84,221 @@ class AudioRenderer(
     absoluteCaptureTimestampMs: Long
   ) {
     eventSink?.let { sink ->
-      try {
+      val convertedData = try {
         // Convert audio data to the target format
-        val convertedData = convertAudioData(
+        convertAudioData(
           audioData,
           bitsPerSample,
           sampleRate,
           numberOfChannels,
           numberOfFrames
         )
-
-        // Send to Flutter on the main thread
-        handler.post {
-          sink.success(convertedData)
-        }
       } catch (e: Exception) {
-        handler.post {
-          sink.error(
-            "AUDIO_CONVERSION_ERROR",
-            "Failed to convert audio data: ${e.message}",
-            null
-          )
-        }
+        logDroppedFrame("Audio conversion exception: ${e.message}")
+        null
+      }
+
+      if (convertedData == null) {
+        return@let
+      }
+
+      // Send to Flutter on the main thread
+      handler.post {
+        sink.success(convertedData)
       }
     }
   }
 
+  /**
+   * Converts audio data to raw interleaved bytes.
+   *
+   * If source and target channel counts match, data is copied directly.
+   * If target requests fewer channels, the first channels are kept and interleaved.
+   *
+   * Sends raw byte arrays instead of boxed sample lists.
+   */
   private fun convertAudioData(
     audioData: ByteBuffer,
     bitsPerSample: Int,
     sampleRate: Int,
     numberOfChannels: Int,
     numberOfFrames: Int
-  ): Map<String, Any> {
-    // Create result similar to iOS implementation
+  ): Map<String, Any>? {
+    if (bitsPerSample != 16 && bitsPerSample != 32) {
+      logDroppedFrame("Unsupported bitsPerSample: $bitsPerSample")
+      return null
+    }
+    if (numberOfChannels <= 0) {
+      logDroppedFrame("Invalid numberOfChannels: $numberOfChannels")
+      return null
+    }
+    if (numberOfFrames <= 0) {
+      logDroppedFrame("Invalid numberOfFrames: $numberOfFrames")
+      return null
+    }
+
+    val bytesPerSample = bitsPerSample / 8
+    val bytesPerFrame = numberOfChannels * bytesPerSample
+    if (bytesPerFrame <= 0) {
+      logDroppedFrame("Invalid bytesPerFrame: $bytesPerFrame")
+      return null
+    }
+
+    val requestedChannels = targetFormat.numberOfChannels.coerceAtLeast(1)
+    val outChannels = requestedChannels.coerceAtMost(numberOfChannels)
+
+    val buffer = audioData.duplicate()
+    buffer.order(ByteOrder.LITTLE_ENDIAN)
+    buffer.rewind()
+
+    val availableBytes = buffer.remaining()
+    if (availableBytes <= 0) {
+      logDroppedFrame("No audio payload bytes available")
+      return null
+    }
+
+    val expectedBytes = numberOfFrames.toLong() * bytesPerFrame.toLong()
+    val frameLength = if (expectedBytes <= availableBytes.toLong()) {
+      numberOfFrames
+    } else {
+      val availableFrames = availableBytes / bytesPerFrame
+      if (availableFrames <= 0) {
+        logDroppedFrame(
+          "Insufficient bytes for one frame (available=$availableBytes, bytesPerFrame=$bytesPerFrame)"
+        )
+        return null
+      }
+      logDroppedFrame("Short audio payload; truncating frames from $numberOfFrames to $availableFrames")
+      availableFrames
+    }
+
     val result = mutableMapOf<String, Any>(
       "sampleRate" to sampleRate,
-      "channels" to numberOfChannels,
-      "frameLength" to numberOfFrames
+      "channels" to outChannels,
+      "frameLength" to frameLength,
     )
 
-    // Convert based on target format
     when (targetFormat.commonFormat) {
       "int16" -> {
         result["commonFormat"] = "int16"
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
-
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] =
-          convertToFloat32(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["data"] = extractAsFloat32Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
-
       else -> {
-        result["commonFormat"] = "int16" // Default fallback
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["commonFormat"] = "int16"
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
     }
 
     return result
   }
 
-  private fun convertToInt16(
-    audioData: ByteBuffer,
-    bitsPerSample: Int,
-    numberOfChannels: Int,
-    numberOfFrames: Int
-  ): List<List<Int>> {
-    val channelsData = mutableListOf<List<Int>>()
-
-    // Prepare buffer for reading
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
-
-    when (bitsPerSample) {
-      16 -> {
-        // Already 16-bit, just reformat by channels
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0) // Start from beginning for each channel
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
-            if (byteIndex + 1 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample = buffer.short.toInt()
-              channelData.add(sample)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      32 -> {
-        // Convert from 32-bit to 16-bit
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
-            if (byteIndex + 3 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample32 = buffer.int
-              // Convert 32-bit to 16-bit by right-shifting
-              val sample16 = (sample32 shr 16).toShort().toInt()
-              channelData.add(sample16)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format, return empty data
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
-        }
-      }
+  private fun logDroppedFrame(reason: String) {
+    droppedFrameCount += 1
+    if (droppedFrameCount <= 5 || droppedFrameCount % 100 == 0L) {
+      Log.w(TAG, "Dropping audio frame #$droppedFrameCount for rendererId=$rendererId: $reason")
     }
-
-    return channelsData
   }
 
-  private fun convertToFloat32(
-    audioData: ByteBuffer,
+  private fun extractAsInt16Bytes(
+    buffer: ByteBuffer,
     bitsPerSample: Int,
-    numberOfChannels: Int,
+    srcChannels: Int,
+    outChannels: Int,
     numberOfFrames: Int
-  ): List<List<Float>> {
-    val channelsData = mutableListOf<List<Float>>()
+  ): ByteArray {
+    // Fast path for int16 with matching channel count.
+    if (bitsPerSample == 16 && srcChannels == outChannels) {
+      val totalBytes = numberOfFrames * outChannels * 2
+      val out = ByteArray(totalBytes)
+      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
+      return out
+    }
 
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
+    val out = ByteArray(numberOfFrames * outChannels * 2)
+    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
 
     when (bitsPerSample) {
       16 -> {
-        // Convert from 16-bit to float32
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 2
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 2
             if (byteIndex + 1 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sample16 = buffer.short
-              // Convert to float (-1.0 to 1.0)
-              val sampleFloat = sample16.toFloat() / Short.MAX_VALUE
-              channelData.add(sampleFloat)
+              outBuf.putShort((frame * outChannels + ch) * 2, buffer.short)
             }
           }
-          channelsData.add(channelData)
         }
       }
-
       32 -> {
-        // Assume 32-bit float input
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 4
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 4
             if (byteIndex + 3 < buffer.capacity()) {
               buffer.position(byteIndex)
-              val sampleFloat = buffer.float
-              channelData.add(sampleFloat)
+              val sample16 = (buffer.int shr 16).toShort()
+              outBuf.putShort((frame * outChannels + ch) * 2, sample16)
             }
           }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
         }
       }
     }
 
-    return channelsData
+    return out
+  }
+
+  private fun extractAsFloat32Bytes(
+    buffer: ByteBuffer,
+    bitsPerSample: Int,
+    srcChannels: Int,
+    outChannels: Int,
+    numberOfFrames: Int
+  ): ByteArray {
+    // Fast path for float32 with matching channel count.
+    if (bitsPerSample == 32 && srcChannels == outChannels) {
+      val totalBytes = numberOfFrames * outChannels * 4
+      val out = ByteArray(totalBytes)
+      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
+      return out
+    }
+
+    val out = ByteArray(numberOfFrames * outChannels * 4)
+    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+
+    when (bitsPerSample) {
+      16 -> {
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 2
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 2
+            if (byteIndex + 1 < buffer.capacity()) {
+              buffer.position(byteIndex)
+              val sampleFloat = buffer.short.toFloat() / Short.MAX_VALUE
+              outBuf.putFloat((frame * outChannels + ch) * 4, sampleFloat)
+            }
+          }
+        }
+      }
+      32 -> {
+        for (frame in 0 until numberOfFrames) {
+          val srcOffset = frame * srcChannels * 4
+          for (ch in 0 until outChannels) {
+            val byteIndex = srcOffset + ch * 4
+            if (byteIndex + 3 < buffer.capacity()) {
+              buffer.position(byteIndex)
+              outBuf.putFloat((frame * outChannels + ch) * 4, buffer.float)
+            }
+          }
+        }
+      }
+    }
+
+    return out
   }
 }
 
