@@ -18,6 +18,7 @@ package io.livekit.plugin
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import org.webrtc.AudioTrackSink
@@ -34,10 +35,14 @@ class AudioRenderer(
   private val rendererId: String,
   private val targetFormat: RendererAudioFormat
 ) : EventChannel.StreamHandler, AudioTrackSink {
+  companion object {
+    private const val TAG = "LKAudioRenderer"
+  }
 
   private var eventChannel: EventChannel? = null
   private var eventSink: EventChannel.EventSink? = null
   private var isAttached = false
+  private var droppedFrameCount = 0L
 
   private val handler: Handler by lazy {
     Handler(Looper.getMainLooper())
@@ -79,28 +84,27 @@ class AudioRenderer(
     absoluteCaptureTimestampMs: Long
   ) {
     eventSink?.let { sink ->
-      try {
+      val convertedData = try {
         // Convert audio data to the target format
-        val convertedData = convertAudioData(
+        convertAudioData(
           audioData,
           bitsPerSample,
           sampleRate,
           numberOfChannels,
           numberOfFrames
         )
-
-        // Send to Flutter on the main thread
-        handler.post {
-          sink.success(convertedData)
-        }
       } catch (e: Exception) {
-        handler.post {
-          sink.error(
-            "AUDIO_CONVERSION_ERROR",
-            "Failed to convert audio data: ${e.message}",
-            null
-          )
-        }
+        logDroppedFrame("Audio conversion exception: ${e.message}")
+        null
+      }
+
+      if (convertedData == null) {
+        return@let
+      }
+
+      // Send to Flutter on the main thread
+      handler.post {
+        sink.success(convertedData)
       }
     }
   }
@@ -119,42 +123,84 @@ class AudioRenderer(
     sampleRate: Int,
     numberOfChannels: Int,
     numberOfFrames: Int
-  ): Map<String, Any> {
-    require(bitsPerSample == 16 || bitsPerSample == 32) {
-      "Unsupported bitsPerSample: $bitsPerSample"
+  ): Map<String, Any>? {
+    if (bitsPerSample != 16 && bitsPerSample != 32) {
+      logDroppedFrame("Unsupported bitsPerSample: $bitsPerSample")
+      return null
     }
-    require(numberOfChannels > 0) {
-      "Invalid numberOfChannels: $numberOfChannels"
+    if (numberOfChannels <= 0) {
+      logDroppedFrame("Invalid numberOfChannels: $numberOfChannels")
+      return null
+    }
+    if (numberOfFrames <= 0) {
+      logDroppedFrame("Invalid numberOfFrames: $numberOfFrames")
+      return null
     }
 
-    val outChannels = targetFormat.numberOfChannels.coerceAtMost(numberOfChannels)
+    val bytesPerSample = bitsPerSample / 8
+    val bytesPerFrame = numberOfChannels * bytesPerSample
+    if (bytesPerFrame <= 0) {
+      logDroppedFrame("Invalid bytesPerFrame: $bytesPerFrame")
+      return null
+    }
 
-    val result = mutableMapOf<String, Any>(
-      "sampleRate" to sampleRate,
-      "channels" to outChannels,
-      "frameLength" to numberOfFrames,
-    )
+    val requestedChannels = targetFormat.numberOfChannels.coerceAtLeast(1)
+    val outChannels = requestedChannels.coerceAtMost(numberOfChannels)
 
     val buffer = audioData.duplicate()
     buffer.order(ByteOrder.LITTLE_ENDIAN)
     buffer.rewind()
 
+    val availableBytes = buffer.remaining()
+    if (availableBytes <= 0) {
+      logDroppedFrame("No audio payload bytes available")
+      return null
+    }
+
+    val expectedBytes = numberOfFrames.toLong() * bytesPerFrame.toLong()
+    val frameLength = if (expectedBytes <= availableBytes.toLong()) {
+      numberOfFrames
+    } else {
+      val availableFrames = availableBytes / bytesPerFrame
+      if (availableFrames <= 0) {
+        logDroppedFrame(
+          "Insufficient bytes for one frame (available=$availableBytes, bytesPerFrame=$bytesPerFrame)"
+        )
+        return null
+      }
+      logDroppedFrame("Short audio payload; truncating frames from $numberOfFrames to $availableFrames")
+      availableFrames
+    }
+
+    val result = mutableMapOf<String, Any>(
+      "sampleRate" to sampleRate,
+      "channels" to outChannels,
+      "frameLength" to frameLength,
+    )
+
     when (targetFormat.commonFormat) {
       "int16" -> {
         result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] = extractAsFloat32Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
+        result["data"] = extractAsFloat32Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
       else -> {
         result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, numberOfFrames)
+        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
       }
     }
 
     return result
+  }
+
+  private fun logDroppedFrame(reason: String) {
+    droppedFrameCount += 1
+    if (droppedFrameCount <= 5 || droppedFrameCount % 100 == 0L) {
+      Log.w(TAG, "Dropping audio frame #$droppedFrameCount for rendererId=$rendererId: $reason")
+    }
   }
 
   private fun extractAsInt16Bytes(
