@@ -22,8 +22,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' show MediaStreamTrack;
 import 'package:web/web.dart' as web;
 
 import '../logger.dart';
-import '../support/audio_pcm_utils.dart';
 import 'audio_frame_capture.dart';
+import 'audio_pcm_utils.dart';
 
 /// JavaScript source for the AudioWorkletProcessor.
 ///

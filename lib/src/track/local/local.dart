@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../audio/audio_frame_capture.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
 import '../../extensions.dart';
@@ -33,7 +34,6 @@ import '../processor.dart';
 import '../processor_native.dart' if (dart.library.js_interop) '../processor_web.dart';
 import '../remote/audio.dart';
 import '../remote/video.dart';
-import '../../preconnect/audio_frame_capture.dart';
 import '../track.dart';
 import 'audio.dart';
 import 'video.dart';

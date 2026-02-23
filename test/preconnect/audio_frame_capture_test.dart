@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:livekit_client/src/preconnect/audio_frame_capture.dart';
-import 'package:livekit_client/src/support/audio_pcm_utils.dart';
+import 'package:livekit_client/src/audio/audio_frame_capture.dart';
+import 'package:livekit_client/src/audio/audio_pcm_utils.dart';
 import 'package:livekit_client/src/support/byte_ring_buffer.dart';
 
 /// A mock AudioFrameCapture that emits frames from a StreamController.
