@@ -13,9 +13,8 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/services.dart' show EventChannel;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
@@ -25,12 +24,12 @@ import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
 import '../support/byte_ring_buffer.dart';
-import '../support/native.dart';
 import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_state.dart';
+import 'audio_frame_capture.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
@@ -57,10 +56,9 @@ class PreConnectAudioBuffer {
   // Internal states
   bool _isRecording = false;
   bool _isBufferSent = false;
-  String? _rendererId;
 
   LocalAudioTrack? _localTrack;
-  EventChannel? _eventChannel;
+  AudioFrameCapture? _audioCapture;
   StreamSubscription? _streamSubscription;
 
   PreConnectOnError? _onError;
@@ -128,18 +126,17 @@ class PreConnectAudioBuffer {
     final rendererId = Uuid().v4();
     logger.info('Starting audio renderer with rendererId: $rendererId');
 
-    final result = await Native.startAudioRenderer(
-      trackId: _localTrack!.mediaStreamTrack.id!,
+    _audioCapture = createAudioFrameCapture();
+    final result = await _audioCapture!.start(
+      track: _localTrack!.mediaStreamTrack,
       rendererId: rendererId,
-      format: {
-        'commonFormat': 'int16',
-        'sampleRate': _requestSampleRate,
-        'channels': 1,
-      },
+      sampleRate: _requestSampleRate,
+      channels: 1,
+      commonFormat: 'int16',
     );
 
-    if (result != true) {
-      final error = StateError('Failed to start native audio renderer ($result)');
+    if (!result) {
+      final error = StateError('Failed to start audio renderer ($result)');
       logger.severe('[Preconnect audio] $error');
       _onError?.call(error);
       await stopRecording(withError: error);
@@ -148,35 +145,25 @@ class PreConnectAudioBuffer {
       throw error;
     }
 
-    await webrtc.NativeAudioManagement.startLocalRecording();
-    _nativeRecordingStarted = true;
-
-    _rendererId = rendererId;
+    if (!kIsWeb) {
+      await webrtc.NativeAudioManagement.startLocalRecording();
+      _nativeRecordingStarted = true;
+    }
 
     logger.info('startAudioRenderer result: $result');
 
-    _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
-    _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) async {
-      if (!_isRecording) {
-        return;
-      }
+    _streamSubscription = _audioCapture!.frameStream.listen((frame) {
+      if (!_isRecording) return;
 
-      try {
-        // Audio format can differ from what was requested.
-        _renderedSampleRate = event['sampleRate'] as int;
-        _renderedChannels = event['channels'] as int;
-        // Native sends raw interleaved PCM bytes.
-        final Uint8List bytes = event['data'] as Uint8List;
+      _renderedSampleRate = frame.sampleRate;
+      _renderedChannels = frame.channels;
 
-        final didOverflow = _buffer.write(bytes);
-        if (didOverflow && !_hasLoggedOverflow) {
-          _hasLoggedOverflow = true;
-          logger.warning(
-            '[Preconnect audio] buffer exceeded ${defaultMaxSize ~/ 1024}KB, dropping oldest audio until agent is ready',
-          );
-        }
-      } catch (e) {
-        logger.warning('[Preconnect audio] Error parsing event: $e');
+      final didOverflow = _buffer.write(frame.data);
+      if (didOverflow && !_hasLoggedOverflow) {
+        _hasLoggedOverflow = true;
+        logger.warning(
+          '[Preconnect audio] buffer exceeded ${defaultMaxSize ~/ 1024}KB, dropping oldest audio until agent is ready',
+        );
       }
     });
 
@@ -206,7 +193,7 @@ class PreConnectAudioBuffer {
     ));
   }
 
-  /// Stops recording and releases native audio capture resources.
+  /// Stops recording and releases audio capture resources.
   ///
   /// If [withError] is provided, [agentReadyFuture] completes with that error.
   /// Otherwise, [agentReadyFuture] completes successfully (if not already
@@ -219,20 +206,12 @@ class PreConnectAudioBuffer {
     await _streamSubscription?.cancel();
     _streamSubscription = null;
 
-    // Dispose the event channel.
-    _eventChannel = null;
+    // Stop the audio capture.
+    await _audioCapture?.stop();
+    _audioCapture = null;
 
-    final rendererId = _rendererId;
-    if (rendererId != null) {
-      await Native.stopAudioRenderer(
-        rendererId: rendererId,
-      );
-    }
-
-    _rendererId = null;
-
-    // Stop native audio when errored
-    if (withError != null && _nativeRecordingStarted) {
+    // Stop native recording session if it was started.
+    if (_nativeRecordingStarted) {
       await webrtc.NativeAudioManagement.stopLocalRecording();
     }
 
@@ -327,6 +306,7 @@ class PreConnectAudioBuffer {
       attributes: {
         'sampleRate': sampleRate.toString(),
         'channels': channels.toString(),
+        'commonFormat': 'int16',
         'trackId': localTrackSid,
       },
       totalSize: data.length,
