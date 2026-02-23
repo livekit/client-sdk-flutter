@@ -56,6 +56,9 @@ public class AudioRenderer: NSObject {
 
     func detach() {
         _track?.remove(audioRenderer: self)
+        channel?.setStreamHandler(nil)
+        channel = nil
+        eventSink = nil
     }
 
     deinit {
