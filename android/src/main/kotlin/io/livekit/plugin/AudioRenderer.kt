@@ -124,8 +124,9 @@ class AudioRenderer(
     numberOfChannels: Int,
     numberOfFrames: Int
   ): Map<String, Any>? {
-    if (bitsPerSample != 16 && bitsPerSample != 32) {
-      logDroppedFrame("Unsupported bitsPerSample: $bitsPerSample")
+    // WebRTC AudioTrackSink always delivers 16-bit signed int16 PCM.
+    if (bitsPerSample != 16) {
+      logDroppedFrame("Unsupported bitsPerSample: $bitsPerSample (expected 16)")
       return null
     }
     if (numberOfChannels <= 0) {
@@ -137,7 +138,7 @@ class AudioRenderer(
       return null
     }
 
-    val bytesPerSample = bitsPerSample / 8
+    val bytesPerSample = 2 // 16-bit
     val bytesPerFrame = numberOfChannels * bytesPerSample
     if (bytesPerFrame <= 0) {
       logDroppedFrame("Invalid bytesPerFrame: $bytesPerFrame")
@@ -181,15 +182,15 @@ class AudioRenderer(
     when (targetFormat.commonFormat) {
       "int16" -> {
         result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
+        result["data"] = extractAsInt16Bytes(buffer, numberOfChannels, outChannels, frameLength)
       }
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] = extractAsFloat32Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
+        result["data"] = extractAsFloat32Bytes(buffer, numberOfChannels, outChannels, frameLength)
       }
       else -> {
         result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, bitsPerSample, numberOfChannels, outChannels, frameLength)
+        result["data"] = extractAsInt16Bytes(buffer, numberOfChannels, outChannels, frameLength)
       }
     }
 
@@ -203,48 +204,37 @@ class AudioRenderer(
     }
   }
 
+  /**
+   * Extracts int16 PCM bytes from an int16 source buffer.
+   *
+   * Fast path when channel counts match (direct copy).
+   * Otherwise keeps only the first [outChannels] channels, interleaved.
+   */
   private fun extractAsInt16Bytes(
     buffer: ByteBuffer,
-    bitsPerSample: Int,
     srcChannels: Int,
     outChannels: Int,
     numberOfFrames: Int
   ): ByteArray {
-    // Fast path for int16 with matching channel count.
-    if (bitsPerSample == 16 && srcChannels == outChannels) {
+    // Fast path: matching channel count — bulk copy.
+    if (srcChannels == outChannels) {
       val totalBytes = numberOfFrames * outChannels * 2
       val out = ByteArray(totalBytes)
       buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
       return out
     }
 
+    // Channel reduction: keep first outChannels.
     val out = ByteArray(numberOfFrames * outChannels * 2)
     val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
 
-    when (bitsPerSample) {
-      16 -> {
-        for (frame in 0 until numberOfFrames) {
-          val srcOffset = frame * srcChannels * 2
-          for (ch in 0 until outChannels) {
-            val byteIndex = srcOffset + ch * 2
-            if (byteIndex + 1 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              outBuf.putShort((frame * outChannels + ch) * 2, buffer.short)
-            }
-          }
-        }
-      }
-      32 -> {
-        for (frame in 0 until numberOfFrames) {
-          val srcOffset = frame * srcChannels * 4
-          for (ch in 0 until outChannels) {
-            val byteIndex = srcOffset + ch * 4
-            if (byteIndex + 3 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample16 = (buffer.int shr 16).toShort()
-              outBuf.putShort((frame * outChannels + ch) * 2, sample16)
-            }
-          }
+    for (frame in 0 until numberOfFrames) {
+      val srcOffset = frame * srcChannels * 2
+      for (ch in 0 until outChannels) {
+        val byteIndex = srcOffset + ch * 2
+        if (byteIndex + 1 < buffer.capacity()) {
+          buffer.position(byteIndex)
+          outBuf.putShort((frame * outChannels + ch) * 2, buffer.short)
         }
       }
     }
@@ -252,48 +242,29 @@ class AudioRenderer(
     return out
   }
 
+  /**
+   * Converts int16 PCM source to float32 bytes.
+   *
+   * Each int16 sample is scaled to the [-1.0, 1.0] range.
+   * Only the first [outChannels] channels are kept.
+   */
   private fun extractAsFloat32Bytes(
     buffer: ByteBuffer,
-    bitsPerSample: Int,
     srcChannels: Int,
     outChannels: Int,
     numberOfFrames: Int
   ): ByteArray {
-    // Fast path for float32 with matching channel count.
-    if (bitsPerSample == 32 && srcChannels == outChannels) {
-      val totalBytes = numberOfFrames * outChannels * 4
-      val out = ByteArray(totalBytes)
-      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
-      return out
-    }
-
     val out = ByteArray(numberOfFrames * outChannels * 4)
     val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
 
-    when (bitsPerSample) {
-      16 -> {
-        for (frame in 0 until numberOfFrames) {
-          val srcOffset = frame * srcChannels * 2
-          for (ch in 0 until outChannels) {
-            val byteIndex = srcOffset + ch * 2
-            if (byteIndex + 1 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sampleFloat = buffer.short.toFloat() / Short.MAX_VALUE
-              outBuf.putFloat((frame * outChannels + ch) * 4, sampleFloat)
-            }
-          }
-        }
-      }
-      32 -> {
-        for (frame in 0 until numberOfFrames) {
-          val srcOffset = frame * srcChannels * 4
-          for (ch in 0 until outChannels) {
-            val byteIndex = srcOffset + ch * 4
-            if (byteIndex + 3 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              outBuf.putFloat((frame * outChannels + ch) * 4, buffer.float)
-            }
-          }
+    for (frame in 0 until numberOfFrames) {
+      val srcOffset = frame * srcChannels * 2
+      for (ch in 0 until outChannels) {
+        val byteIndex = srcOffset + ch * 2
+        if (byteIndex + 1 < buffer.capacity()) {
+          buffer.position(byteIndex)
+          val sampleFloat = buffer.short.toFloat() / Short.MAX_VALUE
+          outBuf.putFloat((frame * outChannels + ch) * 4, sampleFloat)
         }
       }
     }
