@@ -102,6 +102,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     participant.onDispose(() async {
       BroadcastManager().removeListener(participant._broadcastStateChanged);
+      // Fail any pending signal requests
+      for (final completer in participant._pendingSignalRequests.values) {
+        if (!completer.isCompleted) {
+          completer.completeError(
+            UnexpectedStateException('Participant disposed'),
+          );
+        }
+      }
+      participant._pendingSignalRequests.clear();
       await participant.unpublishAllTracks();
     });
 
@@ -639,6 +648,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   Future<void> setAttributes(Map<String, String> attributes) {
     final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
       lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
         attributes: attributes.entries,
       ),
     );
@@ -649,7 +660,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   ///  @param name
   Future<void> setName(String name) {
-    super.updateName(name);
     final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
       lk_rtc.UpdateParticipantMetadata(
         name: name,
@@ -666,6 +676,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       const Duration(seconds: 5),
       onTimeout: () {
         _pendingSignalRequests.remove(requestId);
+        throw TimeoutException('Signal request timed out');
       },
     );
   }

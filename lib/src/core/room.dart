@@ -391,13 +391,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       ));
     })
     ..on<SignalRoomUpdateEvent>((event) async {
-      _metadata = event.room.metadata;
-      _roomInfo = event.room;
-      emitWhenConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
-      if (_isRecording != event.room.activeRecording) {
-        _isRecording = event.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
+      _handleRoomUpdate(event.room);
     })
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
@@ -421,16 +415,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpEngineListeners() => _engineListener
     ..on<EngineJoinResponseEvent>((event) async {
-      _roomInfo = event.response.room;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
+      _handleRoomUpdate(event.response.room);
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
-
-      if (_isRecording != event.response.room.activeRecording) {
-        _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
@@ -588,8 +575,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       // Update room info
       if (response.hasRoom()) {
-        _metadata = response.room.metadata;
-        _roomInfo = response.room;
+        _handleRoomUpdate(response.room);
       }
 
       // Disconnect all remote participants
@@ -1031,6 +1017,20 @@ extension RoomPrivateMethods on Room {
     _metadata = null;
     _serverVersion = null;
     _serverRegion = null;
+  }
+
+  void _handleRoomUpdate(lk_models.Room room) {
+    final oldRoom = _roomInfo;
+    _roomInfo = room;
+    _name = room.name;
+    _metadata = room.metadata;
+    if (oldRoom == null || oldRoom.metadata != room.metadata) {
+      emitWhenConnected(RoomMetadataChangedEvent(metadata: room.metadata));
+    }
+    if (oldRoom?.activeRecording != room.activeRecording) {
+      _isRecording = room.activeRecording;
+      emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+    }
   }
 
   @internal
