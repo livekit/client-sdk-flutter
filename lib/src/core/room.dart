@@ -1013,8 +1013,10 @@ extension RoomPrivateMethods on Room {
     await NativeAudioManagement.stop();
 
     // reset params
+    _roomInfo = null;
     _name = null;
     _metadata = null;
+    _isRecording = false;
     _serverVersion = null;
     _serverRegion = null;
   }
