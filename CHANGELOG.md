@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.6.4
+
+* Added: Add web support for pre-connect audio buffer
+* Fixed: Remove duplicate sendLeave
+* Fixed: Fix setVideoInputDevice not switching camera
+* Fixed: Fix iOS audio renderer resource leak and remove Android 32-bit dead code
+* Performance: Send raw PCM bytes in audio renderer instead of boxed int arrays
+
 ## 2.6.3
 
 * Fixed: Fix publisher connection causing redundant renegotiations on lower-end devices
