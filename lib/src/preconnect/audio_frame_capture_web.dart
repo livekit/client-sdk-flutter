@@ -86,8 +86,8 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
       final jsTrack = (track as MediaStreamTrackWeb).jsTrack;
       final mediaStream = web.MediaStream([jsTrack].toJS);
 
-      // 2. Create AudioContext and best-effort resume it because some browsers require a user gesture and may reject or stall resume()
-      _audioContext = web.AudioContext();
+      // 2. Create AudioContext at the requested sample rate and best-effort resume it because some browsers require a user gesture and may reject or stall resume()
+      _audioContext = web.AudioContext(web.AudioContextOptions(sampleRate: sampleRate.toDouble()));
       final ctx = _audioContext!;
       try {
         await ctx.resume().toDart.timeout(const Duration(seconds: 3));
