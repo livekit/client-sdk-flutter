@@ -1,0 +1,1 @@
+patch type="fixed" "Fix web audio capture not starting on Safari due to suspended AudioContext"

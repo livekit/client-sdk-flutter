@@ -86,9 +86,16 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
       final jsTrack = (track as MediaStreamTrackWeb).jsTrack;
       final mediaStream = web.MediaStream([jsTrack].toJS);
 
-      // 2. Create AudioContext.
+      // 2. Create AudioContext and best-effort resume it because some browsers require a user gesture and may reject or stall resume()
       _audioContext = web.AudioContext();
       final ctx = _audioContext!;
+      try {
+        await ctx.resume().toDart.timeout(const Duration(seconds: 3));
+      } on TimeoutException {
+        logger.warning('[AudioFrameCapture] AudioContext resume timed out, continuing setup');
+      } catch (e) {
+        logger.warning('[AudioFrameCapture] AudioContext resume failed: $e, continuing setup');
+      }
 
       // 3. Register worklet processor via Blob URL.
       final blob = web.Blob(
