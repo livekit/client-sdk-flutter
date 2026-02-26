@@ -86,9 +86,10 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
       final jsTrack = (track as MediaStreamTrackWeb).jsTrack;
       final mediaStream = web.MediaStream([jsTrack].toJS);
 
-      // 2. Create AudioContext.
+      // 2. Create AudioContext and ensure it's running (browsers may create it in "suspended" state until a user gesture).
       _audioContext = web.AudioContext();
       final ctx = _audioContext!;
+      await ctx.resume().toDart;
 
       // 3. Register worklet processor via Blob URL.
       final blob = web.Blob(
