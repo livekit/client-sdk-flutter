@@ -779,11 +779,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       AudioCaptureOptions? audioCaptureOptions,
       CameraCaptureOptions? cameraCaptureOptions,
       ScreenShareCaptureOptions? screenShareCaptureOptions}) {
-    if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
-      throw TrackCreateException('Screen sharing is not supported on mobile devices');
-    }
-
     return _publishRunner.run(() async {
+      if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
+        throw TrackCreateException('Screen sharing is not supported on mobile devices');
+      }
+
       logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
 
       final publication = getTrackPublicationBySource(source);
