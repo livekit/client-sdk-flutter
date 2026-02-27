@@ -1026,7 +1026,7 @@ extension RoomPrivateMethods on Room {
     _roomInfo = room;
     _name = room.name;
     _metadata = room.metadata;
-    if (oldRoom == null || oldRoom.metadata != room.metadata) {
+    if (oldRoom != null && oldRoom.metadata != room.metadata) {
       emitWhenConnected(RoomMetadataChangedEvent(metadata: room.metadata));
     }
     if (oldRoom?.activeRecording != room.activeRecording) {
