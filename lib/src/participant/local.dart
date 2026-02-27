@@ -45,6 +45,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/platform.dart';
+import '../support/serial_runner.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -55,7 +56,6 @@ import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
-import '../support/serial_runner.dart';
 import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
 import 'participant.dart';
 
@@ -798,8 +798,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           final track = await LocalVideoTrack.createCameraTrack(captureOptions);
           return await publishVideoTrack(track);
         } else if (source == TrackSource.microphone) {
-          final AudioCaptureOptions captureOptions =
-              audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+          final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
           final track = await LocalAudioTrack.create(captureOptions);
           return await publishAudioTrack(track);
         } else if (source == TrackSource.screenShareVideo) {
