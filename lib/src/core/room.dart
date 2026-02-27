@@ -390,9 +390,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         state: publication.subscriptionState,
       ));
     })
-    ..on<SignalRoomUpdateEvent>((event) async {
-      _handleRoomUpdate(event.room);
-    })
+    ..on<SignalRoomUpdateEvent>((event) async => _applyRoomUpdate(event.room))
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
 
@@ -415,7 +413,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpEngineListeners() => _engineListener
     ..on<EngineJoinResponseEvent>((event) async {
-      _handleRoomUpdate(event.response.room);
+      _applyRoomUpdate(event.response.room);
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
 
@@ -573,9 +571,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       final response = event.response;
       logger.fine('Room moved to: ${response.room.name}');
 
-      // Update room info
+      // Apply room info from move response
       if (response.hasRoom()) {
-        _handleRoomUpdate(response.room);
+        _applyRoomUpdate(response.room);
       }
 
       // Disconnect all remote participants
@@ -1021,7 +1019,9 @@ extension RoomPrivateMethods on Room {
     _serverRegion = null;
   }
 
-  void _handleRoomUpdate(lk_models.Room room) {
+  /// Applies room info from server. Skips metadata event on first join
+  /// since there is no previous state to compare against.
+  void _applyRoomUpdate(lk_models.Room room) {
     final oldRoom = _roomInfo;
     _roomInfo = room;
     _name = room.name;
