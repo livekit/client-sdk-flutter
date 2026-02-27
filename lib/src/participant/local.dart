@@ -531,8 +531,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
             });
           }
-        } catch (_) {
-          logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
+        } catch (e) {
+          logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
 
         // doesn't make sense to negotiate if already disposed
