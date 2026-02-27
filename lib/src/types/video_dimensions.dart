@@ -16,6 +16,8 @@ import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 
+import '../support/value_or_absent.dart';
+
 /// A simple class that represents dimensions of video.
 @immutable
 class VideoDimensions {
@@ -31,12 +33,12 @@ class VideoDimensions {
   String toString() => '${runtimeType}(${width}x${height})';
 
   VideoDimensions copyWith({
-    int? width,
-    int? height,
+    ValueOrAbsent<int> width = const Absent(),
+    ValueOrAbsent<int> height = const Absent(),
   }) =>
       VideoDimensions(
-        width ?? this.width,
-        height ?? this.height,
+        width.valueOr(this.width),
+        height.valueOr(this.height),
       );
 
   // ----------------------------------------------------------------------

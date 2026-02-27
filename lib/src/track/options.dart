@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../support/native.dart';
 import '../support/platform.dart';
+import '../support/value_or_absent.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
 import '../types/video_parameters.dart';
@@ -108,18 +109,18 @@ class CameraCaptureOptions extends VideoCaptureOptions {
 
   // Returns new options with updated properties
   CameraCaptureOptions copyWith({
-    VideoParameters? params,
-    CameraPosition? cameraPosition,
-    String? deviceId,
-    double? maxFrameRate,
-    bool? stopCameraCaptureOnMute,
+    ValueOrAbsent<VideoParameters> params = const Absent(),
+    ValueOrAbsent<CameraPosition> cameraPosition = const Absent(),
+    ValueOrAbsent<String?> deviceId = const Absent(),
+    ValueOrAbsent<double?> maxFrameRate = const Absent(),
+    ValueOrAbsent<bool> stopCameraCaptureOnMute = const Absent(),
   }) =>
       CameraCaptureOptions(
-        params: params ?? this.params,
-        cameraPosition: cameraPosition ?? this.cameraPosition,
-        deviceId: deviceId ?? this.deviceId,
-        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+        params: params.valueOr(this.params),
+        cameraPosition: cameraPosition.valueOr(this.cameraPosition),
+        deviceId: deviceId.valueOr(this.deviceId),
+        maxFrameRate: maxFrameRate.valueOr(this.maxFrameRate),
+        stopCameraCaptureOnMute: stopCameraCaptureOnMute.valueOr(this.stopCameraCaptureOnMute),
       );
 }
 
@@ -158,22 +159,22 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
       : super(params: captureOptions.params);
 
   ScreenShareCaptureOptions copyWith({
-    bool? useiOSBroadcastExtension,
-    bool? captureScreenAudio,
-    VideoParameters? params,
-    String? sourceId,
-    double? maxFrameRate,
-    bool? preferCurrentTab,
-    String? selfBrowserSurface,
+    ValueOrAbsent<bool> useiOSBroadcastExtension = const Absent(),
+    ValueOrAbsent<bool> captureScreenAudio = const Absent(),
+    ValueOrAbsent<VideoParameters> params = const Absent(),
+    ValueOrAbsent<String?> sourceId = const Absent(),
+    ValueOrAbsent<double?> maxFrameRate = const Absent(),
+    ValueOrAbsent<bool> preferCurrentTab = const Absent(),
+    ValueOrAbsent<String?> selfBrowserSurface = const Absent(),
   }) =>
       ScreenShareCaptureOptions(
-        useiOSBroadcastExtension: useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
-        captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
-        params: params ?? this.params,
-        sourceId: sourceId ?? deviceId,
-        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        preferCurrentTab: preferCurrentTab ?? this.preferCurrentTab,
-        selfBrowserSurface: selfBrowserSurface ?? this.selfBrowserSurface,
+        useiOSBroadcastExtension: useiOSBroadcastExtension.valueOr(this.useiOSBroadcastExtension),
+        captureScreenAudio: captureScreenAudio.valueOr(this.captureScreenAudio),
+        params: params.valueOr(this.params),
+        sourceId: sourceId.valueOr(deviceId),
+        maxFrameRate: maxFrameRate.valueOr(this.maxFrameRate),
+        preferCurrentTab: preferCurrentTab.valueOr(this.preferCurrentTab),
+        selfBrowserSurface: selfBrowserSurface.valueOr(this.selfBrowserSurface),
       );
 
   @override
@@ -346,20 +347,20 @@ class AudioCaptureOptions extends LocalTrackOptions {
   }
 
   AudioCaptureOptions copyWith({
-    String? deviceId,
-    bool? noiseSuppression,
-    bool? echoCancellation,
-    bool? autoGainControl,
-    bool? highPassFilter,
-    bool? typingNoiseDetection,
+    ValueOrAbsent<String?> deviceId = const Absent(),
+    ValueOrAbsent<bool> noiseSuppression = const Absent(),
+    ValueOrAbsent<bool> echoCancellation = const Absent(),
+    ValueOrAbsent<bool> autoGainControl = const Absent(),
+    ValueOrAbsent<bool> highPassFilter = const Absent(),
+    ValueOrAbsent<bool> typingNoiseDetection = const Absent(),
   }) {
     return AudioCaptureOptions(
-      deviceId: deviceId ?? this.deviceId,
-      noiseSuppression: noiseSuppression ?? this.noiseSuppression,
-      echoCancellation: echoCancellation ?? this.echoCancellation,
-      autoGainControl: autoGainControl ?? this.autoGainControl,
-      highPassFilter: highPassFilter ?? this.highPassFilter,
-      typingNoiseDetection: typingNoiseDetection ?? this.typingNoiseDetection,
+      deviceId: deviceId.valueOr(this.deviceId),
+      noiseSuppression: noiseSuppression.valueOr(this.noiseSuppression),
+      echoCancellation: echoCancellation.valueOr(this.echoCancellation),
+      autoGainControl: autoGainControl.valueOr(this.autoGainControl),
+      highPassFilter: highPassFilter.valueOr(this.highPassFilter),
+      typingNoiseDetection: typingNoiseDetection.valueOr(this.typingNoiseDetection),
     );
   }
 }
@@ -374,10 +375,13 @@ class AudioOutputOptions {
 
   const AudioOutputOptions({this.deviceId, this.speakerOn});
 
-  AudioOutputOptions copyWith({String? deviceId, bool? speakerOn}) {
+  AudioOutputOptions copyWith({
+    ValueOrAbsent<String?> deviceId = const Absent(),
+    ValueOrAbsent<bool?> speakerOn = const Absent(),
+  }) {
     return AudioOutputOptions(
-      deviceId: deviceId ?? this.deviceId,
-      speakerOn: speakerOn ?? this.speakerOn,
+      deviceId: deviceId.valueOr(this.deviceId),
+      speakerOn: speakerOn.valueOr(this.speakerOn),
     );
   }
 }

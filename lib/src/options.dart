@@ -14,6 +14,7 @@
 
 import 'constants.dart';
 import 'e2ee/options.dart';
+import 'support/value_or_absent.dart';
 import 'track/local/audio.dart';
 import 'track/local/video.dart';
 import 'track/options.dart';
@@ -143,33 +144,33 @@ class RoomOptions {
   });
 
   RoomOptions copyWith({
-    CameraCaptureOptions? defaultCameraCaptureOptions,
-    ScreenShareCaptureOptions? defaultScreenShareCaptureOptions,
-    AudioCaptureOptions? defaultAudioCaptureOptions,
-    VideoPublishOptions? defaultVideoPublishOptions,
-    AudioPublishOptions? defaultAudioPublishOptions,
-    AudioOutputOptions? defaultAudioOutputOptions,
-    bool? adaptiveStream,
-    bool? dynacast,
-    bool? stopLocalTrackOnUnpublish,
-    E2EEOptions? e2eeOptions,
-    E2EEOptions? encryption,
-    bool? fastPublish,
+    ValueOrAbsent<CameraCaptureOptions> defaultCameraCaptureOptions = const Absent(),
+    ValueOrAbsent<ScreenShareCaptureOptions> defaultScreenShareCaptureOptions = const Absent(),
+    ValueOrAbsent<AudioCaptureOptions> defaultAudioCaptureOptions = const Absent(),
+    ValueOrAbsent<VideoPublishOptions> defaultVideoPublishOptions = const Absent(),
+    ValueOrAbsent<AudioPublishOptions> defaultAudioPublishOptions = const Absent(),
+    ValueOrAbsent<AudioOutputOptions> defaultAudioOutputOptions = const Absent(),
+    ValueOrAbsent<bool> adaptiveStream = const Absent(),
+    ValueOrAbsent<bool> dynacast = const Absent(),
+    ValueOrAbsent<bool> stopLocalTrackOnUnpublish = const Absent(),
+    ValueOrAbsent<E2EEOptions?> e2eeOptions = const Absent(),
+    ValueOrAbsent<E2EEOptions?> encryption = const Absent(),
+    ValueOrAbsent<bool> fastPublish = const Absent(),
   }) {
     return RoomOptions(
-      defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
-      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions ?? this.defaultScreenShareCaptureOptions,
-      defaultAudioCaptureOptions: defaultAudioCaptureOptions ?? this.defaultAudioCaptureOptions,
-      defaultVideoPublishOptions: defaultVideoPublishOptions ?? this.defaultVideoPublishOptions,
-      defaultAudioPublishOptions: defaultAudioPublishOptions ?? this.defaultAudioPublishOptions,
-      defaultAudioOutputOptions: defaultAudioOutputOptions ?? this.defaultAudioOutputOptions,
-      adaptiveStream: adaptiveStream ?? this.adaptiveStream,
-      dynacast: dynacast ?? this.dynacast,
-      stopLocalTrackOnUnpublish: stopLocalTrackOnUnpublish ?? this.stopLocalTrackOnUnpublish,
+      defaultCameraCaptureOptions: defaultCameraCaptureOptions.valueOr(this.defaultCameraCaptureOptions),
+      defaultScreenShareCaptureOptions: defaultScreenShareCaptureOptions.valueOr(this.defaultScreenShareCaptureOptions),
+      defaultAudioCaptureOptions: defaultAudioCaptureOptions.valueOr(this.defaultAudioCaptureOptions),
+      defaultVideoPublishOptions: defaultVideoPublishOptions.valueOr(this.defaultVideoPublishOptions),
+      defaultAudioPublishOptions: defaultAudioPublishOptions.valueOr(this.defaultAudioPublishOptions),
+      defaultAudioOutputOptions: defaultAudioOutputOptions.valueOr(this.defaultAudioOutputOptions),
+      adaptiveStream: adaptiveStream.valueOr(this.adaptiveStream),
+      dynacast: dynacast.valueOr(this.dynacast),
+      stopLocalTrackOnUnpublish: stopLocalTrackOnUnpublish.valueOr(this.stopLocalTrackOnUnpublish),
       // ignore: deprecated_member_use_from_same_package
-      e2eeOptions: e2eeOptions ?? this.e2eeOptions,
-      encryption: encryption ?? this.encryption,
-      fastPublish: fastPublish ?? this.fastPublish,
+      e2eeOptions: e2eeOptions.valueOr(this.e2eeOptions),
+      encryption: encryption.valueOr(this.encryption),
+      fastPublish: fastPublish.valueOr(this.fastPublish),
     );
   }
 }
@@ -194,16 +195,16 @@ class BackupVideoCodec {
   final VideoEncoding? encoding;
   final bool simulcast;
   BackupVideoCodec copyWith({
-    bool? enabled,
-    String? codec,
-    VideoEncoding? encoding,
-    bool? simulcast,
+    ValueOrAbsent<bool> enabled = const Absent(),
+    ValueOrAbsent<String> codec = const Absent(),
+    ValueOrAbsent<VideoEncoding?> encoding = const Absent(),
+    ValueOrAbsent<bool> simulcast = const Absent(),
   }) {
     return BackupVideoCodec(
-      enabled: enabled ?? this.enabled,
-      codec: codec ?? this.codec,
-      encoding: encoding ?? this.encoding,
-      simulcast: simulcast ?? this.simulcast,
+      enabled: enabled.valueOr(this.enabled),
+      codec: codec.valueOr(this.codec),
+      encoding: encoding.valueOr(this.encoding),
+      simulcast: simulcast.valueOr(this.simulcast),
     );
   }
 }
@@ -272,30 +273,30 @@ class VideoPublishOptions extends PublishOptions {
       this.degradationPreference});
 
   VideoPublishOptions copyWith({
-    VideoEncoding? videoEncoding,
-    VideoEncoding? screenShareEncoding,
-    bool? simulcast,
-    List<VideoParameters>? videoSimulcastLayers,
-    List<VideoParameters>? screenShareSimulcastLayers,
-    String? videoCodec,
-    BackupVideoCodec? backupVideoCodec,
-    DegradationPreference? degradationPreference,
-    String? scalabilityMode,
-    String? name,
-    String? stream,
+    ValueOrAbsent<VideoEncoding?> videoEncoding = const Absent(),
+    ValueOrAbsent<VideoEncoding?> screenShareEncoding = const Absent(),
+    ValueOrAbsent<bool> simulcast = const Absent(),
+    ValueOrAbsent<List<VideoParameters>> videoSimulcastLayers = const Absent(),
+    ValueOrAbsent<List<VideoParameters>> screenShareSimulcastLayers = const Absent(),
+    ValueOrAbsent<String> videoCodec = const Absent(),
+    ValueOrAbsent<BackupVideoCodec> backupVideoCodec = const Absent(),
+    ValueOrAbsent<DegradationPreference?> degradationPreference = const Absent(),
+    ValueOrAbsent<String?> scalabilityMode = const Absent(),
+    ValueOrAbsent<String?> name = const Absent(),
+    ValueOrAbsent<String?> stream = const Absent(),
   }) =>
       VideoPublishOptions(
-        videoEncoding: videoEncoding ?? this.videoEncoding,
-        screenShareEncoding: screenShareEncoding ?? this.screenShareEncoding,
-        simulcast: simulcast ?? this.simulcast,
-        videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
-        screenShareSimulcastLayers: screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
-        videoCodec: videoCodec ?? this.videoCodec,
-        backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
-        degradationPreference: degradationPreference ?? this.degradationPreference,
-        scalabilityMode: scalabilityMode ?? this.scalabilityMode,
-        name: name ?? this.name,
-        stream: stream ?? this.stream,
+        videoEncoding: videoEncoding.valueOr(this.videoEncoding),
+        screenShareEncoding: screenShareEncoding.valueOr(this.screenShareEncoding),
+        simulcast: simulcast.valueOr(this.simulcast),
+        videoSimulcastLayers: videoSimulcastLayers.valueOr(this.videoSimulcastLayers),
+        screenShareSimulcastLayers: screenShareSimulcastLayers.valueOr(this.screenShareSimulcastLayers),
+        videoCodec: videoCodec.valueOr(this.videoCodec),
+        backupVideoCodec: backupVideoCodec.valueOr(this.backupVideoCodec),
+        degradationPreference: degradationPreference.valueOr(this.degradationPreference),
+        scalabilityMode: scalabilityMode.valueOr(this.scalabilityMode),
+        name: name.valueOr(this.name),
+        stream: stream.valueOr(this.stream),
       );
 
   @override
@@ -332,20 +333,20 @@ class AudioPublishOptions extends PublishOptions {
   });
 
   AudioPublishOptions copyWith({
-    AudioEncoding? encoding,
-    bool? dtx,
-    String? name,
-    String? stream,
-    bool? red,
-    bool? preConnect,
+    ValueOrAbsent<AudioEncoding?> encoding = const Absent(),
+    ValueOrAbsent<bool> dtx = const Absent(),
+    ValueOrAbsent<String?> name = const Absent(),
+    ValueOrAbsent<String?> stream = const Absent(),
+    ValueOrAbsent<bool?> red = const Absent(),
+    ValueOrAbsent<bool> preConnect = const Absent(),
   }) =>
       AudioPublishOptions(
-        encoding: encoding ?? this.encoding,
-        dtx: dtx ?? this.dtx,
-        name: name ?? this.name,
-        stream: stream ?? this.stream,
-        red: red ?? this.red,
-        preConnect: preConnect ?? this.preConnect,
+        encoding: encoding.valueOr(this.encoding),
+        dtx: dtx.valueOr(this.dtx),
+        name: name.valueOr(this.name),
+        stream: stream.valueOr(this.stream),
+        red: red.valueOr(this.red),
+        preConnect: preConnect.valueOr(this.preConnect),
       );
 
   @override
