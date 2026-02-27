@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show EventChannel;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
