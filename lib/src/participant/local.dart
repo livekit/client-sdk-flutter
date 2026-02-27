@@ -161,6 +161,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
+    final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalAudioTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalAudioTrack>?> _publishAudioTrack(
+    LocalAudioTrack track, {
+    AudioPublishOptions? publishOptions,
+  }) async {
     if (audioTrackPublications.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
       throw TrackPublishException('track already exists');
     }
@@ -252,6 +260,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish a [LocalVideoTrack] to the [Room].
   /// For most cases, using [setCameraEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
+    LocalVideoTrack track, {
+    VideoPublishOptions? publishOptions,
+  }) async {
+    final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalVideoTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalVideoTrack>?> _publishVideoTrack(
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
@@ -796,11 +812,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
           final CameraCaptureOptions captureOptions =
               cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
           final track = await LocalVideoTrack.createCameraTrack(captureOptions);
-          return await publishVideoTrack(track);
+          return await _publishVideoTrack(track);
         } else if (source == TrackSource.microphone) {
           final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
           final track = await LocalAudioTrack.create(captureOptions);
-          return await publishAudioTrack(track);
+          return await _publishAudioTrack(track);
         } else if (source == TrackSource.screenShareVideo) {
           ScreenShareCaptureOptions captureOptions =
               screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
@@ -820,9 +836,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             LocalTrackPublication<LocalVideoTrack>? publication;
             for (final track in tracks) {
               if (track is LocalVideoTrack) {
-                publication = await publishVideoTrack(track);
+                publication = await _publishVideoTrack(track);
               } else if (track is LocalAudioTrack) {
-                await publishAudioTrack(track);
+                await _publishAudioTrack(track);
               }
             }
 
@@ -830,7 +846,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
             return publication;
           }
           final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
-          return await publishVideoTrack(track);
+          return await _publishVideoTrack(track);
         }
       }
       return null;
