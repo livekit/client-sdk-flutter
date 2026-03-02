@@ -78,11 +78,11 @@ mixin AudioTrack on Track {
     _audioRenderers.add(onFrame);
 
     if (_audioRenderers.length == 1) {
-      _startAudioCapture(
+      unawaited(_startAudioCapture(
         sampleRate: sampleRate,
         channels: channels,
         commonFormat: commonFormat,
-      );
+      ));
     }
 
     return () async {
