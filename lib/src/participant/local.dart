@@ -45,6 +45,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/platform.dart';
+import '../support/serial_runner.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -69,6 +70,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   // Pending signal request responses (keyed by requestId)
   final Map<int, Completer<void>> _pendingSignalRequests = {};
+
+  // Serializes publish operations to prevent duplicate tracks from concurrent calls
+  final _publishRunner = SerialRunner<LocalTrackPublication?>();
 
   LocalParticipant._({
     required Room room,
@@ -154,6 +158,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish an [AudioTrack] to the [Room].
   /// For most cases, using [setMicrophoneEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalAudioTrack>> publishAudioTrack(
+    LocalAudioTrack track, {
+    AudioPublishOptions? publishOptions,
+  }) async {
+    final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalAudioTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalAudioTrack>?> _publishAudioTrack(
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
@@ -248,6 +260,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish a [LocalVideoTrack] to the [Room].
   /// For most cases, using [setCameraEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
+    LocalVideoTrack track, {
+    VideoPublishOptions? publishOptions,
+  }) async {
+    final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalVideoTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalVideoTrack>?> _publishVideoTrack(
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
@@ -758,77 +778,79 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       {bool? captureScreenAudio,
       AudioCaptureOptions? audioCaptureOptions,
       CameraCaptureOptions? cameraCaptureOptions,
-      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
-    logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) {
+    return _publishRunner.run(() async {
+      if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
+        throw TrackCreateException('Screen sharing is not supported on mobile devices');
+      }
 
-    if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
-      throw TrackCreateException('Screen sharing is not supported on mobile devices');
-    }
+      logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
 
-    final publication = getTrackPublicationBySource(source);
-    if (publication != null) {
-      final stopOnMute = switch (publication.source) {
-        TrackSource.camera => cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
-        TrackSource.microphone => audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
-        _ => true,
-      };
-      if (enabled) {
-        await publication.unmute(stopOnMute: stopOnMute);
-      } else {
-        if (source == TrackSource.screenShareVideo) {
-          await removePublishedTrack(publication.sid);
-          final screenAudio = getTrackPublicationBySource(TrackSource.screenShareAudio);
-          if (screenAudio != null) {
-            await removePublishedTrack(screenAudio.sid);
-          }
+      final publication = getTrackPublicationBySource(source);
+      if (publication != null) {
+        final stopOnMute = switch (publication.source) {
+          TrackSource.camera => cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
+          TrackSource.microphone => audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
+          _ => true,
+        };
+        if (enabled) {
+          await publication.unmute(stopOnMute: stopOnMute);
         } else {
-          await publication.mute(stopOnMute: stopOnMute);
-        }
-      }
-      return publication;
-    } else if (enabled) {
-      if (source == TrackSource.camera) {
-        final CameraCaptureOptions captureOptions =
-            cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
-        final track = await LocalVideoTrack.createCameraTrack(captureOptions);
-        return await publishVideoTrack(track);
-      } else if (source == TrackSource.microphone) {
-        final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(captureOptions);
-        return await publishAudioTrack(track);
-      } else if (source == TrackSource.screenShareVideo) {
-        ScreenShareCaptureOptions captureOptions =
-            screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
-
-        if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
-          // Wait until broadcasting to publish track
-          await BroadcastManager().requestActivation();
-          return null;
-        }
-
-        /// When capturing chrome table audio, we can't capture audio/video
-        /// track separately, it has to be returned once in getDisplayMedia,
-        /// so we publish it twice here, but only return videoTrack to user.
-        if (captureScreenAudio ?? false) {
-          captureOptions = captureOptions.copyWith(captureScreenAudio: true);
-          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
-          LocalTrackPublication<LocalVideoTrack>? publication;
-          for (final track in tracks) {
-            if (track is LocalVideoTrack) {
-              publication = await publishVideoTrack(track);
-            } else if (track is LocalAudioTrack) {
-              await publishAudioTrack(track);
+          if (source == TrackSource.screenShareVideo) {
+            await removePublishedTrack(publication.sid);
+            final screenAudio = getTrackPublicationBySource(TrackSource.screenShareAudio);
+            if (screenAudio != null) {
+              await removePublishedTrack(screenAudio.sid);
             }
+          } else {
+            await publication.mute(stopOnMute: stopOnMute);
+          }
+        }
+        return publication;
+      } else if (enabled) {
+        if (source == TrackSource.camera) {
+          final CameraCaptureOptions captureOptions =
+              cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
+          final track = await LocalVideoTrack.createCameraTrack(captureOptions);
+          return await _publishVideoTrack(track);
+        } else if (source == TrackSource.microphone) {
+          final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+          final track = await LocalAudioTrack.create(captureOptions);
+          return await _publishAudioTrack(track);
+        } else if (source == TrackSource.screenShareVideo) {
+          ScreenShareCaptureOptions captureOptions =
+              screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
+
+          if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
+            // Wait until broadcasting to publish track
+            await BroadcastManager().requestActivation();
+            return null;
           }
 
-          /// just return the video track publication
-          return publication;
+          /// When capturing chrome table audio, we can't capture audio/video
+          /// track separately, it has to be returned once in getDisplayMedia,
+          /// so we publish it twice here, but only return videoTrack to user.
+          if (captureScreenAudio ?? false) {
+            captureOptions = captureOptions.copyWith(captureScreenAudio: true);
+            final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
+            LocalTrackPublication<LocalVideoTrack>? publication;
+            for (final track in tracks) {
+              if (track is LocalVideoTrack) {
+                publication = await _publishVideoTrack(track);
+              } else if (track is LocalAudioTrack) {
+                await _publishAudioTrack(track);
+              }
+            }
+
+            /// just return the video track publication
+            return publication;
+          }
+          final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
+          return await _publishVideoTrack(track);
         }
-        final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
-        return await publishVideoTrack(track);
       }
-    }
-    return null;
+      return null;
+    });
   }
 
   bool _allParticipantsAllowed = true;
