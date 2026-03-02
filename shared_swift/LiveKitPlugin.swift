@@ -201,6 +201,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         for processors in audioProcessors.values {
+            processors.visualizers[visualizerId]?.stop()
             processors.visualizers.removeValue(forKey: visualizerId)
         }
 
