@@ -1,0 +1,1 @@
+patch type="fixed" "Fix wildcard variable lint warnings to improve pub.dev score"

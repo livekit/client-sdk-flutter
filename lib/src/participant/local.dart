@@ -67,6 +67,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   // RPC Pending Responses
   final Map<String, Function(String? payload, RpcError? error)> _pendingResponses = {};
 
+  // Pending signal request responses (keyed by requestId)
+  final Map<int, Completer<void>> _pendingSignalRequests = {};
+
   LocalParticipant._({
     required Room room,
     required String sid,
@@ -99,6 +102,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     participant.onDispose(() async {
       BroadcastManager().removeListener(participant._broadcastStateChanged);
+      // Fail any pending signal requests
+      for (final completer in participant._pendingSignalRequests.values) {
+        if (!completer.isCompleted) {
+          completer.completeError(
+            UnexpectedStateException('Participant disposed'),
+          );
+        }
+      }
+      participant._pendingSignalRequests.clear();
       await participant.unpublishAllTracks();
     });
 
@@ -531,8 +543,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
             });
           }
-        } catch (_) {
-          logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
+        } catch (e) {
+          logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
 
         // doesn't make sense to negotiate if already disposed
@@ -621,30 +633,66 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Sets and updates the metadata of the local participant.
   /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   /// @param metadata
-  void setMetadata(String metadata) {
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      name: name,
-      metadata: metadata,
-    ));
+  Future<void> setMetadata(String metadata) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
   }
 
   /// Sets and updates the attributes of the local participant.
   /// @attributes key-value pairs to set
-  void setAttributes(Map<String, String> attributes) {
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      attributes: attributes.entries,
-    ));
+  Future<void> setAttributes(Map<String, String> attributes) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+        attributes: attributes.entries,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
   }
 
   /// Sets and updates the name of the local participant.
   ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   ///  @param name
-  void setName(String name) {
-    super.updateName(name);
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      name: name,
-      metadata: metadata,
-    ));
+  Future<void> setName(String name) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
+  }
+
+  Future<void> _waitForRequestResponse(int requestId) {
+    final completer = Completer<void>();
+    _pendingSignalRequests[requestId] = completer;
+    return completer.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        _pendingSignalRequests.remove(requestId);
+        throw TimeoutException('Signal request timed out');
+      },
+    );
+  }
+
+  @internal
+  void handleSignalRequestResponse(lk_rtc.RequestResponse response) {
+    final completer = _pendingSignalRequests.remove(response.requestId);
+    if (completer != null && !completer.isCompleted) {
+      if (response.reason != lk_rtc.RequestResponse_Reason.OK) {
+        completer.completeError(
+          UnexpectedStateException('Signal request failed: ${response.reason} - ${response.message}'),
+        );
+      } else {
+        completer.complete();
+      }
+    }
   }
 
   /// A convenience property to get all video tracks.

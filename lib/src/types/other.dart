@@ -35,6 +35,10 @@ enum ProtocolVersion {
   v10,
   v11,
   v12,
+  v13, // Regions in leave request, canReconnect obsoleted by action
+  v14,
+  v15, // Non-error signal responses, room move
+  v16, // Supports moving (full participant move)
 }
 
 /// Connection state type used throughout the SDK.

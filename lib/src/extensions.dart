@@ -66,6 +66,10 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v10: '10',
         ProtocolVersion.v11: '11',
         ProtocolVersion.v12: '12',
+        ProtocolVersion.v13: '13',
+        ProtocolVersion.v14: '14',
+        ProtocolVersion.v15: '15',
+        ProtocolVersion.v16: '16',
       }[this]!;
 }
 

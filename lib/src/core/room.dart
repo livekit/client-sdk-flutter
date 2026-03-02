@@ -390,15 +390,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         state: publication.subscriptionState,
       ));
     })
-    ..on<SignalRoomUpdateEvent>((event) async {
-      _metadata = event.room.metadata;
-      _roomInfo = event.room;
-      emitWhenConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
-      if (_isRecording != event.room.activeRecording) {
-        _isRecording = event.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
-    })
+    ..on<SignalRoomUpdateEvent>((event) async => _applyRoomUpdate(event.room))
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
 
@@ -421,16 +413,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpEngineListeners() => _engineListener
     ..on<EngineJoinResponseEvent>((event) async {
-      _roomInfo = event.response.room;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
+      _applyRoomUpdate(event.response.room);
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
-
-      if (_isRecording != event.response.room.activeRecording) {
-        _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
@@ -579,6 +564,39 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>((event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
+    ..on<EngineRequestResponseEvent>((event) {
+      localParticipant?.handleSignalRequestResponse(event.response);
+    })
+    ..on<EngineRoomMovedEvent>((event) async {
+      final response = event.response;
+      logger.fine('Room moved to: ${response.room.name}');
+
+      // Apply room info from move response
+      if (response.hasRoom()) {
+        _applyRoomUpdate(response.room);
+      }
+
+      // Disconnect all remote participants
+      final identities = _remoteParticipants.byIdentity.keys.toList();
+      for (final identity in identities) {
+        await _handleParticipantDisconnect(identity);
+      }
+
+      // Emit public event
+      events.emit(RoomMovedEvent(roomName: response.room.name));
+
+      // Update local participant info
+      if (response.hasParticipant()) {
+        await localParticipant?.updateFromInfo(response.participant);
+      }
+
+      // Add new participants
+      if (response.otherParticipants.isNotEmpty) {
+        await _onParticipantUpdateEvent(response.otherParticipants);
+      }
+
+      notifyListeners();
+    })
     ..on<AudioPlaybackStarted>((event) {
       _handleAudioPlaybackStarted();
     })
@@ -993,10 +1011,28 @@ extension RoomPrivateMethods on Room {
     await NativeAudioManagement.stop();
 
     // reset params
+    _roomInfo = null;
     _name = null;
     _metadata = null;
+    _isRecording = false;
     _serverVersion = null;
     _serverRegion = null;
+  }
+
+  /// Applies room info from server. Skips metadata event on first join
+  /// since there is no previous state to compare against.
+  void _applyRoomUpdate(lk_models.Room room) {
+    final oldRoom = _roomInfo;
+    _roomInfo = room;
+    _name = room.name;
+    _metadata = room.metadata;
+    if (oldRoom != null && oldRoom.metadata != room.metadata) {
+      emitWhenConnected(RoomMetadataChangedEvent(metadata: room.metadata));
+    }
+    if (oldRoom?.activeRecording != room.activeRecording) {
+      _isRecording = room.activeRecording;
+      emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+    }
   }
 
   @internal

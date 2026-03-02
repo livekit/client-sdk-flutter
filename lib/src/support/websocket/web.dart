@@ -43,13 +43,13 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
     Map<String, String>? headers, // ignore: unused_element_parameter
   ]) {
     _ws.binaryType = 'arraybuffer';
-    _messageSubscription = _ws.onMessage.listen((_) {
+    _messageSubscription = _ws.onMessage.listen((event) {
       if (isDisposed) {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
       final dynamic data =
-          _.data.instanceOfString('ArrayBuffer') ? (_.data as JSArrayBuffer).toDart.asUint8List() : _.data;
+          event.data.instanceOfString('ArrayBuffer') ? (event.data as JSArrayBuffer).toDart.asUint8List() : event.data;
       options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {
