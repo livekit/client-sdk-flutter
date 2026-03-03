@@ -132,7 +132,7 @@ class PreConnectAudioBuffer {
       rendererId: rendererId,
       sampleRate: _requestSampleRate,
       channels: 1,
-      commonFormat: 'int16',
+      format: AudioFormat.Int16,
     );
 
     if (!result) {

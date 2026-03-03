@@ -61,53 +61,49 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
-  AudioFrameCapture? _audioCapture;
-  final List<AudioFrameCallback> _audioRenderers = [];
-  StreamSubscription? _audioFrameSubscription;
+  final Map<AudioRendererOptions, _AudioCaptureGroup> _captureGroups = {};
 
   /// Register a callback to receive raw PCM audio frames from this track.
   ///
+  /// Multiple renderers with different [options] each get their own capture
+  /// pipeline. Renderers sharing the same options share a single capture.
+  ///
   /// Returns a function that, when called, removes this renderer.
-  /// When the last renderer is removed, audio capture stops automatically.
+  /// When the last renderer for a given options config is removed, that
+  /// capture stops automatically.
   CancelListenFunc addAudioRenderer({
     required AudioFrameCallback onFrame,
-    int sampleRate = 24000,
-    int channels = 1,
-    String commonFormat = 'int16',
+    AudioRendererOptions options = const AudioRendererOptions(),
   }) {
-    _audioRenderers.add(onFrame);
-
-    if (_audioRenderers.length == 1) {
-      unawaited(_startAudioCapture(
-        sampleRate: sampleRate,
-        channels: channels,
-        commonFormat: commonFormat,
-      ));
-    }
+    final group = _captureGroups.putIfAbsent(options, () {
+      final g = _AudioCaptureGroup();
+      unawaited(_startCaptureGroup(g, options));
+      return g;
+    });
+    group.renderers.add(onFrame);
 
     return () async {
-      _audioRenderers.remove(onFrame);
-      if (_audioRenderers.isEmpty) {
-        await _stopAudioCapture();
+      group.renderers.remove(onFrame);
+      if (group.renderers.isEmpty) {
+        _captureGroups.remove(options);
+        await _stopCaptureGroup(group);
       }
     };
   }
 
-  Future<void> _startAudioCapture({
-    required int sampleRate,
-    required int channels,
-    required String commonFormat,
-  }) async {
+  Future<void> _startCaptureGroup(
+    _AudioCaptureGroup group,
+    AudioRendererOptions options,
+  ) async {
     final capture = createAudioFrameCapture();
-    _audioCapture = capture;
-    final rendererId = Track.uuid.v4();
+    group.capture = capture;
 
     final result = await capture.start(
       track: mediaStreamTrack,
-      rendererId: rendererId,
-      sampleRate: sampleRate,
-      channels: channels,
-      commonFormat: commonFormat,
+      rendererId: Track.uuid.v4(),
+      sampleRate: options.sampleRate,
+      channels: options.channels,
+      format: options.format,
     );
 
     if (!result) {
@@ -115,18 +111,18 @@ mixin AudioTrack on Track {
       return;
     }
 
-    _audioFrameSubscription = capture.frameStream.listen((frame) {
-      for (final renderer in List.of(_audioRenderers)) {
+    group.subscription = capture.frameStream.listen((frame) {
+      for (final renderer in List.of(group.renderers)) {
         renderer(frame);
       }
     });
   }
 
-  Future<void> _stopAudioCapture() async {
-    await _audioFrameSubscription?.cancel();
-    _audioFrameSubscription = null;
-    await _audioCapture?.stop();
-    _audioCapture = null;
+  Future<void> _stopCaptureGroup(_AudioCaptureGroup group) async {
+    await group.subscription?.cancel();
+    group.subscription = null;
+    await group.capture?.stop();
+    group.capture = null;
   }
 
   @override
@@ -137,9 +133,17 @@ mixin AudioTrack on Track {
   @override
   Future<void> onStopped() async {
     logger.fine('AudioTrack.onStopped()');
-    await _stopAudioCapture();
-    _audioRenderers.clear();
+    for (final group in _captureGroups.values) {
+      await _stopCaptureGroup(group);
+    }
+    _captureGroups.clear();
   }
+}
+
+class _AudioCaptureGroup {
+  AudioFrameCapture? capture;
+  StreamSubscription? subscription;
+  final List<AudioFrameCallback> renderers = [];
 }
 
 /// Base class for [LocalAudioTrack] and [LocalVideoTrack].
