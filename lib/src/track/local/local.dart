@@ -77,7 +77,7 @@ mixin AudioTrack on Track {
   }) {
     final group = _captureGroups.putIfAbsent(options, () {
       final g = _AudioCaptureGroup();
-      unawaited(_startCaptureGroup(g, options));
+      g.startFuture = _startCaptureGroup(g, options);
       return g;
     });
     group.renderers.add(onFrame);
@@ -119,6 +119,7 @@ mixin AudioTrack on Track {
   }
 
   Future<void> _stopCaptureGroup(_AudioCaptureGroup group) async {
+    await group.startFuture;
     await group.subscription?.cancel();
     group.subscription = null;
     await group.capture?.stop();
@@ -143,6 +144,7 @@ mixin AudioTrack on Track {
 class _AudioCaptureGroup {
   AudioFrameCapture? capture;
   StreamSubscription? subscription;
+  Future<void>? startFuture;
   final List<AudioFrameCallback> renderers = [];
 }
 
