@@ -75,55 +75,19 @@ mixin AudioTrack on Track {
     required AudioFrameCallback onFrame,
     AudioRendererOptions options = const AudioRendererOptions(),
   }) {
-    final group = _captureGroups.putIfAbsent(options, () {
-      final g = _AudioCaptureGroup();
-      g.startFuture = _startCaptureGroup(g, options);
-      return g;
-    });
+    final group = _captureGroups.putIfAbsent(
+      options,
+      () => _AudioCaptureGroup(track: mediaStreamTrack, options: options),
+    );
     group.renderers.add(onFrame);
 
     return () async {
       group.renderers.remove(onFrame);
       if (group.renderers.isEmpty) {
         _captureGroups.remove(options);
-        await _stopCaptureGroup(group);
+        await group.stop();
       }
     };
-  }
-
-  Future<void> _startCaptureGroup(
-    _AudioCaptureGroup group,
-    AudioRendererOptions options,
-  ) async {
-    final capture = createAudioFrameCapture();
-    group.capture = capture;
-
-    final result = await capture.start(
-      track: mediaStreamTrack,
-      rendererId: Track.uuid.v4(),
-      sampleRate: options.sampleRate,
-      channels: options.channels,
-      format: options.format,
-    );
-
-    if (!result) {
-      logger.warning('Failed to start audio capture for renderer');
-      return;
-    }
-
-    group.subscription = capture.frameStream.listen((frame) {
-      for (final renderer in List.of(group.renderers)) {
-        renderer(frame);
-      }
-    });
-  }
-
-  Future<void> _stopCaptureGroup(_AudioCaptureGroup group) async {
-    await group.startFuture;
-    await group.subscription?.cancel();
-    group.subscription = null;
-    await group.capture?.stop();
-    group.capture = null;
   }
 
   @override
@@ -135,17 +99,56 @@ mixin AudioTrack on Track {
   Future<void> onStopped() async {
     logger.fine('AudioTrack.onStopped()');
     for (final group in _captureGroups.values) {
-      await _stopCaptureGroup(group);
+      await group.stop();
     }
     _captureGroups.clear();
   }
 }
 
 class _AudioCaptureGroup {
-  AudioFrameCapture? capture;
-  StreamSubscription? subscription;
-  Future<void>? startFuture;
   final List<AudioFrameCallback> renderers = [];
+  late final Future<void> _startFuture;
+  AudioFrameCapture? _capture;
+  StreamSubscription? _subscription;
+
+  _AudioCaptureGroup({
+    required rtc.MediaStreamTrack track,
+    required AudioRendererOptions options,
+  }) {
+    _startFuture = _start(track, options);
+  }
+
+  Future<void> _start(rtc.MediaStreamTrack track, AudioRendererOptions options) async {
+    final capture = createAudioFrameCapture();
+    _capture = capture;
+
+    final result = await capture.start(
+      track: track,
+      rendererId: Track.uuid.v4(),
+      sampleRate: options.sampleRate,
+      channels: options.channels,
+      format: options.format,
+    );
+
+    if (!result) {
+      logger.warning('Failed to start audio capture for renderer');
+      return;
+    }
+
+    _subscription = capture.frameStream.listen((frame) {
+      for (final renderer in List.of(renderers)) {
+        renderer(frame);
+      }
+    });
+  }
+
+  Future<void> stop() async {
+    await _startFuture;
+    await _subscription?.cancel();
+    _subscription = null;
+    await _capture?.stop();
+    _capture = null;
+  }
 }
 
 /// Base class for [LocalAudioTrack] and [LocalVideoTrack].
