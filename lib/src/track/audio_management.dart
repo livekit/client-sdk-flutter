@@ -116,6 +116,7 @@ Future<void> _onAudioTrackCountDidChange() async {
       if (Hardware.instance.forceSpeakerOutput) {
         config = config.copyWith(
           appleAudioCategoryOptions: {
+            ...?config.appleAudioCategoryOptions,
             AppleAudioCategoryOption.defaultToSpeaker,
           },
         );

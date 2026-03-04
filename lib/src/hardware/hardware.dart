@@ -152,6 +152,7 @@ class Hardware {
           if (_preferSpeakerOutput && _forceSpeakerOutput) {
             config = config.copyWith(
               appleAudioCategoryOptions: {
+                ...?config.appleAudioCategoryOptions,
                 AppleAudioCategoryOption.defaultToSpeaker,
               },
             );
