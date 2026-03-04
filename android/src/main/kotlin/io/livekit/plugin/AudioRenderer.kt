@@ -110,12 +110,9 @@ class AudioRenderer(
   }
 
   /**
-   * Converts audio data to raw interleaved bytes.
+   * Converts audio data to raw interleaved bytes with resampling.
    *
-   * If source and target channel counts match, data is copied directly.
-   * If target requests fewer channels, the first channels are kept and interleaved.
-   *
-   * Sends raw byte arrays instead of boxed sample lists.
+   * Pipeline: read int16 → resample → channel reduce → format convert (int16/float32)
    */
   private fun convertAudioData(
     audioData: ByteBuffer,
@@ -138,16 +135,7 @@ class AudioRenderer(
       return null
     }
 
-    val bytesPerSample = 2 // 16-bit
-    val bytesPerFrame = numberOfChannels * bytesPerSample
-    if (bytesPerFrame <= 0) {
-      logDroppedFrame("Invalid bytesPerFrame: $bytesPerFrame")
-      return null
-    }
-
-    val requestedChannels = targetFormat.numberOfChannels.coerceAtLeast(1)
-    val outChannels = requestedChannels.coerceAtMost(numberOfChannels)
-
+    val bytesPerFrame = numberOfChannels * 2
     val buffer = audioData.duplicate()
     buffer.order(ByteOrder.LITTLE_ENDIAN)
     buffer.rewind()
@@ -159,7 +147,7 @@ class AudioRenderer(
     }
 
     val expectedBytes = numberOfFrames.toLong() * bytesPerFrame.toLong()
-    val frameLength = if (expectedBytes <= availableBytes.toLong()) {
+    val srcFrames = if (expectedBytes <= availableBytes.toLong()) {
       numberOfFrames
     } else {
       val availableFrames = availableBytes / bytesPerFrame
@@ -173,24 +161,71 @@ class AudioRenderer(
       availableFrames
     }
 
+    // Step 1: Read source int16 samples into ShortArray
+    val src = ShortArray(srcFrames * numberOfChannels)
+    for (i in src.indices) {
+      src[i] = buffer.short
+    }
+
+    // Step 2: Resample to target sample rate
+    val resampleResult = AudioResampler.resample(
+      src, srcFrames, sampleRate, targetFormat.sampleRate, numberOfChannels
+    )
+    val resampled = resampleResult.samples
+    val outFrames = resampleResult.frameCount
+
+    if (outFrames <= 0) {
+      logDroppedFrame("Resampled frame count is 0")
+      return null
+    }
+
+    // Step 3: Channel reduction + format conversion
+    val requestedChannels = targetFormat.numberOfChannels.coerceAtLeast(1)
+    val outChannels = requestedChannels.coerceAtMost(numberOfChannels)
+
     val result = mutableMapOf<String, Any>(
-      "sampleRate" to sampleRate,
+      "sampleRate" to targetFormat.sampleRate,
       "channels" to outChannels,
-      "frameLength" to frameLength,
+      "frameLength" to outFrames,
     )
 
     when (targetFormat.commonFormat) {
-      "int16" -> {
-        result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, numberOfChannels, outChannels, frameLength)
-      }
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] = extractAsFloat32Bytes(buffer, numberOfChannels, outChannels, frameLength)
+        val out = ByteArray(outFrames * outChannels * 4)
+        val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+        for (f in 0 until outFrames) {
+          for (ch in 0 until outChannels) {
+            val sample = resampled[f * numberOfChannels + ch].toFloat() / Short.MAX_VALUE
+            outBuf.putFloat((f * outChannels + ch) * 4, sample)
+          }
+        }
+        result["data"] = out
       }
       else -> {
         result["commonFormat"] = "int16"
-        result["data"] = extractAsInt16Bytes(buffer, numberOfChannels, outChannels, frameLength)
+        if (outChannels == numberOfChannels) {
+          // Fast path: no channel reduction — bulk copy resampled data
+          val out = ByteArray(outFrames * outChannels * 2)
+          val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+          for (i in 0 until outFrames * outChannels) {
+            outBuf.putShort(i * 2, resampled[i])
+          }
+          result["data"] = out
+        } else {
+          // Channel reduction: keep first outChannels
+          val out = ByteArray(outFrames * outChannels * 2)
+          val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+          for (f in 0 until outFrames) {
+            for (ch in 0 until outChannels) {
+              outBuf.putShort(
+                (f * outChannels + ch) * 2,
+                resampled[f * numberOfChannels + ch]
+              )
+            }
+          }
+          result["data"] = out
+        }
       }
     }
 
@@ -202,74 +237,6 @@ class AudioRenderer(
     if (droppedFrameCount <= 5 || droppedFrameCount % 100 == 0L) {
       Log.w(TAG, "Dropping audio frame #$droppedFrameCount for rendererId=$rendererId: $reason")
     }
-  }
-
-  /**
-   * Extracts int16 PCM bytes from an int16 source buffer.
-   *
-   * Fast path when channel counts match (direct copy).
-   * Otherwise keeps only the first [outChannels] channels, interleaved.
-   */
-  private fun extractAsInt16Bytes(
-    buffer: ByteBuffer,
-    srcChannels: Int,
-    outChannels: Int,
-    numberOfFrames: Int
-  ): ByteArray {
-    // Fast path: matching channel count — bulk copy.
-    if (srcChannels == outChannels) {
-      val totalBytes = numberOfFrames * outChannels * 2
-      val out = ByteArray(totalBytes)
-      buffer.get(out, 0, totalBytes.coerceAtMost(buffer.remaining()))
-      return out
-    }
-
-    // Channel reduction: keep first outChannels.
-    val out = ByteArray(numberOfFrames * outChannels * 2)
-    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
-
-    for (frame in 0 until numberOfFrames) {
-      val srcOffset = frame * srcChannels * 2
-      for (ch in 0 until outChannels) {
-        val byteIndex = srcOffset + ch * 2
-        if (byteIndex + 1 < buffer.capacity()) {
-          buffer.position(byteIndex)
-          outBuf.putShort((frame * outChannels + ch) * 2, buffer.short)
-        }
-      }
-    }
-
-    return out
-  }
-
-  /**
-   * Converts int16 PCM source to float32 bytes.
-   *
-   * Each int16 sample is scaled to the [-1.0, 1.0] range.
-   * Only the first [outChannels] channels are kept.
-   */
-  private fun extractAsFloat32Bytes(
-    buffer: ByteBuffer,
-    srcChannels: Int,
-    outChannels: Int,
-    numberOfFrames: Int
-  ): ByteArray {
-    val out = ByteArray(numberOfFrames * outChannels * 4)
-    val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
-
-    for (frame in 0 until numberOfFrames) {
-      val srcOffset = frame * srcChannels * 2
-      for (ch in 0 until outChannels) {
-        val byteIndex = srcOffset + ch * 2
-        if (byteIndex + 1 < buffer.capacity()) {
-          buffer.position(byteIndex)
-          val sampleFloat = buffer.short.toFloat() / Short.MAX_VALUE
-          outBuf.putFloat((frame * outChannels + ch) * 4, sampleFloat)
-        }
-      }
-    }
-
-    return out
   }
 }
 
