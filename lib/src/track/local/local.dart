@@ -254,9 +254,9 @@ abstract class LocalTrack extends Track {
 
     _processor = processor;
 
-    final processorOptions = AudioProcessorOptions(
-      track: mediaStreamTrack,
-    );
+    final processorOptions = kind == TrackType.VIDEO
+        ? VideoProcessorOptions(track: mediaStreamTrack)
+        : AudioProcessorOptions(track: mediaStreamTrack);
 
     await _processor!.init(processorOptions);
 
