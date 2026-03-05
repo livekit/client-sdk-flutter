@@ -192,7 +192,7 @@ class Utils {
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
-        if (reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
+        if (reconnect && reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',
