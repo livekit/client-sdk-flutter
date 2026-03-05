@@ -1,0 +1,1 @@
+patch type="added" "Send reconnect reason to server during WebSocket reconnection"
