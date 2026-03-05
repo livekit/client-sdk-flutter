@@ -210,8 +210,8 @@ class PreConnectAudioBuffer {
     await _audioCapture?.stop();
     _audioCapture = null;
 
-    // Stop native recording session if it was started.
-    if (_nativeRecordingStarted) {
+    // Only stop native recording on error, the room's mic track still uses it.
+    if (withError != null && _nativeRecordingStarted) {
       await webrtc.NativeAudioManagement.stopLocalRecording();
     }
 
