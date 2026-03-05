@@ -327,7 +327,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (error is NegotiationError) {
         fullReconnectOnNext = true;
       }
-      await handleReconnect(ClientDisconnectReason.negotiationFailed);
+      await handleReconnect(
+        ClientDisconnectReason.negotiationFailed,
+        reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
+      );
     }
   }
 
@@ -669,9 +672,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('subscriber connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
-        await handleReconnect(state.isFailed()
-            ? ClientDisconnectReason.peerConnectionFailed
-            : ClientDisconnectReason.peerConnectionClosed);
+        await handleReconnect(
+          state.isFailed() ? ClientDisconnectReason.peerConnectionFailed : ClientDisconnectReason.peerConnectionClosed,
+          reconnectReason: lk_models.ReconnectReason.RR_SUBSCRIBER_FAILED,
+        );
       }
     };
 
@@ -689,9 +693,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       ));
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
-        await handleReconnect(state.isFailed()
-            ? ClientDisconnectReason.peerConnectionFailed
-            : ClientDisconnectReason.peerConnectionClosed);
+        await handleReconnect(
+          state.isFailed() ? ClientDisconnectReason.peerConnectionFailed : ClientDisconnectReason.peerConnectionClosed,
+          reconnectReason: lk_models.ReconnectReason.RR_PUBLISHER_FAILED,
+        );
       }
     };
 
@@ -980,7 +985,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  Future<void> handleReconnect(ClientDisconnectReason reason) async {
+  Future<void> handleReconnect(
+    ClientDisconnectReason reason, {
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
     if (_isClosed) {
       logger.fine('handleReconnect: engine is closed, skip');
       return;
@@ -1021,12 +1029,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
     logger.fine('WebSocket reconnecting in $delay ms, retry times $reconnectAttempts');
     reconnectTimeout = Timer(Duration(milliseconds: delay), () async {
-      await attemptReconnect(reason);
+      await attemptReconnect(
+        reason,
+        reconnectReason: reconnectReason,
+      );
     });
   }
 
   @internal
-  Future<void> attemptReconnect(ClientDisconnectReason reason) async {
+  Future<void> attemptReconnect(
+    ClientDisconnectReason reason, {
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
     if (_isClosed) {
       return;
     }
@@ -1062,7 +1076,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (fullReconnectOnNext) {
         await restartConnection();
       } else {
-        await resumeConnection(reason);
+        await resumeConnection(
+          reason,
+          reconnectReason: reconnectReason,
+        );
       }
       clearPendingReconnect();
       attemptingReconnect = false;
@@ -1093,7 +1110,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<void> resumeConnection(ClientDisconnectReason reason) async {
+  Future<void> resumeConnection(
+    ClientDisconnectReason reason, {
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
     if (_isClosed) {
       return;
     }
@@ -1107,6 +1127,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       reconnect: true,
+      reconnectReason: reconnectReason,
     );
 
     await events.waitFor<SignalReconnectedEvent>(
@@ -1322,7 +1343,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
-        await handleReconnect(ClientDisconnectReason.signal);
+        await handleReconnect(ClientDisconnectReason.signal,
+            reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED);
       } else if (event.reason == DisconnectReason.signalingConnectionFailure) {
         events.emit(EngineDisconnectedEvent(
           reason: event.reason,

@@ -101,6 +101,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
     bool reconnect = false,
+    lk_models.ReconnectReason? reconnectReason,
   }) async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
@@ -133,6 +134,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       roomOptions: roomOptions,
       reconnect: reconnect,
       sid: reconnect ? participantSid : null,
+      reconnectReason: reconnectReason,
     );
 
     logger.fine('SignalClient connecting with url: $rtcUri');
