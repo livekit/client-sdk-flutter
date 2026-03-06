@@ -29736,7 +29736,7 @@ k=A.Q([B.Z5,"2",B.Z6,"3",B.Zb,"4",B.Zc,"5",B.Zd,"6",B.Ze,"7",B.Zf,"8",B.Zg,"9",B
 k.toString
 l.m(0,"protocol",k)
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.6.4")
+l.m(0,"version","2.6.5")
 l.m(0,"network",m)
 if(o!=null){i=A.u(i,i)
 k=o.a
