@@ -41,6 +41,7 @@ export 'src/agent/room_agent.dart';
 export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/remote.dart' hide ParticipantCreationResult;
+export 'src/audio/audio_frame_capture.dart' show AudioFormat, AudioFrame, AudioFrameCallback, AudioRendererOptions;
 export 'src/preconnect/pre_connect_audio_buffer.dart';
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';

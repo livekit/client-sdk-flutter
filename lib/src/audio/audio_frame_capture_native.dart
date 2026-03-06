@@ -39,13 +39,13 @@ class AudioFrameCaptureNative implements AudioFrameCapture {
     required String rendererId,
     required int sampleRate,
     required int channels,
-    required String commonFormat,
+    required AudioFormat format,
   }) async {
     final result = await Native.startAudioRenderer(
       trackId: track.id!,
       rendererId: rendererId,
       format: {
-        'commonFormat': commonFormat,
+        'commonFormat': format.value,
         'sampleRate': sampleRate,
         'channels': channels,
       },
@@ -58,11 +58,12 @@ class AudioFrameCaptureNative implements AudioFrameCapture {
     _eventChannel = EventChannel('io.livekit.audio.renderer/channel-$rendererId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
+        final rawFormat = event['commonFormat'] as String?;
         _controller.add(AudioFrame(
           sampleRate: event['sampleRate'] as int,
           channels: event['channels'] as int,
           data: event['data'] as Uint8List,
-          commonFormat: (event['commonFormat'] as String?) ?? commonFormat,
+          format: rawFormat == AudioFormat.Float32.value ? AudioFormat.Float32 : AudioFormat.Int16,
         ));
       } catch (e) {
         logger.warning('[AudioFrameCapture] Error parsing native event: $e');

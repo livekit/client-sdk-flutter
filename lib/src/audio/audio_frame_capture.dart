@@ -18,18 +18,27 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' show MediaStreamTrack;
 
 import 'audio_frame_capture_native.dart' if (dart.library.js_interop) 'audio_frame_capture_web.dart';
 
+/// PCM sample format for audio frame capture.
+enum AudioFormat {
+  Int16('int16'),
+  Float32('float32');
+
+  final String value;
+  const AudioFormat(this.value);
+}
+
 /// A single frame of raw PCM audio data.
 class AudioFrame {
   final int sampleRate;
   final int channels;
   final Uint8List data;
-  final String commonFormat;
+  final AudioFormat format;
 
   const AudioFrame({
     required this.sampleRate,
     required this.channels,
     required this.data,
-    required this.commonFormat,
+    required this.format,
   });
 }
 
@@ -49,11 +58,38 @@ abstract class AudioFrameCapture {
     required String rendererId,
     required int sampleRate,
     required int channels,
-    required String commonFormat,
+    required AudioFormat format,
   });
 
   /// Stop capturing and release resources.
   Future<void> stop();
+}
+
+/// Callback for receiving audio frames.
+typedef AudioFrameCallback = void Function(AudioFrame frame);
+
+/// Options for configuring audio frame capture format.
+class AudioRendererOptions {
+  final int sampleRate;
+  final int channels;
+  final AudioFormat format;
+
+  const AudioRendererOptions({
+    this.sampleRate = 24000,
+    this.channels = 1,
+    this.format = AudioFormat.Int16,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AudioRendererOptions &&
+          sampleRate == other.sampleRate &&
+          channels == other.channels &&
+          format == other.format;
+
+  @override
+  int get hashCode => Object.hash(sampleRate, channels, format);
 }
 
 /// Factory that returns the platform-appropriate implementation.

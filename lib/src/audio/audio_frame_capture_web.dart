@@ -22,8 +22,8 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' show MediaStreamTrack;
 import 'package:web/web.dart' as web;
 
 import '../logger.dart';
-import '../support/audio_pcm_utils.dart';
 import 'audio_frame_capture.dart';
+import 'audio_pcm_utils.dart';
 
 /// JavaScript source for the AudioWorkletProcessor.
 ///
@@ -63,7 +63,7 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
   web.AudioWorkletNode? _workletNode;
   web.AudioNode? _sourceNode;
   StreamController<AudioFrame>? _controller;
-  String _targetFormat = 'int16';
+  AudioFormat _targetFormat = AudioFormat.Int16;
   int _targetChannels = 1;
 
   @override
@@ -75,9 +75,9 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
     required String rendererId,
     required int sampleRate,
     required int channels,
-    required String commonFormat,
+    required AudioFormat format,
   }) async {
-    _targetFormat = commonFormat;
+    _targetFormat = format;
     _targetChannels = channels;
     _controller ??= StreamController<AudioFrame>.broadcast();
 
@@ -144,7 +144,7 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
       final srcFloat32 = samplesBuffer.asFloat32List();
 
       final Uint8List bytes;
-      if (_targetFormat == 'float32') {
+      if (_targetFormat == AudioFormat.Float32) {
         bytes = float32ToFloat32Bytes(srcFloat32, channels, outChannels, frames);
       } else {
         bytes = float32ToInt16Bytes(srcFloat32, channels, outChannels, frames);
@@ -154,7 +154,7 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
         sampleRate: actualSampleRate,
         channels: outChannels,
         data: bytes,
-        commonFormat: _targetFormat,
+        format: _targetFormat,
       ));
     } catch (e) {
       logger.warning('[AudioFrameCapture] Error processing worklet frame: $e');

@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
+import '../audio/audio_frame_capture.dart';
 import '../core/room.dart';
 import '../events.dart';
 import '../logger.dart';
@@ -29,7 +30,6 @@ import '../track/local/audio.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_state.dart';
-import 'audio_frame_capture.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
@@ -132,7 +132,7 @@ class PreConnectAudioBuffer {
       rendererId: rendererId,
       sampleRate: _requestSampleRate,
       channels: 1,
-      commonFormat: 'int16',
+      format: AudioFormat.Int16,
     );
 
     if (!result) {

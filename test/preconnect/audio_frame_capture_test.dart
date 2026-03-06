@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:livekit_client/src/preconnect/audio_frame_capture.dart';
-import 'package:livekit_client/src/support/audio_pcm_utils.dart';
+import 'package:livekit_client/src/audio/audio_frame_capture.dart';
+import 'package:livekit_client/src/audio/audio_pcm_utils.dart';
 import 'package:livekit_client/src/support/byte_ring_buffer.dart';
 
 /// A mock AudioFrameCapture that emits frames from a StreamController.
@@ -22,7 +22,7 @@ class MockAudioFrameCapture implements AudioFrameCapture {
     required String rendererId,
     required int sampleRate,
     required int channels,
-    required String commonFormat,
+    required AudioFormat format,
   }) async {
     started = true;
     return true;
@@ -75,12 +75,12 @@ void main() {
         sampleRate: 48000,
         channels: 1,
         data: int16Bytes([100, -200, 300]),
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       expect(frame.sampleRate, 48000);
       expect(frame.channels, 1);
-      expect(frame.commonFormat, 'int16');
+      expect(frame.format, AudioFormat.Int16);
       expect(frame.data.length, 6); // 3 samples * 2 bytes
     });
   });
@@ -93,7 +93,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 24000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       expect(result, true);
@@ -107,7 +107,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 24000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       final frames = <AudioFrame>[];
@@ -117,14 +117,14 @@ void main() {
         sampleRate: 24000,
         channels: 1,
         data: int16Bytes([1000, -1000]),
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       ));
 
       capture.emitFrame(AudioFrame(
         sampleRate: 24000,
         channels: 1,
         data: int16Bytes([2000, -2000]),
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       ));
 
       // Let microtasks run.
@@ -145,7 +145,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 24000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
       await capture.stop();
 
@@ -253,7 +253,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 24000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       int? capturedSampleRate;
@@ -272,7 +272,7 @@ void main() {
           sampleRate: 48000,
           channels: 1,
           data: int16Bytes(samples),
-          commonFormat: 'int16',
+          format: AudioFormat.Int16,
         ));
       }
 
@@ -302,7 +302,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 24000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       bool overflowed = false;
@@ -317,13 +317,13 @@ void main() {
         sampleRate: 24000,
         channels: 1,
         data: Uint8List(60),
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       ));
       capture.emitFrame(AudioFrame(
         sampleRate: 24000,
         channels: 1,
         data: Uint8List(60),
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       ));
 
       await Future<void>.delayed(Duration.zero);
@@ -344,7 +344,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 48000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       // Simulate what the web implementation does: receive float32 from
@@ -361,7 +361,7 @@ void main() {
         sampleRate: 48000,
         channels: 1,
         data: samples.buffer.asUint8List(),
-        commonFormat: 'float32',
+        format: AudioFormat.Float32,
       ));
 
       await Future<void>.delayed(Duration.zero);
@@ -392,7 +392,7 @@ void main() {
         rendererId: 'test-id',
         sampleRate: 48000,
         channels: 1,
-        commonFormat: 'int16',
+        format: AudioFormat.Int16,
       );
 
       final sub = capture.frameStream.listen((frame) {
@@ -408,7 +408,7 @@ void main() {
         sampleRate: 48000,
         channels: 2,
         data: stereo.buffer.asUint8List(),
-        commonFormat: 'float32',
+        format: AudioFormat.Float32,
       ));
 
       await Future<void>.delayed(Duration.zero);

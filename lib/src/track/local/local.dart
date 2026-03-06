@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../audio/audio_frame_capture.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
 import '../../extensions.dart';
@@ -60,6 +61,35 @@ mixin VideoTrack on Track {
 
 /// Used to group [LocalAudioTrack] and [RemoteAudioTrack].
 mixin AudioTrack on Track {
+  final Map<AudioRendererOptions, _AudioCaptureGroup> _captureGroups = {};
+
+  /// Register a callback to receive raw PCM audio frames from this track.
+  ///
+  /// Multiple renderers with different [options] each get their own capture
+  /// pipeline. Renderers sharing the same options share a single capture.
+  ///
+  /// Returns a function that, when called, removes this renderer.
+  /// When the last renderer for a given options config is removed, that
+  /// capture stops automatically.
+  CancelListenFunc addAudioRenderer({
+    required AudioFrameCallback onFrame,
+    AudioRendererOptions options = const AudioRendererOptions(),
+  }) {
+    final group = _captureGroups.putIfAbsent(
+      options,
+      () => _AudioCaptureGroup(track: mediaStreamTrack, options: options),
+    );
+    group.renderers.add(onFrame);
+
+    return () async {
+      group.renderers.remove(onFrame);
+      if (group.renderers.isEmpty) {
+        _captureGroups.remove(options);
+        await group.stop();
+      }
+    };
+  }
+
   @override
   Future<void> onStarted() async {
     logger.fine('AudioTrack.onStarted()');
@@ -68,6 +98,56 @@ mixin AudioTrack on Track {
   @override
   Future<void> onStopped() async {
     logger.fine('AudioTrack.onStopped()');
+    for (final group in _captureGroups.values) {
+      await group.stop();
+    }
+    _captureGroups.clear();
+  }
+}
+
+class _AudioCaptureGroup {
+  final List<AudioFrameCallback> renderers = [];
+  late final Future<void> _startFuture;
+  AudioFrameCapture? _capture;
+  StreamSubscription? _subscription;
+
+  _AudioCaptureGroup({
+    required rtc.MediaStreamTrack track,
+    required AudioRendererOptions options,
+  }) {
+    _startFuture = _start(track, options);
+  }
+
+  Future<void> _start(rtc.MediaStreamTrack track, AudioRendererOptions options) async {
+    final capture = createAudioFrameCapture();
+    _capture = capture;
+
+    final result = await capture.start(
+      track: track,
+      rendererId: Track.uuid.v4(),
+      sampleRate: options.sampleRate,
+      channels: options.channels,
+      format: options.format,
+    );
+
+    if (!result) {
+      logger.warning('Failed to start audio capture for renderer');
+      return;
+    }
+
+    _subscription = capture.frameStream.listen((frame) {
+      for (final renderer in List.of(renderers)) {
+        renderer(frame);
+      }
+    });
+  }
+
+  Future<void> stop() async {
+    await _startFuture;
+    await _subscription?.cancel();
+    _subscription = null;
+    await _capture?.stop();
+    _capture = null;
   }
 }
 
