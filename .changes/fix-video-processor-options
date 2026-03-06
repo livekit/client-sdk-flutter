@@ -1,1 +1,0 @@
-patch type="fixed" "setProcessor() now uses VideoProcessorOptions for video tracks instead of AudioProcessorOptions"

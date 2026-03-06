@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.6.5
+
+* Added: Send reconnect reason to server during WebSocket reconnection
+* Fixed: setProcessor() now uses VideoProcessorOptions for video tracks instead of AudioProcessorOptions
+* Fixed: Fix wildcard variable lint warnings to improve pub.dev score
+* Fixed: Preserve Bluetooth and AirPlay options when forcing speaker output on iOS
+* Fixed: MissingPluginException when stopping audio visualizer on Android/iOS
+* Fixed: Fix microphone stopping after pre-connect audio completes
+* Fixed: Duplicate tracks published when setCameraEnabled called rapidly
+
 ## 2.6.4
 
 * Added: Add web support for pre-connect audio buffer
