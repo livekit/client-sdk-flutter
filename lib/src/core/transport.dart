@@ -338,27 +338,55 @@ class Transport extends Disposable {
     }
   }
 
-  /// Munge SDP to change `a=inactive` to `a=recvonly` for RTP media m-lines
-  /// in single PC mode. WebRTC can generate inactive direction even when
-  /// transceivers were configured as recvonly. Only rewrites RTP m-sections —
-  /// non-RTP sections (e.g. data channel `m=application`) are preserved.
+  /// Munge SDP to change `a=inactive` to `a=recvonly` for RTP media sections
+  /// that have no SSRC (i.e. receive-only transceivers with no local media).
+  ///
+  /// In single PC mode, libWebRTC may incorrectly generate `a=inactive` for
+  /// transceivers that were configured as recvonly. We only fix sections
+  /// without SSRC lines to avoid touching sendonly/sendrecv transceivers that
+  /// have been intentionally set to inactive (e.g. after unpublishing).
   static String mungeInactiveToRecvOnlyForMedia(String sdp) {
     final usesCRLF = sdp.contains('\r\n');
     final eol = usesCRLF ? '\r\n' : '\n';
     final lines = sdp.split(eol);
 
-    final out = <String>[];
-    var inRTPMediaSection = false;
-
-    for (final line in lines) {
-      final l = line.trim();
+    // Two-pass approach: first collect media section ranges and whether they
+    // contain SSRC lines, then rewrite only the qualifying sections.
+    final sections = <_MediaSection>[];
+    for (int i = 0; i < lines.length; i++) {
+      final l = lines[i].trim();
       if (l.startsWith('m=')) {
-        inRTPMediaSection = l.contains('RTP/');
+        sections.add(_MediaSection(
+          startIndex: i,
+          isRTP: l.contains('RTP/'),
+        ));
+      } else if (sections.isNotEmpty) {
+        if (l.startsWith('a=ssrc:')) {
+          sections.last.hasSSRC = true;
+        }
       }
-      if (inRTPMediaSection && l == 'a=inactive') {
+    }
+
+    // Build a set of line indices where a=inactive should be rewritten.
+    final rewriteIndices = <int>{};
+    for (final section in sections) {
+      if (!section.isRTP || section.hasSSRC) continue;
+      final end = sections.indexOf(section) + 1 < sections.length
+          ? sections[sections.indexOf(section) + 1].startIndex
+          : lines.length;
+      for (int i = section.startIndex; i < end; i++) {
+        if (lines[i].trim() == 'a=inactive') {
+          rewriteIndices.add(i);
+        }
+      }
+    }
+
+    final out = <String>[];
+    for (int i = 0; i < lines.length; i++) {
+      if (rewriteIndices.contains(i)) {
         out.add('a=recvonly');
       } else {
-        out.add(line);
+        out.add(lines[i]);
       }
     }
 
@@ -368,4 +396,11 @@ class Transport extends Disposable {
     }
     return result;
   }
+}
+
+class _MediaSection {
+  final int startIndex;
+  final bool isRTP;
+  bool hasSSRC = false;
+  _MediaSection({required this.startIndex, required this.isRTP});
 }

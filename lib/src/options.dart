@@ -122,8 +122,8 @@ class RoomOptions {
   final bool fastPublish;
 
   /// When true, will attempt to connect via single peer connection mode.
-  /// Falls back to dual peer connection mode if not available.
-  /// Requires LiveKit Cloud or LiveKit OSS >= 1.9.2.
+  /// Automatically falls back to dual peer connection mode if the server
+  /// does not support the v1 signal path (HTTP 404).
   final bool singlePeerConnection;
 
   /// deprecated, use [createVisualizer] instead
