@@ -562,6 +562,19 @@ class SignalRoomMovedEvent with SignalEvent, InternalEvent {
   String toString() => '${runtimeType}(room: ${response.room.name})';
 }
 
+@internal
+class SignalMediaSectionsRequirementEvent with SignalEvent, InternalEvent {
+  final int numAudios;
+  final int numVideos;
+  const SignalMediaSectionsRequirementEvent({
+    required this.numAudios,
+    required this.numVideos,
+  });
+
+  @override
+  String toString() => '${runtimeType}(numAudios: $numAudios, numVideos: $numVideos)';
+}
+
 // ----------------------------------------------------------------------
 // Engine events
 // ----------------------------------------------------------------------

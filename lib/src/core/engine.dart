@@ -80,10 +80,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Transport? subscriber;
 
   @internal
-  Transport? get primary => _subscriberPrimary ? subscriber : publisher;
+  Transport? get primary => _singlePCMode ? publisher : (_subscriberPrimary ? subscriber : publisher);
 
-  rtc.RTCDataChannel? get dataChannel =>
-      _subscriberPrimary ? _reliableDCSub ?? _lossyDCSub : _reliableDCPub ?? _lossyDCPub;
+  rtc.RTCDataChannel? get dataChannel => _singlePCMode
+      ? _reliableDCPub ?? _lossyDCPub
+      : (_subscriberPrimary ? _reliableDCSub ?? _lossyDCSub : _reliableDCPub ?? _lossyDCPub);
 
   // data channels for packets
   rtc.RTCDataChannel? _reliableDCPub;
@@ -109,6 +110,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   FastConnectOptions? fastConnectOptions;
 
   bool _subscriberPrimary = false;
+  bool _singlePCMode = false;
 
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
@@ -286,6 +288,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await subscriber?.dispose();
     subscriber = null;
 
+    _singlePCMode = false;
+
     await signalClient.cleanUp();
 
     fullReconnectOnNext = false;
@@ -413,7 +417,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // construct the data channel message
     var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    if (_subscriberPrimary) {
+    if (_subscriberPrimary && !_singlePCMode) {
       // make sure publisher transport is connected
       await ensurePublisherConnected();
 
@@ -625,11 +629,62 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return rtcConfiguration;
   }
 
+  void _handleOnTrack(rtc.RTCTrackEvent event) {
+    logger.fine('[WebRTC] pc.onTrack');
+
+    final stream = event.streams.firstOrNull;
+    if (stream == null) {
+      // we need the stream to get the track's id
+      logger.severe('received track without mediastream');
+      return;
+    }
+
+    // doesn't get called reliably
+    event.track.onEnded = () {
+      logger.fine('[WebRTC] track.onEnded');
+    };
+
+    // doesn't get called reliably
+    stream.onRemoveTrack = (_) {
+      logger.fine('[WebRTC] stream.onRemoveTrack');
+    };
+
+    if (signalClient.connectionState == ConnectionState.reconnecting ||
+        signalClient.connectionState == ConnectionState.connecting) {
+      final track = event.track;
+      final receiver = event.receiver;
+      events.on<EngineConnectedEvent>((event) async {
+        Timer(const Duration(milliseconds: 10), () {
+          events.emit(EngineTrackAddedEvent(
+            track: track,
+            stream: stream,
+            receiver: receiver,
+          ));
+        });
+      });
+      return;
+    }
+
+    if (connectionState == ConnectionState.disconnected) {
+      logger.warning('skipping incoming track after Room disconnected');
+      return;
+    }
+
+    events.emit(EngineTrackAddedEvent(
+      track: event.track,
+      stream: stream,
+      receiver: event.receiver,
+    ));
+  }
+
   Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
-    publisher =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
-    subscriber =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    publisher = await Transport.create(_peerConnectionCreate,
+        rtcConfig: rtcConfiguration, connectOptions: connectOptions, singlePCMode: _singlePCMode);
+
+    if (!_singlePCMode) {
+      subscriber =
+          await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    }
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
@@ -643,41 +698,50 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     };
 
-    subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
-      logger.fine('subscriber onIceCandidate');
-      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
-    };
+    if (!_singlePCMode) {
+      subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
+        logger.fine('subscriber onIceCandidate');
+        signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
+      };
 
-    subscriber?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
-      logger.fine('subscriber iceConnectionState: $state');
-      if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-        await _handleGettingConnectedServerAddress(subscriber!.pc);
-      }
-    };
+      subscriber?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
+        logger.fine('subscriber iceConnectionState: $state');
+        if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+          await _handleGettingConnectedServerAddress(subscriber!.pc);
+        }
+      };
+    }
 
     publisher?.onOffer = (offer) {
       logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
     };
 
-    // in subscriber primary mode, server side opens sub data channels.
-    if (_subscriberPrimary) {
+    // In single PC mode, server opens data channels on publisher.
+    // In dual PC subscriber-primary mode, server opens data channels on subscriber.
+    if (_singlePCMode) {
+      publisher?.pc.onDataChannel = _onDataChannel;
+    } else if (_subscriberPrimary) {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
-    subscriber?.pc.onConnectionState = (state) async {
-      events.emit(EngineSubscriberPeerStateUpdatedEvent(
-        state: state,
-        isPrimary: _subscriberPrimary,
-      ));
-      logger.fine('subscriber connectionState: $state');
-      if (state.isDisconnected() || state.isFailed()) {
-        await handleReconnect(
-          state.isFailed() ? ClientDisconnectReason.peerConnectionFailed : ClientDisconnectReason.peerConnectionClosed,
-          reconnectReason: lk_models.ReconnectReason.RR_SUBSCRIBER_FAILED,
-        );
-      }
-    };
+    if (!_singlePCMode) {
+      subscriber?.pc.onConnectionState = (state) async {
+        events.emit(EngineSubscriberPeerStateUpdatedEvent(
+          state: state,
+          isPrimary: _subscriberPrimary,
+        ));
+        logger.fine('subscriber connectionState: $state');
+        if (state.isDisconnected() || state.isFailed()) {
+          await handleReconnect(
+            state.isFailed()
+                ? ClientDisconnectReason.peerConnectionFailed
+                : ClientDisconnectReason.peerConnectionClosed,
+            reconnectReason: lk_models.ReconnectReason.RR_SUBSCRIBER_FAILED,
+          );
+        }
+      };
+    }
 
     publisher?.pc.onConnectionState = (state) async {
       if ([
@@ -689,7 +753,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
       events.emit(EnginePublisherPeerStateUpdatedEvent(
         state: state,
-        isPrimary: !_subscriberPrimary,
+        isPrimary: _singlePCMode || !_subscriberPrimary,
       ));
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
@@ -700,58 +764,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     };
 
-    subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
-      logger.fine('[WebRTC] pc.onTrack');
-
-      final stream = event.streams.firstOrNull;
-      if (stream == null) {
-        // we need the stream to get the track's id
-        logger.severe('received track without mediastream');
-        return;
-      }
-
-      // doesn't get called reliably
-      event.track.onEnded = () {
-        logger.fine('[WebRTC] track.onEnded');
-      };
-
-      // doesn't get called reliably
-      stream.onRemoveTrack = (_) {
-        logger.fine('[WebRTC] stream.onRemoveTrack');
-      };
-
-      if (signalClient.connectionState == ConnectionState.reconnecting ||
-          signalClient.connectionState == ConnectionState.connecting) {
-        final track = event.track;
-        final receiver = event.receiver;
-        events.on<EngineConnectedEvent>((event) async {
-          Timer(const Duration(milliseconds: 10), () {
-            events.emit(EngineTrackAddedEvent(
-              track: track,
-              stream: stream,
-              receiver: receiver,
-            ));
-          });
-        });
-        return;
-      }
-
-      if (connectionState == ConnectionState.disconnected) {
-        logger.warning('skipping incoming track after Room disconnected');
-        return;
-      }
-
-      events.emit(EngineTrackAddedEvent(
-        track: event.track,
-        stream: stream,
-        receiver: event.receiver,
-      ));
-    };
+    // In single PC mode, tracks arrive via publisher; otherwise via subscriber.
+    if (_singlePCMode) {
+      publisher?.pc.onTrack = _handleOnTrack;
+    } else {
+      subscriber?.pc.onTrack = _handleOnTrack;
+    }
 
     // doesn't get called reliably, doesn't work on mac
-    subscriber?.pc.onRemoveTrack = (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
-      logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
-    };
+    if (!_singlePCMode) {
+      subscriber?.pc.onRemoveTrack = (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+        logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
+      };
+    }
 
     // also handle messages over the pub channel, for backwards compatibility
     try {
@@ -1150,7 +1175,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('resumeConnection: primary is connected: $isConnected');
 
     if (!isConnected) {
-      subscriber!.restartingIce = true;
+      if (!_singlePCMode && subscriber != null) {
+        subscriber!.restartingIce = true;
+      }
       logger.fine('resumeConnection: Waiting for primary to connect...');
       await events.waitFor<EnginePeerStateUpdatedEvent>(
         filter: (event) => event.isPrimary && event.state.isConnected(),
@@ -1230,8 +1257,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required List<String> trackSidsDisabled,
   }) async {
-    final previousAnswer = (await subscriber?.pc.getLocalDescription())?.toPBType();
-    final previousOffer = (await subscriber?.pc.getRemoteDescription())?.toPBType();
+    lk_rtc.SessionDescription? previousAnswer;
+    lk_rtc.SessionDescription? previousOffer;
+
+    if (_singlePCMode) {
+      // In single PC mode, answer = publisher's remoteDescription,
+      // offer = publisher's localDescription.
+      previousAnswer = (await publisher?.pc.getRemoteDescription())?.toPBType();
+      previousOffer = (await publisher?.pc.getLocalDescription())?.toPBType();
+    } else {
+      previousAnswer = (await subscriber?.pc.getLocalDescription())?.toPBType();
+      previousOffer = (await subscriber?.pc.getRemoteDescription())?.toPBType();
+    }
 
     // Build data channel receive states for reliability
     final dataChannelReceiveStates = <lk_rtc.DataChannelReceiveState>[];
@@ -1264,6 +1301,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
+      _singlePCMode = roomOptions.singlePeerConnection;
       _serverInfo = event.response.serverInfo;
       final iceServersFromServer = event.response.iceServers.map((e) => e.toSDKType()).toList();
 
@@ -1316,7 +1354,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           serverProvidedIceServers: _serverProvidedIceServers);
 
       await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
-      await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
+      if (!_singlePCMode) {
+        await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
+      }
 
       if (!_subscriberPrimary) {
         await negotiate();
@@ -1354,6 +1394,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     })
     ..on<SignalOfferEvent>((event) async {
+      if (_singlePCMode) {
+        // In single PC mode, server uses mediaSectionsRequirement instead of offers.
+        logger.warning('Received SignalOfferEvent in single PC mode, ignoring');
+        return;
+      }
       if (subscriber == null) {
         logger.warning('[$objectId] subscriber is null');
         return;
@@ -1384,6 +1429,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await publisher!.setRemoteDescription(event.sd);
     })
     ..on<SignalTrickleEvent>((event) async {
+      if (_singlePCMode) {
+        if (publisher == null) {
+          logger.warning('Received ${SignalTrickleEvent} but publisher was null.');
+          return;
+        }
+        logger.fine('got ICE candidate from peer (single PC mode)');
+        await publisher!.addIceCandidate(event.candidate);
+        return;
+      }
       if (publisher == null || subscriber == null) {
         logger.warning('Received ${SignalTrickleEvent} but publisher or subscriber was null.');
         return;
@@ -1437,6 +1491,32 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         signalClient.participantSid = event.response.participant.sid;
       }
       events.emit(EngineRoomMovedEvent(response: event.response));
+    })
+    ..on<SignalMediaSectionsRequirementEvent>((event) async {
+      if (!_singlePCMode || publisher == null) {
+        logger.warning('Received media sections requirement but not in single PC mode or publisher is null');
+        return;
+      }
+      logger.fine('Adding recvonly transceivers: audio=${event.numAudios}, video=${event.numVideos}');
+
+      final transceiverInit = rtc.RTCRtpTransceiverInit(
+        direction: rtc.TransceiverDirection.RecvOnly,
+      );
+
+      for (int i = 0; i < event.numAudios; i++) {
+        await publisher!.pc.addTransceiver(
+          kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+          init: transceiverInit,
+        );
+      }
+      for (int i = 0; i < event.numVideos; i++) {
+        await publisher!.pc.addTransceiver(
+          kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+          init: transceiverInit,
+        );
+      }
+
+      await negotiate();
     });
 
   Future<void> disconnect({
