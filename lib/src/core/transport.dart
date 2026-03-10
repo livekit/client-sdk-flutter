@@ -64,9 +64,10 @@ class Transport extends Disposable {
   TransportOnOffer? onOffer;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
+  final bool singlePCMode;
 
   // private constructor
-  Transport._(this.pc, this.connectOptions) {
+  Transport._(this.pc, this.connectOptions, {this.singlePCMode = false}) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -101,11 +102,11 @@ class Transport extends Disposable {
   }
 
   static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
-      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions}) async {
+      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions, bool singlePCMode = false}) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(pc, connectOptions);
+    return Transport._(pc, connectOptions, singlePCMode: singlePCMode);
   }
 
   late final negotiate = Utils.createDebounceFunc(
@@ -214,8 +215,16 @@ class Transport extends Disposable {
       }
     });
 
+    var mungedSdp = sdp_transform.write(sdpParsed, null);
+
+    // In single PC mode, munge a=inactive to a=recvonly for RTP media sections.
+    // WebRTC can generate inactive direction even when transceivers were configured as recvonly.
+    if (singlePCMode) {
+      mungedSdp = mungeInactiveToRecvOnlyForMedia(mungedSdp);
+    }
+
     try {
-      await setMungedSDP(sd: offer, munged: sdp_transform.write(sdpParsed, null));
+      await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
       throw NegotiationError(e.toString());
     }
@@ -327,5 +336,36 @@ class Transport extends Disposable {
       logger.warning('unable to set ${sd.type}, error: $e, sdp: ${sd.sdp}');
       rethrow;
     }
+  }
+
+  /// Munge SDP to change `a=inactive` to `a=recvonly` for RTP media m-lines
+  /// in single PC mode. WebRTC can generate inactive direction even when
+  /// transceivers were configured as recvonly. Only rewrites RTP m-sections —
+  /// non-RTP sections (e.g. data channel `m=application`) are preserved.
+  static String mungeInactiveToRecvOnlyForMedia(String sdp) {
+    final usesCRLF = sdp.contains('\r\n');
+    final eol = usesCRLF ? '\r\n' : '\n';
+    final lines = sdp.split(eol);
+
+    final out = <String>[];
+    var inRTPMediaSection = false;
+
+    for (final line in lines) {
+      final l = line.trim();
+      if (l.startsWith('m=')) {
+        inRTPMediaSection = l.contains('RTP/');
+      }
+      if (inRTPMediaSection && l == 'a=inactive') {
+        out.add('a=recvonly');
+      } else {
+        out.add(line);
+      }
+    }
+
+    var result = out.join(eol);
+    if (sdp.endsWith(eol) && !result.endsWith(eol)) {
+      result += eol;
+    }
+    return result;
   }
 }

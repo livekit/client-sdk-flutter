@@ -121,6 +121,11 @@ class RoomOptions {
   /// fast track publication
   final bool fastPublish;
 
+  /// When true, will attempt to connect via single peer connection mode.
+  /// Falls back to dual peer connection mode if not available.
+  /// Requires LiveKit Cloud or LiveKit OSS >= 1.9.2.
+  final bool singlePeerConnection;
+
   /// deprecated, use [createVisualizer] instead
   /// please refer to example/lib/widgets/sound_waveform.dart
   @Deprecated('Use createVisualizer instead')
@@ -140,6 +145,7 @@ class RoomOptions {
     this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
+    this.singlePeerConnection = false,
   });
 
   RoomOptions copyWith({
@@ -155,6 +161,7 @@ class RoomOptions {
     E2EEOptions? e2eeOptions,
     E2EEOptions? encryption,
     bool? fastPublish,
+    bool? singlePeerConnection,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
@@ -170,6 +177,7 @@ class RoomOptions {
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
       encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
+      singlePeerConnection: singlePeerConnection ?? this.singlePeerConnection,
     );
   }
 }

@@ -94,6 +94,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     });
   }
 
+  // Whether the established connection used the v1 signal path (single PC mode).
+  bool _useV1SignalPath = false;
+
   @internal
   Future<void> connect(
     String uriString,
@@ -127,15 +130,33 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
     }
 
-    final rtcUri = await Utils.buildUri(
-      uriString,
-      token: token,
-      connectOptions: connectOptions,
-      roomOptions: roomOptions,
-      reconnect: reconnect,
-      sid: reconnect ? participantSid : null,
-      reconnectReason: reconnectReason,
-    );
+    // Use v1 path for initial connection when singlePeerConnection is requested.
+    // For reconnect, use the same path version as the established connection.
+    final useV1 = reconnect ? _useV1SignalPath : roomOptions.singlePeerConnection;
+
+    final Uri rtcUri;
+    if (useV1 && !reconnect) {
+      rtcUri = await Utils.buildV1Uri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+      );
+    } else {
+      rtcUri = await Utils.buildUri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
+      );
+    }
+
+    if (!reconnect) {
+      _useV1SignalPath = useV1;
+    }
 
     logger.fine('SignalClient connecting with url: $rtcUri');
 
@@ -359,6 +380,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         }
         events.emit(SignalRoomMovedEvent(response: msg.roomMoved));
         break;
+      case lk_rtc.SignalResponse_Message.mediaSectionsRequirement:
+        logger.fine('received media sections requirement: '
+            'audios=${msg.mediaSectionsRequirement.numAudios}, '
+            'videos=${msg.mediaSectionsRequirement.numVideos}');
+        events.emit(SignalMediaSectionsRequirementEvent(
+          numAudios: msg.mediaSectionsRequirement.numAudios,
+          numVideos: msg.mediaSectionsRequirement.numVideos,
+        ));
+        break;
       default:
         logger.warning('received unknown signal message');
     }
@@ -490,10 +520,12 @@ extension SignalClientRequests on SignalClient {
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
     required List<String> trackSidsDisabled,
     List<lk_rtc.DataChannelReceiveState>? dataChannelReceiveStates,
+    lk_rtc.SessionDescription? offer,
   }) =>
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
+          offer: offer,
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,
