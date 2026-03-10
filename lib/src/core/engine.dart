@@ -243,12 +243,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     try {
       // wait for socket to connect rtc server
-      await signalClient.connect(
-        url,
-        token,
-        connectOptions: this.connectOptions,
-        roomOptions: this.roomOptions,
-      );
+      try {
+        await signalClient.connect(
+          url,
+          token,
+          connectOptions: this.connectOptions,
+          roomOptions: this.roomOptions,
+        );
+      } on ConnectException catch (e) {
+        // If v1 path returned ServiceNotFound, fall back to v0 (dual PC)
+        if (e.reason == ConnectionErrorReason.ServiceNotFound && this.roomOptions.singlePeerConnection) {
+          logger.warning('v1 signal path not found, falling back to dual PC mode');
+          await signalClient.connect(
+            url,
+            token,
+            connectOptions: this.connectOptions,
+            roomOptions: this.roomOptions.copyWith(singlePeerConnection: false),
+          );
+        } else {
+          rethrow;
+        }
+      }
 
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
@@ -1301,7 +1316,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
-      _singlePCMode = roomOptions.singlePeerConnection;
+      // Derive single PC mode from the actual signal path, not just the option.
+      // If v1 was unavailable, signalClient falls back to v0 and useV1SignalPath=false.
+      _singlePCMode = signalClient.useV1SignalPath;
       _serverInfo = event.response.serverInfo;
       final iceServersFromServer = event.response.iceServers.map((e) => e.toSDKType()).toList();
 
@@ -1497,6 +1514,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.warning('Received media sections requirement but not in single PC mode or publisher is null');
         return;
       }
+      // The server sends delta counts (how many *new* transceivers to add),
+      // not absolute totals. This matches the JS SDK behavior — we blindly
+      // add the requested number of recvonly transceivers each time.
+      // In single PC mode only the offerer (client) can add new m-lines,
+      // so the server signals when it needs additional media sections to
+      // deliver subscribed tracks.
       logger.fine('Adding recvonly transceivers: audio=${event.numAudios}, video=${event.numVideos}');
 
       final transceiverInit = rtc.RTCRtpTransceiverInit(

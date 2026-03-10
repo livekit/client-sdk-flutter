@@ -98,6 +98,9 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   bool _useV1SignalPath = false;
 
   @internal
+  bool get useV1SignalPath => _useV1SignalPath;
+
+  @internal
   Future<void> connect(
     String uriString,
     String token, {
@@ -131,16 +134,19 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
 
     // Use v1 path for initial connection when singlePeerConnection is requested.
-    // For reconnect, use the same path version as the established connection.
+    // For quick reconnect, use the same path version as the established connection.
     final useV1 = reconnect ? _useV1SignalPath : roomOptions.singlePeerConnection;
 
     final Uri rtcUri;
-    if (useV1 && !reconnect) {
+    if (useV1) {
       rtcUri = await Utils.buildV1Uri(
         uriString,
         token: token,
         connectOptions: connectOptions,
         roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
       );
     } else {
       rtcUri = await Utils.buildUri(
@@ -194,15 +200,23 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt Validation
       var finalError = socketError;
       try {
-        // Re-build same uri for validate mode
-        final validateUri = await Utils.buildUri(
-          uriString,
-          token: token,
-          connectOptions: connectOptions,
-          roomOptions: roomOptions,
-          validate: true,
-          forceSecure: rtcUri.isSecureScheme,
-        );
+        // Re-build same uri for validate mode, matching the signal path version
+        final validateUri = useV1
+            ? await Utils.buildV1ValidateUri(
+                uriString,
+                token: token,
+                connectOptions: connectOptions,
+                roomOptions: roomOptions,
+                forceSecure: rtcUri.isSecureScheme,
+              )
+            : await Utils.buildUri(
+                uriString,
+                token: token,
+                connectOptions: connectOptions,
+                roomOptions: roomOptions,
+                validate: true,
+                forceSecure: rtcUri.isSecureScheme,
+              );
 
         final validateResponse = await http.get(
           validateUri,
@@ -210,7 +224,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
             'Authorization': 'Bearer $token',
           },
         );
-        if (validateResponse.statusCode != 200) {
+        if (validateResponse.statusCode == 404) {
+          finalError =
+              ConnectException(validateResponse.body, reason: ConnectionErrorReason.ServiceNotFound, statusCode: 404);
+        } else if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
               reason: validateResponse.statusCode >= 400
                   ? ConnectionErrorReason.NotAllowed

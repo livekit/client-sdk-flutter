@@ -231,6 +231,15 @@ class Utils {
     pathSegments.addAll(['rtc', 'v1']);
 
     final clientInfo = await _clientInfo();
+    final networkType = await getNetworkType();
+
+    // Populate ClientInfo with the same fields that v0 sends as query params
+    if (clientInfo != null) {
+      clientInfo.sdk = lk_models.ClientInfo_SDK.FLUTTER;
+      clientInfo.version = LiveKitClient.version;
+      clientInfo.protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0;
+      clientInfo.network = networkType;
+    }
 
     final joinRequest = lk_rtc.JoinRequest(
       clientInfo: clientInfo,
@@ -255,6 +264,34 @@ class Utils {
       queryParameters: <String, String>{
         'access_token': token,
         'join_request': joinRequestBase64,
+      },
+    );
+  }
+
+  /// Converts a v1 WebSocket URL to its HTTP validation counterpart.
+  /// `wss://host/rtc/v1` → `https://host/rtc/v1/validate`
+  @internal
+  static Future<Uri> buildV1ValidateUri(
+    String uriString, {
+    required String token,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
+    bool forceSecure = false,
+  }) async {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final httpScheme = useSecure ? 'https' : 'http';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+    pathSegments.removeWhere((e) => e.isEmpty);
+    pathSegments.addAll(['rtc', 'v1', 'validate']);
+
+    return uri.replace(
+      scheme: httpScheme,
+      pathSegments: pathSegments,
+      queryParameters: <String, String>{
+        'access_token': token,
       },
     );
   }
