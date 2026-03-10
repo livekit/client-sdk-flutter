@@ -158,7 +158,7 @@ class Utils {
   }
 
   @internal
-  static Future<Uri> buildUri(
+  static Future<Uri> buildV0Uri(
     String uriString, {
     required String token,
     required ConnectOptions connectOptions,

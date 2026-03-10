@@ -149,7 +149,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         reconnectReason: reconnectReason,
       );
     } else {
-      rtcUri = await Utils.buildUri(
+      rtcUri = await Utils.buildV0Uri(
         uriString,
         token: token,
         connectOptions: connectOptions,
@@ -209,7 +209,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
                 roomOptions: roomOptions,
                 forceSecure: rtcUri.isSecureScheme,
               )
-            : await Utils.buildUri(
+            : await Utils.buildV0Uri(
                 uriString,
                 token: token,
                 connectOptions: connectOptions,
