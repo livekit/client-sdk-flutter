@@ -278,11 +278,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> cleanUp() async {
     logger.fine('[$objectId] cleanUp()');
 
+    // In single PC mode, subscriber == publisher, so only dispose once
+    final isSinglePcMode = subscriber == publisher;
+
     await publisher?.dispose();
     publisher = null;
     _hasPublished = false;
 
-    await subscriber?.dispose();
+    if (!isSinglePcMode) {
+      await subscriber?.dispose();
+    }
     subscriber = null;
 
     await signalClient.cleanUp();
@@ -315,13 +320,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  Future<void> negotiate({bool? iceRestart}) async {
+  Future<void> negotiate({bool? iceRestart, bool immediate = false}) async {
     if (publisher == null) {
       return;
     }
     _hasPublished = true;
     try {
-      publisher!.negotiate(null);
+      if (immediate || iceRestart == true) {
+        final options = iceRestart == true ? const RTCOfferOptions(iceRestart: true) : null;
+        await publisher!.createAndSendOffer(options);
+      } else {
+        publisher!.negotiate(null);
+      }
     } catch (error) {
       if (error is NegotiationError) {
         fullReconnectOnNext = true;
@@ -409,7 +419,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // construct the data channel message
     var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    if (_subscriberPrimary) {
+    // In subscriber-primary mode (legacy dual PC) and in single PC mode, data can be
+    // sent right after connect() returns while publisher/DC are still finishing setup.
+    // Ensure publisher transport and target data channel are ready before sending.
+    if (_subscriberPrimary || signalClient.singlePcMode) {
       // make sure publisher transport is connected
       await ensurePublisherConnected();
 
@@ -493,7 +506,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       // start negotiation
       if (state != rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnecting) {
-        await negotiate();
+        await negotiate(immediate: true);
       }
       if (!lkPlatformIsTest()) {
         logger.fine('Waiting for publisher to ice-connect...');
@@ -622,10 +635,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
+    // Always create publisher
     publisher =
         await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
-    subscriber =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+
+    // Set single PC mode flag on publisher transport
+    publisher?.singlePcMode = signalClient.singlePcMode;
+    logger.fine('Creating PeerConnections, singlePcMode: ${signalClient.singlePcMode}');
+
+    // In single PC mode, we only use the publisher PeerConnection for both pub and sub
+    // The subscriber reference points to the same transport as publisher
+    if (signalClient.singlePcMode) {
+      subscriber = publisher;
+      logger.fine('Single PC mode: using publisher for both pub and sub');
+    } else {
+      // In dual PC mode (legacy V0), create a separate subscriber PeerConnection
+      subscriber =
+          await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    }
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
@@ -639,17 +666,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     };
 
-    subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
-      logger.fine('subscriber onIceCandidate');
-      signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
-    };
+    // Only set up subscriber-specific callbacks in dual PC mode
+    if (!signalClient.singlePcMode) {
+      subscriber?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
+        logger.fine('subscriber onIceCandidate');
+        signalClient.sendIceCandidate(candidate, lk_rtc.SignalTarget.SUBSCRIBER);
+      };
 
-    subscriber?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
-      logger.fine('subscriber iceConnectionState: $state');
-      if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
-        await _handleGettingConnectedServerAddress(subscriber!.pc);
-      }
-    };
+      subscriber?.pc.onIceConnectionState = (rtc.RTCIceConnectionState state) async {
+        logger.fine('subscriber iceConnectionState: $state');
+        if (state == rtc.RTCIceConnectionState.RTCIceConnectionStateConnected) {
+          await _handleGettingConnectedServerAddress(subscriber!.pc);
+        }
+      };
+    }
 
     publisher?.onOffer = (offer) {
       logger.fine('publisher onOffer');
@@ -661,18 +691,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       subscriber?.pc.onDataChannel = _onDataChannel;
     }
 
-    subscriber?.pc.onConnectionState = (state) async {
-      events.emit(EngineSubscriberPeerStateUpdatedEvent(
-        state: state,
-        isPrimary: _subscriberPrimary,
-      ));
-      logger.fine('subscriber connectionState: $state');
-      if (state.isDisconnected() || state.isFailed()) {
-        await handleReconnect(state.isFailed()
-            ? ClientDisconnectReason.peerConnectionFailed
-            : ClientDisconnectReason.peerConnectionClosed);
-      }
-    };
+    // In single PC mode, connection state events come from publisher only
+    if (!signalClient.singlePcMode) {
+      subscriber?.pc.onConnectionState = (state) async {
+        events.emit(EngineSubscriberPeerStateUpdatedEvent(
+          state: state,
+          isPrimary: _subscriberPrimary,
+        ));
+        logger.fine('subscriber connectionState: $state');
+        if (state.isDisconnected() || state.isFailed()) {
+          await handleReconnect(state.isFailed()
+              ? ClientDisconnectReason.peerConnectionFailed
+              : ClientDisconnectReason.peerConnectionClosed);
+        }
+      };
+    }
 
     publisher?.pc.onConnectionState = (state) async {
       if ([
@@ -686,6 +719,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         state: state,
         isPrimary: !_subscriberPrimary,
       ));
+      // In single PC mode, also emit subscriber state event since they're the same PC
+      if (signalClient.singlePcMode) {
+        events.emit(EngineSubscriberPeerStateUpdatedEvent(
+          state: state,
+          isPrimary: _subscriberPrimary,
+        ));
+      }
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
         await handleReconnect(state.isFailed()
@@ -694,7 +734,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     };
 
-    subscriber?.pc.onTrack = (rtc.RTCTrackEvent event) {
+    // In single PC mode, onTrack is set on publisher (which is the same as subscriber)
+    // In dual PC mode, onTrack is set on subscriber
+    final pcForTracks = signalClient.singlePcMode ? publisher : subscriber;
+    pcForTracks?.pc.onTrack = (rtc.RTCTrackEvent event) {
       logger.fine('[WebRTC] pc.onTrack');
 
       final stream = event.streams.firstOrNull;
@@ -743,7 +786,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     // doesn't get called reliably, doesn't work on mac
-    subscriber?.pc.onRemoveTrack = (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
+    pcForTracks?.pc.onRemoveTrack = (rtc.MediaStream stream, rtc.MediaStreamTrack track) {
       logger.fine('[WebRTC] ${track.id} pc.onRemoveTrack');
     };
 
@@ -1099,12 +1142,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     events.emit(const EngineResumingEvent());
 
     // wait for socket to connect rtc server
+    // Use the same URL path mode as the initial connection
     await signalClient.connect(
       url!,
       token!,
       connectOptions: connectOptions,
       roomOptions: roomOptions,
       reconnect: true,
+      useV1Path: signalClient.singlePcMode, // Preserve the URL path mode from initial connection
     );
 
     await events.waitFor<SignalReconnectedEvent>(
@@ -1155,12 +1200,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await signalClient.cleanUp();
       }
 
+      // Reset single PC mode flag on full reconnect
+      // In single PC mode, subscriber == publisher, so only dispose once
+      final isSinglePcMode = subscriber == publisher;
+      signalClient.resetSinglePcMode();
+
       await publisher?.dispose();
       publisher = null;
 
       _resetPublisherConnection();
 
-      await subscriber?.dispose();
+      if (!isSinglePcMode) {
+        await subscriber?.dispose();
+      }
       subscriber = null;
 
       _reliableDCSub = null;
@@ -1235,6 +1287,33 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         signalClient.sendQueuedRequests();
       });
 
+  Future<void> _addSinglePcRecvonlyTransceivers() async {
+    final transport = publisher;
+    if (transport == null) {
+      return;
+    }
+
+    const mediaKinds = <rtc.RTCRtpMediaType>[
+      rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+      rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
+    ];
+
+    for (final kind in mediaKinds) {
+      try {
+        final transceiverInit = rtc.RTCRtpTransceiverInit(
+          direction: rtc.TransceiverDirection.RecvOnly,
+        );
+        await transport.pc.addTransceiver(
+          kind: kind,
+          init: transceiverInit,
+        );
+        logger.fine('Added recvonly $kind transceiver for single PC mode');
+      } catch (e) {
+        logger.warning('Failed to add recvonly $kind transceiver: $e');
+      }
+    }
+  }
+
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
@@ -1261,13 +1340,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
-      if (!_subscriberPrimary || event.response.fastPublish) {
+      // In single PC mode or fastPublish, trigger negotiation immediately
+      final shouldNegotiateImmediately = !_subscriberPrimary || event.response.fastPublish || signalClient.singlePcMode;
+
+      if (shouldNegotiateImmediately) {
         _enabledPublishCodecs = event.response.enabledPublishCodecs;
 
-        /// for subscriberPrimary, we negotiate when necessary (lazy)
-        /// and if `response.fastPublish == true`, we need to negotiate
-        /// immediately
-        await negotiate();
+        // In single PC mode, add recvonly media transceivers before negotiation
+        // so the initial offer advertises receive capability for remote tracks.
+        if (signalClient.singlePcMode && publisher != null) {
+          await _addSinglePcRecvonlyTransceivers();
+        }
+
+        /// For single PC / fast publish startup, kick off negotiation immediately
+        /// without blocking synchronized signal-event handling.
+        unawaited(negotiate(immediate: true));
       }
 
       events.emit(EngineJoinResponseEvent(response: event.response));
@@ -1294,7 +1381,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
 
       if (!_subscriberPrimary) {
-        await negotiate();
+        await negotiate(immediate: true);
       }
 
       // Handle reliable message resending

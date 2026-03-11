@@ -61,11 +61,24 @@ class ConnectOptions {
 
   final Timeouts timeouts;
 
+  /// Whether to use single PeerConnection mode (V1 signaling path).
+  ///
+  /// When enabled, the SDK uses a single PeerConnection for both publishing
+  /// and subscribing, which can reduce connection time and improve reliability.
+  ///
+  /// This is only supported on native platforms (iOS, Android, macOS, Windows, Linux).
+  /// On web platforms, this option is ignored and the legacy dual PeerConnection
+  /// mode is always used.
+  ///
+  /// Defaults to true.
+  final bool singlePeerConnection;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v12,
     this.timeouts = Timeouts.defaultTimeouts,
+    this.singlePeerConnection = true,
   });
 }
 

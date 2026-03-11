@@ -1095,6 +1095,17 @@ extension RPCMethods on LocalParticipant {
   Future<String> performRpc(PerformRpcParams params) async {
     final requestId = Uuid().v4();
     final completer = Completer<String>();
+    void completeOnceError(Object error) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    }
+
+    void completeOnceValue(String value) {
+      if (!completer.isCompleted) {
+        completer.complete(value);
+      }
+    }
 
     final maxRoundTripLatency = Duration(seconds: 7);
     final minEffectiveTimeout = const Duration(milliseconds: 1000);
@@ -1115,7 +1126,8 @@ extension RPCMethods on LocalParticipant {
       );
 
       final ackTimer = Timer(maxRoundTripLatency, () {
-        completer.completeError(RpcError.builtIn(RpcError.connectionTimeout));
+        completeOnceError(RpcError.builtIn(RpcError.connectionTimeout));
+        _pendingAcks.remove(requestId);
         _pendingResponses.remove(requestId);
       });
 
@@ -1124,16 +1136,17 @@ extension RPCMethods on LocalParticipant {
       };
 
       final responseTimer = Timer(params.responseTimeoutMs, () {
-        completer.completeError(RpcError.builtIn(RpcError.responseTimeout));
+        completeOnceError(RpcError.builtIn(RpcError.responseTimeout));
+        _pendingAcks.remove(requestId);
         _pendingResponses.remove(requestId);
       });
 
       _pendingResponses[requestId] = (String? response, RpcError? error) {
         responseTimer.cancel();
         if (error != null) {
-          completer.completeError(error);
+          completeOnceError(error);
         } else {
-          completer.complete(response!);
+          completeOnceValue(response!);
         }
         ackTimer.cancel();
         _pendingAcks.remove(requestId);

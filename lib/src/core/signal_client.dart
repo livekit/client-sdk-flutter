@@ -57,6 +57,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   int _pingCount = 0;
   String? participantSid;
 
+  /// Whether the connection is in single PC mode (using V1 signaling path).
+  bool _singlePcMode = false;
+  bool get singlePcMode => _singlePcMode;
+
   List<ConnectivityResult> _connectivityResult = [];
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
@@ -93,6 +97,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
     bool reconnect = false,
+    bool? useV1Path,
   }) async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
@@ -118,7 +123,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
     }
 
-    final rtcUri = await Utils.buildUri(
+    // Determine whether to try V1 path (single PC mode)
+    // - Use explicit useV1Path if provided (for reconnection)
+    // - Otherwise, use singlePeerConnection option from connectOptions
+    // - V1 is only supported on non-web platforms
+    // - On web, always use V0 regardless of the option
+    final tryV1Path = useV1Path ?? (!kIsWeb && connectOptions.singlePeerConnection);
+
+    // Build URLs for both V0 and V1 paths
+    final rtcUriV0 = await Utils.buildUri(
       uriString,
       token: token,
       connectOptions: connectOptions,
@@ -127,7 +140,23 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       sid: reconnect ? participantSid : null,
     );
 
-    logger.fine('SignalClient connecting with url: $rtcUri');
+    Uri? rtcUriV1;
+    if (tryV1Path) {
+      rtcUriV1 = await Utils.buildUriV1(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+      );
+    }
+
+    // Use V1 path first if trying V1, otherwise use V0
+    final rtcUri = tryV1Path && rtcUriV1 != null ? rtcUriV1 : rtcUriV0;
+
+    logger.info('SignalClient connecting with ${tryV1Path ? 'V1-first' : 'V0'} signaling path');
+    logger.fine('SignalClient connecting with url: $rtcUri (tryV1Path: $tryV1Path)');
 
     try {
       if (reconnect == true) {
@@ -139,20 +168,74 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
       // Clean up existing socket
       await cleanUp();
-      // Attempt to connect
-      var future = _wsConnector(
-        rtcUri,
-        options: WebSocketEventHandlers(
-          onData: _onSocketData,
-          onDispose: _onSocketDispose,
-          onError: _onSocketError,
-        ),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-      future = future.timeout(connectOptions.timeouts.connection);
-      _ws = await future;
+
+      // Attempt to connect (try V1 first, fallback to V0 if not supported)
+      bool usedV1Path = tryV1Path && rtcUriV1 != null;
+      try {
+        if (usedV1Path) {
+          logger.fine('Attempting V1 path connection...');
+        }
+        var future = _wsConnector(
+          rtcUri,
+          options: WebSocketEventHandlers(
+            onData: _onSocketData,
+            onDispose: _onSocketDispose,
+            onError: _onSocketError,
+          ),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
+        // Use a shorter timeout for V1 attempt so we can fallback to V0 quickly
+        // if the server doesn't support V1 (404 errors should be fast, but use
+        // a 5 second timeout as a safety net)
+        final v1Timeout = usedV1Path
+            ? const Duration(seconds: 5)
+            : connectOptions.timeouts.connection;
+        future = future.timeout(v1Timeout);
+        _ws = await future;
+      } catch (v1Error) {
+        // If V1 path fails and we tried V1, fallback to V0
+        // This handles 404 errors (server doesn't support V1) and other connection failures
+        if (usedV1Path) {
+          // Check if this is likely a 404/not-found error (quick failure)
+          // vs a timeout or network error (slow failure)
+          final errorStr = v1Error.toString().toLowerCase();
+          final isNotFoundError = errorStr.contains('404') ||
+              errorStr.contains('not found') ||
+              errorStr.contains('upgrade') ||
+              errorStr.contains('handshake');
+
+          if (isNotFoundError) {
+            logger.info('V1 path not supported (404), falling back to V0 path');
+          } else {
+            logger.warning('V1 path failed with error, falling back to V0 path: $v1Error');
+          }
+          usedV1Path = false;
+
+          var future = _wsConnector(
+            rtcUriV0,
+            options: WebSocketEventHandlers(
+              onData: _onSocketData,
+              onDispose: _onSocketDispose,
+              onError: _onSocketError,
+            ),
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          );
+          future = future.timeout(connectOptions.timeouts.connection);
+          _ws = await future;
+        } else {
+          rethrow;
+        }
+      }
+
+      // Track whether we're in single PC mode
+      _singlePcMode = usedV1Path;
+      logger.info('SignalClient connected using ${_singlePcMode ? 'V1' : 'V0'} signaling path');
+      logger.fine('SignalClient connected, singlePcMode: $_singlePcMode');
+
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
@@ -170,7 +253,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           connectOptions: connectOptions,
           roomOptions: roomOptions,
           validate: true,
-          forceSecure: rtcUri.isSecureScheme,
+          forceSecure: rtcUriV0.isSecureScheme,
         );
 
         final validateResponse = await http.get(
@@ -211,6 +294,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     _ws = null;
     _queue.clear();
     _clearPingInterval();
+    // Note: Don't reset _singlePcMode here as it's needed for reconnection
+  }
+
+  /// Reset single PC mode flag. Called during full reconnect.
+  @internal
+  void resetSinglePcMode() {
+    _singlePcMode = false;
   }
 
   void _sendRequest(

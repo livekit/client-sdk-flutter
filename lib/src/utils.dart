@@ -26,6 +26,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
+import './proto/livekit_rtc.pb.dart' as lk_rtc;
 import './support/native.dart';
 import 'extensions.dart';
 import 'livekit.dart';
@@ -42,6 +43,65 @@ import 'types/video_parameters.dart';
 extension UriExt on Uri {
   @internal
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
+}
+
+/// Creates a base64-encoded join_request parameter for V1 URL path.
+///
+/// This wraps a JoinRequest protobuf into a WrappedJoinRequest and encodes it
+/// as base64 for use as a URL query parameter in single PC mode.
+@internal
+Future<String> createJoinRequestParam({
+  required ConnectOptions connectOptions,
+  required RoomOptions roomOptions,
+  bool reconnect = false,
+  lk_models.ReconnectReason? reconnectReason,
+  String? participantSid,
+}) async {
+  final clientInfo = await Utils._clientInfo();
+  final networkType = await Utils.getNetworkType();
+
+  // Build ClientInfo protobuf
+  final clientInfoProto = lk_models.ClientInfo(
+    sdk: lk_models.ClientInfo_SDK.FLUTTER,
+    version: LiveKitClient.version,
+    protocol: int.parse(connectOptions.protocolVersion.toStringValue()),
+    os: clientInfo?.os,
+    osVersion: clientInfo?.osVersion,
+    deviceModel: clientInfo?.deviceModel,
+    browser: clientInfo?.browser,
+    browserVersion: clientInfo?.browserVersion,
+    network: networkType,
+  );
+
+  // Build ConnectionSettings protobuf
+  final connectionSettings = lk_rtc.ConnectionSettings(
+    autoSubscribe: connectOptions.autoSubscribe,
+    adaptiveStream: roomOptions.adaptiveStream,
+  );
+
+  // Build JoinRequest protobuf
+  final joinRequest = lk_rtc.JoinRequest(
+    clientInfo: clientInfoProto,
+    connectionSettings: connectionSettings,
+    reconnect: reconnect,
+  );
+
+  if (reconnectReason != null) {
+    joinRequest.reconnectReason = reconnectReason;
+  }
+
+  if (participantSid != null && participantSid.isNotEmpty) {
+    joinRequest.participantSid = participantSid;
+  }
+
+  // Wrap JoinRequest in WrappedJoinRequest
+  final wrappedJoinRequest = lk_rtc.WrappedJoinRequest(
+    compression: lk_rtc.WrappedJoinRequest_Compression.NONE,
+    joinRequest: joinRequest.writeToBuffer(),
+  );
+
+  // Base64 encode
+  return base64Encode(wrappedJoinRequest.writeToBuffer());
 }
 
 typedef RetryFuture<T> = Future<T> Function(
@@ -156,6 +216,9 @@ class Utils {
     return null;
   }
 
+  /// Build URL for V0 path (legacy signaling).
+  ///
+  /// Uses query parameters for connection options.
   @internal
   static Future<Uri> buildUri(
     String uriString, {
@@ -204,6 +267,52 @@ class Utils {
           if (clientInfo.hasBrowser()) 'browser': clientInfo.browser,
           if (clientInfo.hasBrowserVersion()) 'browser_version': clientInfo.browserVersion,
         },
+      },
+    );
+  }
+
+  /// Build URL for V1 path (single PC mode signaling).
+  ///
+  /// Uses a join_request query parameter containing a base64-encoded
+  /// WrappedJoinRequest protobuf with all connection options.
+  @internal
+  static Future<Uri> buildUriV1(
+    String uriString, {
+    required String token,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
+    bool reconnect = false,
+    bool forceSecure = false,
+    String? sid,
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final wsScheme = useSecure ? 'wss' : 'ws';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+
+    // strip path segment used for LiveKit if already exists
+    pathSegments.removeWhere((e) => e.isEmpty);
+    // Use V1 path for single PC mode
+    pathSegments.addAll(['rtc', 'v1']);
+
+    // Create base64-encoded JoinRequest parameter
+    final joinRequestParam = await createJoinRequestParam(
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      reconnect: reconnect,
+      reconnectReason: reconnectReason,
+      participantSid: sid,
+    );
+
+    return uri.replace(
+      scheme: wsScheme,
+      pathSegments: pathSegments,
+      queryParameters: <String, String>{
+        if (kIsWeb) 'access_token': token,
+        'join_request': joinRequestParam,
       },
     );
   }

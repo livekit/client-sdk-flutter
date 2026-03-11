@@ -29,6 +29,93 @@ import '../utils.dart';
 
 const ddExtensionURI = 'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension';
 
+/// Munge SDP to change `a=inactive` to `a=recvonly` for all active media m-lines.
+///
+/// This is needed because libwebrtc can generate `a=inactive` instead of
+/// `a=recvonly` when a transceiver is added with `direction: RecvOnly`.
+/// That causes the server to not send media. Browser WebRTC correctly
+/// generates `a=recvonly`.
+///
+/// This updates all non-rejected RTP media sections and leaves data channels
+/// and rejected m-lines unchanged.
+String mungeInactiveToRecvonlyForMediaSections(String sdp) {
+  final parsedSdp = sdp_transform.parse(sdp);
+  final mediaSections = parsedSdp['media'];
+  if (mediaSections is! List) {
+    return sdp;
+  }
+
+  var changed = false;
+  for (final media in mediaSections.whereType<Map<dynamic, dynamic>>()) {
+    final type = media['type'];
+    final port = media['port'];
+    final direction = media['direction'];
+
+    final isRejected = port == 0;
+    final isDataChannel = type == 'application';
+    if (isRejected || isDataChannel || direction != 'inactive') {
+      continue;
+    }
+
+    media['direction'] = 'recvonly';
+    changed = true;
+  }
+
+  if (!changed) {
+    return sdp;
+  }
+
+  return sdp_transform.write(parsedSdp, null);
+}
+
+/// Munge SDP to add stereo=1 to opus fmtp lines.
+///
+/// In single PC mode, the receiver sends the offer and doesn't know if the
+/// sender will send stereo. Without stereo=1, audio may not work correctly.
+/// This adds stereo=1 to all opus codec fmtp lines.
+String mungeStereoForAudio(String sdp) {
+  final lineEnding = sdp.contains('\r\n') ? '\r\n' : '\n';
+  final lines = sdp.split(lineEnding);
+
+  // Find opus payload types from rtpmap lines
+  final opusPayloadTypes = <int>{};
+  final rtpmapRegex = RegExp(r'^a=rtpmap:(\d+)\s+opus/');
+
+  for (final line in lines) {
+    final match = rtpmapRegex.firstMatch(line);
+    if (match != null) {
+      opusPayloadTypes.add(int.parse(match.group(1)!));
+    }
+  }
+
+  if (opusPayloadTypes.isEmpty) {
+    return sdp;
+  }
+
+  // Add stereo=1 to opus fmtp lines
+  for (int i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (!line.startsWith('a=fmtp:')) continue;
+
+    // Extract payload type from fmtp line
+    final fmtpMatch = RegExp(r'^a=fmtp:(\d+)\s+(.*)$').firstMatch(line);
+    if (fmtpMatch == null) continue;
+
+    final payloadType = int.parse(fmtpMatch.group(1)!);
+    if (!opusPayloadTypes.contains(payloadType)) continue;
+
+    final params = fmtpMatch.group(2)!;
+
+    // Check if stereo is already set
+    if (params.contains('stereo=')) continue;
+
+    // Add stereo=1 to the fmtp line
+    lines[i] = 'a=fmtp:$payloadType $params;stereo=1';
+  }
+
+  return lines.join(lineEnding);
+}
+
 /* The svc codec (av1/vp9) would use a very low bitrate at the begining and
 increase slowly by the bandwidth estimator until it reach the target bitrate. The
 process commonly cost more than 10 seconds cause subscriber will get blur video at
@@ -64,6 +151,10 @@ class Transport extends Disposable {
   TransportOnOffer? onOffer;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
+
+  /// Whether this transport is in single PC mode.
+  /// When true, SDP munging is applied for recvonly media sections and stereo support.
+  bool singlePcMode = false;
 
   // private constructor
   Transport._(this.pc, this.connectOptions) {
@@ -215,7 +306,18 @@ class Transport extends Disposable {
     });
 
     try {
-      await setMungedSDP(sd: offer, munged: sdp_transform.write(sdpParsed, null));
+      var mungedSdp = sdp_transform.write(sdpParsed, null);
+
+      // Apply single PC mode SDP munging if enabled
+      if (singlePcMode) {
+        // Munge a=inactive to a=recvonly for recvonly media sections.
+        mungedSdp = mungeInactiveToRecvonlyForMediaSections(mungedSdp);
+        // Add stereo=1 to opus fmtp lines for proper stereo support
+        mungedSdp = mungeStereoForAudio(mungedSdp);
+        logger.fine('Applied single PC mode SDP munging');
+      }
+
+      await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
       throw NegotiationError(e.toString());
     }
