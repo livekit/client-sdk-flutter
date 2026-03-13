@@ -432,7 +432,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // construct the data channel message
     var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
 
-    if (_subscriberPrimary && !_singlePCMode) {
+    if (_subscriberPrimary || _singlePCMode) {
       // make sure publisher transport is connected
       await ensurePublisherConnected();
 
@@ -842,23 +842,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Server opened DC label: ${dc.label}');
         _reliableDCSub = dc;
         _reliableDCSub?.onMessage = _onDCMessage;
-        _reliableDCSub?.stateChangeStream.listen((state) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.reliable,
-                ))));
+        _reliableDCSub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.reliable,
+            )));
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
         _lossyDCSub = dc;
         _lossyDCSub?.onMessage = _onDCMessage;
-        _lossyDCSub?.stateChangeStream.listen((event) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.lossy,
-                ))));
+        _lossyDCSub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.lossy,
+            )));
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
