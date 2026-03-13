@@ -252,13 +252,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       } on ConnectException catch (e) {
         // If v1 path returned ServiceNotFound, fall back to v0 (dual PC)
-        if (e.reason == ConnectionErrorReason.ServiceNotFound && this.roomOptions.singlePeerConnection) {
+        if (e.reason == ConnectionErrorReason.ServiceNotFound && this.connectOptions.singlePeerConnection) {
           logger.warning('v1 signal path not found, falling back to dual PC mode');
           await signalClient.connect(
             url,
             token,
-            connectOptions: this.connectOptions,
-            roomOptions: this.roomOptions.copyWith(singlePeerConnection: false),
+            connectOptions: this.connectOptions.copyWith(singlePeerConnection: false),
+            roomOptions: this.roomOptions,
           );
         } else {
           rethrow;

@@ -135,7 +135,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     // Use v1 path for initial connection when singlePeerConnection is requested.
     // For quick reconnect, use the same path version as the established connection.
-    final useV1 = reconnect ? _useV1SignalPath : roomOptions.singlePeerConnection;
+    final useV1 = reconnect ? _useV1SignalPath : connectOptions.singlePeerConnection;
 
     final Uri rtcUri;
     if (useV1) {
