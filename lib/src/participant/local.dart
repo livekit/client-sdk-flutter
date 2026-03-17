@@ -746,7 +746,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         return await publishVideoTrack(track);
       } else if (source == TrackSource.microphone) {
         final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(captureOptions);
+        final track = await LocalAudioTrack.create(options: captureOptions);
         return await publishAudioTrack(track);
       } else if (source == TrackSource.screenShareVideo) {
         ScreenShareCaptureOptions captureOptions =
@@ -779,6 +779,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
         return await publishVideoTrack(track);
       }
+    } else if (source == TrackSource.microphone) {
+      final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+      final track = await LocalAudioTrack.create(options: captureOptions, muted: true);
+      return await publishAudioTrack(track);
     }
     return null;
   }

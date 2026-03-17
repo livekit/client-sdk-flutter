@@ -55,14 +55,21 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   bool _active = false;
   bool get isActive => _active;
 
-  bool _muted = false;
+  bool _muted;
   bool get muted => _muted;
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
   rtc.RTCRtpReceiver? receiver;
 
-  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack, {this.receiver}) {
+  Track(
+    this.kind,
+    this.source,
+    this._mediaStream,
+    this._mediaStreamTrack, {
+    this.receiver,
+    bool muted = false,
+  }) : _muted = muted {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.finer('[TrackEvent] $event, will notifyListeners()');

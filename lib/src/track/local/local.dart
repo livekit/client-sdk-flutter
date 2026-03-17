@@ -87,13 +87,13 @@ abstract class LocalTrack extends Track {
 
   TrackProcessor? get processor => _processor;
 
-  LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
-      : super(
-          kind,
-          source,
-          mediaStream,
-          mediaStreamTrack,
-        ) {
+  LocalTrack(
+    TrackType kind,
+    TrackSource source,
+    rtc.MediaStream mediaStream,
+    rtc.MediaStreamTrack mediaStreamTrack, {
+    bool muted = false,
+  }) : super(kind, source, mediaStream, mediaStreamTrack, muted: muted) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');
       events.emit(TrackEndedEvent(track: this));

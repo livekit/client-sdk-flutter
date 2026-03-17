@@ -112,31 +112,16 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   // private constructor
   @internal
-  LocalAudioTrack(
-    TrackSource source,
-    rtc.MediaStream stream,
-    rtc.MediaStreamTrack track,
-    this.currentOptions,
-  ) : super(
-          TrackType.AUDIO,
-          source,
-          stream,
-          track,
-        );
+  LocalAudioTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track, this.currentOptions,
+      {bool muted = false})
+      : super(TrackType.AUDIO, source, stream, track, muted: muted);
 
   /// Creates a new audio track from the default audio input device.
-  static Future<LocalAudioTrack> create([
-    AudioCaptureOptions? options,
-  ]) async {
+  static Future<LocalAudioTrack> create({AudioCaptureOptions? options, bool muted = false}) async {
     options ??= const AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
-    final track = LocalAudioTrack(
-      TrackSource.microphone,
-      stream,
-      stream.getAudioTracks().first,
-      options,
-    );
+    final track = LocalAudioTrack(TrackSource.microphone, stream, stream.getAudioTracks().first, options, muted: muted);
 
     if (options.processor != null) {
       await track.setProcessor(options.processor);

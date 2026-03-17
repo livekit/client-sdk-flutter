@@ -164,7 +164,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     if (_selectedAudioDevice != null) {
       _audioTrack = await LocalAudioTrack.create(
-        AudioCaptureOptions(
+        options: AudioCaptureOptions(
           deviceId: _selectedAudioDevice!.deviceId,
         ),
       );
