@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show EventChannel;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -53,11 +53,13 @@ class AudioVisualizerNative extends AudioVisualizer {
       return;
     }
 
-    await Native.stopVisualizer(mediaStreamTrack.id!, visualizerId: visualizerId);
-
+    // Cancel subscription before native stop, otherwise the native
+    // StreamHandler is already removed and cancel throws MissingPluginException.
     await _streamSubscription?.cancel();
     _streamSubscription = null;
     _eventChannel = null;
+
+    await Native.stopVisualizer(mediaStreamTrack.id!, visualizerId: visualizerId);
   }
 }
 

@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
-
-import 'package:flutter/foundation.dart' hide internal;
+import 'dart:typed_data' show Uint8List;
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
@@ -110,6 +109,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   UnmodifiableListView<Participant> get activeSpeakers => UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
 
+  @internal
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
@@ -390,15 +390,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         state: publication.subscriptionState,
       ));
     })
-    ..on<SignalRoomUpdateEvent>((event) async {
-      _metadata = event.room.metadata;
-      _roomInfo = event.room;
-      emitWhenConnected(RoomMetadataChangedEvent(metadata: event.room.metadata));
-      if (_isRecording != event.room.activeRecording) {
-        _isRecording = event.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
-    })
+    ..on<SignalRoomUpdateEvent>((event) async => _applyRoomUpdate(event.room))
     ..on<SignalRemoteMuteTrackEvent>((event) async {
       final publication = localParticipant?.trackPublications[event.sid];
 
@@ -421,16 +413,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   void _setUpEngineListeners() => _engineListener
     ..on<EngineJoinResponseEvent>((event) async {
-      _roomInfo = event.response.room;
-      _name = event.response.room.name;
-      _metadata = event.response.room.metadata;
+      _applyRoomUpdate(event.response.room);
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
-
-      if (_isRecording != event.response.room.activeRecording) {
-        _isRecording = event.response.room.activeRecording;
-        emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
-      }
 
       logger.fine('[Engine] Received JoinResponse, '
           'serverVersion: ${event.response.serverVersion}');
@@ -514,6 +499,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
+      events.emit(const RoomReconnectedEvent());
       notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
@@ -540,8 +526,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
 
-      for (var participant in _remoteParticipants) {
-        for (var pub in participant.trackPublications.values) {
+      for (var participant in _remoteParticipants.toList()) {
+        for (var pub in participant.trackPublications.values.toList()) {
           if (pub.subscribed) {
             pub.sendUpdateTrackSettings();
           }
@@ -551,8 +537,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineResumingEvent>((event) async {
-      await _sendSyncState();
+      events.emit(const RoomResumingEvent());
       notifyListeners();
+    })
+    ..on<SignalReconnectedEvent>((event) async {
+      await _sendSyncState();
     })
     ..on<EngineAttemptReconnectEvent>((event) async {
       events.emit(RoomAttemptReconnectEvent(
@@ -579,6 +568,39 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineActiveSpeakersUpdateEvent>((event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
+    ..on<EngineRequestResponseEvent>((event) {
+      localParticipant?.handleSignalRequestResponse(event.response);
+    })
+    ..on<EngineRoomMovedEvent>((event) async {
+      final response = event.response;
+      logger.fine('Room moved to: ${response.room.name}');
+
+      // Apply room info from move response
+      if (response.hasRoom()) {
+        _applyRoomUpdate(response.room);
+      }
+
+      // Disconnect all remote participants
+      final identities = _remoteParticipants.byIdentity.keys.toList();
+      for (final identity in identities) {
+        await _handleParticipantDisconnect(identity);
+      }
+
+      // Emit public event
+      events.emit(RoomMovedEvent(roomName: response.room.name));
+
+      // Update local participant info
+      if (response.hasParticipant()) {
+        await localParticipant?.updateFromInfo(response.participant);
+      }
+
+      // Add new participants
+      if (response.otherParticipants.isNotEmpty) {
+        await _onParticipantUpdateEvent(response.otherParticipants);
+      }
+
+      notifyListeners();
+    })
     ..on<AudioPlaybackStarted>((event) {
       _handleAudioPlaybackStarted();
     })
@@ -923,7 +945,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final participant = _remoteParticipants.removeByIdentity(identity);
     if (participant == null) return false;
 
-    validateParticipantHasNoActiveDataStreams(identity);
+    await validateParticipantHasNoActiveDataStreams(identity);
 
     await participant.removeAllPublishedTracks(notify: true);
 
@@ -937,8 +959,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final trackSids = <String>[];
     final trackSidsDisabled = <String>[];
 
-    for (var participant in _remoteParticipants) {
-      for (var track in participant.trackPublications.values) {
+    for (var participant in _remoteParticipants.toList()) {
+      for (var track in participant.trackPublications.values.toList()) {
         if (track.subscribed != autoSubscribe) {
           trackSids.add(track.sid);
         }
@@ -993,10 +1015,28 @@ extension RoomPrivateMethods on Room {
     await NativeAudioManagement.stop();
 
     // reset params
+    _roomInfo = null;
     _name = null;
     _metadata = null;
+    _isRecording = false;
     _serverVersion = null;
     _serverRegion = null;
+  }
+
+  /// Applies room info from server. Skips metadata event on first join
+  /// since there is no previous state to compare against.
+  void _applyRoomUpdate(lk_models.Room room) {
+    final oldRoom = _roomInfo;
+    _roomInfo = room;
+    _name = room.name;
+    _metadata = room.metadata;
+    if (oldRoom != null && oldRoom.metadata != room.metadata) {
+      emitWhenConnected(RoomMetadataChangedEvent(metadata: room.metadata));
+    }
+    if (oldRoom?.activeRecording != room.activeRecording) {
+      _isRecording = room.activeRecording;
+      emitWhenConnected(RoomRecordingStatusChanged(activeRecording: _isRecording));
+    }
   }
 
   @internal
@@ -1085,7 +1125,7 @@ extension RoomHardwareManagementMethods on Room {
   /// Set audio output device.
   Future<void> setAudioOutputDevice(MediaDevice device) async {
     if (lkPlatformIs(PlatformType.web)) {
-      for (final participant in _remoteParticipants) {
+      for (final participant in _remoteParticipants.toList()) {
         for (final audioTrack in participant.audioTrackPublications) {
           audioTrack.track?.setSinkId(device.deviceId);
         }
@@ -1130,7 +1170,7 @@ extension RoomHardwareManagementMethods on Room {
     );
 
     try {
-      if (track != null && selectedVideoInputDeviceId != device.deviceId) {
+      if (track != null && currentDeviceId != device.deviceId) {
         await track.switchCamera(device.deviceId);
         Hardware.instance.selectedVideoInput = device;
       }
@@ -1294,6 +1334,7 @@ extension DataStreamRoomMethods on Room {
     _byteStreamHandlers.remove(topic);
   }
 
+  @internal
   Future<void> handleStreamHeader(
       lk_models.DataStream_Header streamHeader, String participantIdentity, EncryptionType encryptionType) async {
     if (streamHeader.hasByteHeader()) {
@@ -1383,6 +1424,7 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
+  @internal
   void handleStreamChunk(lk_models.DataStream_Chunk chunk, EncryptionType encryptionType) {
     final fileBuffer = _byteStreamControllers[chunk.streamId];
 
@@ -1397,9 +1439,7 @@ extension DataStreamRoomMethods on Room {
         );
 
         _byteStreamControllers.remove(chunk.streamId);
-      }
-
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         fileBuffer.write(chunk);
       }
     }
@@ -1416,13 +1456,13 @@ extension DataStreamRoomMethods on Room {
 
         logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
         _textStreamControllers.remove(chunk.streamId);
-      }
-      if (chunk.content.isNotEmpty) {
+      } else if (chunk.content.isNotEmpty) {
         textBuffer.write(chunk);
       }
     }
   }
 
+  @internal
   Future<void> handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
     final textBuffer = _textStreamControllers[trailer.streamId];
     if (textBuffer != null) {
@@ -1468,7 +1508,8 @@ extension DataStreamRoomMethods on Room {
     }
   }
 
-  void validateParticipantHasNoActiveDataStreams(String participantIdentity) {
+  @internal
+  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
     // Terminate any in flight data stream receives from the given participant
     final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
         .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
@@ -1485,10 +1526,12 @@ extension DataStreamRoomMethods on Room {
       );
       for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        await controller.close();
         _byteStreamControllers.remove(controller.info.id);
       }
       for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
         controller.error(abnormalEndError);
+        await controller.close();
         _textStreamControllers.remove(controller.info.id);
       }
     }

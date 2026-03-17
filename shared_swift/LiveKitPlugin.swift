@@ -201,6 +201,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         for processors in audioProcessors.values {
+            processors.visualizers[visualizerId]?.stop()
             processors.visualizers.removeValue(forKey: visualizerId)
         }
 
@@ -221,8 +222,6 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             commonFormat = .pcmFormatFloat32
         case "int16":
             commonFormat = .pcmFormatInt16
-        case "int32":
-            commonFormat = .pcmFormatInt32
         default:
             return nil
         }

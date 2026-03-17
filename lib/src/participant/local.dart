@@ -17,8 +17,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:async/async.dart';
 import 'package:fixnum/fixnum.dart';
@@ -44,6 +45,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../publication/local.dart';
 import '../support/platform.dart';
+import '../support/serial_runner.dart';
 import '../track/local/audio.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -65,6 +67,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
   // RPC Pending Responses
   final Map<String, Function(String? payload, RpcError? error)> _pendingResponses = {};
+
+  // Pending signal request responses (keyed by requestId)
+  final Map<int, Completer<void>> _pendingSignalRequests = {};
+
+  // Serializes publish operations to prevent duplicate tracks from concurrent calls
+  final _publishRunner = SerialRunner<LocalTrackPublication?>();
 
   LocalParticipant._({
     required Room room,
@@ -98,6 +106,15 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     participant.onDispose(() async {
       BroadcastManager().removeListener(participant._broadcastStateChanged);
+      // Fail any pending signal requests
+      for (final completer in participant._pendingSignalRequests.values) {
+        if (!completer.isCompleted) {
+          completer.completeError(
+            UnexpectedStateException('Participant disposed'),
+          );
+        }
+      }
+      participant._pendingSignalRequests.clear();
       await participant.unpublishAllTracks();
     });
 
@@ -141,6 +158,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish an [AudioTrack] to the [Room].
   /// For most cases, using [setMicrophoneEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalAudioTrack>> publishAudioTrack(
+    LocalAudioTrack track, {
+    AudioPublishOptions? publishOptions,
+  }) async {
+    final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalAudioTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalAudioTrack>?> _publishAudioTrack(
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
@@ -235,6 +260,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Publish a [LocalVideoTrack] to the [Room].
   /// For most cases, using [setCameraEnabled] would be simpler and recommended.
   Future<LocalTrackPublication<LocalVideoTrack>> publishVideoTrack(
+    LocalVideoTrack track, {
+    VideoPublishOptions? publishOptions,
+  }) async {
+    final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
+    return result! as LocalTrackPublication<LocalVideoTrack>;
+  }
+
+  Future<LocalTrackPublication<LocalVideoTrack>?> _publishVideoTrack(
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
@@ -530,8 +563,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
               await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
             });
           }
-        } catch (_) {
-          logger.warning('[$objectId] rtc.removeTrack() did throw ${_}');
+        } catch (e) {
+          logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
 
         // doesn't make sense to negotiate if already disposed
@@ -620,30 +653,66 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   /// Sets and updates the metadata of the local participant.
   /// Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   /// @param metadata
-  void setMetadata(String metadata) {
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      name: name,
-      metadata: metadata,
-    ));
+  Future<void> setMetadata(String metadata) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
   }
 
   /// Sets and updates the attributes of the local participant.
   /// @attributes key-value pairs to set
-  void setAttributes(Map<String, String> attributes) {
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      attributes: attributes.entries,
-    ));
+  Future<void> setAttributes(Map<String, String> attributes) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+        attributes: attributes.entries,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
   }
 
   /// Sets and updates the name of the local participant.
   ///  Note: this requires `CanUpdateOwnMetadata` permission encoded in the token.
   ///  @param name
-  void setName(String name) {
-    super.updateName(name);
-    room.engine.signalClient.sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata(
-      name: name,
-      metadata: metadata,
-    ));
+  Future<void> setName(String name) {
+    final requestId = room.engine.signalClient.sendUpdateLocalMetadata(
+      lk_rtc.UpdateParticipantMetadata(
+        name: name,
+        metadata: metadata,
+      ),
+    );
+    return _waitForRequestResponse(requestId);
+  }
+
+  Future<void> _waitForRequestResponse(int requestId) {
+    final completer = Completer<void>();
+    _pendingSignalRequests[requestId] = completer;
+    return completer.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        _pendingSignalRequests.remove(requestId);
+        throw TimeoutException('Signal request timed out');
+      },
+    );
+  }
+
+  @internal
+  void handleSignalRequestResponse(lk_rtc.RequestResponse response) {
+    final completer = _pendingSignalRequests.remove(response.requestId);
+    if (completer != null && !completer.isCompleted) {
+      if (response.reason != lk_rtc.RequestResponse_Reason.OK) {
+        completer.completeError(
+          UnexpectedStateException('Signal request failed: ${response.reason} - ${response.message}'),
+        );
+      } else {
+        completer.complete();
+      }
+    }
   }
 
   /// A convenience property to get all video tracks.
@@ -709,77 +778,79 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       {bool? captureScreenAudio,
       AudioCaptureOptions? audioCaptureOptions,
       CameraCaptureOptions? cameraCaptureOptions,
-      ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
-    logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
+      ScreenShareCaptureOptions? screenShareCaptureOptions}) {
+    return _publishRunner.run(() async {
+      if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
+        throw TrackCreateException('Screen sharing is not supported on mobile devices');
+      }
 
-    if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
-      throw TrackCreateException('Screen sharing is not supported on mobile devices');
-    }
+      logger.fine('setSourceEnabled(source: $source, enabled: $enabled)');
 
-    final publication = getTrackPublicationBySource(source);
-    if (publication != null) {
-      final stopOnMute = switch (publication.source) {
-        TrackSource.camera => cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
-        TrackSource.microphone => audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
-        _ => true,
-      };
-      if (enabled) {
-        await publication.unmute(stopOnMute: stopOnMute);
-      } else {
-        if (source == TrackSource.screenShareVideo) {
-          await removePublishedTrack(publication.sid);
-          final screenAudio = getTrackPublicationBySource(TrackSource.screenShareAudio);
-          if (screenAudio != null) {
-            await removePublishedTrack(screenAudio.sid);
-          }
+      final publication = getTrackPublicationBySource(source);
+      if (publication != null) {
+        final stopOnMute = switch (publication.source) {
+          TrackSource.camera => cameraCaptureOptions?.stopCameraCaptureOnMute ?? true,
+          TrackSource.microphone => audioCaptureOptions?.stopAudioCaptureOnMute ?? true,
+          _ => true,
+        };
+        if (enabled) {
+          await publication.unmute(stopOnMute: stopOnMute);
         } else {
-          await publication.mute(stopOnMute: stopOnMute);
-        }
-      }
-      return publication;
-    } else if (enabled) {
-      if (source == TrackSource.camera) {
-        final CameraCaptureOptions captureOptions =
-            cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
-        final track = await LocalVideoTrack.createCameraTrack(captureOptions);
-        return await publishVideoTrack(track);
-      } else if (source == TrackSource.microphone) {
-        final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
-        final track = await LocalAudioTrack.create(captureOptions);
-        return await publishAudioTrack(track);
-      } else if (source == TrackSource.screenShareVideo) {
-        ScreenShareCaptureOptions captureOptions =
-            screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
-
-        if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
-          // Wait until broadcasting to publish track
-          await BroadcastManager().requestActivation();
-          return null;
-        }
-
-        /// When capturing chrome table audio, we can't capture audio/video
-        /// track separately, it has to be returned once in getDisplayMedia,
-        /// so we publish it twice here, but only return videoTrack to user.
-        if (captureScreenAudio ?? false) {
-          captureOptions = captureOptions.copyWith(captureScreenAudio: true);
-          final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
-          LocalTrackPublication<LocalVideoTrack>? publication;
-          for (final track in tracks) {
-            if (track is LocalVideoTrack) {
-              publication = await publishVideoTrack(track);
-            } else if (track is LocalAudioTrack) {
-              await publishAudioTrack(track);
+          if (source == TrackSource.screenShareVideo) {
+            await removePublishedTrack(publication.sid);
+            final screenAudio = getTrackPublicationBySource(TrackSource.screenShareAudio);
+            if (screenAudio != null) {
+              await removePublishedTrack(screenAudio.sid);
             }
+          } else {
+            await publication.mute(stopOnMute: stopOnMute);
+          }
+        }
+        return publication;
+      } else if (enabled) {
+        if (source == TrackSource.camera) {
+          final CameraCaptureOptions captureOptions =
+              cameraCaptureOptions ?? room.roomOptions.defaultCameraCaptureOptions;
+          final track = await LocalVideoTrack.createCameraTrack(captureOptions);
+          return await _publishVideoTrack(track);
+        } else if (source == TrackSource.microphone) {
+          final AudioCaptureOptions captureOptions = audioCaptureOptions ?? room.roomOptions.defaultAudioCaptureOptions;
+          final track = await LocalAudioTrack.create(captureOptions);
+          return await _publishAudioTrack(track);
+        } else if (source == TrackSource.screenShareVideo) {
+          ScreenShareCaptureOptions captureOptions =
+              screenShareCaptureOptions ?? room.roomOptions.defaultScreenShareCaptureOptions;
+
+          if (lkPlatformIs(PlatformType.iOS) && !BroadcastManager().isBroadcasting) {
+            // Wait until broadcasting to publish track
+            await BroadcastManager().requestActivation();
+            return null;
           }
 
-          /// just return the video track publication
-          return publication;
+          /// When capturing chrome table audio, we can't capture audio/video
+          /// track separately, it has to be returned once in getDisplayMedia,
+          /// so we publish it twice here, but only return videoTrack to user.
+          if (captureScreenAudio ?? false) {
+            captureOptions = captureOptions.copyWith(captureScreenAudio: true);
+            final tracks = await LocalVideoTrack.createScreenShareTracksWithAudio(captureOptions);
+            LocalTrackPublication<LocalVideoTrack>? publication;
+            for (final track in tracks) {
+              if (track is LocalVideoTrack) {
+                publication = await _publishVideoTrack(track);
+              } else if (track is LocalAudioTrack) {
+                await _publishAudioTrack(track);
+              }
+            }
+
+            /// just return the video track publication
+            return publication;
+          }
+          final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
+          return await _publishVideoTrack(track);
         }
-        final track = await LocalVideoTrack.createScreenShareTrack(captureOptions);
-        return await publishVideoTrack(track);
       }
-    }
-    return null;
+      return null;
+    });
   }
 
   bool _allParticipantsAllowed = true;
@@ -995,6 +1066,7 @@ extension RPCMethods on LocalParticipant {
     await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
   }
 
+  @internal
   void handleIncomingRpcAck(String requestId) {
     final handler = _pendingAcks[requestId];
     if (handler != null) {
@@ -1005,6 +1077,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   void handleIncomingRpcResponse(
     String requestId,
     String? payload,
@@ -1019,6 +1092,7 @@ extension RPCMethods on LocalParticipant {
     }
   }
 
+  @internal
   Future<void> handleIncomingRpcRequest(
     String callerIdentity,
     String requestId,

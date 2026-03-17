@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_background/flutter_background.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -236,11 +236,11 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       }
 
       if (SimulateScenarioResult.participantMetadata == result) {
-        widget.room.localParticipant?.setMetadata('new metadata ${widget.room.localParticipant?.identity}');
+        await widget.room.localParticipant?.setMetadata('new metadata ${widget.room.localParticipant?.identity}');
       }
 
       if (SimulateScenarioResult.participantName == result) {
-        widget.room.localParticipant?.setName('new name for ${widget.room.localParticipant?.identity}');
+        await widget.room.localParticipant?.setName('new name for ${widget.room.localParticipant?.identity}');
       }
 
       await widget.room.sendSimulateScenario(

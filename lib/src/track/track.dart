@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -152,8 +152,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       if (_active) {
         mediaStreamTrack.enabled = true;
       }
-    } catch (_) {
-      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    } catch (e) {
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
     }
   }
 
@@ -163,8 +163,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       if (_active) {
         mediaStreamTrack.enabled = false;
       }
-    } catch (_) {
-      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    } catch (e) {
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
     }
   }
 

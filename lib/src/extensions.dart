@@ -66,6 +66,10 @@ extension ProtocolVersionExt on ProtocolVersion {
         ProtocolVersion.v10: '10',
         ProtocolVersion.v11: '11',
         ProtocolVersion.v12: '12',
+        ProtocolVersion.v13: '13',
+        ProtocolVersion.v14: '14',
+        ProtocolVersion.v15: '15',
+        ProtocolVersion.v16: '16',
       }[this]!;
 }
 
@@ -257,10 +261,11 @@ extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
 
 extension DegradationPreferenceExt on DegradationPreference {
   rtc.RTCDegradationPreference toRTCType() => {
-        DegradationPreference.disabled: rtc.RTCDegradationPreference.DISABLED,
         DegradationPreference.maintainFramerate: rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
         DegradationPreference.maintainResolution: rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
         DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
+        DegradationPreference.maintainFramerateAndResolution:
+            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
       }[this]!;
 }
 

@@ -14,10 +14,12 @@ import '../widgets/participant_info.dart';
 class RoomPage extends StatefulWidget {
   final Room room;
   final EventsListener<RoomEvent> listener;
+  final bool fastConnection;
 
   const RoomPage(
     this.room,
     this.listener, {
+    this.fastConnection = false,
     super.key,
   });
 
@@ -28,7 +30,7 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   List<ParticipantTrack> participantTracks = [];
   EventsListener<RoomEvent> get _listener => widget.listener;
-  bool get fastConnection => widget.room.engine.fastConnectOptions != null;
+  bool get fastConnection => widget.fastConnection;
   @override
   void initState() {
     super.initState();

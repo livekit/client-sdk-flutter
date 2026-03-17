@@ -18,6 +18,7 @@ package io.livekit.plugin
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import org.webrtc.AudioTrackSink
@@ -34,10 +35,14 @@ class AudioRenderer(
   private val rendererId: String,
   private val targetFormat: RendererAudioFormat
 ) : EventChannel.StreamHandler, AudioTrackSink {
+  companion object {
+    private const val TAG = "LKAudioRenderer"
+  }
 
   private var eventChannel: EventChannel? = null
   private var eventSink: EventChannel.EventSink? = null
   private var isAttached = false
+  private var droppedFrameCount = 0L
 
   private val handler: Handler by lazy {
     Handler(Looper.getMainLooper())
@@ -79,201 +84,159 @@ class AudioRenderer(
     absoluteCaptureTimestampMs: Long
   ) {
     eventSink?.let { sink ->
-      try {
+      val convertedData = try {
         // Convert audio data to the target format
-        val convertedData = convertAudioData(
+        convertAudioData(
           audioData,
           bitsPerSample,
           sampleRate,
           numberOfChannels,
           numberOfFrames
         )
-
-        // Send to Flutter on the main thread
-        handler.post {
-          sink.success(convertedData)
-        }
       } catch (e: Exception) {
-        handler.post {
-          sink.error(
-            "AUDIO_CONVERSION_ERROR",
-            "Failed to convert audio data: ${e.message}",
-            null
-          )
-        }
+        logDroppedFrame("Audio conversion exception: ${e.message}")
+        null
+      }
+
+      if (convertedData == null) {
+        return@let
+      }
+
+      // Send to Flutter on the main thread
+      handler.post {
+        sink.success(convertedData)
       }
     }
   }
 
+  /**
+   * Converts audio data to raw interleaved bytes with resampling.
+   *
+   * Pipeline: read int16 → resample → channel reduce → format convert (int16/float32)
+   */
   private fun convertAudioData(
     audioData: ByteBuffer,
     bitsPerSample: Int,
     sampleRate: Int,
     numberOfChannels: Int,
     numberOfFrames: Int
-  ): Map<String, Any> {
-    // Create result similar to iOS implementation
+  ): Map<String, Any>? {
+    // WebRTC AudioTrackSink always delivers 16-bit signed int16 PCM.
+    if (bitsPerSample != 16) {
+      logDroppedFrame("Unsupported bitsPerSample: $bitsPerSample (expected 16)")
+      return null
+    }
+    if (numberOfChannels <= 0) {
+      logDroppedFrame("Invalid numberOfChannels: $numberOfChannels")
+      return null
+    }
+    if (numberOfFrames <= 0) {
+      logDroppedFrame("Invalid numberOfFrames: $numberOfFrames")
+      return null
+    }
+
+    val bytesPerFrame = numberOfChannels * 2
+    val buffer = audioData.duplicate()
+    buffer.order(ByteOrder.LITTLE_ENDIAN)
+    buffer.rewind()
+
+    val availableBytes = buffer.remaining()
+    if (availableBytes <= 0) {
+      logDroppedFrame("No audio payload bytes available")
+      return null
+    }
+
+    val expectedBytes = numberOfFrames.toLong() * bytesPerFrame.toLong()
+    val srcFrames = if (expectedBytes <= availableBytes.toLong()) {
+      numberOfFrames
+    } else {
+      val availableFrames = availableBytes / bytesPerFrame
+      if (availableFrames <= 0) {
+        logDroppedFrame(
+          "Insufficient bytes for one frame (available=$availableBytes, bytesPerFrame=$bytesPerFrame)"
+        )
+        return null
+      }
+      logDroppedFrame("Short audio payload; truncating frames from $numberOfFrames to $availableFrames")
+      availableFrames
+    }
+
+    // Step 1: Read source int16 samples into ShortArray
+    val src = ShortArray(srcFrames * numberOfChannels)
+    for (i in src.indices) {
+      src[i] = buffer.short
+    }
+
+    // Step 2: Resample to target sample rate
+    val resampleResult = AudioResampler.resample(
+      src, srcFrames, sampleRate, targetFormat.sampleRate, numberOfChannels
+    )
+    val resampled = resampleResult.samples
+    val outFrames = resampleResult.frameCount
+
+    if (outFrames <= 0) {
+      logDroppedFrame("Resampled frame count is 0")
+      return null
+    }
+
+    // Step 3: Channel reduction + format conversion
+    val requestedChannels = targetFormat.numberOfChannels.coerceAtLeast(1)
+    val outChannels = requestedChannels.coerceAtMost(numberOfChannels)
+
     val result = mutableMapOf<String, Any>(
-      "sampleRate" to sampleRate,
-      "channels" to numberOfChannels,
-      "frameLength" to numberOfFrames
+      "sampleRate" to targetFormat.sampleRate,
+      "channels" to outChannels,
+      "frameLength" to outFrames,
     )
 
-    // Convert based on target format
     when (targetFormat.commonFormat) {
-      "int16" -> {
-        result["commonFormat"] = "int16"
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
-      }
-
       "float32" -> {
         result["commonFormat"] = "float32"
-        result["data"] =
-          convertToFloat32(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        val out = ByteArray(outFrames * outChannels * 4)
+        val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+        for (f in 0 until outFrames) {
+          for (ch in 0 until outChannels) {
+            val sample = resampled[f * numberOfChannels + ch].toFloat() / Short.MAX_VALUE
+            outBuf.putFloat((f * outChannels + ch) * 4, sample)
+          }
+        }
+        result["data"] = out
       }
-
       else -> {
-        result["commonFormat"] = "int16" // Default fallback
-        result["data"] =
-          convertToInt16(audioData, bitsPerSample, numberOfChannels, numberOfFrames)
+        result["commonFormat"] = "int16"
+        if (outChannels == numberOfChannels) {
+          // Fast path: no channel reduction — bulk copy resampled data
+          val out = ByteArray(outFrames * outChannels * 2)
+          val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+          for (i in 0 until outFrames * outChannels) {
+            outBuf.putShort(i * 2, resampled[i])
+          }
+          result["data"] = out
+        } else {
+          // Channel reduction: keep first outChannels
+          val out = ByteArray(outFrames * outChannels * 2)
+          val outBuf = ByteBuffer.wrap(out).order(ByteOrder.LITTLE_ENDIAN)
+          for (f in 0 until outFrames) {
+            for (ch in 0 until outChannels) {
+              outBuf.putShort(
+                (f * outChannels + ch) * 2,
+                resampled[f * numberOfChannels + ch]
+              )
+            }
+          }
+          result["data"] = out
+        }
       }
     }
 
     return result
   }
 
-  private fun convertToInt16(
-    audioData: ByteBuffer,
-    bitsPerSample: Int,
-    numberOfChannels: Int,
-    numberOfFrames: Int
-  ): List<List<Int>> {
-    val channelsData = mutableListOf<List<Int>>()
-
-    // Prepare buffer for reading
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
-
-    when (bitsPerSample) {
-      16 -> {
-        // Already 16-bit, just reformat by channels
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0) // Start from beginning for each channel
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
-            if (byteIndex + 1 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample = buffer.short.toInt()
-              channelData.add(sample)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      32 -> {
-        // Convert from 32-bit to 16-bit
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Int>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
-            if (byteIndex + 3 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample32 = buffer.int
-              // Convert 32-bit to 16-bit by right-shifting
-              val sample16 = (sample32 shr 16).toShort().toInt()
-              channelData.add(sample16)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format, return empty data
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
-        }
-      }
+  private fun logDroppedFrame(reason: String) {
+    droppedFrameCount += 1
+    if (droppedFrameCount <= 5 || droppedFrameCount % 100 == 0L) {
+      Log.w(TAG, "Dropping audio frame #$droppedFrameCount for rendererId=$rendererId: $reason")
     }
-
-    return channelsData
-  }
-
-  private fun convertToFloat32(
-    audioData: ByteBuffer,
-    bitsPerSample: Int,
-    numberOfChannels: Int,
-    numberOfFrames: Int
-  ): List<List<Float>> {
-    val channelsData = mutableListOf<List<Float>>()
-
-    val buffer = audioData.duplicate()
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.rewind()
-
-    when (bitsPerSample) {
-      16 -> {
-        // Convert from 16-bit to float32
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 2
-
-            if (byteIndex + 1 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sample16 = buffer.short
-              // Convert to float (-1.0 to 1.0)
-              val sampleFloat = sample16.toFloat() / Short.MAX_VALUE
-              channelData.add(sampleFloat)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      32 -> {
-        // Assume 32-bit float input
-        for (channel in 0 until numberOfChannels) {
-          val channelData = mutableListOf<Float>()
-          buffer.position(0)
-
-          for (frame in 0 until numberOfFrames) {
-            val sampleIndex = frame * numberOfChannels + channel
-            val byteIndex = sampleIndex * 4
-
-            if (byteIndex + 3 < buffer.capacity()) {
-              buffer.position(byteIndex)
-              val sampleFloat = buffer.float
-              channelData.add(sampleFloat)
-            }
-          }
-          channelsData.add(channelData)
-        }
-      }
-
-      else -> {
-        // Unsupported format
-        repeat(numberOfChannels) {
-          channelsData.add(emptyList())
-        }
-      }
-    }
-
-    return channelsData
   }
 }
 

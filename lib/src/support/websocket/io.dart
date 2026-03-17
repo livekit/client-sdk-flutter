@@ -65,8 +65,8 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
 
     try {
       _ws.add(data);
-    } catch (_) {
-      logger.fine('[$objectId] send did throw ${_}');
+    } catch (e) {
+      logger.fine('[$objectId] send did throw $e');
     }
   }
 

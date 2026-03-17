@@ -15,8 +15,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -165,6 +166,7 @@ class Utils {
     bool validate = false,
     bool forceSecure = false,
     String? sid,
+    lk_models.ReconnectReason? reconnectReason,
   }) async {
     final Uri uri = Uri.parse(uriString);
 
@@ -190,6 +192,7 @@ class Utils {
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
+        if (reconnect && reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'sdk': 'flutter',

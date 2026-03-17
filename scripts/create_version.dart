@@ -224,6 +224,7 @@ String generateChangelogEntry(SemanticVersion version, List<Change> changes) {
       };
 
   for (final kind in ChangeKind.values) {
+    if (kind == ChangeKind.chore) continue;
     for (final change in changes.where((c) => c.kind == kind)) {
       buffer.writeln('* ${prefixFor(change.kind)}: ${change.description}');
     }

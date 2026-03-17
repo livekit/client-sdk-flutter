@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../exceptions.dart';
@@ -361,6 +362,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return newCodecs;
   }
 
+  @internal
   Future<void> updatePublishingLayers(
     LocalTrack? track,
     List<lk_rtc.SubscribedQuality> layers,

@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/foundation.dart' hide internal;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
@@ -57,6 +57,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   int _pingCount = 0;
   String? participantSid;
 
+  int _requestId = 0;
+
+  @internal
+  int getNextRequestId() {
+    _requestId += 1;
+    return _requestId;
+  }
+
   List<ConnectivityResult> _connectivityResult = [];
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
@@ -93,6 +101,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     required ConnectOptions connectOptions,
     required RoomOptions roomOptions,
     bool reconnect = false,
+    lk_models.ReconnectReason? reconnectReason,
   }) async {
     if (!kIsWeb && !lkPlatformIsTest()) {
       _connectivityResult = await Connectivity().checkConnectivity();
@@ -125,6 +134,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       roomOptions: roomOptions,
       reconnect: reconnect,
       sid: reconnect ? participantSid : null,
+      reconnectReason: reconnectReason,
     );
 
     logger.fine('SignalClient connecting with url: $rtcUri');
@@ -199,7 +209,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   Future<void> sendLeave() async {
     _sendRequest(lk_rtc.SignalRequest(
-        leave: lk_rtc.LeaveRequest(canReconnect: false, reason: lk_models.DisconnectReason.CLIENT_INITIATED)));
+        leave: lk_rtc.LeaveRequest(
+      reason: lk_models.DisconnectReason.CLIENT_INITIATED,
+      // server doesn't process this field, keeping it here to indicate the intent of a full disconnect
+      action: lk_rtc.LeaveRequest_Action.DISCONNECT,
+    )));
   }
 
   // resets internal state to a re-usable state
@@ -334,6 +348,17 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       case lk_rtc.SignalResponse_Message.reconnect:
         events.emit(SignalReconnectResponseEvent(response: msg.reconnect));
         break;
+      case lk_rtc.SignalResponse_Message.requestResponse:
+        logger.fine('received request response: ${msg.requestResponse.reason}');
+        events.emit(SignalRequestResponseEvent(response: msg.requestResponse));
+        break;
+      case lk_rtc.SignalResponse_Message.roomMoved:
+        logger.fine('received room moved: ${msg.roomMoved.room.name}');
+        if (msg.roomMoved.token.isNotEmpty) {
+          events.emit(SignalTokenUpdatedEvent(token: msg.roomMoved.token));
+        }
+        events.emit(SignalRoomMovedEvent(response: msg.roomMoved));
+        break;
       default:
         logger.warning('received unknown signal message');
     }
@@ -428,9 +453,12 @@ extension SignalClientRequests on SignalClient {
       ));
 
   @internal
-  void sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) => _sendRequest(lk_rtc.SignalRequest(
-        updateMetadata: metadata,
-      ));
+  int sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) {
+    final requestId = getNextRequestId();
+    metadata.requestId = requestId;
+    _sendRequest(lk_rtc.SignalRequest(updateMetadata: metadata));
+    return requestId;
+  }
 
   @internal
   void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) => _sendRequest(lk_rtc.SignalRequest(
@@ -455,13 +483,9 @@ extension SignalClientRequests on SignalClient {
       ));
 
   @internal
-  void sendLeave() => _sendRequest(lk_rtc.SignalRequest(
-        leave: lk_rtc.LeaveRequest(),
-      ));
-
-  @internal
   void sendSyncState({
     required lk_rtc.SessionDescription? answer,
+    required lk_rtc.SessionDescription? offer,
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
@@ -471,6 +495,7 @@ extension SignalClientRequests on SignalClient {
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
+          offer: offer,
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,
@@ -517,10 +542,11 @@ extension SignalClientInternalMethods on SignalClient {
     // queue is empty
     if (_queue.isEmpty) return;
     // send requests
-    for (final request in _queue) {
+    final queueCopy = List.of(_queue);
+    _queue.clear();
+    for (final request in queueCopy) {
       _sendRequest(request, enqueueIfReconnecting: false);
     }
-    _queue.clear();
   }
 
   @internal
