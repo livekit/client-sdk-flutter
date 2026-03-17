@@ -499,6 +499,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
+      events.emit(const RoomReconnectedEvent());
       notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
@@ -536,8 +537,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineResumingEvent>((event) async {
-      await _sendSyncState();
+      events.emit(const RoomResumingEvent());
       notifyListeners();
+    })
+    ..on<SignalReconnectedEvent>((event) async {
+      await _sendSyncState();
     })
     ..on<EngineAttemptReconnectEvent>((event) async {
       events.emit(RoomAttemptReconnectEvent(
