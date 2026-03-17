@@ -5778,7 +5778,6 @@ shared_preferences_linux
 shared_preferences_platform_interface
 shared_preferences_web
 shared_preferences_windows
-vector_graphics
 vector_graphics_codec
 xdg_directories
 
@@ -11052,6 +11051,7 @@ path_provider_foundation
 shared_preferences
 shared_preferences_android
 shared_preferences_foundation
+vector_graphics
 vector_graphics_compiler
 
 Copyright 2013 The Flutter Authors
