@@ -1,0 +1,1 @@
+patch type="fixed" "Include last server offer in SyncState during reconnection"
