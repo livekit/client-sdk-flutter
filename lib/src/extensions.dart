@@ -261,10 +261,11 @@ extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
 
 extension DegradationPreferenceExt on DegradationPreference {
   rtc.RTCDegradationPreference toRTCType() => {
-        DegradationPreference.disabled: rtc.RTCDegradationPreference.DISABLED,
         DegradationPreference.maintainFramerate: rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
         DegradationPreference.maintainResolution: rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
         DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
+        DegradationPreference.maintainFramerateAndResolution:
+            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
       }[this]!;
 }
 
