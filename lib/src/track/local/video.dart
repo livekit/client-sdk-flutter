@@ -28,6 +28,7 @@ import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../../stats/stats.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
+import '../../utils.dart' show isSVCCodec;
 import '../options.dart';
 import 'audio.dart';
 import 'local.dart';
@@ -417,13 +418,11 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     1. chrome 113: when switching to up layer with scalability Mode change, it will generate a
           low resolution frame and recover very quickly, but noticable
     2. livekit sfu: additional pli request cause video frozen for a few frames, also noticable */
+    const closableSpatial = false;
 
-    /* @ts-ignore */
-    if (encodings[0].scalabilityMode != null) {
+    if (closableSpatial && encodings[0].scalabilityMode != null) {
       // svc dynacast encodings
       final encoding = encodings[0];
-      /* @ts-ignore */
-      // const mode = new ScalabilityMode(encoding.scalabilityMode);
       var maxQuality = lk_models.VideoQuality.OFF;
       for (var q in layers) {
         if (q.enabled && (maxQuality == lk_models.VideoQuality.OFF || q.quality.value > maxQuality.value)) {
@@ -436,22 +435,21 @@ extension LocalVideoTrackExt on LocalVideoTrack {
           encoding.active = false;
           hasChanged = true;
         }
-      } else if (!encoding.active /* || mode.spatial !== maxQuality + 1*/) {
+      } else if (!encoding.active) {
         hasChanged = true;
         encoding.active = true;
-        /*
-        var originalMode = new ScalabilityMode(senderEncodings[0].scalabilityMode)
-        mode.spatial = maxQuality + 1;
-        mode.suffix = originalMode.suffix;
-        if (mode.spatial === 1) {
-          // no suffix for L1Tx
-          mode.suffix = undefined;
-        }
-        encoding.scalabilityMode = mode.toString();
-        encoding.scaleResolutionDownBy = 2 ** (2 - maxQuality);
-      */
       }
     } else {
+      // For SVC codecs (VP9/AV1), all layers must be enabled together since
+      // the SFU handles layer selection. Only allow disabling the entire track.
+      if (isSVCCodec(codec ?? '')) {
+        final hasEnabledEncoding = layers.any((q) => q.enabled);
+        if (hasEnabledEncoding) {
+          for (var q in layers) {
+            q.enabled = true;
+          }
+        }
+      }
       // simulcast dynacast encodings
       var idx = 0;
       for (var encoding in encodings) {
