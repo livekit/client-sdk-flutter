@@ -349,8 +349,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         _resetPingTimeout();
         break;
       case lk_rtc.SignalResponse_Message.pongResp:
-        _rtt = DateTime.timestamp().millisecondsSinceEpoch -
-            msg.pongResp.lastPingTimestamp.toInt();
+        _rtt = DateTime.timestamp().millisecondsSinceEpoch - msg.pongResp.lastPingTimestamp.toInt();
         _pingCount++;
         _resetPingTimeout();
         break;
