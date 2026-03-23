@@ -1,1 +1,1 @@
-patch type="fixed" "Add pingReq/pongResp support with signal RTT tracking"
+patch type="fixed" "Add signal RTT tracking via pingReq/pongResp"
