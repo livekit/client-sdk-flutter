@@ -49,7 +49,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   int get fps => _fps ?? 0;
 
   VideoQuality? _videoQuality = VideoQuality.HIGH;
-  VideoQuality? get videoQuality => _videoQuality;
+  VideoQuality get videoQuality => _videoQuality ?? VideoQuality.HIGH;
 
   VideoDimensions? _videoDimensions;
   VideoDimensions? get videoDimensions => _videoDimensions;
