@@ -150,10 +150,7 @@ String input(String label) {
 }
 
 String slugify(String text) {
-  return text
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-      .replaceAll(RegExp(r'^-|-$'), '');
+  return text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
 }
 
 void main(List<String> args) {
