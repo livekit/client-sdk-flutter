@@ -23,7 +23,8 @@ Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, {
   WebSocketEventHandlers? options,
   Map<String, String>? headers,
-}) => LiveKitWebSocketIO.connect(uri, options: options, headers: headers);
+}) =>
+    LiveKitWebSocketIO.connect(uri, options: options, headers: headers);
 
 class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;
@@ -71,9 +72,7 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
   }) async {
-    final connectUri = uri.hasPort
-        ? uri
-        : uri.replace(port: uri.isScheme('wss') ? 443 : 80);
+    final connectUri = uri.hasPort ? uri : uri.replace(port: uri.isScheme('wss') ? 443 : 80);
     logger.fine('[WebSocketIO] Connecting(uri: ${connectUri.toString()})...');
     try {
       final ws = await io.WebSocket.connect(
