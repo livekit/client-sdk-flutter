@@ -4,7 +4,7 @@
 
 * Added: Add setVideoDimensions for remote track publications
 * Added: Add audio renderer API for receiving raw audio frames
-* Changed: Bump flutter-webrtc to 1.4.0 and upgrade to libwebrtc m144 (iOS/macOS)
+* Changed: Bump flutter-webrtc to 1.4.0 and upgrade to libwebrtc m144
 * Fixed: Add signal RTT tracking via pingReq/pongResp
 * Fixed: Add jitter to reconnect retry delays
 * Fixed: Fix missing params in CameraCaptureOptions.copyWith
