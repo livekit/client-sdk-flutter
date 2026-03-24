@@ -1,1 +1,0 @@
-patch type="fixed" "Fix missing RoomReconnectedEvent and incorrect SyncState timing during signal-only reconnection"

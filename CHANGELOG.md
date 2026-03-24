@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.7.0
+
+* Added: Add setVideoDimensions for remote track publications
+* Added: Add audio renderer API for receiving raw audio frames
+* Changed: Bump flutter-webrtc to 1.4.0 and upgrade to libwebrtc m144
+* Fixed: Add signal RTT tracking via pingReq/pongResp
+* Fixed: Add jitter to reconnect retry delays
+* Fixed: Fix missing params in CameraCaptureOptions.copyWith
+* Fixed: Fix missing RoomReconnectedEvent and incorrect SyncState timing during signal-only reconnection
+* Fixed: Fix VP9/SVC dynacast layer handling
+* Fixed: Stop processor on track end
+* Fixed: Include last server offer in SyncState during reconnection
+
 ## 2.6.5
 
 * Added: Send reconnect reason to server during WebSocket reconnection
