@@ -15,6 +15,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -1013,7 +1014,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    final delay = defaultRetryDelaysInMs[reconnectAttempts!];
+    var delay = defaultRetryDelaysInMs[reconnectAttempts!];
+    // Add random jitter to prevent thundering herd on reconnect
+    if (reconnectAttempts! > 1) {
+      delay += math.Random().nextInt(1000);
+    }
 
     events.emit(EngineAttemptReconnectEvent(
       attempt: reconnectAttempts! + 1,

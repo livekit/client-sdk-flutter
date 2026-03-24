@@ -224,6 +224,13 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
+      try {
+        if (_processor != null) {
+          await stopProcessor();
+        }
+      } catch (error) {
+        logger.severe('LocalTrack.stopProcessor did throw: $error');
+      }
     }
     return didStop;
   }
