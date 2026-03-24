@@ -51,7 +51,7 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
-import '../utils.dart' show unpackStreamId;
+import '../utils.dart' show isSVCCodec, unpackStreamId;
 import 'engine.dart';
 import 'participant_collection.dart';
 import 'pending_track_queue.dart';
@@ -363,7 +363,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       } else if (event.subscribedQualities.isNotEmpty) {
         final videoTrack = publication.track as LocalVideoTrack;
-        await videoTrack.updatePublishingLayers(videoTrack, event.subscribedQualities);
+        await videoTrack.setPublishingLayers(videoTrack, event.subscribedQualities,
+            isSVC: isSVCCodec(videoTrack.codec ?? ''));
       }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {

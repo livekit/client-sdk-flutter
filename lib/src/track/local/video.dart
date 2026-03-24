@@ -28,6 +28,7 @@ import '../../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../../stats/stats.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
+import '../../utils.dart' show isSVCCodec;
 import '../options.dart';
 import 'audio.dart';
 import 'local.dart';
@@ -328,7 +329,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     // only enable simulcast codec for preference codec setted
     if (codec == null && codecs.isNotEmpty) {
-      await updatePublishingLayers(track, codecs[0].qualities);
+      await setPublishingLayers(track, codecs[0].qualities, isSVC: isSVCCodec(codecs[0].codec));
       return [];
     }
 
@@ -338,7 +339,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     for (var codec in codecs) {
       if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
-        await updatePublishingLayers(track, codec.qualities);
+        await setPublishingLayers(track, codec.qualities, isSVC: isSVCCodec(codec.codec));
       } else {
         final simulcastCodecInfo = simulcastCodecs[codec.codec];
         logger.fine('setPublishingCodecs $codecs');
@@ -355,6 +356,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
             simulcastCodecInfo.sender!,
             simulcastCodecInfo.encodings!,
             codec.qualities,
+            isSVC: isSVCCodec(codec.codec),
           );
         }
       }
@@ -363,10 +365,11 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   @internal
-  Future<void> updatePublishingLayers(
+  Future<void> setPublishingLayers(
     LocalTrack? track,
-    List<lk_rtc.SubscribedQuality> layers,
-  ) async {
+    List<lk_rtc.SubscribedQuality> layers, {
+    bool isSVC = false,
+  }) async {
     logger.fine('Update publishing layers: $layers');
 
     if (track?.sender == null) {
@@ -386,7 +389,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       return;
     }
 
-    return setPublishingLayersForSender(track!.sender!, encodings, layers);
+    return setPublishingLayersForSender(track!.sender!, encodings, layers, isSVC: isSVC);
   }
 
   lk_models.VideoQuality _videoQualityForRid(String rid) {
@@ -405,96 +408,68 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   Future<void> setPublishingLayersForSender(
     rtc.RTCRtpSender sender,
     List<rtc.RTCRtpEncoding> encodings,
-    List<lk_rtc.SubscribedQuality> layers,
-  ) async {
+    List<lk_rtc.SubscribedQuality> layers, {
+    bool isSVC = false,
+  }) async {
     logger.fine('Update publishing layers: $layers');
 
     final params = sender.parameters;
 
     var hasChanged = false;
 
-    /* disable closable spatial layer as it has video blur / frozen issue with current server / client
-    1. chrome 113: when switching to up layer with scalability Mode change, it will generate a
-          low resolution frame and recover very quickly, but noticable
-    2. livekit sfu: additional pli request cause video frozen for a few frames, also noticable */
-
-    /* @ts-ignore */
-    if (encodings[0].scalabilityMode != null) {
-      // svc dynacast encodings
-      final encoding = encodings[0];
-      /* @ts-ignore */
-      // const mode = new ScalabilityMode(encoding.scalabilityMode);
-      var maxQuality = lk_models.VideoQuality.OFF;
-      for (var q in layers) {
-        if (q.enabled && (maxQuality == lk_models.VideoQuality.OFF || q.quality.value > maxQuality.value)) {
-          maxQuality = q.quality;
+    // NOTE: closable spatial layer is disabled due to video blur / frozen issues
+    // with Chrome 113+ and LiveKit SFU PLI handling. See JS SDK LocalVideoTrack.ts:529-568.
+    // For SVC codecs, all layers are kept enabled and the SFU handles layer selection.
+    if (isSVC) {
+      final hasEnabledEncoding = layers.any((q) => q.enabled);
+      if (hasEnabledEncoding) {
+        for (var q in layers) {
+          q.enabled = true;
         }
       }
-
-      if (maxQuality == lk_models.VideoQuality.OFF) {
-        if (encoding.active) {
-          encoding.active = false;
-          hasChanged = true;
-        }
-      } else if (!encoding.active /* || mode.spatial !== maxQuality + 1*/) {
+    }
+    // simulcast dynacast encodings
+    var idx = 0;
+    for (var encoding in encodings) {
+      var rid = encoding.rid ?? '';
+      if (rid == '') {
+        rid = 'q';
+      }
+      final quality = _videoQualityForRid(rid);
+      final subscribedQuality = layers.firstWhereOrNull(
+        (q) => q.quality == quality,
+      );
+      if (subscribedQuality == null) {
+        continue;
+      }
+      if (encoding.active != subscribedQuality.enabled) {
         hasChanged = true;
-        encoding.active = true;
-        /*
-        var originalMode = new ScalabilityMode(senderEncodings[0].scalabilityMode)
-        mode.spatial = maxQuality + 1;
-        mode.suffix = originalMode.suffix;
-        if (mode.spatial === 1) {
-          // no suffix for L1Tx
-          mode.suffix = undefined;
-        }
-        encoding.scalabilityMode = mode.toString();
-        encoding.scaleResolutionDownBy = 2 ** (2 - maxQuality);
-      */
-      }
-    } else {
-      // simulcast dynacast encodings
-      var idx = 0;
-      for (var encoding in encodings) {
-        var rid = encoding.rid ?? '';
-        if (rid == '') {
-          rid = 'q';
-        }
-        final quality = _videoQualityForRid(rid);
-        final subscribedQuality = layers.firstWhereOrNull(
-          (q) => q.quality == quality,
+        encoding.active = subscribedQuality.enabled;
+        logger.fine(
+          'setting layer ${subscribedQuality.quality} to ${encoding.active ? 'enabled' : 'disabled'}',
         );
-        if (subscribedQuality == null) {
-          continue;
-        }
-        if (encoding.active != subscribedQuality.enabled) {
-          hasChanged = true;
-          encoding.active = subscribedQuality.enabled;
-          logger.fine(
-            'setting layer ${subscribedQuality.quality} to ${encoding.active ? 'enabled' : 'disabled'}',
-          );
 
-          // FireFox does not support setting encoding.active to false, so we
-          // have a workaround of lowering its bitrate and resolution to the min.
-          if (kIsWeb && lkBrowser() == BrowserType.firefox) {
-            if (subscribedQuality.enabled) {
-              final encodingBackup = encodingBackups[(sender.senderId, idx)] ?? encoding;
-              encoding.scaleResolutionDownBy = encodingBackup.scaleResolutionDownBy;
-              encoding.maxBitrate = encodingBackup.maxBitrate;
-              encoding.maxFramerate = encodingBackup.maxFramerate;
-            } else {
-              encodingBackups[(sender.senderId, idx)] = rtc.RTCRtpEncoding(
-                scaleResolutionDownBy: encoding.scaleResolutionDownBy,
-                maxBitrate: encoding.maxBitrate,
-                maxFramerate: encoding.maxFramerate,
-              );
-              encoding.scaleResolutionDownBy = 4;
-              encoding.maxBitrate = 10;
-              encoding.maxFramerate = 2;
-            }
+        // FireFox does not support setting encoding.active to false, so we
+        // have a workaround of lowering its bitrate and resolution to the min.
+        if (kIsWeb && lkBrowser() == BrowserType.firefox) {
+          if (subscribedQuality.enabled) {
+            final encodingBackup = encodingBackups[(sender.senderId, idx)] ?? encoding;
+            encoding.scaleResolutionDownBy = encodingBackup.scaleResolutionDownBy;
+            encoding.maxBitrate = encodingBackup.maxBitrate;
+            encoding.maxFramerate = encodingBackup.maxFramerate;
+          } else {
+            encodingBackups[(sender.senderId, idx)] = rtc.RTCRtpEncoding(
+              scaleResolutionDownBy: encoding.scaleResolutionDownBy,
+              maxBitrate: encoding.maxBitrate,
+              maxFramerate: encoding.maxFramerate,
+            );
+            encoding.scaleResolutionDownBy = 4;
+            encoding.maxBitrate = 10;
+            encoding.maxFramerate = 2;
           }
         }
-        idx++;
       }
+      idx++;
     }
 
     if (hasChanged) {
