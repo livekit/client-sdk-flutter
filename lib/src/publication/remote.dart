@@ -30,6 +30,7 @@ import '../track/local/local.dart';
 import '../track/remote/remote.dart';
 import '../track/remote/video.dart';
 import '../types/other.dart';
+import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'track_publication.dart';
 
@@ -47,8 +48,11 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   int? _fps;
   int get fps => _fps ?? 0;
 
-  VideoQuality _videoQuality = VideoQuality.HIGH;
-  VideoQuality get videoQuality => _videoQuality;
+  VideoQuality? _videoQuality = VideoQuality.HIGH;
+  VideoQuality get videoQuality => _videoQuality ?? VideoQuality.HIGH;
+
+  VideoDimensions? _videoDimensions;
+  VideoDimensions? get videoDimensions => _videoDimensions;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
@@ -225,9 +229,44 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     return didUpdate;
   }
 
+  bool _canUpdateManualVideoSettings() {
+    if (kind != TrackType.VIDEO) {
+      logger.warning('Manual video setting updates are only supported for video tracks');
+      return false;
+    }
+
+    if (!subscribed) {
+      logger.warning('Manual video setting update ignored because the publication is not subscribed');
+      return false;
+    }
+
+    if (participant.room.roomOptions.adaptiveStream) {
+      logger.warning('Manual video setting update ignored because adaptive stream is enabled');
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> setVideoQuality(VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
+    if (!_canUpdateManualVideoSettings()) return;
     _videoQuality = newValue;
+    _videoDimensions = null;
+    sendUpdateTrackSettings();
+  }
+
+  /// Set preferred video dimensions for this track.
+  ///
+  /// Server will choose the appropriate layer based on these dimensions.
+  /// Will override previous calls to [setVideoQuality].
+  Future<void> setVideoDimensions(VideoDimensions newValue) async {
+    if (newValue.width == _videoDimensions?.width && newValue.height == _videoDimensions?.height) {
+      return;
+    }
+    if (!_canUpdateManualVideoSettings()) return;
+    _videoDimensions = newValue;
+    _videoQuality = null;
     sendUpdateTrackSettings();
   }
 
@@ -235,6 +274,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// It's only supported for video codecs that support SVC currently.
   Future<void> setVideoFPS(int newValue) async {
     if (newValue == _fps) return;
+    if (!_canUpdateManualVideoSettings()) return;
     _fps = newValue;
     sendUpdateTrackSettings();
   }
@@ -300,7 +340,14 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       disabled: !_enabled,
     );
     if (kind == TrackType.VIDEO) {
-      settings.quality = _videoQuality.toPBType();
+      if (_videoDimensions != null) {
+        settings.width = _videoDimensions!.width;
+        settings.height = _videoDimensions!.height;
+      } else if (_videoQuality != null) {
+        settings.quality = _videoQuality!.toPBType();
+      } else {
+        settings.quality = VideoQuality.HIGH.toPBType();
+      }
       if (_fps != null) settings.fps = _fps!;
     }
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
