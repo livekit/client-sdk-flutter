@@ -229,8 +229,28 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     return didUpdate;
   }
 
+  bool _canUpdateManualVideoSettings() {
+    if (kind != TrackType.VIDEO) {
+      logger.warning('Manual video setting updates are only supported for video tracks');
+      return false;
+    }
+
+    if (!subscribed) {
+      logger.warning('Manual video setting update ignored because the publication is not subscribed');
+      return false;
+    }
+
+    if (participant.room.roomOptions.adaptiveStream) {
+      logger.warning('Manual video setting update ignored because adaptive stream is enabled');
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> setVideoQuality(VideoQuality newValue) async {
     if (newValue == _videoQuality) return;
+    if (!_canUpdateManualVideoSettings()) return;
     _videoQuality = newValue;
     _videoDimensions = null;
     sendUpdateTrackSettings();
@@ -244,6 +264,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     if (newValue.width == _videoDimensions?.width && newValue.height == _videoDimensions?.height) {
       return;
     }
+    if (!_canUpdateManualVideoSettings()) return;
     _videoDimensions = newValue;
     _videoQuality = null;
     sendUpdateTrackSettings();
@@ -253,6 +274,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// It's only supported for video codecs that support SVC currently.
   Future<void> setVideoFPS(int newValue) async {
     if (newValue == _fps) return;
+    if (!_canUpdateManualVideoSettings()) return;
     _fps = newValue;
     sendUpdateTrackSettings();
   }
