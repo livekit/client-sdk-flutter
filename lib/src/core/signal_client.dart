@@ -97,6 +97,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     });
   }
 
+  // Whether the established connection used the v1 signal path (single PC mode).
+  bool _useV1SignalPath = false;
+
+  @internal
+  bool get useV1SignalPath => _useV1SignalPath;
+
   @internal
   Future<void> connect(
     String uriString,
@@ -130,15 +136,36 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
     }
 
-    final rtcUri = await Utils.buildUri(
-      uriString,
-      token: token,
-      connectOptions: connectOptions,
-      roomOptions: roomOptions,
-      reconnect: reconnect,
-      sid: reconnect ? participantSid : null,
-      reconnectReason: reconnectReason,
-    );
+    // Use v1 path for initial connection when singlePeerConnection is requested.
+    // For quick reconnect, use the same path version as the established connection.
+    final useV1 = reconnect ? _useV1SignalPath : connectOptions.singlePeerConnection;
+
+    final Uri rtcUri;
+    if (useV1) {
+      rtcUri = await Utils.buildV1Uri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
+      );
+    } else {
+      rtcUri = await Utils.buildV0Uri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
+      );
+    }
+
+    if (!reconnect) {
+      _useV1SignalPath = useV1;
+    }
 
     logger.fine('SignalClient connecting with url: $rtcUri');
 
@@ -176,15 +203,23 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt Validation
       var finalError = socketError;
       try {
-        // Re-build same uri for validate mode
-        final validateUri = await Utils.buildUri(
-          uriString,
-          token: token,
-          connectOptions: connectOptions,
-          roomOptions: roomOptions,
-          validate: true,
-          forceSecure: rtcUri.isSecureScheme,
-        );
+        // Re-build same uri for validate mode, matching the signal path version
+        final validateUri = useV1
+            ? await Utils.buildV1ValidateUri(
+                uriString,
+                token: token,
+                connectOptions: connectOptions,
+                roomOptions: roomOptions,
+                forceSecure: rtcUri.isSecureScheme,
+              )
+            : await Utils.buildV0Uri(
+                uriString,
+                token: token,
+                connectOptions: connectOptions,
+                roomOptions: roomOptions,
+                validate: true,
+                forceSecure: rtcUri.isSecureScheme,
+              );
 
         final validateResponse = await http.get(
           validateUri,
@@ -192,7 +227,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
             'Authorization': 'Bearer $token',
           },
         );
-        if (validateResponse.statusCode != 200) {
+        if (validateResponse.statusCode == 404) {
+          finalError =
+              ConnectException(validateResponse.body, reason: ConnectionErrorReason.ServiceNotFound, statusCode: 404);
+        } else if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,
               reason: validateResponse.statusCode >= 400
                   ? ConnectionErrorReason.NotAllowed
@@ -366,6 +404,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           events.emit(SignalTokenUpdatedEvent(token: msg.roomMoved.token));
         }
         events.emit(SignalRoomMovedEvent(response: msg.roomMoved));
+        break;
+      case lk_rtc.SignalResponse_Message.mediaSectionsRequirement:
+        logger.fine('received media sections requirement: '
+            'audios=${msg.mediaSectionsRequirement.numAudios}, '
+            'videos=${msg.mediaSectionsRequirement.numVideos}');
+        events.emit(SignalMediaSectionsRequirementEvent(
+          numAudios: msg.mediaSectionsRequirement.numAudios,
+          numVideos: msg.mediaSectionsRequirement.numVideos,
+        ));
         break;
       default:
         logger.warning('received unknown signal message');

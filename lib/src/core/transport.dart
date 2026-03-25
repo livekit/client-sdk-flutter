@@ -64,9 +64,10 @@ class Transport extends Disposable {
   TransportOnOffer? onOffer;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
+  final bool singlePCMode;
 
   // private constructor
-  Transport._(this.pc, this.connectOptions) {
+  Transport._(this.pc, this.connectOptions, {this.singlePCMode = false}) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -101,11 +102,11 @@ class Transport extends Disposable {
   }
 
   static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
-      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions}) async {
+      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions, bool singlePCMode = false}) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(pc, connectOptions);
+    return Transport._(pc, connectOptions, singlePCMode: singlePCMode);
   }
 
   late final negotiate = Utils.createDebounceFunc(
@@ -214,8 +215,16 @@ class Transport extends Disposable {
       }
     });
 
+    var mungedSdp = sdp_transform.write(sdpParsed, null);
+
+    // In single PC mode, munge a=inactive to a=recvonly for RTP media sections.
+    // WebRTC can generate inactive direction even when transceivers were configured as recvonly.
+    if (singlePCMode) {
+      mungedSdp = mungeInactiveToRecvOnlyForMedia(mungedSdp);
+    }
+
     try {
-      await setMungedSDP(sd: offer, munged: sdp_transform.write(sdpParsed, null));
+      await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
       throw NegotiationError(e.toString());
     }
@@ -328,4 +337,70 @@ class Transport extends Disposable {
       rethrow;
     }
   }
+
+  /// Munge SDP to change `a=inactive` to `a=recvonly` for RTP media sections
+  /// that have no SSRC (i.e. receive-only transceivers with no local media).
+  ///
+  /// In single PC mode, libWebRTC may incorrectly generate `a=inactive` for
+  /// transceivers that were configured as recvonly. We only fix sections
+  /// without SSRC lines to avoid touching sendonly/sendrecv transceivers that
+  /// have been intentionally set to inactive (e.g. after unpublishing).
+  static String mungeInactiveToRecvOnlyForMedia(String sdp) {
+    final usesCRLF = sdp.contains('\r\n');
+    final eol = usesCRLF ? '\r\n' : '\n';
+    final lines = sdp.split(eol);
+
+    // Two-pass approach: first collect media section ranges and whether they
+    // contain SSRC lines, then rewrite only the qualifying sections.
+    final sections = <_MediaSection>[];
+    for (int i = 0; i < lines.length; i++) {
+      final l = lines[i].trim();
+      if (l.startsWith('m=')) {
+        sections.add(_MediaSection(
+          startIndex: i,
+          isRTP: l.contains('RTP/'),
+        ));
+      } else if (sections.isNotEmpty) {
+        if (l.startsWith('a=ssrc:')) {
+          sections.last.hasSSRC = true;
+        }
+      }
+    }
+
+    // Build a set of line indices where a=inactive should be rewritten.
+    final rewriteIndices = <int>{};
+    for (final section in sections) {
+      if (!section.isRTP || section.hasSSRC) continue;
+      final end = sections.indexOf(section) + 1 < sections.length
+          ? sections[sections.indexOf(section) + 1].startIndex
+          : lines.length;
+      for (int i = section.startIndex; i < end; i++) {
+        if (lines[i].trim() == 'a=inactive') {
+          rewriteIndices.add(i);
+        }
+      }
+    }
+
+    final out = <String>[];
+    for (int i = 0; i < lines.length; i++) {
+      if (rewriteIndices.contains(i)) {
+        out.add('a=recvonly');
+      } else {
+        out.add(lines[i]);
+      }
+    }
+
+    var result = out.join(eol);
+    if (sdp.endsWith(eol) && !result.endsWith(eol)) {
+      result += eol;
+    }
+    return result;
+  }
+}
+
+class _MediaSection {
+  final int startIndex;
+  final bool isRTP;
+  bool hasSSRC = false;
+  _MediaSection({required this.startIndex, required this.isRTP});
 }
