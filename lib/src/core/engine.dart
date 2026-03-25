@@ -725,7 +725,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           signalClient.connectionState == ConnectionState.connecting) {
         final track = event.track;
         final receiver = event.receiver;
-        events.on<EngineConnectedEvent>((event) async {
+        events.once<EngineConnectedEvent>((event) async {
           Timer(const Duration(milliseconds: 10), () {
             events.emit(EngineTrackAddedEvent(
               track: track,
