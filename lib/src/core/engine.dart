@@ -357,7 +357,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       events.once<EngineClosingEvent>((e) => onClosing());
 
-      while (!_dcBufferStatus[kind]!) {
+      while (!completer.isCompleted && !_dcBufferStatus[kind]!) {
         await Future.delayed(const Duration(milliseconds: 10));
       }
       if (completer.isCompleted) {
