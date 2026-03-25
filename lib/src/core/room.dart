@@ -302,8 +302,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     } catch (e) {
       logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null && e is WebSocketException ||
-          (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed)) {
+      if (_regionUrlProvider != null &&
+          (e is WebSocketException || (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed))) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
