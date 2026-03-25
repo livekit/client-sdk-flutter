@@ -546,8 +546,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       logger.warning('Publication not found $trackSid');
       return;
     }
-    await pub.dispose();
-
     final track = pub.track;
     if (track != null) {
       if (room.roomOptions.stopLocalTrackOnUnpublish) {
