@@ -121,20 +121,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   late EventsListener<SignalEvent> _signalListener = signalClient.createListener(synchronized: true);
 
-  int reconnectAttempts = 0;
-
-  Timer? reconnectTimeout;
-  DateTime? reconnectStart;
+  int _reconnectAttempts = 0;
+  Timer? _reconnectTimeout;
+  DateTime? _reconnectStart;
 
   bool _isClosed = false;
 
   bool get isClosed => _isClosed;
 
-  bool get isPendingReconnect => reconnectStart != null && reconnectTimeout != null;
+  bool get isPendingReconnect => _reconnectStart != null && _reconnectTimeout != null;
 
   final int _reconnectCount = defaultRetryDelaysInMs.length;
 
-  bool attemptingReconnect = false;
+  bool _attemptingReconnect = false;
 
   RegionUrlProvider? _regionUrlProvider;
 
@@ -179,17 +178,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return null;
   }
 
-  void clearReconnectTimeout() {
-    if (reconnectTimeout != null) {
-      reconnectTimeout?.cancel();
-      reconnectTimeout = null;
+  void _clearReconnectTimeout() {
+    if (_reconnectTimeout != null) {
+      _reconnectTimeout?.cancel();
+      _reconnectTimeout = null;
     }
   }
 
-  void clearPendingReconnect() {
-    clearReconnectTimeout();
-    reconnectAttempts = 0;
-    reconnectStart = null;
+  void _clearPendingReconnect() {
+    _clearReconnectTimeout();
+    _reconnectAttempts = 0;
+    _reconnectStart = null;
   }
 
   Engine({
@@ -290,7 +289,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     await signalClient.cleanUp();
 
     fullReconnectOnNext = false;
-    attemptingReconnect = false;
+    _attemptingReconnect = false;
 
     // Reset reliability state
     _reliableDataSequence = 1;
@@ -298,7 +297,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _reliableReceivedState.clear();
     _isReconnecting = false;
 
-    clearPendingReconnect();
+    _clearPendingReconnect();
   }
 
   @internal
@@ -999,11 +998,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     _isReconnecting = true;
 
-    if (reconnectAttempts == 0) {
-      reconnectStart = DateTime.timestamp();
+    if (_reconnectAttempts == 0) {
+      _reconnectStart = DateTime.timestamp();
     }
 
-    if (reconnectAttempts >= _reconnectCount) {
+    if (_reconnectAttempts >= _reconnectCount) {
       logger.fine('reconnectAttempts exceeded, disconnecting...');
       _isClosed = true;
       await cleanUp();
@@ -1014,26 +1013,26 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    var delay = defaultRetryDelaysInMs[reconnectAttempts];
+    var delay = defaultRetryDelaysInMs[_reconnectAttempts];
     // Add random jitter to prevent thundering herd on reconnect
-    if (reconnectAttempts > 1) {
+    if (_reconnectAttempts > 1) {
       delay += math.Random().nextInt(1000);
     }
 
     events.emit(EngineAttemptReconnectEvent(
-      attempt: reconnectAttempts + 1,
+      attempt: _reconnectAttempts + 1,
       maxAttempts: _reconnectCount,
       nextRetryDelaysInMs: delay,
     ));
 
-    clearReconnectTimeout();
+    _clearReconnectTimeout();
     if (token != null && _regionUrlProvider != null) {
       // token may have been refreshed, we do not want to recreate the regionUrlProvider
       // since the current engine may have inherited a regional url
       _regionUrlProvider!.updateToken(token!);
     }
-    logger.fine('WebSocket reconnecting in $delay ms, retry times $reconnectAttempts');
-    reconnectTimeout = Timer(Duration(milliseconds: delay), () async {
+    logger.fine('WebSocket reconnecting in $delay ms, retry times $_reconnectAttempts');
+    _reconnectTimeout = Timer(Duration(milliseconds: delay), () async {
       await attemptReconnect(
         reason,
         reconnectReason: reconnectReason,
@@ -1051,7 +1050,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     // guard for attempting reconnection multiple times while one attempt is still not finished
-    if (attemptingReconnect) {
+    if (_attemptingReconnect) {
       return;
     }
 
@@ -1065,7 +1064,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     try {
-      attemptingReconnect = true;
+      _attemptingReconnect = true;
 
       if (await signalClient.networkIsAvailable() == false) {
         logger.fine('no internet connection, waiting...');
@@ -1086,11 +1085,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           reconnectReason: reconnectReason,
         );
       }
-      clearPendingReconnect();
-      attemptingReconnect = false;
+      _clearPendingReconnect();
+      _attemptingReconnect = false;
       _isReconnecting = false;
     } catch (e) {
-      reconnectAttempts = reconnectAttempts + 1;
+      _reconnectAttempts = _reconnectAttempts + 1;
       bool recoverable = true;
       if (e is WebSocketException || e is MediaConnectException) {
         // cannot resume connection, need to do full reconnect
@@ -1111,7 +1110,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await cleanUp();
       }
     } finally {
-      attemptingReconnect = false;
+      _attemptingReconnect = false;
     }
   }
 
@@ -1336,7 +1335,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectedEvent>((event) async {
       logger.fine('Signal connected');
-      reconnectAttempts = 0;
+      _reconnectAttempts = 0;
       events.emit(const EngineConnectedEvent());
     })
     ..on<SignalConnectingEvent>((event) async {
@@ -1456,7 +1455,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('disconnect: Cancel the reconnection processing!');
         await signalClient.cleanUp();
         await _signalListener.cancelAll();
-        clearPendingReconnect();
+        _clearPendingReconnect();
       }
       await cleanUp();
       events.emit(EngineDisconnectedEvent(reason: reason));
