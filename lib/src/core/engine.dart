@@ -1281,7 +1281,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
           'serverVersion: ${event.response.serverVersion}, '
           'iceServers: ${event.response.iceServers}, '
-          'forceRelay: $event.response.clientConfiguration.forceRelay');
+          'forceRelay: ${event.response.clientConfiguration.forceRelay}');
 
       final rtcConfiguration = await _buildRtcConfiguration(
           serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
@@ -1313,7 +1313,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       logger.fine('Handle ReconnectResponse: '
           'iceServers: ${event.response.iceServers}, '
-          'forceRelay: $event.response.clientConfiguration.forceRelay, '
+          'forceRelay: ${event.response.clientConfiguration.forceRelay}, '
           'lastMessageSeq: ${event.response.lastMessageSeq}');
 
       final rtcConfiguration = await _buildRtcConfiguration(
