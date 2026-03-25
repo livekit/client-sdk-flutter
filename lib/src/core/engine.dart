@@ -1230,7 +1230,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   @internal
-  void sendSyncState({
+  Future<void> sendSyncState({
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required List<String> trackSidsDisabled,
