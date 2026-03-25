@@ -971,7 +971,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     }
 
-    engine.sendSyncState(
+    await engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
         participantTracks: [],
         trackSids: trackSids,
