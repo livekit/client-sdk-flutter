@@ -829,7 +829,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   Future<void> _handleGettingConnectedServerAddress(rtc.RTCPeerConnection pc) async {
     try {
-      final remoteAddress = await getConnectedAddress(publisher!.pc);
+      final remoteAddress = await getConnectedAddress(pc);
       logger.fine('Connected address: $remoteAddress');
       if (_connectedServerAddress == null || _connectedServerAddress != remoteAddress) {
         _connectedServerAddress = remoteAddress;
