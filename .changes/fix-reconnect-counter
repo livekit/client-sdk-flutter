@@ -1,0 +1,1 @@
+patch type="fixed" "Fix reconnect counter null assertion on first reconnect attempt"
