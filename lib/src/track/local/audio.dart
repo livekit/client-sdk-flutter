@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -108,6 +109,14 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       }
     }
     return senderStats;
+  }
+
+  @override
+  Future<bool> start() async {
+    if (!kIsWeb) {
+      await rtc.NativeAudioManagement.startLocalRecording();
+    }
+    return await super.start();
   }
 
   // private constructor
