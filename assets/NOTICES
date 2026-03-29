@@ -5555,7 +5555,6 @@ path_provider_platform_interface
 path_provider_windows
 plugin_platform_interface
 shared_preferences_linux
-shared_preferences_platform_interface
 shared_preferences_web
 shared_preferences_windows
 vector_graphics_codec
@@ -10831,6 +10830,7 @@ path_provider_foundation
 shared_preferences
 shared_preferences_android
 shared_preferences_foundation
+shared_preferences_platform_interface
 vector_graphics
 vector_graphics_compiler
 
