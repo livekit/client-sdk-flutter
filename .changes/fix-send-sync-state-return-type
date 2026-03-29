@@ -1,1 +1,1 @@
-patch type="fixed" "Fix sendSyncState returning void instead of Future"
+patch type="fixed" "Fix sendSyncState using async void and swallowing sync-state preparation errors"
