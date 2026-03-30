@@ -114,6 +114,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   @override
   Future<bool> start() async {
+    if (isStarted) return false;
     if (!kIsWeb) {
       await rtc.NativeAudioManagement.startLocalRecording();
     }
