@@ -52,15 +52,11 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   String? _cid;
 
   // started / stopped
-  bool _isStarted = false;
-  bool get isStarted => _isStarted;
-  @Deprecated('Use isStarted instead')
-  bool get isActive => _isStarted;
+  bool _active = false;
+  bool get isActive => _active;
 
-  bool _isMuted = false;
-  bool get isMuted => _isMuted;
-  @Deprecated('Use isMuted instead')
-  bool get muted => _isMuted;
+  bool _muted = false;
+  bool get muted => _muted;
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
@@ -107,7 +103,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   /// Returns true if started, false if already started
   @mustCallSuper
   Future<bool> start() async {
-    if (_isStarted) {
+    if (_active) {
       // already started
       return false;
     }
@@ -118,7 +114,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     await onStarted();
 
-    _isStarted = true;
+    _active = true;
     return true;
   }
 
@@ -126,7 +122,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   /// Returns true if stopped, false if already stopped
   @mustCallSuper
   Future<bool> stop() async {
-    if (!_isStarted) {
+    if (!_active) {
       // already stopped
       return false;
     }
@@ -146,14 +142,14 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       _originalTrack = null;
     }
 
-    _isStarted = false;
+    _active = false;
     return true;
   }
 
   Future<void> enable() async {
     logger.fine('$objectId.enable() enabling ${mediaStreamTrack.objectId}...');
     try {
-      if (_isStarted) {
+      if (_active) {
         mediaStreamTrack.enabled = true;
       }
     } catch (e) {
@@ -164,7 +160,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   Future<void> disable() async {
     logger.fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
     try {
-      if (_isStarted) {
+      if (_active) {
         mediaStreamTrack.enabled = false;
       }
     } catch (e) {
@@ -204,8 +200,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     bool shouldNotify = true,
     bool shouldSendSignal = false,
   }) {
-    if (_isMuted == muted) return;
-    _isMuted = muted;
+    if (_muted == muted) return;
+    _muted = muted;
     if (shouldNotify) {
       events.emit(InternalTrackMuteUpdatedEvent(
         track: this,
