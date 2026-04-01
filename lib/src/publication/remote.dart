@@ -50,15 +50,14 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   int get fps => _fps ?? 0;
 
   // Manual settings (set by user via setVideoQuality / setVideoDimensions)
-  VideoQuality? _requestedMaxQuality;
-  VideoDimensions? _requestedVideoDimensions;
+  VideoSettings? _userPreference;
 
   // Adaptive stream state (set automatically by visibility observer)
   VideoDimensions? _adaptiveStreamDimensions;
   bool _adaptiveStreamEnabled = true;
 
-  VideoQuality get videoQuality => _requestedMaxQuality ?? VideoQuality.HIGH;
-  VideoDimensions? get videoDimensions => _requestedVideoDimensions;
+  VideoQuality get videoQuality => _userPreference?.quality ?? VideoQuality.HIGH;
+  VideoDimensions? get videoDimensions => _userPreference?.dimensions;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
@@ -257,10 +256,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// When adaptive stream is enabled, the server will use the smaller of
   /// this setting and the adaptive stream dimensions.
   Future<void> setVideoQuality(VideoQuality newValue) async {
-    if (newValue == _requestedMaxQuality) return;
+    if (newValue == _userPreference?.quality) return;
     if (!_isManualOperationAllowed()) return;
-    _requestedMaxQuality = newValue;
-    _requestedVideoDimensions = null;
+    _userPreference = VideoSettings.quality(newValue);
     _emitTrackUpdate();
   }
 
@@ -272,13 +270,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// When adaptive stream is enabled, the server will use the smaller of
   /// this setting and the adaptive stream dimensions.
   Future<void> setVideoDimensions(VideoDimensions newValue) async {
-    if (newValue.width == _requestedVideoDimensions?.width &&
-        newValue.height == _requestedVideoDimensions?.height) {
-      return;
-    }
+    if (newValue == _userPreference?.dimensions) return;
     if (!_isManualOperationAllowed()) return;
-    _requestedVideoDimensions = newValue;
-    _requestedMaxQuality = null;
+    _userPreference = VideoSettings.dimensions(newValue);
     _emitTrackUpdate();
   }
 
@@ -357,13 +351,10 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     if (kind == TrackType.VIDEO) {
       final resolved = resolveVideoSettings(
         adaptiveStreamDimensions: _adaptiveStreamDimensions,
-        requestedDimensions: _requestedVideoDimensions,
-        requestedMaxQuality: _requestedMaxQuality,
+        userPreference: _userPreference,
         layerDimensionsForQuality: (quality) {
           final pbQuality = quality.toPBType();
-          final layer = latestInfo?.layers
-              .where((l) => l.quality == pbQuality)
-              .firstOrNull;
+          final layer = latestInfo?.layers.where((l) => l.quality == pbQuality).firstOrNull;
           if (layer == null) return null;
           return VideoDimensions(layer.width, layer.height);
         },

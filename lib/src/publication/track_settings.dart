@@ -12,41 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart' show immutable, internal;
+
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 
-/// The result of merging adaptive stream and manual video settings.
+/// Represents a video quality setting — either explicit dimensions or a
+/// quality level (LOW/MEDIUM/HIGH), never both.
 ///
-/// Separates the "what to send" decision from protobuf serialization,
-/// making the merge logic testable without protobuf dependencies.
-class ResolvedVideoSettings {
-  /// If non-null, send dimensions (width/height) to the server.
+/// Used for both user-requested settings and the resolved merge result.
+@internal
+@immutable
+class VideoSettings {
   final VideoDimensions? dimensions;
-
-  /// If non-null and [dimensions] is null, send quality to the server.
   final VideoQuality? quality;
 
-  const ResolvedVideoSettings({this.dimensions, this.quality});
+  const VideoSettings.dimensions(VideoDimensions this.dimensions) : quality = null;
+
+  const VideoSettings.quality(VideoQuality this.quality) : dimensions = null;
+
+  static const high = VideoSettings.quality(VideoQuality.HIGH);
 }
 
-/// Merges adaptive stream dimensions with manual quality/dimension settings,
+/// Merges adaptive stream dimensions with manual [VideoSettings],
 /// always picking the more conservative (smaller) of the two.
 ///
 /// This matches the JS SDK's merge behavior in `emitTrackUpdate()`.
-///
-/// [adaptiveStreamDimensions] — set automatically by the visibility observer.
-/// [requestedDimensions] — set manually via `setVideoDimensions()`.
-/// [requestedMaxQuality] — set manually via `setVideoQuality()`.
-/// [layerDimensionsForQuality] — resolves a quality to dimensions using the
-///   track's published layer info. Passed as a callback so callers can provide
-///   it from whatever source they have (protobuf TrackInfo, test fixture, etc).
-ResolvedVideoSettings resolveVideoSettings({
+@internal
+VideoSettings resolveVideoSettings({
   VideoDimensions? adaptiveStreamDimensions,
-  VideoDimensions? requestedDimensions,
-  VideoQuality? requestedMaxQuality,
+  VideoSettings? userPreference,
   VideoDimensions? Function(VideoQuality quality)? layerDimensionsForQuality,
 }) {
-  VideoDimensions? minDimensions = requestedDimensions;
+  VideoDimensions? minDimensions = userPreference?.dimensions;
 
   if (adaptiveStreamDimensions != null) {
     if (minDimensions != null) {
@@ -54,11 +52,10 @@ ResolvedVideoSettings resolveVideoSettings({
       if (adaptiveStreamDimensions.area() < minDimensions.area()) {
         minDimensions = adaptiveStreamDimensions;
       }
-    } else if (requestedMaxQuality != null) {
+    } else if (userPreference?.quality != null) {
       // Compare adaptive dimensions with the max quality layer dimensions
-      final maxQualityLayer = layerDimensionsForQuality?.call(requestedMaxQuality);
-      if (maxQualityLayer != null &&
-          adaptiveStreamDimensions.area() < maxQualityLayer.area()) {
+      final maxQualityLayer = layerDimensionsForQuality?.call(userPreference!.quality!);
+      if (maxQualityLayer != null && adaptiveStreamDimensions.area() < maxQualityLayer.area()) {
         minDimensions = adaptiveStreamDimensions;
       }
     } else {
@@ -67,9 +64,9 @@ ResolvedVideoSettings resolveVideoSettings({
   }
 
   if (minDimensions != null) {
-    return ResolvedVideoSettings(dimensions: minDimensions);
-  } else if (requestedMaxQuality != null) {
-    return ResolvedVideoSettings(quality: requestedMaxQuality);
+    return VideoSettings.dimensions(minDimensions);
+  } else if (userPreference?.quality != null) {
+    return VideoSettings.quality(userPreference!.quality!);
   }
-  return ResolvedVideoSettings(quality: VideoQuality.HIGH);
+  return VideoSettings.high;
 }

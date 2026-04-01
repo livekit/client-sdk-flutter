@@ -36,17 +36,17 @@ void main() {
         expect(r.dimensions, isNull);
       });
 
-      test('uses requested quality', () {
+      test('uses preferred quality', () {
         final r = resolveVideoSettings(
-          requestedMaxQuality: VideoQuality.LOW,
+          userPreference: VideoSettings.quality(VideoQuality.LOW),
         );
         expect(r.quality, VideoQuality.LOW);
         expect(r.dimensions, isNull);
       });
 
-      test('uses requested dimensions', () {
+      test('uses preferred dimensions', () {
         final r = resolveVideoSettings(
-          requestedDimensions: VideoDimensions(800, 600),
+          userPreference: VideoSettings.dimensions(VideoDimensions(800, 600)),
         );
         expect(r.dimensions, VideoDimensions(800, 600));
         expect(r.quality, isNull);
@@ -63,37 +63,37 @@ void main() {
       });
     });
 
-    group('adaptive stream + requested dimensions', () {
+    group('adaptive stream + preferred dimensions', () {
       test('adaptive wins when smaller', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(320, 180),
-          requestedDimensions: VideoDimensions(1280, 720),
+          userPreference: VideoSettings.dimensions(VideoDimensions(1280, 720)),
         );
         expect(r.dimensions, VideoDimensions(320, 180));
       });
 
-      test('requested wins when smaller', () {
+      test('preferred wins when smaller', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(1920, 1080),
-          requestedDimensions: VideoDimensions(640, 360),
+          userPreference: VideoSettings.dimensions(VideoDimensions(640, 360)),
         );
         expect(r.dimensions, VideoDimensions(640, 360));
       });
 
-      test('equal areas keep requested', () {
+      test('equal areas keep preferred', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(640, 360),
-          requestedDimensions: VideoDimensions(640, 360),
+          userPreference: VideoSettings.dimensions(VideoDimensions(640, 360)),
         );
         expect(r.dimensions, VideoDimensions(640, 360));
       });
     });
 
-    group('adaptive stream + requested quality', () {
+    group('adaptive stream + preferred quality', () {
       test('adaptive wins when smaller than quality layer', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(320, 180),
-          requestedMaxQuality: VideoQuality.HIGH,
+          userPreference: VideoSettings.quality(VideoQuality.HIGH),
           layerDimensionsForQuality: _testLayerDimensions,
         );
         // adaptive 320*180 < HIGH 1280*720 → sends adaptive dimensions
@@ -104,7 +104,7 @@ void main() {
       test('quality wins when adaptive is larger than quality layer', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(1920, 1080),
-          requestedMaxQuality: VideoQuality.LOW,
+          userPreference: VideoSettings.quality(VideoQuality.LOW),
           layerDimensionsForQuality: _testLayerDimensions,
         );
         // adaptive 1920*1080 > LOW 320*180 → sends quality directly
@@ -115,8 +115,7 @@ void main() {
       test('quality sent directly when no layer info available', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(320, 180),
-          requestedMaxQuality: VideoQuality.LOW,
-          // no layerDimensionsForQuality → can't compare
+          userPreference: VideoSettings.quality(VideoQuality.LOW),
         );
         expect(r.quality, VideoQuality.LOW);
         expect(r.dimensions, isNull);
@@ -125,7 +124,7 @@ void main() {
       test('quality sent when layer lookup returns null', () {
         final r = resolveVideoSettings(
           adaptiveStreamDimensions: VideoDimensions(320, 180),
-          requestedMaxQuality: VideoQuality.MEDIUM,
+          userPreference: VideoSettings.quality(VideoQuality.MEDIUM),
           layerDimensionsForQuality: (_) => null,
         );
         expect(r.quality, VideoQuality.MEDIUM);
