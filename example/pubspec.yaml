@@ -25,6 +25,11 @@ dependencies:
   livekit_client:
     path: ../
 
+dependency_overrides:
+  # connectivity_plus 7.1.0 uses NWPath.isUltraConstrained which requires
+  # a newer Xcode SDK than current CI runners have.
+  connectivity_plus: '>=7.0.0 <7.1.0'
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
