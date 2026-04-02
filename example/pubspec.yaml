@@ -26,9 +26,9 @@ dependencies:
     path: ../
 
 dependency_overrides:
-  # connectivity_plus 7.1.0 uses NWPath.isUltraConstrained which requires
-  # a newer Xcode SDK than current CI runners have.
-  connectivity_plus: '>=7.0.0 <7.1.0'
+  # Pin packages that use Apple APIs unavailable on CI runner's Xcode version.
+  connectivity_plus: '>=7.0.0 <7.1.0' # NWPath.isUltraConstrained
+  device_info_plus: '>=12.3.0 <12.4.0' # NSProcessInfo.isiOSAppOnVision
 
 dev_dependencies:
   flutter_test:
