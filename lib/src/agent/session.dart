@@ -20,6 +20,8 @@ import 'package:uuid/uuid.dart';
 
 import '../core/room.dart';
 import '../core/room_preconnect.dart';
+import '../e2ee/key_provider.dart';
+import '../e2ee/options.dart';
 import '../events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
@@ -175,6 +177,12 @@ class Session extends DisposableChangeNotifier {
   EventsListener<RoomEvent>? _roomListener;
   Timer? _agentTimeoutTimer;
 
+  /// Enables or disables end-to-end encryption for the session.
+  ///
+  /// Requires that encryption was configured via [SessionOptions.encryption]
+  /// or that the [Room] was created with [E2EEOptions].
+  Future<void> setEncryptionEnabled(bool enabled) => room.setE2EEEnabled(enabled);
+
   /// Starts the session by fetching credentials and connecting to the room.
   Future<void> start() async {
     if (room.connectionState != ConnectionState.disconnected) {
@@ -184,6 +192,18 @@ class Session extends DisposableChangeNotifier {
 
     _setError(null);
     _agentTimeoutTimer?.cancel();
+
+    // Configure E2EE on the room before connecting if encryption options are set.
+    final encryption = _options.encryption;
+    if (encryption != null) {
+      final BaseKeyProvider keyProvider = switch (encryption.key) {
+        SharedKeyEncryption(:final sharedKey) => await _createSharedKeyProvider(sharedKey),
+        KeyProviderEncryption(:final keyProvider) => keyProvider,
+      };
+      room.engine.roomOptions = room.engine.roomOptions.copyWith(
+        encryption: E2EEOptions(keyProvider: keyProvider),
+      );
+    }
 
     final Duration timeout = _options.agentConnectTimeout;
 
@@ -379,6 +399,12 @@ class Session extends DisposableChangeNotifier {
     }
     _error = newError;
     notifyListeners();
+  }
+
+  static Future<BaseKeyProvider> _createSharedKeyProvider(String sharedKey) async {
+    final keyProvider = await BaseKeyProvider.create();
+    await keyProvider.setSharedKey(sharedKey);
+    return keyProvider;
   }
 }
 
