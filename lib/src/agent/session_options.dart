@@ -14,7 +14,6 @@
 
 import '../core/room.dart';
 import '../e2ee/key_provider.dart';
-import '../logger.dart';
 
 /// Encryption key configuration for a [Session].
 ///
@@ -92,12 +91,7 @@ class SessionOptions {
     this.encryption,
   })  : isRoomProvided = room != null,
         room = room ?? Room() {
-    if (room != null && encryption != null) {
-      logger.warning(
-        'Both room and encryption were provided to SessionOptions. '
-        'The encryption option will be ignored. Configure E2EE on the Room directly.',
-      );
-    }
+    _validateEncryptionConfiguration();
   }
 
   SessionOptions._({
@@ -106,7 +100,9 @@ class SessionOptions {
     required this.preConnectAudio,
     required this.agentConnectTimeout,
     this.encryption,
-  });
+  }) {
+    _validateEncryptionConfiguration();
+  }
 
   SessionOptions copyWith({
     Room? room,
@@ -121,5 +117,15 @@ class SessionOptions {
       agentConnectTimeout: agentConnectTimeout ?? this.agentConnectTimeout,
       encryption: encryption ?? this.encryption,
     );
+  }
+
+  void _validateEncryptionConfiguration() {
+    if (isRoomProvided && encryption != null) {
+      throw ArgumentError.value(
+        encryption,
+        'encryption',
+        'Cannot be provided when room is also provided. Configure E2EE on the Room directly.',
+      );
+    }
   }
 }
