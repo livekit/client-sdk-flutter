@@ -152,6 +152,7 @@ class Session extends DisposableChangeNotifier {
   final _TokenSourceConfiguration _tokenSourceConfiguration;
 
   final Agent _agent = Agent();
+  bool _isStarting = false;
   Agent get agent => _agent;
 
   SessionError? get error => _error;
@@ -185,25 +186,14 @@ class Session extends DisposableChangeNotifier {
 
   /// Starts the session by fetching credentials and connecting to the room.
   Future<void> start() async {
-    if (room.connectionState != ConnectionState.disconnected) {
+    if (_isStarting || room.connectionState != ConnectionState.disconnected) {
       logger.info('Session.start() ignored: room already connecting or connected.');
       return;
     }
+    _isStarting = true;
 
     _setError(null);
     _agentTimeoutTimer?.cancel();
-
-    // Configure E2EE on the room before connecting if encryption options are set.
-    final encryption = _options.encryption;
-    if (encryption != null) {
-      final BaseKeyProvider keyProvider = switch (encryption.key) {
-        SharedKeyEncryption(:final sharedKey) => await _createSharedKeyProvider(sharedKey),
-        KeyProviderEncryption(:final keyProvider) => keyProvider,
-      };
-      room.engine.roomOptions = room.engine.roomOptions.copyWith(
-        encryption: E2EEOptions(keyProvider: keyProvider),
-      );
-    }
 
     final Duration timeout = _options.agentConnectTimeout;
 
@@ -217,6 +207,29 @@ class Session extends DisposableChangeNotifier {
     }
 
     try {
+      // Configure E2EE on the room before connecting if encryption options
+      // are set. Skipped when a custom room was provided, since the user is
+      // responsible for configuring E2EE on the room directly.
+      final encryption = _options.encryption;
+      if (encryption != null && !_options.isRoomProvided) {
+        if (room.e2eeManager != null) {
+          // Restart: the E2EE manager already exists from a previous session.
+          // Re-enable in case it was toggled off, before connect publishes
+          // any tracks.
+          await room.setE2EEEnabled(true);
+        } else {
+          // First start: create the key provider and configure room options.
+          // The E2EE manager will be created during connect() with encryption
+          // enabled by default.
+          final BaseKeyProvider keyProvider = switch (encryption.key) {
+            SharedKeyEncryption(:final sharedKey) => await _createSharedKeyProvider(sharedKey),
+            KeyProviderEncryption(:final keyProvider) => keyProvider,
+          };
+          room.engine.roomOptions = room.engine.roomOptions.copyWith(
+            encryption: E2EEOptions(keyProvider: keyProvider),
+          );
+        }
+      }
       final bool dispatchesAgent;
       if (_options.preConnectAudio) {
         dispatchesAgent = await room.withPreConnectAudio(
@@ -249,6 +262,8 @@ class Session extends DisposableChangeNotifier {
       _setError(SessionError.connection(error));
       _setConnectionState(ConnectionState.disconnected);
       _agent.disconnected();
+    } finally {
+      _isStarting = false;
     }
   }
 

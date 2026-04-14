@@ -14,6 +14,7 @@
 
 import '../core/room.dart';
 import '../e2ee/key_provider.dart';
+import '../logger.dart';
 
 /// Encryption key configuration for a [Session].
 ///
@@ -29,8 +30,7 @@ sealed class SessionEncryptionKey {
   const factory SessionEncryptionKey.sharedKey(String key) = SharedKeyEncryption;
 
   /// Use a pre-configured [BaseKeyProvider] for custom key management.
-  const factory SessionEncryptionKey.keyProvider(BaseKeyProvider provider) =
-      KeyProviderEncryption;
+  const factory SessionEncryptionKey.keyProvider(BaseKeyProvider provider) = KeyProviderEncryption;
 }
 
 /// A shared passphrase used to derive encryption keys.
@@ -47,16 +47,25 @@ class KeyProviderEncryption extends SessionEncryptionKey {
 
 /// Encryption configuration for a [Session].
 class SessionEncryptionOptions {
-  /// The encryption key — either a shared passphrase or a custom key provider.
+  /// The encryption key, either a shared passphrase or a custom key provider.
   final SessionEncryptionKey key;
 
   const SessionEncryptionOptions({required this.key});
+
+  /// Creates encryption options with a shared passphrase string.
+  SessionEncryptionOptions.sharedKey(String key) : key = SharedKeyEncryption(key);
+
+  /// Creates encryption options with a pre-configured [BaseKeyProvider].
+  SessionEncryptionOptions.keyProvider(BaseKeyProvider provider) : key = KeyProviderEncryption(provider);
 }
 
 /// Options for creating a [Session].
 class SessionOptions {
   /// The underlying [Room] used by the session.
   final Room room;
+
+  /// Whether a custom [Room] was explicitly provided.
+  final bool isRoomProvided;
 
   /// Whether to enable audio pre-connect with [PreConnectAudioBuffer].
   ///
@@ -81,7 +90,23 @@ class SessionOptions {
     this.preConnectAudio = true,
     this.agentConnectTimeout = const Duration(seconds: 20),
     this.encryption,
-  }) : room = room ?? Room();
+  })  : isRoomProvided = room != null,
+        room = room ?? Room() {
+    if (room != null && encryption != null) {
+      logger.warning(
+        'Both room and encryption were provided to SessionOptions. '
+        'The encryption option will be ignored. Configure E2EE on the Room directly.',
+      );
+    }
+  }
+
+  SessionOptions._({
+    required this.room,
+    required this.isRoomProvided,
+    required this.preConnectAudio,
+    required this.agentConnectTimeout,
+    this.encryption,
+  });
 
   SessionOptions copyWith({
     Room? room,
@@ -89,8 +114,9 @@ class SessionOptions {
     Duration? agentConnectTimeout,
     SessionEncryptionOptions? encryption,
   }) {
-    return SessionOptions(
+    return SessionOptions._(
       room: room ?? this.room,
+      isRoomProvided: room != null ? true : isRoomProvided,
       preConnectAudio: preConnectAudio ?? this.preConnectAudio,
       agentConnectTimeout: agentConnectTimeout ?? this.agentConnectTimeout,
       encryption: encryption ?? this.encryption,
