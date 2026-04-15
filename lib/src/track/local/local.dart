@@ -16,7 +16,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -41,21 +40,24 @@ import 'video.dart';
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
   @internal
-  final List<GlobalKey> viewKeys = [];
+  final Map<String, Size> viewSizes = {};
 
   @internal
-  Function(Key)? onVideoViewBuild;
+  Function(String, Size)? onVideoViewBuild;
 
   @internal
-  GlobalKey addViewKey() {
-    final key = GlobalKey();
-    viewKeys.add(key);
-    return key;
+  Function(String, Size)? onViewViewResize;
+
+  @internal
+  String registerVideoView(Size size) {
+    final id = Track.uuid.v4();
+    viewSizes[id] = size;
+    return id;
   }
 
   @internal
-  void removeViewKey(GlobalKey key) {
-    viewKeys.remove(key);
+  void unregisterVideoView(String id) {
+    viewSizes.remove(id);
   }
 }
 

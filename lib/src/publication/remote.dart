@@ -96,7 +96,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   // used to report renderer visibility to the server
   // and optimize
   lk_rtc.UpdateTrackSettings? _lastSentTrackSettings;
-  Timer? _visibilityTimer;
 
   Function(lk_rtc.UpdateTrackSettings)? _setPendingTrackSettingsUpdateRequest;
   Function? _cancelPendingTrackSettingsUpdateRequest;
@@ -111,7 +110,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     // register dispose func
     onDispose(() async {
       _cancelPendingTrackSettingsUpdateRequest?.call();
-      _visibilityTimer?.cancel();
       // this object is responsible for disposing track
       await this.track?.dispose();
     });
@@ -132,35 +130,36 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     _metadataMuted = info.muted;
   }
 
-  void _computeVideoViewVisibility({
-    bool quick = false,
-  }) {
-    //
-    Size maxOfSizes(Size s1, Size s2) => Size(
-          max(s1.width, s2.width),
-          max(s1.height, s2.height),
-        );
+  Size _maxOfSizes(Size s1, Size s2) => Size(
+        max(s1.width, s2.width),
+        max(s1.height, s2.height),
+      );
 
-    final videoTrack = track as VideoTrack;
+  /// Requests the server to send a new track with the given settings.
+  @internal
+  void updateVideoViewSize(String viewViewId, Size size, {bool quick = false}) {
+    assert(track is VideoTrack, 'updateVideoViewSize can only be called on video tracks');
+    final videoTrack = track as VideoTrack?;
+    if (videoTrack == null) return;
+    if (videoTrack.viewSizes[viewViewId] == size) return;
+
+    logger.finer('[Visibility] VideoView did resize');
+    videoTrack.viewSizes[viewViewId] = size;
 
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
       disabled: true,
     );
 
-    final videoViewsSizes = <Size>[];
-    for (var key in videoTrack.viewKeys) {
-      final context = key.currentContext;
-      if (context == null) continue;
-      final renderBox = context.findRenderObject() as RenderBox?;
-      if (renderBox == null || !renderBox.hasSize) continue;
-      videoViewsSizes.add(renderBox.size * MediaQuery.of(context).devicePixelRatio);
-    }
+    final videoViewsSizes = <Size>[
+      for (final MapEntry(key: _, value: size) in videoTrack.viewSizes.entries)
+        if (size > Size.zero) size,
+    ];
 
     logger.finer('[Visibility] ${track?.sid} watching ${videoViewsSizes.length} views...');
 
     if (videoViewsSizes.isNotEmpty) {
-      final largestVideoView = videoViewsSizes.reduce((value, element) => maxOfSizes(value, element));
+      final largestVideoView = videoViewsSizes.reduce((value, element) => _maxOfSizes(value, element));
 
       settings
         ..disabled = false
@@ -194,23 +193,19 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     if (didUpdate) {
       // Stop current visibility timer (if exists)
       _cancelPendingTrackSettingsUpdateRequest?.call();
-      _visibilityTimer?.cancel();
 
       final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
-        // Start monitoring visibility
-        _visibilityTimer = Timer.periodic(
-          const Duration(milliseconds: 300),
-          (_) => _computeVideoViewVisibility(),
-        );
-
-        newValue.onVideoViewBuild = (_) {
+        newValue.onVideoViewBuild = (viewId, size) {
           logger.finer('[Visibility] VideoView did build');
           if (_lastSentTrackSettings?.disabled == true) {
             // quick enable
             _cancelPendingTrackSettingsUpdateRequest?.call();
-            _computeVideoViewVisibility(quick: true);
+            updateVideoViewSize(viewId, size, quick: true);
           }
+        };
+        newValue.onViewViewResize = (viewId, size) {
+          updateVideoViewSize(viewId, size);
         };
       }
 
