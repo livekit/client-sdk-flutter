@@ -16,7 +16,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
-
 import 'package:meta/meta.dart';
 
 import '../core/signal_client.dart';
@@ -149,25 +148,24 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       disabled: true,
     );
 
-    // filter visible build contexts
-    final viewSizes = videoTrack.viewKeys
-        .map((e) => e.currentContext)
-        .nonNulls
-        .map((e) => e.findRenderObject() as RenderBox?)
-        .nonNulls
-        .where((e) => e.hasSize)
-        .map((e) => e.size);
+    final videoViewsSizes = <Size>[];
+    for (var key in videoTrack.viewKeys) {
+      final context = key.currentContext;
+      if (context == null) continue;
+      final renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox == null || !renderBox.hasSize) continue;
+      videoViewsSizes.add(renderBox.size * MediaQuery.of(context).devicePixelRatio);
+    }
 
-    logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+    logger.finer('[Visibility] ${track?.sid} watching ${videoViewsSizes.length} views...');
 
-    if (viewSizes.isNotEmpty) {
-      // compute largest size
-      final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
+    if (videoViewsSizes.isNotEmpty) {
+      final largestVideoView = videoViewsSizes.reduce((value, element) => maxOfSizes(value, element));
 
       settings
         ..disabled = false
-        ..width = largestSize.width.ceil()
-        ..height = largestSize.height.ceil();
+        ..width = largestVideoView.width.ceil()
+        ..height = largestVideoView.height.ceil();
     }
 
     // Only send new settings to server if it changed
