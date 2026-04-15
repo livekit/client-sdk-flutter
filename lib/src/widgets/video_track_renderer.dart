@@ -332,7 +332,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       },
     );
 
-    if (widget.autoCenter) {
+    if (widget.autoCenter && widget.fit == VideoViewFit.contain) {
       return Center(child: videoView);
     } else {
       return videoView;
