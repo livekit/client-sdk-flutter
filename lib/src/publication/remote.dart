@@ -143,7 +143,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     if (videoTrack == null) return;
     if (videoTrack.viewSizes[viewViewId] == size) return;
 
-    logger.finer('[Visibility] VideoView did resize');
+    print('[Visibility] VideoView did resize to ${size.width}x${size.height}, quick: ${quick}');
     videoTrack.viewSizes[viewViewId] = size;
 
     final settings = lk_rtc.UpdateTrackSettings(
@@ -205,6 +205,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
           }
         };
         newValue.onViewViewResize = (viewId, size) {
+          // schedule update to server
           updateVideoViewSize(viewId, size);
         };
       }

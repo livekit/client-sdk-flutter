@@ -49,7 +49,7 @@ mixin VideoTrack on Track {
   Function(String, Size)? onViewViewResize;
 
   @internal
-  String registerVideoView(Size size) {
+  String registerVideoView([Size size = Size.zero]) {
     final id = Track.uuid.v4();
     viewSizes[id] = size;
     return id;

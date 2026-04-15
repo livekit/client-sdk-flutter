@@ -141,7 +141,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.cachedRenderer != null) {
       _renderer = widget.cachedRenderer;
     }
-    _internalId = widget.track.registerVideoView(Size.zero);
+    _internalId = widget.track.registerVideoView();
+    WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
+      widget.track.onVideoViewBuild?.call(_internalId, _computedSize);
+    });
+
     if (kIsWeb) {
       unawaited(() async {
         await _initializeRenderer();
@@ -159,6 +163,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       disposeRenderer();
     }
     super.dispose();
+  }
+
+  Size get _computedSize {
+    if (!mounted) return Size.zero;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return Size.zero;
+    return box.size * MediaQuery.of(context).devicePixelRatio;
   }
 
   Future<void> _attach() async {
@@ -188,7 +199,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.didUpdateWidget(oldWidget);
     if (widget.track != oldWidget.track) {
       oldWidget.track.unregisterVideoView(_internalId);
-      _internalId = widget.track.registerVideoView(Size.zero);
+      _internalId = widget.track.registerVideoView();
 
       unawaited(() async {
         await _attach();
@@ -207,7 +218,6 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           builder: (ctx) {
             // let it render before notifying build
             WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewBuild?.call(_internalId, size);
               widget.track.onViewViewResize?.call(_internalId, size);
             });
             return rtc.RTCVideoView(
@@ -249,7 +259,6 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
             builder: (ctx) {
               // let it render before notifying build
               WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-                widget.track.onVideoViewBuild?.call(_internalId, size);
                 widget.track.onViewViewResize?.call(_internalId, size);
               });
 
