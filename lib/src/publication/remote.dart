@@ -141,15 +141,18 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     assert(track is VideoTrack, 'updateVideoViewSize can only be called on video tracks');
     final videoTrack = track as VideoTrack?;
     if (videoTrack == null) return;
+    if (videoTrack.viewSizes[viewViewId] == null) {
+      logger.warning(
+        'Trying to update video view size ${size} for a view ${viewViewId} that is not registered or was unregistered',
+      );
+      return;
+    }
     if (videoTrack.viewSizes[viewViewId] == size) return;
 
     print('[Visibility] VideoView did resize to ${size.width}x${size.height}, quick: ${quick}');
     videoTrack.viewSizes[viewViewId] = size;
 
-    final settings = lk_rtc.UpdateTrackSettings(
-      trackSids: [sid],
-      disabled: true,
-    );
+    final settings = lk_rtc.UpdateTrackSettings(trackSids: [sid], disabled: true);
 
     final videoViewsSizes = <Size>[
       for (final MapEntry(key: _, value: size) in videoTrack.viewSizes.entries)
@@ -163,8 +166,8 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
       settings
         ..disabled = false
-        ..width = largestVideoView.width.ceil()
-        ..height = largestVideoView.height.ceil();
+        ..width = largestVideoView.width.round()
+        ..height = largestVideoView.height.round();
     }
 
     // Only send new settings to server if it changed
