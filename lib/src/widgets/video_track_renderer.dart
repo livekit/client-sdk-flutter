@@ -17,7 +17,6 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
@@ -136,6 +135,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
   }
 
+  Timer? _resizeDebounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -145,6 +146,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _internalId = widget.track.registerVideoView();
     WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
       widget.track.onVideoViewBuild?.call(_internalId, _computedSize);
+    });
+
+    _resizeDebounceTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      final size = _computedSize;
+      if (size.isEmpty) return;
+      widget.track.onViewViewResize?.call(_internalId, size);
     });
 
     if (kIsWeb) {
@@ -158,6 +166,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
+    _resizeDebounceTimer?.cancel();
     widget.track.unregisterVideoView(_internalId);
     unawaited(_listener?.dispose());
     if (widget.autoDisposeRenderer) {
