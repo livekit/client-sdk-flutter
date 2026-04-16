@@ -13,58 +13,17 @@
 // limitations under the License.
 
 import '../core/room.dart';
-import '../e2ee/key_provider.dart';
-
-/// Encryption key configuration for a [Session].
-///
-/// Use one of the named constructors to specify either a shared passphrase
-/// or a pre-configured [BaseKeyProvider].
-sealed class SessionEncryptionKey {
-  const SessionEncryptionKey();
-
-  /// Use a shared passphrase string.
-  ///
-  /// A [BaseKeyProvider] is created internally using the string as a shared
-  /// key (recommended for maximum compatibility across SDKs).
-  const factory SessionEncryptionKey.sharedKey(String key) = SharedKeyEncryption;
-
-  /// Use a pre-configured [BaseKeyProvider] for custom key management.
-  const factory SessionEncryptionKey.keyProvider(BaseKeyProvider provider) = KeyProviderEncryption;
-}
-
-/// A shared passphrase used to derive encryption keys.
-class SharedKeyEncryption extends SessionEncryptionKey {
-  final String sharedKey;
-  const SharedKeyEncryption(this.sharedKey);
-}
-
-/// A pre-configured [BaseKeyProvider] instance.
-class KeyProviderEncryption extends SessionEncryptionKey {
-  final BaseKeyProvider keyProvider;
-  const KeyProviderEncryption(this.keyProvider);
-}
-
-/// Encryption configuration for a [Session].
-class SessionEncryptionOptions {
-  /// The encryption key, either a shared passphrase or a custom key provider.
-  final SessionEncryptionKey key;
-
-  const SessionEncryptionOptions({required this.key});
-
-  /// Creates encryption options with a shared passphrase string.
-  SessionEncryptionOptions.sharedKey(String key) : key = SharedKeyEncryption(key);
-
-  /// Creates encryption options with a pre-configured [BaseKeyProvider].
-  SessionEncryptionOptions.keyProvider(BaseKeyProvider provider) : key = KeyProviderEncryption(provider);
-}
+import '../e2ee/options.dart';
+import '../options.dart';
 
 /// Options for creating a [Session].
 class SessionOptions {
   /// The underlying [Room] used by the session.
+  ///
+  /// If neither [room] nor [encryption] is provided, a default [Room] is
+  /// created. Passing both throws [ArgumentError] — configure E2EE on the
+  /// [Room] directly if you need a custom [Room] with encryption.
   final Room room;
-
-  /// Whether a custom [Room] was explicitly provided.
-  final bool isRoomProvided;
 
   /// Whether to enable audio pre-connect with [PreConnectAudioBuffer].
   ///
@@ -77,55 +36,43 @@ class SessionOptions {
   /// to a failed state.
   final Duration agentConnectTimeout;
 
-  /// Optional encryption configuration for end-to-end encryption.
+  /// Creates [SessionOptions].
   ///
-  /// When provided, the session will configure E2EE on the room before
-  /// connecting. Use [Session.setEncryptionEnabled] to toggle encryption
-  /// after the session has started.
-  final SessionEncryptionOptions? encryption;
-
+  /// Pass [encryption] to configure end-to-end encryption on the internally
+  /// created [Room]. Use [E2EEOptions.sharedKey] for the common shared-key
+  /// case. For advanced setups (custom [RoomOptions], per-participant keys),
+  /// build a [Room] yourself and pass it via [room] instead.
+  ///
+  /// Passing both [room] and [encryption] throws [ArgumentError].
   SessionOptions({
     Room? room,
+    E2EEOptions? encryption,
     this.preConnectAudio = true,
     this.agentConnectTimeout = const Duration(seconds: 20),
-    this.encryption,
-  })  : isRoomProvided = room != null,
-        room = room ?? Room() {
-    _validateEncryptionConfiguration();
-  }
+  }) : room = _buildRoom(room, encryption);
 
-  SessionOptions._({
-    required this.room,
-    required this.isRoomProvided,
-    required this.preConnectAudio,
-    required this.agentConnectTimeout,
-    this.encryption,
-  }) {
-    _validateEncryptionConfiguration();
+  static Room _buildRoom(Room? room, E2EEOptions? encryption) {
+    if (room != null && encryption != null) {
+      throw ArgumentError(
+        'SessionOptions: pass either `room` or `encryption`, not both. '
+        'To use encryption with a custom Room, configure E2EE on the Room directly.',
+      );
+    }
+    if (encryption != null) {
+      return Room(roomOptions: RoomOptions(encryption: encryption));
+    }
+    return room ?? Room();
   }
 
   SessionOptions copyWith({
     Room? room,
     bool? preConnectAudio,
     Duration? agentConnectTimeout,
-    SessionEncryptionOptions? encryption,
   }) {
-    return SessionOptions._(
+    return SessionOptions(
       room: room ?? this.room,
-      isRoomProvided: room != null ? true : isRoomProvided,
       preConnectAudio: preConnectAudio ?? this.preConnectAudio,
       agentConnectTimeout: agentConnectTimeout ?? this.agentConnectTimeout,
-      encryption: encryption ?? this.encryption,
     );
-  }
-
-  void _validateEncryptionConfiguration() {
-    if (isRoomProvided && encryption != null) {
-      throw ArgumentError.value(
-        encryption,
-        'encryption',
-        'Cannot be provided when room is also provided. Configure E2EE on the Room directly.',
-      );
-    }
   }
 }

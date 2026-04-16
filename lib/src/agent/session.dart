@@ -20,8 +20,6 @@ import 'package:uuid/uuid.dart';
 
 import '../core/room.dart';
 import '../core/room_preconnect.dart';
-import '../e2ee/key_provider.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../logger.dart';
 import '../managers/event.dart';
@@ -180,8 +178,8 @@ class Session extends DisposableChangeNotifier {
 
   /// Enables or disables end-to-end encryption for the session.
   ///
-  /// Requires that encryption was configured via [SessionOptions.encryption]
-  /// or that the [Room] was created with [E2EEOptions].
+  /// Requires that encryption was configured via [SessionOptions] (by passing
+  /// `encryption:`) or that the [Room] was created with [E2EEOptions].
   Future<void> setEncryptionEnabled(bool enabled) => room.setE2EEEnabled(enabled);
 
   /// Starts the session by fetching credentials and connecting to the room.
@@ -207,29 +205,6 @@ class Session extends DisposableChangeNotifier {
     }
 
     try {
-      // Configure E2EE on the room before connecting if encryption options
-      // are set. Skipped when a custom room was provided, since the user is
-      // responsible for configuring E2EE on the room directly.
-      final encryption = _options.encryption;
-      if (encryption != null && !_options.isRoomProvided) {
-        if (room.e2eeManager != null) {
-          // Restart: the E2EE manager already exists from a previous session.
-          // Re-enable in case it was toggled off, before connect publishes
-          // any tracks.
-          await room.setE2EEEnabled(true);
-        } else {
-          // First start: create the key provider and configure room options.
-          // The E2EE manager will be created during connect() with encryption
-          // enabled by default.
-          final BaseKeyProvider keyProvider = switch (encryption.key) {
-            SharedKeyEncryption(:final sharedKey) => await _createSharedKeyProvider(sharedKey),
-            KeyProviderEncryption(:final keyProvider) => keyProvider,
-          };
-          room.engine.roomOptions = room.engine.roomOptions.copyWith(
-            encryption: E2EEOptions(keyProvider: keyProvider),
-          );
-        }
-      }
       final bool dispatchesAgent;
       if (_options.preConnectAudio) {
         dispatchesAgent = await room.withPreConnectAudio(
@@ -414,12 +389,6 @@ class Session extends DisposableChangeNotifier {
     }
     _error = newError;
     notifyListeners();
-  }
-
-  static Future<BaseKeyProvider> _createSharedKeyProvider(String sharedKey) async {
-    final keyProvider = await BaseKeyProvider.create();
-    await keyProvider.setSharedKey(sharedKey);
-    return keyProvider;
   }
 }
 
