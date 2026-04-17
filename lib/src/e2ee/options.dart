@@ -20,8 +20,24 @@ enum EncryptionType {
   kCustom,
 }
 
+/// End-to-end encryption configuration for a [Room].
+///
+/// Build with either a pre-constructed [BaseKeyProvider] (default constructor)
+/// or a shared passphrase ([E2EEOptions.sharedKey]). Resolution of the
+/// passphrase into a native key provider is deferred to [E2EEManager.setup].
 class E2EEOptions {
-  final BaseKeyProvider keyProvider;
+  /// A pre-built [BaseKeyProvider], or `null` when this instance was created
+  /// via [E2EEOptions.sharedKey].
+  final BaseKeyProvider? keyProvider;
+
+  /// A shared passphrase, or `null` when a [keyProvider] was provided.
+  final String? sharedKey;
+
   final EncryptionType encryptionType = EncryptionType.kGcm;
-  const E2EEOptions({required this.keyProvider});
+
+  const E2EEOptions({required BaseKeyProvider this.keyProvider}) : sharedKey = null;
+
+  const E2EEOptions.sharedKey(String key)
+      : sharedKey = key,
+        keyProvider = null;
 }

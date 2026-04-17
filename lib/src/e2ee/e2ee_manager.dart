@@ -31,17 +31,28 @@ import 'options.dart';
 class E2EEManager {
   Room? _room;
   final Map<Map<String, String>, FrameCryptor> _frameCryptors = {};
-  final BaseKeyProvider _keyProvider;
+  final E2EEOptions _options;
+  BaseKeyProvider? _keyProvider;
   final Algorithm _algorithm = Algorithm.kAesGcm;
   DataPacketCryptor? _dataPacketCryptor;
   bool _enabled = true;
   bool _encryptionEnabled = false;
   EventsListener<RoomEvent>? _listener;
-  E2EEManager(this._keyProvider, {bool dcEncryptionEnabled = false}) {
+  E2EEManager({
+    required E2EEOptions options,
+    bool dcEncryptionEnabled = false,
+  }) : _options = options {
     _encryptionEnabled = dcEncryptionEnabled;
   }
 
+  static Future<BaseKeyProvider> _buildSharedKeyProvider(String key) async {
+    final provider = await BaseKeyProvider.create();
+    await provider.setSharedKey(key);
+    return provider;
+  }
+
   Future<void> setup(Room room) async {
+    _keyProvider ??= _options.keyProvider ?? await _buildSharedKeyProvider(_options.sharedKey!);
     if (_room != room) {
       await _cleanUp();
       _room = room;
@@ -117,20 +128,20 @@ class E2EEManager {
           }
         });
       _dataPacketCryptor ??= await dataPacketCryptorFactory.createDataPacketCryptor(
-          algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
+          algorithm: _algorithm, keyProvider: _keyProvider!.keyProvider);
     }
   }
 
-  BaseKeyProvider get keyProvider => _keyProvider;
+  BaseKeyProvider get keyProvider => _keyProvider!;
 
   Future<void> ratchetKey({String? participantId, int? keyIndex}) async {
     if (participantId != null) {
-      final newKey = await _keyProvider.ratchetKey(participantId, keyIndex);
+      final newKey = await _keyProvider!.ratchetKey(participantId, keyIndex);
       if (kDebugMode) {
         print('newKey: $newKey');
       }
     } else {
-      final newKey = await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
+      final newKey = await _keyProvider!.ratchetSharedKey(keyIndex: keyIndex);
       if (kDebugMode) {
         print('newKey: $newKey');
       }
@@ -153,22 +164,22 @@ class E2EEManager {
   Future<FrameCryptor> _addRtpSender(
       {required RTCRtpSender sender, required String identity, required String sid}) async {
     final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpSender(
-        participantId: identity, sender: sender, algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
+        participantId: identity, sender: sender, algorithm: _algorithm, keyProvider: _keyProvider!.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    logger.info('_addRtpSender, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
-    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
+    logger.info('_addRtpSender, setKeyIndex: ${_keyProvider!.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider!.getLatestIndex(identity));
     return frameCryptor;
   }
 
   Future<FrameCryptor> _addRtpReceiver(
       {required RTCRtpReceiver receiver, required String identity, required String sid}) async {
     final frameCryptor = await frameCryptorFactory.createFrameCryptorForRtpReceiver(
-        participantId: identity, receiver: receiver, algorithm: _algorithm, keyProvider: _keyProvider.keyProvider);
+        participantId: identity, receiver: receiver, algorithm: _algorithm, keyProvider: _keyProvider!.keyProvider);
     _frameCryptors[{identity: sid}] = frameCryptor;
     await frameCryptor.setEnabled(_enabled);
-    logger.info('_addRtpReceiver, setKeyIndex: ${_keyProvider.getLatestIndex(identity)}');
-    await frameCryptor.setKeyIndex(_keyProvider.getLatestIndex(identity));
+    logger.info('_addRtpReceiver, setKeyIndex: ${_keyProvider!.getLatestIndex(identity)}');
+    await frameCryptor.setKeyIndex(_keyProvider!.getLatestIndex(identity));
     return frameCryptor;
   }
 
@@ -258,6 +269,6 @@ class E2EEManager {
       throw Exception('DataPacketCryptor is not initialized');
     }
     return await _dataPacketCryptor!
-        .encrypt(participantId: participantId, keyIndex: _keyProvider.getLatestIndex(participantId), data: data);
+        .encrypt(participantId: participantId, keyIndex: _keyProvider!.getLatestIndex(participantId), data: data);
   }
 }
