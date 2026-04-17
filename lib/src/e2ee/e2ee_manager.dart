@@ -52,7 +52,7 @@ class E2EEManager {
   }
 
   Future<void> setup(Room room) async {
-    _keyProvider ??= _options.keyProvider ?? await _buildSharedKeyProvider(_options.sharedKey!);
+    _keyProvider ??= _options.keyProviderOrNull ?? await _buildSharedKeyProvider(_options.sharedKey!);
     if (_room != room) {
       await _cleanUp();
       _room = room;
