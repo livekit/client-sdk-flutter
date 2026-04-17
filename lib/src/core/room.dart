@@ -252,7 +252,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       // ignore: deprecated_member_use_from_same_package
       final e2eeOptions = roomOptions.encryption ?? roomOptions.e2eeOptions;
-      _e2eeManager = E2EEManager(e2eeOptions!.keyProvider, dcEncryptionEnabled: roomOptions.encryption != null);
+      _e2eeManager = E2EEManager(
+        options: e2eeOptions!,
+        dcEncryptionEnabled: roomOptions.encryption != null,
+      );
       await _e2eeManager!.setup(this);
       engine.setE2eeManager(_e2eeManager);
     } else {
