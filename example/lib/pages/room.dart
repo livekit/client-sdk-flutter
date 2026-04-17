@@ -35,7 +35,7 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
-    enableInCallFlags();
+    unawaited(enableInCallFlags());
     // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
@@ -65,7 +65,7 @@ class _RoomPageState extends State<RoomPage> {
     widget.room.removeListener(_onRoomDidUpdate);
     unawaited(_disposeRoomAsync());
     onWindowShouldClose = null;
-    disableInCallFlags();
+    unawaited(disableInCallFlags());
     super.dispose();
   }
 
@@ -74,15 +74,15 @@ class _RoomPageState extends State<RoomPage> {
     await widget.room.dispose();
   }
 
-    static const platform = MethodChannel('livekit_incall');
+  static const platform = MethodChannel('livekit_incall');
 
-    Future<void> enableInCallFlags() async {
-      await platform.invokeMethod('enableInCall');
-    }
+  Future<void> enableInCallFlags() async {
+    await platform.invokeMethod('enableInCall');
+  }
 
-    Future<void> disableInCallFlags() async {
-      await platform.invokeMethod('disableInCall');
-    }
+  Future<void> disableInCallFlags() async {
+    await platform.invokeMethod('disableInCall');
+  }
 
   /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
   void _setUpListeners() => _listener
