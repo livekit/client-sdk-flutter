@@ -24,4 +24,12 @@ class E2EEOptions {
   final BaseKeyProvider keyProvider;
   final EncryptionType encryptionType = EncryptionType.kGcm;
   const E2EEOptions({required this.keyProvider});
+
+  /// Creates [E2EEOptions] configured with a shared-key [BaseKeyProvider]
+  /// derived from the given passphrase.
+  static Future<E2EEOptions> sharedKey(String key) async {
+    final keyProvider = await BaseKeyProvider.create();
+    await keyProvider.setSharedKey(key);
+    return E2EEOptions(keyProvider: keyProvider);
+  }
 }

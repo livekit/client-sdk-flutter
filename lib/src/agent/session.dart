@@ -150,6 +150,7 @@ class Session extends DisposableChangeNotifier {
   final _TokenSourceConfiguration _tokenSourceConfiguration;
 
   final Agent _agent = Agent();
+  bool _isStarting = false;
   Agent get agent => _agent;
 
   SessionError? get error => _error;
@@ -175,12 +176,20 @@ class Session extends DisposableChangeNotifier {
   EventsListener<RoomEvent>? _roomListener;
   Timer? _agentTimeoutTimer;
 
+  /// Enables or disables end-to-end encryption for the session.
+  ///
+  /// Requires that encryption was configured via [SessionOptions] (by passing
+  /// `encryption:`) or that the [Room] was created with [E2EEOptions].
+  /// Throws [LiveKitE2EEException] if encryption was not configured.
+  Future<void> setEncryptionEnabled(bool enabled) => room.setE2EEEnabled(enabled);
+
   /// Starts the session by fetching credentials and connecting to the room.
   Future<void> start() async {
-    if (room.connectionState != ConnectionState.disconnected) {
+    if (_isStarting || room.connectionState != ConnectionState.disconnected) {
       logger.info('Session.start() ignored: room already connecting or connected.');
       return;
     }
+    _isStarting = true;
 
     _setError(null);
     _agentTimeoutTimer?.cancel();
@@ -229,6 +238,8 @@ class Session extends DisposableChangeNotifier {
       _setError(SessionError.connection(error));
       _setConnectionState(ConnectionState.disconnected);
       _agent.disconnected();
+    } finally {
+      _isStarting = false;
     }
   }
 
