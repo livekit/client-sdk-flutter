@@ -180,6 +180,7 @@ class Session extends DisposableChangeNotifier {
   ///
   /// Requires that encryption was configured via [SessionOptions] (by passing
   /// `encryption:`) or that the [Room] was created with [E2EEOptions].
+  /// Throws [LiveKitE2EEException] if encryption was not configured.
   Future<void> setEncryptionEnabled(bool enabled) => room.setE2EEEnabled(enabled);
 
   /// Starts the session by fetching credentials and connecting to the room.
