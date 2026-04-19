@@ -97,7 +97,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   // used to report renderer visibility to the server
   // and optimize
   lk_rtc.UpdateTrackSettings? _lastSentTrackSettings;
-  Timer? _visibilityTimer;
 
   Function(lk_rtc.UpdateTrackSettings)? _setPendingTrackSettingsUpdateRequest;
   Function? _cancelPendingTrackSettingsUpdateRequest;
@@ -112,7 +111,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     // register dispose func
     onDispose(() async {
       _cancelPendingTrackSettingsUpdateRequest?.call();
-      _visibilityTimer?.cancel();
       // this object is responsible for disposing track
       await this.track?.dispose();
     });
@@ -133,41 +131,44 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     _metadataMuted = info.muted;
   }
 
-  void _computeVideoViewVisibility({
-    bool quick = false,
-  }) {
-    //
-    Size maxOfSizes(Size s1, Size s2) => Size(
-          max(s1.width, s2.width),
-          max(s1.height, s2.height),
-        );
+  Size _maxOfSizes(Size s1, Size s2) => Size(
+        max(s1.width, s2.width),
+        max(s1.height, s2.height),
+      );
 
-    final videoTrack = track as VideoTrack;
+  /// Requests the server to send a new track with the given settings.
+  @internal
+  void updateVideoViewSize(String viewViewId, Size size, {bool quick = false}) {
+    assert(track is VideoTrack, 'updateVideoViewSize can only be called on video tracks');
+    final videoTrack = track as VideoTrack?;
+    if (videoTrack == null) return;
+    if (videoTrack.viewSizes[viewViewId] == null) {
+      logger.warning(
+        'Trying to update video view size ${size} for a view ${viewViewId} that is not registered or was unregistered',
+      );
+      return;
+    }
+    if (videoTrack.viewSizes[viewViewId] == size) return;
 
-    final settings = lk_rtc.UpdateTrackSettings(
-      trackSids: [sid],
-      disabled: true,
-    );
+    print('[Visibility] VideoView did resize to ${size.width}x${size.height}, quick: ${quick}');
+    videoTrack.viewSizes[viewViewId] = size;
 
-    // filter visible build contexts
-    final viewSizes = videoTrack.viewKeys
-        .map((e) => e.currentContext)
-        .nonNulls
-        .map((e) => e.findRenderObject() as RenderBox?)
-        .nonNulls
-        .where((e) => e.hasSize)
-        .map((e) => e.size);
+    final settings = lk_rtc.UpdateTrackSettings(trackSids: [sid], disabled: true);
 
-    logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
+    final videoViewsSizes = <Size>[
+      for (final MapEntry(key: _, value: size) in videoTrack.viewSizes.entries)
+        if (size > Size.zero) size,
+    ];
 
-    if (viewSizes.isNotEmpty) {
-      // compute largest size
-      final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
+    logger.finer('[Visibility] ${track?.sid} watching ${videoViewsSizes.length} views...');
+
+    if (videoViewsSizes.isNotEmpty) {
+      final largestVideoView = videoViewsSizes.reduce((value, element) => _maxOfSizes(value, element));
 
       settings
         ..disabled = false
-        ..width = largestSize.width.ceil()
-        ..height = largestSize.height.ceil();
+        ..width = largestVideoView.width.round()
+        ..height = largestVideoView.height.round();
     }
 
     // Only send new settings to server if it changed
@@ -196,23 +197,20 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     if (didUpdate) {
       // Stop current visibility timer (if exists)
       _cancelPendingTrackSettingsUpdateRequest?.call();
-      _visibilityTimer?.cancel();
 
       final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
-        // Start monitoring visibility
-        _visibilityTimer = Timer.periodic(
-          const Duration(milliseconds: 300),
-          (_) => _computeVideoViewVisibility(),
-        );
-
-        newValue.onVideoViewBuild = (_) {
+        newValue.onVideoViewBuild = (viewId, size) {
           logger.finer('[Visibility] VideoView did build');
           if (_lastSentTrackSettings?.disabled == true) {
             // quick enable
             _cancelPendingTrackSettingsUpdateRequest?.call();
-            _computeVideoViewVisibility(quick: true);
+            updateVideoViewSize(viewId, size, quick: true);
           }
+        };
+        newValue.onViewViewResize = (viewId, size) {
+          // schedule update to server
+          updateVideoViewSize(viewId, size);
         };
       }
 

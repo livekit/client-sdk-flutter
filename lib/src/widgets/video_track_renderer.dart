@@ -90,8 +90,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   bool _rendererReadyForWeb = false;
   double? _aspectRatio;
   EventsListener<TrackEvent>? _listener;
-  // Used to compute visibility information
-  late GlobalKey _internalKey;
+  late String _internalId;
+  Key get _internalKey => ValueKey('${widget.track.sid}_$_internalId');
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
     if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
@@ -142,7 +142,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.cachedRenderer != null) {
       _renderer = widget.cachedRenderer;
     }
-    _internalKey = widget.track.addViewKey();
+    _internalId = widget.track.registerVideoView();
+    WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
+      widget.track.onVideoViewBuild?.call(_internalId, _computedSize);
+    });
+
     if (kIsWeb) {
       unawaited(() async {
         await _initializeRenderer();
@@ -154,12 +158,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    widget.track.removeViewKey(_internalKey);
+    widget.track.unregisterVideoView(_internalId);
     unawaited(_listener?.dispose());
     if (widget.autoDisposeRenderer) {
       disposeRenderer();
     }
     super.dispose();
+  }
+
+  Size get _computedSize {
+    if (!mounted) return Size.zero;
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return Size.zero;
+    return box.size * MediaQuery.of(context).devicePixelRatio;
   }
 
   Future<void> _attach() async {
@@ -188,8 +199,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.track != oldWidget.track) {
-      oldWidget.track.removeViewKey(_internalKey);
-      _internalKey = widget.track.addViewKey();
+      oldWidget.track.unregisterVideoView(_internalId);
+      _internalId = widget.track.registerVideoView();
+
       unawaited(() async {
         await _attach();
       }());
@@ -200,14 +212,14 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
   }
 
-  Widget _videoViewForWeb() => !_rendererReadyForWeb
+  Widget _videoViewForWeb(Size size) => !_rendererReadyForWeb
       ? Container()
       : Builder(
           key: _internalKey,
           builder: (ctx) {
             // let it render before notifying build
             WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewBuild?.call(_internalKey);
+              widget.track.onViewViewResize?.call(_internalId, size);
             });
             return rtc.RTCVideoView(
               _renderer! as rtc.RTCVideoRenderer,
@@ -238,7 +250,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     );
   }
 
-  Widget _videoViewForNative() => FutureBuilder(
+  Widget _videoViewForNative(Size size) => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
         if ((snapshot.hasData && _renderer != null) ||
@@ -248,7 +260,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
             builder: (ctx) {
               // let it render before notifying build
               WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-                widget.track.onVideoViewBuild?.call(_internalKey);
+                widget.track.onViewViewResize?.call(_internalId, size);
               });
 
               if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
@@ -278,14 +290,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // different rendering methods for web and native.
   @override
   Widget build(BuildContext context) {
-    final child = kIsWeb ? _videoViewForWeb() : _videoViewForNative();
-
-    if (widget.fit == VideoViewFit.cover) {
-      return child;
-    }
-
     final videoView = LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        final size = constraints.biggest * MediaQuery.of(context).devicePixelRatio;
+
+        final child = kIsWeb ? _videoViewForWeb(size) : _videoViewForNative(size);
+
+        if (widget.fit == VideoViewFit.cover) {
+          return child;
+        }
+
+        if (size.isEmpty) {
+          return child;
+        }
         if (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) {
           return child;
         }
@@ -316,7 +333,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       },
     );
 
-    if (widget.autoCenter) {
+    if (widget.autoCenter && widget.fit == VideoViewFit.contain) {
       return Center(child: videoView);
     } else {
       return videoView;
