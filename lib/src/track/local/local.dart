@@ -348,7 +348,7 @@ abstract class LocalTrack extends Track {
     await _processor!.init(processorOptions);
 
     if (_processor?.processedTrack != null) {
-      setProcessedTrack(processor.processedTrack!);
+      await setProcessedTrack(processor.processedTrack!);
     }
 
     logger.fine('processor initialized');
@@ -361,18 +361,12 @@ abstract class LocalTrack extends Track {
     if (_processor == null) return;
 
     logger.fine('stopping processor');
+    await _processor?.processedTrack?.stop();
     await _processor?.destroy();
     _processor = null;
 
-    if (!keepElement) {
-      // processorElement?.remove();
-      // processorElement = null;
-    }
-
-    // apply original track constraints in case the processor changed them
-    //await this._mediaStreamTrack.applyConstraints(this._constraints);
-    // force re-setting of the mediaStreamTrack on the sender
-    //await this.setMediaStreamTrack(this._mediaStreamTrack, true);
+    // Restore original track on sender
+    await setProcessedTrack(null);
 
     events.emit(TrackProcessorUpdateEvent(track: this));
   }

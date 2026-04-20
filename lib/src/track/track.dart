@@ -222,8 +222,19 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   }
 
   @internal
-  void setProcessedTrack(rtc.MediaStreamTrack track) {
-    _originalTrack = _mediaStreamTrack;
-    _mediaStreamTrack = track;
+  Future<void> setProcessedTrack(rtc.MediaStreamTrack? track) async {
+    if (track != null) {
+      _originalTrack = _mediaStreamTrack;
+      _mediaStreamTrack = track;
+    } else if (_originalTrack != null) {
+      _mediaStreamTrack = _originalTrack!;
+      _originalTrack = null;
+    }
+    // Update sender to transmit the correct track
+    await sender?.replaceTrack(_mediaStreamTrack);
+    events.emit(TrackStreamUpdatedEvent(
+      track: this,
+      stream: _mediaStream,
+    ));
   }
 }
