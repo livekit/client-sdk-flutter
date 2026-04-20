@@ -33,6 +33,7 @@ import '../types/other.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart';
 import 'track_publication.dart';
+import 'track_settings.dart';
 
 /// Represents a track publication from a RemoteParticipant. Provides methods to
 /// control if we should subscribe to the track, and its quality (for video).
@@ -48,11 +49,15 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   int? _fps;
   int get fps => _fps ?? 0;
 
-  VideoQuality? _videoQuality = VideoQuality.HIGH;
-  VideoQuality get videoQuality => _videoQuality ?? VideoQuality.HIGH;
+  // Manual settings (set by user via setVideoQuality / setVideoDimensions)
+  VideoSettings? _userPreference;
 
-  VideoDimensions? _videoDimensions;
-  VideoDimensions? get videoDimensions => _videoDimensions;
+  // Adaptive stream state (set automatically by visibility observer)
+  VideoDimensions? _adaptiveStreamDimensions;
+  bool _adaptiveStreamEnabled = true;
+
+  VideoQuality get videoQuality => _userPreference?.quality ?? VideoQuality.HIGH;
+  VideoDimensions? get videoDimensions => _userPreference?.dimensions;
 
   /// The server may pause the track when they are bandwidth limitations and resume
   /// when there is more capacity. This property will be updated when the track is
@@ -144,11 +149,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
     final videoTrack = track as VideoTrack;
 
-    final settings = lk_rtc.UpdateTrackSettings(
-      trackSids: [sid],
-      disabled: true,
-    );
-
     // filter visible build contexts
     final viewSizes = videoTrack.viewKeys
         .map((e) => e.currentContext)
@@ -161,14 +161,18 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
     if (viewSizes.isNotEmpty) {
-      // compute largest size
       final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
-
-      settings
-        ..disabled = false
-        ..width = largestSize.width.ceil()
-        ..height = largestSize.height.ceil();
+      _adaptiveStreamDimensions = VideoDimensions(
+        largestSize.width.ceil(),
+        largestSize.height.ceil(),
+      );
+      _adaptiveStreamEnabled = true;
+    } else {
+      _adaptiveStreamDimensions = null;
+      _adaptiveStreamEnabled = false;
     }
+
+    final settings = _buildTrackSettings();
 
     // Only send new settings to server if it changed
     if (settings != _lastSentTrackSettings) {
@@ -229,7 +233,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     return didUpdate;
   }
 
-  bool _canUpdateManualVideoSettings() {
+  bool _isManualOperationAllowed() {
     if (kind != TrackType.VIDEO) {
       logger.warning('Manual video setting updates are only supported for video tracks');
       return false;
@@ -240,55 +244,57 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       return false;
     }
 
-    if (participant.room.roomOptions.adaptiveStream) {
-      logger.warning('Manual video setting update ignored because adaptive stream is enabled');
-      return false;
-    }
-
     return true;
   }
 
+  /// For tracks that support simulcasting, adjust subscribed quality.
+  ///
+  /// This indicates the highest quality the client can accept. If network
+  /// bandwidth does not allow, the server will automatically reduce quality to
+  /// optimize for uninterrupted video.
+  ///
+  /// When adaptive stream is enabled, the server will use the smaller of
+  /// this setting and the adaptive stream dimensions.
   Future<void> setVideoQuality(VideoQuality newValue) async {
-    if (newValue == _videoQuality) return;
-    if (!_canUpdateManualVideoSettings()) return;
-    _videoQuality = newValue;
-    _videoDimensions = null;
-    sendUpdateTrackSettings();
+    if (newValue == _userPreference?.quality) return;
+    if (!_isManualOperationAllowed()) return;
+    _userPreference = VideoSettings.quality(newValue);
+    _emitTrackUpdate();
   }
 
   /// Set preferred video dimensions for this track.
   ///
   /// Server will choose the appropriate layer based on these dimensions.
   /// Will override previous calls to [setVideoQuality].
+  ///
+  /// When adaptive stream is enabled, the server will use the smaller of
+  /// this setting and the adaptive stream dimensions.
   Future<void> setVideoDimensions(VideoDimensions newValue) async {
-    if (newValue.width == _videoDimensions?.width && newValue.height == _videoDimensions?.height) {
-      return;
-    }
-    if (!_canUpdateManualVideoSettings()) return;
-    _videoDimensions = newValue;
-    _videoQuality = null;
-    sendUpdateTrackSettings();
+    if (newValue == _userPreference?.dimensions) return;
+    if (!_isManualOperationAllowed()) return;
+    _userPreference = VideoSettings.dimensions(newValue);
+    _emitTrackUpdate();
   }
 
   /// Set desired FPS, server will do its best to return FPS close to this.
   /// It's only supported for video codecs that support SVC currently.
   Future<void> setVideoFPS(int newValue) async {
     if (newValue == _fps) return;
-    if (!_canUpdateManualVideoSettings()) return;
+    if (!_isManualOperationAllowed()) return;
     _fps = newValue;
-    sendUpdateTrackSettings();
+    _emitTrackUpdate();
   }
 
   Future<void> enable() async {
     if (_enabled) return;
     _enabled = true;
-    sendUpdateTrackSettings();
+    _emitTrackUpdate();
   }
 
   Future<void> disable() async {
     if (!_enabled) return;
     _enabled = false;
-    sendUpdateTrackSettings();
+    _emitTrackUpdate();
   }
 
   Future<void> subscribe() async {
@@ -333,25 +339,47 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     participant.room.engine.signalClient.sendUpdateSubscription(subscription);
   }
 
-  @internal
-  void sendUpdateTrackSettings() {
+  lk_rtc.UpdateTrackSettings _buildTrackSettings() {
+    // disabled if manually disabled or adaptive stream says no views visible
+    final isDisabled = !_enabled || !_adaptiveStreamEnabled;
+
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],
-      disabled: !_enabled,
+      disabled: isDisabled,
     );
+
     if (kind == TrackType.VIDEO) {
-      if (_videoDimensions != null) {
-        settings.width = _videoDimensions!.width;
-        settings.height = _videoDimensions!.height;
-      } else if (_videoQuality != null) {
-        settings.quality = _videoQuality!.toPBType();
-      } else {
-        settings.quality = VideoQuality.HIGH.toPBType();
+      final resolved = resolveVideoSettings(
+        adaptiveStreamDimensions: _adaptiveStreamDimensions,
+        userPreference: _userPreference,
+        layerDimensionsForQuality: (quality) {
+          final pbQuality = quality.toPBType();
+          final layer = latestInfo?.layers.where((l) => l.quality == pbQuality).firstOrNull;
+          if (layer == null) return null;
+          return VideoDimensions(layer.width, layer.height);
+        },
+      );
+
+      if (resolved.dimensions != null) {
+        settings.width = resolved.dimensions!.width;
+        settings.height = resolved.dimensions!.height;
+      } else if (resolved.quality != null) {
+        settings.quality = resolved.quality!.toPBType();
       }
       if (_fps != null) settings.fps = _fps!;
     }
+    return settings;
+  }
+
+  void _emitTrackUpdate() {
+    final settings = _buildTrackSettings();
+    _lastSentTrackSettings = settings;
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
+
+  @internal
+  @Deprecated('Use _emitTrackUpdate instead')
+  void sendUpdateTrackSettings() => _emitTrackUpdate();
 
   @internal
   // Update internal var and return true if changed
