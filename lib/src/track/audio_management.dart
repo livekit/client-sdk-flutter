@@ -110,7 +110,7 @@ Future<void> _onAudioTrackCountDidChange() async {
     logger.fine('didUpdateSate: $_audioTrackState');
 
     NativeAudioConfiguration? config;
-    if (lkPlatformIs(PlatformType.iOS)) {
+    if (lkPlatformIs(PlatformType.iOS) && !Hardware.instance.disableConfigAudioSection) {
       // Only iOS for now...
       config = await onConfigureNativeAudio.call(_audioTrackState);
 

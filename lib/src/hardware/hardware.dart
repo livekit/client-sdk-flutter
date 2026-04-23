@@ -146,7 +146,7 @@ class Hardware {
       _forceSpeakerOutput = forceSpeakerOutput;
       if (lkPlatformIs(PlatformType.iOS)) {
         NativeAudioConfiguration? config;
-        if (lkPlatformIs(PlatformType.iOS)) {
+        if (lkPlatformIs(PlatformType.iOS) && !disableConfigAudioSection) {
           // Only iOS for now...
           config = await onConfigureNativeAudio.call(audioTrackState);
           if (_preferSpeakerOutput && _forceSpeakerOutput) {
@@ -201,5 +201,24 @@ class Hardware {
     selectedVideoInput ??=
         devices.firstWhereOrNull((element) => element.kind == 'videoinput');
     onDeviceChange.add(devices);
+  }
+
+  Future<bool> configureAudio() async {
+    logger.fine('[Hardware] [configureAudio]');
+    if (lkPlatformIs(PlatformType.iOS)) {
+      NativeAudioConfiguration? config; 
+      // Only iOS for now...
+      logger.fine('[LiveKit] [configureAudio] onConfigureNativeAudio');
+      config = await onConfigureNativeAudio.call(AudioTrackState.localAndRemote);
+      try {
+        logger.fine('[LiveKit] [configureAudio] configureAudio config: ${config.toMap()}');
+        await Native.configureAudio(config);
+        return true;
+      } catch (error) {
+        logger.warning('[LiveKit] [configureAudio] failed to configure ${error}');
+        return false;
+      }
+    }
+    return true;
   }
 }
