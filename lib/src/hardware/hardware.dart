@@ -88,6 +88,8 @@ class Hardware {
   /// only supported on iOS for now
   bool get forceSpeakerOutput => _forceSpeakerOutput && _preferSpeakerOutput;
 
+  bool disableConfigAudioSection = false;
+
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
     var infos = await rtc.navigator.mediaDevices.enumerateDevices();
     var devices = infos
