@@ -20,6 +20,7 @@ import 'package:web/web.dart' as web;
 
 import '../../extensions.dart';
 import '../../logger.dart';
+import '../../options.dart';
 import '../websocket.dart';
 
 // ignore: avoid_web_libraries_in_flutter
@@ -28,8 +29,9 @@ Future<LiveKitWebSocketWeb> lkWebSocketConnect(
   Uri uri, {
   WebSocketEventHandlers? options,
   Map<String, String>? headers, // |headers| will be ignored on web
+  NetworkOptions? networkOptions = const NetworkOptions(),
 }) =>
-    LiveKitWebSocketWeb.connect(uri, options);
+    LiveKitWebSocketWeb.connect(uri, options: options, networkOptions: networkOptions);
 
 class LiveKitWebSocketWeb extends LiveKitWebSocket {
   final web.WebSocket _ws;
@@ -71,9 +73,14 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
   }
 
   static Future<LiveKitWebSocketWeb> connect(
-    Uri uri, [
+    Uri uri, {
     WebSocketEventHandlers? options,
-  ]) async {
+    NetworkOptions? networkOptions = const NetworkOptions(),
+  }) async {
+    if (networkOptions?.certificatePinning?.isEnabled ?? false) {
+      throw UnsupportedError('Certificate pinning is not supported on Flutter web');
+    }
+
     final completer = Completer<LiveKitWebSocketWeb>();
     final ws = web.WebSocket(uri.toString());
     ws.onOpen.listen((_) => completer.complete(LiveKitWebSocketWeb._(ws, options)));

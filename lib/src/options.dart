@@ -46,6 +46,79 @@ class FastConnectOptions {
   final TrackOption<bool, LocalVideoTrack> screen;
 }
 
+/// Options for SDK-owned network requests.
+///
+/// These options apply to LiveKit signaling and internal HTTPS requests made
+/// by the SDK. They do not apply to WebRTC media, TURN, or user-provided token
+/// endpoints.
+class NetworkOptions {
+  /// Certificate pinning options for native platforms.
+  ///
+  /// Certificate pinning is not supported on Flutter web because browsers do
+  /// not expose certificate material to application code.
+  final CertificatePinningOptions? certificatePinning;
+
+  const NetworkOptions({
+    this.certificatePinning,
+  });
+}
+
+/// Certificate pinning configuration for SDK-owned native TLS connections.
+class CertificatePinningOptions {
+  /// Pinning rules. Every rule whose [CertificatePinningRule.hosts] match the
+  /// connection host is applied.
+  final List<CertificatePinningRule> rules;
+
+  const CertificatePinningOptions({
+    this.rules = const [],
+  });
+
+  bool get isEnabled => rules.any((rule) => rule.isEnabled);
+}
+
+/// A set of accepted pins for one or more host patterns.
+class CertificatePinningRule {
+  /// Host patterns this rule applies to.
+  ///
+  /// Use exact hosts like `example.livekit.cloud`, wildcard hosts like
+  /// `*.livekit.cloud`, or leave this empty to apply the rule to all
+  /// SDK-owned TLS connections.
+  final List<String> hosts;
+
+  /// Primary SHA-256 SPKI pins, formatted as `sha256/<base64>`.
+  final List<String> primaryPins;
+
+  /// Backup SHA-256 SPKI pins, formatted as `sha256/<base64>`.
+  ///
+  /// Backup pins are accepted the same way as primary pins and are intended
+  /// for certificate rotation.
+  final List<String> backupPins;
+
+  /// PEM or DER encoded leaf certificates to pin for matching hosts.
+  ///
+  /// These are matched against the peer leaf certificate during the TLS
+  /// handshake before HTTP or WSS request bytes are sent.
+  final List<List<int>> trustedCertificateBytes;
+
+  const CertificatePinningRule({
+    this.hosts = const [],
+    this.primaryPins = const [],
+    this.backupPins = const [],
+    this.trustedCertificateBytes = const [],
+  });
+
+  List<String> get allPins => [
+        ...primaryPins,
+        ...backupPins,
+      ];
+
+  bool get hasSpkiPins => allPins.isNotEmpty;
+
+  bool get hasTrustedCertificates => trustedCertificateBytes.isNotEmpty;
+
+  bool get isEnabled => hasSpkiPins || hasTrustedCertificates;
+}
+
 /// Options used when connecting to the server.
 class ConnectOptions {
   /// Auto-subscribe to existing and new [RemoteTrackPublication]s after
@@ -121,6 +194,9 @@ class RoomOptions {
   /// fast track publication
   final bool fastPublish;
 
+  /// Options for SDK-owned network requests.
+  final NetworkOptions networkOptions;
+
   /// deprecated, use [createVisualizer] instead
   /// please refer to example/lib/widgets/sound_waveform.dart
   @Deprecated('Use createVisualizer instead')
@@ -140,6 +216,7 @@ class RoomOptions {
     this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
+    this.networkOptions = const NetworkOptions(),
   });
 
   RoomOptions copyWith({
@@ -155,6 +232,7 @@ class RoomOptions {
     E2EEOptions? e2eeOptions,
     E2EEOptions? encryption,
     bool? fastPublish,
+    NetworkOptions? networkOptions,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
@@ -170,6 +248,7 @@ class RoomOptions {
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
       encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
+      networkOptions: networkOptions ?? this.networkOptions,
     );
   }
 }
