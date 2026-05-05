@@ -33,8 +33,17 @@ void main() {
   test('computes SHA-256 SPKI certificate pins for a real X.509 certificate', () {
     expect(
       certificateSpkiSha256Pin(_realCertificateDer()),
-      'sha256/sWFyCMoHOXAfVi8WO1EdoENbDzfweoR9p3XCplWJlA4=',
+      'sha256/vt3l7OSChC7JPeBz2uCokjLybmg/Kv+SoBW84d40XdM=',
     );
+  });
+
+  test('wraps DER certificates as PEM bytes for SecurityContext', () {
+    final pemBytes = certificatePemBytes(_realCertificateDer());
+    final pemText = ascii.decode(pemBytes);
+
+    expect(pemText, startsWith('-----BEGIN CERTIFICATE-----\n'));
+    expect(pemText, endsWith('-----END CERTIFICATE-----\n'));
+    expect(certificateDerCertificates(pemBytes).single, _realCertificateDer());
   });
 
   test('accepts primary and backup pins for matching hosts', () {
@@ -157,24 +166,27 @@ List<int> _certificate(List<int> subjectPublicKeyInfo) {
 }
 
 List<int> _realCertificateDer() => base64Decode('''
-MIIDPTCCAiWgAwIBAgIUAsxf3tE9w4P9nBBZp+I4U7mFWhowDQYJKoZIhvcNAQEL
-BQAwGjEYMBYGA1UEAwwPTGl2ZUtpdCBUZXN0IENBMB4XDTI2MDUwNTAwNDA1MloX
-DTM2MDUwMjAwNDA1MlowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoLdtYxvAcqnaFXMYu/g57Zn2LhTBJBYjJ5UB
-aVKcbtk5z0IjC+OJe75x6DcQS+HbH4cHF7FY52CLC2oxUsAIdHmXtN1UHrjIDFBC
-nSTwAIpsO9NKdwmRB1cGC8vfwA2gWKaedHDwO9fLk7RC5kxVw23OuOPbdn6cKnkv
-U4NZkUULyYk/bk5AFscLFeQkDf/0rAbibG+EKeoJ4VAQB8CYs3OeQm2Sxig7Oy09
-n5KA5+UjxjeVTJzAC0JqqeBs9ISNJ7+vlsfLng/S/xpnnzRkMYuG8sFFseN3pA9Y
-Ur/WlgD7fSWKbEOxCsWiFKP0yUq8VpEeBRA48ERp1AHv/Q99pQIDAQABo4GAMH4w
-GgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMBMGA1UdJQQMMAoGCCsGAQUFBwMB
-MAsGA1UdDwQEAwIFoDAdBgNVHQ4EFgQULlshilL3OsKKeYGZiv0knrBXr1YwHwYD
-VR0jBBgwFoAU+YOp4KUxVvCyeDTLAq2oMvOAdQowDQYJKoZIhvcNAQELBQADggEB
-AA06Tu7DQrhoMlpH1GEqnHbaxZXjlp7D6SnJxZ7Sg1iNtolRRKZ0AAhVJ5LaRhiN
-M7lmbOpxbI87GxIzI4DkerU4i23tqtrI3/xx2l08FIyl46pFWtHKb8zwAgtigVwO
-rIhDsCFSwDP8srWTaVwcazlMDzr8KKB2uHV09aDL+ZI1czSTboPcdsJtQPbElGqe
-hEIgiyr6t/CGVUjpERKJCv9CpJ+gjEZMYztseyWbhMLaooURFBhDTyNRCRq85pJ2
-xytNnc8A/nSkIDn2lYHFmeGlhwYrGDcT7itYaVQkgBrSFfmPHH4+/SGduS92qIxg
-8lE1W7hFxs9bHcK7ys+1Ggc=
+MIIDxzCCAq+gAwIBAgIUGhRL7309IUNTm6hvItsQIT62H2gwDQYJKoZIhvcNAQEL
+BQAwVzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRAwDgYDVQQKDAdMaXZlS2l0
+MQ0wCwYDVQQLDARUZXN0MRowGAYDVQQDDBFMaXZlS2l0IFRlc3QgQ0EgNjAeFw0y
+NjA1MDUwMjA0MzNaFw0yNzA1MDUwMjA0MzNaME8xCzAJBgNVBAYTAlVTMQswCQYD
+VQQIDAJDQTEQMA4GA1UECgwHTGl2ZUtpdDENMAsGA1UECwwEVGVzdDESMBAGA1UE
+AwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvYrq
+bAiPJeD0XiRzQ5R1sc5nXAkD0H/OetANRi/UzLu7CxyjhqUltGxKuIHLBdDi/s7Y
+EYB2rb3ZP83NDVrgwaQo0doMcDg75DxT4/XgLst9yqAVH85UvvKC/RqR4TUtjZm8
+omKma7/E8DBk7fswydWigMV9x/xMZmPi3v+U9oTo20xrx33z14DhMS8H5VqAoLf8
+cHJRiRv/LU69ZWzSxjRSYlQS95/KmmfWYdEAu+oDmhEBtQ5ipD/7GeUt7QcziGyU
+SBrma62Oun6m60UABR4DoMpJh2dhfmEaTF5owYpw5UpwIDDNDecrncbShe/TJGb7
+b4Q4PwRbuhKR4IfyiQIDAQABo4GSMIGPMBoGA1UdEQQTMBGCCWxvY2FsaG9zdIcE
+fwAAATAMBgNVHRMBAf8EAjAAMBMGA1UdJQQMMAoGCCsGAQUFBwMBMA4GA1UdDwEB
+/wQEAwIFoDAdBgNVHQ4EFgQUuGJ7ZDy7LJqU1pk1gC8ml05KgWcwHwYDVR0jBBgw
+FoAUg+7Hk3BurDFOTGImSR9YV2czA74wDQYJKoZIhvcNAQELBQADggEBAELuskBJ
+vmvmtwVgQBjV+XP5cMAo9K0niLEtiSTVbIb82Zn8td5paIHLtdCUWo47FsXGcEka
+xjHF7F+c+xSmLcmyscwIoueMlMznCMV9pd2Q9VKbGt/2H/YJKFkq151l3+DVrRNN
+CxyX1bjWBvpPpwVVVtz9Ydrp5Uvmzd4IrtYJRz/Ty62y2YKmqEVmsfBqBvdxbF5R
+/3Ss8AN3k/+SeRj2LFDg+0ekEAkzx08wG2Zhoj6kS98fldpao90JCOiSEn2DHcv6
+jOt2XQ4kR0oSVkU+KyVyGtMhNjjQnWjJOuVpo/rdhtEKz4/9B4ofKYgoaeATqoQg
+Jioy3puXYIMud+Y=
 '''
     .replaceAll(RegExp(r'\s'), ''));
 

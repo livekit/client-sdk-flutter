@@ -77,6 +77,10 @@ class CertificatePinningOptions {
 }
 
 /// A set of accepted pins for one or more host patterns.
+///
+/// SPKI pins, exact leaf certificate pins, and trusted certificate bytes are
+/// composable. When more than one mode is configured for a matching host, every
+/// configured mode must pass.
 class CertificatePinningRule {
   /// Host patterns this rule applies to.
   ///
@@ -95,16 +99,23 @@ class CertificatePinningRule {
   /// for certificate rotation.
   final List<String> backupPins;
 
-  /// PEM or DER encoded leaf certificates to pin for matching hosts.
+  /// PEM or DER encoded leaf certificates that must exactly match the peer
+  /// leaf certificate for matching hosts.
+  final List<List<int>> pinnedCertificateBytes;
+
+  /// PEM or DER encoded certificates to use as the TLS trust store for
+  /// matching hosts.
   ///
-  /// These are matched against the peer leaf certificate during the TLS
-  /// handshake before HTTP or WSS request bytes are sent.
+  /// These are loaded into a per-connection SecurityContext without platform
+  /// trusted roots. This supports leaf, intermediate, or root certificate trust
+  /// in the same style as Dart's `SecurityContext.setTrustedCertificatesBytes`.
   final List<List<int>> trustedCertificateBytes;
 
   const CertificatePinningRule({
     this.hosts = const [],
     this.primaryPins = const [],
     this.backupPins = const [],
+    this.pinnedCertificateBytes = const [],
     this.trustedCertificateBytes = const [],
   });
 
@@ -115,9 +126,11 @@ class CertificatePinningRule {
 
   bool get hasSpkiPins => allPins.isNotEmpty;
 
+  bool get hasPinnedCertificates => pinnedCertificateBytes.isNotEmpty;
+
   bool get hasTrustedCertificates => trustedCertificateBytes.isNotEmpty;
 
-  bool get isEnabled => hasSpkiPins || hasTrustedCertificates;
+  bool get isEnabled => hasSpkiPins || hasPinnedCertificates || hasTrustedCertificates;
 }
 
 /// Options used when connecting to the server.

@@ -72,7 +72,7 @@ class CertificatePinValidator {
     }
   }
 
-  void validateTrustedCertificate({
+  void validatePinnedCertificate({
     required Uri uri,
     required List<int>? certificateDer,
   }) {
@@ -81,12 +81,12 @@ class CertificatePinValidator {
     }
 
     final host = uri.host.toLowerCase();
-    final trustedCertificates = rulesForHost(host)
-        .where((rule) => rule.hasTrustedCertificates)
-        .expand((rule) => rule.trustedCertificateBytes)
+    final pinnedCertificates = rulesForHost(host)
+        .where((rule) => rule.hasPinnedCertificates)
+        .expand((rule) => rule.pinnedCertificateBytes)
         .expand(certificateDerCertificates)
         .toList();
-    if (trustedCertificates.isEmpty) {
+    if (pinnedCertificates.isEmpty) {
       return;
     }
 
@@ -97,7 +97,7 @@ class CertificatePinValidator {
       );
     }
 
-    if (!trustedCertificates.any((trustedCertificate) => _bytesEqual(trustedCertificate, certificateDer))) {
+    if (!pinnedCertificates.any((pinnedCertificate) => _bytesEqual(pinnedCertificate, certificateDer))) {
       throw CertificatePinningException(
         'Certificate mismatch for $host',
         host: host,
@@ -119,10 +119,7 @@ String certificateSpkiSha256Pin(List<int> certificateDer) {
 
 Iterable<List<int>> certificateDerCertificates(List<int> certificateBytes) sync* {
   final text = utf8.decode(certificateBytes, allowMalformed: true);
-  final pemMatches = RegExp(
-    r'-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----',
-    dotAll: true,
-  ).allMatches(text);
+  final pemMatches = _certificatePemPattern.allMatches(text);
   var foundPem = false;
   for (final match in pemMatches) {
     foundPem = true;
@@ -132,6 +129,26 @@ Iterable<List<int>> certificateDerCertificates(List<int> certificateBytes) sync*
     yield certificateBytes;
   }
 }
+
+List<int> certificatePemBytes(List<int> certificateBytes) {
+  final text = utf8.decode(certificateBytes, allowMalformed: true);
+  if (_certificatePemPattern.hasMatch(text)) {
+    return certificateBytes;
+  }
+
+  final base64Certificate = base64Encode(certificateBytes);
+  final lines = <String>[];
+  for (var offset = 0; offset < base64Certificate.length; offset += 64) {
+    final end = offset + 64;
+    lines.add(base64Certificate.substring(offset, end > base64Certificate.length ? base64Certificate.length : end));
+  }
+  return ascii.encode('-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----\n');
+}
+
+final _certificatePemPattern = RegExp(
+  r'-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----',
+  dotAll: true,
+);
 
 String _normalizeSha256Pin(String pin) {
   final trimmed = pin.trim();

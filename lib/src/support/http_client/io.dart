@@ -54,22 +54,23 @@ class _CertificatePinningConnectionFactory {
     }
 
     final rules = _validator.rulesForHost(url.host);
-    final validateTrustedCertificate = rules.any((rule) => rule.hasTrustedCertificates);
-    CertificatePinningException? trustedCertificateFailure;
+    final validatePinnedCertificate = rules.any((rule) => rule.hasPinnedCertificates);
+    final context = _securityContextFor(rules, allowPinnedCertificateBypass: validatePinnedCertificate);
+    CertificatePinningException? pinnedCertificateFailure;
     final task = await io.SecureSocket.startConnect(
       url.host,
       _portFor(url),
-      context: validateTrustedCertificate ? io.SecurityContext(withTrustedRoots: false) : null,
-      onBadCertificate: validateTrustedCertificate
+      context: context,
+      onBadCertificate: validatePinnedCertificate && !rules.any((rule) => rule.hasTrustedCertificates)
           ? (certificate) {
               try {
-                _validator.validateTrustedCertificate(
+                _validator.validatePinnedCertificate(
                   uri: url,
                   certificateDer: certificate.der,
                 );
                 return true;
               } on CertificatePinningException catch (error) {
-                trustedCertificateFailure = error;
+                pinnedCertificateFailure = error;
                 return false;
               }
             }
@@ -77,14 +78,14 @@ class _CertificatePinningConnectionFactory {
     );
 
     final socket = task.socket.catchError((Object error) {
-      final failure = trustedCertificateFailure;
+      final failure = pinnedCertificateFailure;
       if (failure != null) {
         throw failure;
       }
       throw error;
     }).then<io.Socket>((socket) {
-      if (validateTrustedCertificate) {
-        _validator.validateTrustedCertificate(
+      if (validatePinnedCertificate) {
+        _validator.validatePinnedCertificate(
           uri: url,
           certificateDer: socket.peerCertificate?.der,
         );
@@ -97,6 +98,23 @@ class _CertificatePinningConnectionFactory {
     });
 
     return io.ConnectionTask.fromSocket<io.Socket>(socket, task.cancel);
+  }
+
+  io.SecurityContext? _securityContextFor(
+    List<CertificatePinningRule> rules, {
+    required bool allowPinnedCertificateBypass,
+  }) {
+    final trustedCertificateBytes =
+        rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificateBytes).toList();
+    if (trustedCertificateBytes.isEmpty) {
+      return allowPinnedCertificateBypass ? io.SecurityContext(withTrustedRoots: false) : null;
+    }
+
+    final context = io.SecurityContext(withTrustedRoots: false);
+    for (final certificateBytes in trustedCertificateBytes) {
+      context.setTrustedCertificatesBytes(certificatePemBytes(certificateBytes));
+    }
+    return context;
   }
 }
 

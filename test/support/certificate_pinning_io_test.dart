@@ -25,7 +25,30 @@ import 'package:livekit_client/src/support/http_client.dart';
 import 'package:livekit_client/src/support/websocket.dart';
 
 void main() {
-  test('allows certificate-byte trust without SPKI pins', () async {
+  test('allows exact pinned leaf certificates without SPKI pins', () async {
+    final server = await _TlsTestServer.start();
+    addTearDown(server.close);
+
+    final response = await sdkHttpGet(
+      Uri.parse('https://localhost:${server.port}/settings'),
+      networkOptions: NetworkOptions(
+        certificatePinning: CertificatePinningOptions(
+          rules: [
+            CertificatePinningRule(
+              hosts: const ['localhost'],
+              pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(response.statusCode, 200);
+    expect(response.body, 'OK');
+    expect(server.receivedText, contains('GET /settings HTTP/1.1'));
+  });
+
+  test('allows trusted leaf certificate stores without SPKI pins', () async {
     final server = await _TlsTestServer.start();
     addTearDown(server.close);
 
@@ -37,6 +60,29 @@ void main() {
             CertificatePinningRule(
               hosts: const ['localhost'],
               trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(response.statusCode, 200);
+    expect(response.body, 'OK');
+    expect(server.receivedText, contains('GET /settings HTTP/1.1'));
+  });
+
+  test('allows trusted CA certificate stores without SPKI pins', () async {
+    final server = await _TlsTestServer.start();
+    addTearDown(server.close);
+
+    final response = await sdkHttpGet(
+      Uri.parse('https://localhost:${server.port}/settings'),
+      networkOptions: NetworkOptions(
+        certificatePinning: CertificatePinningOptions(
+          rules: [
+            CertificatePinningRule(
+              hosts: const ['localhost'],
+              trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
             ),
           ],
         ),
@@ -62,7 +108,36 @@ void main() {
               CertificatePinningRule(
                 hosts: const ['localhost'],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              ),
+            ],
+          ),
+        ),
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+
+    await server.waitForConnection();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(server.receivedBytes, isEmpty);
+  });
+
+  test('validates SPKI pins with trusted stores before sending HTTP request bytes', () async {
+    final server = await _TlsTestServer.start();
+    addTearDown(server.close);
+
+    await expectLater(
+      sdkHttpGet(
+        Uri.parse('https://localhost:${server.port}/rtc'),
+        headers: const {'Authorization': 'Bearer token'},
+        networkOptions: NetworkOptions(
+          certificatePinning: CertificatePinningOptions(
+            rules: [
+              CertificatePinningRule(
+                hosts: const ['localhost'],
+                primaryPins: const ['sha256/not-the-presented-pin'],
+                trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
               ),
             ],
           ),
@@ -91,7 +166,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const ['localhost'],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
               ),
             ],
           ),
@@ -106,7 +181,7 @@ void main() {
     expect(server.receivedBytes, isEmpty);
   });
 
-  test('allows matching certificate-byte trust and SPKI pins together', () async {
+  test('allows matching pinned leaf certificates and SPKI pins together', () async {
     final server = await _TlsTestServer.start();
     addTearDown(server.close);
 
@@ -119,7 +194,31 @@ void main() {
             CertificatePinningRule(
               hosts: const ['localhost'],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
-              trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(response.statusCode, 200);
+    expect(server.receivedText, contains('authorization: Bearer token'));
+  });
+
+  test('allows matching trusted certificate stores and SPKI pins together', () async {
+    final server = await _TlsTestServer.start();
+    addTearDown(server.close);
+
+    final response = await sdkHttpGet(
+      Uri.parse('https://localhost:${server.port}/rtc'),
+      headers: const {'Authorization': 'Bearer token'},
+      networkOptions: NetworkOptions(
+        certificatePinning: CertificatePinningOptions(
+          rules: [
+            CertificatePinningRule(
+              hosts: const ['localhost'],
+              primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
+              trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
             ),
           ],
         ),
@@ -198,56 +297,84 @@ List<int> _certificateDerFromPem(String pem) {
   return base64Decode(base64Body);
 }
 
+const _trustedCaCertificatePem = '''
+-----BEGIN CERTIFICATE-----
+MIIDojCCAoqgAwIBAgIUXrZwbSCNTAZ2+2lUbPTSb9dYaJIwDQYJKoZIhvcNAQEL
+BQAwVzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRAwDgYDVQQKDAdMaXZlS2l0
+MQ0wCwYDVQQLDARUZXN0MRowGAYDVQQDDBFMaXZlS2l0IFRlc3QgQ0EgNjAeFw0y
+NjA1MDUwMjA0MjdaFw0yNzA1MDUwMjA0MjdaMFcxCzAJBgNVBAYTAlVTMQswCQYD
+VQQIDAJDQTEQMA4GA1UECgwHTGl2ZUtpdDENMAsGA1UECwwEVGVzdDEaMBgGA1UE
+AwwRTGl2ZUtpdCBUZXN0IENBIDYwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQDLS6cQd3FuzOj88FQqIlXndmjhgXhGDiCipj1jEZ4MgVR3cbm+FfwEL2KC
+TOLTJpBmMGL5DyRGHFZjD/+h3IxRGeO2nlAn8o2lVoXvCWfJfZMkZN9660oWGQDr
++HM3TmoQqAkwBnTynv3embsgOGhhtBQ9FADa1x4KeNU4NRUQQbCDDuU1wPcS+3Rd
+/LgJOtfMG+tD6ACEaYV/SskHxASxEVPL4kpxzgNSGju4Hyo/v1bA9jvMCgFcp951
+YQ9nkVreNpbIQ3N8exfTVFPrh0aWtg7RM52SQ1bVZP0/y3yMV4UqJwus0wzNNza4
+89PBnZ4yVqr13zNGWRzXXJx4hNjtAgMBAAGjZjBkMBIGA1UdEwEB/wQIMAYBAf8C
+AQEwDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQWBBSD7seTcG6sMU5MYiZJH1hXZzMD
+vjAfBgNVHSMEGDAWgBSD7seTcG6sMU5MYiZJH1hXZzMDvjANBgkqhkiG9w0BAQsF
+AAOCAQEAfM6fhcnDnNAenSkX2Bj4y0G3gYD5yvJykmE5uBbLB1sCteott1bqCAI0
+rWwWthtrMqOgIy+E3AWRD5Dbh/RutrCKvM+bwWI6nuOTxKyD0Eg4Q7LJci6kBaZP
+uHfu4D+4hQUbPVZu9MEzd4h7VV21goLs/Toj772NY5gsgNGT1ZEaSdalvtm2Aprq
+Bht1zaNWX64rpTVlj4EInRMtXXoJym+KWx9UGzXSuEffCko3Bjyj7XxDpLHjCe3t
+xHbBuvt8/X9G6LmM2XHenHs3R8fE+MR+q+J7+ydc5iYe/TF5so2l5k6OPMDASdaw
+tx3DB1buXwYfqvJMfxUHHDcBB9fh1Q==
+-----END CERTIFICATE-----
+''';
+
 const _localhostCertificatePem = '''
 -----BEGIN CERTIFICATE-----
-MIIDPTCCAiWgAwIBAgIUAsxf3tE9w4P9nBBZp+I4U7mFWhowDQYJKoZIhvcNAQEL
-BQAwGjEYMBYGA1UEAwwPTGl2ZUtpdCBUZXN0IENBMB4XDTI2MDUwNTAwNDA1MloX
-DTM2MDUwMjAwNDA1MlowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoLdtYxvAcqnaFXMYu/g57Zn2LhTBJBYjJ5UB
-aVKcbtk5z0IjC+OJe75x6DcQS+HbH4cHF7FY52CLC2oxUsAIdHmXtN1UHrjIDFBC
-nSTwAIpsO9NKdwmRB1cGC8vfwA2gWKaedHDwO9fLk7RC5kxVw23OuOPbdn6cKnkv
-U4NZkUULyYk/bk5AFscLFeQkDf/0rAbibG+EKeoJ4VAQB8CYs3OeQm2Sxig7Oy09
-n5KA5+UjxjeVTJzAC0JqqeBs9ISNJ7+vlsfLng/S/xpnnzRkMYuG8sFFseN3pA9Y
-Ur/WlgD7fSWKbEOxCsWiFKP0yUq8VpEeBRA48ERp1AHv/Q99pQIDAQABo4GAMH4w
-GgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMBMGA1UdJQQMMAoGCCsGAQUFBwMB
-MAsGA1UdDwQEAwIFoDAdBgNVHQ4EFgQULlshilL3OsKKeYGZiv0knrBXr1YwHwYD
-VR0jBBgwFoAU+YOp4KUxVvCyeDTLAq2oMvOAdQowDQYJKoZIhvcNAQELBQADggEB
-AA06Tu7DQrhoMlpH1GEqnHbaxZXjlp7D6SnJxZ7Sg1iNtolRRKZ0AAhVJ5LaRhiN
-M7lmbOpxbI87GxIzI4DkerU4i23tqtrI3/xx2l08FIyl46pFWtHKb8zwAgtigVwO
-rIhDsCFSwDP8srWTaVwcazlMDzr8KKB2uHV09aDL+ZI1czSTboPcdsJtQPbElGqe
-hEIgiyr6t/CGVUjpERKJCv9CpJ+gjEZMYztseyWbhMLaooURFBhDTyNRCRq85pJ2
-xytNnc8A/nSkIDn2lYHFmeGlhwYrGDcT7itYaVQkgBrSFfmPHH4+/SGduS92qIxg
-8lE1W7hFxs9bHcK7ys+1Ggc=
+MIIDxzCCAq+gAwIBAgIUGhRL7309IUNTm6hvItsQIT62H2gwDQYJKoZIhvcNAQEL
+BQAwVzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRAwDgYDVQQKDAdMaXZlS2l0
+MQ0wCwYDVQQLDARUZXN0MRowGAYDVQQDDBFMaXZlS2l0IFRlc3QgQ0EgNjAeFw0y
+NjA1MDUwMjA0MzNaFw0yNzA1MDUwMjA0MzNaME8xCzAJBgNVBAYTAlVTMQswCQYD
+VQQIDAJDQTEQMA4GA1UECgwHTGl2ZUtpdDENMAsGA1UECwwEVGVzdDESMBAGA1UE
+AwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvYrq
+bAiPJeD0XiRzQ5R1sc5nXAkD0H/OetANRi/UzLu7CxyjhqUltGxKuIHLBdDi/s7Y
+EYB2rb3ZP83NDVrgwaQo0doMcDg75DxT4/XgLst9yqAVH85UvvKC/RqR4TUtjZm8
+omKma7/E8DBk7fswydWigMV9x/xMZmPi3v+U9oTo20xrx33z14DhMS8H5VqAoLf8
+cHJRiRv/LU69ZWzSxjRSYlQS95/KmmfWYdEAu+oDmhEBtQ5ipD/7GeUt7QcziGyU
+SBrma62Oun6m60UABR4DoMpJh2dhfmEaTF5owYpw5UpwIDDNDecrncbShe/TJGb7
+b4Q4PwRbuhKR4IfyiQIDAQABo4GSMIGPMBoGA1UdEQQTMBGCCWxvY2FsaG9zdIcE
+fwAAATAMBgNVHRMBAf8EAjAAMBMGA1UdJQQMMAoGCCsGAQUFBwMBMA4GA1UdDwEB
+/wQEAwIFoDAdBgNVHQ4EFgQUuGJ7ZDy7LJqU1pk1gC8ml05KgWcwHwYDVR0jBBgw
+FoAUg+7Hk3BurDFOTGImSR9YV2czA74wDQYJKoZIhvcNAQELBQADggEBAELuskBJ
+vmvmtwVgQBjV+XP5cMAo9K0niLEtiSTVbIb82Zn8td5paIHLtdCUWo47FsXGcEka
+xjHF7F+c+xSmLcmyscwIoueMlMznCMV9pd2Q9VKbGt/2H/YJKFkq151l3+DVrRNN
+CxyX1bjWBvpPpwVVVtz9Ydrp5Uvmzd4IrtYJRz/Ty62y2YKmqEVmsfBqBvdxbF5R
+/3Ss8AN3k/+SeRj2LFDg+0ekEAkzx08wG2Zhoj6kS98fldpao90JCOiSEn2DHcv6
+jOt2XQ4kR0oSVkU+KyVyGtMhNjjQnWjJOuVpo/rdhtEKz4/9B4ofKYgoaeATqoQg
+Jioy3puXYIMud+Y=
 -----END CERTIFICATE-----
 ''';
 
 const _localhostPrivateKeyPem = '''
 -----BEGIN PRIVATE KEY-----
-MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCgt21jG8ByqdoV
-cxi7+DntmfYuFMEkFiMnlQFpUpxu2TnPQiML44l7vnHoNxBL4dsfhwcXsVjnYIsL
-ajFSwAh0eZe03VQeuMgMUEKdJPAAimw700p3CZEHVwYLy9/ADaBYpp50cPA718uT
-tELmTFXDbc6449t2fpwqeS9Tg1mRRQvJiT9uTkAWxwsV5CQN//SsBuJsb4Qp6gnh
-UBAHwJizc55CbZLGKDs7LT2fkoDn5SPGN5VMnMALQmqp4Gz0hI0nv6+Wx8ueD9L/
-GmefNGQxi4bywUWx43ekD1hSv9aWAPt9JYpsQ7EKxaIUo/TJSrxWkR4FEDjwRGnU
-Ae/9D32lAgMBAAECggEAJjQD/hOaNwd2DjQ6VHBIgNjgwopvcN8MQzvxxnH7OoRL
-cB92CjzvsOkP1ZXFO2x4NHHZ90FSc0mpM7DuAZAhUmKW88jK1rSw5PBtLUKbBF3j
-JYNvx4UQIvEGQGaZjOMQUxJkRySTjn4Y58bpQioyFs7y3VNYlz24bIY7ADyQXW3t
-2WDtKEe4+2FwRciuTSNe7EVtCL+0jsADOTpEwc1SPK5z8wpkCPUUB6LYIiCO480x
-3qqY7b9RHRrZveblAP+v/S8KMP37ZMMvvgjC7FsH8MTbtfkxrr4R/fXnPI7sinOT
-REZ/+01wPUwxFzde61vMfUKEHA2zd+sILX6RVJNkjwKBgQDgLdnSa6ajJuCLmvvI
-NCRuS3fJz9pqomlMsBIadKFJsR13LUgdX/PAgCpruXfQyKbIa251NqDvxBEwmjI8
-ITTOI+BCqUyo9ekXsA842mJ9kBr3QjJmq4jGJPidOqZxw+VEoJ880mZJiiMMJ9Jh
-vLtfGUYUZfOth/GySQX3vZ0kJwKBgQC3h34vHMj3r6YnBKQLuiW8IpWyeFXxatWj
-22nA0uv4umX7zoD/MQ8ixzCbFELZhuz0IjUrjOV1erffUInzEoR83di29zCjgNN3
-UGIF6A+gUUiF2WEFVLoTBFpoEUj9d9DVjWVTh0GDS3vniEp+Y54yiZ2bWwh4riWC
-KxxUOG8zUwKBgCZYcWvGsigyHDKE/hBOqvSawBCrFwcqZKyTaWVREc2TGCEsg6tS
-oFULFzZ58P6rc6vQhIJUJ88bUH1pwrH6VBf2lwOQBebYuVgt60ykPjiQD6y/i/N3
-39tUs5nhUFshUPQeLV6v9oMZt8j6fsftCnfH0O7oSXgjSrpeN0EbE+f9AoGAI4gH
-1fcssUdAU62CVQLk61eGw9aoTOTyF5cTElHDfZQYyndgYgeNdp45usxhZNvKZDl7
-McNFaUko8AMXsgeTvtj0a/fPYtg+GItnbt1OqSsTb1Z2giG1JJljJ2KxTuEzfSSy
-yUkWVeT3SAwK4A1JQ1+BM+Kb8UFF4b2W7nc+kCECgYAfOOOasQEqszqL9w07gpML
-Ohuh2z+d6RQWn5zQRBcHWPm6aSF0YvAN4rRdJtS7eS+Bq6D7cxMQwyNr8KdCLA1z
-JEZReewjE+u0rN6aFFl5/IGhejlV2LMJ7tRW2jE+RZ2FKX1xGIeemlhfLmmJ/b2c
-j9XLpu0FVZrAqZ0LIROzkQ==
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC9iupsCI8l4PRe
+JHNDlHWxzmdcCQPQf8560A1GL9TMu7sLHKOGpSW0bEq4gcsF0OL+ztgRgHatvdk/
+zc0NWuDBpCjR2gxwODvkPFPj9eAuy33KoBUfzlS+8oL9GpHhNS2NmbyiYqZrv8Tw
+MGTt+zDJ1aKAxX3H/ExmY+Le/5T2hOjbTGvHffPXgOExLwflWoCgt/xwclGJG/8t
+Tr1lbNLGNFJiVBL3n8qaZ9Zh0QC76gOaEQG1DmKkP/sZ5S3tBzOIbJRIGuZrrY66
+fqbrRQAFHgOgykmHZ2F+YRpMXmjBinDlSnAgMM0N5yudxtKF79MkZvtvhDg/BFu6
+EpHgh/KJAgMBAAECggEACWn34KvAKFp26KIY03dxLQaaXZjZBqcCY1kn/59qi0yb
+qp6ehJZ5O+/Q+j8ADWblj1BIrP3bZx+xxZh8IbisxxFXMa0Jxx0T5G8Wn5DbtJdI
+xSKUSgMedGlpFhcWvb+9ZnYHR21s5Jceues9aBB8yNmCe7DTYXZneQJnBzpcdK3p
+QH5h+w5H3Eol9aT0omaOcuJNUGW1YtOBHyiJT0HIccI4rwBr++E/w/WjNoAghuFK
+RDQEs4kj8uj3A85QfFZSwAlYO6kPKaqvGKglLzinrmW5aj98FGufzUWLoI2MPPhK
+5yDBbgD052Coql0TgvDFItHAXtSLt4WX2Wgi0dL0zQKBgQDzvBlbgJgtYgBW4CdO
+Sy6XaDkSJBRAXbZtqUbOvXKpzF2BBbBA8cXhZF9vFrQJQf8+rh+c+OuCzdMqtvBc
+BGOnb3A0RouyKaSrrXJgJjcMnKueB/opcEUAKxpEzF0+Jg6CiJDuGyQ7KbrVqIfR
+tu8fhIlb5V6ttBWEJLVd3jLU7wKBgQDHFLB4X2pN2K1FhAA7Q+Eg3naQHMiS5aT2
+hs+BMa7WqtLt5MWPxv4yGgCaj6rss2xeuANBEE1ijAfV6PJwBON7PRPyw2eALM/O
+k1wyDnIoBQDsFmwPHBzHVxpn200oNQrYTsCK2OWlcsv9AUyyoYWcdJ43wcHt8uGt
+vhriiF3gBwKBgCetrn8b7yosMxvxf9SaHqqdV/UhFH7qAqHVleZgJwOHdo1jjK71
+7R3lRjgCfSqoqNHebN0UFNsFgOQKRhTkzgha9uw7s9A8QUeFhAItFnciJjoi2FHY
+qhL98VfT4TYV4fTUIKvylTJgd78CoaG9Yy5BWE8yhvhGQd5yT2hJnQLXAoGAR0eA
+G8lF/ZNsDqzBjHa0X5lnaBf2NKpmkyIXn9FTIWdOWIEFv4HnN7cZqj1wXImtboiC
+GcSlgHhUweFDFJqbfF+VCeGu6DSjPvqCEyYa93s7Jkys6ggNwc3NFYxupsu/E023
+IL+iEcf1g6P4eyjb9vXGRH5qWjERXqznYV6kBfcCgYAnl/r8/ysuIuiUQ9d1CMAq
+F6n8iC9IWl51SvrZZV85FgsR2MifmajE9AxiDHlROK5Cx0hWdDUEqkNXOX4iEhNW
+aUeJreqbZQNpNjs5DeG2PydwP0anBkQKr3T0g4Uwt+CdRo1qBvX0uNprgthbsKy0
+R86q1fzRj1MGMGbJ/r6Xeg==
 -----END PRIVATE KEY-----
 ''';

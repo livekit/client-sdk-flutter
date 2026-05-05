@@ -245,7 +245,9 @@ openssl s_client -connect your-host:443 -servername your-host </dev/null 2>/dev/
 
 Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPins`.
 
-You can also pin an exact leaf certificate with PEM or DER bytes. This is stricter operationally: renewing the leaf certificate requires shipping updated certificate bytes unless the same certificate remains in use.
+Certificate rules can also enforce exact leaf certificates or a custom TLS trust store. When multiple checks are configured for a matching host, all of them must pass.
+
+Use `pinnedCertificateBytes` to require an exact peer leaf certificate. This is stricter operationally: renewing the leaf certificate requires shipping updated certificate bytes unless the same certificate remains in use.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
@@ -256,6 +258,25 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['my-project.livekit.cloud'],
+          pinnedCertificateBytes: [certificate.buffer.asUint8List()],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
+Use `trustedCertificateBytes` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. These bytes can be a leaf, intermediate, or root certificate.
+
+```dart
+final certificate = await rootBundle.load('assets/livekit_intermediate_ca.pem');
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['*.livekit.cloud'],
           trustedCertificateBytes: [certificate.buffer.asUint8List()],
         ),
       ],
