@@ -15,6 +15,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:crypto/crypto.dart';
 
 import '../exceptions.dart';
@@ -191,122 +192,37 @@ bool _bytesEqual(List<int> a, List<int> b) {
 }
 
 Uint8List _extractSubjectPublicKeyInfo(Uint8List certificateDer) {
-  final certificateReader = _DerReader(certificateDer);
-  final certificate = certificateReader.readElement();
-  certificate.expectTag(0x30, 'certificate');
-
-  final certificateContent = _DerReader(
-    certificateDer,
-    start: certificate.valueStart,
-    end: certificate.valueEnd,
+  final certificate = _asn1Sequence(
+    ASN1Parser(certificateDer).nextObject(),
+    'certificate',
   );
-  final tbsCertificate = certificateContent.readElement();
-  tbsCertificate.expectTag(0x30, 'TBSCertificate');
-
-  final tbsContent = _DerReader(
-    certificateDer,
-    start: tbsCertificate.valueStart,
-    end: tbsCertificate.valueEnd,
+  final tbsCertificate = _asn1Sequence(
+    _asn1Element(certificate, 0, 'TBSCertificate'),
+    'TBSCertificate',
   );
 
-  final first = tbsContent.readElement();
-  if (first.tag != 0xa0) {
-    tbsContent.offset = first.start;
+  var fieldIndex = 0;
+  if (_asn1Element(tbsCertificate, fieldIndex, 'TBSCertificate first field').tag == 0xa0) {
+    fieldIndex++;
   }
 
-  for (var i = 0; i < 5; i++) {
-    tbsContent.readElement();
-  }
-
-  final subjectPublicKeyInfo = tbsContent.readElement();
-  subjectPublicKeyInfo.expectTag(0x30, 'SubjectPublicKeyInfo');
-  return Uint8List.sublistView(
-    certificateDer,
-    subjectPublicKeyInfo.start,
-    subjectPublicKeyInfo.end,
+  final subjectPublicKeyInfo = _asn1Sequence(
+    _asn1Element(tbsCertificate, fieldIndex + 5, 'SubjectPublicKeyInfo'),
+    'SubjectPublicKeyInfo',
   );
+  return subjectPublicKeyInfo.encodedBytes;
 }
 
-class _DerReader {
-  final Uint8List bytes;
-  final int end;
-  int offset;
-
-  _DerReader(
-    this.bytes, {
-    int start = 0,
-    int? end,
-  })  : offset = start,
-        end = end ?? bytes.length;
-
-  _DerElement readElement() {
-    final start = offset;
-    if (start >= end) {
-      throw const FormatException('Unexpected end of DER data');
-    }
-
-    final tag = bytes[offset++];
-    if (offset >= end) {
-      throw const FormatException('Missing DER length');
-    }
-
-    final firstLengthByte = bytes[offset++];
-    final length = _readLength(firstLengthByte);
-    final valueStart = offset;
-    final valueEnd = valueStart + length;
-    if (valueEnd > end) {
-      throw const FormatException('DER length exceeds container length');
-    }
-
-    offset = valueEnd;
-    return _DerElement(
-      tag: tag,
-      start: start,
-      valueStart: valueStart,
-      valueEnd: valueEnd,
-    );
+ASN1Object _asn1Element(ASN1Sequence sequence, int index, String name) {
+  if (index >= sequence.elements.length) {
+    throw FormatException('Missing $name');
   }
-
-  int _readLength(int firstLengthByte) {
-    if ((firstLengthByte & 0x80) == 0) {
-      return firstLengthByte;
-    }
-
-    final byteCount = firstLengthByte & 0x7f;
-    if (byteCount == 0) {
-      throw const FormatException('Indefinite DER lengths are not supported');
-    }
-    if (byteCount > 4 || offset + byteCount > end) {
-      throw const FormatException('Invalid DER length');
-    }
-
-    var length = 0;
-    for (var i = 0; i < byteCount; i++) {
-      length = (length << 8) | bytes[offset++];
-    }
-    return length;
-  }
+  return sequence.elements[index];
 }
 
-class _DerElement {
-  final int tag;
-  final int start;
-  final int valueStart;
-  final int valueEnd;
-
-  const _DerElement({
-    required this.tag,
-    required this.start,
-    required this.valueStart,
-    required this.valueEnd,
-  });
-
-  int get end => valueEnd;
-
-  void expectTag(int expectedTag, String name) {
-    if (tag != expectedTag) {
-      throw FormatException(
-          'Expected $name DER tag 0x${expectedTag.toRadixString(16)}, got 0x${tag.toRadixString(16)}');
-    }
+ASN1Sequence _asn1Sequence(ASN1Object object, String name) {
+  if (object is! ASN1Sequence) {
+    throw FormatException('Expected $name sequence, got tag 0x${object.tag.toRadixString(16)}');
   }
+  return object;
 }

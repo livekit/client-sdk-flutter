@@ -27,6 +27,7 @@ dependencies:
     sdk: flutter
   flutter:
     sdk: flutter
+  asn1lib: ^1.6.5
   async: ^2.13.0
   collection: ^1.19.1
   connectivity_plus: ^7.0.0
