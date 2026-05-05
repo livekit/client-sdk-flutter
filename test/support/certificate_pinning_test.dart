@@ -78,6 +78,71 @@ void main() {
     );
   });
 
+  test('merges all matching rules by check type', () {
+    final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
+    final backupCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
+    final otherCertificate = _certificate(_subjectPublicKeyInfo([9, 10, 11, 12]));
+    final validator = CertificatePinValidator(CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: const ['*'],
+          primaryPins: [certificateSpkiSha256Pin(certificate)],
+        ),
+        CertificatePinningRule(
+          hosts: const ['livekit.example.com'],
+          backupPins: [certificateSpkiSha256Pin(backupCertificate)],
+        ),
+      ],
+    ));
+
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: backupCertificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: otherCertificate,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+  });
+
+  test('enforces each configured check type for matching rules', () {
+    final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
+    final otherCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
+    final validator = CertificatePinValidator(CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: const ['livekit.example.com'],
+          pinnedLeafCertificateBytes: [certificate],
+        ),
+        CertificatePinningRule(
+          hosts: const ['*.example.com'],
+          primaryPins: [certificateSpkiSha256Pin(otherCertificate)],
+        ),
+      ],
+    ));
+
+    expect(
+      () => validator.validatePinnedLeafCertificate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: certificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: certificate,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+  });
+
   test('rejects pin mismatches', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final otherCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));

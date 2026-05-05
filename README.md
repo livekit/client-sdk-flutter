@@ -213,7 +213,13 @@ await room.localParticipant.setMicrophoneEnabled(true);
 
 Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to Flutter web, WebRTC media, TURN, or application-owned token endpoints.
 
-Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted, which allows key rotation without breaking existing app versions.
+On native platforms, validation runs during TLS connection setup after the peer certificate is available and before the SDK writes HTTP or WSS request bytes. If validation fails, request headers and bodies are not sent.
+
+Rules are selected by host. Exact hosts like `project.livekit.cloud`, single-label wildcards like `*.livekit.cloud`, and `*` are supported. `*.livekit.cloud` matches `project.livekit.cloud`, but not `a.b.livekit.cloud`. Rules with empty `hosts` apply to every SDK-owned TLS connection.
+
+All rules that match the connection host are applied. Within one check type, any configured value may match. Across check types, each configured type must pass. For example, two matching SPKI rules are treated as one accepted pin set, while SPKI pins plus exact leaf certificates require both the SPKI check and the exact leaf certificate check to pass.
+
+Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted. Backup pins are useful for certificate rotation because the SDK accepts either set.
 
 ```dart
 final roomOptions = RoomOptions(
@@ -245,9 +251,11 @@ openssl s_client -connect your-host:443 -servername your-host </dev/null 2>/dev/
 
 Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPins`.
 
-Certificate rules can also enforce exact leaf certificates or a custom TLS trust store. When multiple checks are configured for a matching host, all of them must pass.
+Certificate rules can also enforce exact leaf certificates or a custom TLS trust store.
 
-Use `pinnedCertificateBytes` to require an exact peer leaf certificate. This is stricter operationally: renewing the leaf certificate requires shipping updated certificate bytes unless the same certificate remains in use.
+Use `pinnedLeafCertificateBytes` to require an exact peer leaf certificate. This mode trusts only the configured leaf certificate bytes for matching hosts. Renewing or changing the leaf certificate requires shipping updated certificate bytes unless SPKI pins or `trustedCertificateBytes` also allow the new certificate.
+
+By itself, `pinnedLeafCertificateBytes` permits the exact configured leaf certificate even if the platform trust store would reject it. This matches the asset-based Flutter pattern where the app ships the certificate it trusts. Combine it with `trustedCertificateBytes` if the connection should also validate against a pinned leaf, intermediate, or root certificate trust store.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
@@ -258,7 +266,7 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['my-project.livekit.cloud'],
-          pinnedCertificateBytes: [certificate.buffer.asUint8List()],
+          pinnedLeafCertificateBytes: [certificate.buffer.asUint8List()],
         ),
       ],
     ),
@@ -266,7 +274,7 @@ final roomOptions = RoomOptions(
 );
 ```
 
-Use `trustedCertificateBytes` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. These bytes can be a leaf, intermediate, or root certificate.
+Use `trustedCertificateBytes` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these bytes and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_intermediate_ca.pem');

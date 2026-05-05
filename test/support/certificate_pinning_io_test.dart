@@ -36,7 +36,7 @@ void main() {
           rules: [
             CertificatePinningRule(
               hosts: const ['localhost'],
-              pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
             ),
           ],
         ),
@@ -108,7 +108,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const ['localhost'],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
               ),
             ],
           ),
@@ -166,7 +166,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const ['localhost'],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
               ),
             ],
           ),
@@ -194,7 +194,7 @@ void main() {
             CertificatePinningRule(
               hosts: const ['localhost'],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
-              pinnedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
             ),
           ],
         ),

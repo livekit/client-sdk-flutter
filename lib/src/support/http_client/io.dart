@@ -54,23 +54,23 @@ class _CertificatePinningConnectionFactory {
     }
 
     final rules = _validator.rulesForHost(url.host);
-    final validatePinnedCertificate = rules.any((rule) => rule.hasPinnedCertificates);
-    final context = _securityContextFor(rules, allowPinnedCertificateBypass: validatePinnedCertificate);
-    CertificatePinningException? pinnedCertificateFailure;
+    final validatePinnedLeafCertificate = rules.any((rule) => rule.hasPinnedLeafCertificates);
+    final context = _securityContextFor(rules, allowPinnedCertificateBypass: validatePinnedLeafCertificate);
+    CertificatePinningException? pinnedLeafCertificateFailure;
     final task = await io.SecureSocket.startConnect(
       url.host,
       _portFor(url),
       context: context,
-      onBadCertificate: validatePinnedCertificate && !rules.any((rule) => rule.hasTrustedCertificates)
+      onBadCertificate: validatePinnedLeafCertificate && !rules.any((rule) => rule.hasTrustedCertificates)
           ? (certificate) {
               try {
-                _validator.validatePinnedCertificate(
+                _validator.validatePinnedLeafCertificate(
                   uri: url,
                   certificateDer: certificate.der,
                 );
                 return true;
               } on CertificatePinningException catch (error) {
-                pinnedCertificateFailure = error;
+                pinnedLeafCertificateFailure = error;
                 return false;
               }
             }
@@ -78,14 +78,14 @@ class _CertificatePinningConnectionFactory {
     );
 
     final socket = task.socket.catchError((Object error) {
-      final failure = pinnedCertificateFailure;
+      final failure = pinnedLeafCertificateFailure;
       if (failure != null) {
         throw failure;
       }
       throw error;
     }).then<io.Socket>((socket) {
-      if (validatePinnedCertificate) {
-        _validator.validatePinnedCertificate(
+      if (validatePinnedLeafCertificate) {
+        _validator.validatePinnedLeafCertificate(
           uri: url,
           certificateDer: socket.peerCertificate?.der,
         );

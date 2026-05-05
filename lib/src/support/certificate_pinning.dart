@@ -73,7 +73,7 @@ class CertificatePinValidator {
     }
   }
 
-  void validatePinnedCertificate({
+  void validatePinnedLeafCertificate({
     required Uri uri,
     required List<int>? certificateDer,
   }) {
@@ -83,8 +83,8 @@ class CertificatePinValidator {
 
     final host = uri.host.toLowerCase();
     final pinnedCertificates = rulesForHost(host)
-        .where((rule) => rule.hasPinnedCertificates)
-        .expand((rule) => rule.pinnedCertificateBytes)
+        .where((rule) => rule.hasPinnedLeafCertificates)
+        .expand((rule) => rule.pinnedLeafCertificateBytes)
         .expand(certificateDerCertificates)
         .toList();
     if (pinnedCertificates.isEmpty) {

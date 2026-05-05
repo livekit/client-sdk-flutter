@@ -64,9 +64,17 @@ class NetworkOptions {
 }
 
 /// Certificate pinning configuration for SDK-owned native TLS connections.
+///
+/// Validation runs during TLS connection setup after the peer certificate is
+/// available and before the SDK writes HTTP or WSS request bytes.
 class CertificatePinningOptions {
-  /// Pinning rules. Every rule whose [CertificatePinningRule.hosts] match the
-  /// connection host is applied.
+  /// Pinning rules selected by connection host.
+  ///
+  /// Every rule whose [CertificatePinningRule.hosts] match the connection host
+  /// is applied. Within a check type, any matching value is accepted. This
+  /// means SPKI pins are matched as one set and exact leaf certificates are
+  /// matched as one set. Different check types are combined, so when a host has
+  /// SPKI pins and exact leaf certificates configured, both checks must pass.
   final List<CertificatePinningRule> rules;
 
   const CertificatePinningOptions({
@@ -76,11 +84,11 @@ class CertificatePinningOptions {
   bool get isEnabled => rules.any((rule) => rule.isEnabled);
 }
 
-/// A set of accepted pins for one or more host patterns.
+/// A set of accepted certificate checks for one or more host patterns.
 ///
-/// SPKI pins, exact leaf certificate pins, and trusted certificate bytes are
-/// composable. When more than one mode is configured for a matching host, every
-/// configured mode must pass.
+/// Empty [hosts] applies the rule to every SDK-owned TLS connection. Multiple
+/// rules may match the same host. Matching rules are merged by check type, so
+/// rules are additive instead of first-match-wins.
 class CertificatePinningRule {
   /// Host patterns this rule applies to.
   ///
@@ -99,9 +107,19 @@ class CertificatePinningRule {
   /// for certificate rotation.
   final List<String> backupPins;
 
-  /// PEM or DER encoded leaf certificates that must exactly match the peer
-  /// leaf certificate for matching hosts.
-  final List<List<int>> pinnedCertificateBytes;
+  /// PEM or DER encoded leaf certificates that may exactly match the peer leaf
+  /// certificate for matching hosts.
+  ///
+  /// This mode trusts only the configured leaf certificate bytes for matching
+  /// hosts. Renewing or changing the leaf certificate requires shipping updated
+  /// bytes unless SPKI pins or [trustedCertificateBytes] also allow the new
+  /// certificate.
+  ///
+  /// When this is the only trust material configured for a host, an exact leaf
+  /// match is allowed even if the platform trust store would reject it. Combine
+  /// it with [trustedCertificateBytes] if the connection should also validate
+  /// against a pinned leaf, intermediate, or root certificate trust store.
+  final List<List<int>> pinnedLeafCertificateBytes;
 
   /// PEM or DER encoded certificates to use as the TLS trust store for
   /// matching hosts.
@@ -109,13 +127,15 @@ class CertificatePinningRule {
   /// These are loaded into a per-connection SecurityContext without platform
   /// trusted roots. This supports leaf, intermediate, or root certificate trust
   /// in the same style as Dart's `SecurityContext.setTrustedCertificatesBytes`.
+  /// If this is configured with SPKI pins or exact leaf certificates, the custom
+  /// trust store and the other configured checks must all pass.
   final List<List<int>> trustedCertificateBytes;
 
   const CertificatePinningRule({
     this.hosts = const [],
     this.primaryPins = const [],
     this.backupPins = const [],
-    this.pinnedCertificateBytes = const [],
+    this.pinnedLeafCertificateBytes = const [],
     this.trustedCertificateBytes = const [],
   });
 
@@ -126,11 +146,11 @@ class CertificatePinningRule {
 
   bool get hasSpkiPins => allPins.isNotEmpty;
 
-  bool get hasPinnedCertificates => pinnedCertificateBytes.isNotEmpty;
+  bool get hasPinnedLeafCertificates => pinnedLeafCertificateBytes.isNotEmpty;
 
   bool get hasTrustedCertificates => trustedCertificateBytes.isNotEmpty;
 
-  bool get isEnabled => hasSpkiPins || hasPinnedCertificates || hasTrustedCertificates;
+  bool get isEnabled => hasSpkiPins || hasPinnedLeafCertificates || hasTrustedCertificates;
 }
 
 /// Options used when connecting to the server.
