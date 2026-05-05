@@ -102,6 +102,33 @@ void main() {
       returnsNormally,
     );
   });
+
+  test('wildcard hosts match only a single label', () {
+    final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
+    final validator = CertificatePinValidator(CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: const ['*.livekit.cloud'],
+          primaryPins: [certificateSpkiSha256Pin(certificate)],
+        ),
+      ],
+    ));
+
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.livekit.cloud'),
+        certificateDer: certificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://a.b.livekit.cloud'),
+        certificateDer: _certificate(_subjectPublicKeyInfo([5, 6, 7, 8])),
+      ),
+      returnsNormally,
+    );
+  });
 }
 
 List<int> _certificate(List<int> subjectPublicKeyInfo) {

@@ -152,7 +152,11 @@ bool _hostMatches(String host, String pattern) {
   }
   if (normalizedPattern.startsWith('*.')) {
     final suffix = normalizedPattern.substring(2);
-    return host != suffix && host.endsWith('.$suffix');
+    if (host == suffix || !host.endsWith('.$suffix')) {
+      return false;
+    }
+    final prefix = host.substring(0, host.length - suffix.length - 1);
+    return !prefix.contains('.');
   }
   return host == normalizedPattern;
 }

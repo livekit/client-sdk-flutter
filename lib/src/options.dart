@@ -80,9 +80,10 @@ class CertificatePinningOptions {
 class CertificatePinningRule {
   /// Host patterns this rule applies to.
   ///
-  /// Use exact hosts like `example.livekit.cloud`, wildcard hosts like
-  /// `*.livekit.cloud`, or leave this empty to apply the rule to all
-  /// SDK-owned TLS connections.
+  /// Use exact hosts like `example.livekit.cloud`, single-label wildcard hosts
+  /// like `*.livekit.cloud`, or leave this empty to apply the rule to all
+  /// SDK-owned TLS connections. `*.livekit.cloud` matches
+  /// `project.livekit.cloud`, but not `a.b.livekit.cloud`.
   final List<String> hosts;
 
   /// Primary SHA-256 SPKI pins, formatted as `sha256/<base64>`.
