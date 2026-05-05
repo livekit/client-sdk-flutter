@@ -209,6 +209,61 @@ try {
 await room.localParticipant.setMicrophoneEnabled(true);
 ```
 
+### Certificate pinning
+
+Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to Flutter web, WebRTC media, TURN, or application-owned token endpoints.
+
+Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted, which allows key rotation without breaking existing app versions.
+
+```dart
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['*.livekit.cloud'],
+          primaryPins: ['sha256/current-public-key-pin'],
+          backupPins: ['sha256/next-public-key-pin'],
+        ),
+      ],
+    ),
+  ),
+);
+
+await room.connect(url, token, roomOptions: roomOptions);
+```
+
+To generate an SPKI pin:
+
+```bash
+openssl s_client -connect your-host:443 -servername your-host </dev/null 2>/dev/null \
+  | openssl x509 -pubkey -noout \
+  | openssl pkey -pubin -outform der \
+  | openssl dgst -sha256 -binary \
+  | openssl base64
+```
+
+Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPins`.
+
+You can also pin an exact leaf certificate with PEM or DER bytes. This is stricter operationally: renewing the leaf certificate requires shipping updated certificate bytes unless the same certificate remains in use.
+
+```dart
+final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['my-project.livekit.cloud'],
+          trustedCertificateBytes: [certificate.buffer.asUint8List()],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
 ### Screen sharing
 
 Screen sharing is supported across all platforms. You can enable it with:
