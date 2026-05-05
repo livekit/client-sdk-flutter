@@ -297,8 +297,6 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
       logger.warning('Publication not found $trackSid');
       return;
     }
-    await pub.dispose();
-
     final track = pub.track;
     // if has track
     if (track != null) {
