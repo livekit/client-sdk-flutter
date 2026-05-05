@@ -85,16 +85,14 @@ class _PreJoinPageState extends State<PreJoinPage> {
     _audioInputs = devices.where((d) => d.kind == 'audioinput').toList();
     _videoInputs = devices.where((d) => d.kind == 'videoinput').toList();
 
-    if (_selectedAudioDevice != null &&
-        !_audioInputs.contains(_selectedAudioDevice)) {
+    if (_selectedAudioDevice != null && !_audioInputs.contains(_selectedAudioDevice)) {
       _selectedAudioDevice = null;
     }
     if (_audioInputs.isEmpty) {
       await _audioTrack?.stop();
       _audioTrack = null;
     }
-    if (_selectedVideoDevice != null &&
-        !_videoInputs.contains(_selectedVideoDevice)) {
+    if (_selectedVideoDevice != null && !_videoInputs.contains(_selectedVideoDevice)) {
       _selectedVideoDevice = null;
     }
     if (_videoInputs.isEmpty) {
@@ -350,8 +348,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                                 builder: (ctx, constraints) => Icon(
                                   Icons.videocam_off,
                                   color: LKColors.lkBlue,
-                                  size:
-                                      math.min(
+                                  size: math.min(
                                         constraints.maxHeight,
                                         constraints.maxWidth,
                                       ) *
@@ -384,17 +381,16 @@ class _PreJoinPageState extends State<PreJoinPage> {
                       hint: const Text('Select Camera'),
                       items: _enableVideo
                           ? _videoInputs
-                                .map(
-                                  (MediaDevice item) =>
-                                      DropdownMenuItem<MediaDevice>(
-                                        value: item,
-                                        child: Text(
-                                          item.label,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                )
-                                .toList()
+                              .map(
+                                (MediaDevice item) => DropdownMenuItem<MediaDevice>(
+                                  value: item,
+                                  child: Text(
+                                    item.label,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              )
+                              .toList()
                           : [],
                       value: _selectedVideoDevice,
                       onChanged: (MediaDevice? value) async {
@@ -420,25 +416,25 @@ class _PreJoinPageState extends State<PreJoinPage> {
                       child: DropdownButton2<VideoParameters>(
                         isExpanded: true,
                         hint: const Text('Select Video Dimensions'),
-                        items:
-                            [
-                                  VideoParametersPresets.h480_43,
-                                  VideoParametersPresets.h540_169,
-                                  VideoParametersPresets.h720_169,
-                                  VideoParametersPresets.h1080_169,
-                                ]
-                                .map(
-                                  (
-                                    VideoParameters item,
-                                  ) => DropdownMenuItem<VideoParameters>(
-                                    value: item,
-                                    child: Text(
-                                      '${item.dimensions.width}x${item.dimensions.height}',
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                        items: [
+                          VideoParametersPresets.h480_43,
+                          VideoParametersPresets.h540_169,
+                          VideoParametersPresets.h720_169,
+                          VideoParametersPresets.h1080_169,
+                        ]
+                            .map(
+                              (
+                                VideoParameters item,
+                              ) =>
+                                  DropdownMenuItem<VideoParameters>(
+                                value: item,
+                                child: Text(
+                                  '${item.dimensions.width}x${item.dimensions.height}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            )
+                            .toList(),
                         value: _selectedVideoParameters,
                         onChanged: (VideoParameters? value) async {
                           if (value != null) {
@@ -478,17 +474,16 @@ class _PreJoinPageState extends State<PreJoinPage> {
                       hint: const Text('Select Microphone'),
                       items: _enableAudio
                           ? _audioInputs
-                                .map(
-                                  (MediaDevice item) =>
-                                      DropdownMenuItem<MediaDevice>(
-                                        value: item,
-                                        child: Text(
-                                          item.label,
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                )
-                                .toList()
+                              .map(
+                                (MediaDevice item) => DropdownMenuItem<MediaDevice>(
+                                  value: item,
+                                  child: Text(
+                                    item.label,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              )
+                              .toList()
                           : [],
                       value: _selectedAudioDevice,
                       onChanged: (MediaDevice? value) async {

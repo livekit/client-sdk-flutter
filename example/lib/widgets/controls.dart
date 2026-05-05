@@ -181,8 +181,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               androidConfig: androidConfig,
             );
           }
-          if (hasPermissions &&
-              !FlutterBackground.isBackgroundExecutionEnabled) {
+          if (hasPermissions && !FlutterBackground.isBackgroundExecutionEnabled) {
             await FlutterBackground.enableBackgroundExecution();
           }
         } catch (e) {
@@ -262,21 +261,13 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       }
 
       await widget.room.sendSimulateScenario(
-        speakerUpdate: result == SimulateScenarioResult.speakerUpdate
-            ? 3
-            : null,
-        signalReconnect: result == SimulateScenarioResult.signalReconnect
-            ? true
-            : null,
-        fullReconnect: result == SimulateScenarioResult.fullReconnect
-            ? true
-            : null,
+        speakerUpdate: result == SimulateScenarioResult.speakerUpdate ? 3 : null,
+        signalReconnect: result == SimulateScenarioResult.signalReconnect ? true : null,
+        fullReconnect: result == SimulateScenarioResult.fullReconnect ? true : null,
         nodeFailure: result == SimulateScenarioResult.nodeFailure ? true : null,
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,
-        switchCandidate: result == SimulateScenarioResult.switchCandidate
-            ? true
-            : null,
+        switchCandidate: result == SimulateScenarioResult.switchCandidate ? true : null,
       );
     }
   }
@@ -337,9 +328,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         return PopupMenuItem<MediaDevice>(
                           value: device,
                           child: ListTile(
-                            leading:
-                                (device.deviceId ==
-                                    widget.room.selectedAudioInputDeviceId)
+                            leading: (device.deviceId == widget.room.selectedAudioInputDeviceId)
                                 ? const Icon(
                                     Icons.check_box_outlined,
                                     color: Colors.white,
@@ -379,9 +368,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       return PopupMenuItem<MediaDevice>(
                         value: device,
                         child: ListTile(
-                          leading:
-                              (device.deviceId ==
-                                  widget.room.selectedAudioOutputDeviceId)
+                          leading: (device.deviceId == widget.room.selectedAudioOutputDeviceId)
                               ? const Icon(
                                   Icons.check_box_outlined,
                                   color: Colors.white,
@@ -425,9 +412,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       return PopupMenuItem<MediaDevice>(
                         value: device,
                         child: ListTile(
-                          leading:
-                              (device.deviceId ==
-                                  widget.room.selectedVideoInputDeviceId)
+                          leading: (device.deviceId == widget.room.selectedVideoInputDeviceId)
                               ? const Icon(
                                   Icons.check_box_outlined,
                                   color: Colors.white,
@@ -452,9 +437,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             ),
           IconButton(
             icon: Icon(
-              position == CameraPosition.back
-                  ? Icons.video_camera_back
-                  : Icons.video_camera_front,
+              position == CameraPosition.back ? Icons.video_camera_back : Icons.video_camera_front,
             ),
             onPressed: () => _toggleCamera(),
             tooltip: 'toggle camera',
@@ -474,16 +457,10 @@ class _ControlsWidgetState extends State<ControlsWidget> {
           IconButton(
             onPressed: widget.onToggleMessagesPanel,
             icon: Icon(
-              widget.showMessagesPanel
-                  ? Icons.mark_chat_unread
-                  : Icons.chat_bubble_outline,
-              color: widget.showMessagesPanel
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
+              widget.showMessagesPanel ? Icons.mark_chat_unread : Icons.chat_bubble_outline,
+              color: widget.showMessagesPanel ? Theme.of(context).colorScheme.primary : null,
             ),
-            tooltip: widget.showMessagesPanel
-                ? 'hide messages'
-                : 'show messages',
+            tooltip: widget.showMessagesPanel ? 'hide messages' : 'show messages',
           ),
           IconButton(
             onPressed: _onTapDisconnect,

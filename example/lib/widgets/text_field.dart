@@ -17,28 +17,28 @@ class LKTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-      TextField(
-        controller: ctrl,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        autocorrect: false,
-        decoration: InputDecoration(
-          prefixIcon: icon == null ? null : Icon(icon),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 15,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
-      ),
-    ],
-  );
+          TextField(
+            controller: ctrl,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            autocorrect: false,
+            decoration: InputDecoration(
+              prefixIcon: icon == null ? null : Icon(icon),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 15,
+              ),
+            ),
+          ),
+        ],
+      );
 }

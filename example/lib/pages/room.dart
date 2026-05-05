@@ -149,8 +149,7 @@ class _RoomPageState extends State<RoomPage> {
       if (!mounted) return;
       setState(() {
         _isReconnecting = true;
-        _reconnectStatus =
-            'Reconnect attempt ${event.attempt}/${event.maxAttemptsRetry}';
+        _reconnectStatus = 'Reconnect attempt ${event.attempt}/${event.maxAttemptsRetry}';
       });
     })
     ..on<LocalTrackSubscribedEvent>((event) {
@@ -311,8 +310,7 @@ class _RoomPageState extends State<RoomPage> {
         return a.participant.hasVideo ? -1 : 1;
       }
 
-      return a.participant.joinedAt.millisecondsSinceEpoch -
-          b.participant.joinedAt.millisecondsSinceEpoch;
+      return a.participant.joinedAt.millisecondsSinceEpoch - b.participant.joinedAt.millisecondsSinceEpoch;
     });
 
     final localParticipant = widget.room.localParticipant;
@@ -338,8 +336,7 @@ class _RoomPageState extends State<RoomPage> {
 
     final nextTracks = [...screenTracks, ...userMediaTracks];
     final focusedTrackStillVisible =
-        _focusedTrackId == null ||
-        nextTracks.any((track) => _trackId(track) == _focusedTrackId);
+        _focusedTrackId == null || nextTracks.any((track) => _trackId(track) == _focusedTrackId);
 
     if (!mounted) return;
     setState(() {
@@ -359,179 +356,177 @@ class _RoomPageState extends State<RoomPage> {
     return null;
   }
 
-  String _trackId(ParticipantTrack track) =>
-      '${track.participant.sid}-${track.type.name}';
+  String _trackId(ParticipantTrack track) => '${track.participant.sid}-${track.type.name}';
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: Column(
-        children: [
-          _RoomHeader(
-            room: widget.room,
-            connectedAt: _connectedAt,
-            isReconnecting: _isReconnecting,
-            reconnectStatus: _reconnectStatus,
-          ),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 900;
-                final messages = MessagesPanel(
-                  messages: _messages,
-                  controller: _messageCtrl,
-                  onSend: () => unawaited(_sendMessage()),
-                  onClose: () {
-                    setState(() {
-                      _showMessagesPanel = false;
-                    });
-                  },
-                );
-
-                if (!_showMessagesPanel) {
-                  return _buildStage();
-                }
-
-                if (wide) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildStage()),
-                        const SizedBox(width: 12),
-                        SizedBox(width: 340, child: messages),
-                      ],
-                    ),
-                  );
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                  child: Column(
-                    children: [
-                      Expanded(child: _buildStage()),
-                      const SizedBox(height: 12),
-                      SizedBox(height: 280, child: messages),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          if (widget.room.localParticipant != null)
-            ControlsWidget(
-              widget.room,
-              widget.room.localParticipant!,
-              showMessagesPanel: _showMessagesPanel,
-              onToggleMessagesPanel: () {
-                setState(() {
-                  _showMessagesPanel = !_showMessagesPanel;
-                });
-              },
-            ),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildStage() => LayoutBuilder(
-    builder: (context, constraints) {
-      if (participantTracks.isEmpty) {
-        return const Center(child: Text('Waiting for participants'));
-      }
-
-      final focusedTrack = _focusedTrack();
-      if (focusedTrack == null) {
-        return _ParticipantGrid(
-          tracks: participantTracks,
-          trackId: _trackId,
-          focusedTrackId: _focusedTrackId,
-          onFocus: (track) {
-            setState(() {
-              _focusedTrackId = _trackId(track);
-            });
-          },
-        );
-      }
-
-      final supportingTracks = participantTracks
-          .where((track) => _trackId(track) != _trackId(focusedTrack))
-          .toList();
-      final wide = constraints.maxWidth >= constraints.maxHeight;
-
-      if (wide) {
-        return Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
+        body: SafeArea(
+          child: Column(
             children: [
+              _RoomHeader(
+                room: widget.room,
+                connectedAt: _connectedAt,
+                isReconnecting: _isReconnecting,
+                reconnectStatus: _reconnectStatus,
+              ),
               Expanded(
-                child: _ParticipantTile(
-                  track: focusedTrack,
-                  selected: true,
-                  showStatsLayer: true,
-                  onFocus: () {
-                    setState(() {
-                      _focusedTrackId = null;
-                    });
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 900;
+                    final messages = MessagesPanel(
+                      messages: _messages,
+                      controller: _messageCtrl,
+                      onSend: () => unawaited(_sendMessage()),
+                      onClose: () {
+                        setState(() {
+                          _showMessagesPanel = false;
+                        });
+                      },
+                    );
+
+                    if (!_showMessagesPanel) {
+                      return _buildStage();
+                    }
+
+                    if (wide) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                        child: Row(
+                          children: [
+                            Expanded(child: _buildStage()),
+                            const SizedBox(width: 12),
+                            SizedBox(width: 340, child: messages),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                      child: Column(
+                        children: [
+                          Expanded(child: _buildStage()),
+                          const SizedBox(height: 12),
+                          SizedBox(height: 280, child: messages),
+                        ],
+                      ),
+                    );
                   },
                 ),
               ),
-              if (supportingTracks.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 220,
-                  child: _ParticipantStrip(
-                    tracks: supportingTracks,
-                    vertical: true,
-                    onFocus: (track) {
+              if (widget.room.localParticipant != null)
+                ControlsWidget(
+                  widget.room,
+                  widget.room.localParticipant!,
+                  showMessagesPanel: _showMessagesPanel,
+                  onToggleMessagesPanel: () {
+                    setState(() {
+                      _showMessagesPanel = !_showMessagesPanel;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildStage() => LayoutBuilder(
+        builder: (context, constraints) {
+          if (participantTracks.isEmpty) {
+            return const Center(child: Text('Waiting for participants'));
+          }
+
+          final focusedTrack = _focusedTrack();
+          if (focusedTrack == null) {
+            return _ParticipantGrid(
+              tracks: participantTracks,
+              trackId: _trackId,
+              focusedTrackId: _focusedTrackId,
+              onFocus: (track) {
+                setState(() {
+                  _focusedTrackId = _trackId(track);
+                });
+              },
+            );
+          }
+
+          final supportingTracks =
+              participantTracks.where((track) => _trackId(track) != _trackId(focusedTrack)).toList();
+          final wide = constraints.maxWidth >= constraints.maxHeight;
+
+          if (wide) {
+            return Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ParticipantTile(
+                      track: focusedTrack,
+                      selected: true,
+                      showStatsLayer: true,
+                      onFocus: () {
+                        setState(() {
+                          _focusedTrackId = null;
+                        });
+                      },
+                    ),
+                  ),
+                  if (supportingTracks.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 220,
+                      child: _ParticipantStrip(
+                        tracks: supportingTracks,
+                        vertical: true,
+                        onFocus: (track) {
+                          setState(() {
+                            _focusedTrackId = _trackId(track);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                Expanded(
+                  child: _ParticipantTile(
+                    track: focusedTrack,
+                    selected: true,
+                    showStatsLayer: true,
+                    onFocus: () {
                       setState(() {
-                        _focusedTrackId = _trackId(track);
+                        _focusedTrackId = null;
                       });
                     },
                   ),
                 ),
+                if (supportingTracks.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 124,
+                    child: _ParticipantStrip(
+                      tracks: supportingTracks,
+                      vertical: false,
+                      onFocus: (track) {
+                        setState(() {
+                          _focusedTrackId = _trackId(track);
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        );
-      }
-
-      return Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Expanded(
-              child: _ParticipantTile(
-                track: focusedTrack,
-                selected: true,
-                showStatsLayer: true,
-                onFocus: () {
-                  setState(() {
-                    _focusedTrackId = null;
-                  });
-                },
-              ),
             ),
-            if (supportingTracks.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 124,
-                child: _ParticipantStrip(
-                  tracks: supportingTracks,
-                  vertical: false,
-                  onFocus: (track) {
-                    setState(() {
-                      _focusedTrackId = _trackId(track);
-                    });
-                  },
-                ),
-              ),
-            ],
-          ],
-        ),
+          );
+        },
       );
-    },
-  );
 }
 
 class _RoomHeader extends StatelessWidget {
@@ -549,13 +544,9 @@ class _RoomHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final participantCount =
-        room.remoteParticipants.length +
-        (room.localParticipant == null ? 0 : 1);
+    final participantCount = room.remoteParticipants.length + (room.localParticipant == null ? 0 : 1);
     final localIdentity = room.localParticipant?.identity ?? 'local';
-    final connectedFor = connectedAt == null
-        ? null
-        : DateTime.now().difference(connectedAt!);
+    final connectedFor = connectedAt == null ? null : DateTime.now().difference(connectedAt!);
     final serverDetails = [
       if (room.serverRegion != null) room.serverRegion,
       if (room.serverVersion != null) 'v${room.serverVersion}',
@@ -585,22 +576,19 @@ class _RoomHeader extends StatelessWidget {
                   [
                     localIdentity,
                     '$participantCount participant${participantCount == 1 ? '' : 's'}',
-                    if (connectedFor != null)
-                      '${connectedFor.inSeconds}s connected',
+                    if (connectedFor != null) '${connectedFor.inSeconds}s connected',
                     if (serverDetails.isNotEmpty) serverDetails,
                   ].join(' / '),
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: LKColors.textSecondary,
-                  ),
+                        color: LKColors.textSecondary,
+                      ),
                 ),
               ],
             ),
           ),
           _StatusPill(
-            label:
-                reconnectStatus ??
-                (isReconnecting ? 'Reconnecting' : 'Connected'),
+            label: reconnectStatus ?? (isReconnecting ? 'Reconnecting' : 'Connected'),
             icon: isReconnecting ? Icons.sync : Icons.check_circle,
             color: isReconnecting ? Colors.orange : LKColors.lkGreen,
           ),
@@ -623,27 +611,27 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.12),
-      border: Border.all(color: color.withValues(alpha: 0.35)),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w700,
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+          borderRadius: BorderRadius.circular(8),
         ),
-      ],
-    ),
-  );
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _ParticipantGrid extends StatelessWidget {
@@ -661,41 +649,41 @@ class _ParticipantGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      if (tracks.length == 1) {
-        return Padding(
-          padding: const EdgeInsets.all(8),
-          child: _ParticipantTile(
-            track: tracks.first,
-            selected: false,
-            showStatsLayer: true,
-            onFocus: () => onFocus(tracks.first),
-          ),
-        );
-      }
+        builder: (context, constraints) {
+          if (tracks.length == 1) {
+            return Padding(
+              padding: const EdgeInsets.all(8),
+              child: _ParticipantTile(
+                track: tracks.first,
+                selected: false,
+                showStatsLayer: true,
+                onFocus: () => onFocus(tracks.first),
+              ),
+            );
+          }
 
-      final columns = _columnCount(constraints.maxWidth, tracks.length);
-      return GridView.builder(
-        padding: const EdgeInsets.all(8),
-        itemCount: tracks.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 16 / 9,
-        ),
-        itemBuilder: (context, index) {
-          final track = tracks[index];
-          return _ParticipantTile(
-            track: track,
-            selected: trackId(track) == focusedTrackId,
-            showStatsLayer: index == 0,
-            onFocus: () => onFocus(track),
+          final columns = _columnCount(constraints.maxWidth, tracks.length);
+          return GridView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: tracks.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 16 / 9,
+            ),
+            itemBuilder: (context, index) {
+              final track = tracks[index];
+              return _ParticipantTile(
+                track: track,
+                selected: trackId(track) == focusedTrackId,
+                showStatsLayer: index == 0,
+                onFocus: () => onFocus(track),
+              );
+            },
           );
         },
       );
-    },
-  );
 
   int _columnCount(double width, int count) {
     if (count <= 1 || width < 560) return 1;
@@ -718,24 +706,23 @@ class _ParticipantStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView.separated(
-    scrollDirection: vertical ? Axis.vertical : Axis.horizontal,
-    itemCount: tracks.length,
-    separatorBuilder: (context, index) =>
-        SizedBox(width: vertical ? 0 : 8, height: vertical ? 8 : 0),
-    itemBuilder: (context, index) {
-      final track = tracks[index];
-      return SizedBox(
-        width: vertical ? double.infinity : 190,
-        height: vertical ? 124 : double.infinity,
-        child: _ParticipantTile(
-          track: track,
-          selected: false,
-          showStatsLayer: false,
-          onFocus: () => onFocus(track),
-        ),
+        scrollDirection: vertical ? Axis.vertical : Axis.horizontal,
+        itemCount: tracks.length,
+        separatorBuilder: (context, index) => SizedBox(width: vertical ? 0 : 8, height: vertical ? 8 : 0),
+        itemBuilder: (context, index) {
+          final track = tracks[index];
+          return SizedBox(
+            width: vertical ? double.infinity : 190,
+            height: vertical ? 124 : double.infinity,
+            child: _ParticipantTile(
+              track: track,
+              selected: false,
+              showStatsLayer: false,
+              onFocus: () => onFocus(track),
+            ),
+          );
+        },
       );
-    },
-  );
 }
 
 class _ParticipantTile extends StatelessWidget {
@@ -753,57 +740,57 @@ class _ParticipantTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      border: Border.all(
-        color: selected ? LKColors.lkBlue : LKColors.border,
-        width: selected ? 2 : 1,
-      ),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(7),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ParticipantWidget.widgetFor(track, showStatsLayer: showStatsLayer),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: IconButton(
-                tooltip: selected ? 'Clear focus' : 'Focus participant',
-                icon: Icon(
-                  selected ? Icons.fullscreen_exit : Icons.center_focus_strong,
-                ),
-                onPressed: onFocus,
-              ),
-            ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: selected ? LKColors.lkBlue : LKColors.border,
+            width: selected ? 2 : 1,
           ),
-          if (selected)
-            Positioned(
-              left: 10,
-              top: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                decoration: BoxDecoration(
-                  color: LKColors.lkBlue.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'FOCUSED',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(7),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ParticipantWidget.widgetFor(track, showStatsLayer: showStatsLayer),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    tooltip: selected ? 'Clear focus' : 'Focus participant',
+                    icon: Icon(
+                      selected ? Icons.fullscreen_exit : Icons.center_focus_strong,
+                    ),
+                    onPressed: onFocus,
                   ),
                 ),
               ),
-            ),
-        ],
-      ),
-    ),
-  );
+              if (selected)
+                Positioned(
+                  left: 10,
+                  top: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: LKColors.lkBlue.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'FOCUSED',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
 }
