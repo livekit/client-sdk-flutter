@@ -30,6 +30,13 @@ void main() {
     expect(certificateSpkiSha256Pin(certificate), expectedPin);
   });
 
+  test('computes SHA-256 SPKI certificate pins for a real X.509 certificate', () {
+    expect(
+      certificateSpkiSha256Pin(_realCertificateDer()),
+      'sha256/sWFyCMoHOXAfVi8WO1EdoENbDzfweoR9p3XCplWJlA4=',
+    );
+  });
+
   test('accepts primary and backup pins for matching hosts', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final backupCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
@@ -148,6 +155,28 @@ List<int> _certificate(List<int> subjectPublicKeyInfo) {
     ..._bitString(const [0]),
   ]);
 }
+
+List<int> _realCertificateDer() => base64Decode('''
+MIIDPTCCAiWgAwIBAgIUAsxf3tE9w4P9nBBZp+I4U7mFWhowDQYJKoZIhvcNAQEL
+BQAwGjEYMBYGA1UEAwwPTGl2ZUtpdCBUZXN0IENBMB4XDTI2MDUwNTAwNDA1MloX
+DTM2MDUwMjAwNDA1MlowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoLdtYxvAcqnaFXMYu/g57Zn2LhTBJBYjJ5UB
+aVKcbtk5z0IjC+OJe75x6DcQS+HbH4cHF7FY52CLC2oxUsAIdHmXtN1UHrjIDFBC
+nSTwAIpsO9NKdwmRB1cGC8vfwA2gWKaedHDwO9fLk7RC5kxVw23OuOPbdn6cKnkv
+U4NZkUULyYk/bk5AFscLFeQkDf/0rAbibG+EKeoJ4VAQB8CYs3OeQm2Sxig7Oy09
+n5KA5+UjxjeVTJzAC0JqqeBs9ISNJ7+vlsfLng/S/xpnnzRkMYuG8sFFseN3pA9Y
+Ur/WlgD7fSWKbEOxCsWiFKP0yUq8VpEeBRA48ERp1AHv/Q99pQIDAQABo4GAMH4w
+GgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMBMGA1UdJQQMMAoGCCsGAQUFBwMB
+MAsGA1UdDwQEAwIFoDAdBgNVHQ4EFgQULlshilL3OsKKeYGZiv0knrBXr1YwHwYD
+VR0jBBgwFoAU+YOp4KUxVvCyeDTLAq2oMvOAdQowDQYJKoZIhvcNAQELBQADggEB
+AA06Tu7DQrhoMlpH1GEqnHbaxZXjlp7D6SnJxZ7Sg1iNtolRRKZ0AAhVJ5LaRhiN
+M7lmbOpxbI87GxIzI4DkerU4i23tqtrI3/xx2l08FIyl46pFWtHKb8zwAgtigVwO
+rIhDsCFSwDP8srWTaVwcazlMDzr8KKB2uHV09aDL+ZI1czSTboPcdsJtQPbElGqe
+hEIgiyr6t/CGVUjpERKJCv9CpJ+gjEZMYztseyWbhMLaooURFBhDTyNRCRq85pJ2
+xytNnc8A/nSkIDn2lYHFmeGlhwYrGDcT7itYaVQkgBrSFfmPHH4+/SGduS92qIxg
+8lE1W7hFxs9bHcK7ys+1Ggc=
+'''
+    .replaceAll(RegExp(r'\s'), ''));
 
 List<int> _subjectPublicKeyInfo(List<int> publicKeyBytes) => _sequence([
       ..._sequence(const []),
