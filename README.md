@@ -229,7 +229,10 @@ final roomOptions = RoomOptions(
         CertificatePinningRule(
           hosts: ['*.livekit.cloud'],
           primaryPins: ['sha256/current-public-key-pin'],
-          backupPins: ['sha256/next-public-key-pin'],
+          backupPins: [
+            'sha256/next-public-key-pin-1',
+            'sha256/next-public-key-pin-2',
+          ],
         ),
       ],
     ),

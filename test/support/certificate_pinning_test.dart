@@ -49,15 +49,19 @@ void main() {
   test('accepts primary and backup pins for matching hosts', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final backupCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
+    final secondBackupCertificate = _certificate(
+      _subjectPublicKeyInfo([9, 10, 11, 12]),
+    );
     final primaryPin = certificateSpkiSha256Pin(certificate);
     final backupPin = certificateSpkiSha256Pin(backupCertificate);
+    final secondBackupPin = certificateSpkiSha256Pin(secondBackupCertificate);
 
     final validator = CertificatePinValidator(CertificatePinningOptions(
       rules: [
         CertificatePinningRule(
           hosts: const ['*.livekit.cloud'],
           primaryPins: [primaryPin],
-          backupPins: [backupPin],
+          backupPins: [backupPin, secondBackupPin],
         ),
       ],
     ));
@@ -73,6 +77,13 @@ void main() {
       () => validator.validate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: backupCertificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.livekit.cloud'),
+        certificateDer: secondBackupCertificate,
       ),
       returnsNormally,
     );
