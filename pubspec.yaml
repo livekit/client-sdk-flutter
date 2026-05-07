@@ -46,7 +46,7 @@ dependencies:
   json_annotation: ^4.9.0
 
   # Fix version to avoid version conflicts between WebRTC-SDK pods, which both this package and flutter_webrtc depend on.
-  flutter_webrtc: 1.4.0
+  flutter_webrtc: 1.4.1
   dart_webrtc: ^1.8.0
 
 dev_dependencies:
