@@ -205,10 +205,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_webrtc
-      sha256: "63a3ed6b958b5ba32d95ddba484c0dcf1cad4fd55eb551bb23c815b6f1e5d844"
+      sha256: f6d615bddea5e458ce180a914f3055c234ffb52fb7397a51b3491e76d6d7edb2
       url: "https://pub.dev"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   dbus:
     dependency: transitive
     description:
