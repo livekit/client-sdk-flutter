@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Format Check
         run: dart format . --set-exit-if-changed
@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Check version consistency
         run: dart run scripts/check_version.dart
@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Analyze Check
         run: flutter analyze
@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -98,7 +98,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Ensure iOS SDK is available
         run: |
@@ -117,7 +117,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Build for Windows
         working-directory: ./example
@@ -129,7 +129,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Build for macOS
         working-directory: ./example
@@ -141,7 +141,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -159,7 +159,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -173,7 +173,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
