@@ -1,0 +1,1 @@
+patch type="fixed" "Fix region failover condition allowing null provider dereference"
