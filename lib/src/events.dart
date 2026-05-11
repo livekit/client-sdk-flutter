@@ -66,11 +66,25 @@ class RoomConnectedEvent with RoomEvent {
   String toString() => '${runtimeType}(room: ${room}, metadata: ${metadata})';
 }
 
+/// Base type for reconnecting events. Listen for this type to handle
+/// both full reconnects and signal-only reconnects.
+mixin ReconnectingEvent implements RoomEvent {}
+
 /// When the connection to the server has been interrupted and it's attempting
-/// to reconnect.
+/// a full reconnect (peer connections are reset, media is interrupted).
 /// Emitted by [Room].
-class RoomReconnectingEvent with RoomEvent {
+class RoomReconnectingEvent with RoomEvent, ReconnectingEvent {
   const RoomReconnectingEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
+/// When the signal connection has been interrupted and it's attempting
+/// to resume. Peer connections remain active during this type of reconnect.
+/// Emitted by [Room].
+class RoomResumingEvent with RoomEvent, ReconnectingEvent {
+  const RoomResumingEvent();
 
   @override
   String toString() => '${runtimeType}()';

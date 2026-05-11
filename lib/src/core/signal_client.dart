@@ -53,8 +53,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   Timer? _pingIntervalTimer;
 
   int get pingCount => _pingCount;
-
   int _pingCount = 0;
+
+  /// Signal round-trip time in milliseconds, calculated from pingReq/pongResp.
+  int get rtt => _rtt;
+  int _rtt = 0;
   String? participantSid;
 
   int _requestId = 0;
@@ -345,6 +348,11 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         _pingCount++;
         _resetPingTimeout();
         break;
+      case lk_rtc.SignalResponse_Message.pongResp:
+        _rtt = DateTime.timestamp().millisecondsSinceEpoch - msg.pongResp.lastPingTimestamp.toInt();
+        _pingCount++;
+        _resetPingTimeout();
+        break;
       case lk_rtc.SignalResponse_Message.reconnect:
         events.emit(SignalReconnectResponseEvent(response: msg.reconnect));
         break;
@@ -379,7 +387,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }
 
   void _sendPing() {
-    _sendRequest(lk_rtc.SignalRequest()..ping = Int64(DateTime.timestamp().millisecondsSinceEpoch));
+    final now = DateTime.timestamp().millisecondsSinceEpoch;
+    // Send both ping and pingReq for compatibility with old and new servers
+    _sendRequest(lk_rtc.SignalRequest()..ping = Int64(now));
+    _sendRequest(lk_rtc.SignalRequest()
+      ..pingReq = lk_rtc.Ping(
+        timestamp: Int64(now),
+        rtt: Int64(_rtt),
+      ));
   }
 
   void _startPingInterval() {
@@ -485,6 +500,7 @@ extension SignalClientRequests on SignalClient {
   @internal
   void sendSyncState({
     required lk_rtc.SessionDescription? answer,
+    required lk_rtc.SessionDescription? offer,
     required lk_rtc.UpdateSubscription subscription,
     required Iterable<lk_rtc.TrackPublishedResponse>? publishTracks,
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
@@ -494,6 +510,7 @@ extension SignalClientRequests on SignalClient {
       _sendRequest(lk_rtc.SignalRequest(
         syncState: lk_rtc.SyncState(
           answer: answer,
+          offer: offer,
           subscription: subscription,
           publishTracks: publishTracks,
           dataChannels: dataChannelInfo,

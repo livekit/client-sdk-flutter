@@ -1,0 +1,1 @@
+patch type="fixed" "Fix deferred track listener leak across reconnects"

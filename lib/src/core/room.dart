@@ -51,7 +51,7 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
-import '../utils.dart' show unpackStreamId;
+import '../utils.dart' show isSVCCodec, unpackStreamId;
 import 'engine.dart';
 import 'participant_collection.dart';
 import 'pending_track_queue.dart';
@@ -302,8 +302,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
     } catch (e) {
       logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null && e is WebSocketException ||
-          (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed)) {
+      if (_regionUrlProvider != null &&
+          (e is WebSocketException || (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed))) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -363,7 +363,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       } else if (event.subscribedQualities.isNotEmpty) {
         final videoTrack = publication.track as LocalVideoTrack;
-        await videoTrack.updatePublishingLayers(videoTrack, event.subscribedQualities);
+        await videoTrack.setPublishingLayers(videoTrack, event.subscribedQualities,
+            isSVC: isSVCCodec(videoTrack.codec ?? ''));
       }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
@@ -499,6 +500,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
       localParticipant?.sendTrackSubscriptionPermissions();
+      events.emit(const RoomReconnectedEvent());
       notifyListeners();
     })
     ..on<EngineFullRestartingEvent>((event) async {
@@ -536,8 +538,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineResumingEvent>((event) async {
-      await _sendSyncState();
+      events.emit(const RoomResumingEvent());
       notifyListeners();
+    })
+    ..on<SignalReconnectedEvent>((event) async {
+      await _sendSyncState();
     })
     ..on<EngineAttemptReconnectEvent>((event) async {
       events.emit(RoomAttemptReconnectEvent(
@@ -982,7 +987,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     }
 
-    engine.sendSyncState(
+    await engine.sendSyncState(
       subscription: lk_rtc.UpdateSubscription(
         participantTracks: [],
         trackSids: trackSids,

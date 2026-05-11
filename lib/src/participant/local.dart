@@ -376,13 +376,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     Future<lk_models.TrackInfo> negotiate() async {
       track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
 
+      track.codec = publishOptions.videoCodec;
       if (lkBrowser() != BrowserType.firefox) {
         await room.engine.setPreferredCodec(
           track.transceiver!,
           'video',
           publishOptions.videoCodec,
         );
-        track.codec = publishOptions.videoCodec;
       }
 
       if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
@@ -477,13 +477,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         init: transceiverInit,
       );
 
+      track.codec = publishOptions.videoCodec;
       if (lkBrowser() != BrowserType.firefox) {
         await room.engine.setPreferredCodec(
           track.transceiver!,
           'video',
           publishOptions.videoCodec,
         );
-        track.codec = publishOptions.videoCodec;
       }
 
       if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
@@ -546,8 +546,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       logger.warning('Publication not found $trackSid');
       return;
     }
-    await pub.dispose();
-
     final track = pub.track;
     if (track != null) {
       if (room.roomOptions.stopLocalTrackOnUnpublish) {
