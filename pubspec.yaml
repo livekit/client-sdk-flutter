@@ -37,7 +37,7 @@ dependencies:
   uuid: ^4.5.3
   synchronized: ">=3.3.0+3 <4.0.0"
   protobuf: ">=4.1.0 <7.0.0"
-  device_info_plus: ">=11.4.0 <14.0.0"
+  device_info_plus: ">=11.4.0 <13.0.0"
   sdp_transform: ^0.3.2
   web: ^1.1.1
   mime_type: ^1.0.1
