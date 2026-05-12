@@ -57,24 +57,54 @@ jobs:
         run: dart run scripts/check_version.dart
 
   dart-analyze-check:
-    name: Dart Analyze Check
+    name: Dart Analyze Check (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: floor
+            flutter-version: "3.27.0"
+            downgrade: true
+          - label: latest
+            flutter-version: ""
+            downgrade: false
 
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+      - name: Downgrade to lowest compatible deps
+        if: matrix.downgrade
+        run: flutter pub downgrade
       - name: Dart Analyze Check
         run: flutter analyze
 
   dart-test-check:
-    name: Dart Test Check
+    name: Dart Test Check (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: floor
+            flutter-version: "3.27.0"
+            downgrade: true
+          - label: latest
+            flutter-version: ""
+            downgrade: false
 
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+      - name: Downgrade to lowest compatible deps
+        if: matrix.downgrade
+        run: flutter pub downgrade
       - name: Dart Test Check
         run: flutter test
 
@@ -154,8 +184,18 @@ jobs:
         run: flutter build linux
 
   build-for-web:
-    name: Build for Flutter Web
+    name: Build for Flutter Web (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: floor
+            flutter-version: "3.27.0"
+            downgrade: true
+          - label: latest
+            flutter-version: ""
+            downgrade: false
 
     steps:
       - name: Clone repository
@@ -163,6 +203,10 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
+          flutter-version: ${{ matrix.flutter-version }}
+      - name: Downgrade to lowest compatible deps
+        if: matrix.downgrade
+        run: flutter pub downgrade
       - name: Build for Web
         working-directory: ./example
         run: flutter build web
