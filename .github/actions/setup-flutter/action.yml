@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: "Setup Flutter Environment"
-description: "Sets up Flutter, Java (optional), and installs project dependencies"
+description: "Sets up Flutter and Java (optional)"
 
 inputs:
   java-version:
@@ -28,10 +28,6 @@ inputs:
     description: "Flutter version to pin (empty = latest on channel)"
     required: false
     default: ""
-  pub-get:
-    description: "Whether to run flutter pub get after setup"
-    required: false
-    default: "true"
 
 runs:
   using: "composite"
@@ -48,8 +44,3 @@ runs:
       with:
         channel: ${{ inputs.flutter-channel }}
         flutter-version: ${{ inputs.flutter-version }}
-
-    - name: Install project dependencies
-      if: inputs['pub-get'] == 'true'
-      shell: bash
-      run: flutter pub get

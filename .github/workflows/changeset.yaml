@@ -47,6 +47,9 @@ jobs:
 
       - uses: ./.github/actions/setup-flutter
 
+      - name: Resolve dependencies
+        run: flutter pub get
+
       - name: Detect breaking changes
         id: breaking
         run: |

@@ -31,6 +31,8 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+      - name: Resolve dependencies
+        run: flutter pub get
       - name: Dart Format Check
         run: dart format . --set-exit-if-changed
 
@@ -42,6 +44,8 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+      - name: Resolve dependencies
+        run: flutter pub get
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
 
@@ -53,6 +57,8 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+      - name: Resolve dependencies
+        run: flutter pub get
       - name: Check version consistency
         run: dart run scripts/check_version.dart
 
@@ -65,12 +71,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -78,10 +82,8 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade to lowest compatible deps
-        if: matrix.downgrade
-        run: flutter pub downgrade
+      - name: Resolve dependencies
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Dart Analyze Check
         run: flutter analyze
 
@@ -94,12 +96,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -107,10 +107,8 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade to lowest compatible deps
-        if: matrix.downgrade
-        run: flutter pub downgrade
+      - name: Resolve dependencies
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Dart Test Check
         run: flutter test
 
@@ -123,12 +121,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -137,11 +133,9 @@ jobs:
         with:
           java-version: "17.x"
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Build for Android
         working-directory: ./example
         run: flutter build apk
@@ -155,12 +149,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -168,11 +160,9 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Ensure iOS SDK is available
         run: |
           if xcodebuild -showsdks | grep -q "iphoneos"; then
@@ -193,12 +183,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -206,11 +194,9 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Build for Windows
         working-directory: ./example
         run: flutter build windows --release
@@ -224,12 +210,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -237,11 +221,9 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
@@ -255,12 +237,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -269,11 +249,9 @@ jobs:
         with:
           java-version: "17.x"
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Run apt update
         run: sudo apt-get update
       - name: Install ninja-build libgtk-3-dev
@@ -291,12 +269,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -305,11 +281,9 @@ jobs:
         with:
           java-version: "17.x"
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Build for Web
         working-directory: ./example
         run: flutter build web
@@ -323,12 +297,10 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
-            pub_get: "false"
-            downgrade: true
+            pub-command: downgrade
           - label: "Latest"
             flutter-version: ""
-            pub_get: "true"
-            downgrade: false
+            pub-command: get
 
     steps:
       - name: Clone repository
@@ -337,11 +309,9 @@ jobs:
         with:
           java-version: "17.x"
           flutter-version: ${{ matrix.flutter-version }}
-          pub-get: ${{ matrix.pub_get }}
-      - name: Downgrade example to lowest compatible deps
-        if: matrix.downgrade
+      - name: Resolve example dependencies
         working-directory: ./example
-        run: flutter pub downgrade
+        run: flutter pub ${{ matrix.pub-command }}
       - name: Build for Web
         working-directory: ./example
         run: flutter build web --wasm
