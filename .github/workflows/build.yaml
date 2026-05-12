@@ -63,10 +63,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: floor
+          - label: "3.27.0"
             flutter-version: "3.27.0"
             downgrade: true
-          - label: latest
+          - label: "Latest"
             flutter-version: ""
             downgrade: false
 
@@ -89,10 +89,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: floor
+          - label: "3.27.0"
             flutter-version: "3.27.0"
             downgrade: true
-          - label: latest
+          - label: "Latest"
             flutter-version: ""
             downgrade: false
 
@@ -190,10 +190,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: floor
+          - label: "3.27.0"
             flutter-version: "3.27.0"
             downgrade: true
-          - label: latest
+          - label: "Latest"
             flutter-version: ""
             downgrade: false
 
