@@ -28,6 +28,10 @@ inputs:
     description: "Flutter version to pin (empty = latest on channel)"
     required: false
     default: ""
+  pub-get:
+    description: "Whether to run flutter pub get after setup"
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -46,5 +50,6 @@ runs:
         flutter-version: ${{ inputs.flutter-version }}
 
     - name: Install project dependencies
+      if: inputs['pub-get'] == 'true'
       shell: bash
       run: flutter pub get

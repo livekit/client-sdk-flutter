@@ -65,9 +65,11 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
+            pub_get: "false"
             downgrade: true
           - label: "Latest"
             flutter-version: ""
+            pub_get: "true"
             downgrade: false
 
     steps:
@@ -76,6 +78,7 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
       - name: Downgrade to lowest compatible deps
         if: matrix.downgrade
         run: flutter pub downgrade
@@ -91,9 +94,11 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
+            pub_get: "false"
             downgrade: true
           - label: "Latest"
             flutter-version: ""
+            pub_get: "true"
             downgrade: false
 
     steps:
@@ -102,6 +107,7 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
       - name: Downgrade to lowest compatible deps
         if: matrix.downgrade
         run: flutter pub downgrade
@@ -109,8 +115,20 @@ jobs:
         run: flutter test
 
   build-for-android:
-    name: Build for Flutter Android
+    name: Build for Flutter Android (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
@@ -118,18 +136,43 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Build for Android
         working-directory: ./example
         run: flutter build apk
 
   build-for-ios:
-    name: Build for Flutter iOS
+    name: Build for Flutter iOS (${{ matrix.label }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Ensure iOS SDK is available
         run: |
           if xcodebuild -showsdks | grep -q "iphoneos"; then
@@ -142,32 +185,82 @@ jobs:
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
-    name: Build for Flutter Windows
+    name: Build for Flutter Windows (${{ matrix.label }})
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Build for Windows
         working-directory: ./example
         run: flutter build windows --release
 
   build-for-macos:
-    name: Build for Flutter macOS
+    name: Build for Flutter macOS (${{ matrix.label }})
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
 
   build-for-linux:
-    name: Build for Flutter Linux
+    name: Build for Flutter Linux (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
@@ -175,6 +268,12 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Run apt update
         run: sudo apt-get update
       - name: Install ninja-build libgtk-3-dev
@@ -192,9 +291,11 @@ jobs:
         include:
           - label: "3.27.0"
             flutter-version: "3.27.0"
+            pub_get: "false"
             downgrade: true
           - label: "Latest"
             flutter-version: ""
+            pub_get: "true"
             downgrade: false
 
     steps:
@@ -204,16 +305,30 @@ jobs:
         with:
           java-version: "17.x"
           flutter-version: ${{ matrix.flutter-version }}
-      - name: Downgrade to lowest compatible deps
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
         if: matrix.downgrade
+        working-directory: ./example
         run: flutter pub downgrade
       - name: Build for Web
         working-directory: ./example
         run: flutter build web
 
   build-for-web-wasm:
-    name: Build for Flutter Web WASM
+    name: Build for Flutter Web WASM (${{ matrix.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "3.27.0"
+            flutter-version: "3.27.0"
+            pub_get: "false"
+            downgrade: true
+          - label: "Latest"
+            flutter-version: ""
+            pub_get: "true"
+            downgrade: false
 
     steps:
       - name: Clone repository
@@ -221,6 +336,12 @@ jobs:
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
+          flutter-version: ${{ matrix.flutter-version }}
+          pub-get: ${{ matrix.pub_get }}
+      - name: Downgrade example to lowest compatible deps
+        if: matrix.downgrade
+        working-directory: ./example
+        run: flutter pub downgrade
       - name: Build for Web
         working-directory: ./example
         run: flutter build web --wasm
