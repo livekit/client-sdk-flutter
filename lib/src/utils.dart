@@ -323,22 +323,53 @@ class Utils {
     return result;
   }
 
-  static VideoParameters _clampLowerSimulcastLayer(
-    VideoParameters preset, {
-    required VideoParameters original,
+  @internal
+  static List<VideoParameters> computeSimulcastPresets({
     required VideoDimensions dimensions,
+    required VideoParameters original,
+    required List<VideoParameters> requestedPresets,
+    required bool isScreenShare,
+  }) {
+    final params = (requestedPresets.isNotEmpty
+            ? requestedPresets
+            : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
+        .sorted();
+
+    final lowPreset = params.first;
+    final midPreset = params.length > 1 ? params[1] : null;
+
+    final size = dimensions.max();
+    if (size >= 960 && midPreset != null) {
+      return [
+        _clampSimulcastPreset(lowPreset, to: original, inDimensions: dimensions),
+        _clampSimulcastPreset(midPreset, to: original, inDimensions: dimensions),
+        original,
+      ];
+    }
+    if (size >= 480) {
+      return [
+        _clampSimulcastPreset(lowPreset, to: original, inDimensions: dimensions),
+        original,
+      ];
+    }
+    return [original];
+  }
+
+  static VideoParameters _clampSimulcastPreset(
+    VideoParameters preset, {
+    required VideoParameters to,
+    required VideoDimensions inDimensions,
   }) {
     final presetEncoding = preset.encoding;
-    final originalEncoding = original.encoding;
-    if (presetEncoding == null || originalEncoding == null) {
+    final topEncoding = to.encoding;
+    if (presetEncoding == null || topEncoding == null) {
       return preset;
     }
 
-    final rawScaleDownBy = dimensions.max() / preset.dimensions.max();
-    final clampedFramerate = math.min(presetEncoding.maxFramerate, originalEncoding.maxFramerate);
-    final clampedBitrate = rawScaleDownBy <= 1.0
-        ? math.min(presetEncoding.maxBitrate, originalEncoding.maxBitrate)
-        : presetEncoding.maxBitrate;
+    final rawScaleDownBy = inDimensions.max() / preset.dimensions.max();
+    final clampedFramerate = math.min(presetEncoding.maxFramerate, topEncoding.maxFramerate);
+    final clampedBitrate =
+        rawScaleDownBy <= 1.0 ? math.min(presetEncoding.maxBitrate, topEncoding.maxBitrate) : presetEncoding.maxBitrate;
 
     if (clampedFramerate == presetEncoding.maxFramerate && clampedBitrate == presetEncoding.maxBitrate) {
       return preset;
@@ -481,32 +512,12 @@ class Utils {
     // compute simulcast encodings
     final userParams = isScreenShare ? options.screenShareSimulcastLayers : options.videoSimulcastLayers;
 
-    final params = (userParams.isNotEmpty
-            ? userParams
-            : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
-        .sorted();
-
-    final VideoParameters lowPreset = params.first;
-    VideoParameters? midPreset;
-    if (params.length > 1) {
-      midPreset = params[1];
-    }
-
-    final size = dimensions.max();
-    List<VideoParameters> computedParams = [original];
-
-    if (size >= 960 && midPreset != null) {
-      computedParams = [
-        _clampLowerSimulcastLayer(lowPreset, original: original, dimensions: dimensions),
-        _clampLowerSimulcastLayer(midPreset, original: original, dimensions: dimensions),
-        original,
-      ];
-    } else if (size >= 480) {
-      computedParams = [
-        _clampLowerSimulcastLayer(lowPreset, original: original, dimensions: dimensions),
-        original,
-      ];
-    }
+    final computedParams = computeSimulcastPresets(
+      dimensions: dimensions,
+      original: original,
+      requestedPresets: userParams,
+      isScreenShare: isScreenShare,
+    );
 
     return encodingsFromPresets(
       dimensions,

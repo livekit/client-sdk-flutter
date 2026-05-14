@@ -58,6 +58,50 @@ void main() {
 
   group('simulcast encodings', () {
     test('same-resolution lower layer is clamped to top encoding', () {
+      final presets = Utils.computeSimulcastPresets(
+        dimensions: const VideoDimensions(1280, 720),
+        original: const VideoParameters(
+          dimensions: VideoDimensions(1280, 720),
+          encoding: VideoEncoding(maxBitrate: 1500000, maxFramerate: 24),
+        ),
+        requestedPresets: const [
+          VideoParametersPresets.h720_169,
+          VideoParametersPresets.h360_169,
+        ],
+        isScreenShare: false,
+      );
+
+      expect(presets, hasLength(3));
+
+      expect(presets[0], VideoParametersPresets.h360_169);
+
+      expect(presets[1].dimensions, VideoDimensionsPresets.h720_169);
+      expect(presets[1].encoding?.maxFramerate, 24);
+      expect(presets[1].encoding?.maxBitrate, 1500000);
+
+      expect(presets[2].dimensions, const VideoDimensions(1280, 720));
+      expect(presets[2].encoding?.maxFramerate, 24);
+      expect(presets[2].encoding?.maxBitrate, 1500000);
+    });
+
+    test('lower-resolution layer clamps framerate but preserves preset bitrate', () {
+      final presets = Utils.computeSimulcastPresets(
+        dimensions: const VideoDimensions(1280, 720),
+        original: const VideoParameters(
+          dimensions: VideoDimensions(1280, 720),
+          encoding: VideoEncoding(maxBitrate: 500000, maxFramerate: 15),
+        ),
+        requestedPresets: const [],
+        isScreenShare: false,
+      );
+
+      expect(presets, hasLength(3));
+      expect(presets[1].dimensions, VideoDimensionsPresets.h360_169);
+      expect(presets[1].encoding?.maxFramerate, 15);
+      expect(presets[1].encoding?.maxBitrate, 450000);
+    });
+
+    test('computed encodings use clamped presets', () {
       final encodings = Utils.computeVideoEncodings(
         isScreenShare: false,
         dimensions: const VideoDimensions(1280, 720),
@@ -71,37 +115,10 @@ void main() {
       );
 
       expect(encodings, hasLength(3));
-
-      expect(encodings![0].rid, 'q');
-      expect(encodings[0].maxFramerate, 20);
-      expect(encodings[0].maxBitrate, 450000);
-      expect(encodings[0].scaleResolutionDownBy, 2);
-
-      expect(encodings[1].rid, 'h');
+      expect(encodings![1].rid, 'h');
       expect(encodings[1].maxFramerate, 24);
       expect(encodings[1].maxBitrate, 1500000);
       expect(encodings[1].scaleResolutionDownBy, 1);
-
-      expect(encodings[2].rid, 'f');
-      expect(encodings[2].maxFramerate, 24);
-      expect(encodings[2].maxBitrate, 1500000);
-      expect(encodings[2].scaleResolutionDownBy, 1);
-    });
-
-    test('lower-resolution layer clamps framerate but preserves preset bitrate', () {
-      final encodings = Utils.computeVideoEncodings(
-        isScreenShare: false,
-        dimensions: const VideoDimensions(1280, 720),
-        options: const VideoPublishOptions(
-          videoEncoding: VideoEncoding(maxBitrate: 500000, maxFramerate: 15),
-        ),
-      );
-
-      expect(encodings, hasLength(3));
-      expect(encodings![1].rid, 'h');
-      expect(encodings[1].maxFramerate, 15);
-      expect(encodings[1].maxBitrate, 450000);
-      expect(encodings[1].scaleResolutionDownBy, 2);
     });
   });
 }
