@@ -14,6 +14,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/utils.dart';
 
 void main() {
@@ -53,5 +54,54 @@ void main() {
         completion('result-1'),
       ),
     );
+  });
+
+  group('simulcast encodings', () {
+    test('same-resolution lower layer is clamped to top encoding', () {
+      final encodings = Utils.computeVideoEncodings(
+        isScreenShare: false,
+        dimensions: const VideoDimensions(1280, 720),
+        options: const VideoPublishOptions(
+          videoEncoding: VideoEncoding(maxBitrate: 1500000, maxFramerate: 24),
+          videoSimulcastLayers: [
+            VideoParametersPresets.h720_169,
+            VideoParametersPresets.h360_169,
+          ],
+        ),
+      );
+
+      expect(encodings, hasLength(3));
+
+      expect(encodings![0].rid, 'q');
+      expect(encodings[0].maxFramerate, 20);
+      expect(encodings[0].maxBitrate, 450000);
+      expect(encodings[0].scaleResolutionDownBy, 2);
+
+      expect(encodings[1].rid, 'h');
+      expect(encodings[1].maxFramerate, 24);
+      expect(encodings[1].maxBitrate, 1500000);
+      expect(encodings[1].scaleResolutionDownBy, 1);
+
+      expect(encodings[2].rid, 'f');
+      expect(encodings[2].maxFramerate, 24);
+      expect(encodings[2].maxBitrate, 1500000);
+      expect(encodings[2].scaleResolutionDownBy, 1);
+    });
+
+    test('lower-resolution layer clamps framerate but preserves preset bitrate', () {
+      final encodings = Utils.computeVideoEncodings(
+        isScreenShare: false,
+        dimensions: const VideoDimensions(1280, 720),
+        options: const VideoPublishOptions(
+          videoEncoding: VideoEncoding(maxBitrate: 500000, maxFramerate: 15),
+        ),
+      );
+
+      expect(encodings, hasLength(3));
+      expect(encodings![1].rid, 'h');
+      expect(encodings[1].maxFramerate, 15);
+      expect(encodings[1].maxBitrate, 450000);
+      expect(encodings[1].scaleResolutionDownBy, 2);
+    });
   });
 }

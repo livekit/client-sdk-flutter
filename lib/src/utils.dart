@@ -323,6 +323,37 @@ class Utils {
     return result;
   }
 
+  static VideoParameters _clampLowerSimulcastLayer(
+    VideoParameters preset, {
+    required VideoParameters original,
+    required VideoDimensions dimensions,
+  }) {
+    final presetEncoding = preset.encoding;
+    final originalEncoding = original.encoding;
+    if (presetEncoding == null || originalEncoding == null) {
+      return preset;
+    }
+
+    final rawScaleDownBy = dimensions.max() / preset.dimensions.max();
+    final clampedFramerate = math.min(presetEncoding.maxFramerate, originalEncoding.maxFramerate);
+    final clampedBitrate = rawScaleDownBy <= 1.0
+        ? math.min(presetEncoding.maxBitrate, originalEncoding.maxBitrate)
+        : presetEncoding.maxBitrate;
+
+    if (clampedFramerate == presetEncoding.maxFramerate && clampedBitrate == presetEncoding.maxBitrate) {
+      return preset;
+    }
+
+    return VideoParameters(
+      description: preset.description,
+      dimensions: preset.dimensions,
+      encoding: presetEncoding.copyWith(
+        maxFramerate: clampedFramerate,
+        maxBitrate: clampedBitrate,
+      ),
+    );
+  }
+
   @internal
   static FutureOr<String> getNetworkType() async {
     if (!kIsWeb && lkPlatformIsTest()) {
@@ -465,9 +496,16 @@ class Utils {
     List<VideoParameters> computedParams = [original];
 
     if (size >= 960 && midPreset != null) {
-      computedParams = [lowPreset, midPreset, original];
+      computedParams = [
+        _clampLowerSimulcastLayer(lowPreset, original: original, dimensions: dimensions),
+        _clampLowerSimulcastLayer(midPreset, original: original, dimensions: dimensions),
+        original,
+      ];
     } else if (size >= 480) {
-      computedParams = [lowPreset, original];
+      computedParams = [
+        _clampLowerSimulcastLayer(lowPreset, original: original, dimensions: dimensions),
+        original,
+      ];
     }
 
     return encodingsFromPresets(
