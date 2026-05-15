@@ -311,12 +311,12 @@ class Utils {
       if (i >= videoRids.length) {
         return;
       }
-      final size = dimensions.min();
+      final size = dimensions.max();
       final rid = videoRids[i];
       if (e.encoding != null) {
         result.add(e.encoding!.toRTCRtpEncoding(
           rid: rid,
-          scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
+          scaleResolutionDownBy: math.max(1, size / e.dimensions.max()),
         ));
       }
     });
