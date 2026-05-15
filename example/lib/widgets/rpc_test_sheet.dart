@@ -473,7 +473,8 @@ class _HandlerCardState extends State<_HandlerCard> {
                 Expanded(
                   child: Text(
                     entry.topic,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: theme.scaffoldBackgroundColor),
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold, color: theme.scaffoldBackgroundColor),
                   ),
                 ),
                 TextButton.icon(
