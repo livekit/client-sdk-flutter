@@ -989,10 +989,7 @@ extension RPCMethods on LocalParticipant {
   /// Initiate an RPC call to a remote participant.
   /// @param [params] - RPC call parameters.
   /// @returns A future that resolves with the response payload or rejects with [RpcError].
-  ///
-  /// Transport selection (v1 packet vs v2 data stream) happens inside
-  /// [RpcClientManager] based on the destination participant's advertised
-  /// `clientProtocol`.
+  /// @throws [RpcError] on failure. Details in `message`.
   Future<String> performRpc(PerformRpcParams params) {
     return room.rpcClientManager.performRpc(params);
   }
