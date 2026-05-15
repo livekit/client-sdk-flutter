@@ -352,7 +352,7 @@ class _ConnectPageState extends State<ConnectPage> {
                               ),
                             ),
                           ),
-                        const Text('CONNECT'),
+                        const Text('Connect'),
                       ],
                     ),
                   ),
