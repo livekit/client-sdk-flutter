@@ -37,10 +37,10 @@ class _RoomPageState extends State<RoomPage> {
   void initState() {
     super.initState();
 
-    if(Platform.isAndroid){
+    if (Platform.isAndroid) {
       unawaited(enableInCallFlags());
     }
-    
+
     // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
