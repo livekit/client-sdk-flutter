@@ -101,6 +101,105 @@ void main() {
       expect(presets[1].encoding?.maxBitrate, 450000);
     });
 
+    test('same-resolution full clamp', () {
+      final presets = Utils.computeSimulcastPresets(
+        dimensions: const VideoDimensions(854, 480),
+        original: const VideoParameters(
+          dimensions: VideoDimensions(854, 480),
+          encoding: VideoEncoding(maxBitrate: 600000, maxFramerate: 15),
+        ),
+        requestedPresets: const [
+          VideoParameters(
+            dimensions: VideoDimensions(854, 480),
+            encoding: VideoEncoding(maxBitrate: 2000000, maxFramerate: 30),
+          ),
+        ],
+        isScreenShare: false,
+      );
+
+      expect(presets, hasLength(2));
+      expect(presets[0].encoding?.maxFramerate, 15);
+      expect(presets[0].encoding?.maxBitrate, 600000);
+      expect(presets[1].dimensions, const VideoDimensions(854, 480));
+      expect(presets[1].encoding?.maxFramerate, 15);
+      expect(presets[1].encoding?.maxBitrate, 600000);
+    });
+
+    test('ladder length follows the larger output dimension', () {
+      const cases = [
+        (VideoDimensions(320, 240), 1),
+        (VideoDimensions(640, 480), 2),
+        (VideoDimensions(1280, 720), 3),
+      ];
+
+      for (final (dimensions, expectedCount) in cases) {
+        final presets = Utils.computeSimulcastPresets(
+          dimensions: dimensions,
+          original: VideoParameters(
+            dimensions: dimensions,
+            encoding: const VideoEncoding(maxBitrate: 1000000, maxFramerate: 30),
+          ),
+          requestedPresets: const [],
+          isScreenShare: false,
+        );
+
+        expect(presets, hasLength(expectedCount), reason: 'dimensions=$dimensions');
+      }
+    });
+
+    test("presets that don't overshoot are passed through unchanged", () {
+      const original = VideoParameters(
+        dimensions: VideoDimensions(1920, 1080),
+        encoding: VideoEncoding(maxBitrate: 5000000, maxFramerate: 30),
+      );
+
+      final presets = Utils.computeSimulcastPresets(
+        dimensions: const VideoDimensions(1920, 1080),
+        original: original,
+        requestedPresets: const [
+          VideoParametersPresets.h360_169,
+          VideoParametersPresets.h720_169,
+        ],
+        isScreenShare: false,
+      );
+
+      expect(presets, hasLength(3));
+      expect(presets[0], VideoParametersPresets.h360_169);
+      expect(presets[1], VideoParametersPresets.h720_169);
+      expect(presets[2], original);
+    });
+
+    test('clamped layer carries forward per-layer priorities', () {
+      const prioritized = VideoParameters(
+        dimensions: VideoDimensions(1280, 720),
+        encoding: VideoEncoding(
+          maxBitrate: 1700000,
+          maxFramerate: 30,
+          bitratePriority: Priority.high,
+          networkPriority: Priority.high,
+        ),
+      );
+
+      final presets = Utils.computeSimulcastPresets(
+        dimensions: const VideoDimensions(1280, 720),
+        original: const VideoParameters(
+          dimensions: VideoDimensions(1280, 720),
+          encoding: VideoEncoding(maxBitrate: 1500000, maxFramerate: 24),
+        ),
+        requestedPresets: const [
+          VideoParametersPresets.h360_169,
+          prioritized,
+        ],
+        isScreenShare: false,
+      );
+
+      expect(presets, hasLength(3));
+      expect(presets[1].encoding?.maxFramerate, 24);
+      expect(presets[1].encoding?.maxBitrate, 1500000);
+      expect(presets[1].encoding?.bitratePriority, Priority.high);
+      expect(presets[1].encoding?.networkPriority, Priority.high);
+    });
+
     test('computed encodings use clamped presets', () {
       final encodings = Utils.computeVideoEncodings(
         isScreenShare: false,
