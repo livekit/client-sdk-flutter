@@ -28,7 +28,7 @@ dependencies:
 dependency_overrides:
   # Pin packages that use Apple APIs unavailable on CI runner's Xcode version, while allowing the Flutter floor to resolve 11.x.
   connectivity_plus: '>=7.0.0 <7.1.0' # NWPath.isUltraConstrained
-  device_info_plus: '>=11.4.0 <12.4.0' # NSProcessInfo.isiOSAppOnVision
+  device_info_plus: '>=11.3.0 <12.4.0' # NSProcessInfo.isiOSAppOnVision
 
 dev_dependencies:
   flutter_test:
