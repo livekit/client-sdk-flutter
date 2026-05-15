@@ -138,9 +138,10 @@ class E2EContainer {
   /// the synthetic [ParticipantUpdate].
   Future<void> simulateRemoteParticipantJoin(
     String identity, {
-    int clientProtocol = kClientProtocolDataStreamRpc,
+    int? clientProtocol,
     String? sid,
   }) async {
+    clientProtocol ??= ClientProtocolVersion.current.toIntValue();
     final info = lk_models.ParticipantInfo(
       sid: sid ?? '${identity}_sid',
       identity: identity,

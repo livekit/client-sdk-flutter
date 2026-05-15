@@ -23,7 +23,7 @@ export 'src/e2ee/key_provider.dart';
 export 'src/e2ee/options.dart';
 export 'src/events.dart';
 export 'src/exceptions.dart';
-export 'src/extensions.dart' show WidgetsBindingCompatible;
+export 'src/extensions.dart' show ClientProtocolVersionExt, WidgetsBindingCompatible;
 export 'src/hardware/hardware.dart';
 export 'src/livekit.dart';
 export 'src/logger.dart';

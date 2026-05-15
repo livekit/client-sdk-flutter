@@ -112,22 +112,12 @@ class RpcError implements Exception {
 }
 
 /// Maximum payload size for RPC v1 requests and responses. When the remote participant
-/// supports RPC v2 ([kClientProtocolDataStreamRpc] or higher), payloads of any size are
+/// supports RPC v2 ([ClientProtocolVersion.v1] or higher), payloads of any size are
 /// allowed because they are transported over data streams.
 final kRpcMaxPayloadBytes = 15360; // 15 KB
 
 /// RPC v1 wire version, sent in the `RpcRequest.version` packet field.
 final int kRpcVesion = 1;
-
-/// Client protocol versions advertised via `ParticipantInfo.clientProtocol`.
-/// Spec name: `CLIENT_PROTOCOL_DEFAULT`. Indicates a peer that only supports RPC v1.
-const int kClientProtocolDefault = 0;
-
-/// Spec name: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Indicates a peer that supports RPC v2
-/// (request/response payloads carried over text data streams).
-const int kClientProtocolDataStreamRpc = 1;
-
-const int kClientProtocol = kClientProtocolDataStreamRpc;
 
 /// Data stream topic for RPC v2 requests.
 const String kRpcRequestTopic = 'lk.rpc_request';

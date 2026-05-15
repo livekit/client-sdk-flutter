@@ -41,6 +41,24 @@ enum ProtocolVersion {
   v16, // Supports moving (full participant move)
 }
 
+/// Client-to-client protocol version advertised in `ParticipantInfo.clientProtocol`
+/// and the `client_protocol` join URL query parameter. Governs peer-to-peer feature
+/// negotiation; distinct from [ProtocolVersion], which tracks the signaling protocol.
+///
+/// Each variant's integer wire value comes from [ClientProtocolVersionExt.toIntValue].
+enum ClientProtocolVersion {
+  /// Spec: `CLIENT_PROTOCOL_DEFAULT`. Legacy client — only supports RPC v1.
+  v0,
+
+  /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
+  v1;
+
+  /// The highest version this SDK build supports. Used as the default for
+  /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
+  /// "the current SDK".
+  static const ClientProtocolVersion current = v1;
+}
+
 /// Connection state type used throughout the SDK.
 enum ConnectionState {
   disconnected,

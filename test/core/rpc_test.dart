@@ -236,7 +236,7 @@ void main() {
   });
 
   // RPC v2 tests run with the local participant advertising
-  // `clientProtocol = kClientProtocolDataStreamRpc`, so the self-loop path
+  // `clientProtocol = ClientProtocolVersion.current`, so the self-loop path
   // routes through the data-stream transport instead of the v1 packet path.
   group('rpc v2 tests', () {
     late E2EContainer v2Container;
@@ -248,7 +248,7 @@ void main() {
       v2Container = E2EContainer();
       v2Room = v2Container.room;
       await v2Container.connectRoom(
-        localClientProtocol: kClientProtocolDataStreamRpc,
+        localClientProtocol: ClientProtocolVersion.current.toIntValue(),
         captureOutbound: true,
       );
     });
@@ -465,7 +465,7 @@ void main() {
 
     test('v2 participant disconnect rejects pending RPCs', () async {
       // Inject a remote participant that supports v2.
-      await v2Container.simulateRemoteParticipantJoin('alice', clientProtocol: kClientProtocolDataStreamRpc);
+      await v2Container.simulateRemoteParticipantJoin('alice');
 
       // Register a handler that never completes so the request never resolves on its own.
       // The remote 'alice' is fake; our local engine will still see the v2 request
@@ -505,7 +505,7 @@ void main() {
     test('v2 response stream from wrong sender is ignored', () async {
       v2Container.capturedDataPackets.clear();
       // Inject the legitimate destination.
-      await v2Container.simulateRemoteParticipantJoin('bob', clientProtocol: kClientProtocolDataStreamRpc);
+      await v2Container.simulateRemoteParticipantJoin('bob');
 
       // Register a hanging handler so the legit response never arrives during the test window.
       v2Room.registerRpcMethod('hangs-for-bob', (_) async {
