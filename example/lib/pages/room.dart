@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -37,7 +36,7 @@ class _RoomPageState extends State<RoomPage> {
   void initState() {
     super.initState();
 
-    if (Platform.isAndroid) {
+    if (lkPlatformIs(PlatformType.android)) {
       unawaited(enableInCallFlags());
     }
 
@@ -70,7 +69,9 @@ class _RoomPageState extends State<RoomPage> {
     widget.room.removeListener(_onRoomDidUpdate);
     unawaited(_disposeRoomAsync());
     onWindowShouldClose = null;
-    unawaited(disableInCallFlags());
+    if (lkPlatformIs(PlatformType.android)) {
+      unawaited(disableInCallFlags());
+    }
     super.dispose();
   }
 
