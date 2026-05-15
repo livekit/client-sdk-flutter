@@ -335,6 +335,9 @@ class Utils {
             : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
         .sorted();
 
+    if (params.isEmpty) {
+      return [original];
+    }
     final lowPreset = params.first;
     final midPreset = params.length > 1 ? params[1] : null;
 
