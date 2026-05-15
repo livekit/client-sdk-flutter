@@ -328,7 +328,9 @@ void main() {
           payload: 'x',
         ));
       } catch (e) {
-        if (e is RpcError) error = e;
+        if (e is RpcError) {
+          error = e;
+        }
       }
 
       expect(error?.code, RpcError.unsupportedMethod);
@@ -369,7 +371,9 @@ void main() {
           payload: 'x',
         ));
       } catch (e) {
-        if (e is RpcError) error = e;
+        if (e is RpcError) {
+          error = e;
+        }
       }
 
       expect(error?.code, RpcError.applicationError);
@@ -405,7 +409,9 @@ void main() {
           payload: 'x',
         ));
       } catch (e) {
-        if (e is RpcError) error = e;
+        if (e is RpcError) {
+          error = e;
+        }
       }
 
       expect(error?.code, 101);
@@ -431,7 +437,9 @@ void main() {
           responseTimeoutMs: const Duration(seconds: 2),
         ));
       } catch (e) {
-        if (e is RpcError) error = e;
+        if (e is RpcError) {
+          error = e;
+        }
       }
 
       expect(error?.code, RpcError.responseTimeout);
@@ -486,7 +494,9 @@ void main() {
         responseTimeoutMs: const Duration(seconds: 30),
       ))
           .catchError((e) {
-        if (e is RpcError) error = e;
+        if (e is RpcError) {
+          error = e;
+        }
         return '';
       });
 
