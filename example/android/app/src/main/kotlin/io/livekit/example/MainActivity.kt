@@ -37,16 +37,6 @@ class MainActivity : FlutterActivity() {
 
         // Keep screen on during call
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        // Show over lock screen (modern way)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setTurnScreenOn(true)
-            setShowWhenLocked(true)
-        } else {
-            window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
-            window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
-            window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
-        }
     }
 
     private fun clearInCallScreenFlags() {
@@ -54,15 +44,5 @@ class MainActivity : FlutterActivity() {
 
         // Remove keep screen on
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        // Reset lock screen behavior
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setTurnScreenOn(false)
-            setShowWhenLocked(false)
-        } else {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
-            window.clearFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
-            window.clearFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
-        }
     }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,11 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
-    unawaited(enableInCallFlags());
+
+    if(Platform.isAndroid){
+      unawaited(enableInCallFlags());
+    }
+    
     // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     // add callbacks for finer grained events
