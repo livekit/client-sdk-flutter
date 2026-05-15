@@ -36,7 +36,9 @@ class RpcTestController extends ChangeNotifier {
   bool isRegistered(String topic) => _handlers.any((h) => h.topic == topic);
 
   void registerHandler(Room room, String topic, String staticResponse) {
-    if (isRegistered(topic)) return;
+    if (isRegistered(topic)) {
+      return;
+    }
     _room = room;
     final entry = RpcHandlerEntry(topic: topic, staticResponse: staticResponse);
     _handlers.add(entry);
@@ -59,7 +61,9 @@ class RpcTestController extends ChangeNotifier {
 
   void unregisterHandler(String topic) {
     final idx = _handlers.indexWhere((h) => h.topic == topic);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     _room?.unregisterRpcMethod(topic);
     _handlers.removeAt(idx);
     notifyListeners();
@@ -151,7 +155,9 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
     final identity = _selectedIdentity;
     final method = _methodCtl.text.trim();
     final local = widget.room.localParticipant;
-    if (identity == null || method.isEmpty || local == null) return;
+    if (identity == null || method.isEmpty || local == null) {
+      return;
+    }
     final payload = _payloadCtl.text;
     setState(() {
       _isSending = true;
@@ -167,13 +173,17 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
         ),
       );
       stopwatch.stop();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _lastResult = _SendResult.success(response: response, elapsed: stopwatch.elapsed);
       });
     } catch (e) {
       stopwatch.stop();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _lastResult = _SendResult.error(error: e, elapsed: stopwatch.elapsed);
       });
@@ -188,7 +198,9 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
 
   void _register() {
     final topic = _handlerTopicCtl.text.trim();
-    if (topic.isEmpty) return;
+    if (topic.isEmpty) {
+      return;
+    }
     if (widget.controller.isRegistered(topic)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Handler for "$topic" is already registered')),
@@ -201,7 +213,9 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
 
   void _applyPreset(String preset, TextEditingController target) {
     final fn = _payloadPresets[preset];
-    if (fn == null) return;
+    if (fn == null) {
+      return;
+    }
     target.text = fn();
   }
 
@@ -459,7 +473,7 @@ class _HandlerCardState extends State<_HandlerCard> {
                 Expanded(
                   child: Text(
                     entry.topic,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: theme.scaffoldBackgroundColor),
                   ),
                 ),
                 TextButton.icon(
@@ -480,6 +494,7 @@ class _HandlerCardState extends State<_HandlerCard> {
                 isDense: true,
               ),
               onChanged: (value) => widget.controller.updateStaticResponse(entry.topic, value),
+              style: TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
             ),
             const SizedBox(height: 8),
             Row(
@@ -495,7 +510,10 @@ class _HandlerCardState extends State<_HandlerCard> {
                         _responseCtl.text = value;
                         widget.controller.updateStaticResponse(entry.topic, value);
                       },
-                      child: Text(preset),
+                      child: Text(
+                        preset,
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.cardColor),
+                      ),
                     ),
                   ),
                 ),
