@@ -56,7 +56,7 @@ class RpcServerManager {
   ) async {
     await _publishAck(destinationIdentity: callerIdentity, requestId: requestId);
 
-    if (version != kRpcVesion) {
+    if (version != kRpcVersion) {
       await _sendResponse(
         callerIdentity: callerIdentity,
         requestId: requestId,

@@ -140,7 +140,7 @@ class RpcClientManager {
         method: method,
         payload: payload,
         responseTimeoutMs: responseTimeout.inMilliseconds,
-        version: kRpcVesion,
+        version: kRpcVersion,
       ),
       participantIdentity: _room.localParticipant?.identity,
       destinationIdentities: [destinationIdentity],

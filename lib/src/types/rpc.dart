@@ -117,7 +117,7 @@ class RpcError implements Exception {
 final kRpcMaxPayloadBytes = 15360; // 15 KB
 
 /// RPC v1 wire version, sent in the `RpcRequest.version` packet field.
-final int kRpcVesion = 1;
+final int kRpcVersion = 1;
 
 /// Data stream topic for RPC v2 requests.
 const String kRpcRequestTopic = 'lk.rpc_request';
