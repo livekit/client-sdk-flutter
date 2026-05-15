@@ -111,8 +111,35 @@ class RpcError implements Exception {
   }
 }
 
-/// Maximum payload size for RPC requests and responses. If a payload exceeds this size,
-/// the RPC call will fail with a REQUEST_PAYLOAD_TOO_LARGE(1402) or RESPONSE_PAYLOAD_TOO_LARGE(1504) error.
+/// Maximum payload size for RPC v1 requests and responses. When the remote participant
+/// supports RPC v2 ([kClientProtocolDataStreamRpc] or higher), payloads of any size are
+/// allowed because they are transported over data streams.
 final kRpcMaxPayloadBytes = 15360; // 15 KB
 
+/// RPC v1 wire version, sent in the `RpcRequest.version` packet field.
 final int kRpcVesion = 1;
+
+/// Client protocol versions advertised via `ParticipantInfo.clientProtocol`.
+/// Spec name: `CLIENT_PROTOCOL_DEFAULT`. Indicates a peer that only supports RPC v1.
+const int kClientProtocolDefault = 0;
+
+/// Spec name: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Indicates a peer that supports RPC v2
+/// (request/response payloads carried over text data streams).
+const int kClientProtocolDataStreamRpc = 1;
+
+const int kClientProtocol = kClientProtocolDataStreamRpc;
+
+/// Data stream topic for RPC v2 requests.
+const String kRpcRequestTopic = 'lk.rpc_request';
+
+/// Data stream topic for RPC v2 success responses.
+const String kRpcResponseTopic = 'lk.rpc_response';
+
+/// Attribute keys used on RPC v2 request streams.
+const String kRpcAttrRequestId = 'lk.rpc_request_id';
+const String kRpcAttrMethod = 'lk.rpc_request_method';
+const String kRpcAttrResponseTimeoutMs = 'lk.rpc_request_response_timeout_ms';
+const String kRpcAttrVersion = 'lk.rpc_request_version';
+
+/// Value sent in the `kRpcAttrVersion` attribute for v2 requests.
+const String kRpcRequestVersionV2 = '2';

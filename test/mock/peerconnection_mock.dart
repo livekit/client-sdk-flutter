@@ -30,6 +30,19 @@ MockDataChannel? findMockDataChannelByLabel(String label, {bool requireListener 
   return null;
 }
 
+/// All mock data channels created in the current test process. Test code can wrap
+/// `onMessageSend` to capture outbound packets without breaking the existing
+/// publisher↔subscriber loopback.
+List<MockDataChannel> get mockDataChannels => _dataChannels;
+
+/// Reset the global mock-channel list. Tests that create a fresh `E2EContainer`
+/// after an earlier one finished must call this before re-connecting, otherwise
+/// the publisher↔subscriber pairing (which only fires when the list reaches
+/// length 2) will not happen on the new channels.
+void resetMockDataChannels() {
+  _dataChannels.clear();
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';

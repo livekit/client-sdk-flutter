@@ -35,6 +35,7 @@ import 'support/platform.dart';
 import 'track/local/video.dart';
 import 'types/other.dart';
 import 'types/priority.dart';
+import 'types/rpc.dart';
 import 'types/video_dimensions.dart';
 import 'types/video_encoding.dart';
 import 'types/video_parameters.dart';
@@ -93,16 +94,19 @@ class Utils {
     if (!kIsWeb && lkPlatformIsTest()) {
       return lk_models.ClientInfo(
         os: 'test',
+        clientProtocol: kClientProtocolDataStreamRpc,
       );
     }
     switch (lkPlatform()) {
       case PlatformType.web:
         return lk_models.ClientInfo(
           os: defaultTargetPlatform.name,
+          clientProtocol: kClientProtocolDataStreamRpc,
         );
       case PlatformType.windows:
         return lk_models.ClientInfo(
           os: 'windows',
+          clientProtocol: kClientProtocolDataStreamRpc,
 
           /// [WindowsDeviceInfo] does not provide details...
         );
@@ -119,6 +123,7 @@ class Utils {
           osVersion: osVersionString,
           // Confirmed
           deviceModel: info.model,
+          clientProtocol: kClientProtocolDataStreamRpc,
         );
 
       case PlatformType.android:
@@ -127,6 +132,7 @@ class Utils {
           os: 'android',
           osVersion: info.version.release,
           deviceModel: info.model,
+          clientProtocol: kClientProtocolDataStreamRpc,
         );
 
       case PlatformType.iOS:
@@ -140,6 +146,7 @@ class Utils {
           // Confirmed
           osVersion: info.systemVersion,
           deviceModel: model,
+          clientProtocol: kClientProtocolDataStreamRpc,
         );
 
       case PlatformType.linux:
@@ -148,6 +155,7 @@ class Utils {
           os: 'linux',
           osVersion: info.versionId,
           deviceModel: info.machineId,
+          clientProtocol: kClientProtocolDataStreamRpc,
         );
 
       default:
@@ -195,6 +203,7 @@ class Utils {
         if (reconnect && reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
+        'client_protocol': '${kClientProtocol}',
         'sdk': 'flutter',
         'version': LiveKitClient.version,
         'network': networkType,

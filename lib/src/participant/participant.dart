@@ -27,6 +27,7 @@ import '../support/disposable.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/participant_state.dart';
+import '../types/rpc.dart';
 import '../utils.dart' show mapDiff;
 
 /// Represents a Participant in the room, notifies changes via delegates as
@@ -96,6 +97,11 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
     }
     return DateTime.timestamp();
   }
+
+  /// Client-to-client protocol version this participant supports. Drives the
+  /// caller- and handler-side decision between RPC v1 packets and RPC v2 data streams.
+  /// Absent / unrecognized values from older clients resolve to [kClientProtocolDefault].
+  int get clientProtocol => _participantInfo?.clientProtocol ?? kClientProtocolDefault;
 
   /// if [Participant] is currently speaking.
   bool get isSpeaking => _isSpeaking;
