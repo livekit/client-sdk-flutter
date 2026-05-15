@@ -200,20 +200,18 @@ class RpcClientManager {
 
   /// Registered as the text stream handler for `lk.rpc_response`. Reads the request ID
   /// attribute, validates the sender against the pending entry's destination identity,
-  /// drains the stream, and resolves the matching pending RPC.
+  /// and resolves the matching pending RPC. Bail paths return without reading the body —
+  /// the underlying stream controller is cleaned up by `handleStreamTrailer` regardless.
   Future<void> handleIncomingV2ResponseStream(TextStreamReader reader, String senderIdentity) async {
     final requestId = reader.info?.attributes[kRpcAttrRequestId];
     if (requestId == null) {
       logger.warning('v2 RPC response stream missing $kRpcAttrRequestId attribute; ignoring');
-      // Drain to avoid leaking the controller.
-      await reader.readAll();
       return;
     }
 
     final pending = _pending[requestId];
     if (pending == null) {
       logger.fine('v2 RPC response stream for unknown request $requestId; ignoring');
-      await reader.readAll();
       return;
     }
 
@@ -222,7 +220,6 @@ class RpcClientManager {
       // so the legitimate response (or timeout) can still complete it.
       logger.warning('v2 RPC response sender "$senderIdentity" does not match expected destination '
           '"${pending.destinationIdentity}" for request $requestId; ignoring');
-      await reader.readAll();
       return;
     }
 

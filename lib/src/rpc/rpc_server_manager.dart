@@ -87,12 +87,10 @@ class RpcServerManager {
 
     if (requestId == null || method == null || timeoutMsStr == null || versionStr == null) {
       logger.warning('v2 RPC request stream missing required attribute(s); ignoring');
-      await reader.readAll();
       return;
     }
     if (versionStr != kRpcRequestVersionV2) {
       logger.warning('v2 RPC request stream has unexpected version "$versionStr"; ignoring');
-      await reader.readAll();
       return;
     }
 
