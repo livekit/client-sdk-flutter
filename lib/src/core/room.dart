@@ -126,9 +126,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // RPC managers (caller and handler roles)
   @internal
-  late final RpcClientManager rpcClient;
-  @internal
-  late final RpcServerManager rpcServer;
+  late final RpcClientManager rpcClientManager;
+  late final RpcServerManager _rpcServerManager;
 
   final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _byteStreamControllers = {};
 
@@ -146,7 +145,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // for testing — pass-through to the server manager's handler map.
   @internal
-  Map<String, RpcRequestHandler> get rpcHandlers => rpcServer.handlers;
+  Map<String, RpcRequestHandler> get rpcHandlers => _rpcServerManager.handlers;
 
   // Internal RPC v2 reserved topics are also stored in `_textStreamHandlers` so
   // they ride the same dispatch path, but exposing them via the public-facing
@@ -178,8 +177,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     _signalListener = this.engine.signalClient.createListener();
     _setUpSignalListeners();
 
-    rpcClient = RpcClientManager(this);
-    rpcServer = RpcServerManager(this);
+    rpcClientManager = RpcClientManager(this);
+    _rpcServerManager = RpcServerManager(this);
 
     _pendingTrackQueue = PendingTrackQueue(
       ttl: this.engine.connectOptions.timeouts.subscribe,
@@ -204,7 +203,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // clean up routine
       await _cleanUp();
       // reject any in-flight RPC calls
-      rpcClient.dispose();
+      rpcClientManager.dispose();
       // dispose preConnectAudioBuffer
       await preConnectAudioBuffer.dispose();
       // dispose events
@@ -533,7 +532,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _remoteParticipants.clear();
       _activeSpeakers.clear();
       for (final participant in participants) {
-        rpcClient.onParticipantDisconnected(participant.identity);
+        rpcClientManager.onParticipantDisconnected(participant.identity);
         events.emit(ParticipantDisconnectedEvent(participant: participant));
         await participant.removeAllPublishedTracks(notify: false);
         await participant.dispose();
@@ -964,7 +963,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     final participant = _remoteParticipants.removeByIdentity(identity);
     if (participant == null) return false;
 
-    rpcClient.onParticipantDisconnected(identity);
+    rpcClientManager.onParticipantDisconnected(identity);
 
     await validateParticipantHasNoActiveDataStreams(identity);
 
@@ -1269,7 +1268,7 @@ extension RoomRPCMethods on Room {
     _engineListener
       ..on<EngineRPCRequestReceivedEvent>((event) async {
         final request = event.request;
-        await rpcServer.handleIncomingV1Request(
+        await _rpcServerManager.handleIncomingV1Request(
           event.identity,
           request.id,
           request.method,
@@ -1279,7 +1278,7 @@ extension RoomRPCMethods on Room {
         );
       })
       ..on<EngineRPCAckReceivedEvent>((event) {
-        rpcClient.handleIncomingRpcAck(event.requestId);
+        rpcClientManager.handleIncomingRpcAck(event.requestId);
       })
       ..on<EngineRPCResponseReceivedEvent>((event) {
         String? payload;
@@ -1290,13 +1289,13 @@ extension RoomRPCMethods on Room {
         } else if (event.error != null) {
           error = RpcError.fromProto(event.error!);
         }
-        rpcClient.handleIncomingRpcResponse(event.requestId, payload, error);
+        rpcClientManager.handleIncomingRpcResponse(event.requestId, payload, error);
       });
 
     // Register v2 data-stream-based request/response handlers. These topics
     // (kRpcRequestTopic / kRpcResponseTopic) are reserved by the SDK.
-    registerTextStreamHandler(kRpcRequestTopic, rpcServer.handleIncomingV2RequestStream);
-    registerTextStreamHandler(kRpcResponseTopic, rpcClient.handleIncomingV2ResponseStream);
+    registerTextStreamHandler(kRpcRequestTopic, _rpcServerManager.handleIncomingV2RequestStream);
+    registerTextStreamHandler(kRpcResponseTopic, rpcClientManager.handleIncomingV2ResponseStream);
   }
 
   /// Register a handler for incoming RPC requests.
@@ -1305,13 +1304,13 @@ extension RoomRPCMethods on Room {
   /// The handler should return a string payload to send back to the caller.
   /// If the handler returns null, an error will be sent back to the caller.
   void registerRpcMethod(String method, RpcRequestHandler handler) {
-    rpcServer.registerMethod(method, handler);
+    _rpcServerManager.registerMethod(method, handler);
   }
 
   /// Unregister a handler for incoming RPC requests.
   /// @param method, the method name to unregister.
   void unregisterRpcMethod(String method) {
-    rpcServer.unregisterMethod(method);
+    _rpcServerManager.unregisterMethod(method);
   }
 }
 

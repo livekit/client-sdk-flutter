@@ -994,7 +994,7 @@ extension RPCMethods on LocalParticipant {
   /// [RpcClientManager] based on the destination participant's advertised
   /// `clientProtocol`.
   Future<String> performRpc(PerformRpcParams params) {
-    return room.rpcClient.performRpc(params);
+    return room.rpcClientManager.performRpc(params);
   }
 }
 
