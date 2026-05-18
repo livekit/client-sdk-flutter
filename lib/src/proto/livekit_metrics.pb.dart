@@ -432,12 +432,16 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
     $fixnum.Int64? duration,
     $0.Timestamp? startTime,
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? roomTags,
+    $core.String? roomName,
+    $0.Timestamp? roomStartTime,
   }) {
     final result = create();
     if (roomId != null) result.roomId = roomId;
     if (duration != null) result.duration = duration;
     if (startTime != null) result.startTime = startTime;
     if (roomTags != null) result.roomTags.addEntries(roomTags);
+    if (roomName != null) result.roomName = roomName;
+    if (roomStartTime != null) result.roomStartTime = roomStartTime;
     return result;
   }
 
@@ -460,6 +464,8 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('livekit'))
+    ..aOS(6, _omitFieldNames ? '' : 'roomName')
+    ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'roomStartTime', subBuilder: $0.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -511,6 +517,26 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(5)
   $pb.PbMap<$core.String, $core.String> get roomTags => $_getMap(3);
+
+  @$pb.TagNumber(6)
+  $core.String get roomName => $_getSZ(4);
+  @$pb.TagNumber(6)
+  set roomName($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRoomName() => $_has(4);
+  @$pb.TagNumber(6)
+  void clearRoomName() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $0.Timestamp get roomStartTime => $_getN(5);
+  @$pb.TagNumber(7)
+  set roomStartTime($0.Timestamp value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasRoomStartTime() => $_has(5);
+  @$pb.TagNumber(7)
+  void clearRoomStartTime() => $_clearField(7);
+  @$pb.TagNumber(7)
+  $0.Timestamp ensureRoomStartTime() => $_ensure(5);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
+
 class LKTextField extends StatelessWidget {
   final String label;
   final TextEditingController? ctrl;
@@ -14,32 +16,31 @@ class LKTextField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               label,
               style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: LKColors.fgDark,
               ),
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
-              horizontal: 15,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              border: Border.all(
-                width: 1,
-                color: Colors.white.withValues(alpha: .3),
-              ),
-              borderRadius: BorderRadius.circular(8),
+              color: LKColors.inputFillDark,
+              border: Border.all(width: 1, color: LKColors.inputDark),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: TextField(
               controller: ctrl,
-              decoration: const InputDecoration.collapsed(
-                hintText: '',
+              style: const TextStyle(
+                fontSize: 15,
+                color: LKColors.fgDark,
               ),
+              cursorColor: LKColors.fgDark,
+              decoration: const InputDecoration.collapsed(hintText: ''),
               keyboardType: TextInputType.url,
               autocorrect: false,
             ),
