@@ -545,6 +545,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     $core.bool? canUpdateMetadata,
     @$core.Deprecated('This field is deprecated.') $core.bool? agent,
     $core.bool? canSubscribeMetrics,
+    $core.bool? canManageAgentSession,
   }) {
     final result = create();
     if (canSubscribe != null) result.canSubscribe = canSubscribe;
@@ -556,6 +557,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     if (canUpdateMetadata != null) result.canUpdateMetadata = canUpdateMetadata;
     if (agent != null) result.agent = agent;
     if (canSubscribeMetrics != null) result.canSubscribeMetrics = canSubscribeMetrics;
+    if (canManageAgentSession != null) result.canManageAgentSession = canManageAgentSession;
     return result;
   }
 
@@ -580,6 +582,7 @@ class ParticipantPermission extends $pb.GeneratedMessage {
     ..aOB(10, _omitFieldNames ? '' : 'canUpdateMetadata')
     ..aOB(11, _omitFieldNames ? '' : 'agent')
     ..aOB(12, _omitFieldNames ? '' : 'canSubscribeMetrics')
+    ..aOB(13, _omitFieldNames ? '' : 'canManageAgentSession')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -693,6 +696,16 @@ class ParticipantPermission extends $pb.GeneratedMessage {
   $core.bool hasCanSubscribeMetrics() => $_has(8);
   @$pb.TagNumber(12)
   void clearCanSubscribeMetrics() => $_clearField(12);
+
+  /// if a participant can manage an agent session via RemoteSession (control and access state)
+  @$pb.TagNumber(13)
+  $core.bool get canManageAgentSession => $_getBF(9);
+  @$pb.TagNumber(13)
+  set canManageAgentSession($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(13)
+  $core.bool hasCanManageAgentSession() => $_has(9);
+  @$pb.TagNumber(13)
+  void clearCanManageAgentSession() => $_clearField(13);
 }
 
 class ParticipantInfo extends $pb.GeneratedMessage {
@@ -714,6 +727,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $fixnum.Int64? joinedAtMs,
     $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
     $core.Iterable<DataTrackInfo>? dataTracks,
+    $core.int? clientProtocol,
   }) {
     final result = create();
     if (sid != null) result.sid = sid;
@@ -733,6 +747,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (joinedAtMs != null) result.joinedAtMs = joinedAtMs;
     if (kindDetails != null) result.kindDetails.addAll(kindDetails);
     if (dataTracks != null) result.dataTracks.addAll(dataTracks);
+    if (clientProtocol != null) result.clientProtocol = clientProtocol;
     return result;
   }
 
@@ -770,6 +785,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         enumValues: ParticipantInfo_KindDetail.values,
         defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..pPM<DataTrackInfo>(19, _omitFieldNames ? '' : 'dataTracks', subBuilder: DataTrackInfo.create)
+    ..aI(20, _omitFieldNames ? '' : 'clientProtocol')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -924,6 +940,16 @@ class ParticipantInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(19)
   $pb.PbList<DataTrackInfo> get dataTracks => $_getList(16);
+
+  /// protocol version used for client feature compatibility
+  @$pb.TagNumber(20)
+  $core.int get clientProtocol => $_getIZ(17);
+  @$pb.TagNumber(20)
+  set clientProtocol($core.int value) => $_setSignedInt32(17, value);
+  @$pb.TagNumber(20)
+  $core.bool hasClientProtocol() => $_has(17);
+  @$pb.TagNumber(20)
+  void clearClientProtocol() => $_clearField(20);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -1090,6 +1116,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     TimedVersion? version,
     $core.Iterable<AudioTrackFeature>? audioFeatures,
     BackupCodecPolicy? backupCodecPolicy,
+    $core.Iterable<PacketTrailerFeature>? packetTrailerFeatures,
   }) {
     final result = create();
     if (sid != null) result.sid = sid;
@@ -1112,6 +1139,7 @@ class TrackInfo extends $pb.GeneratedMessage {
     if (version != null) result.version = version;
     if (audioFeatures != null) result.audioFeatures.addAll(audioFeatures);
     if (backupCodecPolicy != null) result.backupCodecPolicy = backupCodecPolicy;
+    if (packetTrailerFeatures != null) result.packetTrailerFeatures.addAll(packetTrailerFeatures);
     return result;
   }
 
@@ -1148,6 +1176,10 @@ class TrackInfo extends $pb.GeneratedMessage {
         enumValues: AudioTrackFeature.values,
         defaultEnumValue: AudioTrackFeature.TF_STEREO)
     ..aE<BackupCodecPolicy>(20, _omitFieldNames ? '' : 'backupCodecPolicy', enumValues: BackupCodecPolicy.values)
+    ..pc<PacketTrailerFeature>(21, _omitFieldNames ? '' : 'packetTrailerFeatures', $pb.PbFieldType.KE,
+        valueOf: PacketTrailerFeature.valueOf,
+        enumValues: PacketTrailerFeature.values,
+        defaultEnumValue: PacketTrailerFeature.PTF_USER_TIMESTAMP)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1351,6 +1383,9 @@ class TrackInfo extends $pb.GeneratedMessage {
   $core.bool hasBackupCodecPolicy() => $_has(19);
   @$pb.TagNumber(20)
   void clearBackupCodecPolicy() => $_clearField(20);
+
+  @$pb.TagNumber(21)
+  $pb.PbList<PacketTrailerFeature> get packetTrailerFeatures => $_getList(20);
 }
 
 class DataTrackInfo extends $pb.GeneratedMessage {
@@ -2965,6 +3000,7 @@ class RpcRequest extends $pb.GeneratedMessage {
     $core.String? payload,
     $core.int? responseTimeoutMs,
     $core.int? version,
+    $core.List<$core.int>? compressedPayload,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -2972,6 +3008,7 @@ class RpcRequest extends $pb.GeneratedMessage {
     if (payload != null) result.payload = payload;
     if (responseTimeoutMs != null) result.responseTimeoutMs = responseTimeoutMs;
     if (version != null) result.version = version;
+    if (compressedPayload != null) result.compressedPayload = compressedPayload;
     return result;
   }
 
@@ -2990,6 +3027,7 @@ class RpcRequest extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'payload')
     ..aI(4, _omitFieldNames ? '' : 'responseTimeoutMs', fieldType: $pb.PbFieldType.OU3)
     ..aI(5, _omitFieldNames ? '' : 'version', fieldType: $pb.PbFieldType.OU3)
+    ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'compressedPayload', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3053,6 +3091,16 @@ class RpcRequest extends $pb.GeneratedMessage {
   $core.bool hasVersion() => $_has(4);
   @$pb.TagNumber(5)
   void clearVersion() => $_clearField(5);
+
+  /// Compressed payload data. When set, this field is used instead of `payload`.
+  @$pb.TagNumber(6)
+  $core.List<$core.int> get compressedPayload => $_getN(5);
+  @$pb.TagNumber(6)
+  set compressedPayload($core.List<$core.int> value) => $_setBytes(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasCompressedPayload() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearCompressedPayload() => $_clearField(6);
 }
 
 class RpcAck extends $pb.GeneratedMessage {
@@ -3103,18 +3151,20 @@ class RpcAck extends $pb.GeneratedMessage {
   void clearRequestId() => $_clearField(1);
 }
 
-enum RpcResponse_Value { payload, error, notSet }
+enum RpcResponse_Value { payload, error, compressedPayload, notSet }
 
 class RpcResponse extends $pb.GeneratedMessage {
   factory RpcResponse({
     $core.String? requestId,
     $core.String? payload,
     RpcError? error,
+    $core.List<$core.int>? compressedPayload,
   }) {
     final result = create();
     if (requestId != null) result.requestId = requestId;
     if (payload != null) result.payload = payload;
     if (error != null) result.error = error;
+    if (compressedPayload != null) result.compressedPayload = compressedPayload;
     return result;
   }
 
@@ -3129,14 +3179,16 @@ class RpcResponse extends $pb.GeneratedMessage {
   static const $core.Map<$core.int, RpcResponse_Value> _RpcResponse_ValueByTag = {
     2: RpcResponse_Value.payload,
     3: RpcResponse_Value.error,
+    4: RpcResponse_Value.compressedPayload,
     0: RpcResponse_Value.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RpcResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..oo(0, [2, 3])
+    ..oo(0, [2, 3, 4])
     ..aOS(1, _omitFieldNames ? '' : 'requestId')
     ..aOS(2, _omitFieldNames ? '' : 'payload')
     ..aOM<RpcError>(3, _omitFieldNames ? '' : 'error', subBuilder: RpcError.create)
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'compressedPayload', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3158,9 +3210,11 @@ class RpcResponse extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   RpcResponse_Value whichValue() => _RpcResponse_ValueByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
+  @$pb.TagNumber(4)
   void clearValue() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -3191,6 +3245,16 @@ class RpcResponse extends $pb.GeneratedMessage {
   void clearError() => $_clearField(3);
   @$pb.TagNumber(3)
   RpcError ensureError() => $_ensure(2);
+
+  /// Compressed payload data. When set, this field is used instead of `payload`.
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get compressedPayload => $_getN(3);
+  @$pb.TagNumber(4)
+  set compressedPayload($core.List<$core.int> value) => $_setBytes(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasCompressedPayload() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCompressedPayload() => $_clearField(4);
 }
 
 class RpcError extends $pb.GeneratedMessage {
@@ -3461,6 +3525,8 @@ class ClientInfo extends $pb.GeneratedMessage {
     $core.String? address,
     $core.String? network,
     $core.String? otherSdks,
+    $core.int? clientProtocol,
+    $core.Iterable<ClientInfo_Capability>? capabilities,
   }) {
     final result = create();
     if (sdk != null) result.sdk = sdk;
@@ -3474,6 +3540,8 @@ class ClientInfo extends $pb.GeneratedMessage {
     if (address != null) result.address = address;
     if (network != null) result.network = network;
     if (otherSdks != null) result.otherSdks = otherSdks;
+    if (clientProtocol != null) result.clientProtocol = clientProtocol;
+    if (capabilities != null) result.capabilities.addAll(capabilities);
     return result;
   }
 
@@ -3498,6 +3566,11 @@ class ClientInfo extends $pb.GeneratedMessage {
     ..aOS(9, _omitFieldNames ? '' : 'address')
     ..aOS(10, _omitFieldNames ? '' : 'network')
     ..aOS(11, _omitFieldNames ? '' : 'otherSdks')
+    ..aI(12, _omitFieldNames ? '' : 'clientProtocol')
+    ..pc<ClientInfo_Capability>(13, _omitFieldNames ? '' : 'capabilities', $pb.PbFieldType.KE,
+        valueOf: ClientInfo_Capability.valueOf,
+        enumValues: ClientInfo_Capability.values,
+        defaultEnumValue: ClientInfo_Capability.CAP_UNUSED)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3618,6 +3691,21 @@ class ClientInfo extends $pb.GeneratedMessage {
   $core.bool hasOtherSdks() => $_has(10);
   @$pb.TagNumber(11)
   void clearOtherSdks() => $_clearField(11);
+
+  /// client protocol version
+  @$pb.TagNumber(12)
+  $core.int get clientProtocol => $_getIZ(11);
+  @$pb.TagNumber(12)
+  set clientProtocol($core.int value) => $_setSignedInt32(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasClientProtocol() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearClientProtocol() => $_clearField(12);
+
+  /// capabilities the client advertises. Populated automatically by each SDK;
+  /// not a user-configurable setting.
+  @$pb.TagNumber(13)
+  $pb.PbList<ClientInfo_Capability> get capabilities => $_getList(12);
 }
 
 /// server provided client configuration
