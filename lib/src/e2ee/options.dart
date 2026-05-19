@@ -27,8 +27,15 @@ class E2EEOptions {
 
   /// Creates [E2EEOptions] configured with a shared-key [BaseKeyProvider]
   /// derived from the given passphrase.
-  static Future<E2EEOptions> sharedKey(String key) async {
-    final keyProvider = await BaseKeyProvider.create();
+  static Future<E2EEOptions> sharedKey(
+    String key, {
+    KeyDerivationAlgorithm? keyDerivationAlgorithm,
+    bool? discardFrameWhenCryptorNotReady,
+  }) async {
+    final keyProvider = await BaseKeyProvider.create(
+      keyDerivationAlgorithm: keyDerivationAlgorithm,
+      discardFrameWhenCryptorNotReady: discardFrameWhenCryptorNotReady,
+    );
     await keyProvider.setSharedKey(key);
     return E2EEOptions(keyProvider: keyProvider);
   }

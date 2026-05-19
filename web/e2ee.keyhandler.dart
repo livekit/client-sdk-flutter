@@ -11,6 +11,22 @@ import 'e2ee.utils.dart';
 const KEYRING_SIZE = 16;
 const IV_LENGTH = 12;
 
+enum KeyDerivationAlgorithm {
+  pbkdf2,
+  hkdf,
+}
+
+KeyDerivationAlgorithm indexOfKeyDerivationAlgorithm(int? index) {
+  switch (index) {
+    case 0:
+      return KeyDerivationAlgorithm.pbkdf2;
+    case 1:
+      return KeyDerivationAlgorithm.hkdf;
+    default:
+      return KeyDerivationAlgorithm.pbkdf2;
+  }
+}
+
 class KeyOptions {
   KeyOptions({
     required this.sharedKey,
@@ -20,6 +36,7 @@ class KeyOptions {
     this.failureTolerance = -1,
     this.keyRingSze = KEYRING_SIZE,
     this.discardFrameWhenCryptorNotReady = false,
+    this.keyDerivationAlgorithm = KeyDerivationAlgorithm.pbkdf2,
   });
   bool sharedKey;
   Uint8List ratchetSalt;
@@ -28,6 +45,7 @@ class KeyOptions {
   Uint8List? uncryptedMagicBytes;
   int keyRingSze;
   bool discardFrameWhenCryptorNotReady;
+  KeyDerivationAlgorithm keyDerivationAlgorithm;
 
   @override
   String toString() {
@@ -186,7 +204,7 @@ class ParticipantKeyHandler {
 
   Future<void> setKey(Uint8List key, {int keyIndex = 0}) async {
     final keyMaterial = await worker.crypto.subtle
-        .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny, false,
+        .importKey('raw', key.toJS, {'name': keyOptions.algorithmName.toJS}.jsify() as JSAny, false,
             ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
         .toDart;
 
@@ -230,12 +248,23 @@ class ParticipantKeyHandler {
   /// https://tools.ietf.org/html/draft-omara-sframe-00#section-4.3.5.1
 
   Future<Uint8List> ratchet(web.CryptoKey material, Uint8List salt) async {
-    final algorithmOptions = getAlgoOptions('PBKDF2', salt);
+    final algorithmOptions = getAlgoOptions(keyOptions.algorithmName, salt);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveBits
     final newKey = await worker.crypto.subtle
         .deriveBits(algorithmOptions.jsify() as web.AlgorithmIdentifier, material, 256)
         .toDart;
     return newKey.toDart.asUint8List();
+  }
+}
+
+extension on KeyOptions {
+  String get algorithmName {
+    switch (keyDerivationAlgorithm) {
+      case KeyDerivationAlgorithm.pbkdf2:
+        return 'PBKDF2';
+      case KeyDerivationAlgorithm.hkdf:
+        return 'HKDF';
+    }
   }
 }

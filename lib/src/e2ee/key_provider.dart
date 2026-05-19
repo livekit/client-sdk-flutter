@@ -24,6 +24,12 @@ const defaultRatchetWindowSize = 16;
 const defaultFailureTolerance = -1;
 const defaultKeyRingSize = 16;
 const defaultDiscardFrameWhenCryptorNotReady = false;
+const defaultKeyDerivationAlgorithm = KeyDerivationAlgorithm.pbkdf2;
+
+enum KeyDerivationAlgorithm {
+  pbkdf2,
+  hkdf,
+}
 
 class KeyInfo {
   final String participantId;
@@ -74,6 +80,7 @@ class BaseKeyProvider implements KeyProvider {
     int? failureTolerance,
     int? keyRingSize,
     bool? discardFrameWhenCryptorNotReady,
+    KeyDerivationAlgorithm? keyDerivationAlgorithm,
   }) async {
     final rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
         sharedKey: sharedKey,
@@ -82,7 +89,8 @@ class BaseKeyProvider implements KeyProvider {
         uncryptedMagicBytes: Uint8List.fromList((uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
         failureTolerance: failureTolerance ?? defaultFailureTolerance,
         keyRingSize: keyRingSize ?? defaultKeyRingSize,
-        discardFrameWhenCryptorNotReady: defaultDiscardFrameWhenCryptorNotReady);
+        discardFrameWhenCryptorNotReady: discardFrameWhenCryptorNotReady ?? defaultDiscardFrameWhenCryptorNotReady,
+        keyDerivationAlgorithm: (keyDerivationAlgorithm ?? defaultKeyDerivationAlgorithm).toRTCType());
     final keyProvider = await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);
   }
@@ -153,5 +161,16 @@ class BaseKeyProvider implements KeyProvider {
   @override
   Future<void> setSifTrailer(Uint8List trailer) async {
     return _keyProvider.setSifTrailer(trailer: trailer);
+  }
+}
+
+extension on KeyDerivationAlgorithm {
+  rtc.KeyDerivationAlgorithm toRTCType() {
+    switch (this) {
+      case KeyDerivationAlgorithm.pbkdf2:
+        return rtc.KeyDerivationAlgorithm.kPBKDF2;
+      case KeyDerivationAlgorithm.hkdf:
+        return rtc.KeyDerivationAlgorithm.kHKDF;
+    }
   }
 }

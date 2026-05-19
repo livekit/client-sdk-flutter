@@ -137,7 +137,8 @@ void main() async {
                   ? Uint8List.fromList(base64Decode(options['uncryptedMagicBytes'] as String))
                   : null,
               keyRingSze: options['keyRingSize'] ?? KEYRING_SIZE,
-              discardFrameWhenCryptorNotReady: options['discardFrameWhenCryptorNotReady'] ?? false);
+              discardFrameWhenCryptorNotReady: options['discardFrameWhenCryptorNotReady'] ?? false,
+              keyDerivationAlgorithm: indexOfKeyDerivationAlgorithm(options['keyDerivationAlgorithm']));
           logger.config('Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
 
           final keyProvider = KeyProvider(self, keyProviderId, keyProviderOptions);
