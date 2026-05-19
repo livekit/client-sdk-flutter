@@ -58,6 +58,11 @@ void main() {
   });
 
   group('screen share simulcast encodings', () {
+    test('screen share preset bitrates match common SDK presets', () {
+      expect(lk.VideoParametersPresets.screenShareH720FPS5.encoding?.maxBitrate, 800000);
+      expect(lk.VideoParametersPresets.screenShareH1080FPS30.encoding?.maxBitrate, 5000000);
+    });
+
     test('default lower layer follows top layer fps and priorities', () {
       final encodings = Utils.computeVideoEncodings(
         isScreenShare: true,
