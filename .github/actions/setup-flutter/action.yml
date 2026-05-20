@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: "Setup Flutter Environment"
-description: "Sets up Flutter, Java (optional), and installs project dependencies"
+description: "Sets up Flutter and Java (optional)"
 
 inputs:
   java-version:
@@ -24,6 +24,10 @@ inputs:
     description: "Flutter channel to use"
     required: false
     default: "stable"
+  flutter-version:
+    description: "Flutter version to pin (empty = latest on channel)"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -39,7 +43,4 @@ runs:
       uses: subosito/flutter-action@v2
       with:
         channel: ${{ inputs.flutter-channel }}
-
-    - name: Install project dependencies
-      shell: bash
-      run: flutter pub get
+        flutter-version: ${{ inputs.flutter-version }}
