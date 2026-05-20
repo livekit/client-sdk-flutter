@@ -31,10 +31,7 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
   final WebSocketEventHandlers? options;
   late final StreamSubscription _subscription;
 
-  LiveKitWebSocketIO._(
-    this._ws, [
-    this.options,
-  ]) {
+  LiveKitWebSocketIO._(this._ws, [this.options]) {
     _subscription = _ws.listen(
       (dynamic data) {
         if (isDisposed) {
@@ -75,9 +72,13 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
   }) async {
-    logger.fine('[WebSocketIO] Connecting(uri: ${uri.toString()})...');
+    final connectUri = uri.hasPort ? uri : uri.replace(port: uri.isScheme('wss') ? 443 : 80);
+    logger.fine('[WebSocketIO] Connecting(uri: ${connectUri.toString()})...');
     try {
-      final ws = await io.WebSocket.connect(uri.toString(), headers: headers);
+      final ws = await io.WebSocket.connect(
+        connectUri.toString(),
+        headers: headers,
+      );
       logger.fine('[WebSocketIO] Connected');
       return LiveKitWebSocketIO._(ws, options);
     } catch (err) {
