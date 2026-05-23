@@ -54,6 +54,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
     #if os(iOS)
     var cancellable = Set<AnyCancellable>()
+    var audioInterruptionHandler: AudioInterruptionHandler?
     #endif
 
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -74,6 +75,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 channel.invokeMethod("broadcastStateChanged", arguments: isBroadcasting)
             }
             .store(in: &instance.cancellable)
+
+        instance.audioInterruptionHandler = AudioInterruptionHandler(channel: channel)
         #endif
     }
 
