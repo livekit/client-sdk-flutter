@@ -128,12 +128,13 @@ final class AudioInterruptionHandler: NSObject {
             guard let self, self.isInterrupted else { return }
             let rtcSession = RTCAudioSession.sharedInstance()
             rtcSession.lockForConfiguration()
-            var error: NSError?
-            let activated = rtcSession.setActive(true, error: &error)
-            rtcSession.unlockForConfiguration()
-            if activated {
+            defer { rtcSession.unlockForConfiguration() }
+            do {
+                try rtcSession.setActive(true)
                 self.isInterrupted = false
                 self.channel?.invokeMethod("audioInterruptionEnded", arguments: nil)
+            } catch {
+                // Call still active — isInterrupted stays true, next notification retries.
             }
         }
     }
