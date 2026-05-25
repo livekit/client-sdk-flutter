@@ -93,9 +93,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
-  bool get _shouldUsePlatformView =>
-      lkPlatformIs(PlatformType.iOS) &&
-      [VideoRenderMode.auto, VideoRenderMode.platformView].contains(widget.renderMode);
+  bool get _shouldUsePlatformView {
+    if (!lkPlatformIs(PlatformType.iOS)) return false;
+    if (widget.renderMode == VideoRenderMode.platformView) return true;
+    return widget.renderMode == VideoRenderMode.auto && widget.cachedRenderer == null;
+  }
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
     if (_shouldUsePlatformView) {
