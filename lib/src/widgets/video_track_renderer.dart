@@ -94,7 +94,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   late GlobalKey _internalKey;
 
   bool get _shouldUsePlatformView {
-    if (!lkPlatformIs(PlatformType.iOS)) return false;
+    if (![PlatformType.iOS, PlatformType.macOS].contains(lkPlatform())) return false;
     if (widget.renderMode == VideoRenderMode.platformView) return true;
     return widget.renderMode == VideoRenderMode.auto && widget.cachedRenderer == null;
   }
