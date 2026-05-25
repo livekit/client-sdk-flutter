@@ -73,7 +73,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.track, {
     this.fit = VideoViewFit.contain,
     this.mirrorMode = VideoViewMirrorMode.auto,
-    this.renderMode = VideoRenderMode.texture,
+    this.renderMode = VideoRenderMode.auto,
     this.autoDisposeRenderer = true,
     this.cachedRenderer,
     this.autoCenter = true,
@@ -93,8 +93,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // Used to compute visibility information
   late GlobalKey _internalKey;
 
+  bool get _shouldUsePlatformView =>
+      lkPlatformIs(PlatformType.iOS) &&
+      [VideoRenderMode.auto, VideoRenderMode.platformView].contains(widget.renderMode);
+
   Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
+    if (_shouldUsePlatformView) {
       return Null as Future<rtc.VideoRenderer>;
     }
     if (_renderer == null) {
@@ -219,7 +223,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         );
 
   Widget _videoRendererView() {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
+    if (_shouldUsePlatformView) {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
@@ -241,8 +245,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForNative() => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
-        if ((snapshot.hasData && _renderer != null) ||
-            (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView)) {
+        if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
           return Builder(
             key: _internalKey,
             builder: (ctx) {
