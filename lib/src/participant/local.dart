@@ -599,7 +599,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
     final VideoDimensions dimensions = track.currentOptions.params.dimensions;
     if (track.source == TrackSource.screenShareVideo || dimensions.height >= 720) {
-      return DegradationPreference.maintainResolution;
+      return track.currentOptions.liveStreaming == true
+          ? DegradationPreference.maintainFramerateAndResolution
+          : DegradationPreference.maintainResolution;
     }
     return DegradationPreference.balanced;
   }

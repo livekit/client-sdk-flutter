@@ -62,12 +62,14 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     double? maxFrameRate,
     VideoParameters params = VideoParametersPresets.h720_169,
     this.stopCameraCaptureOnMute = true,
+    bool? liveStreaming,
     TrackProcessor<VideoProcessorOptions>? processor,
   }) : super(
           params: params,
           deviceId: deviceId,
           maxFrameRate: maxFrameRate,
           processor: processor,
+          liveStreaming: liveStreaming,
         );
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
@@ -231,11 +233,15 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   /// A processor to apply to the video track.
   final TrackProcessor<VideoProcessorOptions>? processor;
 
+  /// Maintain high framerate and bitrate.
+  final bool? liveStreaming;
+
   const VideoCaptureOptions({
     this.params = VideoParametersPresets.h540_169,
     this.deviceId,
     this.maxFrameRate,
     this.processor,
+    this.liveStreaming,
   });
 
   @override
