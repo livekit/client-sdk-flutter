@@ -598,7 +598,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     // 1. without this, Chrome seems to aggressively resize the SVC video stating `quality-limitation: bandwidth` even when BW isn't an issue
     // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
     final VideoDimensions dimensions = track.currentOptions.params.dimensions;
-    if (track.source == TrackSource.screenShareVideo || dimensions.height >= 720) {
+    if (track.source == TrackSource.screenShareVideo ||
+        dimensions.height >= 720 ||
+        track.currentOptions.liveStreaming == true) {
       return track.currentOptions.liveStreaming == true
           ? DegradationPreference.maintainFramerateAndResolution
           : DegradationPreference.maintainResolution;
