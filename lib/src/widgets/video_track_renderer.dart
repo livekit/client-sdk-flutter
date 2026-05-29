@@ -69,6 +69,12 @@ class VideoTrackRenderer extends StatefulWidget {
   /// wrap the video view in a Center widget (if [fit] is [VideoViewFit.contain])
   final bool autoCenter;
 
+  /// Controls how this view's logical size is converted to the physical-pixel
+  /// dimensions requested from the server when adaptive stream is enabled.
+  /// Defaults to [AdaptiveStreamPixelDensity.auto] (the view's own device pixel
+  /// ratio), avoiding an under-sized layer on retina / high-density displays.
+  final AdaptiveStreamPixelDensity adaptiveStreamPixelDensity;
+
   const VideoTrackRenderer(
     this.track, {
     this.fit = VideoViewFit.contain,
@@ -77,6 +83,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.autoDisposeRenderer = true,
     this.cachedRenderer,
     this.autoCenter = true,
+    this.adaptiveStreamPixelDensity = AdaptiveStreamPixelDensity.auto,
     Key? key,
   }) : super(key: key);
 
@@ -142,7 +149,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.cachedRenderer != null) {
       _renderer = widget.cachedRenderer;
     }
-    _internalKey = widget.track.addViewKey();
+    _internalKey = widget.track.addViewKey(pixelDensity: widget.adaptiveStreamPixelDensity);
     if (kIsWeb) {
       unawaited(() async {
         await _initializeRenderer();
@@ -189,10 +196,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     super.didUpdateWidget(oldWidget);
     if (widget.track != oldWidget.track) {
       oldWidget.track.removeViewKey(_internalKey);
-      _internalKey = widget.track.addViewKey();
+      _internalKey = widget.track.addViewKey(pixelDensity: widget.adaptiveStreamPixelDensity);
       unawaited(() async {
         await _attach();
       }());
+    } else if (widget.adaptiveStreamPixelDensity != oldWidget.adaptiveStreamPixelDensity) {
+      widget.track.updateViewKeyPixelDensity(_internalKey, widget.adaptiveStreamPixelDensity);
     }
 
     if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {

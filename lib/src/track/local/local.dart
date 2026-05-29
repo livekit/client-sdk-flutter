@@ -40,22 +40,33 @@ import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
+  /// The views (by [GlobalKey]) attached to this track, each with its
+  /// adaptive-stream pixel density. Used by the visibility observer to compute
+  /// the dimensions requested from the server. Set by [VideoTrackRenderer];
+  /// density defaults to [AdaptiveStreamPixelDensity.auto].
   @internal
-  final List<GlobalKey> viewKeys = [];
+  final Map<GlobalKey, AdaptiveStreamPixelDensity> viewPixelDensities = {};
 
   @internal
   Function(Key)? onVideoViewBuild;
 
   @internal
-  GlobalKey addViewKey() {
+  GlobalKey addViewKey({
+    AdaptiveStreamPixelDensity pixelDensity = AdaptiveStreamPixelDensity.auto,
+  }) {
     final key = GlobalKey();
-    viewKeys.add(key);
+    viewPixelDensities[key] = pixelDensity;
     return key;
   }
 
   @internal
+  void updateViewKeyPixelDensity(GlobalKey key, AdaptiveStreamPixelDensity pixelDensity) {
+    if (viewPixelDensities.containsKey(key)) viewPixelDensities[key] = pixelDensity;
+  }
+
+  @internal
   void removeViewKey(GlobalKey key) {
-    viewKeys.remove(key);
+    viewPixelDensities.remove(key);
   }
 }
 
