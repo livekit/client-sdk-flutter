@@ -60,6 +60,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
   MediaDevice? _selectedVideoDevice;
   MediaDevice? _selectedAudioDevice;
   VideoParameters _selectedVideoParameters = VideoParametersPresets.h720_169;
+  int _videoBitrate = 3 * 1000 * 1000;
+  bool _liveStreaming = true;
 
   @override
   void initState() {
@@ -183,6 +185,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       _videoTrack = await LocalVideoTrack.createCameraTrack(CameraCaptureOptions(
         deviceId: _selectedVideoDevice!.deviceId,
         params: _selectedVideoParameters,
+        liveStreaming: _liveStreaming,
       ));
       await _videoTrack!.start();
     }
@@ -203,8 +206,8 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     try {
       //create new room
-      const cameraEncoding = VideoEncoding(
-        maxBitrate: 5 * 1000 * 1000,
+      final cameraEncoding = VideoEncoding(
+        maxBitrate: _videoBitrate,
         maxFramerate: 30,
       );
 
@@ -447,6 +450,57 @@ class _PreJoinPageState extends State<PreJoinPage> {
                           height: 40,
                         ),
                       ),
+                    ),
+                  ),
+                if (_enableVideo)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Live Streaming:'),
+                        Switch(
+                          value: _liveStreaming,
+                          onChanged: (value) async {
+                            setState(() {
+                              _liveStreaming = value;
+                            });
+                            await _changeLocalVideoTrack();
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_enableVideo)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Video Bitrate:'),
+                        SizedBox(
+                          width: 140,
+                          height: 40,
+                          child: TextFormField(
+                            initialValue: (_videoBitrate ~/ 1000).toString(),
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.right,
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(),
+                              suffixText: 'kbps',
+                            ),
+                            onChanged: (value) {
+                              final kbps = int.tryParse(value);
+                              if (kbps != null && kbps > 0) {
+                                _videoBitrate = kbps * 1000;
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 Padding(
