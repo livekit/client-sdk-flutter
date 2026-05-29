@@ -81,11 +81,23 @@ void main() {
       });
 
       test('equal areas keep preferred', () {
+        // 720*320 == 640*360 == 230400. Distinct dimensions with equal area
+        // so the assertion can actually distinguish strict `<` (keep preferred)
+        // from `<=` (switch to adaptive), matching JS areDimensionsSmaller.
         final r = resolveVideoSettings(
-          adaptiveStreamDimensions: VideoDimensions(640, 360),
+          adaptiveStreamDimensions: VideoDimensions(720, 320),
           userPreference: VideoSettings.dimensions(VideoDimensions(640, 360)),
         );
         expect(r.dimensions, VideoDimensions(640, 360));
+      });
+
+      test('adaptive wins when area is one smaller', () {
+        // 639*360 = 230040 < 640*360 = 230400, so adaptive is strictly smaller.
+        final r = resolveVideoSettings(
+          adaptiveStreamDimensions: VideoDimensions(639, 360),
+          userPreference: VideoSettings.dimensions(VideoDimensions(640, 360)),
+        );
+        expect(r.dimensions, VideoDimensions(639, 360));
       });
     });
 
