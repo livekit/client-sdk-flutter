@@ -401,7 +401,6 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }
 
   @internal
-  @Deprecated('Use _emitTrackUpdate instead')
   void sendUpdateTrackSettings() => _emitTrackUpdate();
 
   @internal
