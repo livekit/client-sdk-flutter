@@ -73,21 +73,40 @@ VideoSettings resolveVideoSettings({
   return VideoSettings.high;
 }
 
+/// The user's explicit enable/disable request for a track, used to decide
+/// whether visibility may gate the track. Equivalent to the JS SDK's
+/// `requestedDisabled` tri-state (`undefined` / `false` / `true`).
+@internal
+enum TrackEnabledPreference {
+  /// No explicit request; adaptive-stream visibility decides.
+  unset,
+
+  /// User explicitly enabled; overrides visibility (track keeps streaming).
+  enabled,
+
+  /// User explicitly disabled; overrides visibility (track stays off).
+  disabled,
+}
+
 /// Resolves whether a subscribed track should be sent as `disabled`.
 ///
 /// Mirrors the JS SDK's `isEnabled` precedence: an explicit user
-/// enable/disable ([requestedDisabled] non-null) always wins; otherwise, when
-/// adaptive stream is active for the track, view visibility decides; otherwise
-/// the track is enabled.
+/// enable/disable always wins; otherwise, when adaptive stream is active for
+/// the track, view visibility decides; otherwise the track is enabled.
 @internal
 bool resolveDisabled({
-  bool? requestedDisabled,
+  required TrackEnabledPreference enabledPreference,
   required bool adaptiveStreamActive,
   required bool adaptiveStreamVisible,
 }) {
-  if (requestedDisabled != null) return requestedDisabled;
-  if (adaptiveStreamActive) return !adaptiveStreamVisible;
-  return false;
+  switch (enabledPreference) {
+    case TrackEnabledPreference.enabled:
+      return false;
+    case TrackEnabledPreference.disabled:
+      return true;
+    case TrackEnabledPreference.unset:
+      return adaptiveStreamActive ? !adaptiveStreamVisible : false;
+  }
 }
 
 /// Builds the [lk_rtc.UpdateTrackSettings] request sent to the server from the

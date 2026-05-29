@@ -147,9 +147,13 @@ void main() {
   });
 
   group('resolveDisabled', () {
-    test('not disabled by default (no explicit request, adaptive inactive)', () {
+    test('not disabled by default (unset preference, adaptive inactive)', () {
       expect(
-        resolveDisabled(adaptiveStreamActive: false, adaptiveStreamVisible: true),
+        resolveDisabled(
+          enabledPreference: TrackEnabledPreference.unset,
+          adaptiveStreamActive: false,
+          adaptiveStreamVisible: true,
+        ),
         isFalse,
       );
     });
@@ -157,7 +161,7 @@ void main() {
     test('explicit disable wins even when visible', () {
       expect(
         resolveDisabled(
-          requestedDisabled: true,
+          enabledPreference: TrackEnabledPreference.disabled,
           adaptiveStreamActive: true,
           adaptiveStreamVisible: true,
         ),
@@ -168,7 +172,7 @@ void main() {
     test('explicit enable wins even when not visible (JS tri-state parity)', () {
       expect(
         resolveDisabled(
-          requestedDisabled: false,
+          enabledPreference: TrackEnabledPreference.enabled,
           adaptiveStreamActive: true,
           adaptiveStreamVisible: false,
         ),
@@ -176,20 +180,32 @@ void main() {
       );
     });
 
-    test('adaptive visibility decides when no explicit request', () {
+    test('adaptive visibility decides when preference is unset', () {
       expect(
-        resolveDisabled(adaptiveStreamActive: true, adaptiveStreamVisible: true),
+        resolveDisabled(
+          enabledPreference: TrackEnabledPreference.unset,
+          adaptiveStreamActive: true,
+          adaptiveStreamVisible: true,
+        ),
         isFalse,
       );
       expect(
-        resolveDisabled(adaptiveStreamActive: true, adaptiveStreamVisible: false),
+        resolveDisabled(
+          enabledPreference: TrackEnabledPreference.unset,
+          adaptiveStreamActive: true,
+          adaptiveStreamVisible: false,
+        ),
         isTrue,
       );
     });
 
     test('visibility is ignored when adaptive stream is inactive', () {
       expect(
-        resolveDisabled(adaptiveStreamActive: false, adaptiveStreamVisible: false),
+        resolveDisabled(
+          enabledPreference: TrackEnabledPreference.unset,
+          adaptiveStreamActive: false,
+          adaptiveStreamVisible: false,
+        ),
         isFalse,
       );
     });

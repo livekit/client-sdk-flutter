@@ -42,12 +42,13 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   @override
   final RemoteParticipant participant;
 
-  bool get enabled => !(_requestedDisabled ?? false);
+  bool get enabled => _enabledPreference != TrackEnabledPreference.disabled;
 
-  /// Whether the user has explicitly requested this track enabled/disabled via
-  /// [enable] / [disable]. `null` means no explicit request, in which case
-  /// adaptive-stream visibility decides. Takes precedence over visibility.
-  bool? _requestedDisabled;
+  /// The user's explicit enable/disable request via [enable] / [disable].
+  /// [TrackEnabledPreference.unset] means no explicit request, in which case
+  /// adaptive-stream visibility decides. An explicit request takes precedence
+  /// over visibility.
+  TrackEnabledPreference _enabledPreference = TrackEnabledPreference.unset;
 
   /// The current desired FPS of the track. This is only available for video tracks that support SVC.
   int? _fps;
@@ -305,14 +306,14 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }
 
   Future<void> enable() async {
-    if (_requestedDisabled == false) return;
-    _requestedDisabled = false;
+    if (_enabledPreference == TrackEnabledPreference.enabled) return;
+    _enabledPreference = TrackEnabledPreference.enabled;
     _emitTrackUpdate();
   }
 
   Future<void> disable() async {
-    if (_requestedDisabled == true) return;
-    _requestedDisabled = true;
+    if (_enabledPreference == TrackEnabledPreference.disabled) return;
+    _enabledPreference = TrackEnabledPreference.disabled;
     _emitTrackUpdate();
   }
 
@@ -360,7 +361,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
   lk_rtc.UpdateTrackSettings _buildTrackSettings() {
     final isDisabled = resolveDisabled(
-      requestedDisabled: _requestedDisabled,
+      enabledPreference: _enabledPreference,
       adaptiveStreamActive: _adaptiveStreamActive,
       adaptiveStreamVisible: _adaptiveStreamVisible,
     );
