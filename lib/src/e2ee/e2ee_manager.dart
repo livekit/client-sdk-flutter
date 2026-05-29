@@ -125,15 +125,9 @@ class E2EEManager {
 
   Future<void> ratchetKey({String? participantId, int? keyIndex}) async {
     if (participantId != null) {
-      final newKey = await _keyProvider.ratchetKey(participantId, keyIndex);
-      if (kDebugMode) {
-        print('newKey: $newKey');
-      }
+      await _keyProvider.ratchetKey(participantId, keyIndex);
     } else {
-      final newKey = await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
-      if (kDebugMode) {
-        print('newKey: $newKey');
-      }
+      await _keyProvider.ratchetSharedKey(keyIndex: keyIndex);
     }
   }
 

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 name: livekit_client
-description: Flutter Client SDK for LiveKit.
-  Build real-time video and audio into your apps. Supports iOS, Android, and Web.
+description: Flutter Client SDK for LiveKit. Build real-time video and audio
+  into your apps. Supports iOS, Android, and Web.
 version: 2.7.0
 homepage: https://github.com/livekit/client-sdk-flutter
 
@@ -57,11 +57,12 @@ dev_dependencies:
   import_sorter: ^4.6.0
   yaml: ^3.1.2
   build_runner: ^2.4.13
-  json_serializable: '>=6.9.1 <6.10.0'
+  json_serializable: ">=6.9.5 <6.10.0"
 
 import_sorter:
   comments: false
-  ignored_files: # Ignore proto files
+  ignored_files:
+    # Ignore proto files
     - \/lib\/src\/proto\/*
 
 flutter:

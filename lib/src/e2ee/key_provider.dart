@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -141,7 +140,7 @@ class BaseKeyProvider implements KeyProvider {
     if (!_keys.containsKey(keyInfo.participantId)) {
       _keys[keyInfo.participantId] = {};
     }
-    logger.info('_setKey for ${keyInfo.participantId}, idx: ${keyInfo.keyIndex}, key: ${base64Encode(keyInfo.key)}');
+    logger.info('_setKey for ${keyInfo.participantId}, idx: ${keyInfo.keyIndex}');
     _keys[keyInfo.participantId]![keyInfo.keyIndex] = keyInfo.key;
     _latestSetIndex[keyInfo.participantId] = keyInfo.keyIndex;
     await _keyProvider.setKey(

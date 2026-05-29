@@ -1,0 +1,1 @@
+patch type="fixed" "Guard Session.start() against concurrent calls"
