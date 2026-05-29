@@ -186,7 +186,13 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     }
   }
 
-  void _sendPendingTrackSettingsUpdateRequest(lk_rtc.UpdateTrackSettings settings) {
+  void _sendPendingTrackSettingsUpdateRequest(lk_rtc.UpdateTrackSettings _) {
+    // Re-build from the current state at fire time instead of replaying the
+    // snapshot captured when the debounce was scheduled. Otherwise a stale
+    // snapshot could be sent after newer state (e.g. a manual setVideoQuality)
+    // has already been applied, clobbering it.
+    final settings = _buildTrackSettings();
+    _lastSentTrackSettings = settings;
     logger.fine('[Visibility] Sending... ${settings.toProto3Json()}');
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
   }
@@ -372,6 +378,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }
 
   void _emitTrackUpdate() {
+    // Cancel any pending debounced visibility update so its (now potentially
+    // stale) snapshot cannot fire after — and clobber — this immediate update.
+    _cancelPendingTrackSettingsUpdateRequest?.call();
     final settings = _buildTrackSettings();
     _lastSentTrackSettings = settings;
     participant.room.engine.signalClient.sendUpdateTrackSettings(settings);
