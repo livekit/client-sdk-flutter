@@ -42,8 +42,12 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   @override
   final RemoteParticipant participant;
 
-  bool get enabled => _enabled;
-  bool _enabled = true;
+  bool get enabled => !(_requestedDisabled ?? false);
+
+  /// Whether the user has explicitly requested this track enabled/disabled via
+  /// [enable] / [disable]. `null` means no explicit request, in which case
+  /// adaptive-stream visibility decides. Takes precedence over visibility.
+  bool? _requestedDisabled;
 
   /// The current desired FPS of the track. This is only available for video tracks that support SVC.
   int? _fps;
@@ -54,7 +58,11 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
   // Adaptive stream state (set automatically by visibility observer)
   VideoDimensions? _adaptiveStreamDimensions;
-  bool _adaptiveStreamEnabled = true;
+  // Whether adaptive stream is active for this publication (room option on +
+  // remote video track). When false, view visibility never gates `disabled`.
+  bool _adaptiveStreamActive = false;
+  // Whether at least one view of this track is currently visible/sized.
+  bool _adaptiveStreamVisible = true;
 
   VideoQuality get videoQuality => _userPreference?.quality ?? VideoQuality.HIGH;
   VideoDimensions? get videoDimensions => _userPreference?.dimensions;
@@ -166,10 +174,10 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
         largestSize.width.ceil(),
         largestSize.height.ceil(),
       );
-      _adaptiveStreamEnabled = true;
+      _adaptiveStreamVisible = true;
     } else {
       _adaptiveStreamDimensions = null;
-      _adaptiveStreamEnabled = false;
+      _adaptiveStreamVisible = false;
     }
 
     final settings = _buildTrackSettings();
@@ -210,6 +218,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
       final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
+        _adaptiveStreamActive = true;
         // Start monitoring visibility
         _visibilityTimer = Timer.periodic(
           const Duration(milliseconds: 300),
@@ -224,6 +233,8 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
             _computeVideoViewVisibility(quick: true);
           }
         };
+      } else {
+        _adaptiveStreamActive = false;
       }
 
       if (newValue != null) {
@@ -292,14 +303,14 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }
 
   Future<void> enable() async {
-    if (_enabled) return;
-    _enabled = true;
+    if (_requestedDisabled == false) return;
+    _requestedDisabled = false;
     _emitTrackUpdate();
   }
 
   Future<void> disable() async {
-    if (!_enabled) return;
-    _enabled = false;
+    if (_requestedDisabled == true) return;
+    _requestedDisabled = true;
     _emitTrackUpdate();
   }
 
@@ -346,8 +357,11 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }
 
   lk_rtc.UpdateTrackSettings _buildTrackSettings() {
-    // disabled if manually disabled or adaptive stream says no views visible
-    final isDisabled = !_enabled || !_adaptiveStreamEnabled;
+    final isDisabled = resolveDisabled(
+      requestedDisabled: _requestedDisabled,
+      adaptiveStreamActive: _adaptiveStreamActive,
+      adaptiveStreamVisible: _adaptiveStreamVisible,
+    );
 
     final settings = lk_rtc.UpdateTrackSettings(
       trackSids: [sid],

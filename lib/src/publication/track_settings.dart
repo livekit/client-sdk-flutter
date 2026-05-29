@@ -70,3 +70,20 @@ VideoSettings resolveVideoSettings({
   }
   return VideoSettings.high;
 }
+
+/// Resolves whether a subscribed track should be sent as `disabled`.
+///
+/// Mirrors the JS SDK's `isEnabled` precedence: an explicit user
+/// enable/disable ([requestedDisabled] non-null) always wins; otherwise, when
+/// adaptive stream is active for the track, view visibility decides; otherwise
+/// the track is enabled.
+@internal
+bool resolveDisabled({
+  bool? requestedDisabled,
+  required bool adaptiveStreamActive,
+  required bool adaptiveStreamVisible,
+}) {
+  if (requestedDisabled != null) return requestedDisabled;
+  if (adaptiveStreamActive) return !adaptiveStreamVisible;
+  return false;
+}
