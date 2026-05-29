@@ -270,8 +270,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// bandwidth does not allow, the server will automatically reduce quality to
   /// optimize for uninterrupted video.
   ///
-  /// When adaptive stream is enabled, the server will use the smaller of
-  /// this setting and the adaptive stream dimensions.
+  /// When adaptive stream is active, this preference is merged client-side with
+  /// the dimensions computed from the visible views, and the smaller (more
+  /// conservative) of the two is sent to the server.
   Future<void> setVideoQuality(VideoQuality newValue) async {
     if (newValue == _userPreference?.quality) return;
     if (!_isManualOperationAllowed()) return;
@@ -284,8 +285,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   /// Server will choose the appropriate layer based on these dimensions.
   /// Will override previous calls to [setVideoQuality].
   ///
-  /// When adaptive stream is enabled, the server will use the smaller of
-  /// this setting and the adaptive stream dimensions.
+  /// When adaptive stream is active, this preference is merged client-side with
+  /// the dimensions computed from the visible views, and the smaller (more
+  /// conservative) of the two is sent to the server.
   Future<void> setVideoDimensions(VideoDimensions newValue) async {
     if (newValue == _userPreference?.dimensions) return;
     if (!_isManualOperationAllowed()) return;
