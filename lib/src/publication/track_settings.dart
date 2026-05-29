@@ -14,6 +14,8 @@
 
 import 'package:meta/meta.dart' show immutable, internal;
 
+import '../proto/livekit_models.pb.dart' as lk_models;
+import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../types/other.dart';
 import '../types/video_dimensions.dart';
 
@@ -86,4 +88,30 @@ bool resolveDisabled({
   if (requestedDisabled != null) return requestedDisabled;
   if (adaptiveStreamActive) return !adaptiveStreamVisible;
   return false;
+}
+
+/// Builds the [lk_rtc.UpdateTrackSettings] request sent to the server from the
+/// already-resolved [disabled] flag and, for video, the resolved [dimensions]
+/// or [quality] plus an optional [fps]. [dimensions] takes precedence over
+/// [quality]; pass neither for non-video tracks.
+@internal
+lk_rtc.UpdateTrackSettings buildUpdateTrackSettings({
+  required String sid,
+  required bool disabled,
+  VideoDimensions? dimensions,
+  lk_models.VideoQuality? quality,
+  int? fps,
+}) {
+  final settings = lk_rtc.UpdateTrackSettings(
+    trackSids: [sid],
+    disabled: disabled,
+  );
+  if (dimensions != null) {
+    settings.width = dimensions.width;
+    settings.height = dimensions.height;
+  } else if (quality != null) {
+    settings.quality = quality;
+  }
+  if (fps != null) settings.fps = fps;
+  return settings;
 }

@@ -14,6 +14,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/publication/track_settings.dart';
 import 'package:livekit_client/src/types/other.dart';
 import 'package:livekit_client/src/types/video_dimensions.dart';
@@ -142,6 +143,107 @@ void main() {
         expect(r.quality, VideoQuality.MEDIUM);
         expect(r.dimensions, isNull);
       });
+    });
+  });
+
+  group('resolveDisabled', () {
+    test('not disabled by default (no explicit request, adaptive inactive)', () {
+      expect(
+        resolveDisabled(adaptiveStreamActive: false, adaptiveStreamVisible: true),
+        isFalse,
+      );
+    });
+
+    test('explicit disable wins even when visible', () {
+      expect(
+        resolveDisabled(
+          requestedDisabled: true,
+          adaptiveStreamActive: true,
+          adaptiveStreamVisible: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('explicit enable wins even when not visible (JS tri-state parity)', () {
+      expect(
+        resolveDisabled(
+          requestedDisabled: false,
+          adaptiveStreamActive: true,
+          adaptiveStreamVisible: false,
+        ),
+        isFalse,
+      );
+    });
+
+    test('adaptive visibility decides when no explicit request', () {
+      expect(
+        resolveDisabled(adaptiveStreamActive: true, adaptiveStreamVisible: true),
+        isFalse,
+      );
+      expect(
+        resolveDisabled(adaptiveStreamActive: true, adaptiveStreamVisible: false),
+        isTrue,
+      );
+    });
+
+    test('visibility is ignored when adaptive stream is inactive', () {
+      expect(
+        resolveDisabled(adaptiveStreamActive: false, adaptiveStreamVisible: false),
+        isFalse,
+      );
+    });
+  });
+
+  group('buildUpdateTrackSettings', () {
+    test('sets sid and disabled flag', () {
+      final s = buildUpdateTrackSettings(sid: 'TR_abc', disabled: true);
+      expect(s.trackSids, ['TR_abc']);
+      expect(s.disabled, isTrue);
+      expect(s.hasWidth(), isFalse);
+      expect(s.hasQuality(), isFalse);
+      expect(s.hasFps(), isFalse);
+    });
+
+    test('dimensions are written, quality is not', () {
+      final s = buildUpdateTrackSettings(
+        sid: 'TR_abc',
+        disabled: false,
+        dimensions: VideoDimensions(640, 360),
+        quality: lk_models.VideoQuality.LOW,
+      );
+      expect(s.width, 640);
+      expect(s.height, 360);
+      expect(s.hasQuality(), isFalse);
+    });
+
+    test('quality is written when no dimensions', () {
+      final s = buildUpdateTrackSettings(
+        sid: 'TR_abc',
+        disabled: false,
+        quality: lk_models.VideoQuality.HIGH,
+      );
+      expect(s.quality, lk_models.VideoQuality.HIGH);
+      expect(s.hasWidth(), isFalse);
+      expect(s.hasHeight(), isFalse);
+    });
+
+    test('fps is forwarded when set and omitted when null', () {
+      final withFps = buildUpdateTrackSettings(
+        sid: 'TR_abc',
+        disabled: false,
+        quality: lk_models.VideoQuality.HIGH,
+        fps: 30,
+      );
+      expect(withFps.hasFps(), isTrue);
+      expect(withFps.fps, 30);
+
+      final withoutFps = buildUpdateTrackSettings(
+        sid: 'TR_abc',
+        disabled: false,
+        quality: lk_models.VideoQuality.HIGH,
+      );
+      expect(withoutFps.hasFps(), isFalse);
     });
   });
 }

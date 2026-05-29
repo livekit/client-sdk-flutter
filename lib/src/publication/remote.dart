@@ -365,32 +365,28 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       adaptiveStreamVisible: _adaptiveStreamVisible,
     );
 
-    final settings = lk_rtc.UpdateTrackSettings(
-      trackSids: [sid],
-      disabled: isDisabled,
+    if (kind != TrackType.VIDEO) {
+      return buildUpdateTrackSettings(sid: sid, disabled: isDisabled);
+    }
+
+    final resolved = resolveVideoSettings(
+      adaptiveStreamDimensions: _adaptiveStreamDimensions,
+      userPreference: _userPreference,
+      layerDimensionsForQuality: (quality) {
+        final pbQuality = quality.toPBType();
+        final layer = latestInfo?.layers.where((l) => l.quality == pbQuality).firstOrNull;
+        if (layer == null) return null;
+        return VideoDimensions(layer.width, layer.height);
+      },
     );
 
-    if (kind == TrackType.VIDEO) {
-      final resolved = resolveVideoSettings(
-        adaptiveStreamDimensions: _adaptiveStreamDimensions,
-        userPreference: _userPreference,
-        layerDimensionsForQuality: (quality) {
-          final pbQuality = quality.toPBType();
-          final layer = latestInfo?.layers.where((l) => l.quality == pbQuality).firstOrNull;
-          if (layer == null) return null;
-          return VideoDimensions(layer.width, layer.height);
-        },
-      );
-
-      if (resolved.dimensions != null) {
-        settings.width = resolved.dimensions!.width;
-        settings.height = resolved.dimensions!.height;
-      } else if (resolved.quality != null) {
-        settings.quality = resolved.quality!.toPBType();
-      }
-      if (_fps != null) settings.fps = _fps!;
-    }
-    return settings;
+    return buildUpdateTrackSettings(
+      sid: sid,
+      disabled: isDisabled,
+      dimensions: resolved.dimensions,
+      quality: resolved.quality?.toPBType(),
+      fps: _fps,
+    );
   }
 
   void _emitTrackUpdate() {
