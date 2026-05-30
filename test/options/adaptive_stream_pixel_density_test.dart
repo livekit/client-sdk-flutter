@@ -40,6 +40,23 @@ void main() {
       expect(AdaptiveStreamPixelDensity.maxDensity, 3.0);
     });
 
+    test('falls back for invalid auto device pixel ratios', () {
+      expect(AdaptiveStreamPixelDensity.auto.resolve(0), 1.0);
+      expect(AdaptiveStreamPixelDensity.auto.resolve(-2.0), 1.0);
+      expect(AdaptiveStreamPixelDensity.auto.resolve(double.nan), 1.0);
+    });
+
+    test('fixed densities must be positive', () {
+      expect(
+        () => AdaptiveStreamPixelDensity.fixed(0),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => AdaptiveStreamPixelDensity.fixed(-1.0),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('value is null only for auto', () {
       expect(AdaptiveStreamPixelDensity.auto.value, isNull);
       expect(const AdaptiveStreamPixelDensity.fixed(1.5).value, 1.5);

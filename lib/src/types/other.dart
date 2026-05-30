@@ -255,14 +255,18 @@ class AdaptiveStreamPixelDensity {
   /// Equivalent to the JS SDK's `'screen'` setting. Capped at [maxDensity].
   static const auto = AdaptiveStreamPixelDensity._(null);
 
-  /// A fixed pixel-density multiplier (fractional allowed, e.g. `1.5`, `2.0`,
-  /// `2.75`). The effective value is capped at [maxDensity] (3x) when resolved.
-  const AdaptiveStreamPixelDensity.fixed(double density) : value = density;
+  /// A positive fixed pixel-density multiplier (fractional allowed, e.g. `1.5`,
+  /// `2.0`, `2.75`). The effective value is capped at [maxDensity] (3x) when
+  /// resolved.
+  const AdaptiveStreamPixelDensity.fixed(double density)
+      : assert(density > 0, 'density must be positive'),
+        value = density;
 
   /// Resolves the effective multiplier, capped at [maxDensity]. For [auto],
   /// falls back to the supplied [devicePixelRatio].
   double resolve(double devicePixelRatio) {
     final density = value ?? devicePixelRatio;
+    if (density.isNaN || density <= 0) return 1.0;
     return density > maxDensity ? maxDensity : density;
   }
 
@@ -274,6 +278,5 @@ class AdaptiveStreamPixelDensity {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() =>
-      value == null ? 'AdaptiveStreamPixelDensity.auto' : 'AdaptiveStreamPixelDensity.fixed($value)';
+  String toString() => value == null ? 'AdaptiveStreamPixelDensity.auto' : 'AdaptiveStreamPixelDensity.fixed($value)';
 }

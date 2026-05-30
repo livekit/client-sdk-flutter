@@ -98,7 +98,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   double? _aspectRatio;
   EventsListener<TrackEvent>? _listener;
   // Used to compute visibility information
-  late GlobalKey _internalKey;
+  late VideoTrackViewRegistration _viewRegistration;
 
   Future<rtc.VideoRenderer> _initializeRenderer() async {
     if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
@@ -149,7 +149,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.cachedRenderer != null) {
       _renderer = widget.cachedRenderer;
     }
-    _internalKey = widget.track.addViewKey(pixelDensity: widget.adaptiveStreamPixelDensity);
+    _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
     if (kIsWeb) {
       unawaited(() async {
         await _initializeRenderer();
@@ -161,7 +161,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   @override
   void dispose() {
-    widget.track.removeViewKey(_internalKey);
+    widget.track.removeViewRegistration(_viewRegistration);
     unawaited(_listener?.dispose());
     if (widget.autoDisposeRenderer) {
       disposeRenderer();
@@ -195,13 +195,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.track != oldWidget.track) {
-      oldWidget.track.removeViewKey(_internalKey);
-      _internalKey = widget.track.addViewKey(pixelDensity: widget.adaptiveStreamPixelDensity);
+      oldWidget.track.removeViewRegistration(_viewRegistration);
+      _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
       unawaited(() async {
         await _attach();
       }());
     } else if (widget.adaptiveStreamPixelDensity != oldWidget.adaptiveStreamPixelDensity) {
-      widget.track.updateViewKeyPixelDensity(_internalKey, widget.adaptiveStreamPixelDensity);
+      _viewRegistration.pixelDensity = widget.adaptiveStreamPixelDensity;
     }
 
     if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {
@@ -212,11 +212,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForWeb() => !_rendererReadyForWeb
       ? Container()
       : Builder(
-          key: _internalKey,
+          key: _viewRegistration.key,
           builder: (ctx) {
             // let it render before notifying build
             WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-              widget.track.onVideoViewBuild?.call(_internalKey);
+              widget.track.onVideoViewBuild?.call();
             });
             return rtc.RTCVideoView(
               _renderer! as rtc.RTCVideoRenderer,
@@ -253,11 +253,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         if ((snapshot.hasData && _renderer != null) ||
             (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView)) {
           return Builder(
-            key: _internalKey,
+            key: _viewRegistration.key,
             builder: (ctx) {
               // let it render before notifying build
               WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-                widget.track.onVideoViewBuild?.call(_internalKey);
+                widget.track.onVideoViewBuild?.call();
               });
 
               if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {

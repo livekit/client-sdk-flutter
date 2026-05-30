@@ -38,35 +38,42 @@ import '../track.dart';
 import 'audio.dart';
 import 'video.dart';
 
+@internal
+class VideoTrackViewRegistration {
+  /// The widget key used by adaptive stream to find this view's render context.
+  final GlobalKey key = GlobalKey();
+
+  /// The pixel density used to convert this view's logical size to physical
+  /// pixels when computing adaptive-stream dimensions.
+  AdaptiveStreamPixelDensity pixelDensity;
+
+  VideoTrackViewRegistration({
+    this.pixelDensity = AdaptiveStreamPixelDensity.auto,
+  });
+}
+
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
-  /// The views (by [GlobalKey]) attached to this track, each with its
-  /// adaptive-stream pixel density. Used by the visibility observer to compute
-  /// the dimensions requested from the server. Set by [VideoTrackRenderer];
-  /// density defaults to [AdaptiveStreamPixelDensity.auto].
+  /// The views attached to this track. Set by [VideoTrackRenderer] and read by
+  /// the visibility observer to compute adaptive-stream dimensions.
   @internal
-  final Map<GlobalKey, AdaptiveStreamPixelDensity> viewPixelDensities = {};
+  final List<VideoTrackViewRegistration> viewRegistrations = [];
 
   @internal
-  Function(Key)? onVideoViewBuild;
+  VoidCallback? onVideoViewBuild;
 
   @internal
-  GlobalKey addViewKey({
+  VideoTrackViewRegistration addViewRegistration({
     AdaptiveStreamPixelDensity pixelDensity = AdaptiveStreamPixelDensity.auto,
   }) {
-    final key = GlobalKey();
-    viewPixelDensities[key] = pixelDensity;
-    return key;
+    final registration = VideoTrackViewRegistration(pixelDensity: pixelDensity);
+    viewRegistrations.add(registration);
+    return registration;
   }
 
   @internal
-  void updateViewKeyPixelDensity(GlobalKey key, AdaptiveStreamPixelDensity pixelDensity) {
-    if (viewPixelDensities.containsKey(key)) viewPixelDensities[key] = pixelDensity;
-  }
-
-  @internal
-  void removeViewKey(GlobalKey key) {
-    viewPixelDensities.remove(key);
+  void removeViewRegistration(VideoTrackViewRegistration registration) {
+    viewRegistrations.remove(registration);
   }
 }
 
