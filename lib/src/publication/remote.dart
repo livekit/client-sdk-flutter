@@ -170,7 +170,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       final renderBox = context.findRenderObject() as RenderBox?;
       if (renderBox == null || !renderBox.hasSize) return null;
       final density = registration.pixelDensity.resolve(
-        MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0,
+        MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0,
       );
       return renderBox.size * density;
     }).nonNulls.toList();
