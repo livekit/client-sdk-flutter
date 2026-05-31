@@ -23,7 +23,6 @@ import 'package:livekit_client/src/core/signal_client.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
-
 import '../core/signal_client_test.dart';
 import '../mock/peerconnection_mock.dart';
 
