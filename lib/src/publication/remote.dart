@@ -164,16 +164,19 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     // and resolved per-view; with AdaptiveStreamPixelDensity.auto the actual
     // device pixel ratio is read from that view via MediaQuery. The largest
     // resulting size across all of the track's views is requested.
-    final viewSizes = videoTrack.viewRegistrations.map((registration) {
-      final context = registration.key.currentContext;
-      if (context == null) return null;
-      final renderBox = context.findRenderObject() as RenderBox?;
-      if (renderBox == null || !renderBox.hasSize) return null;
-      final density = registration.pixelDensity.resolve(
-        MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0,
-      );
-      return renderBox.size * density;
-    }).nonNulls.toList();
+    final viewSizes = videoTrack.viewRegistrations
+        .map((registration) {
+          final context = registration.key.currentContext;
+          if (context == null) return null;
+          final renderBox = context.findRenderObject() as RenderBox?;
+          if (renderBox == null || !renderBox.hasSize) return null;
+          final density = registration.pixelDensity.resolve(
+            MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0,
+          );
+          return renderBox.size * density;
+        })
+        .nonNulls
+        .toList();
 
     logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
