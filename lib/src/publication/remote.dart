@@ -217,6 +217,14 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       _cancelPendingTrackSettingsUpdateRequest?.call();
       _visibilityTimer?.cancel();
 
+      // The track changed, so any adaptive-stream visibility computed for the
+      // previous track is stale. Reset to the construction defaults so it can't
+      // leak into a later _buildTrackSettings (e.g. via enable() / disable(),
+      // which emit regardless of visibility). Repopulated by the visibility
+      // timer below while adaptive stream is active.
+      _adaptiveStreamDimensions = null;
+      _adaptiveStreamVisible = true;
+
       final roomOptions = participant.room.roomOptions;
       if (roomOptions.adaptiveStream && newValue is RemoteVideoTrack) {
         _adaptiveStreamActive = true;
