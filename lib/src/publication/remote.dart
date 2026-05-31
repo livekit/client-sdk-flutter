@@ -178,7 +178,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
     logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
     if (viewSizes.isNotEmpty) {
-      final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
+      final largestSize = viewSizes.reduce(maxOfSizes);
       _adaptiveStreamDimensions = VideoDimensions(
         largestSize.width.ceil(),
         largestSize.height.ceil(),
