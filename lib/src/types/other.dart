@@ -240,8 +240,8 @@ class ParticipantTrackPermission {
 ///
 /// Server layers are sized in physical pixels, so on high-density (retina)
 /// displays the logical view size under-represents the pixels needed. Set on a
-/// view via [VideoTrackRenderer]; the more conservative result is requested
-/// across all views attached to the track.
+/// view via [VideoTrackRenderer]; the largest result is requested across all
+/// views attached to the track.
 class AdaptiveStreamPixelDensity {
   /// Upper bound applied to the resolved density to keep bandwidth in check.
   static const maxDensity = 3.0;
