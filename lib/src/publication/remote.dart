@@ -173,7 +173,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
         MediaQuery.maybeOf(context)?.devicePixelRatio ?? 1.0,
       );
       return renderBox.size * density;
-    }).nonNulls;
+    }).nonNulls.toList();
 
     logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
