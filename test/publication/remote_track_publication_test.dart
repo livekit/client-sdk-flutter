@@ -196,6 +196,44 @@ void main() {
       await pub.enable();
       expect(pub.enabled, isTrue, reason: 'an explicit enable still overrides adaptive visibility');
     });
+
+    test('adaptive visibility is computed immediately when track is attached', () async {
+      await room.dispose();
+      await connectTestRoom(
+        roomOptions: const RoomOptions(adaptiveStream: true),
+      );
+
+      final participant = room.remoteParticipants.values.first;
+      const sid = 'TR_remote_pub_adaptive_initial';
+      final pub = RemoteTrackPublication<RemoteVideoTrack>(
+        participant: participant,
+        info: lk_models.TrackInfo(
+          sid: sid,
+          name: 'video',
+          type: lk_models.TrackType.VIDEO,
+        ),
+      );
+      addTearDown(() async => await pub.dispose());
+
+      final stream = _FakeMediaStream('stream-$sid');
+      final track = _FakeMediaStreamTrack(id: sid, kind: 'video');
+      await stream.addTrack(track);
+
+      await pub.updateTrack(RemoteVideoTrack(
+        TrackSource.camera,
+        stream,
+        track,
+      ));
+
+      final initialSettings = lastSettingsFor(sid);
+      expect(initialSettings, isNotNull);
+      expect(initialSettings!.disabled, isTrue);
+
+      await pub.setVideoQuality(VideoQuality.LOW);
+      final manualSettings = lastSettingsFor(sid);
+      expect(manualSettings!.disabled, isTrue, reason: 'manual video settings should keep hidden tracks disabled');
+      expect(manualSettings.quality, lk_models.VideoQuality.LOW);
+    });
   });
 }
 

@@ -225,7 +225,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       // previous track is stale. Reset to the construction defaults so it can't
       // leak into a later _buildTrackSettings (e.g. via enable() / disable(),
       // which emit regardless of visibility). Repopulated by the visibility
-      // timer below while adaptive stream is active.
+      // observer below while adaptive stream is active.
       _adaptiveStreamDimensions = null;
       _adaptiveStreamVisible = true;
 
@@ -246,6 +246,8 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
             _computeVideoViewVisibility(quick: true);
           }
         };
+
+        _computeVideoViewVisibility(quick: true);
       } else {
         _adaptiveStreamActive = false;
       }
