@@ -33,28 +33,18 @@ class LKTextField extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-            decoration: BoxDecoration(
-              color: LKColors.inputFillDark,
-              border: Border.all(width: 1, color: LKColors.inputDark),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              controller: ctrl,
-              obscureText: obscureText,
-              keyboardType: keyboardType,
-              autocorrect: false,
-              style: const TextStyle(fontSize: 15, color: LKColors.fgDark),
-              cursorColor: LKColors.fgDark,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                prefixIcon: icon == null ? null : Icon(icon, size: 18),
-                prefixIconConstraints: const BoxConstraints(
-                  minWidth: 34,
-                  minHeight: 44,
-                ),
+          TextField(
+            controller: ctrl,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            autocorrect: false,
+            style: const TextStyle(fontSize: 15, color: LKColors.fgDark),
+            cursorColor: LKColors.fgDark,
+            decoration: InputDecoration(
+              prefixIcon: icon == null ? null : Icon(icon, size: 18),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 42,
+                minHeight: 44,
               ),
             ),
           ),

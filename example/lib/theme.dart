@@ -160,9 +160,19 @@ class LiveKitTheme {
       inputDecorationTheme: InputDecorationTheme(
         labelStyle: const TextStyle(color: LKColors.lkBlue),
         hintStyle: TextStyle(color: LKColors.textSecondary.withValues(alpha: 0.8)),
-        filled: false,
+        filled: true,
+        fillColor: LKColors.inputFillDark,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 14,
+        ),
+        border: const OutlineInputBorder(
+          borderSide: BorderSide(color: LKColors.inputDark),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
         enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: LKColors.border),
+          borderSide: BorderSide(color: LKColors.inputDark),
           borderRadius: BorderRadius.all(Radius.circular(8)),
         ),
         focusedBorder: const OutlineInputBorder(
