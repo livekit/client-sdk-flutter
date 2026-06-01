@@ -162,19 +162,30 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
 
     final videoTrack = track as VideoTrack;
 
-    // filter visible build contexts
-    final viewSizes = videoTrack.viewKeys
-        .map((e) => e.currentContext)
+    // Filter visible build contexts and scale each view's logical size by its
+    // own pixel density, so the server is asked for physical-pixel dimensions
+    // (retina-aware). Each view's density is configured on its VideoTrackRenderer
+    // and resolved per-view; with AdaptiveStreamPixelDensity.auto the actual
+    // device pixel ratio is read from that view via MediaQuery. The largest
+    // resulting size across all of the track's views is requested.
+    final viewSizes = videoTrack.viewRegistrations
+        .map((registration) {
+          final context = registration.key.currentContext;
+          if (context == null) return null;
+          final renderBox = context.findRenderObject() as RenderBox?;
+          if (renderBox == null || !renderBox.hasSize) return null;
+          final density = registration.pixelDensity.resolve(
+            MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0,
+          );
+          return renderBox.size * density;
+        })
         .nonNulls
-        .map((e) => e.findRenderObject() as RenderBox?)
-        .nonNulls
-        .where((e) => e.hasSize)
-        .map((e) => e.size);
+        .toList();
 
     logger.finer('[Visibility] ${track?.sid} watching ${viewSizes.length} views...');
 
     if (viewSizes.isNotEmpty) {
-      final largestSize = viewSizes.reduce((value, element) => maxOfSizes(value, element));
+      final largestSize = viewSizes.reduce(maxOfSizes);
       _adaptiveStreamDimensions = VideoDimensions(
         largestSize.width.ceil(),
         largestSize.height.ceil(),
@@ -238,7 +249,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
           (_) => _computeVideoViewVisibility(),
         );
 
-        newValue.onVideoViewBuild = (_) {
+        newValue.onVideoViewBuild = () {
           logger.finer('[Visibility] VideoView did build');
           if (_lastSentTrackSettings?.disabled == true) {
             // quick enable
