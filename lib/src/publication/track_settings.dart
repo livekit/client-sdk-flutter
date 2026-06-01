@@ -55,9 +55,10 @@ VideoSettings resolveVideoSettings({
         minDimensions = adaptiveStreamDimensions;
       }
     } else if (userPreference?.quality != null) {
-      // Compare adaptive dimensions with the max quality layer dimensions
-      final maxQualityLayer = layerDimensionsForQuality?.call(userPreference!.quality!);
-      if (maxQualityLayer != null && adaptiveStreamDimensions.area() < maxQualityLayer.area()) {
+      // Compare adaptive dimensions with the dimensions implied by the requested quality.
+      final requestedQualityLayerDimensions = layerDimensionsForQuality?.call(userPreference!.quality!);
+      if (requestedQualityLayerDimensions != null &&
+          adaptiveStreamDimensions.area() < requestedQualityLayerDimensions.area()) {
         minDimensions = adaptiveStreamDimensions;
       }
     } else {
