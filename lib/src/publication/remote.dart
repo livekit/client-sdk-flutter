@@ -42,7 +42,11 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   @override
   final RemoteParticipant participant;
 
-  bool get enabled => _enabledPreference != TrackEnabledPreference.disabled;
+  bool get enabled => !resolveDisabled(
+        enabledPreference: _enabledPreference,
+        adaptiveStreamActive: _adaptiveStreamActive,
+        adaptiveStreamVisible: _adaptiveStreamVisible,
+      );
 
   /// The user's explicit enable/disable request via [enable] / [disable].
   /// [TrackEnabledPreference.unset] means no explicit request, in which case
