@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import '../exts.dart';
@@ -52,6 +53,12 @@ class _RoomPageState extends State<RoomPage> {
     _headerTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+
+    if (lkPlatformIs(PlatformType.android)) {
+      unawaited(enableInCallFlags());
+    }
+
+    // add callback for a `RoomEvent` as opposed to a `ParticipantEvent`
     widget.room.addListener(_onRoomDidUpdate);
     _setUpListeners();
     _sortParticipants();
@@ -82,6 +89,9 @@ class _RoomPageState extends State<RoomPage> {
     _messageCtrl.dispose();
     unawaited(_disposeRoomAsync());
     onWindowShouldClose = null;
+    if (lkPlatformIs(PlatformType.android)) {
+      unawaited(disableInCallFlags());
+    }
     super.dispose();
   }
 
@@ -90,6 +100,17 @@ class _RoomPageState extends State<RoomPage> {
     await widget.room.dispose();
   }
 
+  static const platform = MethodChannel('livekit_incall');
+
+  Future<void> enableInCallFlags() async {
+    await platform.invokeMethod('enableInCall');
+  }
+
+  Future<void> disableInCallFlags() async {
+    await platform.invokeMethod('disableInCall');
+  }
+
+  /// for more information, see [event types](https://docs.livekit.io/client/events/#events)
   void _setUpListeners() => _listener
     ..on<RoomConnectedEvent>((event) {
       print('Room connected: ${event.room.name}');

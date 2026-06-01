@@ -24,67 +24,67 @@ on:
 
 jobs:
   dart-format-check:
-    name: Dart Format Check
+    name: Dart Format
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Format Check
         run: dart format . --set-exit-if-changed
 
   import-sorter-check:
-    name: Import Sorter Check
+    name: Import Sorter
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Import Sorter Check
         run: dart run import_sorter:main --no-comments --exit-if-changed
 
   version-consistency-check:
-    name: Version Consistency Check
+    name: Version Consistency
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Check version consistency
         run: dart run scripts/check_version.dart
 
   dart-analyze-check:
-    name: Dart Analyze Check
+    name: Dart Analyze
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Analyze Check
         run: flutter analyze
 
   dart-test-check:
-    name: Dart Test Check
+    name: Dart Test
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
 
   build-for-android:
-    name: Build for Flutter Android
+    name: Android
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -93,12 +93,12 @@ jobs:
         run: flutter build apk
 
   build-for-ios:
-    name: Build for Flutter iOS
+    name: iOS
     runs-on: macos-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Ensure iOS SDK is available
         run: |
@@ -112,36 +112,36 @@ jobs:
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
-    name: Build for Flutter Windows
+    name: Windows
     runs-on: windows-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Build for Windows
         working-directory: ./example
         run: flutter build windows --release
 
   build-for-macos:
-    name: Build for Flutter macOS
+    name: macOS
     runs-on: macos-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
 
   build-for-linux:
-    name: Build for Flutter Linux
+    name: Linux
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -154,12 +154,12 @@ jobs:
         run: flutter build linux
 
   build-for-web:
-    name: Build for Flutter Web
+    name: Web
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"
@@ -168,12 +168,12 @@ jobs:
         run: flutter build web
 
   build-for-web-wasm:
-    name: Build for Flutter Web WASM
+    name: Web WASM
     runs-on: ubuntu-latest
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
         with:
           java-version: "17.x"

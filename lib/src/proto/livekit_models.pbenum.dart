@@ -253,6 +253,9 @@ class DisconnectReason extends $pb.ProtobufEnum {
   /// media stream failure or media timeout
   static const DisconnectReason MEDIA_FAILURE = DisconnectReason._(15, _omitEnumNames ? '' : 'MEDIA_FAILURE');
 
+  /// agent encountered an error
+  static const DisconnectReason AGENT_ERROR = DisconnectReason._(16, _omitEnumNames ? '' : 'AGENT_ERROR');
+
   static const $core.List<DisconnectReason> values = <DisconnectReason>[
     UNKNOWN_REASON,
     CLIENT_INITIATED,
@@ -270,9 +273,10 @@ class DisconnectReason extends $pb.ProtobufEnum {
     SIP_TRUNK_FAILURE,
     CONNECTION_TIMEOUT,
     MEDIA_FAILURE,
+    AGENT_ERROR,
   ];
 
-  static final $core.List<DisconnectReason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 15);
+  static final $core.List<DisconnectReason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 16);
   static DisconnectReason? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const DisconnectReason._(super.value, super.name);
@@ -347,6 +351,23 @@ class AudioTrackFeature extends $pb.ProtobufEnum {
   static AudioTrackFeature? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const AudioTrackFeature._(super.value, super.name);
+}
+
+class PacketTrailerFeature extends $pb.ProtobufEnum {
+  static const PacketTrailerFeature PTF_USER_TIMESTAMP =
+      PacketTrailerFeature._(0, _omitEnumNames ? '' : 'PTF_USER_TIMESTAMP');
+  static const PacketTrailerFeature PTF_FRAME_ID = PacketTrailerFeature._(1, _omitEnumNames ? '' : 'PTF_FRAME_ID');
+
+  static const $core.List<PacketTrailerFeature> values = <PacketTrailerFeature>[
+    PTF_USER_TIMESTAMP,
+    PTF_FRAME_ID,
+  ];
+
+  static final $core.List<PacketTrailerFeature?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static PacketTrailerFeature? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const PacketTrailerFeature._(super.value, super.name);
 }
 
 class ParticipantInfo_State extends $pb.ProtobufEnum {
@@ -550,6 +571,27 @@ class ClientInfo_SDK extends $pb.ProtobufEnum {
   static ClientInfo_SDK? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const ClientInfo_SDK._(super.value, super.name);
+}
+
+/// Optional capabilities advertised by the client at connect time. The SFU
+/// uses these flags to decide whether to enable features that require
+/// client-side support (e.g. passing RTP packet trailers through to the
+/// subscriber instead of stripping them).
+class ClientInfo_Capability extends $pb.ProtobufEnum {
+  static const ClientInfo_Capability CAP_UNUSED = ClientInfo_Capability._(0, _omitEnumNames ? '' : 'CAP_UNUSED');
+  static const ClientInfo_Capability CAP_PACKET_TRAILER =
+      ClientInfo_Capability._(1, _omitEnumNames ? '' : 'CAP_PACKET_TRAILER');
+
+  static const $core.List<ClientInfo_Capability> values = <ClientInfo_Capability>[
+    CAP_UNUSED,
+    CAP_PACKET_TRAILER,
+  ];
+
+  static final $core.List<ClientInfo_Capability?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static ClientInfo_Capability? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ClientInfo_Capability._(super.value, super.name);
 }
 
 /// enum for operation types (specific to TextHeader)
