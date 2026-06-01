@@ -229,23 +229,24 @@ class Utils {
   static List<VideoParameters> _computeDefaultScreenShareSimulcastParams({
     required VideoParameters original,
   }) {
-    final layers = [rtc.RTCRtpEncoding(scaleResolutionDownBy: 2, maxFramerate: 3)];
-    return layers.map((e) {
-      final scale = e.scaleResolutionDownBy ?? 1;
-      final fps = e.maxFramerate ?? 3;
+    final originalEncoding = original.encoding!;
+    const scale = 2.0;
 
-      return VideoParameters(
+    return [
+      VideoParameters(
         dimensions:
             VideoDimensions((original.dimensions.width / scale).floor(), (original.dimensions.height / scale).floor()),
         encoding: VideoEncoding(
           maxBitrate: math.max(
             150 * 1000,
-            (original.encoding!.maxBitrate / (math.pow(scale, 2) * (original.encoding!.maxFramerate / fps))).floor(),
+            (originalEncoding.maxBitrate / math.pow(scale, 2)).floor(),
           ),
-          maxFramerate: fps,
+          maxFramerate: originalEncoding.maxFramerate,
+          bitratePriority: originalEncoding.bitratePriority,
+          networkPriority: originalEncoding.networkPriority,
         ),
-      );
-    }).toList();
+      ),
+    ];
   }
 
   static List<VideoParameters> _computeDefaultSimulcastParams({

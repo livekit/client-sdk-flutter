@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/utils.dart';
@@ -218,6 +219,59 @@ void main() {
       expect(encodings[1].maxFramerate, 24);
       expect(encodings[1].maxBitrate, 1500000);
       expect(encodings[1].scaleResolutionDownBy, 1);
+    });
+  });
+
+  group('screen share simulcast encodings', () {
+    test('screen share preset bitrates match common SDK presets', () {
+      expect(VideoParametersPresets.screenShareH720FPS5.encoding?.maxBitrate, 800000);
+      expect(VideoParametersPresets.screenShareH1080FPS30.encoding?.maxBitrate, 5000000);
+    });
+
+    test('default lower layer follows top layer fps and priorities', () {
+      final encodings = Utils.computeVideoEncodings(
+        isScreenShare: true,
+        dimensions: const VideoDimensions(1920, 1080),
+        options: const VideoPublishOptions(
+          screenShareEncoding: VideoEncoding(
+            maxBitrate: 2500000,
+            maxFramerate: 15,
+            bitratePriority: Priority.high,
+            networkPriority: Priority.high,
+          ),
+        ),
+      );
+
+      expect(encodings, hasLength(2));
+
+      final lowLayer = encodings![0];
+      expect(lowLayer.rid, 'q');
+      expect(lowLayer.scaleResolutionDownBy, 2);
+      expect(lowLayer.maxFramerate, 15);
+      expect(lowLayer.maxBitrate, 625000);
+      expect(lowLayer.priority, rtc.RTCPriorityType.high);
+      expect(lowLayer.networkPriority, rtc.RTCPriorityType.high);
+    });
+
+    test('default lower layer follows selected screen share preset', () {
+      final encodings = Utils.computeVideoEncodings(
+        isScreenShare: true,
+        dimensions: const VideoDimensions(1920, 1080),
+      );
+
+      expect(encodings, hasLength(2));
+
+      final lowLayer = encodings![0];
+      expect(lowLayer.rid, 'q');
+      expect(lowLayer.scaleResolutionDownBy, 2);
+      expect(lowLayer.maxFramerate, 15);
+      expect(lowLayer.maxBitrate, 625000);
+
+      final topLayer = encodings[1];
+      expect(topLayer.rid, 'h');
+      expect(topLayer.scaleResolutionDownBy, 1);
+      expect(topLayer.maxFramerate, 15);
+      expect(topLayer.maxBitrate, 2500000);
     });
   });
 }
