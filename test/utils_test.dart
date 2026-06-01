@@ -87,5 +87,26 @@ void main() {
       expect(lowLayer.priority, rtc.RTCPriorityType.high);
       expect(lowLayer.networkPriority, rtc.RTCPriorityType.high);
     });
+
+    test('default lower layer follows selected screen share preset', () {
+      final encodings = Utils.computeVideoEncodings(
+        isScreenShare: true,
+        dimensions: const lk.VideoDimensions(1920, 1080),
+      );
+
+      expect(encodings, hasLength(2));
+
+      final lowLayer = encodings![0];
+      expect(lowLayer.rid, 'q');
+      expect(lowLayer.scaleResolutionDownBy, 2);
+      expect(lowLayer.maxFramerate, 15);
+      expect(lowLayer.maxBitrate, 625000);
+
+      final topLayer = encodings[1];
+      expect(topLayer.rid, 'h');
+      expect(topLayer.scaleResolutionDownBy, 1);
+      expect(topLayer.maxFramerate, 15);
+      expect(topLayer.maxBitrate, 2500000);
+    });
   });
 }
