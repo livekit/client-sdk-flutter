@@ -274,7 +274,7 @@ extension VideoParametersPresets on VideoParameters {
   static const screenShareH720FPS5 = VideoParameters(
     dimensions: VideoDimensionsPresets.h720_169,
     encoding: VideoEncoding(
-      maxBitrate: 400 * 1000,
+      maxBitrate: 800 * 1000,
       maxFramerate: 5,
     ),
   );
@@ -298,7 +298,7 @@ extension VideoParametersPresets on VideoParameters {
   static const screenShareH1080FPS30 = VideoParameters(
     dimensions: VideoDimensionsPresets.h1080_169,
     encoding: VideoEncoding(
-      maxBitrate: 4000 * 1000,
+      maxBitrate: 5000 * 1000,
       maxFramerate: 30,
     ),
   );
