@@ -35,22 +35,9 @@ import '../processor_native.dart' if (dart.library.js_interop) '../processor_web
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
+import '../video_track_view_registration.dart';
 import 'audio.dart';
 import 'video.dart';
-
-@internal
-class VideoTrackViewRegistration {
-  /// The widget key used by adaptive stream to find this view's render context.
-  final GlobalKey key = GlobalKey();
-
-  /// The pixel density used to convert this view's logical size to physical
-  /// pixels when computing adaptive-stream dimensions.
-  AdaptiveStreamPixelDensity pixelDensity;
-
-  VideoTrackViewRegistration({
-    this.pixelDensity = AdaptiveStreamPixelDensity.auto,
-  });
-}
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {

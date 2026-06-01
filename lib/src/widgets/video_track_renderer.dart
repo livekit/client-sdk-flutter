@@ -29,6 +29,7 @@ import '../support/platform.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
+import '../track/video_track_view_registration.dart';
 import '../types/other.dart';
 
 enum VideoViewMirrorMode {
