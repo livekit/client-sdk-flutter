@@ -1,1 +1,0 @@
-patch type="fixed" "sendSyncState error handling so sync-state preparation failures are not swallowed"
