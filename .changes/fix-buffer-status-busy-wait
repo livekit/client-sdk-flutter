@@ -1,1 +1,1 @@
-patch type="fixed" "Fix waitForBufferStatusLow busy-wait after engine close"
+patch type="fixed" "waitForBufferStatusLow busy-waiting after engine close"

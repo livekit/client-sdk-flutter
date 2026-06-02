@@ -1,1 +1,1 @@
-patch type="fixed" "Fix connected server address using wrong peer connection"
+patch type="fixed" "Connected server address resolving from the wrong peer connection"

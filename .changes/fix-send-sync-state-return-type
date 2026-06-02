@@ -1,1 +1,1 @@
-patch type="fixed" "Fix sendSyncState using async void and swallowing sync-state preparation errors"
+patch type="fixed" "sendSyncState error handling so sync-state preparation failures are not swallowed"
