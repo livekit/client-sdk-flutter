@@ -19,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
+import '../audio/audio_manager.dart';
 import '../core/signal_client.dart';
 import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
@@ -1189,7 +1190,7 @@ extension RoomHardwareManagementMethods on Room {
   /// or bluetooth is connected, only supported on iOS for now
   Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) async {
     if (lkPlatformIsMobile()) {
-      await Hardware.instance.setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
+      await AudioManager.instance.setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
       engine.roomOptions = engine.roomOptions.copyWith(
         defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
           speakerOn: speakerOn,
@@ -1203,7 +1204,7 @@ extension RoomHardwareManagementMethods on Room {
   Future<void> applyAudioSpeakerSettings() async {
     if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
       if (lkPlatformIsMobile()) {
-        await Hardware.instance.setSpeakerphoneOn(roomOptions.defaultAudioOutputOptions.speakerOn!);
+        await AudioManager.instance.setSpeakerphoneOn(roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
     }
   }

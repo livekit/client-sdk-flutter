@@ -26,6 +26,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager
 import com.cloudwebrtc.webrtc.audio.LocalAudioTrack
 import io.flutter.plugin.common.BinaryMessenger
 import org.webrtc.AudioTrack
@@ -42,6 +43,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private var audioProcessors = mutableMapOf<String, AudioProcessors>()
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
+  private var audioSwitchManager: LKAudioSwitchManager? = null
 
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
@@ -50,9 +52,13 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var channel: MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    // LiveKit owns the platform audio session, so disable flutter_webrtc's own
+    // native audio management. Set at registration, before any audio op.
+    AudioSwitchManager.setAudioSessionManagementEnabled(false)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "livekit_client")
     channel.setMethodCallHandler(this)
     binaryMessenger = flutterPluginBinding.binaryMessenger
+    audioSwitchManager = LKAudioSwitchManager(flutterPluginBinding.applicationContext)
   }
 
   @SuppressLint("SuspiciousIndentation")
@@ -350,6 +356,26 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
         handleGetAudioProcessingState(result)
       }
 
+      "configureAndroidAudioSession" -> {
+        @Suppress("UNCHECKED_CAST")
+        val configuration = call.arguments as? Map<String, Any?> ?: emptyMap()
+        audioSwitchManager?.configure(configuration)
+        audioSwitchManager?.start()
+        result.success(null)
+      }
+
+      "stopAndroidAudioSession" -> {
+        audioSwitchManager?.stop()
+        audioSwitchManager?.clearCommunicationDevice()
+        result.success(null)
+      }
+
+      "setAndroidSpeakerphoneOn" -> {
+        val enable = call.argument<Boolean>("enable") ?: false
+        audioSwitchManager?.setSpeakerphoneOn(enable)
+        result.success(null)
+      }
+
       else -> {
         result.notImplemented()
       }
@@ -358,6 +384,9 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+
+    audioSwitchManager?.stop()
+    audioSwitchManager = null
 
     // Cleanup all processors
     audioProcessors.values.forEach { it.cleanup() }

@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:synchronized/synchronized.dart' as sync;
 
-import '../hardware/hardware.dart';
+import '../audio/audio_manager.dart';
 import '../logger.dart';
 import '../support/native.dart';
 import '../support/native_audio.dart';
@@ -106,14 +105,25 @@ Future<void> _onAudioTrackCountDidChange() async {
 
   if (_audioTrackState != newState) {
     _audioTrackState = newState;
+    AudioManager.instance.updateAudioTrackState(
+      hasLocalAudio: _localTrackCount > 0,
+      hasRemoteAudio: _remoteTrackCount > 0,
+    );
     logger.fine('didUpdateSate: $_audioTrackState');
+
+    if (!AudioManager.instance.isAutomaticConfigurationEnabled) {
+      logger.fine('automatic audio session configuration is disabled because AudioManager is in manual mode');
+      return;
+    }
 
     NativeAudioConfiguration? config;
     if (lkPlatformIs(PlatformType.iOS)) {
       // Only iOS for now...
-      config = await onConfigureNativeAudio.call(_audioTrackState);
+      config = AudioManager.instance.shouldUseLegacyAutomaticAppleConfiguration
+          ? await onConfigureNativeAudio.call(_audioTrackState)
+          : AudioManager.instance.automaticAppleAudioConfiguration();
 
-      if (Hardware.instance.forceSpeakerOutput) {
+      if (AudioManager.instance.forceSpeakerOutput) {
         config = config.copyWith(
           appleAudioCategoryOptions: {
             ...?config.appleAudioCategoryOptions,
@@ -126,10 +136,8 @@ Future<void> _onAudioTrackCountDidChange() async {
     if (config != null) {
       logger.fine('configuring for ${_audioTrackState} using ${config}...');
       try {
-        if (Hardware.instance.isAutomaticConfigurationEnabled) {
-          logger.fine('configuring native audio...');
-          await Native.configureAudio(config);
-        }
+        logger.fine('configuring native audio...');
+        await Native.configureAudio(config);
       } catch (error) {
         logger.warning('failed to configure ${error}');
       }
@@ -152,30 +160,23 @@ AudioTrackState _computeAudioTrackState() {
 Future<NativeAudioConfiguration> defaultNativeAudioConfigurationFunc(AudioTrackState state) async {
   if (state == AudioTrackState.none) {
     return NativeAudioConfiguration.soloAmbient;
-  } else if (state == AudioTrackState.remoteOnly && Hardware.instance.preferSpeakerOutput) {
+  } else if (state == AudioTrackState.remoteOnly && AudioManager.instance.preferSpeakerOutput) {
     return NativeAudioConfiguration.playback;
   }
 
-  return Hardware.instance.preferSpeakerOutput
+  return AudioManager.instance.preferSpeakerOutput
       ? NativeAudioConfiguration.playAndRecordSpeaker
       : NativeAudioConfiguration.playAndRecordReceiver;
 }
 
 class NativeAudioManagement {
   static Future<void> start() async {
-    // Audio configuration for Android.
-    if (lkPlatformIs(PlatformType.android)) {
-      if (Native.bypassVoiceProcessing) {
-        await rtc.Helper.setAndroidAudioConfiguration(rtc.AndroidAudioConfiguration.media);
-      } else {
-        await rtc.Helper.setAndroidAudioConfiguration(rtc.AndroidAudioConfiguration.communication);
-      }
-    }
+    await AudioManager.instance.applyOptionsForConnect();
   }
 
   static Future<void> stop() async {
-    if (lkPlatformIs(PlatformType.android)) {
-      await rtc.Helper.clearAndroidCommunicationDevice();
+    if (lkPlatformIs(PlatformType.android) && AudioManager.instance.isAutomaticConfigurationEnabled) {
+      await Native.stopAndroidAudioSession();
     }
   }
 }

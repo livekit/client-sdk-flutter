@@ -36,7 +36,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = Hardware.instance.speakerOn ?? false;
+  bool _speakerphoneOn = AudioManager.instance.speakerphoneOn;
 
   @override
   void initState() {

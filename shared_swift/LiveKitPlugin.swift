@@ -68,6 +68,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         instance.binaryMessenger = messenger
         registrar.addMethodCallDelegate(instance, channel: channel)
 
+        // LiveKit owns the platform audio session, so disable flutter_webrtc's
+        // own native audio management. Set at registration, before any audio op.
+        FlutterWebRTCPlugin.setAudioSessionManagementEnabled(false)
+
         #if os(iOS)
         BroadcastManager.shared.isBroadcastingPublisher
             .sink { isBroadcasting in
@@ -372,6 +376,26 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         #endif
     }
 
+    public func handleSetAppleSpeakerphoneOn(args: [String: Any?], result: @escaping FlutterResult) {
+        #if os(macOS)
+        result(FlutterMethodNotImplemented)
+        #else
+        let enable = (args["enable"] as? Bool) ?? false
+
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.lockForConfiguration()
+        defer { rtcSession.unlockForConfiguration() }
+
+        do {
+            try rtcSession.overrideOutputAudioPort(enable ? .speaker : .none)
+            result(true)
+        } catch {
+            print("[LiveKit] setAppleSpeakerphoneOn error: ", error)
+            result(FlutterError(code: "setAppleSpeakerphoneOn", message: error.localizedDescription, details: nil))
+        }
+        #endif
+    }
+
     private static let processInfo = ProcessInfo()
 
     /// Returns os version as a string.
@@ -513,6 +537,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "configureNativeAudio":
             handleConfigureNativeAudio(args: args, result: result)
+        case "setAppleSpeakerphoneOn":
+            handleSetAppleSpeakerphoneOn(args: args, result: result)
         case "startVisualizer":
             handleStartAudioVisualizer(args: args, result: result)
         case "stopVisualizer":

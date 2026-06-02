@@ -93,6 +93,47 @@ class Native {
     return null;
   }
 
+  /// Configure and activate LiveKit's Android audio session (mode/focus/routing).
+  @internal
+  static Future<void> configureAndroidAudioSession(Map<String, dynamic> configuration) async {
+    try {
+      await channel.invokeMethod<void>('configureAndroidAudioSession', configuration);
+    } catch (error) {
+      logger.warning('configureAndroidAudioSession did throw $error');
+    }
+  }
+
+  /// Deactivate LiveKit's Android audio session (release focus, restore mode).
+  @internal
+  static Future<void> stopAndroidAudioSession() async {
+    try {
+      await channel.invokeMethod<void>('stopAndroidAudioSession');
+    } catch (error) {
+      logger.warning('stopAndroidAudioSession did throw $error');
+    }
+  }
+
+  /// Route Android audio output to/from the speakerphone.
+  @internal
+  static Future<void> setAndroidSpeakerphoneOn(bool enable) async {
+    try {
+      await channel.invokeMethod<void>('setAndroidSpeakerphoneOn', <String, dynamic>{'enable': enable});
+    } catch (error) {
+      logger.warning('setAndroidSpeakerphoneOn did throw $error');
+    }
+  }
+
+  /// Route Apple (iOS) audio output to/from the speakerphone without otherwise
+  /// changing the audio session category/mode.
+  @internal
+  static Future<void> setAppleSpeakerphoneOn(bool enable) async {
+    try {
+      await channel.invokeMethod<void>('setAppleSpeakerphoneOn', <String, dynamic>{'enable': enable});
+    } catch (error) {
+      logger.warning('setAppleSpeakerphoneOn did throw $error');
+    }
+  }
+
   @internal
   static Future<bool> startVisualizer(
     String trackId, {

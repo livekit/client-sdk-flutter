@@ -14,6 +14,7 @@
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
+import 'audio/audio_manager.dart';
 import 'support/native.dart';
 import 'support/platform.dart' show lkPlatformIsMobile;
 
@@ -22,16 +23,32 @@ import 'support/platform.dart' show lkPlatformIsMobile;
 class LiveKitClient {
   static const version = '2.8.0';
 
-  /// Initialize the WebRTC plugin. If this is not manually called, will be
-  /// initialized with default settings.
-  /// This method must be called before calling any LiveKit SDK API.
-  static Future<void> initialize({bool bypassVoiceProcessing = false}) async {
+  /// Initialize the WebRTC plugin.
+  ///
+  /// Optional: call once at startup to enable [bypassVoiceProcessing] before
+  /// connecting; otherwise WebRTC initializes lazily with defaults.
+  ///
+  /// LiveKit owns the platform audio session, and flutter_webrtc's own native
+  /// audio management is disabled automatically when the LiveKit plugin loads
+  /// (done natively at registration), so that does not depend on this call.
+  ///
+  /// Configure audio-session behavior through [AudioManager] before connecting,
+  /// e.g. `AudioManager.instance.setAudioSessionManagementMode(...)` and
+  /// `AudioManager.instance.setAudioSessionOptions(...)`.
+  static Future<void> initialize({
+    bool bypassVoiceProcessing = false,
+  }) async {
     if (lkPlatformIsMobile()) {
+      Native.bypassVoiceProcessing = bypassVoiceProcessing;
+      AudioManager.instance.configureDefaults(
+        bypassVoiceProcessing: bypassVoiceProcessing,
+      );
+      final androidAudioConfiguration = AudioManager.instance.androidAudioConfigurationForInitialize();
+
       await rtc.WebRTC.initialize(options: {
         if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
+        if (androidAudioConfiguration != null) 'androidAudioConfiguration': androidAudioConfiguration,
       });
-
-      Native.bypassVoiceProcessing = bypassVoiceProcessing;
     }
   }
 }
