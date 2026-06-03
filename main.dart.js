@@ -30237,7 +30237,7 @@ k=A.S([B.Zw,"2",B.Zx,"3",B.ZC,"4",B.ZD,"5",B.ZE,"6",B.ZF,"7",B.ZG,"8",B.ZH,"9",B
 k.toString
 l.m(0,"protocol",k)
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.7.0")
+l.m(0,"version","2.8.0")
 l.m(0,"network",m)
 if(o!=null){i=A.u(i,i)
 k=o.a
@@ -35617,7 +35617,7 @@ $S:2}
 A.aTD.prototype={
 $1(a){var s=A.e_().b
 s=s==null?null:s.canvasKitBaseUrl
-return(s==null?"https://www.gstatic.com/flutter-canvaskit/4c525dac5ebe5971c5708ef73558ed8edcf4a362/":s)+a},
+return(s==null?"https://www.gstatic.com/flutter-canvaskit/c416acfeb8126e097f758c664aaa3da929e27da0/":s)+a},
 $S:58}
 A.WC.prototype={
 gp(a){var s=this.a
