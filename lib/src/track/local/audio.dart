@@ -47,22 +47,36 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     }
   }
 
-  Future<bool> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
+  Future<track_options.AudioProcessingApplyResult> setAudioProcessingOptions(
+      track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
-    final success = await Native.setAudioProcessingOptions(
+    final response = await Native.setAudioProcessingOptions(
       mediaStreamTrack.id!,
       options.toMap(),
     );
 
-    if (success) {
+    final code = track_options.AudioProcessingOptionsResultCode.fromValue(response['code'] as String?);
+    final message = (response['message'] as String?) ?? '';
+
+    // Malformed requests (incompatible modes, or a non-local track) are caller
+    // bugs — surface them loudly rather than as a silently-unsuccessful result.
+    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination ||
+        code == track_options.AudioProcessingOptionsResultCode.rejectedRemoteTrack) {
+      throw track_options.AudioProcessingException(
+        code,
+        message.isNotEmpty ? message : 'Unable to apply audio processing options',
+      );
+    }
+
+    final result = track_options.AudioProcessingApplyResult(code, message);
+    if (result.isSuccess) {
       currentOptions = nextOptions;
       events.emit(LocalTrackOptionsUpdatedEvent(
         track: this,
         options: currentOptions,
       ));
     }
-
-    return success;
+    return result;
   }
 
   num? _currentBitrate;

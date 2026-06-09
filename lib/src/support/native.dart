@@ -54,28 +54,24 @@ class Native {
   ///
   /// Resolved natively against the underlying WebRTC audio track owned by
   /// flutter_webrtc; [options] is the serialized [AudioProcessingOptions] map.
-  /// Returns whether the native layer applied/stored the request.
+  /// Returns the native result map (`result`/`code`/`message`) so the caller
+  /// can surface typed rejections. Channel errors propagate to the caller.
   @internal
-  static Future<bool> setAudioProcessingOptions(
+  static Future<Map<String, dynamic>> setAudioProcessingOptions(
     String trackId,
     Map<String, dynamic> options,
   ) async {
-    try {
-      final response = await channel.invokeMethod<dynamic>(
-        'setAudioProcessingOptions',
-        <String, dynamic>{
-          'trackId': trackId,
-          ...options,
-        },
-      );
-      if (response is Map) {
-        return response['result'] == true;
-      }
-      return response == true;
-    } catch (error) {
-      logger.warning('setAudioProcessingOptions did throw $error');
-      return false;
+    final response = await channel.invokeMethod<dynamic>(
+      'setAudioProcessingOptions',
+      <String, dynamic>{
+        'trackId': trackId,
+        ...options,
+      },
+    );
+    if (response is Map) {
+      return response.map((key, value) => MapEntry(key.toString(), value));
     }
+    return <String, dynamic>{};
   }
 
   @internal

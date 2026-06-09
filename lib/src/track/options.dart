@@ -516,3 +516,56 @@ class AudioOutputOptions {
     );
   }
 }
+
+/// Result code from applying [AudioProcessingOptions], mirroring the native
+/// `AudioProcessingOptionsResult`. `applied`/`stored` are success; the rest are
+/// rejections.
+enum AudioProcessingOptionsResultCode {
+  applied('applied'),
+  stored('stored'),
+  rejectedRemoteTrack('rejectedRemoteTrack'),
+  rejectedInvalidCombination('rejectedInvalidCombination'),
+  rejectedPlatformUnavailable('rejectedPlatformUnavailable'),
+  applyFailed('applyFailed');
+
+  const AudioProcessingOptionsResultCode(this.value);
+
+  final String value;
+
+  static AudioProcessingOptionsResultCode fromValue(String? value) =>
+      AudioProcessingOptionsResultCode.values.firstWhere(
+        (e) => e.value == value,
+        orElse: () => AudioProcessingOptionsResultCode.applyFailed,
+      );
+
+  bool get isSuccess =>
+      this == AudioProcessingOptionsResultCode.applied || this == AudioProcessingOptionsResultCode.stored;
+}
+
+/// Thrown when the native layer rejects requested [AudioProcessingOptions]
+/// (e.g. an invalid platform/software combination, or platform processing that
+/// is unavailable on the device).
+class AudioProcessingException implements Exception {
+  AudioProcessingException(this.code, this.message);
+
+  final AudioProcessingOptionsResultCode code;
+  final String message;
+
+  @override
+  String toString() => 'AudioProcessingException(${code.value}): $message';
+}
+
+/// Outcome of applying [AudioProcessingOptions].
+///
+/// Returned for operational outcomes — `applied`/`stored` (success), and the
+/// device-capability rejections `rejectedPlatformUnavailable`/`applyFailed`
+/// (inspect [isSuccess]). A malformed request (incompatible modes, or a
+/// non-local track) throws [AudioProcessingException] instead.
+class AudioProcessingApplyResult {
+  AudioProcessingApplyResult(this.code, this.message);
+
+  final AudioProcessingOptionsResultCode code;
+  final String message;
+
+  bool get isSuccess => code.isSuccess;
+}
