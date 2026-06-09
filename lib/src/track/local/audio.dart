@@ -24,6 +24,7 @@ import '../../logger.dart';
 import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
+import '../../support/native.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart' as track_options;
@@ -48,17 +49,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   Future<bool> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
-    final success = await rtc.AudioProcessingMediaStreamTrackExtension(mediaStreamTrack).setAudioProcessingOptions(
-      rtc.AudioProcessingOptions(
-        echoCancellation: options.echoCancellation,
-        noiseSuppression: options.noiseSuppression,
-        autoGainControl: options.autoGainControl,
-        highPassFilter: options.highPassFilter,
-        echoCancellationMode: _rtcAudioProcessingMode(options.echoCancellationMode),
-        noiseSuppressionMode: _rtcAudioProcessingMode(options.noiseSuppressionMode),
-        autoGainControlMode: _rtcAudioProcessingMode(options.autoGainControlMode),
-        highPassFilterMode: _rtcAudioProcessingMode(options.highPassFilterMode),
-      ),
+    final success = await Native.setAudioProcessingOptions(
+      mediaStreamTrack.id!,
+      options.toMap(),
     );
 
     if (success) {
@@ -171,14 +164,4 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
     return track;
   }
-}
-
-rtc.AudioProcessingMode _rtcAudioProcessingMode(
-  track_options.AudioProcessingMode mode,
-) {
-  return switch (mode) {
-    track_options.AudioProcessingMode.platform => rtc.AudioProcessingMode.platform,
-    track_options.AudioProcessingMode.software => rtc.AudioProcessingMode.software,
-    track_options.AudioProcessingMode.automatic => rtc.AudioProcessingMode.automatic,
-  };
 }

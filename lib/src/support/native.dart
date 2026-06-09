@@ -50,6 +50,34 @@ class Native {
     }
   }
 
+  /// Applies runtime audio processing options to a local audio track.
+  ///
+  /// Resolved natively against the underlying WebRTC audio track owned by
+  /// flutter_webrtc; [options] is the serialized [AudioProcessingOptions] map.
+  /// Returns whether the native layer applied/stored the request.
+  @internal
+  static Future<bool> setAudioProcessingOptions(
+    String trackId,
+    Map<String, dynamic> options,
+  ) async {
+    try {
+      final response = await channel.invokeMethod<dynamic>(
+        'setAudioProcessingOptions',
+        <String, dynamic>{
+          'trackId': trackId,
+          ...options,
+        },
+      );
+      if (response is Map) {
+        return response['result'] == true;
+      }
+      return response == true;
+    } catch (error) {
+      logger.warning('setAudioProcessingOptions did throw $error');
+      return false;
+    }
+  }
+
   @internal
   static Future<bool> startVisualizer(
     String trackId, {
