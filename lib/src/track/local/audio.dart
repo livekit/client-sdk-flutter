@@ -19,19 +19,20 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
+import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
-import '../options.dart';
+import '../options.dart' as track_options;
 import 'local.dart';
 
 class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
-  covariant AudioCaptureOptions currentOptions;
+  covariant track_options.AudioCaptureOptions currentOptions;
 
   AudioPublishOptions? lastPublishOptions;
 
@@ -43,6 +44,32 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     if (!muted) {
       await restartTrack();
     }
+  }
+
+  Future<bool> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
+    final nextOptions = currentOptions.copyWith(processing: options);
+    final success = await rtc.AudioProcessingMediaStreamTrackExtension(mediaStreamTrack).setAudioProcessingOptions(
+      rtc.AudioProcessingOptions(
+        echoCancellation: options.echoCancellation,
+        noiseSuppression: options.noiseSuppression,
+        autoGainControl: options.autoGainControl,
+        highPassFilter: options.highPassFilter,
+        echoCancellationMode: _rtcAudioProcessingMode(options.echoCancellationMode),
+        noiseSuppressionMode: _rtcAudioProcessingMode(options.noiseSuppressionMode),
+        autoGainControlMode: _rtcAudioProcessingMode(options.autoGainControlMode),
+        highPassFilterMode: _rtcAudioProcessingMode(options.highPassFilterMode),
+      ),
+    );
+
+    if (success) {
+      currentOptions = nextOptions;
+      events.emit(LocalTrackOptionsUpdatedEvent(
+        track: this,
+        options: currentOptions,
+      ));
+    }
+
+    return success;
   }
 
   num? _currentBitrate;
@@ -126,9 +153,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
-    AudioCaptureOptions? options,
+    track_options.AudioCaptureOptions? options,
   ]) async {
-    options ??= const AudioCaptureOptions();
+    options ??= const track_options.AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     final track = LocalAudioTrack(
@@ -144,4 +171,14 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
     return track;
   }
+}
+
+rtc.AudioProcessingMode _rtcAudioProcessingMode(
+  track_options.AudioProcessingMode mode,
+) {
+  return switch (mode) {
+    track_options.AudioProcessingMode.platform => rtc.AudioProcessingMode.platform,
+    track_options.AudioProcessingMode.software => rtc.AudioProcessingMode.software,
+    track_options.AudioProcessingMode.automatic => rtc.AudioProcessingMode.automatic,
+  };
 }
