@@ -74,6 +74,25 @@ class Native {
     return <String, dynamic>{};
   }
 
+  /// Reads the engine-wide audio processing state from the native peer
+  /// connection factory. Returns `null` when unavailable (e.g. the factory
+  /// does not exist yet, or the platform cannot provide it).
+  @internal
+  static Future<Map<String, dynamic>?> getAudioProcessingState() async {
+    try {
+      final response = await channel.invokeMethod<dynamic>(
+        'getAudioProcessingState',
+        <String, dynamic>{},
+      );
+      if (response is Map) {
+        return response.map((key, value) => MapEntry(key.toString(), value));
+      }
+    } catch (error) {
+      logger.warning('getAudioProcessingState did throw $error');
+    }
+    return null;
+  }
+
   @internal
   static Future<bool> startVisualizer(
     String trackId, {

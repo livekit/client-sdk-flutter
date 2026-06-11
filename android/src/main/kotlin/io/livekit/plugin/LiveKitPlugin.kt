@@ -30,9 +30,12 @@ import com.cloudwebrtc.webrtc.audio.LocalAudioTrack
 import io.flutter.plugin.common.BinaryMessenger
 import org.webrtc.AudioTrack
 import org.webrtc.audio.AudioProcessingComponentOptions
+import org.webrtc.audio.AudioProcessingComponentState
+import org.webrtc.audio.AudioProcessingImplementation
 import org.webrtc.audio.AudioProcessingMode
 import org.webrtc.audio.AudioProcessingOptions
 import org.webrtc.audio.AudioProcessingOptionsResult
+import org.webrtc.audio.AudioProcessingState
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
@@ -271,6 +274,56 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     AudioProcessingOptionsResult.Code.APPLY_FAILED -> "applyFailed"
   }
 
+  private fun handleGetAudioProcessingState(result: Result) {
+    val factory = flutterWebRTCPlugin.getPeerConnectionFactory()
+    if (factory == null) {
+      result.success(null)
+      return
+    }
+    result.success(audioProcessingStateToMap(factory.audioProcessingState))
+  }
+
+  private fun audioProcessingModeString(mode: AudioProcessingMode): String = when (mode) {
+    AudioProcessingMode.PLATFORM -> "platform"
+    AudioProcessingMode.SOFTWARE -> "software"
+    AudioProcessingMode.AUTOMATIC -> "auto"
+  }
+
+  private fun audioProcessingImplementationString(implementation: AudioProcessingImplementation): String =
+    when (implementation) {
+      AudioProcessingImplementation.UNKNOWN -> "unknown"
+      AudioProcessingImplementation.DISABLED -> "disabled"
+      AudioProcessingImplementation.SOFTWARE -> "software"
+      AudioProcessingImplementation.PLATFORM -> "platform"
+      AudioProcessingImplementation.SOFTWARE_AND_PLATFORM -> "softwareAndPlatform"
+    }
+
+  private fun requestedToMap(requested: AudioProcessingComponentOptions?): Map<String, Any?>? =
+    requested?.let {
+      mapOf(
+        "enabled" to it.isEnabled,
+        "mode" to audioProcessingModeString(it.mode),
+      )
+    }
+
+  private fun componentToMap(state: AudioProcessingComponentState): Map<String, Any?> = mapOf(
+    "requested" to requestedToMap(state.requested),
+    "isSoftwareResolved" to state.isSoftwareResolved,
+    "isSoftwareActive" to state.isSoftwareActive,
+    "isPlatformAvailable" to state.isPlatformAvailable,
+    "isPlatformResolved" to state.isPlatformResolved,
+    "isPlatformActive" to state.isPlatformActive,
+    "effective" to audioProcessingImplementationString(state.effective),
+  )
+
+  private fun audioProcessingStateToMap(state: AudioProcessingState): Map<String, Any?> = mapOf(
+    "hasAudioProcessingModule" to state.hasAudioProcessingModule,
+    "echoCancellation" to componentToMap(state.echoCancellation),
+    "noiseSuppression" to componentToMap(state.noiseSuppression),
+    "autoGainControl" to componentToMap(state.autoGainControl),
+    "highPassFilter" to componentToMap(state.highPassFilter),
+  )
+
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
       "startVisualizer" -> {
@@ -291,6 +344,10 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
       "setAudioProcessingOptions" -> {
         handleSetAudioProcessingOptions(call, result)
+      }
+
+      "getAudioProcessingState" -> {
+        handleGetAudioProcessingState(result)
       }
 
       else -> {

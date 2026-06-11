@@ -176,6 +176,16 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       await track.setProcessor(options.processor);
     }
 
+    // Per-component processing modes are not part of standard capture
+    // constraints; apply them through the native audio processing path.
+    final processing = options.processing;
+    if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
+        processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
+        processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
+        processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
+      await track.setAudioProcessingOptions(processing);
+    }
+
     return track;
   }
 }

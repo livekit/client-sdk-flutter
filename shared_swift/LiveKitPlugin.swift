@@ -449,6 +449,60 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    public func handleGetAudioProcessingState(result: @escaping FlutterResult) {
+        guard let factory = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory else {
+            result(nil)
+            return
+        }
+        result(LiveKitPlugin.toMap(state: factory.audioProcessingState))
+    }
+
+    static func audioProcessingModeString(_ mode: RTCAudioProcessingMode) -> String {
+        switch mode {
+        case .platform: return "platform"
+        case .software: return "software"
+        default: return "auto"
+        }
+    }
+
+    static func audioProcessingImplementationString(_ implementation: RTCAudioProcessingImplementation) -> String {
+        switch implementation {
+        case .disabled: return "disabled"
+        case .software: return "software"
+        case .platform: return "platform"
+        case .softwareAndPlatform: return "softwareAndPlatform"
+        default: return "unknown"
+        }
+    }
+
+    static func toMap(component state: RTCAudioProcessingComponentState) -> [String: Any] {
+        var map: [String: Any] = [
+            "isSoftwareResolved": state.isSoftwareResolved,
+            "isSoftwareActive": state.isSoftwareActive,
+            "isPlatformAvailable": state.isPlatformAvailable,
+            "isPlatformResolved": state.isPlatformResolved,
+            "isPlatformActive": state.isPlatformActive,
+            "effective": audioProcessingImplementationString(state.effective),
+        ]
+        if let requested = state.requested {
+            map["requested"] = [
+                "enabled": requested.isEnabled,
+                "mode": audioProcessingModeString(requested.mode),
+            ]
+        }
+        return map
+    }
+
+    static func toMap(state: RTCAudioProcessingState) -> [String: Any] {
+        [
+            "hasAudioProcessingModule": state.hasAudioProcessingModule,
+            "echoCancellation": toMap(component: state.echoCancellation),
+            "noiseSuppression": toMap(component: state.noiseSuppression),
+            "autoGainControl": toMap(component: state.autoGainControl),
+            "highPassFilter": toMap(component: state.highPassFilter),
+        ]
+    }
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any?] else {
             print("[LiveKit] arguments must be a dictionary")
@@ -469,6 +523,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStopAudioRenderer(args: args, result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
+        case "getAudioProcessingState":
+            handleGetAudioProcessingState(result: result)
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         #if os(iOS)

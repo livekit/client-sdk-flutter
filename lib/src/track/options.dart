@@ -421,10 +421,6 @@ class AudioCaptureOptions extends LocalTrackOptions implements AudioProcessingOp
         <String, dynamic>{'autoGainControl': false},
         <String, dynamic>{'voiceIsolation': false},
         <String, dynamic>{'googDAEchoCancellation': false},
-        if (!kIsWeb) <String, dynamic>{'echoCancellationMode': echoCancellationMode.constraintValue},
-        if (!kIsWeb) <String, dynamic>{'noiseSuppressionMode': noiseSuppressionMode.constraintValue},
-        if (!kIsWeb) <String, dynamic>{'autoGainControlMode': autoGainControlMode.constraintValue},
-        if (!kIsWeb) <String, dynamic>{'highPassFilterMode': highPassFilterMode.constraintValue},
       ];
     } else {
       /// in we platform it's not possible to provide optional and mandatory parameters.
@@ -443,10 +439,6 @@ class AudioCaptureOptions extends LocalTrackOptions implements AudioProcessingOp
           <String, dynamic>{'googAutoGainControl': autoGainControl},
           <String, dynamic>{'googHighpassFilter': highPassFilter},
           <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
-          if (!kIsWeb) <String, dynamic>{'echoCancellationMode': echoCancellationMode.constraintValue},
-          if (!kIsWeb) <String, dynamic>{'noiseSuppressionMode': noiseSuppressionMode.constraintValue},
-          if (!kIsWeb) <String, dynamic>{'autoGainControlMode': autoGainControlMode.constraintValue},
-          if (!kIsWeb) <String, dynamic>{'highPassFilterMode': highPassFilterMode.constraintValue},
         ];
       }
     }
