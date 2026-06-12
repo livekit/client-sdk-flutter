@@ -19,19 +19,21 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
+import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
+import '../../support/native.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
-import '../options.dart';
+import '../options.dart' as track_options;
 import 'local.dart';
 
 class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
-  covariant AudioCaptureOptions currentOptions;
+  covariant track_options.AudioCaptureOptions currentOptions;
 
   AudioPublishOptions? lastPublishOptions;
 
@@ -43,6 +45,38 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     if (!muted) {
       await restartTrack();
     }
+  }
+
+  Future<track_options.AudioProcessingApplyResult> setAudioProcessingOptions(
+      track_options.AudioProcessingOptions options) async {
+    final nextOptions = currentOptions.copyWith(processing: options);
+    final response = await Native.setAudioProcessingOptions(
+      mediaStreamTrack.id!,
+      options.toMap(),
+    );
+
+    final code = track_options.AudioProcessingOptionsResultCode.fromValue(response['code'] as String?);
+    final message = (response['message'] as String?) ?? '';
+
+    // Malformed requests (incompatible modes, or a non-local track) are caller
+    // bugs — surface them loudly rather than as a silently-unsuccessful result.
+    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination ||
+        code == track_options.AudioProcessingOptionsResultCode.rejectedRemoteTrack) {
+      throw track_options.AudioProcessingException(
+        code,
+        message.isNotEmpty ? message : 'Unable to apply audio processing options',
+      );
+    }
+
+    final result = track_options.AudioProcessingApplyResult(code, message);
+    if (result.isSuccess) {
+      currentOptions = nextOptions;
+      events.emit(LocalTrackOptionsUpdatedEvent(
+        track: this,
+        options: currentOptions,
+      ));
+    }
+    return result;
   }
 
   num? _currentBitrate;
@@ -126,9 +160,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
-    AudioCaptureOptions? options,
+    track_options.AudioCaptureOptions? options,
   ]) async {
-    options ??= const AudioCaptureOptions();
+    options ??= const track_options.AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     final track = LocalAudioTrack(
@@ -140,6 +174,16 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
     if (options.processor != null) {
       await track.setProcessor(options.processor);
+    }
+
+    // Per-component processing modes are not part of standard capture
+    // constraints; apply them through the native audio processing path.
+    final processing = options.processing;
+    if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
+        processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
+        processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
+        processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
+      await track.setAudioProcessingOptions(processing);
     }
 
     return track;
