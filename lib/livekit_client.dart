@@ -46,7 +46,10 @@ export 'src/preconnect/pre_connect_audio_buffer.dart';
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
+export 'src/support/native_audio.dart';
 export 'src/support/platform.dart';
+export 'src/track/audio_management.dart'
+    show AudioTrackState, ConfigureNativeAudioFunc, NativeAudioManagement, audioTrackState, onConfigureNativeAudio;
 export 'src/track/audio_visualizer.dart';
 export 'src/track/local/audio.dart';
 export 'src/track/local/local.dart';
