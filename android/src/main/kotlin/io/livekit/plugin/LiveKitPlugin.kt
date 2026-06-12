@@ -29,6 +29,13 @@ import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin
 import com.cloudwebrtc.webrtc.audio.LocalAudioTrack
 import io.flutter.plugin.common.BinaryMessenger
 import org.webrtc.AudioTrack
+import org.webrtc.audio.AudioProcessingComponentOptions
+import org.webrtc.audio.AudioProcessingComponentState
+import org.webrtc.audio.AudioProcessingImplementation
+import org.webrtc.audio.AudioProcessingMode
+import org.webrtc.audio.AudioProcessingOptions
+import org.webrtc.audio.AudioProcessingOptionsResult
+import org.webrtc.audio.AudioProcessingState
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
@@ -210,6 +217,113 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     result.success(true)
   }
 
+  private fun handleSetAudioProcessingOptions(call: MethodCall, result: Result) {
+    val trackId = call.argument<String>("trackId")
+    if (trackId == null) {
+      result.error("INVALID_ARGUMENT", "trackId is required", null)
+      return
+    }
+
+    val mediaTrack = (flutterWebRTCPlugin.getLocalTrack(trackId) as? LocalAudioTrack)?.track
+    if (mediaTrack !is AudioTrack) {
+      result.error("INVALID_ARGUMENT", "track is not a local audio track", null)
+      return
+    }
+
+    val options = AudioProcessingOptions(
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("echoCancellation") ?: true,
+        audioProcessingMode(call.argument<String>("echoCancellationMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("noiseSuppression") ?: true,
+        audioProcessingMode(call.argument<String>("noiseSuppressionMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("autoGainControl") ?: true,
+        audioProcessingMode(call.argument<String>("autoGainControlMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("highPassFilter") ?: false,
+        audioProcessingMode(call.argument<String>("highPassFilterMode")),
+      ),
+    )
+
+    val processingResult = mediaTrack.setAudioProcessingOptions(options)
+    result.success(
+      mapOf(
+        "result" to processingResult.isSuccess,
+        "code" to audioProcessingResultCodeString(processingResult.code),
+        "message" to processingResult.message,
+      ),
+    )
+  }
+
+  private fun audioProcessingMode(value: String?): AudioProcessingMode = when (value) {
+    "platform" -> AudioProcessingMode.PLATFORM
+    "software" -> AudioProcessingMode.SOFTWARE
+    else -> AudioProcessingMode.AUTOMATIC
+  }
+
+  private fun audioProcessingResultCodeString(code: AudioProcessingOptionsResult.Code): String = when (code) {
+    AudioProcessingOptionsResult.Code.APPLIED -> "applied"
+    AudioProcessingOptionsResult.Code.STORED -> "stored"
+    AudioProcessingOptionsResult.Code.REJECTED_REMOTE_TRACK -> "rejectedRemoteTrack"
+    AudioProcessingOptionsResult.Code.REJECTED_INVALID_COMBINATION -> "rejectedInvalidCombination"
+    AudioProcessingOptionsResult.Code.REJECTED_PLATFORM_UNAVAILABLE -> "rejectedPlatformUnavailable"
+    AudioProcessingOptionsResult.Code.APPLY_FAILED -> "applyFailed"
+  }
+
+  private fun handleGetAudioProcessingState(result: Result) {
+    val factory = flutterWebRTCPlugin.getPeerConnectionFactory()
+    if (factory == null) {
+      result.success(null)
+      return
+    }
+    result.success(audioProcessingStateToMap(factory.audioProcessingState))
+  }
+
+  private fun audioProcessingModeString(mode: AudioProcessingMode): String = when (mode) {
+    AudioProcessingMode.PLATFORM -> "platform"
+    AudioProcessingMode.SOFTWARE -> "software"
+    AudioProcessingMode.AUTOMATIC -> "auto"
+  }
+
+  private fun audioProcessingImplementationString(implementation: AudioProcessingImplementation): String =
+    when (implementation) {
+      AudioProcessingImplementation.UNKNOWN -> "unknown"
+      AudioProcessingImplementation.DISABLED -> "disabled"
+      AudioProcessingImplementation.SOFTWARE -> "software"
+      AudioProcessingImplementation.PLATFORM -> "platform"
+      AudioProcessingImplementation.SOFTWARE_AND_PLATFORM -> "softwareAndPlatform"
+    }
+
+  private fun requestedToMap(requested: AudioProcessingComponentOptions?): Map<String, Any?>? =
+    requested?.let {
+      mapOf(
+        "enabled" to it.isEnabled,
+        "mode" to audioProcessingModeString(it.mode),
+      )
+    }
+
+  private fun componentToMap(state: AudioProcessingComponentState): Map<String, Any?> = mapOf(
+    "requested" to requestedToMap(state.requested),
+    "isSoftwareResolved" to state.isSoftwareResolved,
+    "isSoftwareActive" to state.isSoftwareActive,
+    "isPlatformAvailable" to state.isPlatformAvailable,
+    "isPlatformResolved" to state.isPlatformResolved,
+    "isPlatformActive" to state.isPlatformActive,
+    "effective" to audioProcessingImplementationString(state.effective),
+  )
+
+  private fun audioProcessingStateToMap(state: AudioProcessingState): Map<String, Any?> = mapOf(
+    "hasAudioProcessingModule" to state.hasAudioProcessingModule,
+    "echoCancellation" to componentToMap(state.echoCancellation),
+    "noiseSuppression" to componentToMap(state.noiseSuppression),
+    "autoGainControl" to componentToMap(state.autoGainControl),
+    "highPassFilter" to componentToMap(state.highPassFilter),
+  )
+
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
       "startVisualizer" -> {
@@ -226,6 +340,14 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
       "stopAudioRenderer" -> {
         handleStopAudioRenderer(call, result)
+      }
+
+      "setAudioProcessingOptions" -> {
+        handleSetAudioProcessingOptions(call, result)
+      }
+
+      "getAudioProcessingState" -> {
+        handleGetAudioProcessingState(result)
       }
 
       else -> {

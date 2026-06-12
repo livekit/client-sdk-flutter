@@ -388,6 +388,121 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         return versions.map { String($0) }.joined(separator: ".")
     }
 
+    public func handleSetAudioProcessingOptions(args: [String: Any?], result: @escaping FlutterResult) {
+        guard let trackId = args["trackId"] as? String else {
+            result(FlutterError(code: "setAudioProcessingOptions", message: "trackId is required", details: nil))
+            return
+        }
+
+        let webrtc = FlutterWebRTCPlugin.sharedSingleton()
+        guard let localTrack = webrtc?.localTracks?[trackId] as? LocalAudioTrack,
+              let audioTrack = localTrack.track() as? RTCAudioTrack
+        else {
+            result(FlutterError(code: "setAudioProcessingOptions", message: "track is not a local audio track", details: nil))
+            return
+        }
+
+        let options = RTCAudioProcessingOptions(
+            echoCancellationOptions: RTCAudioProcessingComponentOptions(
+                enabled: (args["echoCancellation"] as? Bool) ?? true,
+                mode: LiveKitPlugin.audioProcessingMode(from: args["echoCancellationMode"] as? String)
+            ),
+            noiseSuppressionOptions: RTCAudioProcessingComponentOptions(
+                enabled: (args["noiseSuppression"] as? Bool) ?? true,
+                mode: LiveKitPlugin.audioProcessingMode(from: args["noiseSuppressionMode"] as? String)
+            ),
+            autoGainControlOptions: RTCAudioProcessingComponentOptions(
+                enabled: (args["autoGainControl"] as? Bool) ?? true,
+                mode: LiveKitPlugin.audioProcessingMode(from: args["autoGainControlMode"] as? String)
+            ),
+            highPassFilterOptions: RTCAudioProcessingComponentOptions(
+                enabled: (args["highPassFilter"] as? Bool) ?? false,
+                mode: LiveKitPlugin.audioProcessingMode(from: args["highPassFilterMode"] as? String)
+            )
+        )
+
+        let processingResult = audioTrack.setAudioProcessingOptions(options)
+        result([
+            "result": processingResult.isSuccess,
+            "code": LiveKitPlugin.audioProcessingResultCodeString(processingResult.code),
+            "message": processingResult.message,
+        ])
+    }
+
+    static func audioProcessingMode(from string: String?) -> RTCAudioProcessingMode {
+        switch string {
+        case "platform": return .platform
+        case "software": return .software
+        default: return .automatic
+        }
+    }
+
+    static func audioProcessingResultCodeString(_ code: RTCAudioProcessingOptionsResultCode) -> String {
+        switch code {
+        case .applied: return "applied"
+        case .stored: return "stored"
+        case .rejectedRemoteTrack: return "rejectedRemoteTrack"
+        case .rejectedInvalidCombination: return "rejectedInvalidCombination"
+        case .rejectedPlatformUnavailable: return "rejectedPlatformUnavailable"
+        case .applyFailed: return "applyFailed"
+        @unknown default: return "applyFailed"
+        }
+    }
+
+    public func handleGetAudioProcessingState(result: @escaping FlutterResult) {
+        guard let factory = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory else {
+            result(nil)
+            return
+        }
+        result(LiveKitPlugin.toMap(state: factory.audioProcessingState))
+    }
+
+    static func audioProcessingModeString(_ mode: RTCAudioProcessingMode) -> String {
+        switch mode {
+        case .platform: return "platform"
+        case .software: return "software"
+        default: return "auto"
+        }
+    }
+
+    static func audioProcessingImplementationString(_ implementation: RTCAudioProcessingImplementation) -> String {
+        switch implementation {
+        case .disabled: return "disabled"
+        case .software: return "software"
+        case .platform: return "platform"
+        case .softwareAndPlatform: return "softwareAndPlatform"
+        default: return "unknown"
+        }
+    }
+
+    static func toMap(component state: RTCAudioProcessingComponentState) -> [String: Any] {
+        var map: [String: Any] = [
+            "isSoftwareResolved": state.isSoftwareResolved,
+            "isSoftwareActive": state.isSoftwareActive,
+            "isPlatformAvailable": state.isPlatformAvailable,
+            "isPlatformResolved": state.isPlatformResolved,
+            "isPlatformActive": state.isPlatformActive,
+            "effective": audioProcessingImplementationString(state.effective),
+        ]
+        if let requested = state.requested {
+            map["requested"] = [
+                "enabled": requested.isEnabled,
+                "mode": audioProcessingModeString(requested.mode),
+            ]
+        }
+        return map
+    }
+
+    static func toMap(state: RTCAudioProcessingState) -> [String: Any] {
+        [
+            "hasAudioProcessingModule": state.hasAudioProcessingModule,
+            "echoCancellation": toMap(component: state.echoCancellation),
+            "noiseSuppression": toMap(component: state.noiseSuppression),
+            "autoGainControl": toMap(component: state.autoGainControl),
+            "highPassFilter": toMap(component: state.highPassFilter),
+        ]
+    }
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any?] else {
             print("[LiveKit] arguments must be a dictionary")
@@ -406,6 +521,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStartAudioRenderer(args: args, result: result)
         case "stopAudioRenderer":
             handleStopAudioRenderer(args: args, result: result)
+        case "setAudioProcessingOptions":
+            handleSetAudioProcessingOptions(args: args, result: result)
+        case "getAudioProcessingState":
+            handleGetAudioProcessingState(result: result)
         case "osVersionString":
             result(LiveKitPlugin.osVersionString())
         #if os(iOS)
