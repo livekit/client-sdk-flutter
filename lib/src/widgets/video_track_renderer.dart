@@ -76,6 +76,11 @@ class VideoTrackRenderer extends StatefulWidget {
   /// ratio), avoiding an under-sized layer on retina / high-density displays.
   final AdaptiveStreamPixelDensity adaptiveStreamPixelDensity;
 
+  /// Placeholder widget to display while the track is loading.
+  ///
+  /// This has no effect if [renderMode] is [VideoRenderMode.platformView].
+  final WidgetBuilder? placeholderBuilder;
+
   const VideoTrackRenderer(
     this.track, {
     this.fit = VideoViewFit.contain,
@@ -85,6 +90,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.cachedRenderer,
     this.autoCenter = true,
     this.adaptiveStreamPixelDensity = AdaptiveStreamPixelDensity.auto,
+    this.placeholderBuilder,
     Key? key,
   }) : super(key: key);
 
@@ -224,6 +230,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               mirror: _shouldMirror(),
               filterQuality: FilterQuality.medium,
               objectFit: widget.fit.toRTCType(),
+              placeholderBuilder: widget.placeholderBuilder,
             );
           },
         );
@@ -245,6 +252,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       mirror: _shouldMirror(),
       filterQuality: FilterQuality.medium,
       objectFit: widget.fit.toRTCType(),
+      placeholderBuilder: widget.placeholderBuilder,
     );
   }
 
