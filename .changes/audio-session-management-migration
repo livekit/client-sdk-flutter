@@ -1,1 +1,0 @@
-minor type="changed" "LiveKit now owns native audio session lifecycle; migrate custom track-count audio hooks to AudioManager.setAudioSessionOptions."

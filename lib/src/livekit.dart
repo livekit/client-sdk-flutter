@@ -26,7 +26,7 @@ class LiveKitClient {
   /// Initialize the WebRTC plugin.
   ///
   /// Optional: call once at startup to enable [bypassVoiceProcessing] before
-  /// connecting; otherwise WebRTC initializes lazily with defaults.
+  /// connecting. Otherwise WebRTC initializes lazily with defaults.
   ///
   /// LiveKit owns the platform audio session, and flutter_webrtc's own native
   /// audio management is disabled automatically when the LiveKit plugin loads

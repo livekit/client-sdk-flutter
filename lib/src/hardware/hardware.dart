@@ -84,7 +84,7 @@ class Hardware {
   // configuring the native audio session manually.
   //
   // Backed by [AudioManager] so there is a single source of truth for the
-  // management mode; see [AudioManager.setAudioSessionManagementMode].
+  // management mode. See [AudioManager.setAudioSessionManagementMode].
   @Deprecated('Use AudioManager.instance.managementMode instead')
   bool get isAutomaticConfigurationEnabled => AudioManager.instance.isAutomaticConfigurationEnabled;
 

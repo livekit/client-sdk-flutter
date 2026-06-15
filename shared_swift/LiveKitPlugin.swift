@@ -81,7 +81,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // Own the audio device module's engine-lifecycle delegate so LiveKit
         // drives the audio session from real engine events (configure + activate
         // on enable, deactivate on disable) instead of track counting. The
-        // engine emits these events on both iOS and macOS; macOS has no
+        // engine emits these events on both iOS and macOS. macOS has no
         // AVAudioSession to configure, so there it only surfaces engine state.
         // Set before the peer connection factory is created.
         instance.channel = channel
@@ -602,7 +602,7 @@ extension LiveKitPlugin {
         do {
             try rtcSession.setConfiguration(configuration, active: active)
             // overrideOutputAudioPort is only valid for the playAndRecord
-            // category; calling it for a playback session throws.
+            // category. Calling it for a playback session throws.
             if active,
                let preferSpeakerOutput = preferSpeakerOutput,
                configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
@@ -636,10 +636,10 @@ extension LiveKitPlugin {
 /// state to Dart (keeping engine state the single source of truth there too).
 ///
 /// The engine-lifecycle methods are invoked synchronously on WebRTC's worker
-/// thread — the engine blocks on the return value (`0` = proceed, non-zero =
+/// thread. The engine blocks on the return value (`0` = proceed, non-zero =
 /// abort / roll back), so the session work here is synchronous and never calls
 /// back into the audio device module. The Dart notification is dispatched
-/// asynchronously and is purely informational; it never blocks the engine.
+/// asynchronously and is purely informational. It never blocks the engine.
 @available(iOS 13.0, macOS 10.15, *)
 class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private let lock = NSLock()
@@ -651,7 +651,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // When true, the category is chosen from the live engine state at apply time
     // (playAndRecord while recording, playback for playout-only) rather than
     // taken from the pushed config. This is what keeps the category correct as
-    // recording/playout come and go; the pushed config still supplies the mode,
+    // recording/playout come and go. The pushed config still supplies the mode,
     // options and speaker preference. False for an explicit per-platform
     // override or manual mode, where the config is applied verbatim.
     private var selectCategoryByEngineState = false
@@ -680,8 +680,8 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         lock.unlock()
     }
 
-    /// Stores the audio session policy pushed from Dart. Pure cache — the
-    /// delegate callbacks apply it; callers decide whether to apply immediately.
+    /// Stores the audio session policy pushed from Dart. Pure cache, where the
+    /// delegate callbacks apply it. Callers decide whether to apply immediately.
     func updatePolicy(_ configuration: RTCAudioSessionConfiguration,
                       preferSpeakerOutput: Bool?,
                       automaticManagementEnabled: Bool,
@@ -743,7 +743,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     }
     #endif
 
-    // MARK: RTCAudioDeviceModuleDelegate — engine lifecycle
+    // MARK: RTCAudioDeviceModuleDelegate, engine lifecycle
 
     func audioDeviceModule(_: RTCAudioDeviceModule,
                            willEnableEngine _: AVAudioEngine,
@@ -796,7 +796,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
 
             if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
                 // Leave sessionActive untrue so cached state still reflects the
-                // live session — flipping it to false here would make a later
+                // live session. Flipping it to false here would make a later
                 // configureNativeAudio(automatic:) cache-only while the session
                 // is in fact still active.
                 print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")

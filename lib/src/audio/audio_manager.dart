@@ -100,7 +100,7 @@ class AudioManager {
   /// A broadcast stream of audio engine state changes (native engine lifecycle).
   Stream<AudioEngineState> get audioEngineStateStream => _audioEngineStateController.stream;
 
-  // Derived from [managementMode]; kept internal so the public surface exposes
+  // Derived from [managementMode]. Kept internal so the public surface exposes
   // a single way to read the mode.
   @internal
   bool get isAutomaticConfigurationEnabled => _managementMode == AudioSessionManagementMode.automatic;
@@ -130,11 +130,11 @@ class AudioManager {
 
   /// Invoked from native when the WebRTC audio engine's playout/recording state
   /// changes. Audio-engine lifecycle events are the single source of truth for
-  /// audio activity; this replaces the legacy track-counting path, which had
+  /// audio activity. This replaces the legacy track-counting path, which had
   /// timing races and could miss session deactivation.
   ///
   /// On iOS the native engine delegate also owns audio-session activation
-  /// timing (configure + activate on enable, deactivate on disable); this Dart
+  /// timing (configure + activate on enable, deactivate on disable). This Dart
   /// hop is non-blocking and only keeps the observable state in sync. macOS
   /// emits the same events (no `AVAudioSession` to configure) so engine state
   /// stays authoritative there too.
@@ -177,8 +177,8 @@ class AudioManager {
   /// configuration explicitly with [setAudioSessionOptions].
   ///
   /// Prefer setting this before connecting to a room. flutter_webrtc's own
-  /// native audio management is always disabled (LiveKit owns the session);
-  /// changing the mode at runtime only affects LiveKit's own automatic
+  /// native audio management is always disabled (LiveKit owns the session).
+  /// Changing the mode at runtime only affects LiveKit's own automatic
   /// configuration.
   Future<void> setAudioSessionManagementMode(AudioSessionManagementMode mode) async {
     _managementMode = mode;
@@ -191,8 +191,8 @@ class AudioManager {
   /// when [enable] is true. Set [forceSpeakerOutput] to force the speaker even
   /// when a headset is connected (iOS only).
   ///
-  /// LiveKit owns this routing on both platforms — Android via its own
-  /// audioswitch handler and iOS via its audio session — so it does not depend
+  /// LiveKit owns this routing on both platforms (Android via its own
+  /// audioswitch handler and iOS via its audio session), so it does not depend
   /// on flutter_webrtc.
   Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) async {
     if (!canSwitchSpeakerphone) {
@@ -244,7 +244,7 @@ class AudioManager {
       return null;
     }
 
-    // Preserve today's implicit initialize behavior; only send Android audio
+    // Preserve today's implicit initialize behavior. Only send Android audio
     // attributes when the bypassVoiceProcessing path needs media attributes.
     if (!isAutomaticConfigurationEnabled || !Native.bypassVoiceProcessing) {
       return null;
@@ -398,7 +398,7 @@ class _ResolvedAudioSessionPolicy {
       );
     }
 
-    // Media (non-communication) base policy. The category here is a base; in
+    // Media (non-communication) base policy. The category here is a base. In
     // automatic mode the native engine delegate overrides it from the live
     // engine state (playAndRecord while recording, playback for playout-only),
     // so it no longer depends on stale track/engine flags resolved at connect.

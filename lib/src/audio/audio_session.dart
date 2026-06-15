@@ -63,7 +63,7 @@ class AudioSessionOptions {
   /// [android] provides a more exact platform policy.
   ///
   /// On Apple platforms in automatic mode, listen-only playout uses playback
-  /// until recording starts; receiver routing from [preferSpeakerOutput] only
+  /// until recording starts. Receiver routing from [preferSpeakerOutput] only
   /// applies while the effective category is `playAndRecord`.
   const AudioSessionOptions.communication({
     bool preferSpeakerOutput = true,

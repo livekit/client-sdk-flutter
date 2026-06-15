@@ -29,8 +29,8 @@ import com.twilio.audioswitch.CommDeviceAudioSwitch
 import com.twilio.audioswitch.LegacyAudioSwitch
 
 /**
- * Manages the Android platform audio session — audio mode, audio focus, and
- * output routing — for the LiveKit Flutter SDK, built on top of [AudioSwitch].
+ * Manages the Android platform audio session (audio mode, audio focus, and
+ * output routing) for the LiveKit Flutter SDK, built on top of [AudioSwitch].
  *
  * This is LiveKit's own port of the audio-handling best practices from the
  * LiveKit Android SDK (`AudioSwitchHandler`) and flutter_webrtc
@@ -41,8 +41,8 @@ import com.twilio.audioswitch.LegacyAudioSwitch
  * single dedicated [HandlerThread].
  */
 internal class LKAudioSwitchManager(private val context: Context) {
-  // AudioSwitch is not threadsafe; confine all access to a single long-lived
-  // thread. Do not recreate it on stop/start; queued lifecycle work must stay
+  // AudioSwitch is not threadsafe, so confine all access to a single long-lived
+  // thread. Do not recreate it on stop/start. Queued lifecycle work must stay
   // serialized.
   private val thread = HandlerThread("LKAudioSwitchThread").also { it.start() }
   private val handler = Handler(thread.looper)

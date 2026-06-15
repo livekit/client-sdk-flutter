@@ -1,1 +1,1 @@
-minor type="added" "AudioManager audio session management: session options, Android audio session configuration and routing, Apple speakerphone control"
+minor type="added" "AudioManager audio session options with engine-driven native lifecycle and platform routing controls"
