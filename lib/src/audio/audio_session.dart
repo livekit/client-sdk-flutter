@@ -13,10 +13,12 @@
 // limitations under the License.
 
 export '../support/native_audio.dart' show AppleAudioCategory, AppleAudioCategoryOption, AppleAudioMode;
+export '../support/value_or_absent.dart';
 
 import 'package:meta/meta.dart';
 
 import '../support/native_audio.dart' show AppleAudioCategory, AppleAudioCategoryOption, AppleAudioMode;
+import '../support/value_or_absent.dart';
 
 enum AudioSessionManagementMode {
   /// LiveKit updates the platform audio session based on room/track lifecycle.
@@ -35,6 +37,10 @@ class AudioSessionOptions {
   final _AudioSessionPreset _preset;
 
   /// Whether communication sessions should prefer speaker output.
+  ///
+  /// This is used by the communication preset and by Apple `playAndRecord`
+  /// policies. Media/playback policies leave routing to the platform unless an
+  /// exact platform override says otherwise.
   final bool preferSpeakerOutput;
 
   /// Optional exact iOS session override.
@@ -50,6 +56,15 @@ class AudioSessionOptions {
     this.android,
   }) : _preset = preset;
 
+  /// Two-way audio preset for calls, rooms, and microphone capture.
+  ///
+  /// LiveKit resolves this to communication-oriented platform policies. Use
+  /// [preferSpeakerOutput] for the default speaker preference unless [apple] or
+  /// [android] provides a more exact platform policy.
+  ///
+  /// On Apple platforms in automatic mode, listen-only playout uses playback
+  /// until recording starts; receiver routing from [preferSpeakerOutput] only
+  /// applies while the effective category is `playAndRecord`.
   const AudioSessionOptions.communication({
     bool preferSpeakerOutput = true,
     AppleAudioSessionConfiguration? apple,
@@ -61,6 +76,12 @@ class AudioSessionOptions {
           android: android,
         );
 
+  /// One-way media playback preset.
+  ///
+  /// This intentionally does not expose [preferSpeakerOutput] because speaker
+  /// preference only affects communication/playAndRecord policies. Use [apple]
+  /// or [android] for exact platform behavior, or switch at runtime with
+  /// `AudioManager.setSpeakerphoneOn`.
   const AudioSessionOptions.media({
     AppleAudioSessionConfiguration? apple,
     AndroidAudioSessionConfiguration? android,
@@ -71,16 +92,21 @@ class AudioSessionOptions {
           android: android,
         );
 
+  /// Returns a copy with selected fields replaced.
+  ///
+  /// The preset chosen by [AudioSessionOptions.communication] or
+  /// [AudioSessionOptions.media] is intentionally retained. Create a new
+  /// options object with the other constructor to switch presets.
   AudioSessionOptions copyWith({
-    bool? preferSpeakerOutput,
-    AppleAudioSessionConfiguration? apple,
-    AndroidAudioSessionConfiguration? android,
+    ValueOrAbsent<bool> preferSpeakerOutput = const Absent(),
+    ValueOrAbsent<AppleAudioSessionConfiguration?> apple = const Absent(),
+    ValueOrAbsent<AndroidAudioSessionConfiguration?> android = const Absent(),
   }) =>
       AudioSessionOptions._(
         preset: _preset,
-        preferSpeakerOutput: preferSpeakerOutput ?? this.preferSpeakerOutput,
-        apple: apple ?? this.apple,
-        android: android ?? this.android,
+        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
+        apple: apple.valueOr(this.apple),
+        android: android.valueOr(this.android),
       );
 
   @internal
@@ -111,16 +137,16 @@ class AppleAudioSessionConfiguration {
   });
 
   AppleAudioSessionConfiguration copyWith({
-    AppleAudioCategory? category,
-    Set<AppleAudioCategoryOption>? categoryOptions,
-    AppleAudioMode? mode,
-    bool? preferSpeakerOutput,
+    ValueOrAbsent<AppleAudioCategory?> category = const Absent(),
+    ValueOrAbsent<Set<AppleAudioCategoryOption>?> categoryOptions = const Absent(),
+    ValueOrAbsent<AppleAudioMode?> mode = const Absent(),
+    ValueOrAbsent<bool?> preferSpeakerOutput = const Absent(),
   }) =>
       AppleAudioSessionConfiguration(
-        category: category ?? this.category,
-        categoryOptions: categoryOptions ?? this.categoryOptions,
-        mode: mode ?? this.mode,
-        preferSpeakerOutput: preferSpeakerOutput ?? this.preferSpeakerOutput,
+        category: category.valueOr(this.category),
+        categoryOptions: categoryOptions.valueOr(this.categoryOptions),
+        mode: mode.valueOr(this.mode),
+        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
       );
 }
 
@@ -225,21 +251,21 @@ class AndroidAudioSessionConfiguration {
   );
 
   AndroidAudioSessionConfiguration copyWith({
-    AndroidAudioMode? audioMode,
-    bool? manageAudioFocus,
-    AndroidAudioFocusMode? focusMode,
-    AndroidAudioStreamType? streamType,
-    AndroidAudioAttributesUsageType? usageType,
-    AndroidAudioAttributesContentType? contentType,
-    bool? forceAudioRouting,
+    ValueOrAbsent<AndroidAudioMode?> audioMode = const Absent(),
+    ValueOrAbsent<bool?> manageAudioFocus = const Absent(),
+    ValueOrAbsent<AndroidAudioFocusMode?> focusMode = const Absent(),
+    ValueOrAbsent<AndroidAudioStreamType?> streamType = const Absent(),
+    ValueOrAbsent<AndroidAudioAttributesUsageType?> usageType = const Absent(),
+    ValueOrAbsent<AndroidAudioAttributesContentType?> contentType = const Absent(),
+    ValueOrAbsent<bool?> forceAudioRouting = const Absent(),
   }) =>
       AndroidAudioSessionConfiguration(
-        audioMode: audioMode ?? this.audioMode,
-        manageAudioFocus: manageAudioFocus ?? this.manageAudioFocus,
-        focusMode: focusMode ?? this.focusMode,
-        streamType: streamType ?? this.streamType,
-        usageType: usageType ?? this.usageType,
-        contentType: contentType ?? this.contentType,
-        forceAudioRouting: forceAudioRouting ?? this.forceAudioRouting,
+        audioMode: audioMode.valueOr(this.audioMode),
+        manageAudioFocus: manageAudioFocus.valueOr(this.manageAudioFocus),
+        focusMode: focusMode.valueOr(this.focusMode),
+        streamType: streamType.valueOr(this.streamType),
+        usageType: usageType.valueOr(this.usageType),
+        contentType: contentType.valueOr(this.contentType),
+        forceAudioRouting: forceAudioRouting.valueOr(this.forceAudioRouting),
       );
 }

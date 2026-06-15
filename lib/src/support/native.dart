@@ -18,6 +18,7 @@ import 'package:flutter/services.dart' show MethodChannel, MethodCall;
 
 import 'package:meta/meta.dart';
 
+import '../audio/audio_manager.dart';
 import '../logger.dart';
 import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
@@ -36,12 +37,27 @@ class Native {
   @internal
   static bool bypassVoiceProcessing = false;
 
+  /// Configures (and caches) the Apple audio session.
+  ///
+  /// When [automatic] is true, the native audio-engine delegate owns activation
+  /// timing: the configuration is cached and (re)applied on engine lifecycle
+  /// events, and only applied immediately here if the engine is already
+  /// running. When false (manual mode / explicit apply) it is applied
+  /// immediately.
   @internal
-  static Future<bool> configureAudio(NativeAudioConfiguration configuration) async {
+  static Future<bool> configureAudio(
+    NativeAudioConfiguration configuration, {
+    bool automatic = false,
+    bool selectCategoryByEngineState = false,
+  }) async {
     try {
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
-        configuration.toMap(),
+        <String, dynamic>{
+          ...configuration.toMap(),
+          'automatic': automatic,
+          'selectCategoryByEngineState': selectCategoryByEngineState,
+        },
       );
       return result == true;
     } catch (error) {
@@ -131,6 +147,20 @@ class Native {
       await channel.invokeMethod<void>('setAppleSpeakerphoneOn', <String, dynamic>{'enable': enable});
     } catch (error) {
       logger.warning('setAppleSpeakerphoneOn did throw $error');
+    }
+  }
+
+  /// Enable or disable LiveKit's automatic iOS audio-session management from
+  /// native WebRTC audio-engine lifecycle callbacks.
+  @internal
+  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(bool enabled) async {
+    try {
+      await channel.invokeMethod<void>(
+        'setAppleAudioSessionAutomaticManagementEnabled',
+        <String, dynamic>{'enabled': enabled},
+      );
+    } catch (error) {
+      logger.warning('setAppleAudioSessionAutomaticManagementEnabled did throw $error');
     }
   }
 
@@ -236,6 +266,15 @@ class Native {
           return null;
         }
         _broadcastStateChanged(call.arguments as bool);
+        return null;
+      case 'onAudioEngineState':
+        final args = call.arguments;
+        if (args is Map) {
+          AudioManager.instance.handleAudioEngineState(
+            isPlayoutEnabled: args['isPlayoutEnabled'] == true,
+            isRecordingEnabled: args['isRecordingEnabled'] == true,
+          );
+        }
         return null;
       default:
         logger.warning('Method ${call.method} is not implemented.');

@@ -90,8 +90,10 @@ class Hardware {
 
   @Deprecated('Use AudioManager.instance.setAudioSessionManagementMode instead')
   void setAutomaticConfigurationEnabled({required bool enable}) {
-    AudioManager.instance.setAudioSessionManagementMode(
-      enable ? AudioSessionManagementMode.automatic : AudioSessionManagementMode.manual,
+    unawaited(
+      AudioManager.instance.setAudioSessionManagementMode(
+        enable ? AudioSessionManagementMode.automatic : AudioSessionManagementMode.manual,
+      ),
     );
   }
 

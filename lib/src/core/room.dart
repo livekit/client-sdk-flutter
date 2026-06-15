@@ -292,6 +292,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // configure audio for native platform
     await NativeAudioManagement.start();
 
+    var didConnect = false;
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -301,6 +302,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         fastConnectOptions: fastConnectOptions,
         regionUrlProvider: _regionUrlProvider,
       );
+      didConnect = true;
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null &&
@@ -323,11 +325,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             fastConnectOptions: fastConnectOptions,
             regionUrlProvider: _regionUrlProvider,
           );
+          didConnect = true;
         } else {
           rethrow;
         }
       } else {
         rethrow;
+      }
+    } finally {
+      if (!didConnect) {
+        await NativeAudioManagement.stop();
       }
     }
   }

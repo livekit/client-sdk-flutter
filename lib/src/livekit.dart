@@ -33,8 +33,8 @@ class LiveKitClient {
   /// (done natively at registration), so that does not depend on this call.
   ///
   /// Configure audio-session behavior through [AudioManager] before connecting,
-  /// e.g. `AudioManager.instance.setAudioSessionManagementMode(...)` and
-  /// `AudioManager.instance.setAudioSessionOptions(...)`.
+  /// e.g. `await AudioManager.instance.setAudioSessionManagementMode(...)` and
+  /// `await AudioManager.instance.setAudioSessionOptions(...)`.
   static Future<void> initialize({
     bool bypassVoiceProcessing = false,
   }) async {
