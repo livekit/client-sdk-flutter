@@ -21,12 +21,11 @@ import '../../logger.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../types/other.dart';
-import '../audio_management.dart';
 import '../local/local.dart';
 import '../web/_audio_api.dart' if (dart.library.js_interop) '../web/_audio_html.dart' as audio;
 import 'remote.dart';
 
-class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagementMixin {
+class RemoteAudioTrack extends RemoteTrack with AudioTrack {
   String? _deviceId;
   RemoteAudioTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
       {rtc.RTCRtpReceiver? receiver})

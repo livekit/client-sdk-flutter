@@ -26,11 +26,10 @@ import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../support/native.dart';
 import '../../types/other.dart';
-import '../audio_management.dart';
 import '../options.dart' as track_options;
 import 'local.dart';
 
-class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
+class LocalAudioTrack extends LocalTrack with AudioTrack {
   // Options used for this track
   @override
   covariant track_options.AudioCaptureOptions currentOptions;
