@@ -366,7 +366,6 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
       "stopAndroidAudioSession" -> {
         audioSwitchManager?.stop()
-        audioSwitchManager?.clearCommunicationDevice()
         result.success(null)
       }
 
@@ -385,7 +384,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
 
-    audioSwitchManager?.stop()
+    audioSwitchManager?.dispose()
     audioSwitchManager = null
 
     // Cleanup all processors

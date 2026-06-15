@@ -41,12 +41,11 @@ import com.twilio.audioswitch.LegacyAudioSwitch
  * single dedicated [HandlerThread].
  */
 internal class LKAudioSwitchManager(private val context: Context) {
-
-  private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
-  // AudioSwitch is not threadsafe; confine all access to a single thread.
-  private var thread: HandlerThread? = null
-  private var handler: Handler? = null
+  // AudioSwitch is not threadsafe; confine all access to a single long-lived
+  // thread. Do not recreate it on stop/start; queued lifecycle work must stay
+  // serialized.
+  private val thread = HandlerThread("LKAudioSwitchThread").also { it.start() }
+  private val handler = Handler(thread.looper)
 
   private var audioSwitch: AbstractAudioSwitch? = null
   private var isActive = false
@@ -80,14 +79,13 @@ internal class LKAudioSwitchManager(private val context: Context) {
 
     // Apply to a live switch so reconfiguration (e.g. communication -> media)
     // does not require a restart. No-op until the switch exists.
-    handler?.post { audioSwitch?.let { applyConfiguration(it) } }
+    handler.post { audioSwitch?.let { applyConfiguration(it) } }
   }
 
   /** Create (if needed) and activate the audio session: acquire focus, set mode and routing. */
   @Synchronized
   fun start() {
-    ensureThread()
-    handler?.post {
+    handler.post {
       val switch = audioSwitch ?: createSwitch().also { audioSwitch = it }
       if (!isActive) {
         switch.activate()
@@ -99,25 +97,30 @@ internal class LKAudioSwitchManager(private val context: Context) {
   /** Deactivate and tear down the audio session: release focus and restore the previous mode. */
   @Synchronized
   fun stop() {
-    val h = handler ?: return
-    h.removeCallbacksAndMessages(null)
-    h.postAtFrontOfQueue {
+    handler.post {
       audioSwitch?.stop()
       audioSwitch = null
       isActive = false
     }
-    thread?.quitSafely()
-    handler = null
-    thread = null
+  }
+
+  /** Final cleanup when the plugin detaches. The manager must not be used after this. */
+  @Synchronized
+  fun dispose() {
+    handler.post {
+      audioSwitch?.stop()
+      audioSwitch = null
+      isActive = false
+      thread.quitSafely()
+    }
   }
 
   /** Route audio to/from the speakerphone, falling back to the next preferred device. */
   @Synchronized
   fun setSpeakerphoneOn(enable: Boolean) {
     preferredDeviceList = preferredDeviceList(speakerFirst = enable)
-    ensureThread()
-    handler?.post {
-      val switch = audioSwitch ?: createSwitch().also { audioSwitch = it }
+    handler.post {
+      val switch = audioSwitch ?: return@post
       switch.setPreferredDeviceList(preferredDeviceList)
       val device = if (enable) {
         switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
@@ -127,13 +130,6 @@ internal class LKAudioSwitchManager(private val context: Context) {
         }
       }
       switch.selectDevice(device)
-    }
-  }
-
-  /** Clear any forced communication device selection (API 31+). */
-  fun clearCommunicationDevice() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      audioManager.clearCommunicationDevice()
     }
   }
 
@@ -165,15 +161,6 @@ internal class LKAudioSwitchManager(private val context: Context) {
     switch.audioAttributeUsageType = audioAttributeUsageType
     switch.audioAttributeContentType = audioAttributeContentType
     switch.forceHandleAudioRouting = forceHandleAudioRouting
-  }
-
-  private fun ensureThread() {
-    if (thread == null) {
-      thread = HandlerThread("LKAudioSwitchThread").also { it.start() }
-    }
-    if (handler == null) {
-      handler = Handler(thread!!.looper)
-    }
   }
 
   private fun preferredDeviceList(speakerFirst: Boolean): List<Class<out AudioDevice>> =
