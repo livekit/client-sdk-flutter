@@ -55,15 +55,13 @@ class NativeAudioConfiguration {
   final AppleAudioCategory? appleAudioCategory;
   final Set<AppleAudioCategoryOption>? appleAudioCategoryOptions;
   final AppleAudioMode? appleAudioMode;
-  final bool? preferSpeakerOutput;
 
   NativeAudioConfiguration(
       {
       // for iOS / Mac
       this.appleAudioCategory,
       this.appleAudioCategoryOptions,
-      this.appleAudioMode,
-      this.preferSpeakerOutput
+      this.appleAudioMode
       // Android options
       // ...
       });
@@ -73,19 +71,16 @@ class NativeAudioConfiguration {
         if (appleAudioCategoryOptions != null)
           'appleAudioCategoryOptions': appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
         if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
-        if (preferSpeakerOutput != null) 'preferSpeakerOutput': preferSpeakerOutput,
       };
 
   NativeAudioConfiguration copyWith({
     ValueOrAbsent<AppleAudioCategory?> appleAudioCategory = const Absent(),
     ValueOrAbsent<Set<AppleAudioCategoryOption>?> appleAudioCategoryOptions = const Absent(),
     ValueOrAbsent<AppleAudioMode?> appleAudioMode = const Absent(),
-    ValueOrAbsent<bool?> preferSpeakerOutput = const Absent(),
   }) =>
       NativeAudioConfiguration(
         appleAudioCategory: appleAudioCategory.valueOr(this.appleAudioCategory),
         appleAudioCategoryOptions: appleAudioCategoryOptions.valueOr(this.appleAudioCategoryOptions),
         appleAudioMode: appleAudioMode.valueOr(this.appleAudioMode),
-        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
       );
 }

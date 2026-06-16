@@ -236,7 +236,6 @@ void main() {
 
       expect(speaker.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(speaker.appleAudioMode, AppleAudioMode.videoChat);
-      expect(speaker.preferSpeakerOutput, isTrue);
       expect(
         speaker.appleAudioCategoryOptions,
         {
@@ -252,7 +251,6 @@ void main() {
 
       expect(receiver.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(receiver.appleAudioMode, AppleAudioMode.voiceChat);
-      expect(receiver.preferSpeakerOutput, isFalse);
     });
 
     test('resolves media Apple session policy as dynamic playAndRecord base', () {
@@ -262,7 +260,6 @@ void main() {
 
       expect(config.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(config.appleAudioMode, AppleAudioMode.default_);
-      expect(config.preferSpeakerOutput, isTrue);
       expect(
         config.appleAudioCategoryOptions,
         {
@@ -430,7 +427,6 @@ void main() {
           AppleAudioCategoryOption.defaultToSpeaker,
         },
         appleAudioMode: AppleAudioMode.default_,
-        preferSpeakerOutput: false,
       ).toMap();
 
       expect(map['appleAudioCategory'], 'playAndRecord');
@@ -442,7 +438,7 @@ void main() {
         ]),
       );
       expect(map['appleAudioMode'], 'default');
-      expect(map['preferSpeakerOutput'], isFalse);
+      expect(map.containsKey('preferSpeakerOutput'), isFalse);
     });
   });
 

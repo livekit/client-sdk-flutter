@@ -377,7 +377,6 @@ class _ResolvedAudioSessionPolicy {
           appleAudioCategory: apple.category,
           appleAudioCategoryOptions: apple.categoryOptions,
           appleAudioMode: apple.mode,
-          preferSpeakerOutput: preferSpeakerOutput,
         ),
       );
     }
@@ -392,7 +391,6 @@ class _ResolvedAudioSessionPolicy {
             AppleAudioCategoryOption.allowAirPlay,
           },
           appleAudioMode: preferSpeakerOutput ? AppleAudioMode.videoChat : AppleAudioMode.voiceChat,
-          preferSpeakerOutput: preferSpeakerOutput,
         ),
       );
     }
@@ -411,7 +409,6 @@ class _ResolvedAudioSessionPolicy {
           AppleAudioCategoryOption.allowAirPlay,
         },
         appleAudioMode: AppleAudioMode.default_,
-        preferSpeakerOutput: preferSpeakerOutput,
       ),
     );
   }
