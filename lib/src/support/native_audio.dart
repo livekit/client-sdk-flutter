@@ -12,40 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import '../audio/audio_session.dart' show AppleAudioCategory, AppleAudioCategoryOption, AppleAudioMode;
 import 'value_or_absent.dart';
-
-// https://developer.apple.com/documentation/avfaudio/avaudiosession/category
-enum AppleAudioCategory {
-  soloAmbient,
-  playback,
-  record,
-  playAndRecord,
-  multiRoute,
-}
-
-// https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
-enum AppleAudioCategoryOption {
-  mixWithOthers, // Only playAndRecord, playback, or multiRoute.
-  duckOthers, // Only playAndRecord, playback, or multiRoute.
-  interruptSpokenAudioAndMixWithOthers,
-  allowBluetooth, // Only playAndRecord or record.
-  allowBluetoothA2DP,
-  allowAirPlay,
-  defaultToSpeaker,
-}
-
-// https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
-enum AppleAudioMode {
-  default_,
-  gameChat,
-  measurement,
-  moviePlayback,
-  spokenAudio,
-  videoChat,
-  videoRecording,
-  voiceChat,
-  voicePrompt,
-}
 
 extension AppleAudioCategoryExt on AppleAudioCategory {
   String toStringValue() => <AppleAudioCategory, String>{

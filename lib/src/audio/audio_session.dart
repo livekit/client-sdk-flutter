@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export '../support/native_audio.dart' show AppleAudioCategory, AppleAudioCategoryOption, AppleAudioMode;
 export '../support/value_or_absent.dart';
 
 import 'package:meta/meta.dart';
 
-import '../support/native_audio.dart' show AppleAudioCategory, AppleAudioCategoryOption, AppleAudioMode;
 import '../support/value_or_absent.dart';
 
 enum AudioSessionManagementMode {
@@ -114,6 +112,39 @@ class AudioSessionOptions {
 
   @internal
   bool get isMedia => _preset == _AudioSessionPreset.media;
+}
+
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/category
+enum AppleAudioCategory {
+  soloAmbient,
+  playback,
+  record,
+  playAndRecord,
+  multiRoute,
+}
+
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
+enum AppleAudioCategoryOption {
+  mixWithOthers, // Only playAndRecord, playback, or multiRoute.
+  duckOthers, // Only playAndRecord, playback, or multiRoute.
+  interruptSpokenAudioAndMixWithOthers,
+  allowBluetooth, // Only playAndRecord or record.
+  allowBluetoothA2DP,
+  allowAirPlay,
+  defaultToSpeaker,
+}
+
+// https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
+enum AppleAudioMode {
+  default_,
+  gameChat,
+  measurement,
+  moviePlayback,
+  spokenAudio,
+  videoChat,
+  videoRecording,
+  voiceChat,
+  voicePrompt,
 }
 
 class AppleAudioSessionConfiguration {
