@@ -75,7 +75,6 @@ class Hardware {
   bool get preferSpeakerOutput => AudioManager.instance.isSpeakerOutputPreferred;
 
   /// if true, will force speaker output even if headphones or bluetooth is connected
-  /// only supported on iOS for now
   @Deprecated('Use AudioManager.instance.isSpeakerOutputForced instead')
   bool get forceSpeakerOutput => AudioManager.instance.isSpeakerOutputForced;
 
@@ -145,7 +144,7 @@ class Hardware {
   /// [enable] set speakerphone on or off, by default wired/bluetooth headsets will still
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
-  /// or bluetooth is connected, only supported on iOS for now
+  /// or bluetooth is connected.
   @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
   Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) =>
       AudioManager.instance.setSpeakerOutputPreferred(enable, force: forceSpeakerOutput);

@@ -352,9 +352,11 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // (or no `automatic` flag) applies immediately.
         let automatic = args["automatic"] as? Bool ?? false
         let selectCategoryByEngineState = args["selectCategoryByEngineState"] as? Bool ?? false
+        let forceSpeakerOutput = args["forceSpeakerOutput"] as? Bool ?? false
         audioEngineObserver?.updatePolicy(configuration,
                                           automaticManagementEnabled: automatic,
-                                          selectCategoryByEngineState: selectCategoryByEngineState)
+                                          selectCategoryByEngineState: selectCategoryByEngineState,
+                                          forceSpeakerOutput: forceSpeakerOutput)
 
         let shouldApplyNow = !automatic || (audioEngineObserver?.isSessionActive ?? false)
         guard shouldApplyNow else {
@@ -389,6 +391,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         result(FlutterMethodNotImplemented)
         #else
         let enable = (args["enable"] as? Bool) ?? false
+        let force = (args["force"] as? Bool) ?? false
 
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
@@ -396,7 +399,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
         do {
             if rtcSession.category == AVAudioSession.Category.playAndRecord.rawValue {
-                try rtcSession.overrideOutputAudioPort(enable ? .speaker : .none)
+                try rtcSession.overrideOutputAudioPort((enable && force) ? .speaker : .none)
             }
             result(true)
         } catch {
@@ -591,6 +594,7 @@ extension LiveKitPlugin {
     /// Applies an `RTCAudioSessionConfiguration` to the shared `RTCAudioSession`.
     /// Returns `nil` on success or the thrown error. Safe to call on any thread.
     static func applyAudioSessionConfiguration(_ configuration: RTCAudioSessionConfiguration,
+                                               forceSpeakerOutput: Bool,
                                                active: Bool) -> Error? {
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
@@ -598,14 +602,12 @@ extension LiveKitPlugin {
         do {
             try rtcSession.setConfiguration(configuration, active: active)
             // overrideOutputAudioPort hard-routes to the speaker even over a
-            // connected headset, so only use it when the speaker is forced
-            // (carried as the defaultToSpeaker option). For a plain speaker
-            // preference the audio mode already defaults to the speaker while
-            // letting a wired or Bluetooth headset keep priority, so clear any
-            // override instead. Only valid for the playAndRecord category.
+            // connected headset. Plain speaker preference is expressed by the
+            // selected audio mode/category options, so clear any stale hard
+            // override unless the app explicitly forced speaker output.
+            // Only valid for the playAndRecord category.
             if active, configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
-                let forcesSpeaker = configuration.categoryOptions.contains(.defaultToSpeaker)
-                try rtcSession.overrideOutputAudioPort(forcesSpeaker ? .speaker : .none)
+                try rtcSession.overrideOutputAudioPort(forceSpeakerOutput ? .speaker : .none)
             }
             return nil
         } catch {
@@ -653,6 +655,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // options and speaker preference. False for an explicit per-platform
     // override or manual mode, where the config is applied verbatim.
     private var selectCategoryByEngineState = false
+    private var forceSpeakerOutput = false
     private var isAutomaticManagementEnabled = true
     private var sessionActive = false
     // Last engine state seen, so an immediate re-apply (e.g. speaker toggle
@@ -682,12 +685,14 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// delegate callbacks apply it. Callers decide whether to apply immediately.
     func updatePolicy(_ configuration: RTCAudioSessionConfiguration,
                       automaticManagementEnabled: Bool,
-                      selectCategoryByEngineState: Bool) {
+                      selectCategoryByEngineState: Bool,
+                      forceSpeakerOutput: Bool) {
         let cachedConfiguration = copyConfiguration(configuration)
         lock.lock()
         self.cachedConfiguration = cachedConfiguration
         self.isAutomaticManagementEnabled = automaticManagementEnabled
         self.selectCategoryByEngineState = selectCategoryByEngineState
+        self.forceSpeakerOutput = forceSpeakerOutput
         lock.unlock()
     }
 
@@ -697,9 +702,12 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     func applyCachedConfiguration() -> Error? {
         lock.lock()
         let configuration = effectiveConfigurationLocked(isRecordingEnabled: lastIsRecordingEnabled)
+        let forceSpeakerOutput = self.forceSpeakerOutput
         lock.unlock()
         guard let configuration else { return nil }
-        return LiveKitPlugin.applyAudioSessionConfiguration(configuration, active: true)
+        return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
+                                                            forceSpeakerOutput: forceSpeakerOutput,
+                                                            active: true)
     }
 
     /// Resolves the configuration to apply for a given engine state. Must be
@@ -748,11 +756,13 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
             lock.lock()
             let shouldManageSession = isAutomaticManagementEnabled
             let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
+            let forceSpeakerOutput = self.forceSpeakerOutput
             lock.unlock()
 
             if shouldManageSession,
                let configuration = configuration,
                let error = LiveKitPlugin.applyAudioSessionConfiguration(configuration,
+                                                                        forceSpeakerOutput: forceSpeakerOutput,
                                                                         active: true) {
                 print("[LiveKit] AudioEngine willEnable: failed to configure audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession

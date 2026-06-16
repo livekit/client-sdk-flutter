@@ -371,7 +371,8 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
       "setAndroidSpeakerphoneOn" -> {
         val enable = call.argument<Boolean>("enable") ?: false
-        audioSwitchManager?.setSpeakerphoneOn(enable)
+        val force = call.argument<Boolean>("force") ?: false
+        audioSwitchManager?.setSpeakerphoneOn(enable, force)
         result.success(null)
       }
 

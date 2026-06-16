@@ -85,7 +85,7 @@ class AudioManager {
   bool get isSpeakerOutputPreferred => _preferSpeakerOutput;
 
   /// Whether speaker output is forced even when a headset/Bluetooth device is
-  /// connected (iOS only).
+  /// connected.
   bool get isSpeakerOutputForced => _forceSpeakerOutput && _preferSpeakerOutput;
 
   /// Whether the platform supports switching the speaker output (iOS/Android).
@@ -188,7 +188,7 @@ class AudioManager {
   ///
   /// By default a connected wired/Bluetooth headset still takes priority even
   /// when [preferred] is true. Set [force] to force the speaker even when a
-  /// headset is connected (iOS only).
+  /// headset is connected.
   ///
   /// LiveKit owns this routing on both platforms (Android via its own
   /// audioswitch handler and iOS via its audio session), so it does not depend
@@ -213,13 +213,14 @@ class AudioManager {
           policy.appleConfiguration,
           automatic: true,
           selectCategoryByEngineState: policy.usesDynamicAppleCategory,
+          forceSpeakerOutput: policy.forceSpeakerOutput,
         );
       } else {
         // Manual mode: route without re-applying category/mode the app owns.
-        await Native.setAppleSpeakerphoneOn(preferred);
+        await Native.setAppleSpeakerphoneOn(preferred, force: _forceSpeakerOutput);
       }
     } else if (lkPlatformIs(PlatformType.android)) {
-      await Native.setAndroidSpeakerphoneOn(preferred);
+      await Native.setAndroidSpeakerphoneOn(preferred, force: _forceSpeakerOutput);
     }
   }
 
@@ -279,6 +280,7 @@ class AudioManager {
       config,
       automatic: isAutomaticConfigurationEnabled,
       selectCategoryByEngineState: isAutomaticConfigurationEnabled && policy.usesDynamicAppleCategory,
+      forceSpeakerOutput: policy.forceSpeakerOutput,
     );
   }
 
@@ -289,7 +291,7 @@ class AudioManager {
       'configuring Android audio session using ${androidAudioSessionConfigurationToMap(config)}...',
     );
     await setAndroidAudioSessionConfiguration(config);
-    await Native.setAndroidSpeakerphoneOn(policy.preferSpeakerOutput);
+    await Native.setAndroidSpeakerphoneOn(policy.preferSpeakerOutput, force: policy.forceSpeakerOutput);
   }
 
   _ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) {
@@ -372,26 +374,22 @@ class _ResolvedAudioSessionPolicy {
   NativeAudioConfiguration get appleConfiguration {
     final apple = options.apple;
     if (apple != null) {
-      return _withForcedSpeakerOutput(
-        NativeAudioConfiguration(
-          appleAudioCategory: apple.category,
-          appleAudioCategoryOptions: apple.categoryOptions,
-          appleAudioMode: apple.mode,
-        ),
+      return NativeAudioConfiguration(
+        appleAudioCategory: apple.category,
+        appleAudioCategoryOptions: apple.categoryOptions,
+        appleAudioMode: apple.mode,
       );
     }
 
     if (options.isCommunication) {
-      return _withForcedSpeakerOutput(
-        NativeAudioConfiguration(
-          appleAudioCategory: AppleAudioCategory.playAndRecord,
-          appleAudioCategoryOptions: {
-            AppleAudioCategoryOption.allowBluetooth,
-            AppleAudioCategoryOption.allowBluetoothA2DP,
-            AppleAudioCategoryOption.allowAirPlay,
-          },
-          appleAudioMode: preferSpeakerOutput ? AppleAudioMode.videoChat : AppleAudioMode.voiceChat,
-        ),
+      return NativeAudioConfiguration(
+        appleAudioCategory: AppleAudioCategory.playAndRecord,
+        appleAudioCategoryOptions: {
+          AppleAudioCategoryOption.allowBluetooth,
+          AppleAudioCategoryOption.allowBluetoothA2DP,
+          AppleAudioCategoryOption.allowAirPlay,
+        },
+        appleAudioMode: preferSpeakerOutput ? AppleAudioMode.videoChat : AppleAudioMode.voiceChat,
       );
     }
 
@@ -399,17 +397,15 @@ class _ResolvedAudioSessionPolicy {
     // automatic mode the native engine delegate overrides it from the live
     // engine state (playAndRecord while recording, playback for playout-only),
     // so it no longer depends on stale track/engine flags resolved at connect.
-    return _withForcedSpeakerOutput(
-      NativeAudioConfiguration(
-        appleAudioCategory: AppleAudioCategory.playAndRecord,
-        appleAudioCategoryOptions: {
-          AppleAudioCategoryOption.mixWithOthers,
-          AppleAudioCategoryOption.allowBluetooth,
-          AppleAudioCategoryOption.allowBluetoothA2DP,
-          AppleAudioCategoryOption.allowAirPlay,
-        },
-        appleAudioMode: AppleAudioMode.default_,
-      ),
+    return NativeAudioConfiguration(
+      appleAudioCategory: AppleAudioCategory.playAndRecord,
+      appleAudioCategoryOptions: {
+        AppleAudioCategoryOption.mixWithOthers,
+        AppleAudioCategoryOption.allowBluetooth,
+        AppleAudioCategoryOption.allowBluetoothA2DP,
+        AppleAudioCategoryOption.allowAirPlay,
+      },
+      appleAudioMode: AppleAudioMode.default_,
     );
   }
 
@@ -423,17 +419,5 @@ class _ResolvedAudioSessionPolicy {
       return AndroidAudioSessionConfiguration.communication;
     }
     return AndroidAudioSessionConfiguration.media;
-  }
-
-  NativeAudioConfiguration _withForcedSpeakerOutput(NativeAudioConfiguration configuration) {
-    if (!forceSpeakerOutput || configuration.appleAudioCategory != AppleAudioCategory.playAndRecord) {
-      return configuration;
-    }
-    return configuration.copyWith(
-      appleAudioCategoryOptions: Value({
-        ...?configuration.appleAudioCategoryOptions,
-        AppleAudioCategoryOption.defaultToSpeaker,
-      }),
-    );
   }
 }

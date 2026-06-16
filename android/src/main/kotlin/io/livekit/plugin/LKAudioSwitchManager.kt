@@ -61,7 +61,9 @@ internal class LKAudioSwitchManager(private val context: Context) {
   private var audioAttributeContentType = AudioAttributes.CONTENT_TYPE_SPEECH
   private var forceHandleAudioRouting = false
 
-  private var preferredDeviceList = preferredDeviceList(speakerFirst = true)
+  private var speakerOutputPreferred = true
+  private var speakerOutputForced = false
+  private var preferredDeviceList = preferredDeviceList()
 
   /**
    * Apply an audio session configuration. Unspecified keys keep their current
@@ -89,6 +91,7 @@ internal class LKAudioSwitchManager(private val context: Context) {
       val switch = audioSwitch ?: createSwitch().also { audioSwitch = it }
       if (!isActive) {
         switch.activate()
+        applySpeakerRouting(switch)
         isActive = true
       }
     }
@@ -115,25 +118,18 @@ internal class LKAudioSwitchManager(private val context: Context) {
     }
   }
 
-  /** Prefer routing to/from the speaker, letting a connected headset keep priority. */
+  /**
+   * Prefer routing to/from the speaker, letting a connected headset keep priority
+   * unless [force] is true.
+   */
   @Synchronized
-  fun setSpeakerphoneOn(enable: Boolean) {
-    preferredDeviceList = preferredDeviceList(speakerFirst = enable)
+  fun setSpeakerphoneOn(enable: Boolean, force: Boolean) {
+    speakerOutputPreferred = enable
+    speakerOutputForced = enable && force
+    preferredDeviceList = preferredDeviceList()
     handler.post {
       val switch = audioSwitch ?: return@post
-      switch.setPreferredDeviceList(preferredDeviceList)
-      // A connected wired/Bluetooth headset always takes priority. When the
-      // speaker is preferred fall back to it only if no headset is present, and
-      // when it is not preferred fall back to the earpiece instead.
-      val headset = switch.availableAudioDevices.firstOrNull {
-        it is AudioDevice.BluetoothHeadset || it is AudioDevice.WiredHeadset
-      }
-      val device = headset ?: if (enable) {
-        switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
-      } else {
-        switch.availableAudioDevices.firstOrNull { it is AudioDevice.Earpiece }
-      }
-      switch.selectDevice(device)
+      applySpeakerRouting(switch)
     }
   }
 
@@ -167,16 +163,36 @@ internal class LKAudioSwitchManager(private val context: Context) {
     switch.forceHandleAudioRouting = forceHandleAudioRouting
   }
 
-  private fun preferredDeviceList(speakerFirst: Boolean): List<Class<out AudioDevice>> =
-    if (speakerFirst) {
-      listOf(
+  private fun applySpeakerRouting(switch: AbstractAudioSwitch) {
+    switch.setPreferredDeviceList(preferredDeviceList)
+    val forcedSpeaker = if (speakerOutputForced) {
+      switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
+    } else {
+      null
+    }
+    // AudioSwitch selections are sticky. Use them only for forced speaker output;
+    // clearing the selection lets the preferred-device list handle normal routing
+    // and headset hot-plug priority.
+    switch.selectDevice(forcedSpeaker)
+  }
+
+  private fun preferredDeviceList(): List<Class<out AudioDevice>> =
+    when {
+      speakerOutputForced -> listOf(
+        AudioDevice.Speakerphone::class.java,
+        AudioDevice.BluetoothHeadset::class.java,
+        AudioDevice.WiredHeadset::class.java,
+        AudioDevice.Earpiece::class.java,
+      )
+
+      speakerOutputPreferred -> listOf(
         AudioDevice.BluetoothHeadset::class.java,
         AudioDevice.WiredHeadset::class.java,
         AudioDevice.Speakerphone::class.java,
         AudioDevice.Earpiece::class.java,
       )
-    } else {
-      listOf(
+
+      else -> listOf(
         AudioDevice.BluetoothHeadset::class.java,
         AudioDevice.WiredHeadset::class.java,
         AudioDevice.Earpiece::class.java,

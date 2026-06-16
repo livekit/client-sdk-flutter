@@ -1194,7 +1194,7 @@ extension RoomHardwareManagementMethods on Room {
   /// [speakerOn] set speakerphone on or off, by default wired/bluetooth headsets will still
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
-  /// or bluetooth is connected, only supported on iOS for now
+  /// or bluetooth is connected.
   Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) async {
     if (lkPlatformIsMobile()) {
       await AudioManager.instance.setSpeakerOutputPreferred(speakerOn, force: forceSpeakerOutput);

@@ -30,7 +30,7 @@ Set this before connecting when you can. The explicit apply path above works in 
 // Prefer the speaker. A wired or Bluetooth headset still takes priority.
 await AudioManager.instance.setSpeakerOutputPreferred(true);
 
-// Force the speaker even when a headset is connected (iOS only).
+// Force the speaker even when a headset is connected.
 await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
 
 // Route back to the earpiece or the connected headset.

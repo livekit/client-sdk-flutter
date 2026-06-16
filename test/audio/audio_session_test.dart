@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/src/audio/android_audio_session_adapter.dart';
@@ -21,6 +22,8 @@ import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() {
     AudioManager.instance.resetForTest();
     Native.bypassVoiceProcessing = false;
@@ -271,7 +274,7 @@ void main() {
       );
     });
 
-    test('forced speaker only adds defaultToSpeaker to playAndRecord Apple sessions', () {
+    test('forced speaker does not mutate Apple category options', () {
       final manager = AudioManager.instance;
 
       final playback = manager.resolveAppleAudioConfigurationForTest(
@@ -300,10 +303,7 @@ void main() {
       expect(playAndRecord.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(
         playAndRecord.appleAudioCategoryOptions,
-        {
-          AppleAudioCategoryOption.allowBluetooth,
-          AppleAudioCategoryOption.defaultToSpeaker,
-        },
+        {AppleAudioCategoryOption.allowBluetooth},
       );
     });
 
@@ -439,6 +439,57 @@ void main() {
       );
       expect(map['appleAudioMode'], 'default');
       expect(map.containsKey('preferSpeakerOutput'), isFalse);
+    });
+  });
+
+  group('Native audio channel', () {
+    late List<MethodCall> calls;
+
+    setUp(() {
+      calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          return call.method == 'configureNativeAudio' ? true : null;
+        },
+      );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+    });
+
+    test('passes forced speaker routing to platform methods', () async {
+      await Native.setAndroidSpeakerphoneOn(true, force: true);
+      await Native.setAppleSpeakerphoneOn(true, force: false);
+
+      expect(calls[0].method, 'setAndroidSpeakerphoneOn');
+      expect(calls[0].arguments, {'enable': true, 'force': true});
+      expect(calls[1].method, 'setAppleSpeakerphoneOn');
+      expect(calls[1].arguments, {'enable': true, 'force': false});
+    });
+
+    test('passes forced speaker routing to automatic Apple configuration', () async {
+      final result = await Native.configureAudio(
+        native_audio.NativeAudioConfiguration(
+          appleAudioCategory: AppleAudioCategory.playAndRecord,
+          appleAudioMode: AppleAudioMode.videoChat,
+        ),
+        automatic: true,
+        selectCategoryByEngineState: true,
+        forceSpeakerOutput: true,
+      );
+
+      expect(result, isTrue);
+      expect(calls.single.method, 'configureNativeAudio');
+      expect(
+        calls.single.arguments,
+        containsPair('forceSpeakerOutput', true),
+      );
     });
   });
 

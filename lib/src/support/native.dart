@@ -49,6 +49,7 @@ class Native {
     NativeAudioConfiguration configuration, {
     bool automatic = false,
     bool selectCategoryByEngineState = false,
+    bool forceSpeakerOutput = false,
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -57,6 +58,7 @@ class Native {
           ...configuration.toMap(),
           'automatic': automatic,
           'selectCategoryByEngineState': selectCategoryByEngineState,
+          'forceSpeakerOutput': forceSpeakerOutput,
         },
       );
       return result == true;
@@ -131,9 +133,12 @@ class Native {
 
   /// Route Android audio output to/from the speakerphone.
   @internal
-  static Future<void> setAndroidSpeakerphoneOn(bool enable) async {
+  static Future<void> setAndroidSpeakerphoneOn(bool enable, {bool force = false}) async {
     try {
-      await channel.invokeMethod<void>('setAndroidSpeakerphoneOn', <String, dynamic>{'enable': enable});
+      await channel.invokeMethod<void>(
+        'setAndroidSpeakerphoneOn',
+        <String, dynamic>{'enable': enable, 'force': force},
+      );
     } catch (error) {
       logger.warning('setAndroidSpeakerphoneOn did throw $error');
     }
@@ -142,9 +147,12 @@ class Native {
   /// Route Apple (iOS) audio output to/from the speakerphone without otherwise
   /// changing the audio session category/mode.
   @internal
-  static Future<void> setAppleSpeakerphoneOn(bool enable) async {
+  static Future<void> setAppleSpeakerphoneOn(bool enable, {bool force = false}) async {
     try {
-      await channel.invokeMethod<void>('setAppleSpeakerphoneOn', <String, dynamic>{'enable': enable});
+      await channel.invokeMethod<void>(
+        'setAppleSpeakerphoneOn',
+        <String, dynamic>{'enable': enable, 'force': force},
+      );
     } catch (error) {
       logger.warning('setAppleSpeakerphoneOn did throw $error');
     }
