@@ -322,6 +322,16 @@ Widget build(BuildContext context) {
 
 Audio tracks are played automatically as long as you are subscribed to them.
 
+LiveKit owns the platform audio session through `AudioManager`, which lets you choose a session intent, route to the speaker, and pin per platform values. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for examples covering communication and media modes, speaker routing, manual mode, per platform overrides, and migration from the older `Hardware` APIs.
+
+```dart
+// Enter call mode and prefer the speaker
+await AudioManager.instance.setAudioSessionOptions(
+  const AudioSessionOptions.communication(),
+);
+await AudioManager.instance.setSpeakerphoneOn(true);
+```
+
 ### Handling changes
 
 LiveKit client makes it simple to build declarative UI that reacts to state changes. It notifies changes in two ways
