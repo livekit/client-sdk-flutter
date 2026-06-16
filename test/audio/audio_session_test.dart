@@ -471,6 +471,16 @@ void main() {
       expect(calls.single.arguments, {'enable': true, 'force': true});
     });
 
+    test('passes audio session deactivation to platform methods', () async {
+      await Native.stopAndroidAudioSession();
+      await Native.deactivateAppleAudioSession();
+
+      expect(calls[0].method, 'stopAndroidAudioSession');
+      expect(calls[0].arguments, isNull);
+      expect(calls[1].method, 'deactivateAppleAudioSession');
+      expect(calls[1].arguments, <String, dynamic>{});
+    });
+
     test('passes forced speaker routing to automatic Apple configuration', () async {
       final result = await Native.configureAudio(
         native_audio.NativeAudioConfiguration(

@@ -43,7 +43,7 @@ Read the current preference through `AudioManager.instance.isSpeakerOutputPrefer
 
 ## Automatic vs manual mode
 
-In automatic mode (the default) LiveKit updates the audio session from room, connect, and engine lifecycle. In manual mode LiveKit does not touch the session on its own, and your app drives it explicitly with `setAudioSessionOptions`.
+In automatic mode (the default) LiveKit updates the audio session from room, connect, and engine lifecycle. In manual mode LiveKit does not touch the session on its own, and your app drives it explicitly with `setAudioSessionOptions` and `deactivateAudioSession`.
 
 ```dart
 // Hand session control to the app.
@@ -58,6 +58,9 @@ await AudioManager.instance.setAudioSessionOptions(
 
 // Re-apply the current options, for example after an interruption.
 await AudioManager.instance.applyCurrentAudioSessionOptions();
+
+// Release the session when your manual lifecycle no longer needs it.
+await AudioManager.instance.deactivateAudioSession();
 ```
 
 Prefer setting the mode before connecting to a room.

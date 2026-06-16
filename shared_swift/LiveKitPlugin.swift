@@ -386,6 +386,19 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         #endif
     }
 
+    public func handleDeactivateAppleAudioSession(result: @escaping FlutterResult) {
+        #if os(macOS)
+        result(FlutterMethodNotImplemented)
+        #else
+        if let error = LiveKitPlugin.deactivateAudioSession() {
+            print("[LiveKit] Deactivate audio session error: ", error)
+            result(FlutterError(code: "deactivateAudioSession", message: error.localizedDescription, details: nil))
+        } else {
+            result(true)
+        }
+        #endif
+    }
+
     private static let processInfo = ProcessInfo()
 
     /// Returns os version as a string.
@@ -529,6 +542,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleConfigureNativeAudio(args: args, result: result)
         case "setAppleAudioSessionAutomaticManagementEnabled":
             handleSetAppleAudioSessionAutomaticManagementEnabled(args: args, result: result)
+        case "deactivateAppleAudioSession":
+            handleDeactivateAppleAudioSession(result: result)
         case "startVisualizer":
             handleStartAudioVisualizer(args: args, result: result)
         case "stopVisualizer":

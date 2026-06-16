@@ -173,7 +173,8 @@ class AudioManager {
   ///
   /// In [AudioSessionManagementMode.manual], LiveKit does not update the audio
   /// session from room, connect, or track lifecycle. The app can still apply a
-  /// configuration explicitly with [setAudioSessionOptions].
+  /// configuration explicitly with [setAudioSessionOptions] and release it with
+  /// [deactivateAudioSession].
   ///
   /// Prefer setting this before connecting to a room. flutter_webrtc's own
   /// native audio management is always disabled (LiveKit owns the session).
@@ -182,6 +183,20 @@ class AudioManager {
   Future<void> setAudioSessionManagementMode(AudioSessionManagementMode mode) async {
     _managementMode = mode;
     await _syncAppleAudioSessionManagementMode();
+  }
+
+  /// Deactivates the current platform audio session.
+  ///
+  /// In manual mode this is the explicit release counterpart to
+  /// [setAudioSessionOptions] or [applyCurrentAudioSessionOptions]. In automatic
+  /// mode, LiveKit normally releases the session from room/engine lifecycle, so
+  /// apps rarely need to call this directly.
+  Future<void> deactivateAudioSession() async {
+    if (lkPlatformIs(PlatformType.iOS)) {
+      await Native.deactivateAppleAudioSession();
+    } else if (lkPlatformIs(PlatformType.android)) {
+      await Native.stopAndroidAudioSession();
+    }
   }
 
   /// Prefers routing audio output to/from the speaker.

@@ -131,6 +131,16 @@ class Native {
     }
   }
 
+  /// Deactivate LiveKit's Apple audio session.
+  @internal
+  static Future<void> deactivateAppleAudioSession() async {
+    try {
+      await channel.invokeMethod<void>('deactivateAppleAudioSession', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('deactivateAppleAudioSession did throw $error');
+    }
+  }
+
   /// Route Android audio output to/from the speakerphone.
   @internal
   static Future<void> setAndroidSpeakerphoneOn(bool enable, {bool force = false}) async {
