@@ -795,10 +795,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
             lock.unlock()
 
             if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
-                // Leave sessionActive untrue so cached state still reflects the
-                // live session. Flipping it to false here would make a later
-                // configureNativeAudio(automatic:) cache-only while the session
-                // is in fact still active.
+                // Leave sessionActive unchanged (still true) so cached state
+                // keeps reflecting the live session. Flipping it to false here
+                // would make a later configureNativeAudio(automatic:) cache-only
+                // while the session is in fact still active.
                 print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
             } else if shouldManageSession {
