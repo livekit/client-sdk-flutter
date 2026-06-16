@@ -1197,7 +1197,7 @@ extension RoomHardwareManagementMethods on Room {
   /// or bluetooth is connected, only supported on iOS for now
   Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) async {
     if (lkPlatformIsMobile()) {
-      await AudioManager.instance.setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
+      await AudioManager.instance.setSpeakerOutputPreferred(speakerOn, force: forceSpeakerOutput);
       engine.roomOptions = engine.roomOptions.copyWith(
         defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
           speakerOn: speakerOn,
@@ -1211,7 +1211,7 @@ extension RoomHardwareManagementMethods on Room {
   Future<void> applyAudioSpeakerSettings() async {
     if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
       if (lkPlatformIsMobile()) {
-        await AudioManager.instance.setSpeakerphoneOn(roomOptions.defaultAudioOutputOptions.speakerOn!);
+        await AudioManager.instance.setSpeakerOutputPreferred(roomOptions.defaultAudioOutputOptions.speakerOn!);
       }
     }
   }

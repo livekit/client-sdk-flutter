@@ -52,7 +52,7 @@ class _RoomPageState extends State<RoomPage> {
     });
 
     if (lkPlatformIs(PlatformType.android)) {
-      unawaited(AudioManager.instance.setSpeakerphoneOn(true));
+      unawaited(AudioManager.instance.setSpeakerOutputPreferred(true));
     }
 
     if (lkPlatformIsDesktop()) {

@@ -68,16 +68,16 @@ class Hardware {
 
   MediaDevice? selectedVideoInput;
 
-  @Deprecated('Use AudioManager.instance.speakerphoneOn instead')
-  bool? get speakerOn => AudioManager.instance.speakerphoneOn;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool? get speakerOn => AudioManager.instance.isSpeakerOutputPreferred;
 
-  @Deprecated('Use AudioManager.instance.preferSpeakerOutput instead')
-  bool get preferSpeakerOutput => AudioManager.instance.preferSpeakerOutput;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool get preferSpeakerOutput => AudioManager.instance.isSpeakerOutputPreferred;
 
   /// if true, will force speaker output even if headphones or bluetooth is connected
   /// only supported on iOS for now
-  @Deprecated('Use AudioManager.instance.forceSpeakerOutput instead')
-  bool get forceSpeakerOutput => AudioManager.instance.forceSpeakerOutput;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputForced instead')
+  bool get forceSpeakerOutput => AudioManager.instance.isSpeakerOutputForced;
 
   // Whether automatic native audio configuration is enabled. If disabled,
   // Native.configureAudio is not called and the app is responsible for
@@ -136,8 +136,8 @@ class Hardware {
     await rtc.Helper.selectAudioInput(device.deviceId);
   }
 
-  @Deprecated('Use AudioManager.instance.setSpeakerphoneOn instead')
-  Future<void> setPreferSpeakerOutput(bool enable) => AudioManager.instance.setSpeakerphoneOn(enable);
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> setPreferSpeakerOutput(bool enable) => AudioManager.instance.setSpeakerOutputPreferred(enable);
 
   @Deprecated('Use AudioManager.instance.canSwitchSpeakerphone instead')
   bool get canSwitchSpeakerphone => AudioManager.instance.canSwitchSpeakerphone;
@@ -146,9 +146,9 @@ class Hardware {
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
   /// or bluetooth is connected, only supported on iOS for now
-  @Deprecated('Use AudioManager.instance.setSpeakerphoneOn instead')
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
   Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) =>
-      AudioManager.instance.setSpeakerphoneOn(enable, forceSpeakerOutput: forceSpeakerOutput);
+      AudioManager.instance.setSpeakerOutputPreferred(enable, force: forceSpeakerOutput);
 
   Future<rtc.MediaStream> openCamera({MediaDevice? device, bool? facingMode}) async {
     final constraints = <String, dynamic>{

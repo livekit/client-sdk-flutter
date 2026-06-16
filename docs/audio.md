@@ -28,16 +28,16 @@ Set this before connecting when you can. The explicit apply path above works in 
 
 ```dart
 // Prefer the speaker. A wired or Bluetooth headset still takes priority.
-await AudioManager.instance.setSpeakerphoneOn(true);
+await AudioManager.instance.setSpeakerOutputPreferred(true);
 
 // Force the speaker even when a headset is connected (iOS only).
-await AudioManager.instance.setSpeakerphoneOn(true, forceSpeakerOutput: true);
+await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
 
 // Route back to the earpiece or the connected headset.
-await AudioManager.instance.setSpeakerphoneOn(false);
+await AudioManager.instance.setSpeakerOutputPreferred(false);
 ```
 
-Read the current preference through `AudioManager.instance.preferSpeakerOutput` (or the alias `speakerphoneOn`) and `AudioManager.instance.forceSpeakerOutput`. `AudioManager.instance.canSwitchSpeakerphone` is true on iOS and Android.
+Read the current preference through `AudioManager.instance.isSpeakerOutputPreferred` and `AudioManager.instance.isSpeakerOutputForced`. `AudioManager.instance.canSwitchSpeakerphone` is true on iOS and Android.
 
 `Room.setSpeakerOn(...)` still works and forwards to the same path, so existing call sites do not need to change.
 
@@ -140,10 +140,10 @@ The legacy `Hardware` audio members still work but are deprecated and forward to
 
 | Old | New |
 | --- | --- |
-| `Hardware.instance.setSpeakerphoneOn(true)` | `AudioManager.instance.setSpeakerphoneOn(true)` |
-| `Hardware.instance.speakerOn` | `AudioManager.instance.speakerphoneOn` |
-| `Hardware.instance.preferSpeakerOutput` | `AudioManager.instance.preferSpeakerOutput` |
-| `Hardware.instance.forceSpeakerOutput` | `AudioManager.instance.forceSpeakerOutput` |
+| `Hardware.instance.setSpeakerphoneOn(true)` | `AudioManager.instance.setSpeakerOutputPreferred(true)` |
+| `Hardware.instance.speakerOn` | `AudioManager.instance.isSpeakerOutputPreferred` |
+| `Hardware.instance.preferSpeakerOutput` | `AudioManager.instance.isSpeakerOutputPreferred` |
+| `Hardware.instance.forceSpeakerOutput` | `AudioManager.instance.isSpeakerOutputForced` |
 | `Hardware.instance.setAutomaticConfigurationEnabled(enable: false)` | `AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.manual)` |
 
 The old `onConfigureNativeAudio` hook (a deep src import) is removed. Replace a custom configuration function with explicit options.

@@ -192,16 +192,14 @@ void main() {
         const AudioSessionOptions.communication(preferSpeakerOutput: false),
       );
 
-      expect(manager.speakerphoneOn, isFalse);
-      expect(manager.preferSpeakerOutput, isFalse);
+      expect(manager.isSpeakerOutputPreferred, isFalse);
       expect(manager.options.preferSpeakerOutput, isFalse);
 
       await manager.setAudioSessionOptions(
         const AudioSessionOptions.communication(preferSpeakerOutput: true),
       );
 
-      expect(manager.speakerphoneOn, isTrue);
-      expect(manager.preferSpeakerOutput, isTrue);
+      expect(manager.isSpeakerOutputPreferred, isTrue);
       expect(manager.options.preferSpeakerOutput, isTrue);
     });
 
@@ -216,8 +214,7 @@ void main() {
         ),
       );
 
-      expect(manager.speakerphoneOn, isFalse);
-      expect(manager.preferSpeakerOutput, isFalse);
+      expect(manager.isSpeakerOutputPreferred, isFalse);
 
       await manager.setAudioSessionOptions(
         const AudioSessionOptions.communication(
@@ -227,8 +224,7 @@ void main() {
         ),
       );
 
-      expect(manager.speakerphoneOn, isTrue);
-      expect(manager.preferSpeakerOutput, isTrue);
+      expect(manager.isSpeakerOutputPreferred, isTrue);
     });
 
     test('resolves communication Apple session policy from speaker preference', () {

@@ -79,7 +79,7 @@ class AudioSessionOptions {
   /// This intentionally does not expose [preferSpeakerOutput] because speaker
   /// preference only affects communication/playAndRecord policies. Use [apple]
   /// or [android] for exact platform behavior, or switch at runtime with
-  /// `AudioManager.setSpeakerphoneOn`.
+  /// `AudioManager.setSpeakerOutputPreferred`.
   const AudioSessionOptions.media({
     AppleAudioSessionConfiguration? apple,
     AndroidAudioSessionConfiguration? android,

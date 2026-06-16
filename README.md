@@ -329,7 +329,7 @@ LiveKit owns the platform audio session through `AudioManager`, which lets you c
 await AudioManager.instance.setAudioSessionOptions(
   const AudioSessionOptions.communication(),
 );
-await AudioManager.instance.setSpeakerphoneOn(true);
+await AudioManager.instance.setSpeakerOutputPreferred(true);
 ```
 
 ### Handling changes

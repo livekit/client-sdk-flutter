@@ -81,15 +81,14 @@ class AudioManager {
   AudioSessionOptions get options => _options;
   AudioSessionManagementMode get managementMode => _managementMode;
 
-  /// Whether the speakerphone is the preferred audio output.
-  bool get speakerphoneOn => _preferSpeakerOutput;
-  bool get preferSpeakerOutput => _preferSpeakerOutput;
+  /// Whether the speaker is the preferred audio output.
+  bool get isSpeakerOutputPreferred => _preferSpeakerOutput;
 
   /// Whether speaker output is forced even when a headset/Bluetooth device is
   /// connected (iOS only).
-  bool get forceSpeakerOutput => _forceSpeakerOutput && _preferSpeakerOutput;
+  bool get isSpeakerOutputForced => _forceSpeakerOutput && _preferSpeakerOutput;
 
-  /// Whether the platform supports switching the speakerphone (iOS/Android).
+  /// Whether the platform supports switching the speaker output (iOS/Android).
   bool get canSwitchSpeakerphone => lkPlatformIsMobile();
 
   /// The current audio engine state, derived from native engine lifecycle
@@ -185,23 +184,23 @@ class AudioManager {
     await _syncAppleAudioSessionManagementMode();
   }
 
-  /// Routes audio output to/from the speakerphone.
+  /// Prefers routing audio output to/from the speaker.
   ///
   /// By default a connected wired/Bluetooth headset still takes priority even
-  /// when [enable] is true. Set [forceSpeakerOutput] to force the speaker even
-  /// when a headset is connected (iOS only).
+  /// when [preferred] is true. Set [force] to force the speaker even when a
+  /// headset is connected (iOS only).
   ///
   /// LiveKit owns this routing on both platforms (Android via its own
   /// audioswitch handler and iOS via its audio session), so it does not depend
   /// on flutter_webrtc.
-  Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) async {
+  Future<void> setSpeakerOutputPreferred(bool preferred, {bool force = false}) async {
     if (!canSwitchSpeakerphone) {
-      logger.warning('setSpeakerphoneOn is only supported on iOS/Android');
+      logger.warning('setSpeakerOutputPreferred is only supported on iOS/Android');
       return;
     }
-    _preferSpeakerOutput = enable;
-    _forceSpeakerOutput = enable && forceSpeakerOutput;
-    _options = _optionsWithSpeakerPreference(_options, enable);
+    _preferSpeakerOutput = preferred;
+    _forceSpeakerOutput = preferred && force;
+    _options = _optionsWithSpeakerPreference(_options, preferred);
 
     if (lkPlatformIs(PlatformType.iOS)) {
       if (isAutomaticConfigurationEnabled) {
@@ -217,10 +216,10 @@ class AudioManager {
         );
       } else {
         // Manual mode: route without re-applying category/mode the app owns.
-        await Native.setAppleSpeakerphoneOn(enable);
+        await Native.setAppleSpeakerphoneOn(preferred);
       }
     } else if (lkPlatformIs(PlatformType.android)) {
-      await Native.setAndroidSpeakerphoneOn(enable);
+      await Native.setAndroidSpeakerphoneOn(preferred);
     }
   }
 
