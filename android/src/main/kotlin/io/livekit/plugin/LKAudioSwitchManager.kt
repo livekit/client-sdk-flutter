@@ -115,19 +115,23 @@ internal class LKAudioSwitchManager(private val context: Context) {
     }
   }
 
-  /** Route audio to/from the speakerphone, falling back to the next preferred device. */
+  /** Prefer routing to/from the speaker, letting a connected headset keep priority. */
   @Synchronized
   fun setSpeakerphoneOn(enable: Boolean) {
     preferredDeviceList = preferredDeviceList(speakerFirst = enable)
     handler.post {
       val switch = audioSwitch ?: return@post
       switch.setPreferredDeviceList(preferredDeviceList)
-      val device = if (enable) {
+      // A connected wired/Bluetooth headset always takes priority. When the
+      // speaker is preferred fall back to it only if no headset is present, and
+      // when it is not preferred fall back to the earpiece instead.
+      val headset = switch.availableAudioDevices.firstOrNull {
+        it is AudioDevice.BluetoothHeadset || it is AudioDevice.WiredHeadset
+      }
+      val device = headset ?: if (enable) {
         switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
       } else {
-        switch.availableAudioDevices.firstOrNull {
-          it is AudioDevice.BluetoothHeadset || it is AudioDevice.WiredHeadset || it is AudioDevice.Earpiece
-        }
+        switch.availableAudioDevices.firstOrNull { it is AudioDevice.Earpiece }
       }
       switch.selectDevice(device)
     }
