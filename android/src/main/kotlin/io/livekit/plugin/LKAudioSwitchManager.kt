@@ -42,8 +42,8 @@ import com.twilio.audioswitch.LegacyAudioSwitch
  */
 internal class LKAudioSwitchManager(private val context: Context) {
   // AudioSwitch is not threadsafe, so confine all access to a single long-lived
-  // thread. Do not recreate it on stop/start. Queued lifecycle work must stay
-  // serialized.
+  // thread. The AudioSwitch instance is recreated per active session, while
+  // queued lifecycle work stays serialized on this thread.
   private val thread = HandlerThread("LKAudioSwitchThread").also { it.start() }
   private val handler = Handler(thread.looper)
 

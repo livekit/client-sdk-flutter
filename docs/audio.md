@@ -1,6 +1,6 @@
 # Audio session management
 
-LiveKit owns the platform audio session on iOS, macOS, and Android through a single process-wide entry point, `AudioManager`. You configure session intent once with typed options and LiveKit applies the right native category, mode, focus, and routing for you. This replaces the older approach that relied on flutter_webrtc defaults, `Hardware` speaker calls, and Dart track counting.
+LiveKit owns the platform audio session on iOS and Android through a single process-wide entry point, `AudioManager`. You configure session intent once with typed options and LiveKit applies the right native category, mode, focus, and routing for you. On macOS, `AudioManager` reports native audio-engine state but does not configure a platform audio session.
 
 `AudioManager` is a singleton, reached through `AudioManager.instance`.
 

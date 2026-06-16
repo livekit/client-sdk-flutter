@@ -144,20 +144,6 @@ class Native {
     }
   }
 
-  /// Route Apple (iOS) audio output to/from the speakerphone without otherwise
-  /// changing the audio session category/mode.
-  @internal
-  static Future<void> setAppleSpeakerphoneOn(bool enable, {bool force = false}) async {
-    try {
-      await channel.invokeMethod<void>(
-        'setAppleSpeakerphoneOn',
-        <String, dynamic>{'enable': enable, 'force': force},
-      );
-    } catch (error) {
-      logger.warning('setAppleSpeakerphoneOn did throw $error');
-    }
-  }
-
   /// Enable or disable LiveKit's automatic iOS audio-session management from
   /// native WebRTC audio-engine lifecycle callbacks.
   @internal

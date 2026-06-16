@@ -216,8 +216,10 @@ class AudioManager {
           forceSpeakerOutput: policy.forceSpeakerOutput,
         );
       } else {
-        // Manual mode: route without re-applying category/mode the app owns.
-        await Native.setAppleSpeakerphoneOn(preferred, force: _forceSpeakerOutput);
+        // Manual mode: this is an explicit routing request, so re-apply the
+        // resolved session policy immediately. Plain speaker preference is
+        // expressed by category/mode; force is carried separately to native.
+        await _configureAppleAudioSession(_options);
       }
     } else if (lkPlatformIs(PlatformType.android)) {
       await Native.setAndroidSpeakerphoneOn(preferred, force: _forceSpeakerOutput);
@@ -271,11 +273,11 @@ class AudioManager {
     final policy = _resolvedAudioSessionPolicy(options);
     final config = policy.appleConfiguration;
     logger.fine('configuring Apple audio session using $config...');
-    // In automatic mode the native audio-engine delegate owns activation
-    // timing, so this caches the policy (and applies now only if the engine is
-    // already running). In manual mode it applies immediately. The category is
-    // chosen natively from engine state unless the app gave an explicit Apple
-    // override (then the config is applied verbatim).
+    // In automatic mode the native audio-engine delegate owns activation timing,
+    // so this caches the policy and applies now only if the engine is already
+    // running. Automatic mode can resolve the category from engine state unless
+    // the app gave an explicit Apple override. Manual mode applies the resolved
+    // config immediately and verbatim.
     await Native.configureAudio(
       config,
       automatic: isAutomaticConfigurationEnabled,

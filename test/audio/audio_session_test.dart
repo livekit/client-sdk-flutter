@@ -464,14 +464,11 @@ void main() {
       );
     });
 
-    test('passes forced speaker routing to platform methods', () async {
+    test('passes forced speaker routing to Android platform method', () async {
       await Native.setAndroidSpeakerphoneOn(true, force: true);
-      await Native.setAppleSpeakerphoneOn(true, force: false);
 
-      expect(calls[0].method, 'setAndroidSpeakerphoneOn');
-      expect(calls[0].arguments, {'enable': true, 'force': true});
-      expect(calls[1].method, 'setAppleSpeakerphoneOn');
-      expect(calls[1].arguments, {'enable': true, 'force': false});
+      expect(calls.single.method, 'setAndroidSpeakerphoneOn');
+      expect(calls.single.arguments, {'enable': true, 'force': true});
     });
 
     test('passes forced speaker routing to automatic Apple configuration', () async {
