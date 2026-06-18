@@ -43,6 +43,9 @@ class TokenRequestOptions {
   /// Metadata passed to the agent job.
   final String? agentMetadata;
 
+  /// Optional deployment to target. Leave empty to target the production deployment.
+  final String? agentDeployment;
+
   const TokenRequestOptions({
     this.roomName,
     this.participantName,
@@ -51,6 +54,7 @@ class TokenRequestOptions {
     this.participantAttributes,
     this.agentName,
     this.agentMetadata,
+    this.agentDeployment,
   });
 
   factory TokenRequestOptions.fromJson(Map<String, dynamic> json) => _$TokenRequestOptionsFromJson(json);
@@ -58,8 +62,8 @@ class TokenRequestOptions {
 
   /// Converts this options object to a wire-format request.
   TokenSourceRequest toRequest() {
-    final List<RoomAgentDispatch>? agents = (agentName != null || agentMetadata != null)
-        ? [RoomAgentDispatch(agentName: agentName, metadata: agentMetadata)]
+    final List<RoomAgentDispatch>? agents = (agentName != null || agentMetadata != null || agentDeployment != null)
+        ? [RoomAgentDispatch(agentName: agentName, metadata: agentMetadata, deployment: agentDeployment)]
         : null;
 
     return TokenSourceRequest(
@@ -83,6 +87,7 @@ class TokenRequestOptions {
         other.participantMetadata == participantMetadata &&
         other.agentName == agentName &&
         other.agentMetadata == agentMetadata &&
+        other.agentDeployment == agentDeployment &&
         const MapEquality().equals(other.participantAttributes, participantAttributes);
   }
 
@@ -95,6 +100,7 @@ class TokenRequestOptions {
       participantMetadata,
       agentName,
       agentMetadata,
+      agentDeployment,
       const MapEquality().hash(participantAttributes),
     );
   }
