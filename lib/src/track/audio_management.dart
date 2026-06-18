@@ -16,6 +16,14 @@ import '../audio/audio_manager.dart';
 import '../audio/audio_session.dart';
 import '../support/native.dart';
 import '../support/platform.dart';
+import 'local/local.dart';
+import 'remote/remote.dart';
+
+@Deprecated('Audio session lifecycle is managed by AudioManager instead')
+mixin LocalAudioManagementMixin on LocalTrack, AudioTrack {}
+
+@Deprecated('Audio session lifecycle is managed by AudioManager instead')
+mixin RemoteAudioManagementMixin on RemoteTrack, AudioTrack {}
 
 class NativeAudioManagement {
   static Future<void> start() async {
