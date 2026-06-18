@@ -2,7 +2,7 @@
 
 LiveKit owns the platform audio session on iOS and Android through a single process-wide entry point, `AudioManager`. You configure session intent once with typed options and LiveKit applies the right native category, mode, focus, and routing for you. On macOS, `AudioManager` reports native audio-engine state but does not configure a platform audio session.
 
-`AudioManager` is a singleton, reached through `AudioManager.instance`.
+`AudioManager` is a singleton, reached through `AudioManager.instance`. It is also where you read back the engine-wide audio processing state, so one object covers both the audio session and the signal processing applied to your audio.
 
 ## Quick start
 
@@ -127,6 +127,32 @@ final sub = AudioManager.instance.audioEngineStateStream.listen((state) {
 final now = AudioManager.instance.audioEngineState;
 ```
 
+## Audio processing
+
+Session management is one half of the audio stack. The other half is audio processing, the signal processing applied to captured audio such as echo cancellation, noise suppression, auto gain control, and the high pass filter. `AudioManager` is the home for both, and they compose cleanly.
+
+The session intent decides how the platform treats the audio. The processing options decide what is done to the captured signal:
+
+- A call pairs a `communication` session with `AudioProcessingOptions.communication()`, which turns the voice filters on.
+- A high quality capture or playback app pairs a `media` session with `AudioProcessingOptions.raw()`, which turns them off.
+
+Processing is applied per local audio track:
+
+```dart
+final result = await localAudioTrack.setAudioProcessingOptions(
+  const AudioProcessingOptions.communication(),
+);
+```
+
+The processing module is owned by the native peer connection factory and shared across the whole engine, so the resolved state is read back through `AudioManager` rather than from a single track:
+
+```dart
+final state = await AudioManager.instance.getAudioProcessingState();
+print('echo cancellation in effect: ${state?.echoCancellation.effective}');
+```
+
+At startup, `LiveKitClient.initialize(bypassVoiceProcessing: true)` sets both halves at once: a media oriented default session and bypassed voice processing.
+
 ## Initialization
 
 You can optionally call `LiveKitClient.initialize` once at startup. Passing `bypassVoiceProcessing: true` makes the default options media oriented for playback or capture without voice processing. Explicit runtime options that you set with `setAudioSessionOptions` are always preserved.
@@ -169,7 +195,7 @@ Dart track counting no longer drives the session. The native audio engine delega
 
 ## Platform notes
 
-- **iOS** uses a WebRTC audio engine observer that configures and activates the session when the engine enables, and deactivates when it disables. Category is chosen from live engine state. A listen only or mic muted session uses the playback category until recording starts, and receiver routing from `preferSpeakerOutput` only applies while the effective category is `playAndRecord`.
+- **iOS** uses a WebRTC audio engine observer that configures and activates the session when the engine enables, and deactivates when it disables. Category is chosen from live engine state. A listen only or mic muted session uses the playback category until recording starts. Both receiver routing (`preferSpeakerOutput: false`) and forced speaker (`force: true`) depend on the `playAndRecord` category, so they take effect while the microphone is active, and a listen only session follows the connected headset.
 - **macOS** emits the same engine events but has no `AVAudioSession`, so engine state is reported while no session category is applied.
 - **Android** uses an AudioSwitch based manager for audio mode, focus, and routing. The session is activated when LiveKit applies its options (at connect, or on an explicit apply) and released on disconnect.
 
