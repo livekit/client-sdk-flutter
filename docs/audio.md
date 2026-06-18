@@ -112,14 +112,14 @@ The session intent decides how the platform treats audio. Processing options dec
 
 - A call usually uses the automatic `communication` session. The default `AudioCaptureOptions` enable echo cancellation, noise suppression, and auto gain control, while leaving the high pass filter off.
 - Use `AudioProcessingOptions.communication()` when you want all four voice filters on for an existing local audio track.
-- Use `AudioProcessingOptions.raw()` for local capture where you want minimal processing, such as high quality recording or app-managed audio effects.
+- Use `AudioProcessingOptions.noProcessing()` for local capture where you want minimal processing, such as high quality recording or app-managed audio effects.
 
 Processing is applied per local audio track. A malformed request (an incompatible mode, or a remote track) throws, while a request the platform could not honor comes back as an unsuccessful result:
 
 ```dart
 try {
   final result = await localAudioTrack.setAudioProcessingOptions(
-    const AudioProcessingOptions.raw(),
+    const AudioProcessingOptions.noProcessing(),
   );
   if (!result.isSuccess) {
     print('audio processing not applied: ${result.code.value} ${result.message}');
