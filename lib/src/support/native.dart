@@ -18,6 +18,7 @@ import 'package:flutter/services.dart' show MethodChannel, MethodCall;
 
 import 'package:meta/meta.dart';
 
+import '../audio/audio_manager.dart';
 import '../logger.dart';
 import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
@@ -36,12 +37,29 @@ class Native {
   @internal
   static bool bypassVoiceProcessing = false;
 
+  /// Configures (and caches) the Apple audio session.
+  ///
+  /// When [automatic] is true, the native audio-engine delegate owns activation
+  /// timing: the configuration is cached and (re)applied on engine lifecycle
+  /// events, and only applied immediately here if the engine is already
+  /// running. When false (manual mode / explicit apply) it is applied
+  /// immediately.
   @internal
-  static Future<bool> configureAudio(NativeAudioConfiguration configuration) async {
+  static Future<bool> configureAudio(
+    NativeAudioConfiguration configuration, {
+    bool automatic = false,
+    bool selectCategoryByEngineState = false,
+    bool forceSpeakerOutput = false,
+  }) async {
     try {
       final result = await channel.invokeMethod<bool>(
         'configureNativeAudio',
-        configuration.toMap(),
+        <String, dynamic>{
+          ...configuration.toMap(),
+          'automatic': automatic,
+          'selectCategoryByEngineState': selectCategoryByEngineState,
+          'forceSpeakerOutput': forceSpeakerOutput,
+        },
       );
       return result == true;
     } catch (error) {
@@ -91,6 +109,63 @@ class Native {
       logger.warning('getAudioProcessingState did throw $error');
     }
     return null;
+  }
+
+  /// Configure and activate LiveKit's Android audio session (mode/focus/routing).
+  @internal
+  static Future<void> configureAndroidAudioSession(Map<String, dynamic> configuration) async {
+    try {
+      await channel.invokeMethod<void>('configureAndroidAudioSession', configuration);
+    } catch (error) {
+      logger.warning('configureAndroidAudioSession did throw $error');
+    }
+  }
+
+  /// Deactivate LiveKit's Android audio session (release focus, restore mode).
+  @internal
+  static Future<void> stopAndroidAudioSession() async {
+    try {
+      await channel.invokeMethod<void>('stopAndroidAudioSession');
+    } catch (error) {
+      logger.warning('stopAndroidAudioSession did throw $error');
+    }
+  }
+
+  /// Deactivate LiveKit's Apple audio session.
+  @internal
+  static Future<void> deactivateAppleAudioSession() async {
+    try {
+      await channel.invokeMethod<void>('deactivateAppleAudioSession', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('deactivateAppleAudioSession did throw $error');
+    }
+  }
+
+  /// Route Android audio output to/from the speakerphone.
+  @internal
+  static Future<void> setAndroidSpeakerphoneOn(bool enable, {bool force = false}) async {
+    try {
+      await channel.invokeMethod<void>(
+        'setAndroidSpeakerphoneOn',
+        <String, dynamic>{'enable': enable, 'force': force},
+      );
+    } catch (error) {
+      logger.warning('setAndroidSpeakerphoneOn did throw $error');
+    }
+  }
+
+  /// Enable or disable LiveKit's automatic iOS audio-session management from
+  /// native WebRTC audio-engine lifecycle callbacks.
+  @internal
+  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(bool enabled) async {
+    try {
+      await channel.invokeMethod<void>(
+        'setAppleAudioSessionAutomaticManagementEnabled',
+        <String, dynamic>{'enabled': enabled},
+      );
+    } catch (error) {
+      logger.warning('setAppleAudioSessionAutomaticManagementEnabled did throw $error');
+    }
   }
 
   @internal
@@ -195,6 +270,15 @@ class Native {
           return null;
         }
         _broadcastStateChanged(call.arguments as bool);
+        return null;
+      case 'onAudioEngineState':
+        final args = call.arguments;
+        if (args is Map) {
+          AudioManager.instance.handleAudioEngineState(
+            isPlayoutEnabled: args['isPlayoutEnabled'] == true,
+            isRecordingEnabled: args['isRecordingEnabled'] == true,
+          );
+        }
         return null;
       default:
         logger.warning('Method ${call.method} is not implemented.');

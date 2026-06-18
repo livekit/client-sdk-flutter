@@ -19,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
+import '../audio/audio_manager.dart';
 import '../core/signal_client.dart';
 import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
@@ -102,6 +103,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   bool get isRecording => _isRecording;
   bool _isRecording = false;
   bool _audioEnabled = true;
+
+  // Whether the one-time RoomOptions speaker preference bridge has run.
+  bool _legacySpeakerBridged = false;
 
   lk_models.Room? _roomInfo;
 
@@ -288,9 +292,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }));
     }
 
+    // Bridge a legacy RoomOptions speaker preference into the process-wide
+    // AudioManager once, on the first connect. Skipping it on a later manual
+    // connect of the same Room keeps a runtime speaker change from being
+    // reverted. New code should call setSpeakerOutputPreferred directly.
+    final legacySpeakerOn = roomOptions.defaultAudioOutputOptions.speakerOn;
+    if (legacySpeakerOn != null && !_legacySpeakerBridged && lkPlatformIsMobile()) {
+      _legacySpeakerBridged = true;
+      await AudioManager.instance.setSpeakerOutputPreferred(legacySpeakerOn);
+    }
+
     // configure audio for native platform
     await NativeAudioManagement.start();
 
+    var didConnect = false;
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -300,6 +315,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         fastConnectOptions: fastConnectOptions,
         regionUrlProvider: _regionUrlProvider,
       );
+      didConnect = true;
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null &&
@@ -322,11 +338,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             fastConnectOptions: fastConnectOptions,
             regionUrlProvider: _regionUrlProvider,
           );
+          didConnect = true;
         } else {
           rethrow;
         }
       } else {
         rethrow;
+      }
+    } finally {
+      if (!didConnect) {
+        await NativeAudioManagement.stop();
       }
     }
   }
@@ -1121,7 +1142,8 @@ extension RoomHardwareManagementMethods on Room {
       roomOptions.defaultCameraCaptureOptions.deviceId ?? Hardware.instance.selectedVideoInput?.deviceId;
 
   /// Get mobile device's speaker status.
-  bool? get speakerOn => roomOptions.defaultAudioOutputOptions.speakerOn;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool? get speakerOn => AudioManager.instance.isSpeakerOutputPreferred;
 
   /// Set audio output device.
   Future<void> setAudioOutputDevice(MediaDevice device) async {
@@ -1186,27 +1208,10 @@ extension RoomHardwareManagementMethods on Room {
   /// [speakerOn] set speakerphone on or off, by default wired/bluetooth headsets will still
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
-  /// or bluetooth is connected, only supported on iOS for now
-  Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) async {
-    if (lkPlatformIsMobile()) {
-      await Hardware.instance.setSpeakerphoneOn(speakerOn, forceSpeakerOutput: forceSpeakerOutput);
-      engine.roomOptions = engine.roomOptions.copyWith(
-        defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
-          speakerOn: speakerOn,
-        ),
-      );
-    }
-  }
-
-  /// Apply audio output device settings.
-  @internal
-  Future<void> applyAudioSpeakerSettings() async {
-    if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
-      if (lkPlatformIsMobile()) {
-        await Hardware.instance.setSpeakerphoneOn(roomOptions.defaultAudioOutputOptions.speakerOn!);
-      }
-    }
-  }
+  /// or bluetooth is connected.
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) =>
+      AudioManager.instance.setSpeakerOutputPreferred(speakerOn, force: forceSpeakerOutput);
 
   Future<void> startAudio() async {
     try {

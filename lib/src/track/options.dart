@@ -282,7 +282,7 @@ class AudioProcessingOptions {
         autoGainControlMode = AudioProcessingMode.automatic,
         highPassFilterMode = AudioProcessingMode.automatic;
 
-  const AudioProcessingOptions.raw()
+  const AudioProcessingOptions.noProcessing()
       : echoCancellation = false,
         noiseSuppression = false,
         autoGainControl = false,

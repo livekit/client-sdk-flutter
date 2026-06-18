@@ -18,6 +18,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -61,6 +62,9 @@ android {
         testImplementation("org.mockito:mockito-core:5.0.0")
         implementation 'io.github.webrtc-sdk:android:144.7559.09'
         implementation 'io.livekit:noise:2.0.0'
+        // Audio device/focus/mode routing. Pinned to the same revision used by
+        // the LiveKit Android SDK (AudioSwitchHandler).
+        implementation 'com.github.davidliu:audioswitch:039a35aefab7747c557242fa216c9ea11743b604'
     }
 
     testOptions {
