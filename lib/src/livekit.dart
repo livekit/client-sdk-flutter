@@ -39,15 +39,11 @@ class LiveKitClient {
     bool bypassVoiceProcessing = false,
   }) async {
     if (lkPlatformIsMobile()) {
+      // bypassVoiceProcessing controls only WebRTC voice processing, not the
+      // session intent. The audio session is owned by AudioManager.
       Native.bypassVoiceProcessing = bypassVoiceProcessing;
-      AudioManager.instance.configureDefaults(
-        bypassVoiceProcessing: bypassVoiceProcessing,
-      );
-      final androidAudioConfiguration = AudioManager.instance.androidAudioConfigurationForInitialize();
-
       await rtc.WebRTC.initialize(options: {
         if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
-        if (androidAudioConfiguration != null) 'androidAudioConfiguration': androidAudioConfiguration,
       });
     }
   }

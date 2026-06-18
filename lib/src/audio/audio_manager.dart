@@ -67,17 +67,16 @@ class AudioManager {
 
   static final AudioManager instance = AudioManager._();
 
-  AudioSessionOptions _defaultOptions = const AudioSessionOptions.communication();
   AudioSessionOptions _options = const AudioSessionOptions.communication();
   AudioSessionManagementMode _managementMode = AudioSessionManagementMode.automatic;
-  bool _hasExplicitRuntimeOptions = false;
   bool _preferSpeakerOutput = true;
   bool _forceSpeakerOutput = false;
   bool _isPlayoutEnabled = false;
   bool _isRecordingEnabled = false;
   final StreamController<AudioEngineState> _audioEngineStateController = StreamController<AudioEngineState>.broadcast();
 
-  AudioSessionOptions get defaultOptions => _defaultOptions;
+  @Deprecated('Automatic mode no longer uses session options. Use options for manual configuration.')
+  AudioSessionOptions get defaultOptions => const AudioSessionOptions.communication();
   AudioSessionOptions get options => _options;
   AudioSessionManagementMode get managementMode => _managementMode;
 
@@ -106,25 +105,12 @@ class AudioManager {
 
   @visibleForTesting
   void resetForTest() {
-    _defaultOptions = const AudioSessionOptions.communication();
     _options = const AudioSessionOptions.communication();
     _managementMode = AudioSessionManagementMode.automatic;
-    _hasExplicitRuntimeOptions = false;
     _preferSpeakerOutput = true;
     _forceSpeakerOutput = false;
     _isPlayoutEnabled = false;
     _isRecordingEnabled = false;
-  }
-
-  @internal
-  void configureDefaults({
-    required bool bypassVoiceProcessing,
-  }) {
-    _defaultOptions =
-        bypassVoiceProcessing ? const AudioSessionOptions.media() : const AudioSessionOptions.communication();
-    if (!_hasExplicitRuntimeOptions) {
-      _options = _defaultOptions;
-    }
   }
 
   /// Invoked from native when the WebRTC audio engine's playout/recording state
@@ -155,18 +141,19 @@ class AudioManager {
     _audioEngineStateController.add(nextState);
   }
 
-  /// Applies a new audio session configuration immediately.
+  /// Applies an explicit audio session configuration and switches to manual mode.
   ///
-  /// Use [AudioSessionOptions.communication] to enter VoIP/call mode and
-  /// [AudioSessionOptions.media] to leave communication mode for
-  /// media/live-streaming capture. This explicit apply path works in both
-  /// automatic and manual management modes.
+  /// Calling this puts [AudioManager] in [AudioSessionManagementMode.manual]:
+  /// LiveKit stops managing the session from room, connect, and engine
+  /// lifecycle, and the app owns it from here. Hand control back to LiveKit with
+  /// [setAudioSessionManagementMode] and [AudioSessionManagementMode.automatic].
+  ///
+  /// The speaker preference and force flag are owned by setSpeakerOutputPreferred
+  /// and are preserved across this call.
   Future<void> setAudioSessionOptions(AudioSessionOptions options) async {
-    _hasExplicitRuntimeOptions = true;
-    _syncSpeakerPreferenceFromOptions(options);
-    _forceSpeakerOutput = false;
+    await _enterManualMode();
     _options = options;
-    await applyCurrentAudioSessionOptions();
+    await _applyCurrentAudioSessionPolicy();
   }
 
   /// Selects whether LiveKit manages the platform audio session automatically.
@@ -178,20 +165,31 @@ class AudioManager {
   ///
   /// Prefer setting this before connecting to a room. flutter_webrtc's own
   /// native audio management is always disabled (LiveKit owns the session).
-  /// Changing the mode at runtime only affects LiveKit's own automatic
-  /// configuration.
+  /// Switching back to automatic mode reapplies LiveKit's managed policy.
   Future<void> setAudioSessionManagementMode(AudioSessionManagementMode mode) async {
+    final previousMode = _managementMode;
     _managementMode = mode;
+    await _syncAppleAudioSessionManagementMode();
+    if (previousMode != AudioSessionManagementMode.automatic && mode == AudioSessionManagementMode.automatic) {
+      await _applyCurrentAudioSessionPolicy();
+    }
+  }
+
+  /// Switches to manual mode if not already, syncing the native side once.
+  Future<void> _enterManualMode() async {
+    if (_managementMode == AudioSessionManagementMode.manual) return;
+    _managementMode = AudioSessionManagementMode.manual;
     await _syncAppleAudioSessionManagementMode();
   }
 
-  /// Deactivates the current platform audio session.
+  /// Deactivates the current platform audio session and switches to manual mode.
   ///
-  /// In manual mode this is the explicit release counterpart to
-  /// [setAudioSessionOptions] or [applyCurrentAudioSessionOptions]. In automatic
-  /// mode, LiveKit normally releases the session from room/engine lifecycle, so
-  /// apps rarely need to call this directly.
+  /// Like [setAudioSessionOptions], calling this puts [AudioManager] in
+  /// [AudioSessionManagementMode.manual] so LiveKit does not re-activate the
+  /// session on its own. Re-apply a configuration with [setAudioSessionOptions],
+  /// or hand control back with [setAudioSessionManagementMode].
   Future<void> deactivateAudioSession() async {
+    await _enterManualMode();
     if (lkPlatformIs(PlatformType.iOS)) {
       await Native.deactivateAppleAudioSession();
     } else if (lkPlatformIs(PlatformType.android)) {
@@ -215,15 +213,13 @@ class AudioManager {
     }
     _preferSpeakerOutput = preferred;
     _forceSpeakerOutput = preferred && force;
-    _options = _optionsWithSpeakerPreference(_options, preferred);
 
     if (lkPlatformIs(PlatformType.iOS)) {
       if (isAutomaticConfigurationEnabled) {
         final policy = _resolvedAudioSessionPolicy(_options);
         // Automatic mode: the native audio-engine delegate owns activation
         // timing, so this caches the policy and applies now only if the engine
-        // is already running. Category is resolved natively from engine state
-        // unless the app supplied an explicit Apple override.
+        // is already running. Category is resolved natively from engine state.
         await Native.configureAudio(
           policy.appleConfiguration,
           automatic: true,
@@ -231,9 +227,9 @@ class AudioManager {
           forceSpeakerOutput: policy.forceSpeakerOutput,
         );
       } else {
-        // Manual mode: this is an explicit routing request, so re-apply the
-        // resolved session policy immediately. Plain speaker preference is
-        // expressed by category/mode. Force is carried separately to native.
+        // Manual mode: re-apply the fixed Apple config. Non-forced receiver vs
+        // speaker behavior comes from that config. Force is carried separately
+        // to native for playAndRecord sessions.
         await _configureAppleAudioSession(_options);
       }
     } else if (lkPlatformIs(PlatformType.android)) {
@@ -241,11 +237,13 @@ class AudioManager {
     }
   }
 
-  /// Re-applies the current audio session options.
+  /// Re-applies the current platform audio policy.
   ///
-  /// This is useful after platform interruptions or app lifecycle changes when
-  /// the app wants LiveKit to restore its currently selected session mode.
-  Future<void> applyCurrentAudioSessionOptions() async {
+  /// In automatic mode this reapplies LiveKit's managed communication policy.
+  /// In manual mode this reapplies [options].
+  Future<void> applyCurrentAudioSessionOptions() => _applyCurrentAudioSessionPolicy();
+
+  Future<void> _applyCurrentAudioSessionPolicy() async {
     if (lkPlatformIs(PlatformType.iOS)) {
       await _configureAppleAudioSession(_options);
     } else if (lkPlatformIs(PlatformType.android)) {
@@ -254,27 +252,10 @@ class AudioManager {
   }
 
   @internal
-  Map<String, dynamic>? androidAudioConfigurationForInitialize({
-    @visibleForTesting bool assumeAndroid = false,
-  }) {
-    if (!assumeAndroid && !lkPlatformIs(PlatformType.android)) {
-      return null;
-    }
-
-    // Preserve today's implicit initialize behavior. Only send Android audio
-    // attributes when the bypassVoiceProcessing path needs media attributes.
-    if (!isAutomaticConfigurationEnabled || !Native.bypassVoiceProcessing) {
-      return null;
-    }
-
-    return androidAudioSessionConfigurationToMap(_resolvedAudioSessionPolicy(_options).androidConfiguration);
-  }
-
-  @internal
   Future<void> applyOptionsForConnect() async {
     await _syncAppleAudioSessionManagementMode();
     if (isAutomaticConfigurationEnabled) {
-      await applyCurrentAudioSessionOptions();
+      await _applyCurrentAudioSessionPolicy();
     }
   }
 
@@ -290,9 +271,8 @@ class AudioManager {
     logger.fine('configuring Apple audio session using $config...');
     // In automatic mode the native audio-engine delegate owns activation timing,
     // so this caches the policy and applies now only if the engine is already
-    // running. Automatic mode can resolve the category from engine state unless
-    // the app gave an explicit Apple override. Manual mode applies the resolved
-    // config immediately and verbatim.
+    // running. Automatic mode resolves the category from engine state. Manual
+    // mode applies the resolved config immediately and verbatim.
     await Native.configureAudio(
       config,
       automatic: isAutomaticConfigurationEnabled,
@@ -311,55 +291,38 @@ class AudioManager {
     await Native.setAndroidSpeakerphoneOn(policy.preferSpeakerOutput, force: policy.forceSpeakerOutput);
   }
 
-  _ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) {
-    final preferSpeakerOutput = _speakerPreferenceForOptions(options);
-    return _ResolvedAudioSessionPolicy(
-      options: options,
-      preferSpeakerOutput: preferSpeakerOutput,
-      forceSpeakerOutput: _forceSpeakerOutput && preferSpeakerOutput,
-    );
-  }
+  _ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) => _ResolvedAudioSessionPolicy(
+        options: options,
+        preferSpeakerOutput: _preferSpeakerOutput,
+        forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
+        automatic: isAutomaticConfigurationEnabled,
+      );
 
   @visibleForTesting
   NativeAudioConfiguration resolveAppleAudioConfigurationForTest(
     AudioSessionOptions options, {
+    bool preferSpeakerOutput = true,
     bool forceSpeakerOutput = false,
-  }) {
-    final preferSpeakerOutput = _speakerPreferenceForOptions(options);
-    return _ResolvedAudioSessionPolicy(
-      options: options,
-      preferSpeakerOutput: preferSpeakerOutput,
-      forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
-    ).appleConfiguration;
-  }
+    bool automatic = true,
+  }) =>
+      _ResolvedAudioSessionPolicy(
+        options: options,
+        preferSpeakerOutput: preferSpeakerOutput,
+        forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
+        automatic: automatic,
+      ).appleConfiguration;
 
   @visibleForTesting
-  AndroidAudioSessionConfiguration resolveAndroidAudioConfigurationForTest(AudioSessionOptions options) =>
-      _resolvedAudioSessionPolicy(options).androidConfiguration;
-
-  bool _speakerPreferenceForOptions(AudioSessionOptions options) =>
-      options.apple?.preferSpeakerOutput ?? options.preferSpeakerOutput;
-
-  void _syncSpeakerPreferenceFromOptions(AudioSessionOptions options) {
-    _preferSpeakerOutput = _speakerPreferenceForOptions(options);
-    if (!_preferSpeakerOutput) {
-      _forceSpeakerOutput = false;
-    }
-  }
-
-  AudioSessionOptions _optionsWithSpeakerPreference(AudioSessionOptions options, bool preferSpeakerOutput) {
-    final apple = options.apple;
-    return options.copyWith(
-      preferSpeakerOutput: Value(preferSpeakerOutput),
-      apple: apple == null
-          ? const Absent<AppleAudioSessionConfiguration?>()
-          : Value(
-              apple.copyWith(
-                preferSpeakerOutput: Value(preferSpeakerOutput),
-              ),
-            ),
-    );
-  }
+  AndroidAudioSessionConfiguration resolveAndroidAudioConfigurationForTest(
+    AudioSessionOptions options, {
+    bool automatic = true,
+  }) =>
+      _ResolvedAudioSessionPolicy(
+        options: options,
+        preferSpeakerOutput: _preferSpeakerOutput,
+        forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
+        automatic: automatic,
+      ).androidConfiguration;
 
   /// Diagnostic snapshot of the resolved audio processing state.
   ///
@@ -380,25 +343,18 @@ class _ResolvedAudioSessionPolicy {
     required this.options,
     required this.preferSpeakerOutput,
     required this.forceSpeakerOutput,
+    required this.automatic,
   });
 
   final AudioSessionOptions options;
   final bool preferSpeakerOutput;
   final bool forceSpeakerOutput;
+  final bool automatic;
 
-  bool get usesDynamicAppleCategory => options.apple == null;
+  bool get usesDynamicAppleCategory => automatic;
 
   NativeAudioConfiguration get appleConfiguration {
-    final apple = options.apple;
-    if (apple != null) {
-      return NativeAudioConfiguration(
-        appleAudioCategory: apple.category,
-        appleAudioCategoryOptions: apple.categoryOptions,
-        appleAudioMode: apple.mode,
-      );
-    }
-
-    if (options.isCommunication) {
+    if (automatic) {
       return NativeAudioConfiguration(
         appleAudioCategory: AppleAudioCategory.playAndRecord,
         appleAudioCategoryOptions: {
@@ -410,31 +366,18 @@ class _ResolvedAudioSessionPolicy {
       );
     }
 
-    // Media (non-communication) base policy. The category here is a base. In
-    // automatic mode the native engine delegate overrides it from the live
-    // engine state (playAndRecord while recording, playback for playout-only),
-    // so it no longer depends on stale track/engine flags resolved at connect.
+    final apple = options.apple;
     return NativeAudioConfiguration(
-      appleAudioCategory: AppleAudioCategory.playAndRecord,
-      appleAudioCategoryOptions: {
-        AppleAudioCategoryOption.mixWithOthers,
-        AppleAudioCategoryOption.allowBluetooth,
-        AppleAudioCategoryOption.allowBluetoothA2DP,
-        AppleAudioCategoryOption.allowAirPlay,
-      },
-      appleAudioMode: AppleAudioMode.default_,
+      appleAudioCategory: apple.category,
+      appleAudioCategoryOptions: apple.categoryOptions,
+      appleAudioMode: apple.mode,
     );
   }
 
   AndroidAudioSessionConfiguration get androidConfiguration {
-    final android = options.android;
-    if (android != null) {
-      return android;
-    }
-
-    if (options.isCommunication) {
+    if (automatic) {
       return AndroidAudioSessionConfiguration.communication;
     }
-    return AndroidAudioSessionConfiguration.media;
+    return options.android;
   }
 }

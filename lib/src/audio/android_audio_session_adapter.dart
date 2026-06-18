@@ -18,9 +18,8 @@ import '../support/native.dart';
 import 'audio_session.dart';
 
 /// Serializes an [AndroidAudioSessionConfiguration] into the map consumed by
-/// LiveKit's native Android audio session manager (and by flutter_webrtc's
-/// audio device module at initialization). Unset fields are omitted so the
-/// native side keeps its current value.
+/// LiveKit's native Android audio session manager. Unset fields are omitted so
+/// the native side keeps its current value.
 @internal
 Map<String, dynamic> androidAudioSessionConfigurationToMap(AndroidAudioSessionConfiguration config) =>
     <String, dynamic>{

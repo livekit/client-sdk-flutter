@@ -29,90 +29,50 @@ enum AudioSessionManagementMode {
   manual,
 }
 
-enum _AudioSessionPreset { communication, media }
-
+@immutable
 class AudioSessionOptions {
-  final _AudioSessionPreset _preset;
+  /// Exact Apple session configuration for manual mode.
+  final AppleAudioSessionConfiguration apple;
 
-  /// Whether communication sessions should prefer speaker output.
-  ///
-  /// This is used by the communication preset and by Apple `playAndRecord`
-  /// policies. Media/playback policies leave routing to the platform unless an
-  /// exact platform override says otherwise.
-  final bool preferSpeakerOutput;
-
-  /// Optional exact iOS session override.
-  final AppleAudioSessionConfiguration? apple;
-
-  /// Optional exact Android session override.
-  final AndroidAudioSessionConfiguration? android;
+  /// Exact Android session configuration for manual mode.
+  final AndroidAudioSessionConfiguration android;
 
   const AudioSessionOptions._({
-    required _AudioSessionPreset preset,
-    this.preferSpeakerOutput = true,
-    this.apple,
-    this.android,
-  }) : _preset = preset;
+    required this.apple,
+    required this.android,
+  });
 
   /// Two-way audio preset for calls, rooms, and microphone capture.
   ///
-  /// LiveKit resolves this to communication-oriented platform policies. Use
-  /// [preferSpeakerOutput] for the default speaker preference unless [apple] or
-  /// [android] provides a more exact platform policy.
-  ///
-  /// On Apple platforms in automatic mode, listen-only playout uses playback
-  /// until recording starts. Receiver routing from [preferSpeakerOutput] only
-  /// applies while the effective category is `playAndRecord`.
+  /// This pre-fills communication-oriented platform policies. Speaker
+  /// routing is a runtime preference set with
+  /// `AudioManager.setSpeakerOutputPreferred`. Override [apple] or [android]
+  /// for exact platform behavior.
   const AudioSessionOptions.communication({
-    bool preferSpeakerOutput = true,
-    AppleAudioSessionConfiguration? apple,
-    AndroidAudioSessionConfiguration? android,
-  }) : this._(
-          preset: _AudioSessionPreset.communication,
-          preferSpeakerOutput: preferSpeakerOutput,
-          apple: apple,
-          android: android,
-        );
+    AppleAudioSessionConfiguration apple = AppleAudioSessionConfiguration.communication,
+    AndroidAudioSessionConfiguration android = AndroidAudioSessionConfiguration.communication,
+  }) : this._(apple: apple, android: android);
 
   /// One-way media playback preset.
   ///
-  /// This intentionally does not expose an initial [preferSpeakerOutput] value:
-  /// Apple playback policy leaves routing to the platform, while Android
-  /// speaker routing remains a runtime preference. Use [apple] or [android] for
-  /// exact platform behavior, or switch at runtime with
-  /// `AudioManager.setSpeakerOutputPreferred`.
+  /// This pre-fills playback-oriented platform policies. Apple playback policy
+  /// leaves routing to the platform, while Android speaker routing remains a
+  /// runtime preference. Override [apple] or [android] for exact platform
+  /// behavior.
   const AudioSessionOptions.media({
-    AppleAudioSessionConfiguration? apple,
-    AndroidAudioSessionConfiguration? android,
-  }) : this._(
-          preset: _AudioSessionPreset.media,
-          preferSpeakerOutput: true,
-          apple: apple,
-          android: android,
-        );
+    AppleAudioSessionConfiguration apple = AppleAudioSessionConfiguration.media,
+    AndroidAudioSessionConfiguration android = AndroidAudioSessionConfiguration.media,
+  }) : this._(apple: apple, android: android);
 
   /// Returns a copy with selected fields replaced.
-  ///
-  /// The preset chosen by [AudioSessionOptions.communication] or
-  /// [AudioSessionOptions.media] is intentionally retained. Create a new
-  /// options object with the other constructor to switch presets.
   AudioSessionOptions copyWith({
-    ValueOrAbsent<bool> preferSpeakerOutput = const Absent(),
-    ValueOrAbsent<AppleAudioSessionConfiguration?> apple = const Absent(),
-    ValueOrAbsent<AndroidAudioSessionConfiguration?> android = const Absent(),
+    ValueOrAbsent<AppleAudioSessionConfiguration> apple = const Absent(),
+    ValueOrAbsent<AndroidAudioSessionConfiguration> android = const Absent(),
   }) =>
       AudioSessionOptions._(
-        preset: _preset,
-        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
         apple: apple.valueOr(this.apple),
         android: android.valueOr(this.android),
       );
-
-  @internal
-  bool get isCommunication => _preset == _AudioSessionPreset.communication;
-
-  @internal
-  bool get isMedia => _preset == _AudioSessionPreset.media;
 }
 
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
@@ -148,6 +108,7 @@ enum AppleAudioMode {
   voicePrompt,
 }
 
+@immutable
 class AppleAudioSessionConfiguration {
   /// AVAudioSession category.
   final AppleAudioCategory? category;
@@ -158,27 +119,37 @@ class AppleAudioSessionConfiguration {
   /// AVAudioSession mode.
   final AppleAudioMode? mode;
 
-  /// Whether AVAudioSession should prefer speaker output when supported.
-  final bool? preferSpeakerOutput;
-
   const AppleAudioSessionConfiguration({
     this.category,
     this.categoryOptions,
     this.mode,
-    this.preferSpeakerOutput,
   });
+
+  static const communication = AppleAudioSessionConfiguration(
+    category: AppleAudioCategory.playAndRecord,
+    categoryOptions: {
+      AppleAudioCategoryOption.allowBluetooth,
+      AppleAudioCategoryOption.allowBluetoothA2DP,
+      AppleAudioCategoryOption.allowAirPlay,
+    },
+    mode: AppleAudioMode.videoChat,
+  );
+
+  static const media = AppleAudioSessionConfiguration(
+    category: AppleAudioCategory.playback,
+    categoryOptions: {AppleAudioCategoryOption.mixWithOthers},
+    mode: AppleAudioMode.spokenAudio,
+  );
 
   AppleAudioSessionConfiguration copyWith({
     ValueOrAbsent<AppleAudioCategory?> category = const Absent(),
     ValueOrAbsent<Set<AppleAudioCategoryOption>?> categoryOptions = const Absent(),
     ValueOrAbsent<AppleAudioMode?> mode = const Absent(),
-    ValueOrAbsent<bool?> preferSpeakerOutput = const Absent(),
   }) =>
       AppleAudioSessionConfiguration(
         category: category.valueOr(this.category),
         categoryOptions: categoryOptions.valueOr(this.categoryOptions),
         mode: mode.valueOr(this.mode),
-        preferSpeakerOutput: preferSpeakerOutput.valueOr(this.preferSpeakerOutput),
       );
 }
 
@@ -232,6 +203,7 @@ enum AndroidAudioAttributesContentType {
   unknown,
 }
 
+@immutable
 class AndroidAudioSessionConfiguration {
   /// Android AudioManager mode.
   final AndroidAudioMode? audioMode;

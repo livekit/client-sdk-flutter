@@ -43,36 +43,37 @@ void main() {
   });
 
   group('AudioSessionOptions', () {
-    test('defaults to communication', () {
-      final options = AudioSessionOptions.communication();
+    test('communication constructor pre-fills platform configs', () {
+      const options = AudioSessionOptions.communication();
 
-      expect(options.isCommunication, isTrue);
-      expect(options.isMedia, isFalse);
-    });
-
-    test('communication and media constructors describe session intent', () {
-      final communication = AudioSessionOptions.communication();
-      final media = AudioSessionOptions.media();
-
-      expect(communication.isCommunication, isTrue);
-      expect(communication.isMedia, isFalse);
-      expect(media.isCommunication, isFalse);
-      expect(media.isMedia, isTrue);
-    });
-
-    test('copyWith updates and clears platform overrides', () {
-      const options = AudioSessionOptions.communication(
-        preferSpeakerOutput: true,
-        apple: AppleAudioSessionConfiguration(
-          category: AppleAudioCategory.playAndRecord,
-        ),
-        android: AndroidAudioSessionConfiguration(
-          audioMode: AndroidAudioMode.inCommunication,
-        ),
+      expect(options.apple.category, AppleAudioCategory.playAndRecord);
+      expect(
+        options.apple.categoryOptions,
+        {
+          AppleAudioCategoryOption.allowBluetooth,
+          AppleAudioCategoryOption.allowBluetoothA2DP,
+          AppleAudioCategoryOption.allowAirPlay,
+        },
       );
+      expect(options.apple.mode, AppleAudioMode.videoChat);
+      expect(options.android.audioMode, AndroidAudioMode.inCommunication);
+      expect(options.android.streamType, AndroidAudioStreamType.voiceCall);
+    });
+
+    test('media constructor pre-fills platform configs', () {
+      const options = AudioSessionOptions.media();
+
+      expect(options.apple.category, AppleAudioCategory.playback);
+      expect(options.apple.categoryOptions, {AppleAudioCategoryOption.mixWithOthers});
+      expect(options.apple.mode, AppleAudioMode.spokenAudio);
+      expect(options.android.audioMode, AndroidAudioMode.normal);
+      expect(options.android.streamType, AndroidAudioStreamType.music);
+    });
+
+    test('copyWith replaces platform configs', () {
+      const options = AudioSessionOptions.communication();
 
       final updated = options.copyWith(
-        preferSpeakerOutput: const Value(false),
         apple: const Value(
           AppleAudioSessionConfiguration(
             mode: AppleAudioMode.voiceChat,
@@ -80,18 +81,18 @@ void main() {
         ),
       );
 
-      expect(updated.preferSpeakerOutput, isFalse);
-      expect(updated.apple?.category, isNull);
-      expect(updated.apple?.mode, AppleAudioMode.voiceChat);
-      expect(updated.android?.audioMode, AndroidAudioMode.inCommunication);
+      expect(updated.apple.category, isNull);
+      expect(updated.apple.mode, AppleAudioMode.voiceChat);
+      expect(updated.android.audioMode, AndroidAudioMode.inCommunication);
 
-      final cleared = updated.copyWith(
-        apple: const Value(null),
-        android: const Value(null),
+      final restored = updated.copyWith(
+        apple: const Value(AppleAudioSessionConfiguration.communication),
+        android: const Value(AndroidAudioSessionConfiguration.communication),
       );
 
-      expect(cleared.apple, isNull);
-      expect(cleared.android, isNull);
+      expect(restored.apple.category, AppleAudioCategory.playAndRecord);
+      expect(restored.apple.mode, AppleAudioMode.videoChat);
+      expect(restored.android.audioMode, AndroidAudioMode.inCommunication);
     });
 
     test('Apple configuration copyWith updates and clears nullable fields', () {
@@ -99,32 +100,27 @@ void main() {
         category: AppleAudioCategory.playAndRecord,
         categoryOptions: {AppleAudioCategoryOption.allowBluetooth},
         mode: AppleAudioMode.voiceChat,
-        preferSpeakerOutput: false,
       );
 
       final updated = config.copyWith(
         category: const Value(AppleAudioCategory.playback),
         categoryOptions: const Value({AppleAudioCategoryOption.mixWithOthers}),
         mode: const Value(AppleAudioMode.spokenAudio),
-        preferSpeakerOutput: const Value(true),
       );
 
       expect(updated.category, AppleAudioCategory.playback);
       expect(updated.categoryOptions, {AppleAudioCategoryOption.mixWithOthers});
       expect(updated.mode, AppleAudioMode.spokenAudio);
-      expect(updated.preferSpeakerOutput, isTrue);
 
       final cleared = updated.copyWith(
         category: const Value(null),
         categoryOptions: const Value(null),
         mode: const Value(null),
-        preferSpeakerOutput: const Value(null),
       );
 
       expect(cleared.category, isNull);
       expect(cleared.categoryOptions, isNull);
       expect(cleared.mode, isNull);
-      expect(cleared.preferSpeakerOutput, isNull);
     });
 
     test('Android configuration copyWith updates and clears nullable fields', () {
@@ -184,50 +180,47 @@ void main() {
 
       expect(manager.managementMode, AudioSessionManagementMode.manual);
       expect(manager.isAutomaticConfigurationEnabled, isFalse);
-      expect(manager.options.isCommunication, isTrue);
+      expect(manager.options.android.audioMode, AndroidAudioMode.inCommunication);
 
       await manager.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
     });
 
-    test('setAudioSessionOptions syncs communication speaker preference', () async {
+    test('setAudioSessionOptions switches management to manual', () async {
       final manager = AudioManager.instance;
+      expect(manager.managementMode, AudioSessionManagementMode.automatic);
 
-      await manager.setAudioSessionOptions(
-        const AudioSessionOptions.communication(preferSpeakerOutput: false),
-      );
+      await manager.setAudioSessionOptions(const AudioSessionOptions.media());
 
-      expect(manager.isSpeakerOutputPreferred, isFalse);
-      expect(manager.options.preferSpeakerOutput, isFalse);
-
-      await manager.setAudioSessionOptions(
-        const AudioSessionOptions.communication(preferSpeakerOutput: true),
-      );
-
-      expect(manager.isSpeakerOutputPreferred, isTrue);
-      expect(manager.options.preferSpeakerOutput, isTrue);
+      expect(manager.managementMode, AudioSessionManagementMode.manual);
+      expect(manager.options.apple.category, AppleAudioCategory.playback);
+      expect(manager.options.android.streamType, AndroidAudioStreamType.music);
     });
 
-    test('setAudioSessionOptions syncs explicit Apple speaker preference', () async {
+    test('deactivateAudioSession switches management to manual', () async {
+      final manager = AudioManager.instance;
+      expect(manager.managementMode, AudioSessionManagementMode.automatic);
+
+      await manager.deactivateAudioSession();
+
+      expect(manager.managementMode, AudioSessionManagementMode.manual);
+    });
+
+    test('setAudioSessionOptions preserves the runtime speaker preference', () async {
       final manager = AudioManager.instance;
 
-      await manager.setAudioSessionOptions(
-        const AudioSessionOptions.communication(
-          apple: AppleAudioSessionConfiguration(
-            preferSpeakerOutput: false,
-          ),
-        ),
-      );
-
-      expect(manager.isSpeakerOutputPreferred, isFalse);
+      // The speaker preference is runtime state owned by
+      // setSpeakerOutputPreferred, so changing the session intent must not reset
+      // it.
+      expect(manager.isSpeakerOutputPreferred, isTrue);
 
       await manager.setAudioSessionOptions(
-        const AudioSessionOptions.communication(
-          apple: AppleAudioSessionConfiguration(
-            preferSpeakerOutput: true,
-          ),
-        ),
+        const AudioSessionOptions.media(),
       );
+      expect(manager.isSpeakerOutputPreferred, isTrue);
 
+      await manager.setAudioSessionOptions(
+        const AudioSessionOptions.communication(),
+      );
       expect(manager.isSpeakerOutputPreferred, isTrue);
     });
 
@@ -235,7 +228,8 @@ void main() {
       final manager = AudioManager.instance;
 
       final speaker = manager.resolveAppleAudioConfigurationForTest(
-        const AudioSessionOptions.communication(preferSpeakerOutput: true),
+        const AudioSessionOptions.communication(),
+        preferSpeakerOutput: true,
       );
 
       expect(speaker.appleAudioCategory, AppleAudioCategory.playAndRecord);
@@ -250,29 +244,40 @@ void main() {
       );
 
       final receiver = manager.resolveAppleAudioConfigurationForTest(
-        const AudioSessionOptions.communication(preferSpeakerOutput: false),
+        const AudioSessionOptions.communication(),
+        preferSpeakerOutput: false,
       );
 
       expect(receiver.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(receiver.appleAudioMode, AppleAudioMode.voiceChat);
     });
 
-    test('resolves media Apple session policy as dynamic playAndRecord base', () {
+    test('automatic Apple policy ignores manual media options', () {
       final config = AudioManager.instance.resolveAppleAudioConfigurationForTest(
         const AudioSessionOptions.media(),
       );
 
       expect(config.appleAudioCategory, AppleAudioCategory.playAndRecord);
-      expect(config.appleAudioMode, AppleAudioMode.default_);
+      expect(config.appleAudioMode, AppleAudioMode.videoChat);
       expect(
         config.appleAudioCategoryOptions,
         {
-          AppleAudioCategoryOption.mixWithOthers,
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
         },
       );
+    });
+
+    test('resolves manual media Apple session policy as fixed playback', () {
+      final config = AudioManager.instance.resolveAppleAudioConfigurationForTest(
+        const AudioSessionOptions.media(),
+        automatic: false,
+      );
+
+      expect(config.appleAudioCategory, AppleAudioCategory.playback);
+      expect(config.appleAudioMode, AppleAudioMode.spokenAudio);
+      expect(config.appleAudioCategoryOptions, {AppleAudioCategoryOption.mixWithOthers});
     });
 
     test('forced speaker does not mutate Apple category options', () {
@@ -285,6 +290,7 @@ void main() {
             categoryOptions: {AppleAudioCategoryOption.mixWithOthers},
           ),
         ),
+        automatic: false,
         forceSpeakerOutput: true,
       );
 
@@ -298,6 +304,7 @@ void main() {
             categoryOptions: {AppleAudioCategoryOption.allowBluetooth},
           ),
         ),
+        automatic: false,
         forceSpeakerOutput: true,
       );
 
@@ -308,18 +315,19 @@ void main() {
       );
     });
 
-    test('resolves Android session policy from preset or explicit override', () {
+    test('resolves Android session policy from automatic mode or manual options', () {
       final manager = AudioManager.instance;
 
-      final communication = manager.resolveAndroidAudioConfigurationForTest(
-        const AudioSessionOptions.communication(),
+      final automaticMedia = manager.resolveAndroidAudioConfigurationForTest(
+        const AudioSessionOptions.media(),
       );
 
-      expect(communication.audioMode, AndroidAudioMode.inCommunication);
-      expect(communication.streamType, AndroidAudioStreamType.voiceCall);
+      expect(automaticMedia.audioMode, AndroidAudioMode.inCommunication);
+      expect(automaticMedia.streamType, AndroidAudioStreamType.voiceCall);
 
       final media = manager.resolveAndroidAudioConfigurationForTest(
         const AudioSessionOptions.media(),
+        automatic: false,
       );
 
       expect(media.audioMode, AndroidAudioMode.normal);
@@ -332,23 +340,41 @@ void main() {
             forceAudioRouting: true,
           ),
         ),
+        automatic: false,
       );
 
       expect(explicit.audioMode, AndroidAudioMode.normal);
       expect(explicit.forceAudioRouting, isTrue);
     });
 
-    test('Android initialize configuration uses active runtime options', () async {
+    test('automatic mode ignores stored manual options after switching back', () async {
       final manager = AudioManager.instance;
 
-      await manager.setAudioSessionOptions(const AudioSessionOptions.communication());
-      manager.configureDefaults(bypassVoiceProcessing: true);
-      Native.bypassVoiceProcessing = true;
+      await manager.setAudioSessionOptions(const AudioSessionOptions.media());
+      await manager.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
 
-      expect(
-        manager.androidAudioConfigurationForInitialize(assumeAndroid: true),
-        containsPair('androidAudioMode', 'inCommunication'),
+      final apple = manager.resolveAppleAudioConfigurationForTest(
+        manager.options,
+        automatic: manager.isAutomaticConfigurationEnabled,
+        preferSpeakerOutput: false,
       );
+      final android = manager.resolveAndroidAudioConfigurationForTest(
+        manager.options,
+        automatic: manager.isAutomaticConfigurationEnabled,
+      );
+
+      expect(apple.appleAudioCategory, AppleAudioCategory.playAndRecord);
+      expect(apple.appleAudioMode, AppleAudioMode.voiceChat);
+      expect(
+        apple.appleAudioCategoryOptions,
+        {
+          AppleAudioCategoryOption.allowBluetooth,
+          AppleAudioCategoryOption.allowBluetoothA2DP,
+          AppleAudioCategoryOption.allowAirPlay,
+        },
+      );
+      expect(android.audioMode, AndroidAudioMode.inCommunication);
+      expect(android.streamType, AndroidAudioStreamType.voiceCall);
     });
 
     test('handleAudioEngineState updates snapshot and stream', () async {
@@ -502,7 +528,7 @@ void main() {
   });
 
   group('androidAudioSessionConfigurationToMap', () {
-    test('serializes communication preset for WebRTC initialization', () {
+    test('serializes communication preset for the native session manager', () {
       expect(
         androidAudioSessionConfigurationToMap(AndroidAudioSessionConfiguration.communication),
         {
