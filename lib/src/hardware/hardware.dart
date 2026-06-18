@@ -14,6 +14,8 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
@@ -192,6 +194,31 @@ class Hardware {
       'audio': false,
       'video': device != null ? constraints : true,
     });
+  }
+
+  /// Explicitly starts the audio device module's recording pipeline.
+  ///
+  /// This is called automatically when a [LocalAudioTrack] is started, but
+  /// can be called manually for pre-join scenarios (e.g. audio visualization
+  /// before connecting to a room).
+  ///
+  /// No-ops on web. Safe to call multiple times (idempotent).
+  Future<void> startLocalRecording() async {
+    if (!kIsWeb) {
+      await rtc.NativeAudioManagement.startLocalRecording();
+    }
+  }
+
+  /// Stops the audio device module's recording pipeline.
+  ///
+  /// Normally you don't need to call this — WebRTC manages the ADM lifecycle.
+  /// Use this only for explicit control (e.g. CallKit flows).
+  ///
+  /// No-ops on web.
+  Future<void> stopLocalRecording() async {
+    if (!kIsWeb) {
+      await rtc.NativeAudioManagement.stopLocalRecording();
+    }
   }
 
   dynamic _onDeviceChange(dynamic _) async {
