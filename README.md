@@ -152,9 +152,8 @@ void main() async {
 
 By default LiveKit uses the `communication` audio mode on Android, which works best for two-way voice communication.
 
-If your app is media playback oriented and does not need the device's microphone, switch to the `media` mode for better
-audio quality. LiveKit owns the Android audio session through `AudioManager`, so configure this through `AudioManager`
-rather than `flutter_webrtc`.
+If your app is media playback oriented and does not need the device's microphone, apply the `media` session yourself. This
+switches `AudioManager` to manual mode, where your app owns the session.
 
 ```dart
 await AudioManager.instance.setAudioSessionOptions(
@@ -162,8 +161,7 @@ await AudioManager.instance.setAudioSessionOptions(
 );
 ```
 
-To make `media` the startup default, pass `bypassVoiceProcessing: true` to `LiveKitClient.initialize`. See the
-[audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for more.
+See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for more.
 
 ### Desktop support
 
@@ -312,13 +310,10 @@ Widget build(BuildContext context) {
 
 Audio tracks are played automatically as long as you are subscribed to them.
 
-LiveKit owns the platform audio session through `AudioManager`, which lets you choose a session intent, route to the speaker, and pin per platform values. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for examples covering communication and media modes, speaker routing, manual mode, per platform overrides, and migration from the older `Hardware` APIs.
+LiveKit owns the platform audio session through `AudioManager`. A call is managed automatically with no setup. Speaker routing and, when you need it, manual session control go through the same object. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for examples covering the automatic and manual modes, speaker routing, per platform overrides, and migration from the older `Hardware` APIs.
 
 ```dart
-// Enter call mode and prefer the speaker
-await AudioManager.instance.setAudioSessionOptions(
-  const AudioSessionOptions.communication(),
-);
+// A call is managed automatically. Route to the speaker when you want.
 await AudioManager.instance.setSpeakerOutputPreferred(true);
 ```
 
