@@ -233,7 +233,7 @@ class AudioManager {
       } else {
         // Manual mode: this is an explicit routing request, so re-apply the
         // resolved session policy immediately. Plain speaker preference is
-        // expressed by category/mode; force is carried separately to native.
+        // expressed by category/mode. Force is carried separately to native.
         await _configureAppleAudioSession(_options);
       }
     } else if (lkPlatformIs(PlatformType.android)) {

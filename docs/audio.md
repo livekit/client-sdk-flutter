@@ -67,7 +67,7 @@ Prefer setting the mode before connecting to a room.
 
 ## Per platform overrides
 
-When the presets are not enough you can pin exact platform values. Anything you do not set falls back to the preset behavior.
+When the presets are not enough you can pin exact platform values. A platform you do not override keeps its preset behavior, and an override you do supply is applied as written rather than merged into the preset.
 
 ```dart
 await AudioManager.instance.setAudioSessionOptions(

@@ -150,30 +150,20 @@ void main() async {
 
 #### Audio Modes
 
-By default, we use the `communication` audio mode on Android which works best for two-way voice communication.
+By default LiveKit uses the `communication` audio mode on Android, which works best for two-way voice communication.
 
-If your app is media playback oriented and does not need the use of the device's microphone, you can use the `media`
-audio mode which will provide better audio quality.
+If your app is media playback oriented and does not need the device's microphone, switch to the `media` mode for better
+audio quality. LiveKit owns the Android audio session through `AudioManager`, so configure this through `AudioManager`
+rather than `flutter_webrtc`.
 
 ```dart
-import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
-
-Future<void> _initializeAndroidAudioSettings() async {
-  await webrtc.WebRTC.initialize(options: {
-    'androidAudioConfiguration': webrtc.AndroidAudioConfiguration.media.toMap()
-  });
-  webrtc.Helper.setAndroidAudioConfiguration(
-      webrtc.AndroidAudioConfiguration.media);
-}
-
-void main() async {
-  await _initializeAudioSettings();
-  runApp(const MyApp());
-}
+await AudioManager.instance.setAudioSessionOptions(
+  const AudioSessionOptions.media(),
+);
 ```
 
-Note: the audio routing will become controlled by the system and cannot be manually changed with functions like
-`Hardware.selectAudioOutput`.
+To make `media` the startup default, pass `bypassVoiceProcessing: true` to `LiveKitClient.initialize`. See the
+[audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for more.
 
 ### Desktop support
 

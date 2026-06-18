@@ -170,8 +170,8 @@ internal class LKAudioSwitchManager(private val context: Context) {
     } else {
       null
     }
-    // AudioSwitch selections are sticky. Use them only for forced speaker output;
-    // clearing the selection lets the preferred-device list handle normal routing
+    // AudioSwitch selections are sticky. Use them only for forced speaker output.
+    // Clearing the selection lets the preferred-device list handle normal routing
     // and headset hot-plug priority.
     switch.selectDevice(forcedSpeaker)
   }
