@@ -67,10 +67,12 @@ internal class LKAudioSwitchManager(private val context: Context) {
 
   /**
    * Apply an audio session configuration. Unspecified keys keep their current
-   * value. Changes are applied to a running [AudioSwitch] without a restart.
+   * value. When the session is already active, changes that only take effect at
+   * activate() time trigger a deactivate and activate cycle so they apply live.
    */
   @Synchronized
   fun configure(configuration: Map<String, Any?>) {
+    val previous = sessionConfigSnapshot()
     (configuration["manageAudioFocus"] as? Boolean)?.let { manageAudioFocus = it }
     audioModeForName(configuration["androidAudioMode"] as? String)?.let { audioMode = it }
     focusModeForName(configuration["androidAudioFocusMode"] as? String)?.let { focusMode = it }
@@ -78,11 +80,35 @@ internal class LKAudioSwitchManager(private val context: Context) {
     usageTypeForName(configuration["androidAudioAttributesUsageType"] as? String)?.let { audioAttributeUsageType = it }
     contentTypeForName(configuration["androidAudioAttributesContentType"] as? String)?.let { audioAttributeContentType = it }
     (configuration["forceHandleAudioRouting"] as? Boolean)?.let { forceHandleAudioRouting = it }
+    val sessionConfigChanged = sessionConfigSnapshot() != previous
 
-    // Apply to a live switch so reconfiguration (e.g. communication -> media)
-    // does not require a restart. No-op until the switch exists.
-    handler.post { audioSwitch?.let { applyConfiguration(it) } }
+    handler.post {
+      val switch = audioSwitch ?: return@post
+      applyConfiguration(switch)
+      // AudioSwitch applies the audio mode, focus, and attributes at activate()
+      // time, so a live reconfiguration (e.g. communication to media) needs a
+      // deactivate and activate cycle to take effect on an already active
+      // session. Reassert speaker routing afterward.
+      if (isActive && sessionConfigChanged) {
+        switch.deactivate()
+        switch.activate()
+        applySpeakerRouting(switch)
+      }
+    }
   }
+
+  // Snapshot of the AudioSwitch properties applied only at activate() time, used
+  // to detect when a live session needs a deactivate and activate cycle to pick
+  // up a configuration change.
+  private fun sessionConfigSnapshot() = listOf(
+    manageAudioFocus,
+    audioMode,
+    focusMode,
+    audioStreamType,
+    audioAttributeUsageType,
+    audioAttributeContentType,
+    forceHandleAudioRouting,
+  )
 
   /** Create (if needed) and activate the audio session: acquire focus, set mode and routing. */
   @Synchronized
