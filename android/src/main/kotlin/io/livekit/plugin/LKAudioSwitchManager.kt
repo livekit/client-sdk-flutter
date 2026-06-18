@@ -52,7 +52,6 @@ internal class LKAudioSwitchManager(private val context: Context) {
 
   // Configuration. Defaults mirror a communication/VoIP session and match the
   // AudioSwitchHandler defaults in the LiveKit Android SDK.
-  private val loggingEnabled = false
   private var manageAudioFocus = true
   private var audioMode = AudioManager.MODE_IN_COMMUNICATION
   private var focusMode = AudioManager.AUDIOFOCUS_GAIN
@@ -63,7 +62,6 @@ internal class LKAudioSwitchManager(private val context: Context) {
 
   private var speakerOutputPreferred = true
   private var speakerOutputForced = false
-  private var preferredDeviceList = preferredDeviceList()
 
   /**
    * Apply an audio session configuration. Unspecified keys keep their current
@@ -80,11 +78,13 @@ internal class LKAudioSwitchManager(private val context: Context) {
     usageTypeForName(configuration["androidAudioAttributesUsageType"] as? String)?.let { audioAttributeUsageType = it }
     contentTypeForName(configuration["androidAudioAttributesContentType"] as? String)?.let { audioAttributeContentType = it }
     (configuration["forceHandleAudioRouting"] as? Boolean)?.let { forceHandleAudioRouting = it }
-    val sessionConfigChanged = sessionConfigSnapshot() != previous
+    val sessionConfig = sessionConfigSnapshot()
+    val sessionConfigChanged = sessionConfig != previous
+    val speakerRouting = speakerRoutingSnapshot()
 
     handler.post {
       val switch = audioSwitch ?: return@post
-      applyConfiguration(switch)
+      applyConfiguration(switch, sessionConfig)
       // AudioSwitch applies the audio mode, focus, and attributes at activate()
       // time, so a live reconfiguration (e.g. communication to media) needs a
       // deactivate and activate cycle to take effect on an already active
@@ -92,7 +92,7 @@ internal class LKAudioSwitchManager(private val context: Context) {
       if (isActive && sessionConfigChanged) {
         switch.deactivate()
         switch.activate()
-        applySpeakerRouting(switch)
+        applySpeakerRouting(switch, speakerRouting)
       }
     }
   }
@@ -100,24 +100,26 @@ internal class LKAudioSwitchManager(private val context: Context) {
   // Snapshot of the AudioSwitch properties applied only at activate() time, used
   // to detect when a live session needs a deactivate and activate cycle to pick
   // up a configuration change.
-  private fun sessionConfigSnapshot() = listOf(
-    manageAudioFocus,
-    audioMode,
-    focusMode,
-    audioStreamType,
-    audioAttributeUsageType,
-    audioAttributeContentType,
-    forceHandleAudioRouting,
+  private fun sessionConfigSnapshot() = SessionConfig(
+    manageAudioFocus = manageAudioFocus,
+    audioMode = audioMode,
+    focusMode = focusMode,
+    audioStreamType = audioStreamType,
+    audioAttributeUsageType = audioAttributeUsageType,
+    audioAttributeContentType = audioAttributeContentType,
+    forceHandleAudioRouting = forceHandleAudioRouting,
   )
 
   /** Create (if needed) and activate the audio session: acquire focus, set mode and routing. */
   @Synchronized
   fun start() {
+    val sessionConfig = sessionConfigSnapshot()
+    val speakerRouting = speakerRoutingSnapshot()
     handler.post {
-      val switch = audioSwitch ?: createSwitch().also { audioSwitch = it }
+      val switch = audioSwitch ?: createSwitch(sessionConfig, speakerRouting).also { audioSwitch = it }
       if (!isActive) {
         switch.activate()
-        applySpeakerRouting(switch)
+        applySpeakerRouting(switch, speakerRouting)
         isActive = true
       }
     }
@@ -152,46 +154,49 @@ internal class LKAudioSwitchManager(private val context: Context) {
   fun setSpeakerphoneOn(enable: Boolean, force: Boolean) {
     speakerOutputPreferred = enable
     speakerOutputForced = enable && force
-    preferredDeviceList = preferredDeviceList()
+    val speakerRouting = speakerRoutingSnapshot()
     handler.post {
       val switch = audioSwitch ?: return@post
-      applySpeakerRouting(switch)
+      applySpeakerRouting(switch, speakerRouting)
     }
   }
 
-  private fun createSwitch(): AbstractAudioSwitch {
+  private fun createSwitch(
+    sessionConfig: SessionConfig,
+    speakerRouting: SpeakerRouting,
+  ): AbstractAudioSwitch {
     val focusListener = AudioManager.OnAudioFocusChangeListener { }
     // API-aware switch selection, matching the LiveKit Android SDK's
     // AudioSwitchHandler: CommDeviceAudioSwitch uses the modern
     // AudioManager.setCommunicationDevice routing on API 31+.
     val switch = when {
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-        CommDeviceAudioSwitch(context, loggingEnabled, focusListener, preferredDeviceList)
+        CommDeviceAudioSwitch(context, false, focusListener, speakerRouting.preferredDeviceList)
 
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
-        AudioSwitch(context, loggingEnabled, focusListener, preferredDeviceList)
+        AudioSwitch(context, false, focusListener, speakerRouting.preferredDeviceList)
 
       else ->
-        LegacyAudioSwitch(context, loggingEnabled, focusListener, preferredDeviceList)
+        LegacyAudioSwitch(context, false, focusListener, speakerRouting.preferredDeviceList)
     }
-    applyConfiguration(switch)
+    applyConfiguration(switch, sessionConfig)
     switch.start { _, _ -> }
     return switch
   }
 
-  private fun applyConfiguration(switch: AbstractAudioSwitch) {
-    switch.manageAudioFocus = manageAudioFocus
-    switch.audioMode = audioMode
-    switch.focusMode = focusMode
-    switch.audioStreamType = audioStreamType
-    switch.audioAttributeUsageType = audioAttributeUsageType
-    switch.audioAttributeContentType = audioAttributeContentType
-    switch.forceHandleAudioRouting = forceHandleAudioRouting
+  private fun applyConfiguration(switch: AbstractAudioSwitch, sessionConfig: SessionConfig) {
+    switch.manageAudioFocus = sessionConfig.manageAudioFocus
+    switch.audioMode = sessionConfig.audioMode
+    switch.focusMode = sessionConfig.focusMode
+    switch.audioStreamType = sessionConfig.audioStreamType
+    switch.audioAttributeUsageType = sessionConfig.audioAttributeUsageType
+    switch.audioAttributeContentType = sessionConfig.audioAttributeContentType
+    switch.forceHandleAudioRouting = sessionConfig.forceHandleAudioRouting
   }
 
-  private fun applySpeakerRouting(switch: AbstractAudioSwitch) {
-    switch.setPreferredDeviceList(preferredDeviceList)
-    val forcedSpeaker = if (speakerOutputForced) {
+  private fun applySpeakerRouting(switch: AbstractAudioSwitch, speakerRouting: SpeakerRouting) {
+    switch.setPreferredDeviceList(speakerRouting.preferredDeviceList)
+    val forcedSpeaker = if (speakerRouting.speakerOutputForced) {
       switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
     } else {
       null
@@ -202,7 +207,18 @@ internal class LKAudioSwitchManager(private val context: Context) {
     switch.selectDevice(forcedSpeaker)
   }
 
-  private fun preferredDeviceList(): List<Class<out AudioDevice>> =
+  private fun speakerRoutingSnapshot() = SpeakerRouting(
+    speakerOutputForced = speakerOutputForced,
+    preferredDeviceList = preferredDeviceList(
+      speakerOutputPreferred = speakerOutputPreferred,
+      speakerOutputForced = speakerOutputForced,
+    ),
+  )
+
+  private fun preferredDeviceList(
+    speakerOutputPreferred: Boolean,
+    speakerOutputForced: Boolean,
+  ): List<Class<out AudioDevice>> =
     when {
       speakerOutputForced -> listOf(
         AudioDevice.Speakerphone::class.java,
@@ -225,6 +241,21 @@ internal class LKAudioSwitchManager(private val context: Context) {
         AudioDevice.Speakerphone::class.java,
       )
     }
+
+  private data class SessionConfig(
+    val manageAudioFocus: Boolean,
+    val audioMode: Int,
+    val focusMode: Int,
+    val audioStreamType: Int,
+    val audioAttributeUsageType: Int,
+    val audioAttributeContentType: Int,
+    val forceHandleAudioRouting: Boolean,
+  )
+
+  private data class SpeakerRouting(
+    val speakerOutputForced: Boolean,
+    val preferredDeviceList: List<Class<out AudioDevice>>,
+  )
 }
 
 // Map the Flutter-side enum names (see android_audio_session_adapter.dart) to
