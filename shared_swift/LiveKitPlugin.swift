@@ -652,9 +652,8 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // automatic should configure the live session without waiting for another
     // engine lifecycle event.
     private var sessionActive = false
-    // Last engine state seen, so an immediate re-apply (e.g. speaker toggle
+    // Last recording state seen, so an immediate re-apply (e.g. speaker toggle
     // while the engine is running) can resolve the category from current state.
-    private var lastIsPlayoutEnabled = false
     private var lastIsRecordingEnabled = false
     #endif
 
@@ -719,7 +718,6 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
 
     private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
         lock.lock()
-        lastIsPlayoutEnabled = isPlayoutEnabled
         lastIsRecordingEnabled = isRecordingEnabled
         sessionActive = isPlayoutEnabled || isRecordingEnabled
         lock.unlock()
