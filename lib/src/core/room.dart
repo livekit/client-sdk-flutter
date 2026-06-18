@@ -104,6 +104,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   bool _isRecording = false;
   bool _audioEnabled = true;
 
+  // Whether the one-time RoomOptions speaker preference bridge has run.
+  bool _legacySpeakerBridged = false;
+
   lk_models.Room? _roomInfo;
 
   /// a list of participants that are actively speaking, including local participant.
@@ -290,10 +293,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
 
     // Bridge a legacy RoomOptions speaker preference into the process-wide
-    // AudioManager before the session starts. New code should call
-    // AudioManager.instance.setSpeakerOutputPreferred directly.
+    // AudioManager once, on the first connect. Skipping it on a later manual
+    // connect of the same Room keeps a runtime speaker change from being
+    // reverted. New code should call setSpeakerOutputPreferred directly.
     final legacySpeakerOn = roomOptions.defaultAudioOutputOptions.speakerOn;
-    if (legacySpeakerOn != null && lkPlatformIsMobile()) {
+    if (legacySpeakerOn != null && !_legacySpeakerBridged && lkPlatformIsMobile()) {
+      _legacySpeakerBridged = true;
       await AudioManager.instance.setSpeakerOutputPreferred(legacySpeakerOn);
     }
 
