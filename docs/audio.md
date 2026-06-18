@@ -160,33 +160,25 @@ For an `apple` config, your exact category, options, and mode are applied as wri
 
 ### Updating options with copyWith
 
-`AudioSessionOptions.copyWith` uses `Value` and `Absent` to replace the Apple or Android config as a whole. A bare `copyWith()` keeps the existing config, and `Value(x)` sets a new config. The Apple and Android config objects have their own `copyWith` methods for clearing nullable native fields with `Value(null)`.
+`AudioSessionOptions.copyWith` uses `ValueOrAbsent` to replace the Apple or Android config as a whole. A bare `copyWith()` keeps the existing config, and `ValueOrAbsent.value(x)` sets a new config. The Apple and Android config objects have their own `copyWith` methods for clearing nullable native fields with `ValueOrAbsent.value(null)`.
 
 ```dart
 const base = AudioSessionOptions.communication();
 
 // Use the media Android config, keep the Apple config.
 final updated = base.copyWith(
-  android: const Value(AndroidAudioSessionConfiguration.media),
+  android: const ValueOrAbsent.value(AndroidAudioSessionConfiguration.media),
 );
 
 // Clear just the Apple mode field inside the Apple config.
 final clearedMode = updated.copyWith(
-  apple: Value(updated.apple.copyWith(mode: const Value(null))),
+  apple: ValueOrAbsent.value(
+    updated.apple.copyWith(mode: const ValueOrAbsent.value(null)),
+  ),
 );
 ```
 
 Create a new `AudioSessionOptions.communication()` or `AudioSessionOptions.media()` when you want to start from a different preset config.
-
-If `Value` collides with another package in your imports, alias the import.
-
-```dart
-import 'package:livekit_client/livekit_client.dart' as lk;
-
-final updated = base.copyWith(
-  apple: lk.Value(base.apple.copyWith(mode: const lk.Value(null))),
-);
-```
 
 ## Platform support
 

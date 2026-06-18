@@ -24,31 +24,30 @@
 ///   final String? name;
 ///
 ///   Example copyWith({
-///     ValueOrAbsent<String?> name = const Absent(),
+///     ValueOrAbsent<String?> name = const ValueOrAbsent.absent(),
 ///   }) =>
 ///       Example(name: name.valueOr(this.name));
 /// }
 ///
 /// example.copyWith(); // keep existing name
-/// example.copyWith(name: Value('room')); // set name
-/// example.copyWith(name: Value(null)); // clear name
+/// example.copyWith(name: ValueOrAbsent.value('room')); // set name
+/// example.copyWith(name: ValueOrAbsent.value(null)); // clear name
 /// ```
 sealed class ValueOrAbsent<T> {
   const ValueOrAbsent();
 
   /// Creates an explicit replacement value.
-  const factory ValueOrAbsent.value(T value) = Value<T>;
+  const factory ValueOrAbsent.value(T value) = _Value<T>;
 
   /// Creates an omitted value that preserves the current field.
-  const factory ValueOrAbsent.absent() = Absent<T>;
+  const factory ValueOrAbsent.absent() = _Absent<T>;
 
   /// Returns the explicit value, or [other] when this value is absent.
   T valueOr(T other);
 }
 
-/// An explicit replacement value, including `null`.
-final class Value<T> extends ValueOrAbsent<T> {
-  const Value(this.value);
+final class _Value<T> extends ValueOrAbsent<T> {
+  const _Value(this.value);
 
   final T value;
 
@@ -56,9 +55,8 @@ final class Value<T> extends ValueOrAbsent<T> {
   T valueOr(T other) => value;
 }
 
-/// An omitted value that keeps the current field.
-final class Absent<T> extends ValueOrAbsent<T> {
-  const Absent();
+final class _Absent<T> extends ValueOrAbsent<T> {
+  const _Absent();
 
   @override
   T valueOr(T other) => other;

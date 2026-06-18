@@ -99,7 +99,7 @@ void main() {
       const options = AudioSessionOptions.communication();
 
       final updated = options.copyWith(
-        apple: const Value(
+        apple: const ValueOrAbsent.value(
           AppleAudioSessionConfiguration(
             mode: AppleAudioMode.voiceChat,
           ),
@@ -111,8 +111,8 @@ void main() {
       expect(updated.android.audioMode, AndroidAudioMode.inCommunication);
 
       final restored = updated.copyWith(
-        apple: const Value(AppleAudioSessionConfiguration.communication),
-        android: const Value(AndroidAudioSessionConfiguration.communication),
+        apple: const ValueOrAbsent.value(AppleAudioSessionConfiguration.communication),
+        android: const ValueOrAbsent.value(AndroidAudioSessionConfiguration.communication),
       );
 
       expect(restored.apple.category, AppleAudioCategory.playAndRecord);
@@ -128,9 +128,9 @@ void main() {
       );
 
       final updated = config.copyWith(
-        category: const Value(AppleAudioCategory.playback),
-        categoryOptions: const Value({AppleAudioCategoryOption.mixWithOthers}),
-        mode: const Value(AppleAudioMode.spokenAudio),
+        category: const ValueOrAbsent.value(AppleAudioCategory.playback),
+        categoryOptions: const ValueOrAbsent.value({AppleAudioCategoryOption.mixWithOthers}),
+        mode: const ValueOrAbsent.value(AppleAudioMode.spokenAudio),
       );
 
       expect(updated.category, AppleAudioCategory.playback);
@@ -138,9 +138,9 @@ void main() {
       expect(updated.mode, AppleAudioMode.spokenAudio);
 
       final cleared = updated.copyWith(
-        category: const Value(null),
-        categoryOptions: const Value(null),
-        mode: const Value(null),
+        category: const ValueOrAbsent.value(null),
+        categoryOptions: const ValueOrAbsent.value(null),
+        mode: const ValueOrAbsent.value(null),
       );
 
       expect(cleared.category, isNull);
@@ -160,13 +160,13 @@ void main() {
       );
 
       final updated = config.copyWith(
-        audioMode: const Value(AndroidAudioMode.normal),
-        manageAudioFocus: const Value(false),
-        focusMode: const Value(AndroidAudioFocusMode.gainTransient),
-        streamType: const Value(AndroidAudioStreamType.music),
-        usageType: const Value(AndroidAudioAttributesUsageType.media),
-        contentType: const Value(AndroidAudioAttributesContentType.unknown),
-        forceAudioRouting: const Value(false),
+        audioMode: const ValueOrAbsent.value(AndroidAudioMode.normal),
+        manageAudioFocus: const ValueOrAbsent.value(false),
+        focusMode: const ValueOrAbsent.value(AndroidAudioFocusMode.gainTransient),
+        streamType: const ValueOrAbsent.value(AndroidAudioStreamType.music),
+        usageType: const ValueOrAbsent.value(AndroidAudioAttributesUsageType.media),
+        contentType: const ValueOrAbsent.value(AndroidAudioAttributesContentType.unknown),
+        forceAudioRouting: const ValueOrAbsent.value(false),
       );
 
       expect(updated.audioMode, AndroidAudioMode.normal);
@@ -178,13 +178,13 @@ void main() {
       expect(updated.forceAudioRouting, isFalse);
 
       final cleared = updated.copyWith(
-        audioMode: const Value(null),
-        manageAudioFocus: const Value(null),
-        focusMode: const Value(null),
-        streamType: const Value(null),
-        usageType: const Value(null),
-        contentType: const Value(null),
-        forceAudioRouting: const Value(null),
+        audioMode: const ValueOrAbsent.value(null),
+        manageAudioFocus: const ValueOrAbsent.value(null),
+        focusMode: const ValueOrAbsent.value(null),
+        streamType: const ValueOrAbsent.value(null),
+        usageType: const ValueOrAbsent.value(null),
+        contentType: const ValueOrAbsent.value(null),
+        forceAudioRouting: const ValueOrAbsent.value(null),
       );
 
       expect(cleared.audioMode, isNull);

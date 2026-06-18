@@ -66,8 +66,8 @@ class AudioSessionOptions {
 
   /// Returns a copy with selected fields replaced.
   AudioSessionOptions copyWith({
-    ValueOrAbsent<AppleAudioSessionConfiguration> apple = const Absent(),
-    ValueOrAbsent<AndroidAudioSessionConfiguration> android = const Absent(),
+    ValueOrAbsent<AppleAudioSessionConfiguration> apple = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AndroidAudioSessionConfiguration> android = const ValueOrAbsent.absent(),
   }) =>
       AudioSessionOptions._(
         apple: apple.valueOr(this.apple),
@@ -142,9 +142,9 @@ class AppleAudioSessionConfiguration {
   );
 
   AppleAudioSessionConfiguration copyWith({
-    ValueOrAbsent<AppleAudioCategory?> category = const Absent(),
-    ValueOrAbsent<Set<AppleAudioCategoryOption>?> categoryOptions = const Absent(),
-    ValueOrAbsent<AppleAudioMode?> mode = const Absent(),
+    ValueOrAbsent<AppleAudioCategory?> category = const ValueOrAbsent.absent(),
+    ValueOrAbsent<Set<AppleAudioCategoryOption>?> categoryOptions = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AppleAudioMode?> mode = const ValueOrAbsent.absent(),
   }) =>
       AppleAudioSessionConfiguration(
         category: category.valueOr(this.category),
@@ -255,13 +255,13 @@ class AndroidAudioSessionConfiguration {
   );
 
   AndroidAudioSessionConfiguration copyWith({
-    ValueOrAbsent<AndroidAudioMode?> audioMode = const Absent(),
-    ValueOrAbsent<bool?> manageAudioFocus = const Absent(),
-    ValueOrAbsent<AndroidAudioFocusMode?> focusMode = const Absent(),
-    ValueOrAbsent<AndroidAudioStreamType?> streamType = const Absent(),
-    ValueOrAbsent<AndroidAudioAttributesUsageType?> usageType = const Absent(),
-    ValueOrAbsent<AndroidAudioAttributesContentType?> contentType = const Absent(),
-    ValueOrAbsent<bool?> forceAudioRouting = const Absent(),
+    ValueOrAbsent<AndroidAudioMode?> audioMode = const ValueOrAbsent.absent(),
+    ValueOrAbsent<bool?> manageAudioFocus = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AndroidAudioFocusMode?> focusMode = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AndroidAudioStreamType?> streamType = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AndroidAudioAttributesUsageType?> usageType = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AndroidAudioAttributesContentType?> contentType = const ValueOrAbsent.absent(),
+    ValueOrAbsent<bool?> forceAudioRouting = const ValueOrAbsent.absent(),
   }) =>
       AndroidAudioSessionConfiguration(
         audioMode: audioMode.valueOr(this.audioMode),

@@ -74,9 +74,9 @@ class NativeAudioConfiguration {
       };
 
   NativeAudioConfiguration copyWith({
-    ValueOrAbsent<AppleAudioCategory?> appleAudioCategory = const Absent(),
-    ValueOrAbsent<Set<AppleAudioCategoryOption>?> appleAudioCategoryOptions = const Absent(),
-    ValueOrAbsent<AppleAudioMode?> appleAudioMode = const Absent(),
+    ValueOrAbsent<AppleAudioCategory?> appleAudioCategory = const ValueOrAbsent.absent(),
+    ValueOrAbsent<Set<AppleAudioCategoryOption>?> appleAudioCategoryOptions = const ValueOrAbsent.absent(),
+    ValueOrAbsent<AppleAudioMode?> appleAudioMode = const ValueOrAbsent.absent(),
   }) =>
       NativeAudioConfiguration(
         appleAudioCategory: appleAudioCategory.valueOr(this.appleAudioCategory),
