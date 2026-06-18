@@ -704,6 +704,27 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
                                                             active: true)
     }
 
+    private func applyManagedConfiguration(isRecordingEnabled: Bool) -> Error? {
+        lock.lock()
+        let shouldManageSession = isAutomaticManagementEnabled
+        let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
+        let forceSpeakerOutput = self.forceSpeakerOutput
+        lock.unlock()
+
+        guard shouldManageSession, let configuration else { return nil }
+        return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
+                                                            forceSpeakerOutput: forceSpeakerOutput,
+                                                            active: true)
+    }
+
+    private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
+        lock.lock()
+        lastIsPlayoutEnabled = isPlayoutEnabled
+        lastIsRecordingEnabled = isRecordingEnabled
+        sessionActive = isPlayoutEnabled || isRecordingEnabled
+        lock.unlock()
+    }
+
     /// Resolves the configuration to apply for a given engine state. Must be
     /// called with `lock` held.
     ///
@@ -747,26 +768,12 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         var resultCode = 0
         #if !os(macOS)
         if isPlayoutEnabled || isRecordingEnabled {
-            lock.lock()
-            let shouldManageSession = isAutomaticManagementEnabled
-            let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
-            let forceSpeakerOutput = self.forceSpeakerOutput
-            lock.unlock()
-
-            if shouldManageSession,
-               let configuration = configuration,
-               let error = LiveKitPlugin.applyAudioSessionConfiguration(configuration,
-                                                                        forceSpeakerOutput: forceSpeakerOutput,
-                                                                        active: true) {
+            if let error = applyManagedConfiguration(isRecordingEnabled: isRecordingEnabled) {
                 print("[LiveKit] AudioEngine willEnable: failed to configure audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
             }
             if resultCode == 0 {
-                lock.lock()
-                lastIsPlayoutEnabled = isPlayoutEnabled
-                lastIsRecordingEnabled = isRecordingEnabled
-                sessionActive = true
-                lock.unlock()
+                recordEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
             }
         }
         #endif
@@ -782,38 +789,30 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
                            isRecordingEnabled: Bool) -> Int {
         var resultCode = 0
         #if !os(macOS)
-        lock.lock()
-        let shouldManageSession = isAutomaticManagementEnabled
-        let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
-        let forceSpeakerOutput = self.forceSpeakerOutput
-        lock.unlock()
-
         if isPlayoutEnabled || isRecordingEnabled {
             // A disable event can leave one side of the engine running (for
             // example, mic off while remote playout continues). Re-apply so
             // dynamic category selection follows the new engine state.
-            if shouldManageSession,
-               let configuration = configuration,
-               let error = LiveKitPlugin.applyAudioSessionConfiguration(configuration,
-                                                                        forceSpeakerOutput: forceSpeakerOutput,
-                                                                        active: true) {
+            if let error = applyManagedConfiguration(isRecordingEnabled: isRecordingEnabled) {
                 print("[LiveKit] AudioEngine didDisable: failed to configure audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
             }
-        } else if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
-            // Leave sessionActive unchanged (still true) so cached state
-            // keeps reflecting the live session. Flipping it to false here
-            // would make a later configureNativeAudio(automatic:) cache-only
-            // while the session is in fact still active.
-            print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
-            resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
+        } else {
+            lock.lock()
+            let shouldManageSession = isAutomaticManagementEnabled
+            lock.unlock()
+
+            if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
+                // Leave sessionActive unchanged (still true) so cached state
+                // keeps reflecting the live session. Flipping it to false here
+                // would make a later configureNativeAudio(automatic:) cache-only
+                // while the session is in fact still active.
+                print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
+                resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
+            }
         }
         if resultCode == 0 {
-            lock.lock()
-            lastIsPlayoutEnabled = isPlayoutEnabled
-            lastIsRecordingEnabled = isRecordingEnabled
-            sessionActive = isPlayoutEnabled || isRecordingEnabled
-            lock.unlock()
+            recordEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
         }
         #endif
         if resultCode == 0 {
