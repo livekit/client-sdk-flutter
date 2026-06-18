@@ -85,7 +85,8 @@ class Hardware {
   // Backed by [AudioManager] so there is a single source of truth for the
   // management mode. See [AudioManager.setAudioSessionManagementMode].
   @Deprecated('Use AudioManager.instance.managementMode instead')
-  bool get isAutomaticConfigurationEnabled => AudioManager.instance.isAutomaticConfigurationEnabled;
+  bool get isAutomaticConfigurationEnabled =>
+      AudioManager.instance.managementMode == AudioSessionManagementMode.automatic;
 
   @Deprecated('Use AudioManager.instance.setAudioSessionManagementMode instead')
   void setAutomaticConfigurationEnabled({required bool enable}) {

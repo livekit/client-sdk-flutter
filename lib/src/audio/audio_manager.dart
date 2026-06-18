@@ -18,11 +18,11 @@ import 'package:meta/meta.dart';
 
 import '../logger.dart';
 import '../support/native.dart';
-import '../support/native_audio.dart';
 import '../support/platform.dart';
 import 'android_audio_session_adapter.dart';
 import 'audio_processing_state.dart';
 import 'audio_session.dart';
+import 'audio_session_policy.dart';
 
 /// Snapshot of the WebRTC audio engine's playout/recording state.
 ///
@@ -75,8 +75,6 @@ class AudioManager {
   bool _isRecordingEnabled = false;
   final StreamController<AudioEngineState> _audioEngineStateController = StreamController<AudioEngineState>.broadcast();
 
-  @Deprecated('Automatic mode no longer uses session options. Use options for manual configuration.')
-  AudioSessionOptions get defaultOptions => const AudioSessionOptions.communication();
   AudioSessionOptions get options => _options;
   AudioSessionManagementMode get managementMode => _managementMode;
 
@@ -98,10 +96,7 @@ class AudioManager {
   /// A broadcast stream of audio engine state changes (native engine lifecycle).
   Stream<AudioEngineState> get audioEngineStateStream => _audioEngineStateController.stream;
 
-  // Derived from [managementMode]. Kept internal so the public surface exposes
-  // a single way to read the mode.
-  @internal
-  bool get isAutomaticConfigurationEnabled => _managementMode == AudioSessionManagementMode.automatic;
+  bool get _isAutomaticConfigurationEnabled => _managementMode == AudioSessionManagementMode.automatic;
 
   @visibleForTesting
   void resetForTest() {
@@ -215,7 +210,7 @@ class AudioManager {
     _forceSpeakerOutput = preferred && force;
 
     if (lkPlatformIs(PlatformType.iOS)) {
-      if (isAutomaticConfigurationEnabled) {
+      if (_isAutomaticConfigurationEnabled) {
         final policy = _resolvedAudioSessionPolicy(_options);
         // Automatic mode: the native audio-engine delegate owns activation
         // timing, so this caches the policy and applies now only if the engine
@@ -223,7 +218,7 @@ class AudioManager {
         await Native.configureAudio(
           policy.appleConfiguration,
           automatic: true,
-          selectCategoryByEngineState: policy.usesDynamicAppleCategory,
+          selectCategoryByEngineState: true,
           forceSpeakerOutput: policy.forceSpeakerOutput,
         );
       } else {
@@ -237,12 +232,6 @@ class AudioManager {
     }
   }
 
-  /// Re-applies the current platform audio policy.
-  ///
-  /// In automatic mode this reapplies LiveKit's managed communication policy.
-  /// In manual mode this reapplies [options].
-  Future<void> applyCurrentAudioSessionOptions() => _applyCurrentAudioSessionPolicy();
-
   Future<void> _applyCurrentAudioSessionPolicy() async {
     if (lkPlatformIs(PlatformType.iOS)) {
       await _configureAppleAudioSession(_options);
@@ -254,14 +243,14 @@ class AudioManager {
   @internal
   Future<void> applyOptionsForConnect() async {
     await _syncAppleAudioSessionManagementMode();
-    if (isAutomaticConfigurationEnabled) {
+    if (_isAutomaticConfigurationEnabled) {
       await _applyCurrentAudioSessionPolicy();
     }
   }
 
   Future<void> _syncAppleAudioSessionManagementMode() async {
     if (lkPlatformIs(PlatformType.iOS)) {
-      await Native.setAppleAudioSessionAutomaticManagementEnabled(isAutomaticConfigurationEnabled);
+      await Native.setAppleAudioSessionAutomaticManagementEnabled(_isAutomaticConfigurationEnabled);
     }
   }
 
@@ -275,8 +264,8 @@ class AudioManager {
     // mode applies the resolved config immediately and verbatim.
     await Native.configureAudio(
       config,
-      automatic: isAutomaticConfigurationEnabled,
-      selectCategoryByEngineState: isAutomaticConfigurationEnabled && policy.usesDynamicAppleCategory,
+      automatic: _isAutomaticConfigurationEnabled,
+      selectCategoryByEngineState: _isAutomaticConfigurationEnabled,
       forceSpeakerOutput: policy.forceSpeakerOutput,
     );
   }
@@ -291,38 +280,12 @@ class AudioManager {
     await Native.setAndroidSpeakerphoneOn(policy.preferSpeakerOutput, force: policy.forceSpeakerOutput);
   }
 
-  _ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) => _ResolvedAudioSessionPolicy(
+  ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) => ResolvedAudioSessionPolicy(
         options: options,
         preferSpeakerOutput: _preferSpeakerOutput,
         forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
-        automatic: isAutomaticConfigurationEnabled,
+        automatic: _isAutomaticConfigurationEnabled,
       );
-
-  @visibleForTesting
-  NativeAudioConfiguration resolveAppleAudioConfigurationForTest(
-    AudioSessionOptions options, {
-    bool preferSpeakerOutput = true,
-    bool forceSpeakerOutput = false,
-    bool automatic = true,
-  }) =>
-      _ResolvedAudioSessionPolicy(
-        options: options,
-        preferSpeakerOutput: preferSpeakerOutput,
-        forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
-        automatic: automatic,
-      ).appleConfiguration;
-
-  @visibleForTesting
-  AndroidAudioSessionConfiguration resolveAndroidAudioConfigurationForTest(
-    AudioSessionOptions options, {
-    bool automatic = true,
-  }) =>
-      _ResolvedAudioSessionPolicy(
-        options: options,
-        preferSpeakerOutput: _preferSpeakerOutput,
-        forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
-        automatic: automatic,
-      ).androidConfiguration;
 
   /// Diagnostic snapshot of the resolved audio processing state.
   ///
@@ -335,49 +298,5 @@ class AudioManager {
     final response = await Native.getAudioProcessingState();
     if (response == null) return null;
     return AudioProcessingState.fromMap(response);
-  }
-}
-
-class _ResolvedAudioSessionPolicy {
-  const _ResolvedAudioSessionPolicy({
-    required this.options,
-    required this.preferSpeakerOutput,
-    required this.forceSpeakerOutput,
-    required this.automatic,
-  });
-
-  final AudioSessionOptions options;
-  final bool preferSpeakerOutput;
-  final bool forceSpeakerOutput;
-  final bool automatic;
-
-  bool get usesDynamicAppleCategory => automatic;
-
-  NativeAudioConfiguration get appleConfiguration {
-    if (automatic) {
-      return NativeAudioConfiguration(
-        appleAudioCategory: AppleAudioCategory.playAndRecord,
-        appleAudioCategoryOptions: {
-          AppleAudioCategoryOption.allowBluetooth,
-          AppleAudioCategoryOption.allowBluetoothA2DP,
-          AppleAudioCategoryOption.allowAirPlay,
-        },
-        appleAudioMode: preferSpeakerOutput ? AppleAudioMode.videoChat : AppleAudioMode.voiceChat,
-      );
-    }
-
-    final apple = options.apple;
-    return NativeAudioConfiguration(
-      appleAudioCategory: apple.category,
-      appleAudioCategoryOptions: apple.categoryOptions,
-      appleAudioMode: apple.mode,
-    );
-  }
-
-  AndroidAudioSessionConfiguration get androidConfiguration {
-    if (automatic) {
-      return AndroidAudioSessionConfiguration.communication;
-    }
-    return options.android;
   }
 }

@@ -19,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:livekit_client/src/audio/android_audio_session_adapter.dart';
 import 'package:livekit_client/src/audio/audio_manager.dart';
 import 'package:livekit_client/src/audio/audio_session.dart';
+import 'package:livekit_client/src/audio/audio_session_policy.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
 
@@ -29,6 +30,30 @@ void main() {
     AudioManager.instance.resetForTest();
     Native.bypassVoiceProcessing = false;
   });
+
+  native_audio.NativeAudioConfiguration resolveApplePolicy(
+    AudioSessionOptions options, {
+    bool preferSpeakerOutput = true,
+    bool forceSpeakerOutput = false,
+    bool automatic = true,
+  }) =>
+      ResolvedAudioSessionPolicy(
+        options: options,
+        preferSpeakerOutput: preferSpeakerOutput,
+        forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
+        automatic: automatic,
+      ).appleConfiguration;
+
+  AndroidAudioSessionConfiguration resolveAndroidPolicy(
+    AudioSessionOptions options, {
+    bool automatic = true,
+  }) =>
+      ResolvedAudioSessionPolicy(
+        options: options,
+        preferSpeakerOutput: AudioManager.instance.isSpeakerOutputPreferred,
+        forceSpeakerOutput: AudioManager.instance.isSpeakerOutputForced,
+        automatic: automatic,
+      ).androidConfiguration;
 
   group('AudioSessionManagementMode', () {
     test('supports automatic and manual management', () {
@@ -179,7 +204,6 @@ void main() {
       await manager.setAudioSessionManagementMode(AudioSessionManagementMode.manual);
 
       expect(manager.managementMode, AudioSessionManagementMode.manual);
-      expect(manager.isAutomaticConfigurationEnabled, isFalse);
       expect(manager.options.android.audioMode, AndroidAudioMode.inCommunication);
 
       await manager.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
@@ -225,9 +249,7 @@ void main() {
     });
 
     test('resolves communication Apple session policy from speaker preference', () {
-      final manager = AudioManager.instance;
-
-      final speaker = manager.resolveAppleAudioConfigurationForTest(
+      final speaker = resolveApplePolicy(
         const AudioSessionOptions.communication(),
         preferSpeakerOutput: true,
       );
@@ -243,7 +265,7 @@ void main() {
         },
       );
 
-      final receiver = manager.resolveAppleAudioConfigurationForTest(
+      final receiver = resolveApplePolicy(
         const AudioSessionOptions.communication(),
         preferSpeakerOutput: false,
       );
@@ -253,7 +275,7 @@ void main() {
     });
 
     test('automatic Apple policy ignores manual media options', () {
-      final config = AudioManager.instance.resolveAppleAudioConfigurationForTest(
+      final config = resolveApplePolicy(
         const AudioSessionOptions.media(),
       );
 
@@ -270,7 +292,7 @@ void main() {
     });
 
     test('resolves manual media Apple session policy as fixed playback', () {
-      final config = AudioManager.instance.resolveAppleAudioConfigurationForTest(
+      final config = resolveApplePolicy(
         const AudioSessionOptions.media(),
         automatic: false,
       );
@@ -281,9 +303,7 @@ void main() {
     });
 
     test('forced speaker does not mutate Apple category options', () {
-      final manager = AudioManager.instance;
-
-      final playback = manager.resolveAppleAudioConfigurationForTest(
+      final playback = resolveApplePolicy(
         const AudioSessionOptions.media(
           apple: AppleAudioSessionConfiguration(
             category: AppleAudioCategory.playback,
@@ -297,7 +317,7 @@ void main() {
       expect(playback.appleAudioCategory, AppleAudioCategory.playback);
       expect(playback.appleAudioCategoryOptions, {AppleAudioCategoryOption.mixWithOthers});
 
-      final playAndRecord = manager.resolveAppleAudioConfigurationForTest(
+      final playAndRecord = resolveApplePolicy(
         const AudioSessionOptions.communication(
           apple: AppleAudioSessionConfiguration(
             category: AppleAudioCategory.playAndRecord,
@@ -316,16 +336,14 @@ void main() {
     });
 
     test('resolves Android session policy from automatic mode or manual options', () {
-      final manager = AudioManager.instance;
-
-      final automaticMedia = manager.resolveAndroidAudioConfigurationForTest(
+      final automaticMedia = resolveAndroidPolicy(
         const AudioSessionOptions.media(),
       );
 
       expect(automaticMedia.audioMode, AndroidAudioMode.inCommunication);
       expect(automaticMedia.streamType, AndroidAudioStreamType.voiceCall);
 
-      final media = manager.resolveAndroidAudioConfigurationForTest(
+      final media = resolveAndroidPolicy(
         const AudioSessionOptions.media(),
         automatic: false,
       );
@@ -333,7 +351,7 @@ void main() {
       expect(media.audioMode, AndroidAudioMode.normal);
       expect(media.streamType, AndroidAudioStreamType.music);
 
-      final explicit = manager.resolveAndroidAudioConfigurationForTest(
+      final explicit = resolveAndroidPolicy(
         const AudioSessionOptions.communication(
           android: AndroidAudioSessionConfiguration(
             audioMode: AndroidAudioMode.normal,
@@ -353,14 +371,15 @@ void main() {
       await manager.setAudioSessionOptions(const AudioSessionOptions.media());
       await manager.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
 
-      final apple = manager.resolveAppleAudioConfigurationForTest(
+      final isAutomatic = manager.managementMode == AudioSessionManagementMode.automatic;
+      final apple = resolveApplePolicy(
         manager.options,
-        automatic: manager.isAutomaticConfigurationEnabled,
+        automatic: isAutomatic,
         preferSpeakerOutput: false,
       );
-      final android = manager.resolveAndroidAudioConfigurationForTest(
+      final android = resolveAndroidPolicy(
         manager.options,
-        automatic: manager.isAutomaticConfigurationEnabled,
+        automatic: isAutomatic,
       );
 
       expect(apple.appleAudioCategory, AppleAudioCategory.playAndRecord);

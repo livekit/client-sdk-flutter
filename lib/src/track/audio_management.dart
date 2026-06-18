@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import '../audio/audio_manager.dart';
+import '../audio/audio_session.dart';
 import '../support/native.dart';
 import '../support/platform.dart';
 
@@ -22,7 +23,8 @@ class NativeAudioManagement {
   }
 
   static Future<void> stop() async {
-    if (lkPlatformIs(PlatformType.android) && AudioManager.instance.isAutomaticConfigurationEnabled) {
+    if (lkPlatformIs(PlatformType.android) &&
+        AudioManager.instance.managementMode == AudioSessionManagementMode.automatic) {
       await Native.stopAndroidAudioSession();
     }
   }
