@@ -39,7 +39,7 @@ await AudioManager.instance.setSpeakerOutputPreferred(false);
 
 Read the current preference through `AudioManager.instance.isSpeakerOutputPreferred` and `AudioManager.instance.isSpeakerOutputForced`. `AudioManager.instance.canSwitchSpeakerphone` is true on iOS and Android.
 
-`Room.setSpeakerOn(...)` still works and forwards to the same path, so existing call sites do not need to change.
+`Room.setSpeakerOn(...)` is deprecated and forwards to `AudioManager.instance.setSpeakerOutputPreferred`. You can also set an initial preference through `RoomOptions` (`defaultAudioOutputOptions.speakerOn`) before connecting, which LiveKit applies when the session starts.
 
 ## Automatic vs manual mode
 
@@ -144,6 +144,7 @@ The legacy `Hardware` audio members still work but are deprecated and forward to
 | Old | New |
 | --- | --- |
 | `Hardware.instance.setSpeakerphoneOn(true)` | `AudioManager.instance.setSpeakerOutputPreferred(true)` |
+| `room.setSpeakerOn(true)` | `AudioManager.instance.setSpeakerOutputPreferred(true)` |
 | `Hardware.instance.speakerOn` | `AudioManager.instance.isSpeakerOutputPreferred` |
 | `Hardware.instance.preferSpeakerOutput` | `AudioManager.instance.isSpeakerOutputPreferred` |
 | `Hardware.instance.forceSpeakerOutput` | `AudioManager.instance.isSpeakerOutputForced` |

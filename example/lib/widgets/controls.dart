@@ -109,7 +109,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
+    await AudioManager.instance.setSpeakerOutputPreferred(_speakerphoneOn, force: false);
     setState(() {});
   }
 

@@ -289,6 +289,14 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }));
     }
 
+    // Bridge a legacy RoomOptions speaker preference into the process-wide
+    // AudioManager before the session starts. New code should call
+    // AudioManager.instance.setSpeakerOutputPreferred directly.
+    final legacySpeakerOn = roomOptions.defaultAudioOutputOptions.speakerOn;
+    if (legacySpeakerOn != null && lkPlatformIsMobile()) {
+      await AudioManager.instance.setSpeakerOutputPreferred(legacySpeakerOn);
+    }
+
     // configure audio for native platform
     await NativeAudioManagement.start();
 
@@ -1129,7 +1137,8 @@ extension RoomHardwareManagementMethods on Room {
       roomOptions.defaultCameraCaptureOptions.deviceId ?? Hardware.instance.selectedVideoInput?.deviceId;
 
   /// Get mobile device's speaker status.
-  bool? get speakerOn => roomOptions.defaultAudioOutputOptions.speakerOn;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool? get speakerOn => AudioManager.instance.isSpeakerOutputPreferred;
 
   /// Set audio output device.
   Future<void> setAudioOutputDevice(MediaDevice device) async {
@@ -1195,26 +1204,9 @@ extension RoomHardwareManagementMethods on Room {
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
   /// or bluetooth is connected.
-  Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) async {
-    if (lkPlatformIsMobile()) {
-      await AudioManager.instance.setSpeakerOutputPreferred(speakerOn, force: forceSpeakerOutput);
-      engine.roomOptions = engine.roomOptions.copyWith(
-        defaultAudioOutputOptions: roomOptions.defaultAudioOutputOptions.copyWith(
-          speakerOn: speakerOn,
-        ),
-      );
-    }
-  }
-
-  /// Apply audio output device settings.
-  @internal
-  Future<void> applyAudioSpeakerSettings() async {
-    if (roomOptions.defaultAudioOutputOptions.speakerOn != null) {
-      if (lkPlatformIsMobile()) {
-        await AudioManager.instance.setSpeakerOutputPreferred(roomOptions.defaultAudioOutputOptions.speakerOn!);
-      }
-    }
-  }
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> setSpeakerOn(bool speakerOn, {bool forceSpeakerOutput = false}) =>
+      AudioManager.instance.setSpeakerOutputPreferred(speakerOn, force: forceSpeakerOutput);
 
   Future<void> startAudio() async {
     try {

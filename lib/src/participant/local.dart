@@ -239,8 +239,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await track.onPublish();
     await track.processor?.onPublish(room);
 
-    await room.applyAudioSpeakerSettings();
-
     final listener = track.createListener();
     listener.on((TrackEndedEvent event) async {
       logger.fine('TrackEndedEvent: ${event.track}');
@@ -573,8 +571,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await track.processor?.onUnpublish();
         await track.stopProcessor();
       }
-
-      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {
