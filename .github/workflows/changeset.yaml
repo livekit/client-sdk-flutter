@@ -76,6 +76,7 @@ jobs:
           fi
 
       - name: Manage PR comments
+        continue-on-error: true
         uses: actions/github-script@v9
         with:
           script: |

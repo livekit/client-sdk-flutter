@@ -39,6 +39,7 @@ import '../preconnect/pre_connect_audio_buffer.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/native.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart' show WebSocketException;
@@ -116,6 +117,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   //
   late EventsListener<SignalEvent> _signalListener;
 
+  StreamSubscription<bool>? _audioInterruptionSub;
+
   RegionUrlProvider? _regionUrlProvider;
   String? _regionUrl;
 
@@ -185,6 +188,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     preConnectAudioBuffer = PreConnectAudioBuffer(this);
 
+    if (lkPlatformIs(PlatformType.iOS)) {
+      _audioInterruptionSub = Native.audioInterruptionStream.listen(_onAudioInterruption);
+    }
+
     onDispose(() async {
       // clean up routine
       await _cleanUp();
@@ -194,6 +201,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await events.dispose();
       // dispose local participant
       await localParticipant?.dispose();
+      // cancel iOS audio interruption subscription
+      await _audioInterruptionSub?.cancel();
       // dispose all listeners for SignalClient
       await _signalListener.dispose();
       // dispose all listeners for Engine
@@ -1045,6 +1054,11 @@ extension RoomPrivateMethods on Room {
     if (connectionState == ConnectionState.connected) {
       events.emit(event);
     }
+  }
+
+  void _onAudioInterruption(bool isInterrupted) {
+    if (connectionState != ConnectionState.connected) return;
+    events.emit(isInterrupted ? const AudioSessionInterruptedEvent() : const AudioSessionResumedEvent());
   }
 
   /// server assigned unique room id.

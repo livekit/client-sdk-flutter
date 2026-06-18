@@ -27,6 +27,12 @@ class Native {
   @internal
   static final channel = _createChannel();
 
+  static final _audioInterruptionController = StreamController<bool>.broadcast();
+
+  /// Emits `true` when an iOS audio interruption begins (e.g. phone call),
+  /// `false` when the session is successfully recovered.
+  static Stream<bool> get audioInterruptionStream => _audioInterruptionController.stream;
+
   static MethodChannel _createChannel() {
     final channel = MethodChannel('livekit_client');
     channel.setMethodCallHandler(_handleMethodCall);
@@ -195,6 +201,12 @@ class Native {
           return null;
         }
         _broadcastStateChanged(call.arguments as bool);
+        return null;
+      case 'audioInterruptionBegan':
+        _audioInterruptionController.add(true);
+        return null;
+      case 'audioInterruptionEnded':
+        _audioInterruptionController.add(false);
         return null;
       default:
         logger.warning('Method ${call.method} is not implemented.');

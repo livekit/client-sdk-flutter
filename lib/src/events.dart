@@ -661,3 +661,32 @@ class RoomMovedEvent with RoomEvent {
   @override
   String toString() => '${runtimeType}(roomName: $roomName)';
 }
+
+/// iOS only: fired when a phone call or other audio interruption begins.
+///
+/// The local audio track remains published but WebRTC has stopped capturing —
+/// [LocalParticipant.isMicrophoneEnabled] will still return `true` even though
+/// no audio is being transmitted. Apps should mute the local participant to avoid
+/// a silent-but-green mic indicator for remote participants.
+///
+/// Emitted by [Room].
+class AudioSessionInterruptedEvent with RoomEvent {
+  const AudioSessionInterruptedEvent();
+
+  @override
+  String toString() => '$runtimeType()';
+}
+
+/// iOS only: fired when [AVAudioSession] has been successfully reactivated
+/// after an interruption ended.
+///
+/// The local microphone can now be re-enabled. Whether to do so automatically or
+/// to let the user decide is left to the application.
+///
+/// Emitted by [Room].
+class AudioSessionResumedEvent with RoomEvent {
+  const AudioSessionResumedEvent();
+
+  @override
+  String toString() => '$runtimeType()';
+}
