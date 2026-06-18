@@ -647,6 +647,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
     private var isAutomaticManagementEnabled = true
+    // True when cached policy changes should apply immediately. This includes
+    // an engine already running under manual mode, because switching back to
+    // automatic should configure the live session without waiting for another
+    // engine lifecycle event.
     private var sessionActive = false
     // Last engine state seen, so an immediate re-apply (e.g. speaker toggle
     // while the engine is running) can resolve the category from current state.
@@ -761,9 +765,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
                 lock.lock()
                 lastIsPlayoutEnabled = isPlayoutEnabled
                 lastIsRecordingEnabled = isRecordingEnabled
-                if shouldManageSession {
-                    sessionActive = true
-                }
+                sessionActive = true
                 lock.unlock()
             }
         }
@@ -780,26 +782,37 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
                            isRecordingEnabled: Bool) -> Int {
         var resultCode = 0
         #if !os(macOS)
-        if !isPlayoutEnabled, !isRecordingEnabled {
-            lock.lock()
-            let shouldManageSession = isAutomaticManagementEnabled
-            lock.unlock()
+        lock.lock()
+        let shouldManageSession = isAutomaticManagementEnabled
+        let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
+        let forceSpeakerOutput = self.forceSpeakerOutput
+        lock.unlock()
 
-            if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
-                // Leave sessionActive unchanged (still true) so cached state
-                // keeps reflecting the live session. Flipping it to false here
-                // would make a later configureNativeAudio(automatic:) cache-only
-                // while the session is in fact still active.
-                print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
+        if isPlayoutEnabled || isRecordingEnabled {
+            // A disable event can leave one side of the engine running (for
+            // example, mic off while remote playout continues). Re-apply so
+            // dynamic category selection follows the new engine state.
+            if shouldManageSession,
+               let configuration = configuration,
+               let error = LiveKitPlugin.applyAudioSessionConfiguration(configuration,
+                                                                        forceSpeakerOutput: forceSpeakerOutput,
+                                                                        active: true) {
+                print("[LiveKit] AudioEngine didDisable: failed to configure audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
-            } else if shouldManageSession {
-                lock.lock(); sessionActive = false; lock.unlock()
             }
+        } else if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
+            // Leave sessionActive unchanged (still true) so cached state
+            // keeps reflecting the live session. Flipping it to false here
+            // would make a later configureNativeAudio(automatic:) cache-only
+            // while the session is in fact still active.
+            print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
+            resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
         }
         if resultCode == 0 {
             lock.lock()
             lastIsPlayoutEnabled = isPlayoutEnabled
             lastIsRecordingEnabled = isRecordingEnabled
+            sessionActive = isPlayoutEnabled || isRecordingEnabled
             lock.unlock()
         }
         #endif
