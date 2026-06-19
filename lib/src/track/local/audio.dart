@@ -72,8 +72,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
     // Malformed requests are caller bugs, so surface them loudly rather than
     // as a silently-unsuccessful result.
-    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination ||
-        code == track_options.AudioProcessingOptionsResultCode.rejectedRemoteTrack) {
+    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination) {
       throw track_options.AudioProcessingException(
         code,
         message.isNotEmpty ? message : 'Unable to apply audio processing options',

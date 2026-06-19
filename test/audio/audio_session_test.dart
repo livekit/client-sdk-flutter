@@ -22,6 +22,7 @@ import 'package:livekit_client/src/audio/audio_session.dart';
 import 'package:livekit_client/src/audio/audio_session_policy.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
+import 'package:livekit_client/src/track/options.dart' as track_options;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -194,6 +195,15 @@ void main() {
       expect(cleared.usageType, isNull);
       expect(cleared.contentType, isNull);
       expect(cleared.forceAudioRouting, isNull);
+    });
+  });
+
+  group('AudioProcessingOptionsResultCode', () {
+    test('maps remote-track native result to apply failure', () {
+      expect(
+        track_options.AudioProcessingOptionsResultCode.fromValue('rejectedRemoteTrack'),
+        track_options.AudioProcessingOptionsResultCode.applyFailed,
+      );
     });
   });
 

@@ -522,9 +522,6 @@ enum AudioProcessingOptionsResultCode {
   /// The options were accepted and stored for the next native audio source.
   stored('stored'),
 
-  /// The request targeted a remote track instead of a local audio track.
-  rejectedRemoteTrack('rejectedRemoteTrack'),
-
   /// The requested mode combination is invalid for the native audio module.
   rejectedInvalidCombination('rejectedInvalidCombination'),
 
@@ -549,7 +546,7 @@ enum AudioProcessingOptionsResultCode {
 }
 
 /// Thrown when the native layer rejects a malformed [AudioProcessingOptions]
-/// request, such as an invalid mode combination or a non-local track.
+/// request, such as an invalid mode combination.
 ///
 /// Capability failures, including unsupported platforms, are returned as an
 /// unsuccessful [AudioProcessingApplyResult] instead of this exception.
@@ -570,7 +567,7 @@ class AudioProcessingException implements Exception {
 /// apply failures. Inspect [isSuccess] before assuming the requested processing
 /// is active.
 ///
-/// A malformed request, such as incompatible modes or a non-local track, throws
+/// A malformed request, such as incompatible modes, throws
 /// [AudioProcessingException] instead.
 class AudioProcessingApplyResult {
   AudioProcessingApplyResult(this.code, this.message);

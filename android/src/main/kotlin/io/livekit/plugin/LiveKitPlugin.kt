@@ -274,7 +274,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private fun audioProcessingResultCodeString(code: AudioProcessingOptionsResult.Code): String = when (code) {
     AudioProcessingOptionsResult.Code.APPLIED -> "applied"
     AudioProcessingOptionsResult.Code.STORED -> "stored"
-    AudioProcessingOptionsResult.Code.REJECTED_REMOTE_TRACK -> "rejectedRemoteTrack"
+    AudioProcessingOptionsResult.Code.REJECTED_REMOTE_TRACK -> "applyFailed"
     AudioProcessingOptionsResult.Code.REJECTED_INVALID_COMBINATION -> "rejectedInvalidCombination"
     AudioProcessingOptionsResult.Code.REJECTED_PLATFORM_UNAVAILABLE -> "rejectedPlatformUnavailable"
     AudioProcessingOptionsResult.Code.APPLY_FAILED -> "applyFailed"
