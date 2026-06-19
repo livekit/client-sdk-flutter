@@ -110,11 +110,10 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     logger.fine('$objectId.start()');
 
-    startMonitor();
-
     await onStarted();
 
     _active = true;
+    startMonitor();
     return true;
   }
 

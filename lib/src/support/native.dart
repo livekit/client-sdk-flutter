@@ -115,6 +115,42 @@ class Native {
         'message': 'Audio processing options are unavailable on this platform.',
       };
 
+  /// Starts the native WebRTC audio device module recording path with the
+  /// capture-time audio processing options for the local microphone track.
+  @internal
+  static Future<void> startLocalRecording(Map<String, dynamic> audioProcessingOptions) async {
+    try {
+      await channel.invokeMethod<void>(
+        'startLocalRecording',
+        audioProcessingOptions,
+      );
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') {
+        logger.warning('startLocalRecording is not implemented on this platform');
+        return;
+      }
+      rethrow;
+    } on MissingPluginException {
+      logger.warning('startLocalRecording is not available on this platform');
+    }
+  }
+
+  /// Stops recording that was explicitly started through [startLocalRecording].
+  @internal
+  static Future<void> stopLocalRecording() async {
+    try {
+      await channel.invokeMethod<void>('stopLocalRecording', <String, dynamic>{});
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') {
+        logger.warning('stopLocalRecording is not implemented on this platform');
+        return;
+      }
+      rethrow;
+    } on MissingPluginException {
+      logger.warning('stopLocalRecording is not available on this platform');
+    }
+  }
+
   /// Reads the engine-wide audio processing state from the native peer
   /// connection factory. Returns `null` when unavailable (e.g. the factory
   /// does not exist yet, or the platform cannot provide it).

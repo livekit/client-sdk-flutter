@@ -429,7 +429,62 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        let options = RTCAudioProcessingOptions(
+        let options = LiveKitPlugin.audioProcessingOptions(from: args)
+        let processingResult = audioTrack.setAudioProcessingOptions(options)
+        result([
+            "result": processingResult.isSuccess,
+            "code": LiveKitPlugin.audioProcessingResultCodeString(processingResult.code),
+            "message": processingResult.message,
+        ])
+    }
+
+    public func handleStartLocalRecording(args: [String: Any?], result: @escaping FlutterResult) {
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "rejectedPlatformUnavailable", message: "audio device module is unavailable", details: nil))
+            return
+        }
+
+        let options = LiveKitPlugin.audioProcessingOptions(from: args)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let admResult = adm.initAndStartRecording(audioProcessingOptions: options)
+            DispatchQueue.main.async {
+                if admResult == 0 {
+                    result(nil)
+                } else {
+                    result(FlutterError(
+                        code: "applyFailed",
+                        message: "Audio engine returned error code: \(admResult)",
+                        details: nil
+                    ))
+                }
+            }
+        }
+    }
+
+    public func handleStopLocalRecording(result: @escaping FlutterResult) {
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "stopLocalRecording", message: "audio device module is unavailable", details: nil))
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let admResult = adm.stopRecording()
+            DispatchQueue.main.async {
+                if admResult == 0 {
+                    result(nil)
+                } else {
+                    result(FlutterError(
+                        code: "stopLocalRecording",
+                        message: "Audio engine returned error code: \(admResult)",
+                        details: nil
+                    ))
+                }
+            }
+        }
+    }
+
+    static func audioProcessingOptions(from args: [String: Any?]) -> RTCAudioProcessingOptions {
+        RTCAudioProcessingOptions(
             echoCancellationOptions: RTCAudioProcessingComponentOptions(
                 enabled: (args["echoCancellation"] as? Bool) ?? true,
                 mode: LiveKitPlugin.audioProcessingMode(from: args["echoCancellationMode"] as? String)
@@ -447,13 +502,6 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 mode: LiveKitPlugin.audioProcessingMode(from: args["highPassFilterMode"] as? String)
             )
         )
-
-        let processingResult = audioTrack.setAudioProcessingOptions(options)
-        result([
-            "result": processingResult.isSuccess,
-            "code": LiveKitPlugin.audioProcessingResultCodeString(processingResult.code),
-            "message": processingResult.message,
-        ])
     }
 
     static func audioProcessingMode(from string: String?) -> RTCAudioProcessingMode {
@@ -552,6 +600,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStartAudioRenderer(args: args, result: result)
         case "stopAudioRenderer":
             handleStopAudioRenderer(args: args, result: result)
+        case "startLocalRecording":
+            handleStartLocalRecording(args: args, result: result)
+        case "stopLocalRecording":
+            handleStopLocalRecording(result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
         case "getAudioProcessingState":

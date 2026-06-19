@@ -17,6 +17,8 @@
 package io.livekit.plugin
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -37,6 +39,7 @@ import org.webrtc.audio.AudioProcessingMode
 import org.webrtc.audio.AudioProcessingOptions
 import org.webrtc.audio.AudioProcessingOptionsResult
 import org.webrtc.audio.AudioProcessingState
+import java.util.concurrent.Executors
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
@@ -44,6 +47,8 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
   private var audioSwitchManager: LKAudioSwitchManager? = null
+  private val audioDeviceModuleExecutor = Executors.newSingleThreadExecutor()
+  private val mainHandler = Handler(Looper.getMainLooper())
 
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
@@ -236,7 +241,62 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
-    val options = AudioProcessingOptions(
+    val options = audioProcessingOptions(call)
+    val processingResult = mediaTrack.setAudioProcessingOptions(options)
+    result.success(
+      mapOf(
+        "result" to processingResult.isSuccess,
+        "code" to audioProcessingResultCodeString(processingResult.code),
+        "message" to processingResult.message,
+      ),
+    )
+  }
+
+  private fun handleStartLocalRecording(call: MethodCall, result: Result) {
+    val audioDeviceModule = flutterWebRTCPlugin.audioDeviceModule
+    if (audioDeviceModule == null) {
+      result.error("rejectedPlatformUnavailable", "audio device module is unavailable", null)
+      return
+    }
+
+    val options = audioProcessingOptions(call)
+    audioDeviceModuleExecutor.execute {
+      try {
+        audioDeviceModule.prewarmRecording(options)
+        mainHandler.post {
+          result.success(null)
+        }
+      } catch (error: Throwable) {
+        mainHandler.post {
+          result.error("applyFailed", error.message, null)
+        }
+      }
+    }
+  }
+
+  private fun handleStopLocalRecording(result: Result) {
+    val audioDeviceModule = flutterWebRTCPlugin.audioDeviceModule
+    if (audioDeviceModule == null) {
+      result.error("stopLocalRecording", "audio device module is unavailable", null)
+      return
+    }
+
+    audioDeviceModuleExecutor.execute {
+      try {
+        audioDeviceModule.requestStopRecording()
+        mainHandler.post {
+          result.success(null)
+        }
+      } catch (error: Throwable) {
+        mainHandler.post {
+          result.error("stopLocalRecording", error.message, null)
+        }
+      }
+    }
+  }
+
+  private fun audioProcessingOptions(call: MethodCall): AudioProcessingOptions =
+    AudioProcessingOptions(
       AudioProcessingComponentOptions(
         call.argument<Boolean>("echoCancellation") ?: true,
         audioProcessingMode(call.argument<String>("echoCancellationMode")),
@@ -254,16 +314,6 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
         audioProcessingMode(call.argument<String>("highPassFilterMode")),
       ),
     )
-
-    val processingResult = mediaTrack.setAudioProcessingOptions(options)
-    result.success(
-      mapOf(
-        "result" to processingResult.isSuccess,
-        "code" to audioProcessingResultCodeString(processingResult.code),
-        "message" to processingResult.message,
-      ),
-    )
-  }
 
   private fun audioProcessingMode(value: String?): AudioProcessingMode = when (value) {
     "platform" -> AudioProcessingMode.PLATFORM
@@ -350,6 +400,14 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
       "setAudioProcessingOptions" -> {
         handleSetAudioProcessingOptions(call, result)
+      }
+
+      "startLocalRecording" -> {
+        handleStartLocalRecording(call, result)
+      }
+
+      "stopLocalRecording" -> {
+        handleStopLocalRecording(result)
       }
 
       "getAudioProcessingState" -> {

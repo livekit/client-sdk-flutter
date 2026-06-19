@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
@@ -25,6 +26,7 @@ import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../support/native.dart';
+import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart' as track_options;
@@ -73,6 +75,23 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   num? get currentBitrate => _currentBitrate;
 
   AudioSenderStats? prevStats;
+
+  @override
+  Future<void> onStarted() async {
+    await super.onStarted();
+    if (lkPlatformSupportsExplicitAudioRecordingStart()) {
+      try {
+        // Match Swift: start the ADM before publishing so capture-time audio
+        // processing options are applied before WebRTC opens the microphone.
+        await Native.startLocalRecording(currentOptions.processing.toMap());
+      } on PlatformException catch (error) {
+        throw track_options.AudioProcessingException(
+          _audioProcessingFailureReason(error.code),
+          error.message ?? '',
+        );
+      }
+    }
+  }
 
   @override
   Future<bool> monitorStats() async {
@@ -166,16 +185,6 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       if (options.processor != null) {
         await track.setProcessor(options.processor);
       }
-
-      // Per-component processing modes are not part of standard capture
-      // constraints; apply them through the native audio processing path.
-      final processing = options.processing;
-      if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
-          processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
-          processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
-          processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
-        await track.setAudioProcessingOptions(processing);
-      }
     } catch (_) {
       await track.stop();
       rethrow;
@@ -189,29 +198,18 @@ void _throwIfAudioProcessingFailed(Map<String, dynamic> response) {
   final code = response['code'] as String?;
   final message = (response['message'] as String?) ?? '';
 
+  final reason = _audioProcessingFailureReason(code);
   switch (code) {
     case 'applied':
     case 'stored':
       return;
     case 'rejectedInvalidCombination':
-      throw track_options.AudioProcessingException(
-        track_options.AudioProcessingFailureReason.invalidCombination,
-        message,
-      );
     case 'rejectedPlatformUnavailable':
-      throw track_options.AudioProcessingException(
-        track_options.AudioProcessingFailureReason.platformUnavailable,
-        message,
-      );
     case 'applyFailed':
-      throw track_options.AudioProcessingException(
-        track_options.AudioProcessingFailureReason.applyFailed,
-        message,
-      );
     case 'unknown':
     case 'rejectedRemoteTrack':
       throw track_options.AudioProcessingException(
-        track_options.AudioProcessingFailureReason.unknown,
+        reason,
         message,
       );
     default:
@@ -219,6 +217,19 @@ void _throwIfAudioProcessingFailed(Map<String, dynamic> response) {
         track_options.AudioProcessingFailureReason.unknown,
         _unknownAudioProcessingMessage(code, message),
       );
+  }
+}
+
+track_options.AudioProcessingFailureReason _audioProcessingFailureReason(String? code) {
+  switch (code) {
+    case 'rejectedInvalidCombination':
+      return track_options.AudioProcessingFailureReason.invalidCombination;
+    case 'rejectedPlatformUnavailable':
+      return track_options.AudioProcessingFailureReason.platformUnavailable;
+    case 'applyFailed':
+      return track_options.AudioProcessingFailureReason.applyFailed;
+    default:
+      return track_options.AudioProcessingFailureReason.unknown;
   }
 }
 
