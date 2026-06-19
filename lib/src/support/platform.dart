@@ -29,6 +29,9 @@ bool lkPlatformIsDesktop() => [
       PlatformType.linux,
     ].contains(lkPlatform());
 
+bool lkPlatformSupportsExplicitAudioRecordingStart() =>
+    !lkPlatformIsTest() && [PlatformType.iOS, PlatformType.macOS, PlatformType.android].contains(lkPlatform());
+
 bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
 
 bool lkPlatformIsTest() => lkPlatformIsTestImplementation();
