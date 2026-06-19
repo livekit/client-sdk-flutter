@@ -73,9 +73,11 @@ class Native {
   /// Resolved natively against the underlying WebRTC audio track owned by
   /// flutter_webrtc; [options] is the serialized [AudioProcessingOptions] map.
   /// Returns the native result map (`result`/`code`/`message`) so the caller
-  /// can surface typed rejections. Missing or explicitly unimplemented platform
-  /// hooks are converted to `rejectedPlatformUnavailable`; other channel errors
-  /// propagate to the caller.
+  /// can surface typed rejections. This plugin is registered on platforms that
+  /// do not implement runtime audio processing, so missing or explicitly
+  /// unimplemented hooks are normalized to `rejectedPlatformUnavailable`.
+  /// Other channel errors propagate because they indicate unexpected native
+  /// failures rather than an unsupported platform capability.
   @internal
   static Future<Map<String, dynamic>> setAudioProcessingOptions(
     String trackId,
@@ -96,6 +98,9 @@ class Native {
     } on MissingPluginException {
       return _audioProcessingPlatformUnavailable();
     } on PlatformException catch (error) {
+      // Web registers the plugin but returns `Unimplemented` for methods it
+      // does not support. Treat only that narrow case like a missing native
+      // implementation; do not hide unrelated native/channel failures.
       if (error.code == 'Unimplemented') {
         return _audioProcessingPlatformUnavailable();
       }

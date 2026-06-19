@@ -47,6 +47,18 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     }
   }
 
+  /// Applies runtime audio processing options to this local audio track.
+  ///
+  /// Successful results update [currentOptions] and emit
+  /// [LocalTrackOptionsUpdatedEvent]. Operational failures, such as an
+  /// unsupported platform or unavailable device capability, are returned as an
+  /// unsuccessful [track_options.AudioProcessingApplyResult] and leave
+  /// [currentOptions] unchanged.
+  ///
+  /// Malformed requests, such as incompatible processing modes, throw
+  /// [track_options.AudioProcessingException]. Unexpected native/channel
+  /// failures may also throw so implementation bugs are not reported as normal
+  /// capability rejections.
   Future<track_options.AudioProcessingApplyResult> setAudioProcessingOptions(
       track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
@@ -58,8 +70,8 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     final code = track_options.AudioProcessingOptionsResultCode.fromValue(response['code'] as String?);
     final message = (response['message'] as String?) ?? '';
 
-    // Malformed requests (incompatible modes, or a non-local track) are caller
-    // bugs — surface them loudly rather than as a silently-unsuccessful result.
+    // Malformed requests are caller bugs, so surface them loudly rather than
+    // as a silently-unsuccessful result.
     if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination ||
         code == track_options.AudioProcessingOptionsResultCode.rejectedRemoteTrack) {
       throw track_options.AudioProcessingException(

@@ -510,14 +510,28 @@ class AudioOutputOptions {
 }
 
 /// Result code from applying [AudioProcessingOptions], mirroring the native
-/// `AudioProcessingOptionsResult`. `applied`/`stored` are success; the rest are
-/// rejections.
+/// `AudioProcessingOptionsResult`.
+///
+/// `applied` and `stored` are successful outcomes. Device/platform capability
+/// failures are returned through [AudioProcessingApplyResult]. Malformed caller
+/// requests are surfaced by [AudioProcessingException].
 enum AudioProcessingOptionsResultCode {
+  /// The options were applied to the active native audio processing module.
   applied('applied'),
+
+  /// The options were accepted and stored for the next native audio source.
   stored('stored'),
+
+  /// The request targeted a remote track instead of a local audio track.
   rejectedRemoteTrack('rejectedRemoteTrack'),
+
+  /// The requested mode combination is invalid for the native audio module.
   rejectedInvalidCombination('rejectedInvalidCombination'),
+
+  /// The platform or device cannot provide the requested processing path.
   rejectedPlatformUnavailable('rejectedPlatformUnavailable'),
+
+  /// The native layer attempted to apply the options but failed.
   applyFailed('applyFailed');
 
   const AudioProcessingOptionsResultCode(this.value);
@@ -536,6 +550,9 @@ enum AudioProcessingOptionsResultCode {
 
 /// Thrown when the native layer rejects a malformed [AudioProcessingOptions]
 /// request, such as an invalid mode combination or a non-local track.
+///
+/// Capability failures, including unsupported platforms, are returned as an
+/// unsuccessful [AudioProcessingApplyResult] instead of this exception.
 class AudioProcessingException implements Exception {
   AudioProcessingException(this.code, this.message);
 
@@ -548,10 +565,13 @@ class AudioProcessingException implements Exception {
 
 /// Outcome of applying [AudioProcessingOptions].
 ///
-/// Returned for operational outcomes — `applied`/`stored` (success), and the
-/// device-capability rejections `rejectedPlatformUnavailable`/`applyFailed`
-/// (inspect [isSuccess]). A malformed request (incompatible modes, or a
-/// non-local track) throws [AudioProcessingException] instead.
+/// Returned for operational outcomes: `applied`/`stored` for success, and
+/// `rejectedPlatformUnavailable`/`applyFailed` for normal capability or native
+/// apply failures. Inspect [isSuccess] before assuming the requested processing
+/// is active.
+///
+/// A malformed request, such as incompatible modes or a non-local track, throws
+/// [AudioProcessingException] instead.
 class AudioProcessingApplyResult {
   AudioProcessingApplyResult(this.code, this.message);
 
