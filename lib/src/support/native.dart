@@ -14,7 +14,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/services.dart' show MethodChannel, MethodCall;
+import 'package:flutter/services.dart' show MethodChannel, MethodCall, MissingPluginException, PlatformException;
 
 import 'package:meta/meta.dart';
 
@@ -72,24 +72,87 @@ class Native {
   ///
   /// Resolved natively against the underlying WebRTC audio track owned by
   /// flutter_webrtc; [options] is the serialized [AudioProcessingOptions] map.
-  /// Returns the native result map (`result`/`code`/`message`) so the caller
-  /// can surface typed rejections. Channel errors propagate to the caller.
+  /// Returns the native result map (`result`/`code`/`message`) so the Dart
+  /// track API can translate native outcomes into typed exceptions.
+  /// This plugin is registered on platforms that do not implement runtime audio
+  /// processing, so missing or explicitly unimplemented hooks are normalized to
+  /// `rejectedPlatformUnavailable`. Other channel errors propagate because they
+  /// indicate unexpected native failures rather than an unsupported platform
+  /// capability.
   @internal
   static Future<Map<String, dynamic>> setAudioProcessingOptions(
     String trackId,
     Map<String, dynamic> options,
   ) async {
-    final response = await channel.invokeMethod<dynamic>(
-      'setAudioProcessingOptions',
-      <String, dynamic>{
-        'trackId': trackId,
-        ...options,
-      },
-    );
-    if (response is Map) {
-      return response.map((key, value) => MapEntry(key.toString(), value));
+    try {
+      final response = await channel.invokeMethod<dynamic>(
+        'setAudioProcessingOptions',
+        <String, dynamic>{
+          'trackId': trackId,
+          ...options,
+        },
+      );
+      if (response is Map) {
+        return response.map((key, value) => MapEntry(key.toString(), value));
+      }
+      return <String, dynamic>{};
+    } on MissingPluginException {
+      return _audioProcessingPlatformUnavailable();
+    } on PlatformException catch (error) {
+      // Web registers the plugin but returns `Unimplemented` for methods it
+      // does not support. Treat only that narrow case like a missing native
+      // implementation; do not hide unrelated native/channel failures.
+      if (error.code == 'Unimplemented') {
+        return _audioProcessingPlatformUnavailable();
+      }
+      rethrow;
     }
-    return <String, dynamic>{};
+  }
+
+  static Map<String, dynamic> _audioProcessingPlatformUnavailable() => <String, dynamic>{
+        'result': false,
+        'code': 'rejectedPlatformUnavailable',
+        'message': 'Audio processing options are unavailable on this platform.',
+      };
+
+  static PlatformException _audioProcessingPlatformUnavailableException() => PlatformException(
+        code: 'rejectedPlatformUnavailable',
+        message: 'Audio processing options are unavailable on this platform.',
+      );
+
+  /// Starts the native WebRTC audio device module recording path with the
+  /// capture-time audio processing options for the local microphone track.
+  @internal
+  static Future<void> startLocalRecording(Map<String, dynamic> audioProcessingOptions) async {
+    try {
+      await channel.invokeMethod<void>(
+        'startLocalRecording',
+        audioProcessingOptions,
+      );
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') {
+        throw _audioProcessingPlatformUnavailableException();
+      }
+      rethrow;
+    } on MissingPluginException {
+      throw _audioProcessingPlatformUnavailableException();
+    }
+  }
+
+  /// Stops recording that was explicitly started through [startLocalRecording].
+  @internal
+  static Future<void> stopLocalRecording() async {
+    try {
+      await channel.invokeMethod<void>('stopLocalRecording', <String, dynamic>{});
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') {
+        logger.warning('stopLocalRecording is not implemented on this platform');
+        return;
+      }
+      logger.warning('stopLocalRecording did throw ${error.code}: ${error.message}');
+    } on MissingPluginException {
+      logger.warning('stopLocalRecording is not available on this platform');
+    }
   }
 
   /// Reads the engine-wide audio processing state from the native peer

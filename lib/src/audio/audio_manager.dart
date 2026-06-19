@@ -291,8 +291,8 @@ class AudioManager {
   ///
   /// The audio processing module is owned by the native peer connection factory
   /// and shared engine-wide, so this reflects what is actually applied across
-  /// the engine rather than any single track — use it to verify what a
-  /// `LocalAudioTrack.setAudioProcessingOptions` request resolved to. Returns
+  /// the engine rather than any single track. Use it to verify native state
+  /// after a `LocalAudioTrack.setAudioProcessingOptions` request. Returns
   /// `null` when the native side cannot provide it.
   Future<AudioProcessingState?> getAudioProcessingState() async {
     final response = await Native.getAudioProcessingState();
