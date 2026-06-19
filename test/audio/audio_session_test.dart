@@ -22,6 +22,7 @@ import 'package:livekit_client/src/audio/audio_session.dart';
 import 'package:livekit_client/src/audio/audio_session_policy.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
+import 'package:livekit_client/src/support/webrtc_initialize_options.dart';
 import 'package:livekit_client/src/track/options.dart' as track_options;
 
 void main() {
@@ -86,14 +87,15 @@ void main() {
       expect(options.android.streamType, AndroidAudioStreamType.voiceCall);
     });
 
-    test('media constructor pre-fills platform configs', () {
-      const options = AudioSessionOptions.media();
+    test('mediaPlayback constructor pre-fills platform configs', () {
+      const options = AudioSessionOptions.mediaPlayback();
 
       expect(options.apple.category, AppleAudioCategory.playback);
       expect(options.apple.categoryOptions, {AppleAudioCategoryOption.mixWithOthers});
       expect(options.apple.mode, AppleAudioMode.spokenAudio);
       expect(options.android.audioMode, AndroidAudioMode.normal);
       expect(options.android.streamType, AndroidAudioStreamType.music);
+      expect(options.android.forceAudioRouting, isNull);
     });
 
     test('copyWith replaces platform configs', () {
@@ -261,11 +263,34 @@ void main() {
       final manager = AudioManager.instance;
       expect(manager.managementMode, AudioSessionManagementMode.automatic);
 
-      await manager.setAudioSessionOptions(const AudioSessionOptions.media());
+      await manager.setAudioSessionOptions(const AudioSessionOptions.mediaPlayback());
 
       expect(manager.managementMode, AudioSessionManagementMode.manual);
       expect(manager.options.apple.category, AppleAudioCategory.playback);
       expect(manager.options.android.streamType, AndroidAudioStreamType.music);
+    });
+
+    test('setInitialAudioSessionOptions seeds options without switching to manual', () {
+      final manager = AudioManager.instance;
+
+      manager.setInitialAudioSessionOptions(const AudioSessionOptions.mediaPlayback());
+
+      expect(manager.managementMode, AudioSessionManagementMode.automatic);
+      expect(manager.options.android.streamType, AndroidAudioStreamType.music);
+
+      final android = resolveAndroidPolicy(manager.options);
+      expect(android.audioMode, AndroidAudioMode.normal);
+      expect(android.streamType, AndroidAudioStreamType.music);
+    });
+
+    test('setInitialAudioSessionOptions does not replace manual options', () async {
+      final manager = AudioManager.instance;
+      await manager.setAudioSessionOptions(const AudioSessionOptions.communication());
+
+      manager.setInitialAudioSessionOptions(const AudioSessionOptions.mediaPlayback());
+
+      expect(manager.managementMode, AudioSessionManagementMode.manual);
+      expect(manager.options.android.streamType, AndroidAudioStreamType.voiceCall);
     });
 
     test('deactivateAudioSession switches management to manual', () async {
@@ -286,7 +311,7 @@ void main() {
       expect(manager.isSpeakerOutputPreferred, isTrue);
 
       await manager.setAudioSessionOptions(
-        const AudioSessionOptions.media(),
+        const AudioSessionOptions.mediaPlayback(),
       );
       expect(manager.isSpeakerOutputPreferred, isTrue);
 
@@ -324,7 +349,7 @@ void main() {
 
     test('automatic Apple policy ignores manual media options', () {
       final config = resolveApplePolicy(
-        const AudioSessionOptions.media(),
+        const AudioSessionOptions.mediaPlayback(),
       );
 
       expect(config.appleAudioCategory, AppleAudioCategory.playAndRecord);
@@ -341,7 +366,7 @@ void main() {
 
     test('resolves manual media Apple session policy as fixed playback', () {
       final config = resolveApplePolicy(
-        const AudioSessionOptions.media(),
+        const AudioSessionOptions.mediaPlayback(),
         automatic: false,
       );
 
@@ -352,7 +377,7 @@ void main() {
 
     test('forced speaker does not mutate Apple category options', () {
       final playback = resolveApplePolicy(
-        const AudioSessionOptions.media(
+        const AudioSessionOptions.mediaPlayback(
           apple: AppleAudioSessionConfiguration(
             category: AppleAudioCategory.playback,
             categoryOptions: {AppleAudioCategoryOption.mixWithOthers},
@@ -383,16 +408,16 @@ void main() {
       );
     });
 
-    test('resolves Android session policy from automatic mode or manual options', () {
+    test('resolves Android session policy from current options', () {
       final automaticMedia = resolveAndroidPolicy(
-        const AudioSessionOptions.media(),
+        const AudioSessionOptions.mediaPlayback(),
       );
 
-      expect(automaticMedia.audioMode, AndroidAudioMode.inCommunication);
-      expect(automaticMedia.streamType, AndroidAudioStreamType.voiceCall);
+      expect(automaticMedia.audioMode, AndroidAudioMode.normal);
+      expect(automaticMedia.streamType, AndroidAudioStreamType.music);
 
       final media = resolveAndroidPolicy(
-        const AudioSessionOptions.media(),
+        const AudioSessionOptions.mediaPlayback(),
         automatic: false,
       );
 
@@ -413,10 +438,10 @@ void main() {
       expect(explicit.forceAudioRouting, isTrue);
     });
 
-    test('automatic mode ignores stored manual options after switching back', () async {
+    test('automatic Apple policy ignores stored options while Android uses them', () async {
       final manager = AudioManager.instance;
 
-      await manager.setAudioSessionOptions(const AudioSessionOptions.media());
+      await manager.setAudioSessionOptions(const AudioSessionOptions.mediaPlayback());
       await manager.setAudioSessionManagementMode(AudioSessionManagementMode.automatic);
 
       final isAutomatic = manager.managementMode == AudioSessionManagementMode.automatic;
@@ -440,8 +465,8 @@ void main() {
           AppleAudioCategoryOption.allowAirPlay,
         },
       );
-      expect(android.audioMode, AndroidAudioMode.inCommunication);
-      expect(android.streamType, AndroidAudioStreamType.voiceCall);
+      expect(android.audioMode, AndroidAudioMode.normal);
+      expect(android.streamType, AndroidAudioStreamType.music);
     });
 
     test('handleAudioEngineState updates snapshot and stream', () async {
@@ -509,6 +534,7 @@ void main() {
       expect(config.streamType, AndroidAudioStreamType.music);
       expect(config.usageType, AndroidAudioAttributesUsageType.media);
       expect(config.contentType, AndroidAudioAttributesContentType.unknown);
+      expect(config.forceAudioRouting, isNull);
     });
   });
 
@@ -747,6 +773,54 @@ void main() {
           'androidAudioMode': 'normal',
           'forceHandleAudioRouting': true,
         },
+      );
+    });
+
+    test('serializes media preset without forced routing', () {
+      expect(
+        androidAudioSessionConfigurationToMap(AndroidAudioSessionConfiguration.media),
+        {
+          'manageAudioFocus': true,
+          'androidAudioMode': 'normal',
+          'androidAudioFocusMode': 'gain',
+          'androidAudioStreamType': 'music',
+          'androidAudioAttributesUsageType': 'media',
+          'androidAudioAttributesContentType': 'unknown',
+        },
+      );
+    });
+  });
+
+  group('liveKitWebRTCInitializeOptions', () {
+    test('includes Android audio configuration for Android startup', () {
+      expect(
+        liveKitWebRTCInitializeOptions(
+          bypassVoiceProcessing: true,
+          initialAudioSessionOptions: const AudioSessionOptions.mediaPlayback(),
+          includeAndroidAudioConfiguration: true,
+        ),
+        {
+          'bypassVoiceProcessing': true,
+          'androidAudioConfiguration': {
+            'manageAudioFocus': true,
+            'androidAudioMode': 'normal',
+            'androidAudioFocusMode': 'gain',
+            'androidAudioStreamType': 'music',
+            'androidAudioAttributesUsageType': 'media',
+            'androidAudioAttributesContentType': 'unknown',
+          },
+        },
+      );
+    });
+
+    test('omits Android audio configuration on non-Android startup', () {
+      expect(
+        liveKitWebRTCInitializeOptions(
+          bypassVoiceProcessing: false,
+          initialAudioSessionOptions: const AudioSessionOptions.mediaPlayback(),
+          includeAndroidAudioConfiguration: false,
+        ),
+        isEmpty,
       );
     });
   });
