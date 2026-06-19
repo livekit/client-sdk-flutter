@@ -39,7 +39,9 @@ import org.webrtc.audio.AudioProcessingMode
 import org.webrtc.audio.AudioProcessingOptions
 import org.webrtc.audio.AudioProcessingOptionsResult
 import org.webrtc.audio.AudioProcessingState
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
@@ -47,7 +49,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
   private var audioSwitchManager: LKAudioSwitchManager? = null
-  private val audioDeviceModuleExecutor = Executors.newSingleThreadExecutor()
+  private var audioDeviceModuleExecutor: ExecutorService? = null
   private val mainHandler = Handler(Looper.getMainLooper())
 
   /// The MethodChannel that will the communication between Flutter and native Android
@@ -64,6 +66,8 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this)
     binaryMessenger = flutterPluginBinding.binaryMessenger
     audioSwitchManager = LKAudioSwitchManager(flutterPluginBinding.applicationContext)
+    audioDeviceModuleExecutor?.shutdownNow()
+    audioDeviceModuleExecutor = Executors.newSingleThreadExecutor()
   }
 
   @SuppressLint("SuspiciousIndentation")
@@ -259,18 +263,26 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
+    val executor = audioDeviceModuleExecutorOrError(result, "rejectedPlatformUnavailable") ?: return
     val options = audioProcessingOptions(call)
-    audioDeviceModuleExecutor.execute {
-      try {
-        audioDeviceModule.prewarmRecording(options)
-        mainHandler.post {
-          result.success(null)
-        }
-      } catch (error: Throwable) {
-        mainHandler.post {
-          result.error("applyFailed", error.message, null)
+    try {
+      executor.execute {
+        try {
+          // prewarmRecording applies Android platform AP and prepares recording
+          // without setting the client-start flag. WebRTC exposes this as void,
+          // so only thrown failures can be surfaced here.
+          audioDeviceModule.prewarmRecording(options)
+          mainHandler.post {
+            result.success(null)
+          }
+        } catch (error: Throwable) {
+          mainHandler.post {
+            result.error("applyFailed", error.message, null)
+          }
         }
       }
+    } catch (error: RejectedExecutionException) {
+      result.error("rejectedPlatformUnavailable", "audio device module executor is unavailable", null)
     }
   }
 
@@ -281,18 +293,32 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
-    audioDeviceModuleExecutor.execute {
-      try {
-        audioDeviceModule.requestStopRecording()
-        mainHandler.post {
-          result.success(null)
-        }
-      } catch (error: Throwable) {
-        mainHandler.post {
-          result.error("stopLocalRecording", error.message, null)
+    val executor = audioDeviceModuleExecutorOrError(result, "stopLocalRecording") ?: return
+    try {
+      executor.execute {
+        try {
+          audioDeviceModule.requestStopRecording()
+          mainHandler.post {
+            result.success(null)
+          }
+        } catch (error: Throwable) {
+          mainHandler.post {
+            result.error("stopLocalRecording", error.message, null)
+          }
         }
       }
+    } catch (error: RejectedExecutionException) {
+      result.error("stopLocalRecording", "audio device module executor is unavailable", null)
     }
+  }
+
+  private fun audioDeviceModuleExecutorOrError(result: Result, code: String): ExecutorService? {
+    val executor = audioDeviceModuleExecutor
+    if (executor == null || executor.isShutdown) {
+      result.error(code, "audio device module executor is unavailable", null)
+      return null
+    }
+    return executor
   }
 
   private fun audioProcessingOptions(call: MethodCall): AudioProcessingOptions =
@@ -445,6 +471,9 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
     audioSwitchManager?.dispose()
     audioSwitchManager = null
+
+    audioDeviceModuleExecutor?.shutdownNow()
+    audioDeviceModuleExecutor = null
 
     // Cleanup all processors
     audioProcessors.values.forEach { it.cleanup() }

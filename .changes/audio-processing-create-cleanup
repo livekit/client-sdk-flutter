@@ -1,1 +1,1 @@
-patch type="fixed" "Stop local audio tracks when recording start fails"
+patch type="fixed" "Clean up local audio tracks when recording start fails"

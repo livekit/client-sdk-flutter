@@ -1,1 +1,1 @@
-patch type="fixed" "Apply create-time audio processing when local recording starts"
+patch type="fixed" "Apply create-time audio processing when local recording is prepared"

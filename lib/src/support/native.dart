@@ -115,6 +115,11 @@ class Native {
         'message': 'Audio processing options are unavailable on this platform.',
       };
 
+  static PlatformException _audioProcessingPlatformUnavailableException() => PlatformException(
+        code: 'rejectedPlatformUnavailable',
+        message: 'Audio processing options are unavailable on this platform.',
+      );
+
   /// Starts the native WebRTC audio device module recording path with the
   /// capture-time audio processing options for the local microphone track.
   @internal
@@ -126,12 +131,11 @@ class Native {
       );
     } on PlatformException catch (error) {
       if (error.code == 'Unimplemented') {
-        logger.warning('startLocalRecording is not implemented on this platform');
-        return;
+        throw _audioProcessingPlatformUnavailableException();
       }
       rethrow;
     } on MissingPluginException {
-      logger.warning('startLocalRecording is not available on this platform');
+      throw _audioProcessingPlatformUnavailableException();
     }
   }
 
@@ -145,7 +149,7 @@ class Native {
         logger.warning('stopLocalRecording is not implemented on this platform');
         return;
       }
-      rethrow;
+      logger.warning('stopLocalRecording did throw ${error.code}: ${error.message}');
     } on MissingPluginException {
       logger.warning('stopLocalRecording is not available on this platform');
     }

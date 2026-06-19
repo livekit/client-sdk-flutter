@@ -186,9 +186,13 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       if (options.processor != null) {
         await track.setProcessor(options.processor);
       }
-    } catch (_) {
-      await track.stop();
-      rethrow;
+    } catch (error, stackTrace) {
+      try {
+        await track.stop();
+      } catch (stopError) {
+        logger.warning('failed to stop audio track after processor setup failure: $stopError');
+      }
+      Error.throwWithStackTrace(error, stackTrace);
     }
 
     return track;

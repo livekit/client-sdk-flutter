@@ -659,6 +659,65 @@ void main() {
         throwsA(isA<PlatformException>().having((error) => error.code, 'code', 'nativeFailure')),
       );
     });
+
+    test('throws platform unavailable when startLocalRecording channel is missing', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      await expectLater(
+        Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
+        throwsA(isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'rejectedPlatformUnavailable',
+        )),
+      );
+    });
+
+    test('throws platform unavailable when startLocalRecording is unimplemented', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(code: 'Unimplemented');
+        },
+      );
+
+      await expectLater(
+        Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
+        throwsA(isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'rejectedPlatformUnavailable',
+        )),
+      );
+      expect(calls.single.method, 'startLocalRecording');
+    });
+
+    test('ignores stopLocalRecording platform failures', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(code: 'nativeFailure', message: 'boom');
+        },
+      );
+
+      await Native.stopLocalRecording();
+
+      expect(calls.single.method, 'stopLocalRecording');
+    });
+
+    test('ignores stopLocalRecording missing plugin', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      await Native.stopLocalRecording();
+    });
   });
 
   group('androidAudioSessionConfigurationToMap', () {
