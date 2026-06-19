@@ -1,1 +1,1 @@
-minor type="added" "Runtime audio processing options for local audio tracks and engine-wide audio processing state read-back on AudioManager"
+minor type="added" "Runtime audio processing controls for local audio tracks"

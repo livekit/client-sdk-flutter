@@ -110,11 +110,10 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     logger.fine('$objectId.start()');
 
-    startMonitor();
-
-    await onStarted();
+    await startCapture();
 
     _active = true;
+    startMonitor();
     return true;
   }
 
@@ -129,7 +128,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     stopMonitor();
 
-    await onStopped();
+    await stopCapture();
 
     logger.fine('$objectId.stop()');
 
@@ -173,11 +172,14 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   @internal
   Future<bool> monitorStats();
 
+  /// Called by [start] before this track is marked active.
   @internal
-  Future<void> onStarted() async {}
+  Future<void> startCapture() async {}
 
+  /// Called by [stop] while this track is still active, before the media track
+  /// is stopped.
   @internal
-  Future<void> onStopped() async {}
+  Future<void> stopCapture() async {}
 
   @internal
   void startMonitor() {

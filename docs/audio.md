@@ -108,24 +108,34 @@ final now = AudioManager.instance.audioEngineState;
 
 Session management is one half of the audio stack. The other half is audio processing, the signal processing applied to captured audio such as echo cancellation, noise suppression, auto gain control, and the high pass filter. `AudioManager` is the home for both, and they compose cleanly.
 
-The session intent decides how the platform treats audio. Processing options decide what happens to captured local microphone audio:
+The session intent decides how the platform treats audio. Capture options decide what happens to local microphone audio:
 
 - A call usually uses the automatic `communication` session. The default `AudioCaptureOptions` enable echo cancellation, noise suppression, and auto gain control, while leaving the high pass filter off.
 - Use `AudioProcessingOptions.communication()` when you want all four voice filters on for an existing local audio track.
 - Use `AudioProcessingOptions.noProcessing()` for local capture where you want minimal processing, such as high quality recording or app-managed audio effects.
 
-Processing is applied per local audio track. A malformed request (an incompatible mode, or a remote track) throws, while a request the platform could not honor comes back as an unsuccessful result:
+Create-time processing is configured through `AudioCaptureOptions`. `LocalAudioTrack.create(...)` stores these options, and LiveKit prepares them when local recording starts, such as during publish or preconnect. If the exposed native platform API reports that capture-time setup failed, the start path throws `AudioProcessingException` before publish creates a server-side publication.
+
+```dart
+final track = await LocalAudioTrack.create(
+  const AudioCaptureOptions(
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    highPassFilter: false,
+  ),
+);
+```
+
+For an existing local audio track, call `setAudioProcessingOptions`. It returns when the native layer applies or stores the options. If the request is invalid, unsupported, or cannot be applied, it throws `AudioProcessingException` and the track keeps its previous processing options.
 
 ```dart
 try {
-  final result = await localAudioTrack.setAudioProcessingOptions(
+  await localAudioTrack.setAudioProcessingOptions(
     const AudioProcessingOptions.noProcessing(),
   );
-  if (!result.isSuccess) {
-    print('audio processing not applied: ${result.code.value} ${result.message}');
-  }
 } on AudioProcessingException catch (error) {
-  print('invalid audio processing request: ${error.code.value} ${error.message}');
+  print('audio processing not applied: ${error.reason.name} ${error.message}');
 }
 ```
 

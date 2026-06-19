@@ -22,6 +22,7 @@ import 'package:livekit_client/src/audio/audio_session.dart';
 import 'package:livekit_client/src/audio/audio_session_policy.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
+import 'package:livekit_client/src/track/options.dart' as track_options;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -194,6 +195,53 @@ void main() {
       expect(cleared.usageType, isNull);
       expect(cleared.contentType, isNull);
       expect(cleared.forceAudioRouting, isNull);
+    });
+  });
+
+  group('AudioProcessingException', () {
+    test('uses fallback messages when native omits details', () {
+      final invalid = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.invalidCombination,
+        '',
+      );
+      final platformUnavailable = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.platformUnavailable,
+        '  ',
+      );
+      final applyFailed = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.applyFailed,
+        '',
+      );
+      final unknown = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        '',
+      );
+
+      expect(invalid.message, 'The requested audio processing mode combination is invalid.');
+      expect(platformUnavailable.message, 'Audio processing options are unavailable on this platform or device.');
+      expect(
+        applyFailed.message,
+        'The native WebRTC audio processing module could not apply the requested options.',
+      );
+      expect(unknown.message, 'Audio processing options failed for an unknown reason.');
+    });
+
+    test('preserves native messages when provided', () {
+      final error = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.applyFailed,
+        '  native detail  ',
+      );
+
+      expect(error.reason, track_options.AudioProcessingFailureReason.applyFailed);
+      expect(error.message, 'native detail');
+      expect(error.toString(), 'AudioProcessingException(applyFailed): native detail');
+    });
+
+    test('exposes unknown failure reason', () {
+      expect(
+        track_options.AudioProcessingFailureReason.values,
+        contains(track_options.AudioProcessingFailureReason.unknown),
+      );
     });
   });
 
@@ -543,6 +591,132 @@ void main() {
         calls.single.arguments,
         containsPair('forceSpeakerOutput', true),
       );
+    });
+
+    test('returns platform unavailable when audio processing channel is missing', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      final result = await Native.setAudioProcessingOptions(
+        'track-id',
+        <String, dynamic>{'echoCancellation': true},
+      );
+
+      expect(
+        result,
+        {
+          'result': false,
+          'code': 'rejectedPlatformUnavailable',
+          'message': 'Audio processing options are unavailable on this platform.',
+        },
+      );
+    });
+
+    test('returns platform unavailable when audio processing method is unimplemented', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(
+            code: 'Unimplemented',
+            details: 'livekit for web does not implement ${call.method}',
+          );
+        },
+      );
+
+      final result = await Native.setAudioProcessingOptions(
+        'track-id',
+        <String, dynamic>{'echoCancellation': true},
+      );
+
+      expect(calls.single.method, 'setAudioProcessingOptions');
+      expect(calls.single.arguments, containsPair('trackId', 'track-id'));
+      expect(
+        result,
+        {
+          'result': false,
+          'code': 'rejectedPlatformUnavailable',
+          'message': 'Audio processing options are unavailable on this platform.',
+        },
+      );
+    });
+
+    test('propagates other audio processing channel failures', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          throw PlatformException(code: 'nativeFailure', message: 'boom');
+        },
+      );
+
+      await expectLater(
+        Native.setAudioProcessingOptions(
+          'track-id',
+          <String, dynamic>{'echoCancellation': true},
+        ),
+        throwsA(isA<PlatformException>().having((error) => error.code, 'code', 'nativeFailure')),
+      );
+    });
+
+    test('throws platform unavailable when startLocalRecording channel is missing', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      await expectLater(
+        Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
+        throwsA(isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'rejectedPlatformUnavailable',
+        )),
+      );
+    });
+
+    test('throws platform unavailable when startLocalRecording is unimplemented', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(code: 'Unimplemented');
+        },
+      );
+
+      await expectLater(
+        Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
+        throwsA(isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'rejectedPlatformUnavailable',
+        )),
+      );
+      expect(calls.single.method, 'startLocalRecording');
+    });
+
+    test('ignores stopLocalRecording platform failures', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(code: 'nativeFailure', message: 'boom');
+        },
+      );
+
+      await Native.stopLocalRecording();
+
+      expect(calls.single.method, 'stopLocalRecording');
+    });
+
+    test('ignores stopLocalRecording missing plugin', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      await Native.stopLocalRecording();
     });
   });
 
