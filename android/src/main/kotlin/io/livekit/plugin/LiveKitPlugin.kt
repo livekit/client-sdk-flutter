@@ -66,7 +66,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     channel.setMethodCallHandler(this)
     binaryMessenger = flutterPluginBinding.binaryMessenger
     audioSwitchManager = LKAudioSwitchManager(flutterPluginBinding.applicationContext)
-    audioDeviceModuleExecutor?.shutdownNow()
+    audioDeviceModuleExecutor?.shutdown()
     audioDeviceModuleExecutor = Executors.newSingleThreadExecutor()
   }
 
@@ -472,7 +472,7 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     audioSwitchManager?.dispose()
     audioSwitchManager = null
 
-    audioDeviceModuleExecutor?.shutdownNow()
+    audioDeviceModuleExecutor?.shutdown()
     audioDeviceModuleExecutor = null
 
     // Cleanup all processors
