@@ -534,9 +534,8 @@ enum AudioProcessingOptionsResultCode {
       this == AudioProcessingOptionsResultCode.applied || this == AudioProcessingOptionsResultCode.stored;
 }
 
-/// Thrown when the native layer rejects requested [AudioProcessingOptions]
-/// (e.g. an invalid platform/software combination, or platform processing that
-/// is unavailable on the device).
+/// Thrown when the native layer rejects a malformed [AudioProcessingOptions]
+/// request, such as an invalid mode combination or a non-local track.
 class AudioProcessingException implements Exception {
   AudioProcessingException(this.code, this.message);
 

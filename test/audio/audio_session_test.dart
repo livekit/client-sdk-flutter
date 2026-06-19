@@ -544,6 +544,73 @@ void main() {
         containsPair('forceSpeakerOutput', true),
       );
     });
+
+    test('returns platform unavailable when audio processing channel is missing', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+
+      final result = await Native.setAudioProcessingOptions(
+        'track-id',
+        <String, dynamic>{'echoCancellation': true},
+      );
+
+      expect(
+        result,
+        {
+          'result': false,
+          'code': 'rejectedPlatformUnavailable',
+          'message': 'Audio processing options are unavailable on this platform.',
+        },
+      );
+    });
+
+    test('returns platform unavailable when audio processing method is unimplemented', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          calls.add(call);
+          throw PlatformException(
+            code: 'Unimplemented',
+            details: 'livekit for web does not implement ${call.method}',
+          );
+        },
+      );
+
+      final result = await Native.setAudioProcessingOptions(
+        'track-id',
+        <String, dynamic>{'echoCancellation': true},
+      );
+
+      expect(calls.single.method, 'setAudioProcessingOptions');
+      expect(calls.single.arguments, containsPair('trackId', 'track-id'));
+      expect(
+        result,
+        {
+          'result': false,
+          'code': 'rejectedPlatformUnavailable',
+          'message': 'Audio processing options are unavailable on this platform.',
+        },
+      );
+    });
+
+    test('propagates other audio processing channel failures', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          throw PlatformException(code: 'nativeFailure', message: 'boom');
+        },
+      );
+
+      await expectLater(
+        Native.setAudioProcessingOptions(
+          'track-id',
+          <String, dynamic>{'echoCancellation': true},
+        ),
+        throwsA(isA<PlatformException>().having((error) => error.code, 'code', 'nativeFailure')),
+      );
+    });
   });
 
   group('androidAudioSessionConfigurationToMap', () {
