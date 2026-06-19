@@ -12,7 +12,7 @@ LiveKit disables flutter_webrtc's own native audio management automatically when
 
 Speaker output is preferred by default, but a wired or Bluetooth headset still wins over the speaker. Forced speaker output is off, so the speaker is never forced over a connected headset unless you ask for it.
 
-The media preset is for playback-first experiences such as viewer-only live streams. On Android, pass it to `LiveKitClient.initialize` before WebRTC initializes when you need the WebRTC audio device module to use media mode and media volume. This also seeds LiveKit's automatic runtime session policy until you explicitly replace it with `AudioManager.instance.setAudioSessionOptions(...)`. Runtime session updates apply LiveKit's platform session policy, but WebRTC playout `AudioAttributes` are currently initialized when the audio device module is created.
+The media playback preset (`AudioSessionOptions.mediaPlayback()`) is for playback-first experiences such as viewer-only live streams. On Android, pass it to `LiveKitClient.initialize` before WebRTC initializes when you need the WebRTC audio device module to use media mode and media volume. This also seeds LiveKit's automatic runtime session policy until you explicitly replace it with `AudioManager.instance.setAudioSessionOptions(...)`. Runtime session updates apply LiveKit's platform session policy, but WebRTC playout `AudioAttributes` are currently initialized when the audio device module is created.
 
 The default audio capture options apply standard voice processing, so echo cancellation, noise suppression, and auto gain control are on and the high pass filter is off. You can change this per track with `AudioProcessingOptions`.
 
