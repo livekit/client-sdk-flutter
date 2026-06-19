@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show ValueListenable, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -101,9 +101,21 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // Used to compute visibility information
   late VideoTrackViewRegistration _viewRegistration;
 
-  Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
-      return Null as Future<rtc.VideoRenderer>;
+  bool get _shouldUsePlatformView =>
+      widget.renderMode == VideoRenderMode.platformView &&
+      [PlatformType.iOS, PlatformType.macOS].contains(lkPlatform());
+
+  double? get _rendererAspectRatio {
+    final renderer = _renderer;
+    if (renderer != null && renderer is ValueListenable<rtc.RTCVideoValue>) {
+      return (renderer as ValueListenable<rtc.RTCVideoValue>).value.aspectRatio;
+    }
+    return null;
+  }
+
+  Future<rtc.VideoRenderer?> _initializeRenderer() async {
+    if (_shouldUsePlatformView) {
+      return null;
     }
     if (_renderer == null) {
       _renderer = rtc.RTCVideoRenderer();
@@ -186,7 +198,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _renderer?.onResize = () {
       if (mounted) {
         setState(() {
-          _aspectRatio = (_renderer as rtc.RTCVideoRenderer?)?.videoValue.aspectRatio;
+          _aspectRatio = _rendererAspectRatio;
         });
       }
     };
@@ -229,7 +241,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         );
 
   Widget _videoRendererView() {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
+    if (_shouldUsePlatformView) {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
@@ -251,8 +263,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForNative() => FutureBuilder(
       future: _initializeRenderer(),
       builder: (context, snapshot) {
-        if ((snapshot.hasData && _renderer != null) ||
-            (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView)) {
+        if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
           return Builder(
             key: _viewRegistration.key,
             builder: (ctx) {
