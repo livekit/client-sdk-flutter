@@ -509,71 +509,49 @@ class AudioOutputOptions {
   }
 }
 
-/// Result code from applying [AudioProcessingOptions], mirroring the native
-/// `AudioProcessingOptionsResult`.
-///
-/// `applied` and `stored` are successful outcomes. Device/platform capability
-/// failures are returned through [AudioProcessingApplyResult]. Malformed caller
-/// requests are surfaced by [AudioProcessingException].
-enum AudioProcessingOptionsResultCode {
-  /// The options were applied to the active native audio processing module.
-  applied('applied'),
-
-  /// The options were accepted and stored for the next native audio source.
-  stored('stored'),
-
+/// Reason that applying [AudioProcessingOptions] failed.
+enum AudioProcessingFailureReason {
   /// The requested mode combination is invalid for the native audio module.
-  rejectedInvalidCombination('rejectedInvalidCombination'),
+  invalidCombination,
 
   /// The platform or device cannot provide the requested processing path.
-  rejectedPlatformUnavailable('rejectedPlatformUnavailable'),
+  platformUnavailable,
 
   /// The native layer attempted to apply the options but failed.
-  applyFailed('applyFailed');
+  applyFailed,
 
-  const AudioProcessingOptionsResultCode(this.value);
-
-  final String value;
-
-  static AudioProcessingOptionsResultCode fromValue(String? value) =>
-      AudioProcessingOptionsResultCode.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => AudioProcessingOptionsResultCode.applyFailed,
-      );
-
-  bool get isSuccess =>
-      this == AudioProcessingOptionsResultCode.applied || this == AudioProcessingOptionsResultCode.stored;
+  /// The native layer returned an unrecognized or malformed result.
+  unknown,
 }
 
-/// Thrown when the native layer rejects a malformed [AudioProcessingOptions]
-/// request, such as an invalid mode combination.
-///
-/// Capability failures, including unsupported platforms, are returned as an
-/// unsuccessful [AudioProcessingApplyResult] instead of this exception.
-class AudioProcessingException implements Exception {
-  AudioProcessingException(this.code, this.message);
+String _defaultAudioProcessingMessage(AudioProcessingFailureReason reason) {
+  switch (reason) {
+    case AudioProcessingFailureReason.invalidCombination:
+      return 'The requested audio processing mode combination is invalid.';
+    case AudioProcessingFailureReason.platformUnavailable:
+      return 'Audio processing options are unavailable on this platform or device.';
+    case AudioProcessingFailureReason.applyFailed:
+      return 'The native WebRTC audio processing module could not apply the requested options.';
+    case AudioProcessingFailureReason.unknown:
+      return 'Audio processing options failed for an unknown reason.';
+  }
+}
 
-  final AudioProcessingOptionsResultCode code;
+String _audioProcessingMessageOrDefault(AudioProcessingFailureReason reason, String message) {
+  final trimmed = message.trim();
+  return trimmed.isEmpty ? _defaultAudioProcessingMessage(reason) : trimmed;
+}
+
+/// Thrown when [AudioProcessingOptions] cannot be applied.
+///
+/// [reason] is a stable SDK category. [message] carries native details when
+/// available, or an SDK-provided fallback when native does not include details.
+class AudioProcessingException implements Exception {
+  AudioProcessingException(this.reason, String message) : message = _audioProcessingMessageOrDefault(reason, message);
+
+  final AudioProcessingFailureReason reason;
   final String message;
 
   @override
-  String toString() => 'AudioProcessingException(${code.value}): $message';
-}
-
-/// Outcome of applying [AudioProcessingOptions].
-///
-/// Returned for operational outcomes: `applied`/`stored` for success, and
-/// `rejectedPlatformUnavailable`/`applyFailed` for normal capability or native
-/// apply failures. Inspect [isSuccess] before assuming the requested processing
-/// is active.
-///
-/// A malformed request, such as incompatible modes, throws
-/// [AudioProcessingException] instead.
-class AudioProcessingApplyResult {
-  AudioProcessingApplyResult(this.code, this.message);
-
-  final AudioProcessingOptionsResultCode code;
-  final String message;
-
-  bool get isSuccess => code.isSuccess;
+  String toString() => 'AudioProcessingException(${reason.name}): $message';
 }

@@ -114,19 +114,15 @@ The session intent decides how the platform treats audio. Processing options dec
 - Use `AudioProcessingOptions.communication()` when you want all four voice filters on for an existing local audio track.
 - Use `AudioProcessingOptions.noProcessing()` for local capture where you want minimal processing, such as high quality recording or app-managed audio effects.
 
-Processing is applied per local audio track. A malformed request, such as an incompatible mode combination, throws `AudioProcessingException`. A request the platform could not honor comes back as an unsuccessful `AudioProcessingApplyResult` instead. This includes platforms where LiveKit is available but runtime audio processing is not implemented. When the result is unsuccessful, the track keeps its previous processing options.
+Processing is applied per local audio track. `setAudioProcessingOptions` returns when the native layer applies or stores the options. If the request is invalid, unsupported, or cannot be applied, it throws `AudioProcessingException` and the track keeps its previous processing options.
 
 ```dart
 try {
-  final result = await localAudioTrack.setAudioProcessingOptions(
+  await localAudioTrack.setAudioProcessingOptions(
     const AudioProcessingOptions.noProcessing(),
   );
-  if (!result.isSuccess) {
-    // For example: rejectedPlatformUnavailable on unsupported platforms.
-    print('audio processing not applied: ${result.code.value} ${result.message}');
-  }
 } on AudioProcessingException catch (error) {
-  print('invalid audio processing request: ${error.code.value} ${error.message}');
+  print('audio processing not applied: ${error.reason.name} ${error.message}');
 }
 ```
 

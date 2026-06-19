@@ -49,45 +49,24 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   /// Applies runtime audio processing options to this local audio track.
   ///
-  /// Successful results update [currentOptions] and emit
-  /// [LocalTrackOptionsUpdatedEvent]. Operational failures, such as an
-  /// unsupported platform or unavailable device capability, are returned as an
-  /// unsuccessful [track_options.AudioProcessingApplyResult] and leave
+  /// On success, updates [currentOptions] and emits
+  /// [LocalTrackOptionsUpdatedEvent]. When the native layer cannot apply the
+  /// options, throws [track_options.AudioProcessingException] and leaves
   /// [currentOptions] unchanged.
-  ///
-  /// Malformed requests, such as incompatible processing modes, throw
-  /// [track_options.AudioProcessingException]. Unexpected native/channel
-  /// failures may also throw so implementation bugs are not reported as normal
-  /// capability rejections.
-  Future<track_options.AudioProcessingApplyResult> setAudioProcessingOptions(
-      track_options.AudioProcessingOptions options) async {
+  Future<void> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
     final response = await Native.setAudioProcessingOptions(
       mediaStreamTrack.id!,
       options.toMap(),
     );
 
-    final code = track_options.AudioProcessingOptionsResultCode.fromValue(response['code'] as String?);
-    final message = (response['message'] as String?) ?? '';
+    _throwIfAudioProcessingFailed(response);
 
-    // Malformed requests are caller bugs, so surface them loudly rather than
-    // as a silently-unsuccessful result.
-    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination) {
-      throw track_options.AudioProcessingException(
-        code,
-        message.isNotEmpty ? message : 'Unable to apply audio processing options',
-      );
-    }
-
-    final result = track_options.AudioProcessingApplyResult(code, message);
-    if (result.isSuccess) {
-      currentOptions = nextOptions;
-      events.emit(LocalTrackOptionsUpdatedEvent(
-        track: this,
-        options: currentOptions,
-      ));
-    }
-    return result;
+    currentOptions = nextOptions;
+    events.emit(LocalTrackOptionsUpdatedEvent(
+      track: this,
+      options: currentOptions,
+    ));
   }
 
   num? _currentBitrate;
@@ -183,20 +162,73 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       options,
     );
 
-    if (options.processor != null) {
-      await track.setProcessor(options.processor);
-    }
+    try {
+      if (options.processor != null) {
+        await track.setProcessor(options.processor);
+      }
 
-    // Per-component processing modes are not part of standard capture
-    // constraints; apply them through the native audio processing path.
-    final processing = options.processing;
-    if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
-        processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
-        processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
-        processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
-      await track.setAudioProcessingOptions(processing);
+      // Per-component processing modes are not part of standard capture
+      // constraints; apply them through the native audio processing path.
+      final processing = options.processing;
+      if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
+          processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
+          processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
+          processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
+        await track.setAudioProcessingOptions(processing);
+      }
+    } catch (_) {
+      await track.stop();
+      rethrow;
     }
 
     return track;
   }
+}
+
+void _throwIfAudioProcessingFailed(Map<String, dynamic> response) {
+  final code = response['code'] as String?;
+  final message = (response['message'] as String?) ?? '';
+
+  switch (code) {
+    case 'applied':
+    case 'stored':
+      return;
+    case 'rejectedInvalidCombination':
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.invalidCombination,
+        message,
+      );
+    case 'rejectedPlatformUnavailable':
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.platformUnavailable,
+        message,
+      );
+    case 'applyFailed':
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.applyFailed,
+        message,
+      );
+    case 'unknown':
+    case 'rejectedRemoteTrack':
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        message,
+      );
+    default:
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        _unknownAudioProcessingMessage(code, message),
+      );
+  }
+}
+
+String _unknownAudioProcessingMessage(String? code, String message) {
+  final trimmed = message.trim();
+  if (trimmed.isNotEmpty) {
+    return trimmed;
+  }
+  if (code != null && code.isNotEmpty) {
+    return 'Unknown audio processing result code: $code.';
+  }
+  return '';
 }

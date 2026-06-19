@@ -198,11 +198,49 @@ void main() {
     });
   });
 
-  group('AudioProcessingOptionsResultCode', () {
-    test('maps remote-track native result to apply failure', () {
+  group('AudioProcessingException', () {
+    test('uses fallback messages when native omits details', () {
+      final invalid = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.invalidCombination,
+        '',
+      );
+      final platformUnavailable = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.platformUnavailable,
+        '  ',
+      );
+      final applyFailed = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.applyFailed,
+        '',
+      );
+      final unknown = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        '',
+      );
+
+      expect(invalid.message, 'The requested audio processing mode combination is invalid.');
+      expect(platformUnavailable.message, 'Audio processing options are unavailable on this platform or device.');
       expect(
-        track_options.AudioProcessingOptionsResultCode.fromValue('rejectedRemoteTrack'),
-        track_options.AudioProcessingOptionsResultCode.applyFailed,
+        applyFailed.message,
+        'The native WebRTC audio processing module could not apply the requested options.',
+      );
+      expect(unknown.message, 'Audio processing options failed for an unknown reason.');
+    });
+
+    test('preserves native messages when provided', () {
+      final error = track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.applyFailed,
+        '  native detail  ',
+      );
+
+      expect(error.reason, track_options.AudioProcessingFailureReason.applyFailed);
+      expect(error.message, 'native detail');
+      expect(error.toString(), 'AudioProcessingException(applyFailed): native detail');
+    });
+
+    test('exposes unknown failure reason', () {
+      expect(
+        track_options.AudioProcessingFailureReason.values,
+        contains(track_options.AudioProcessingFailureReason.unknown),
       );
     });
   });

@@ -468,11 +468,11 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch code {
         case .applied: return "applied"
         case .stored: return "stored"
-        case .rejectedRemoteTrack: return "applyFailed"
+        case .rejectedRemoteTrack: return "unknown"
         case .rejectedInvalidCombination: return "rejectedInvalidCombination"
         case .rejectedPlatformUnavailable: return "rejectedPlatformUnavailable"
         case .applyFailed: return "applyFailed"
-        @unknown default: return "applyFailed"
+        @unknown default: return "unknown"
         }
     }
 
