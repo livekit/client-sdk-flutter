@@ -195,20 +195,14 @@ internal class LKAudioSwitchManager(private val context: Context) {
   }
 
   private fun applySpeakerRouting(switch: AbstractAudioSwitch, speakerRouting: SpeakerRouting) {
+    // AudioSwitch treats selectDevice(null) as "select no device"; it does not
+    // recompute the best route from the preferred-device list. Keep routing
+    // automatic here so normal preference and forced-speaker priority both
+    // follow device hot-plug changes without leaving a sticky selected device.
     switch.setPreferredDeviceList(speakerRouting.preferredDeviceList)
-    val forcedSpeaker = if (speakerRouting.speakerOutputForced) {
-      switch.availableAudioDevices.firstOrNull { it is AudioDevice.Speakerphone }
-    } else {
-      null
-    }
-    // AudioSwitch selections are sticky. Use them only for forced speaker output.
-    // Clearing the selection lets the preferred-device list handle normal routing
-    // and headset hot-plug priority.
-    switch.selectDevice(forcedSpeaker)
   }
 
   private fun speakerRoutingSnapshot() = SpeakerRouting(
-    speakerOutputForced = speakerOutputForced,
     preferredDeviceList = preferredDeviceList(
       speakerOutputPreferred = speakerOutputPreferred,
       speakerOutputForced = speakerOutputForced,
@@ -253,7 +247,6 @@ internal class LKAudioSwitchManager(private val context: Context) {
   )
 
   private data class SpeakerRouting(
-    val speakerOutputForced: Boolean,
     val preferredDeviceList: List<Class<out AudioDevice>>,
   )
 }

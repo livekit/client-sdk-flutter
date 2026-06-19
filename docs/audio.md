@@ -12,6 +12,8 @@ LiveKit disables flutter_webrtc's own native audio management automatically when
 
 Speaker output is preferred by default, but a wired or Bluetooth headset still wins over the speaker. Forced speaker output is off, so the speaker is never forced over a connected headset unless you ask for it.
 
+The media playback preset (`AudioSessionOptions.mediaPlayback()`) is for playback-first experiences such as viewer-only live streams. On Android, pass it to `LiveKitClient.initialize` before WebRTC initializes when you need the WebRTC audio device module to use media mode and media volume. This also seeds LiveKit's automatic runtime session policy until you explicitly replace it with `AudioManager.instance.setAudioSessionOptions(...)`. Runtime session updates apply LiveKit's platform session policy, but WebRTC playout `AudioAttributes` are currently initialized when the audio device module is created.
+
 The default audio capture options apply standard voice processing, so echo cancellation, noise suppression, and auto gain control are on and the high pass filter is off. You can change this per track with `AudioProcessingOptions`.
 
 On macOS the audio engine state is reported but no `AVAudioSession` is configured. On web, Windows, and Linux the session APIs do not configure native audio. Speaker switching is available only on iOS and Android, where `AudioManager.instance.canSwitchSpeakerphone` is true.
@@ -27,24 +29,45 @@ import 'package:livekit_client/livekit_client.dart';
 
 // Take manual control and apply a media playback session.
 await AudioManager.instance.setAudioSessionOptions(
-  const AudioSessionOptions.media(),
+  const AudioSessionOptions.mediaPlayback(),
 );
 ```
 
-See the next section for the full rule. Apply options before connecting when you can.
+On Android, media output type has one WebRTC initialization-time piece and one LiveKit runtime-session piece. For playback-first apps, initialize WebRTC with the media intent before connecting:
+
+```dart
+await LiveKitClient.initialize(
+  initialAudioSessionOptions: const AudioSessionOptions.mediaPlayback(),
+);
+```
+
+This seeds both WebRTC's initialization-time playout attributes and LiveKit's automatic runtime session policy. See the next section for the full rule. Apply options before connecting when you can.
+
+## Configuration timing
+
+`AudioSessionOptions` are used in two places on Android:
+
+| API | Timing | What it can update |
+| --- | --- | --- |
+| `LiveKitClient.initialize(initialAudioSessionOptions: ...)` | Before WebRTC initializes. | WebRTC audio device module playout `AudioAttributes`, and LiveKit's initial automatic runtime session policy. Today WebRTC uses the Android `usageType` and `contentType` fields, for example `USAGE_MEDIA` and `CONTENT_TYPE_UNKNOWN` from `AudioSessionOptions.mediaPlayback()`. |
+| `AudioManager.instance.setAudioSessionOptions(...)` | Runtime. | Explicitly replaces the stored session options, switches to manual management, and applies LiveKit's platform session policy: Android audio mode, audio focus mode, stream type, focus ownership, routing handler policy, and iOS category/options/mode. |
+
+Most fields in `AudioSessionOptions` are runtime session policy and can be applied again with `AudioManager.instance.setAudioSessionOptions(...)`. The exception is Android WebRTC playout attributes: changing `AndroidAudioSessionConfiguration.usageType` or `contentType` at runtime updates LiveKit's session/focus handler, but it does not change the `AudioAttributes` of an already-created WebRTC audio device module. Pass those options to `LiveKitClient.initialize(...)` before WebRTC initializes when they must affect playout volume/routing. You do not need to call `setAudioSessionOptions(...)` with the same options just to make LiveKit use them during automatic session management.
+
+We plan to make Android WebRTC playout attributes runtime-updatable in a future SDK/WebRTC integration if the native layer can safely update the stored attributes and recreate playout with acceptable behavior. Until then, treat WebRTC playout `AudioAttributes` as initialization-time configuration.
 
 ## Automatic vs manual mode
 
 The two modes differ in who owns the session lifecycle.
 
-In automatic mode (the default) LiveKit manages the session from room, connect, and engine lifecycle and chooses the configuration for you. It does not take session options in this mode.
+In automatic mode (the default) LiveKit manages the session from room, connect, and engine lifecycle. On iOS it derives the active category/mode from the current audio engine state. On Android it uses the current session intent, defaulting to communication and optionally seeded by `LiveKitClient.initialize(initialAudioSessionOptions: ...)`.
 
 In manual mode LiveKit does not touch the session on its own, and your app owns it. Enter manual mode when you need to apply a fixed platform configuration or deactivate the session yourself.
 
 ```dart
 // Apply a fixed config. This enters manual mode.
 await AudioManager.instance.setAudioSessionOptions(
-  const AudioSessionOptions.media(),
+  const AudioSessionOptions.mediaPlayback(),
 );
 
 // Later, hand control back to LiveKit.
@@ -84,7 +107,9 @@ await AudioManager.instance.setSpeakerOutputPreferred(true, force: true);
 await AudioManager.instance.setSpeakerOutputPreferred(false);
 ```
 
-Speaker routing is independent of the management mode and does not switch it. On Android and in iOS automatic mode, LiveKit applies the preference through its managed route policy. In iOS manual mode, the fixed Apple config you apply owns non-forced receiver vs speaker behavior. `force: true` still uses Apple's speaker override when the active category is `playAndRecord`. Read the current preference through `AudioManager.instance.isSpeakerOutputPreferred` and `AudioManager.instance.isSpeakerOutputForced`. `AudioManager.instance.canSwitchSpeakerphone` is true on iOS and Android.
+Speaker routing is independent of the management mode and does not switch it. In Android communication/call sessions and in iOS automatic mode, LiveKit applies the preference through its managed route policy. In iOS manual mode, the fixed Apple config you apply owns non-forced receiver vs speaker behavior. `force: true` still uses Apple's speaker override when the active category is `playAndRecord`. Read the current preference through `AudioManager.instance.isSpeakerOutputPreferred` and `AudioManager.instance.isSpeakerOutputForced`. `AudioManager.instance.canSwitchSpeakerphone` is true on iOS and Android.
+
+On Android, LiveKit speaker routing is a communication/call routing policy. Media sessions use Android's normal media routing. Pass `AudioSessionOptions.mediaPlayback()` to `LiveKitClient.initialize` before WebRTC initializes when the WebRTC audio device module should use media attributes.
 
 `Room.setSpeakerOn(...)` is deprecated and forwards to `AudioManager.instance.setSpeakerOutputPreferred`. You can also set an initial preference through `RoomOptions` (`defaultAudioOutputOptions.speakerOn`) before connecting, which LiveKit applies when the session starts.
 
@@ -148,7 +173,7 @@ print('echo cancellation in effect: ${state?.echoCancellation.effective}');
 
 ## Per platform overrides
 
-When the preset constructors are not enough you can pin exact platform values. Supplying options through `setAudioSessionOptions` switches to manual mode, so these configs are a manual-mode tool. `AudioSessionOptions.communication()` and `AudioSessionOptions.media()` pre-fill Apple and Android configs. Passing `apple` or `android` replaces that platform config rather than merging with the preset.
+When the preset constructors are not enough you can pin exact platform values. Supplying options through `setAudioSessionOptions` switches to manual mode, so these configs are a manual-mode tool. `AudioSessionOptions.communication()` and `AudioSessionOptions.mediaPlayback()` pre-fill Apple and Android configs. Passing `apple` or `android` replaces that platform config rather than merging with the preset.
 
 ```dart
 await AudioManager.instance.setAudioSessionOptions(
@@ -188,7 +213,7 @@ final clearedMode = updated.copyWith(
 );
 ```
 
-Create a new `AudioSessionOptions.communication()` or `AudioSessionOptions.media()` when you want to start from a different preset config.
+Create a new `AudioSessionOptions.communication()` or `AudioSessionOptions.mediaPlayback()` when you want to start from a different preset config.
 
 ## Platform support
 
@@ -196,7 +221,7 @@ Create a new `AudioSessionOptions.communication()` or `AudioSessionOptions.media
 | --- | --- | --- | --- |
 | iOS | Automatic mode follows live engine state. Manual mode applies your Apple config verbatim. | Yes. Normal preference respects wired and Bluetooth devices. Forced speaker uses Apple's speaker override while the active category is `playAndRecord`. | Yes, from native WebRTC engine events. |
 | macOS | Not configured. There is no `AVAudioSession`. | No. `canSwitchSpeakerphone` is false. | Yes, the same engine events are reported. |
-| Android | Automatic mode uses the communication session (in-communication mode, voice call stream). A media session is available in manual mode. Managed through LiveKit's AudioSwitch handler. | Yes. Normal preference orders headsets before the speaker. Forced speaker selects the speaker device. | Not reported, the Dart state stays idle. |
+| Android | Automatic mode uses the current session intent, seeded by `LiveKitClient.initialize(initialAudioSessionOptions: ...)` and defaulting to communication. Pass media options before WebRTC initializes when the WebRTC audio device module should use media mode/volume. | Yes for communication/call routing. Media playback follows Android media routing. | Not reported, the Dart state stays idle. |
 | Web, Windows, Linux | Not configured. | No. `canSwitchSpeakerphone` is false. | Not reported. |
 
 On iOS automatic mode, listen only playout uses `playback`. When recording starts, LiveKit reapplies the session as `playAndRecord`. In manual mode, non-forced receiver vs speaker behavior comes from the Apple config you applied.
