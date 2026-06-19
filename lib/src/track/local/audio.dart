@@ -77,8 +77,8 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   AudioSenderStats? prevStats;
 
   @override
-  Future<void> onStarted() async {
-    await super.onStarted();
+  Future<void> startCapture() async {
+    await super.startCapture();
     if (lkPlatformSupportsExplicitAudioRecordingStart()) {
       try {
         // Match Swift: start the ADM before publishing so capture-time audio

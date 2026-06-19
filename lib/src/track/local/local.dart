@@ -96,13 +96,13 @@ mixin AudioTrack on Track {
   }
 
   @override
-  Future<void> onStarted() async {
-    logger.fine('AudioTrack.onStarted()');
+  Future<void> startCapture() async {
+    logger.fine('AudioTrack.startCapture()');
   }
 
   @override
-  Future<void> onStopped() async {
-    logger.fine('AudioTrack.onStopped()');
+  Future<void> stopCapture() async {
+    logger.fine('AudioTrack.stopCapture()');
     for (final group in _captureGroups.values) {
       await group.stop();
     }
