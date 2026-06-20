@@ -161,7 +161,7 @@ await AudioManager.instance.setAudioSessionOptions(
 );
 ```
 
-See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for more.
+See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/doc/audio.md) for more.
 
 ### Desktop support
 
@@ -310,7 +310,7 @@ Widget build(BuildContext context) {
 
 Audio tracks are played automatically as long as you are subscribed to them.
 
-LiveKit owns the platform audio session through `AudioManager`. A call is managed automatically with no setup. Speaker routing and, when you need it, manual session control go through the same object. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/docs/audio.md) for examples covering the automatic and manual modes, speaker routing, per platform overrides, and migration from the older `Hardware` APIs.
+LiveKit owns the platform audio session through `AudioManager`. A call is managed automatically with no setup. Speaker routing and, when you need it, manual session control go through the same object. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/doc/audio.md) for examples covering the automatic and manual modes, speaker routing, per platform overrides, and migration from the older `Hardware` APIs.
 
 ```dart
 // A call is managed automatically. Route to the speaker when you want.
