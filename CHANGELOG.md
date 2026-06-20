@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.9.0-dev.0
+
+* Added: AudioManager audio session options with engine-driven native lifecycle and platform routing controls
+* Added: Runtime audio processing controls for local audio tracks
+* Fixed: Apply Android media audio attributes during WebRTC initialization
+* Fixed: Use initialization audio options as the default Android session policy
+* Fixed: Avoid sticky Android speaker routing when updating route preference
+* Fixed: Clean up local audio tracks when recording start fails
+* Fixed: Throw platformUnavailable when runtime audio processing is unsupported
+* Fixed: Apply create-time audio processing when local recording is prepared
+
 ## 2.8.1
 
 * Added: Add agent deployment targeting to token source options
