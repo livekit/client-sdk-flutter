@@ -76,9 +76,9 @@ class VideoTrackRenderer extends StatefulWidget {
   /// ratio), avoiding an under-sized layer on retina / high-density displays.
   final AdaptiveStreamPixelDensity adaptiveStreamPixelDensity;
 
-  /// Placeholder widget to display while the track is loading.
+  /// Placeholder builder to display while the track is loading.
   ///
-  /// This has no effect if [renderMode] is [VideoRenderMode.platformView].
+  /// On iOS, this has no effect when [renderMode] is [VideoRenderMode.platformView].
   final WidgetBuilder? placeholderBuilder;
 
   const VideoTrackRenderer(
@@ -217,7 +217,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   Widget _videoViewForWeb() => !_rendererReadyForWeb
-      ? Container()
+      ? (widget.placeholderBuilder?.call(context) ?? const SizedBox.shrink())
       : Builder(
           key: _viewRegistration.key,
           builder: (ctx) {
@@ -289,7 +289,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
             },
           );
         }
-        return Container();
+        return widget.placeholderBuilder?.call(context) ?? const SizedBox.shrink();
       });
 
   // FutureBuilder will cause flickering for flutter web. so using
