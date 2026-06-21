@@ -179,82 +179,94 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final audioEncoding = publishOptions.encoding ?? AudioEncoding.presetMusic;
     final List<rtc.RTCRtpEncoding> encodings = [audioEncoding.toRTCRtpEncoding()];
 
-    final req = lk_rtc.AddTrackRequest(
-      cid: track.getCid(),
-      name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      type: track.kind.toPBType(),
-      source: track.source.toPBType(),
-      muted: track.muted,
-      stream: buildStreamId(publishOptions, track.source),
-      disableDtx: !publishOptions.dtx,
-      disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
-      encryption: room.roomOptions.lkEncryptionType,
-    );
+    final shouldStopOnFailure = !track.isActive;
+    try {
+      // Start capture before signaling so create-time audio processing failures
+      // abort publish without creating a server-side publication.
+      await track.start();
 
-    // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
-    req.audioFeatures.addAll([
-      if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
-      if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
-    ]);
-
-    Future<lk_models.TrackInfo> negotiate() async {
-      track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
-      await room.engine.negotiate();
-      return lk_models.TrackInfo();
-    }
-
-    late lk_models.TrackInfo trackInfo;
-    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
-      final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
-      trackInfo = rets[0];
-    } else {
-      trackInfo = await room.engine.addTrack(req);
-
-      final transceiverInit = rtc.RTCRtpTransceiverInit(
-        direction: rtc.TransceiverDirection.SendOnly,
-        sendEncodings: encodings,
-      );
-      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-        track: track.mediaStreamTrack,
-        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
-        init: transceiverInit,
+      final req = lk_rtc.AddTrackRequest(
+        cid: track.getCid(),
+        name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
+        type: track.kind.toPBType(),
+        source: track.source.toPBType(),
+        muted: track.muted,
+        stream: buildStreamId(publishOptions, track.source),
+        disableDtx: !publishOptions.dtx,
+        disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
+        encryption: room.roomOptions.lkEncryptionType,
       );
 
-      await room.engine.negotiate();
+      // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
+      req.audioFeatures.addAll([
+        if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
+        if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
+      ]);
+
+      Future<lk_models.TrackInfo> negotiate() async {
+        track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+        await room.engine.negotiate();
+        return lk_models.TrackInfo();
+      }
+
+      late lk_models.TrackInfo trackInfo;
+      if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
+        final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
+        trackInfo = rets[0];
+      } else {
+        trackInfo = await room.engine.addTrack(req);
+
+        final transceiverInit = rtc.RTCRtpTransceiverInit(
+          direction: rtc.TransceiverDirection.SendOnly,
+          sendEncodings: encodings,
+        );
+        // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+        track.transceiver = await room.engine.publisher?.pc.addTransceiver(
+          track: track.mediaStreamTrack,
+          kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+          init: transceiverInit,
+        );
+
+        await room.engine.negotiate();
+      }
+
+      logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
+
+      track.lastPublishOptions = publishOptions;
+
+      final pub = LocalTrackPublication<LocalAudioTrack>(
+        participant: this,
+        info: trackInfo,
+        track: track,
+      );
+      addTrackPublication(pub);
+
+      // did publish
+      await track.onPublish();
+      await track.processor?.onPublish(room);
+
+      final listener = track.createListener();
+      listener.on((TrackEndedEvent event) async {
+        logger.fine('TrackEndedEvent: ${event.track}');
+        await removePublishedTrack(pub.sid);
+      });
+
+      [events, room.events].emit(LocalTrackPublishedEvent(
+        participant: this,
+        publication: pub,
+      ));
+
+      return pub;
+    } catch (error) {
+      if (shouldStopOnFailure) {
+        try {
+          await track.stop();
+        } catch (stopError) {
+          logger.warning('failed to stop audio track after publish failure: $stopError');
+        }
+      }
+      rethrow;
     }
-
-    logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
-
-    track.lastPublishOptions = publishOptions;
-
-    final pub = LocalTrackPublication<LocalAudioTrack>(
-      participant: this,
-      info: trackInfo,
-      track: track,
-    );
-    addTrackPublication(pub);
-
-    // did publish
-    await track.onPublish();
-    await track.processor?.onPublish(room);
-
-    await room.applyAudioSpeakerSettings();
-
-    final listener = track.createListener();
-    listener.on((TrackEndedEvent event) async {
-      logger.fine('TrackEndedEvent: ${event.track}');
-      await removePublishedTrack(pub.sid);
-    });
-
-    [events, room.events].emit(LocalTrackPublishedEvent(
-      participant: this,
-      publication: pub,
-    ));
-
-    await track.start();
-
-    return pub;
   }
 
   /// Publish a [LocalVideoTrack] to the [Room].
@@ -573,8 +585,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await track.processor?.onUnpublish();
         await track.stopProcessor();
       }
-
-      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {

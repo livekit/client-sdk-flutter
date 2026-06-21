@@ -14,9 +14,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
 import '../audio/audio_frame_capture.dart';
@@ -25,6 +22,8 @@ import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
 import '../support/byte_ring_buffer.dart';
+import '../support/native.dart';
+import '../support/platform.dart';
 import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
 import '../types/data_stream.dart';
@@ -145,9 +144,16 @@ class PreConnectAudioBuffer {
       throw error;
     }
 
-    if (!kIsWeb) {
-      await webrtc.NativeAudioManagement.startLocalRecording();
-      _nativeRecordingStarted = true;
+    try {
+      await _localTrack!.start();
+      _nativeRecordingStarted = lkPlatformSupportsExplicitAudioRecordingStart();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to start local recording: $error');
+      _onError?.call(error);
+      await stopRecording(withError: error);
+      await _localTrack?.stop();
+      _localTrack = null;
+      rethrow;
     }
 
     logger.info('startAudioRenderer result: $result');
@@ -212,7 +218,7 @@ class PreConnectAudioBuffer {
 
     // Only stop native recording on error, the room's mic track still uses it.
     if (withError != null && _nativeRecordingStarted) {
-      await webrtc.NativeAudioManagement.stopLocalRecording();
+      await Native.stopLocalRecording();
     }
 
     _nativeRecordingStarted = false;

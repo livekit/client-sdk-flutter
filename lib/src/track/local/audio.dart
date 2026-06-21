@@ -14,6 +14,8 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
@@ -25,6 +27,7 @@ import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../support/native.dart';
+import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
 import '../options.dart' as track_options;
@@ -47,42 +50,49 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     }
   }
 
-  Future<track_options.AudioProcessingApplyResult> setAudioProcessingOptions(
-      track_options.AudioProcessingOptions options) async {
+  /// Applies runtime audio processing options to this local audio track.
+  ///
+  /// On success, updates [currentOptions] and emits
+  /// [LocalTrackOptionsUpdatedEvent]. When the native layer cannot apply the
+  /// options, throws [track_options.AudioProcessingException] and leaves
+  /// [currentOptions] unchanged.
+  Future<void> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
     final response = await Native.setAudioProcessingOptions(
       mediaStreamTrack.id!,
       options.toMap(),
     );
 
-    final code = track_options.AudioProcessingOptionsResultCode.fromValue(response['code'] as String?);
-    final message = (response['message'] as String?) ?? '';
+    _throwIfAudioProcessingFailed(response);
 
-    // Malformed requests (incompatible modes, or a non-local track) are caller
-    // bugs — surface them loudly rather than as a silently-unsuccessful result.
-    if (code == track_options.AudioProcessingOptionsResultCode.rejectedInvalidCombination ||
-        code == track_options.AudioProcessingOptionsResultCode.rejectedRemoteTrack) {
-      throw track_options.AudioProcessingException(
-        code,
-        message.isNotEmpty ? message : 'Unable to apply audio processing options',
-      );
-    }
-
-    final result = track_options.AudioProcessingApplyResult(code, message);
-    if (result.isSuccess) {
-      currentOptions = nextOptions;
-      events.emit(LocalTrackOptionsUpdatedEvent(
-        track: this,
-        options: currentOptions,
-      ));
-    }
-    return result;
+    currentOptions = nextOptions;
+    events.emit(LocalTrackOptionsUpdatedEvent(
+      track: this,
+      options: currentOptions,
+    ));
   }
 
   num? _currentBitrate;
   num? get currentBitrate => _currentBitrate;
 
   AudioSenderStats? prevStats;
+
+  @override
+  Future<void> startCapture() async {
+    await super.startCapture();
+    if (lkPlatformSupportsExplicitAudioRecordingStart()) {
+      try {
+        // Match Swift: start the ADM before publishing so capture-time audio
+        // processing options are applied before WebRTC opens the microphone.
+        await Native.startLocalRecording(currentOptions.processing.toMap());
+      } on PlatformException catch (error) {
+        throw track_options.AudioProcessingException(
+          _audioProcessingFailureReason(error.code),
+          error.message ?? '',
+        );
+      }
+    }
+  }
 
   @override
   Future<bool> monitorStats() async {
@@ -172,20 +182,69 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       options,
     );
 
-    if (options.processor != null) {
-      await track.setProcessor(options.processor);
-    }
-
-    // Per-component processing modes are not part of standard capture
-    // constraints; apply them through the native audio processing path.
-    final processing = options.processing;
-    if (processing.echoCancellationMode != track_options.AudioProcessingMode.automatic ||
-        processing.noiseSuppressionMode != track_options.AudioProcessingMode.automatic ||
-        processing.autoGainControlMode != track_options.AudioProcessingMode.automatic ||
-        processing.highPassFilterMode != track_options.AudioProcessingMode.automatic) {
-      await track.setAudioProcessingOptions(processing);
+    try {
+      if (options.processor != null) {
+        await track.setProcessor(options.processor);
+      }
+    } catch (error, stackTrace) {
+      try {
+        await track.stop();
+      } catch (stopError) {
+        logger.warning('failed to stop audio track after processor setup failure: $stopError');
+      }
+      Error.throwWithStackTrace(error, stackTrace);
     }
 
     return track;
   }
+}
+
+void _throwIfAudioProcessingFailed(Map<String, dynamic> response) {
+  final code = response['code'] as String?;
+  final message = (response['message'] as String?) ?? '';
+
+  final reason = _audioProcessingFailureReason(code);
+  switch (code) {
+    case 'applied':
+    case 'stored':
+      return;
+    case 'rejectedInvalidCombination':
+    case 'rejectedPlatformUnavailable':
+    case 'applyFailed':
+    case 'unknown':
+    case 'rejectedRemoteTrack':
+      throw track_options.AudioProcessingException(
+        reason,
+        message,
+      );
+    default:
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        _unknownAudioProcessingMessage(code, message),
+      );
+  }
+}
+
+track_options.AudioProcessingFailureReason _audioProcessingFailureReason(String? code) {
+  switch (code) {
+    case 'rejectedInvalidCombination':
+      return track_options.AudioProcessingFailureReason.invalidCombination;
+    case 'rejectedPlatformUnavailable':
+      return track_options.AudioProcessingFailureReason.platformUnavailable;
+    case 'applyFailed':
+      return track_options.AudioProcessingFailureReason.applyFailed;
+    default:
+      return track_options.AudioProcessingFailureReason.unknown;
+  }
+}
+
+String _unknownAudioProcessingMessage(String? code, String message) {
+  final trimmed = message.trim();
+  if (trimmed.isNotEmpty) {
+    return trimmed;
+  }
+  if (code != null && code.isNotEmpty) {
+    return 'Unknown audio processing result code: $code.';
+  }
+  return '';
 }

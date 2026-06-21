@@ -43,6 +43,7 @@ export 'src/participant/participant.dart';
 export 'src/participant/remote.dart' hide ParticipantCreationResult;
 export 'src/audio/audio_manager.dart';
 export 'src/audio/audio_frame_capture.dart' show AudioFormat, AudioFrame, AudioFrameCallback, AudioRendererOptions;
+export 'src/audio/audio_session.dart';
 export 'src/preconnect/pre_connect_audio_buffer.dart';
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
