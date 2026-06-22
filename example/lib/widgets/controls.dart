@@ -15,10 +15,14 @@ class ControlsWidget extends StatefulWidget {
   //
   final Room room;
   final LocalParticipant participant;
+  final bool showMessagesPanel;
+  final VoidCallback? onToggleMessagesPanel;
 
   const ControlsWidget(
     this.room,
     this.participant, {
+    this.showMessagesPanel = false,
+    this.onToggleMessagesPanel,
     super.key,
   });
 
@@ -42,7 +46,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   void initState() {
     super.initState();
     participant.addListener(_onChange);
-    _subscription = Hardware.instance.onDeviceChange.stream.listen((List<MediaDevice> devices) {
+    _subscription = Hardware.instance.onDeviceChange.stream.listen((
+      List<MediaDevice> devices,
+    ) {
       _loadDevices(devices);
     });
     unawaited(Hardware.instance.enumerateDevices().then(_loadDevices));
@@ -142,10 +148,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         }
         print('DesktopCapturerSource: ${source.id}');
         final track = await LocalVideoTrack.createScreenShareTrack(
-          ScreenShareCaptureOptions(
-            sourceId: source.id,
-            maxFrameRate: 15.0,
-          ),
+          ScreenShareCaptureOptions(sourceId: source.id, maxFrameRate: 15.0),
         );
         await participant.publishVideoTrack(track);
       } catch (e) {
@@ -169,16 +172,24 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               notificationTitle: 'Screen Sharing',
               notificationText: 'LiveKit Example is sharing the screen.',
               notificationImportance: AndroidNotificationImportance.normal,
-              notificationIcon: AndroidResource(name: 'livekit_ic_launcher', defType: 'mipmap'),
+              notificationIcon: AndroidResource(
+                name: 'livekit_ic_launcher',
+                defType: 'mipmap',
+              ),
             );
-            hasPermissions = await FlutterBackground.initialize(androidConfig: androidConfig);
+            hasPermissions = await FlutterBackground.initialize(
+              androidConfig: androidConfig,
+            );
           }
           if (hasPermissions && !FlutterBackground.isBackgroundExecutionEnabled) {
             await FlutterBackground.enableBackgroundExecution();
           }
         } catch (e) {
           if (!isRetry) {
-            return await Future<void>.delayed(const Duration(seconds: 1), () => requestBackgroundPermission(true));
+            return await Future<void>.delayed(
+              const Duration(seconds: 1),
+              () => requestBackgroundPermission(true),
+            );
           }
           print('could not publish video: $e');
         }
@@ -189,7 +200,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
     if (lkPlatformIsWebMobile()) {
       if (!mounted) return;
-      await context.showErrorDialog('Screen share is not supported on mobile web');
+      await context.showErrorDialog(
+        'Screen share is not supported on mobile web',
+      );
       return;
     }
     await participant.setScreenShareEnabled(true, captureScreenAudio: true);
@@ -236,11 +249,15 @@ class _ControlsWidgetState extends State<ControlsWidget> {
       }
 
       if (SimulateScenarioResult.participantMetadata == result) {
-        await widget.room.localParticipant?.setMetadata('new metadata ${widget.room.localParticipant?.identity}');
+        await widget.room.localParticipant?.setMetadata(
+          'new metadata ${widget.room.localParticipant?.identity}',
+        );
       }
 
       if (SimulateScenarioResult.participantName == result) {
-        await widget.room.localParticipant?.setName('new name for ${widget.room.localParticipant?.identity}');
+        await widget.room.localParticipant?.setName(
+          'new name for ${widget.room.localParticipant?.identity}',
+        );
       }
 
       await widget.room.sendSimulateScenario(
@@ -267,15 +284,18 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 15,
-        horizontal: 15,
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Wrap(
         alignment: WrapAlignment.center,
-        spacing: 5,
-        runSpacing: 5,
+        spacing: 6,
+        runSpacing: 6,
         children: [
           IconButton(
             onPressed: _unpublishAll,
@@ -299,10 +319,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                       value: null,
                       onTap: isMuted ? _enableAudio : _disableAudio,
                       child: const ListTile(
-                        leading: Icon(
-                          Icons.mic_off,
-                          color: Colors.white,
-                        ),
+                        leading: Icon(Icons.mic_off, color: Colors.white),
                         title: Text('Mute Microphone'),
                       ),
                     ),
@@ -324,7 +341,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                           ),
                           onTap: () => _selectAudioInput(device),
                         );
-                      })
+                      }),
                   ];
                 },
               )
@@ -342,10 +359,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                   const PopupMenuItem<MediaDevice>(
                     value: null,
                     child: ListTile(
-                      leading: Icon(
-                        Icons.speaker,
-                        color: Colors.white,
-                      ),
+                      leading: Icon(Icons.speaker, color: Colors.white),
                       title: Text('Select Audio Output'),
                     ),
                   ),
@@ -367,7 +381,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         ),
                         onTap: () => _selectAudioOutput(device),
                       );
-                    })
+                    }),
                 ];
               },
             ),
@@ -375,7 +389,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             IconButton(
               disabledColor: Colors.grey,
               onPressed: _setSpeakerphoneOn,
-              icon: Icon(_speakerphoneOn ? Icons.speaker_phone : Icons.phone_android),
+              icon: Icon(
+                _speakerphoneOn ? Icons.speaker_phone : Icons.phone_android,
+              ),
               tooltip: 'Switch SpeakerPhone',
             ),
           if (participant.isCameraEnabled())
@@ -387,10 +403,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                     value: null,
                     onTap: _disableVideo,
                     child: const ListTile(
-                      leading: Icon(
-                        Icons.videocam_off,
-                        color: Colors.white,
-                      ),
+                      leading: Icon(Icons.videocam_off, color: Colors.white),
                       title: Text('Disable Camera'),
                     ),
                   ),
@@ -412,7 +425,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
                         ),
                         onTap: () => _selectVideoInput(device),
                       );
-                    })
+                    }),
                 ];
               },
             )
@@ -423,7 +436,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               tooltip: 'un-mute video',
             ),
           IconButton(
-            icon: Icon(position == CameraPosition.back ? Icons.video_camera_back : Icons.video_camera_front),
+            icon: Icon(
+              position == CameraPosition.back ? Icons.video_camera_back : Icons.video_camera_front,
+            ),
             onPressed: () => _toggleCamera(),
             tooltip: 'toggle camera',
           ),
@@ -439,6 +454,14 @@ class _ControlsWidgetState extends State<ControlsWidget> {
               onPressed: () => _enableScreenShare(),
               tooltip: 'share screen (experimental)',
             ),
+          IconButton(
+            onPressed: widget.onToggleMessagesPanel,
+            icon: Icon(
+              widget.showMessagesPanel ? Icons.mark_chat_unread : Icons.chat_bubble_outline,
+              color: widget.showMessagesPanel ? Theme.of(context).colorScheme.primary : null,
+            ),
+            tooltip: widget.showMessagesPanel ? 'hide messages' : 'show messages',
+          ),
           IconButton(
             onPressed: _onTapDisconnect,
             icon: const Icon(Icons.close_sharp),

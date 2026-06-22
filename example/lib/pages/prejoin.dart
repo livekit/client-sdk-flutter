@@ -19,6 +19,7 @@ class JoinArgs {
     this.simulcast = true,
     this.adaptiveStream = true,
     this.dynacast = true,
+    this.autoSubscribe = true,
     this.preferredCodec = 'VP8',
     this.enableBackupVideoCodec = true,
   });
@@ -29,15 +30,13 @@ class JoinArgs {
   final bool simulcast;
   final bool adaptiveStream;
   final bool dynacast;
+  final bool autoSubscribe;
   final String preferredCodec;
   final bool enableBackupVideoCodec;
 }
 
 class PreJoinPage extends StatefulWidget {
-  const PreJoinPage({
-    required this.args,
-    super.key,
-  });
+  const PreJoinPage({required this.args, super.key});
   final JoinArgs args;
   @override
   State<StatefulWidget> createState() => _PreJoinPageState();
@@ -69,7 +68,9 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
   Future<void> _initStateAsync() async {
     await _readPrefs();
-    _subscription = Hardware.instance.onDeviceChange.stream.listen(_loadDevices);
+    _subscription = Hardware.instance.onDeviceChange.stream.listen(
+      _loadDevices,
+    );
     final devices = await Hardware.instance.enumerateDevices();
     await _loadDevices(devices);
   }
@@ -164,9 +165,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
 
     if (_selectedAudioDevice != null) {
       _audioTrack = await LocalAudioTrack.create(
-        AudioCaptureOptions(
-          deviceId: _selectedAudioDevice!.deviceId,
-        ),
+        AudioCaptureOptions(deviceId: _selectedAudioDevice!.deviceId),
       );
       await _audioTrack!.start();
     }
@@ -180,10 +179,12 @@ class _PreJoinPageState extends State<PreJoinPage> {
     }
 
     if (_selectedVideoDevice != null) {
-      _videoTrack = await LocalVideoTrack.createCameraTrack(CameraCaptureOptions(
-        deviceId: _selectedVideoDevice!.deviceId,
-        params: _selectedVideoParameters,
-      ));
+      _videoTrack = await LocalVideoTrack.createCameraTrack(
+        CameraCaptureOptions(
+          deviceId: _selectedVideoDevice!.deviceId,
+          params: _selectedVideoParameters,
+        ),
+      );
       await _videoTrack!.start();
     }
   }
@@ -228,15 +229,15 @@ class _PreJoinPageState extends State<PreJoinPage> {
             name: 'custom_audio_track_name',
           ),
           defaultCameraCaptureOptions: const CameraCaptureOptions(
-              maxFrameRate: 30,
-              params: VideoParameters(
-                dimensions: VideoDimensions(1280, 720),
-              )),
+            maxFrameRate: 30,
+            params: VideoParameters(dimensions: VideoDimensions(1280, 720)),
+          ),
           defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-              useiOSBroadcastExtension: true,
-              params: VideoParameters(
-                dimensions: VideoDimensionsPresets.h1080_169,
-              )),
+            useiOSBroadcastExtension: true,
+            params: VideoParameters(
+              dimensions: VideoDimensionsPresets.h1080_169,
+            ),
+          ),
           defaultVideoPublishOptions: VideoPublishOptions(
             simulcast: args.simulcast,
             videoCodec: args.preferredCodec,
@@ -259,6 +260,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
       await room.connect(
         args.url,
         args.token,
+        connectOptions: ConnectOptions(autoSubscribe: args.autoSubscribe),
         fastConnectOptions: FastConnectOptions(
           microphone: TrackOption(track: _audioTrack),
           camera: TrackOption(track: _videoTrack),
@@ -268,7 +270,9 @@ class _PreJoinPageState extends State<PreJoinPage> {
       if (!context.mounted) return;
       await Navigator.push<void>(
         context,
-        MaterialPageRoute(builder: (_) => RoomPage(room, listener, fastConnection: true)),
+        MaterialPageRoute(
+          builder: (_) => RoomPage(room, listener, fastConnection: true),
+        ),
       );
     } catch (error) {
       print('Could not connect $error');
@@ -305,52 +309,56 @@ class _PreJoinPageState extends State<PreJoinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Select Devices',
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => _actionBack(context),
-          ),
+      appBar: AppBar(
+        title: const Text(
+          'Select Devices',
+          style: TextStyle(color: Colors.white),
         ),
-        body: Container(
-            alignment: Alignment.center,
-            child: SingleChildScrollView(
-                child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 20,
-              ),
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => _actionBack(context),
+        ),
+      ),
+      body: Container(
+        alignment: Alignment.center,
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: SizedBox(
-                        width: 320,
-                        height: 240,
-                        child: Container(
-                          alignment: Alignment.center,
-                          color: Colors.black54,
-                          child: _videoTrack != null
-                              ? VideoTrackRenderer(
-                                  renderMode: VideoRenderMode.auto,
-                                  _videoTrack!,
-                                )
-                              : Container(
-                                  alignment: Alignment.center,
-                                  child: LayoutBuilder(
-                                    builder: (ctx, constraints) => Icon(
-                                      Icons.videocam_off,
-                                      color: LKColors.lkBlue,
-                                      size: math.min(constraints.maxHeight, constraints.maxWidth) * 0.3,
-                                    ),
-                                  ),
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SizedBox(
+                    width: 320,
+                    height: 240,
+                    child: Container(
+                      alignment: Alignment.center,
+                      color: Colors.black54,
+                      child: _videoTrack != null
+                          ? VideoTrackRenderer(
+                              renderMode: VideoRenderMode.auto,
+                              _videoTrack!,
+                            )
+                          : Container(
+                              alignment: Alignment.center,
+                              child: LayoutBuilder(
+                                builder: (ctx, constraints) => Icon(
+                                  Icons.videocam_off,
+                                  color: LKColors.lkBlue,
+                                  size: math.min(
+                                        constraints.maxHeight,
+                                        constraints.maxWidth,
+                                      ) *
+                                      0.3,
                                 ),
-                        ))),
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Row(
@@ -370,20 +378,18 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     child: DropdownButton2<MediaDevice>(
                       isExpanded: true,
                       disabledHint: const Text('Disable Camera'),
-                      hint: const Text(
-                        'Select Camera',
-                      ),
+                      hint: const Text('Select Camera'),
                       items: _enableVideo
                           ? _videoInputs
-                              .map((MediaDevice item) => DropdownMenuItem<MediaDevice>(
-                                    value: item,
-                                    child: Text(
-                                      item.label,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ))
+                              .map(
+                                (MediaDevice item) => DropdownMenuItem<MediaDevice>(
+                                  value: item,
+                                  child: Text(
+                                    item.label,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              )
                               .toList()
                           : [],
                       value: _selectedVideoDevice,
@@ -399,9 +405,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                         height: 40,
                         width: 140,
                       ),
-                      menuItemStyleData: const MenuItemStyleData(
-                        height: 40,
-                      ),
+                      menuItemStyleData: const MenuItemStyleData(height: 40),
                     ),
                   ),
                 ),
@@ -411,24 +415,25 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton2<VideoParameters>(
                         isExpanded: true,
-                        hint: const Text(
-                          'Select Video Dimensions',
-                        ),
+                        hint: const Text('Select Video Dimensions'),
                         items: [
                           VideoParametersPresets.h480_43,
                           VideoParametersPresets.h540_169,
                           VideoParametersPresets.h720_169,
                           VideoParametersPresets.h1080_169,
                         ]
-                            .map((VideoParameters item) => DropdownMenuItem<VideoParameters>(
-                                  value: item,
-                                  child: Text(
-                                    '${item.dimensions.width}x${item.dimensions.height}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ))
+                            .map(
+                              (
+                                VideoParameters item,
+                              ) =>
+                                  DropdownMenuItem<VideoParameters>(
+                                value: item,
+                                child: Text(
+                                  '${item.dimensions.width}x${item.dimensions.height}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            )
                             .toList(),
                         value: _selectedVideoParameters,
                         onChanged: (VideoParameters? value) async {
@@ -443,9 +448,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                           height: 40,
                           width: 140,
                         ),
-                        menuItemStyleData: const MenuItemStyleData(
-                          height: 40,
-                        ),
+                        menuItemStyleData: const MenuItemStyleData(height: 40),
                       ),
                     ),
                   ),
@@ -468,20 +471,18 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     child: DropdownButton2<MediaDevice>(
                       isExpanded: true,
                       disabledHint: const Text('Disable Microphone'),
-                      hint: const Text(
-                        'Select Microphone',
-                      ),
+                      hint: const Text('Select Microphone'),
                       items: _enableAudio
                           ? _audioInputs
-                              .map((MediaDevice item) => DropdownMenuItem<MediaDevice>(
-                                    value: item,
-                                    child: Text(
-                                      item.label,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ))
+                              .map(
+                                (MediaDevice item) => DropdownMenuItem<MediaDevice>(
+                                  value: item,
+                                  child: Text(
+                                    item.label,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              )
                               .toList()
                           : [],
                       value: _selectedAudioDevice,
@@ -497,9 +498,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                         height: 40,
                         width: 140,
                       ),
-                      menuItemStyleData: const MenuItemStyleData(
-                        height: 40,
-                      ),
+                      menuItemStyleData: const MenuItemStyleData(height: 40),
                     ),
                   ),
                 ),
@@ -524,7 +523,11 @@ class _PreJoinPageState extends State<PreJoinPage> {
                     ],
                   ),
                 ),
-              ]),
-            ))));
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
