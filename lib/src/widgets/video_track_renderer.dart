@@ -80,7 +80,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.track, {
     this.fit = VideoViewFit.contain,
     this.mirrorMode = VideoViewMirrorMode.auto,
-    this.renderMode = VideoRenderMode.texture,
+    this.renderMode = VideoRenderMode.auto,
     this.autoDisposeRenderer = true,
     this.cachedRenderer,
     this.autoCenter = true,
@@ -101,10 +101,13 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   // Used to compute visibility information
   late VideoTrackViewRegistration _viewRegistration;
 
+  bool get _shouldUsePlatformView {
+    if (![PlatformType.iOS, PlatformType.macOS].contains(lkPlatform())) return false;
+    if (widget.renderMode == VideoRenderMode.platformView) return true;
+    return widget.renderMode == VideoRenderMode.auto && widget.cachedRenderer == null;
+  }
+
   Future<rtc.VideoRenderer> _initializeRenderer() async {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
-      return Null as Future<rtc.VideoRenderer>;
-    }
     if (_renderer == null) {
       _renderer = rtc.RTCVideoRenderer();
       await _renderer!.initialize();
@@ -186,10 +189,21 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     _renderer?.onResize = () {
       if (mounted) {
         setState(() {
-          _aspectRatio = (_renderer as rtc.RTCVideoRenderer?)?.videoValue.aspectRatio;
+          _aspectRatio = _rendererAspectRatio;
         });
       }
     };
+  }
+
+  double? get _rendererAspectRatio {
+    final renderer = _renderer;
+    if (renderer is rtc.RTCVideoRenderer) {
+      return renderer.videoValue.aspectRatio;
+    }
+    if (renderer is rtc.RTCVideoPlatformViewController) {
+      return renderer.value.aspectRatio;
+    }
+    return null;
   }
 
   @override
@@ -228,8 +242,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           },
         );
 
-  Widget _videoRendererView() {
-    if (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView) {
+  Widget _videoRendererView({required bool usePlatformView}) {
+    if (usePlatformView) {
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
@@ -248,11 +262,12 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     );
   }
 
-  Widget _videoViewForNative() => FutureBuilder(
-      future: _initializeRenderer(),
+  Widget _videoViewForNative() {
+    final usePlatformView = _shouldUsePlatformView;
+    return FutureBuilder(
+      future: usePlatformView ? null : _initializeRenderer(),
       builder: (context, snapshot) {
-        if ((snapshot.hasData && _renderer != null) ||
-            (lkPlatformIs(PlatformType.iOS) && widget.renderMode == VideoRenderMode.platformView)) {
+        if ((snapshot.hasData && _renderer != null) || usePlatformView) {
           return Builder(
             key: _viewRegistration.key,
             builder: (ctx) {
@@ -262,7 +277,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
               });
 
               if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
-                return _videoRendererView();
+                return _videoRendererView(usePlatformView: usePlatformView);
               }
               return LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
@@ -274,7 +289,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
                       }
                     },
                     onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
-                    child: _videoRendererView(),
+                    child: _videoRendererView(usePlatformView: usePlatformView),
                   );
                 },
               );
@@ -282,7 +297,9 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
           );
         }
         return Container();
-      });
+      },
+    );
+  }
 
   // FutureBuilder will cause flickering for flutter web. so using
   // different rendering methods for web and native.

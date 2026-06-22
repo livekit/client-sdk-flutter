@@ -1,0 +1,1 @@
+patch type="changed" "Use iOS platform view rendering by default for VideoTrackRenderer auto mode"
