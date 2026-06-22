@@ -61,12 +61,34 @@ class ConnectOptions {
 
   final Timeouts timeouts;
 
+  /// When true, will attempt to connect via single peer connection mode.
+  /// Automatically falls back to dual peer connection mode if the server
+  /// does not support the v1 signal path (HTTP 404).
+  final bool singlePeerConnection;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v16,
     this.timeouts = Timeouts.defaultTimeouts,
+    this.singlePeerConnection = false,
   });
+
+  ConnectOptions copyWith({
+    bool? autoSubscribe,
+    RTCConfiguration? rtcConfiguration,
+    ProtocolVersion? protocolVersion,
+    Timeouts? timeouts,
+    bool? singlePeerConnection,
+  }) {
+    return ConnectOptions(
+      autoSubscribe: autoSubscribe ?? this.autoSubscribe,
+      rtcConfiguration: rtcConfiguration ?? this.rtcConfiguration,
+      protocolVersion: protocolVersion ?? this.protocolVersion,
+      timeouts: timeouts ?? this.timeouts,
+      singlePeerConnection: singlePeerConnection ?? this.singlePeerConnection,
+    );
+  }
 }
 
 /// Options used to modify the behavior of the [Room].

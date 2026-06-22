@@ -26,6 +26,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
+import './proto/livekit_rtc.pb.dart' as lk_rtc;
 import './support/native.dart';
 import 'extensions.dart';
 import 'livekit.dart';
@@ -157,7 +158,7 @@ class Utils {
   }
 
   @internal
-  static Future<Uri> buildUri(
+  static Future<Uri> buildV0Uri(
     String uriString, {
     required String token,
     required ConnectOptions connectOptions,
@@ -206,6 +207,91 @@ class Utils {
           if (clientInfo.hasBrowser()) 'browser': clientInfo.browser,
           if (clientInfo.hasBrowserVersion()) 'browser_version': clientInfo.browserVersion,
         },
+      },
+    );
+  }
+
+  @internal
+  static Future<Uri> buildV1Uri(
+    String uriString, {
+    required String token,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
+    bool reconnect = false,
+    String? sid,
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme;
+    final wsScheme = useSecure ? 'wss' : 'ws';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+    pathSegments.removeWhere((e) => e.isEmpty);
+    pathSegments.addAll(['rtc', 'v1']);
+
+    final clientInfo = await _clientInfo();
+    final networkType = await getNetworkType();
+
+    // Populate ClientInfo with the same fields that v0 sends as query params
+    if (clientInfo != null) {
+      clientInfo.sdk = lk_models.ClientInfo_SDK.FLUTTER;
+      clientInfo.version = LiveKitClient.version;
+      clientInfo.protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0;
+      clientInfo.network = networkType;
+    }
+
+    final joinRequest = lk_rtc.JoinRequest(
+      clientInfo: clientInfo,
+      connectionSettings: lk_rtc.ConnectionSettings(
+        autoSubscribe: connectOptions.autoSubscribe,
+        adaptiveStream: roomOptions.adaptiveStream,
+      ),
+      reconnect: reconnect ? true : null,
+      participantSid: reconnect ? sid : null,
+      reconnectReason: reconnect ? reconnectReason : null,
+    );
+
+    final wrappedJoinRequest = lk_rtc.WrappedJoinRequest(
+      joinRequest: joinRequest.writeToBuffer(),
+    );
+
+    final joinRequestBase64 = base64Encode(wrappedJoinRequest.writeToBuffer());
+
+    return uri.replace(
+      scheme: wsScheme,
+      pathSegments: pathSegments,
+      queryParameters: <String, String>{
+        'access_token': token,
+        'join_request': joinRequestBase64,
+      },
+    );
+  }
+
+  /// Converts a v1 WebSocket URL to its HTTP validation counterpart.
+  /// `wss://host/rtc/v1` → `https://host/rtc/v1/validate`
+  @internal
+  static Future<Uri> buildV1ValidateUri(
+    String uriString, {
+    required String token,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
+    bool forceSecure = false,
+  }) async {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme || forceSecure;
+    final httpScheme = useSecure ? 'https' : 'http';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+    pathSegments.removeWhere((e) => e.isEmpty);
+    pathSegments.addAll(['rtc', 'v1', 'validate']);
+
+    return uri.replace(
+      scheme: httpScheme,
+      pathSegments: pathSegments,
+      queryParameters: <String, String>{
+        'access_token': token,
       },
     );
   }
