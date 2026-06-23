@@ -242,8 +242,79 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
   Map<String, dynamic> toMediaConstraintsMap() => params.toMediaConstraintsMap();
 }
 
+/// Selects whether a voice-processing component uses platform or software processing.
+enum AudioProcessingMode {
+  automatic('auto'),
+  platform('platform'),
+  software('software');
+
+  const AudioProcessingMode(this.constraintValue);
+
+  final String constraintValue;
+}
+
+/// Runtime voice-processing options for a [LocalAudioTrack].
+///
+/// These values update the native local audio source without restarting
+/// capture. When the track is being sent, the native WebRTC sender reapplies
+/// the updated processing config. The effective audio processing module config
+/// is shared by the native voice engine/channel, so conflicting updates from
+/// multiple local tracks are not isolated per track.
+class AudioProcessingOptions {
+  const AudioProcessingOptions({
+    required this.echoCancellation,
+    required this.noiseSuppression,
+    required this.autoGainControl,
+    required this.highPassFilter,
+    this.echoCancellationMode = AudioProcessingMode.automatic,
+    this.noiseSuppressionMode = AudioProcessingMode.automatic,
+    this.autoGainControlMode = AudioProcessingMode.automatic,
+    this.highPassFilterMode = AudioProcessingMode.automatic,
+  });
+
+  const AudioProcessingOptions.communication()
+      : echoCancellation = true,
+        noiseSuppression = true,
+        autoGainControl = true,
+        highPassFilter = true,
+        echoCancellationMode = AudioProcessingMode.automatic,
+        noiseSuppressionMode = AudioProcessingMode.automatic,
+        autoGainControlMode = AudioProcessingMode.automatic,
+        highPassFilterMode = AudioProcessingMode.automatic;
+
+  const AudioProcessingOptions.noProcessing()
+      : echoCancellation = false,
+        noiseSuppression = false,
+        autoGainControl = false,
+        highPassFilter = false,
+        echoCancellationMode = AudioProcessingMode.automatic,
+        noiseSuppressionMode = AudioProcessingMode.automatic,
+        autoGainControlMode = AudioProcessingMode.automatic,
+        highPassFilterMode = AudioProcessingMode.automatic;
+
+  final bool echoCancellation;
+  final bool noiseSuppression;
+  final bool autoGainControl;
+  final bool highPassFilter;
+  final AudioProcessingMode echoCancellationMode;
+  final AudioProcessingMode noiseSuppressionMode;
+  final AudioProcessingMode autoGainControlMode;
+  final AudioProcessingMode highPassFilterMode;
+
+  Map<String, dynamic> toMap() => {
+        'echoCancellation': echoCancellation,
+        'noiseSuppression': noiseSuppression,
+        'autoGainControl': autoGainControl,
+        'highPassFilter': highPassFilter,
+        'echoCancellationMode': echoCancellationMode.constraintValue,
+        'noiseSuppressionMode': noiseSuppressionMode.constraintValue,
+        'autoGainControlMode': autoGainControlMode.constraintValue,
+        'highPassFilterMode': highPassFilterMode.constraintValue,
+      };
+}
+
 /// Options used when creating a [LocalAudioTrack].
-class AudioCaptureOptions extends LocalTrackOptions {
+class AudioCaptureOptions extends LocalTrackOptions implements AudioProcessingOptions {
   /// The deviceId of the capture device to use.
   /// Available deviceIds can be obtained through `flutter_webrtc`:
   /// ```
@@ -256,21 +327,37 @@ class AudioCaptureOptions extends LocalTrackOptions {
   /// Attempt to use noiseSuppression option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/noiseSuppression
   /// Defaults to true.
+  @override
   final bool noiseSuppression;
 
   /// Attempt to use echoCancellation option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings/echoCancellation
   /// Defaults to true.
+  @override
   final bool echoCancellation;
 
   /// Attempt to use autoGainControl option (if supported by the platform)
   /// See https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints/autoGainControl
   /// Defaults to true.
+  @override
   final bool autoGainControl;
 
   /// Attempt to use highPassFilter options (if supported by the platform)
   /// Defaults to false.
+  @override
   final bool highPassFilter;
+
+  @override
+  final AudioProcessingMode echoCancellationMode;
+
+  @override
+  final AudioProcessingMode noiseSuppressionMode;
+
+  @override
+  final AudioProcessingMode autoGainControlMode;
+
+  @override
+  final AudioProcessingMode highPassFilterMode;
 
   /// Attempt to use typingNoiseDetection option (if supported by the platform)
   /// Defaults to true.
@@ -292,11 +379,29 @@ class AudioCaptureOptions extends LocalTrackOptions {
     this.echoCancellation = true,
     this.autoGainControl = true,
     this.highPassFilter = false,
+    this.echoCancellationMode = AudioProcessingMode.automatic,
+    this.noiseSuppressionMode = AudioProcessingMode.automatic,
+    this.autoGainControlMode = AudioProcessingMode.automatic,
+    this.highPassFilterMode = AudioProcessingMode.automatic,
     this.voiceIsolation = true,
     this.typingNoiseDetection = true,
     this.stopAudioCaptureOnMute = true,
     this.processor,
   });
+
+  AudioProcessingOptions get processing => AudioProcessingOptions(
+        echoCancellation: echoCancellation,
+        noiseSuppression: noiseSuppression,
+        autoGainControl: autoGainControl,
+        highPassFilter: highPassFilter,
+        echoCancellationMode: echoCancellationMode,
+        noiseSuppressionMode: noiseSuppressionMode,
+        autoGainControlMode: autoGainControlMode,
+        highPassFilterMode: highPassFilterMode,
+      );
+
+  @override
+  Map<String, dynamic> toMap() => processing.toMap();
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
@@ -358,15 +463,30 @@ class AudioCaptureOptions extends LocalTrackOptions {
     bool? echoCancellation,
     bool? autoGainControl,
     bool? highPassFilter,
+    AudioProcessingMode? echoCancellationMode,
+    AudioProcessingMode? noiseSuppressionMode,
+    AudioProcessingMode? autoGainControlMode,
+    AudioProcessingMode? highPassFilterMode,
+    AudioProcessingOptions? processing,
+    bool? voiceIsolation,
     bool? typingNoiseDetection,
+    bool? stopAudioCaptureOnMute,
+    TrackProcessor<AudioProcessorOptions>? processor,
   }) {
     return AudioCaptureOptions(
       deviceId: deviceId ?? this.deviceId,
-      noiseSuppression: noiseSuppression ?? this.noiseSuppression,
-      echoCancellation: echoCancellation ?? this.echoCancellation,
-      autoGainControl: autoGainControl ?? this.autoGainControl,
-      highPassFilter: highPassFilter ?? this.highPassFilter,
+      noiseSuppression: processing?.noiseSuppression ?? noiseSuppression ?? this.noiseSuppression,
+      echoCancellation: processing?.echoCancellation ?? echoCancellation ?? this.echoCancellation,
+      autoGainControl: processing?.autoGainControl ?? autoGainControl ?? this.autoGainControl,
+      highPassFilter: processing?.highPassFilter ?? highPassFilter ?? this.highPassFilter,
+      echoCancellationMode: processing?.echoCancellationMode ?? echoCancellationMode ?? this.echoCancellationMode,
+      noiseSuppressionMode: processing?.noiseSuppressionMode ?? noiseSuppressionMode ?? this.noiseSuppressionMode,
+      autoGainControlMode: processing?.autoGainControlMode ?? autoGainControlMode ?? this.autoGainControlMode,
+      highPassFilterMode: processing?.highPassFilterMode ?? highPassFilterMode ?? this.highPassFilterMode,
+      voiceIsolation: voiceIsolation ?? this.voiceIsolation,
       typingNoiseDetection: typingNoiseDetection ?? this.typingNoiseDetection,
+      stopAudioCaptureOnMute: stopAudioCaptureOnMute ?? this.stopAudioCaptureOnMute,
+      processor: processor ?? this.processor,
     );
   }
 }
@@ -387,4 +507,51 @@ class AudioOutputOptions {
       speakerOn: speakerOn ?? this.speakerOn,
     );
   }
+}
+
+/// Reason that applying [AudioProcessingOptions] failed.
+enum AudioProcessingFailureReason {
+  /// The requested mode combination is invalid for the native audio module.
+  invalidCombination,
+
+  /// The platform or device cannot provide the requested processing path.
+  platformUnavailable,
+
+  /// The native layer attempted to apply the options but failed.
+  applyFailed,
+
+  /// The native layer returned an unrecognized or malformed result.
+  unknown,
+}
+
+String _defaultAudioProcessingMessage(AudioProcessingFailureReason reason) {
+  switch (reason) {
+    case AudioProcessingFailureReason.invalidCombination:
+      return 'The requested audio processing mode combination is invalid.';
+    case AudioProcessingFailureReason.platformUnavailable:
+      return 'Audio processing options are unavailable on this platform or device.';
+    case AudioProcessingFailureReason.applyFailed:
+      return 'The native WebRTC audio processing module could not apply the requested options.';
+    case AudioProcessingFailureReason.unknown:
+      return 'Audio processing options failed for an unknown reason.';
+  }
+}
+
+String _audioProcessingMessageOrDefault(AudioProcessingFailureReason reason, String message) {
+  final trimmed = message.trim();
+  return trimmed.isEmpty ? _defaultAudioProcessingMessage(reason) : trimmed;
+}
+
+/// Thrown when [AudioProcessingOptions] cannot be applied.
+///
+/// [reason] is a stable SDK category. [message] carries native details when
+/// available, or an SDK-provided fallback when native does not include details.
+class AudioProcessingException implements Exception {
+  AudioProcessingException(this.reason, String message) : message = _audioProcessingMessageOrDefault(reason, message);
+
+  final AudioProcessingFailureReason reason;
+  final String message;
+
+  @override
+  String toString() => 'AudioProcessingException(${reason.name}): $message';
 }

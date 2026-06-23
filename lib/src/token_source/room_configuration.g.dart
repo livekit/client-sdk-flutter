@@ -9,11 +9,13 @@ part of 'room_configuration.dart';
 RoomAgentDispatch _$RoomAgentDispatchFromJson(Map<String, dynamic> json) => RoomAgentDispatch(
       agentName: json['agent_name'] as String?,
       metadata: json['metadata'] as String?,
+      deployment: json['deployment'] as String?,
     );
 
 Map<String, dynamic> _$RoomAgentDispatchToJson(RoomAgentDispatch instance) => <String, dynamic>{
       if (instance.agentName case final value?) 'agent_name': value,
       if (instance.metadata case final value?) 'metadata': value,
+      if (instance.deployment case final value?) 'deployment': value,
     };
 
 RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) => RoomConfiguration(
