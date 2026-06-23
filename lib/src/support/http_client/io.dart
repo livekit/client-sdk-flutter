@@ -45,15 +45,22 @@ class _CertificatePinningConnectionFactory {
     String? proxyHost,
     int? proxyPort,
   ) async {
+    final rules = _rulesFor(url);
+
     if (proxyHost != null || proxyPort != null) {
-      throw UnsupportedError('Certificate pinning through HTTP proxies is not supported');
+      if (rules.isNotEmpty) {
+        throw UnsupportedError('Certificate pinning through HTTP proxies is not supported');
+      }
+      if (proxyHost == null || proxyPort == null) {
+        throw ArgumentError('Proxy host and port must both be set');
+      }
+      return io.Socket.startConnect(proxyHost, proxyPort);
     }
 
     if (!_isTlsScheme(url.scheme)) {
       return io.Socket.startConnect(url.host, _portFor(url));
     }
 
-    final rules = _validator.rulesForHost(url.host);
     final validatePinnedLeafCertificate = rules.any((rule) => rule.hasPinnedLeafCertificates);
     final context = _securityContextFor(rules, allowPinnedCertificateBypass: validatePinnedLeafCertificate);
     CertificatePinningException? pinnedLeafCertificateFailure;
@@ -98,6 +105,13 @@ class _CertificatePinningConnectionFactory {
     });
 
     return io.ConnectionTask.fromSocket<io.Socket>(socket, task.cancel);
+  }
+
+  List<CertificatePinningRule> _rulesFor(Uri url) {
+    if (!_isTlsScheme(url.scheme)) {
+      return const [];
+    }
+    return _validator.rulesForHost(url.host).where((rule) => rule.isEnabled).toList(growable: false);
   }
 
   io.SecurityContext? _securityContextFor(

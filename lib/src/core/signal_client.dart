@@ -172,6 +172,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       events.emit(const SignalConnectedEvent());
     } catch (socketError) {
       if (socketError is CertificatePinningException) {
+        _connectionState = ConnectionState.disconnected;
         events.emit(SignalDisconnectedEvent(reason: DisconnectReason.signalingConnectionFailure));
         rethrow;
       }

@@ -48,6 +48,7 @@ class _CapturingConnector {
     Uri uri, {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
+    NetworkOptions? networkOptions,
   }) async {
     handlers = options;
     return socket;

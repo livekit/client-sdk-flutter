@@ -22,7 +22,10 @@ import 'package:livekit_client/src/exceptions.dart';
 import 'package:livekit_client/src/options.dart';
 import 'package:livekit_client/src/support/certificate_pinning.dart';
 import 'package:livekit_client/src/support/http_client.dart';
+import 'package:livekit_client/src/support/http_client/io.dart';
 import 'package:livekit_client/src/support/websocket.dart';
+
+const _testServerHost = '127.0.0.1';
 
 void main() {
   test('allows exact pinned leaf certificates without SPKI pins', () async {
@@ -30,12 +33,12 @@ void main() {
     addTearDown(server.close);
 
     final response = await sdkHttpGet(
-      Uri.parse('https://localhost:${server.port}/settings'),
+      Uri.parse('https://$_testServerHost:${server.port}/settings'),
       networkOptions: NetworkOptions(
         certificatePinning: CertificatePinningOptions(
           rules: [
             CertificatePinningRule(
-              hosts: const ['localhost'],
+              hosts: const [_testServerHost],
               pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
             ),
           ],
@@ -53,12 +56,12 @@ void main() {
     addTearDown(server.close);
 
     final response = await sdkHttpGet(
-      Uri.parse('https://localhost:${server.port}/settings'),
+      Uri.parse('https://$_testServerHost:${server.port}/settings'),
       networkOptions: NetworkOptions(
         certificatePinning: CertificatePinningOptions(
           rules: [
             CertificatePinningRule(
-              hosts: const ['localhost'],
+              hosts: const [_testServerHost],
               trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
             ),
           ],
@@ -76,12 +79,12 @@ void main() {
     addTearDown(server.close);
 
     final response = await sdkHttpGet(
-      Uri.parse('https://localhost:${server.port}/settings'),
+      Uri.parse('https://$_testServerHost:${server.port}/settings'),
       networkOptions: NetworkOptions(
         certificatePinning: CertificatePinningOptions(
           rules: [
             CertificatePinningRule(
-              hosts: const ['localhost'],
+              hosts: const [_testServerHost],
               trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
             ),
           ],
@@ -100,13 +103,13 @@ void main() {
 
     await expectLater(
       sdkHttpGet(
-        Uri.parse('https://localhost:${server.port}/rtc'),
+        Uri.parse('https://$_testServerHost:${server.port}/rtc'),
         headers: const {'Authorization': 'Bearer token'},
         networkOptions: NetworkOptions(
           certificatePinning: CertificatePinningOptions(
             rules: [
               CertificatePinningRule(
-                hosts: const ['localhost'],
+                hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
                 pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
               ),
@@ -129,13 +132,13 @@ void main() {
 
     await expectLater(
       sdkHttpGet(
-        Uri.parse('https://localhost:${server.port}/rtc'),
+        Uri.parse('https://$_testServerHost:${server.port}/rtc'),
         headers: const {'Authorization': 'Bearer token'},
         networkOptions: NetworkOptions(
           certificatePinning: CertificatePinningOptions(
             rules: [
               CertificatePinningRule(
-                hosts: const ['localhost'],
+                hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
                 trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
               ),
@@ -158,13 +161,13 @@ void main() {
 
     await expectLater(
       LiveKitWebSocket.connect(
-        Uri.parse('wss://localhost:${server.port}/rtc'),
+        Uri.parse('wss://$_testServerHost:${server.port}/rtc'),
         headers: const {'Authorization': 'Bearer token'},
         networkOptions: NetworkOptions(
           certificatePinning: CertificatePinningOptions(
             rules: [
               CertificatePinningRule(
-                hosts: const ['localhost'],
+                hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
                 pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
               ),
@@ -186,13 +189,13 @@ void main() {
     addTearDown(server.close);
 
     final response = await sdkHttpGet(
-      Uri.parse('https://localhost:${server.port}/rtc'),
+      Uri.parse('https://$_testServerHost:${server.port}/rtc'),
       headers: const {'Authorization': 'Bearer token'},
       networkOptions: NetworkOptions(
         certificatePinning: CertificatePinningOptions(
           rules: [
             CertificatePinningRule(
-              hosts: const ['localhost'],
+              hosts: const [_testServerHost],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
               pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
             ),
@@ -210,13 +213,13 @@ void main() {
     addTearDown(server.close);
 
     final response = await sdkHttpGet(
-      Uri.parse('https://localhost:${server.port}/rtc'),
+      Uri.parse('https://$_testServerHost:${server.port}/rtc'),
       headers: const {'Authorization': 'Bearer token'},
       networkOptions: NetworkOptions(
         certificatePinning: CertificatePinningOptions(
           rules: [
             CertificatePinningRule(
-              hosts: const ['localhost'],
+              hosts: const [_testServerHost],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
               trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
             ),
@@ -228,6 +231,109 @@ void main() {
     expect(response.statusCode, 200);
     expect(server.receivedText, contains('authorization: Bearer token'));
   });
+
+  test('allows HTTP proxies when no pinning rule applies to the target', () async {
+    final proxy = await _PlainHttpProxyServer.start();
+    addTearDown(proxy.close);
+
+    final client = createSdkIoHttpClient(const NetworkOptions(
+      certificatePinning: CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: ['pinned.example.com'],
+            primaryPins: ['sha256/not-the-presented-pin'],
+          ),
+        ],
+      ),
+    ));
+    addTearDown(() => client.close(force: true));
+
+    client.findProxy = (_) => 'PROXY $_testServerHost:${proxy.port}';
+
+    final request = await client.getUrl(
+      Uri.parse('http://127.0.0.2:${proxy.port}/settings'),
+    );
+    final response = await request.close();
+    final body = await utf8.decodeStream(response);
+
+    expect(response.statusCode, 200);
+    expect(body, 'OK');
+    expect(proxy.receivedText, contains('GET http://127.0.0.2:${proxy.port}/settings HTTP/1.1'));
+  });
+
+  test('rejects HTTP proxies when TLS pinning applies to the target', () async {
+    final proxy = await _PlainHttpProxyServer.start();
+    addTearDown(proxy.close);
+
+    final client = createSdkIoHttpClient(const NetworkOptions(
+      certificatePinning: CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: [_testServerHost],
+            primaryPins: ['sha256/not-the-presented-pin'],
+          ),
+        ],
+      ),
+    ));
+    addTearDown(() => client.close(force: true));
+
+    client.findProxy = (_) => 'PROXY $_testServerHost:${proxy.port}';
+
+    await expectLater(
+      () async {
+        final request = await client.getUrl(Uri.parse('https://$_testServerHost/settings'));
+        await request.close();
+      }(),
+      throwsA(isA<UnsupportedError>()),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(proxy.receivedBytes, isEmpty);
+  });
+}
+
+class _PlainHttpProxyServer {
+  final io.ServerSocket _server;
+  final _receivedBytes = <int>[];
+  final _sockets = <io.Socket>[];
+  late final StreamSubscription<io.Socket> _subscription;
+
+  _PlainHttpProxyServer._(this._server) {
+    _subscription = _server.listen(_handleSocket);
+  }
+
+  int get port => _server.port;
+
+  List<int> get receivedBytes => List.unmodifiable(_receivedBytes);
+
+  String get receivedText => ascii.decode(_receivedBytes, allowInvalid: true);
+
+  static Future<_PlainHttpProxyServer> start() async {
+    final server = await io.ServerSocket.bind(
+      io.InternetAddress.loopbackIPv4,
+      0,
+    );
+    return _PlainHttpProxyServer._(server);
+  }
+
+  Future<void> close() async {
+    await _subscription.cancel();
+    for (final socket in _sockets) {
+      socket.destroy();
+    }
+    await _server.close();
+  }
+
+  void _handleSocket(io.Socket socket) {
+    _sockets.add(socket);
+    socket.listen((data) {
+      _receivedBytes.addAll(data);
+      if (receivedText.contains('\r\n\r\n')) {
+        socket.add(ascii.encode('HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK'));
+        unawaited(socket.flush().then((_) => socket.close()));
+      }
+    });
+  }
 }
 
 class _TlsTestServer {

@@ -59,7 +59,7 @@ void main() {
     expect(
         connector.uri,
         Uri.parse(
-            'ws://www.example.com/rtc?auto_subscribe=1&adaptive_stream=0&protocol=16&sdk=flutter&version=2.7.0&network=wifi&os=test'));
+            'ws://www.example.com/rtc?auto_subscribe=1&adaptive_stream=0&protocol=16&sdk=flutter&version=${LiveKitClient.version}&network=wifi&os=test'));
     expect(connector.headers, {'Authorization': 'Bearer $token'});
     expect(connector.networkOptions, same(roomOptions.networkOptions));
   });
@@ -84,5 +84,6 @@ void main() {
       ),
       throwsA(isA<CertificatePinningException>()),
     );
+    expect(client.connectionState, ConnectionState.disconnected);
   });
 }
