@@ -1293,9 +1293,9 @@ extension RoomRPCMethods on Room {
       });
 
     // Register v2 data-stream-based request/response handlers. These topics
-    // (kRpcRequestTopic / kRpcResponseTopic) are reserved by the SDK.
-    registerTextStreamHandler(kRpcRequestTopic, _rpcServerManager.handleIncomingV2RequestStream);
-    registerTextStreamHandler(kRpcResponseTopic, rpcClientManager.handleIncomingV2ResponseStream);
+    // are reserved by the SDK, so bypass the public registration guard.
+    _textStreamHandlers[kRpcRequestTopic] = _rpcServerManager.handleIncomingV2RequestStream;
+    _textStreamHandlers[kRpcResponseTopic] = rpcClientManager.handleIncomingV2ResponseStream;
   }
 
   /// Register a handler for incoming RPC requests.
@@ -1314,6 +1314,8 @@ extension RoomRPCMethods on Room {
   }
 }
 
+const _reservedRpcTopicPrefix = 'lk.rpc';
+
 extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
     _engineListener
@@ -1329,6 +1331,7 @@ extension DataStreamRoomMethods on Room {
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
+    _ensureNotReservedRpcTopic(topic);
     if (_textStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A text stream handler for topic "${topic}" has already been set.',
@@ -1339,10 +1342,12 @@ extension DataStreamRoomMethods on Room {
   }
 
   void unregisterTextStreamHandler(String topic) {
+    if (_isReservedRpcTopic(topic)) return;
     _textStreamHandlers.remove(topic);
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
+    _ensureNotReservedRpcTopic(topic);
     if (_byteStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A byte stream handler for topic "${topic}" has already been set.',
@@ -1353,8 +1358,20 @@ extension DataStreamRoomMethods on Room {
   }
 
   void unregisterByteStreamHandler(String topic) {
+    if (_isReservedRpcTopic(topic)) return;
     _byteStreamHandlers.remove(topic);
   }
+
+  void _ensureNotReservedRpcTopic(String topic) {
+    if (_isReservedRpcTopic(topic)) {
+      throw DataStreamError(
+        message: 'The stream topic prefix "$_reservedRpcTopicPrefix" is reserved for internal SDK use.',
+        reason: DataStreamErrorReason.HandlerAlreadyRegistered,
+      );
+    }
+  }
+
+  bool _isReservedRpcTopic(String topic) => topic.startsWith(_reservedRpcTopicPrefix);
 
   @internal
   Future<void> handleStreamHeader(

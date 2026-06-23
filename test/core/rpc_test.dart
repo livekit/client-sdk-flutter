@@ -18,6 +18,7 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/data_stream/errors.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
@@ -254,6 +255,43 @@ void main() {
     });
 
     bool hasOutboundPacketWhere(bool Function(lk_models.DataPacket) test) => v2Container.capturedDataPackets.any(test);
+
+    test('RPC v2 text stream topics are reserved for SDK internals', () async {
+      expect(
+        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+
+      // Reserved-topic unregister calls must be no-ops; otherwise this would remove
+      // the SDK's internal request/response handlers and break v2 RPC routing.
+      v2Room.unregisterTextStreamHandler(kRpcRequestTopic);
+      v2Room.unregisterTextStreamHandler(kRpcResponseTopic);
+
+      v2Room.registerRpcMethod('reserved-topic-echo', (RpcInvocationData data) async {
+        return data.payload;
+      });
+
+      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: v2Room.localParticipant!.identity,
+        method: 'reserved-topic-echo',
+        payload: 'ok',
+      ));
+
+      expect(response, 'ok');
+      v2Room.unregisterRpcMethod('reserved-topic-echo');
+    });
 
     test('v2 caller happy path (short payload)', () async {
       v2Container.capturedDataPackets.clear();
