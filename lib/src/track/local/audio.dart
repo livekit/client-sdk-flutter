@@ -14,24 +14,29 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../events.dart';
+import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../options.dart';
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
+import '../../support/native.dart';
+import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../audio_management.dart';
-import '../options.dart';
+import '../options.dart' as track_options;
 import 'local.dart';
 
 class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
-  covariant AudioCaptureOptions currentOptions;
+  covariant track_options.AudioCaptureOptions currentOptions;
 
   AudioPublishOptions? lastPublishOptions;
 
@@ -45,10 +50,49 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     }
   }
 
+  /// Applies runtime audio processing options to this local audio track.
+  ///
+  /// On success, updates [currentOptions] and emits
+  /// [LocalTrackOptionsUpdatedEvent]. When the native layer cannot apply the
+  /// options, throws [track_options.AudioProcessingException] and leaves
+  /// [currentOptions] unchanged.
+  Future<void> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
+    final nextOptions = currentOptions.copyWith(processing: options);
+    final response = await Native.setAudioProcessingOptions(
+      mediaStreamTrack.id!,
+      options.toMap(),
+    );
+
+    _throwIfAudioProcessingFailed(response);
+
+    currentOptions = nextOptions;
+    events.emit(LocalTrackOptionsUpdatedEvent(
+      track: this,
+      options: currentOptions,
+    ));
+  }
+
   num? _currentBitrate;
   num? get currentBitrate => _currentBitrate;
 
   AudioSenderStats? prevStats;
+
+  @override
+  Future<void> startCapture() async {
+    await super.startCapture();
+    if (lkPlatformSupportsExplicitAudioRecordingStart()) {
+      try {
+        // Match Swift: start the ADM before publishing so capture-time audio
+        // processing options are applied before WebRTC opens the microphone.
+        await Native.startLocalRecording(currentOptions.processing.toMap());
+      } on PlatformException catch (error) {
+        throw track_options.AudioProcessingException(
+          _audioProcessingFailureReason(error.code),
+          error.message ?? '',
+        );
+      }
+    }
+  }
 
   @override
   Future<bool> monitorStats() async {
@@ -126,9 +170,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([
-    AudioCaptureOptions? options,
+    track_options.AudioCaptureOptions? options,
   ]) async {
-    options ??= const AudioCaptureOptions();
+    options ??= const track_options.AudioCaptureOptions();
     final stream = await LocalTrack.createStream(options);
 
     final track = LocalAudioTrack(
@@ -138,10 +182,69 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       options,
     );
 
-    if (options.processor != null) {
-      await track.setProcessor(options.processor);
+    try {
+      if (options.processor != null) {
+        await track.setProcessor(options.processor);
+      }
+    } catch (error, stackTrace) {
+      try {
+        await track.stop();
+      } catch (stopError) {
+        logger.warning('failed to stop audio track after processor setup failure: $stopError');
+      }
+      Error.throwWithStackTrace(error, stackTrace);
     }
 
     return track;
   }
+}
+
+void _throwIfAudioProcessingFailed(Map<String, dynamic> response) {
+  final code = response['code'] as String?;
+  final message = (response['message'] as String?) ?? '';
+
+  final reason = _audioProcessingFailureReason(code);
+  switch (code) {
+    case 'applied':
+    case 'stored':
+      return;
+    case 'rejectedInvalidCombination':
+    case 'rejectedPlatformUnavailable':
+    case 'applyFailed':
+    case 'unknown':
+    case 'rejectedRemoteTrack':
+      throw track_options.AudioProcessingException(
+        reason,
+        message,
+      );
+    default:
+      throw track_options.AudioProcessingException(
+        track_options.AudioProcessingFailureReason.unknown,
+        _unknownAudioProcessingMessage(code, message),
+      );
+  }
+}
+
+track_options.AudioProcessingFailureReason _audioProcessingFailureReason(String? code) {
+  switch (code) {
+    case 'rejectedInvalidCombination':
+      return track_options.AudioProcessingFailureReason.invalidCombination;
+    case 'rejectedPlatformUnavailable':
+      return track_options.AudioProcessingFailureReason.platformUnavailable;
+    case 'applyFailed':
+      return track_options.AudioProcessingFailureReason.applyFailed;
+    default:
+      return track_options.AudioProcessingFailureReason.unknown;
+  }
+}
+
+String _unknownAudioProcessingMessage(String? code, String message) {
+  final trimmed = message.trim();
+  if (trimmed.isNotEmpty) {
+    return trimmed;
+  }
+  if (code != null && code.isNotEmpty) {
+    return 'Unknown audio processing result code: $code.';
+  }
+  return '';
 }

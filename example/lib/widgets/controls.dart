@@ -37,7 +37,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = Hardware.instance.speakerOn ?? false;
+  bool _speakerphoneOn = AudioManager.instance.isSpeakerOutputPreferred;
 
   final _rpcController = RpcTestController();
 
@@ -113,7 +113,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
+    await AudioManager.instance.setSpeakerOutputPreferred(_speakerphoneOn, force: false);
     setState(() {});
   }
 

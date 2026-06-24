@@ -17,6 +17,8 @@
 package io.livekit.plugin
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -26,15 +28,29 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin
+import com.cloudwebrtc.webrtc.audio.AudioSwitchManager
 import com.cloudwebrtc.webrtc.audio.LocalAudioTrack
 import io.flutter.plugin.common.BinaryMessenger
 import org.webrtc.AudioTrack
+import org.webrtc.audio.AudioProcessingComponentOptions
+import org.webrtc.audio.AudioProcessingComponentState
+import org.webrtc.audio.AudioProcessingImplementation
+import org.webrtc.audio.AudioProcessingMode
+import org.webrtc.audio.AudioProcessingOptions
+import org.webrtc.audio.AudioProcessingOptionsResult
+import org.webrtc.audio.AudioProcessingState
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
 /** LiveKitPlugin */
 class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private var audioProcessors = mutableMapOf<String, AudioProcessors>()
   private var flutterWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton
   private var binaryMessenger: BinaryMessenger? = null
+  private var audioSwitchManager: LKAudioSwitchManager? = null
+  private var audioDeviceModuleExecutor: ExecutorService? = null
+  private val mainHandler = Handler(Looper.getMainLooper())
 
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
@@ -43,9 +59,15 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var channel: MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    // LiveKit owns the platform audio session, so disable flutter_webrtc's own
+    // native audio management. Set at registration, before any audio op.
+    AudioSwitchManager.setAudioSessionManagementEnabled(false)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "livekit_client")
     channel.setMethodCallHandler(this)
     binaryMessenger = flutterPluginBinding.binaryMessenger
+    audioSwitchManager = LKAudioSwitchManager(flutterPluginBinding.applicationContext)
+    audioDeviceModuleExecutor?.shutdown()
+    audioDeviceModuleExecutor = Executors.newSingleThreadExecutor()
   }
 
   @SuppressLint("SuspiciousIndentation")
@@ -210,6 +232,180 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     result.success(true)
   }
 
+  private fun handleSetAudioProcessingOptions(call: MethodCall, result: Result) {
+    val trackId = call.argument<String>("trackId")
+    if (trackId == null) {
+      result.error("INVALID_ARGUMENT", "trackId is required", null)
+      return
+    }
+
+    val mediaTrack = (flutterWebRTCPlugin.getLocalTrack(trackId) as? LocalAudioTrack)?.track
+    if (mediaTrack !is AudioTrack) {
+      result.error("INVALID_ARGUMENT", "track is not a local audio track", null)
+      return
+    }
+
+    val options = audioProcessingOptions(call)
+    val processingResult = mediaTrack.setAudioProcessingOptions(options)
+    result.success(
+      mapOf(
+        "result" to processingResult.isSuccess,
+        "code" to audioProcessingResultCodeString(processingResult.code),
+        "message" to processingResult.message,
+      ),
+    )
+  }
+
+  private fun handleStartLocalRecording(call: MethodCall, result: Result) {
+    val audioDeviceModule = flutterWebRTCPlugin.audioDeviceModule
+    if (audioDeviceModule == null) {
+      result.error("rejectedPlatformUnavailable", "audio device module is unavailable", null)
+      return
+    }
+
+    val executor = audioDeviceModuleExecutorOrError(result, "rejectedPlatformUnavailable") ?: return
+    val options = audioProcessingOptions(call)
+    try {
+      executor.execute {
+        try {
+          // prewarmRecording applies Android platform AP and prepares recording
+          // without setting the client-start flag. WebRTC exposes this as void,
+          // so only thrown failures can be surfaced here.
+          audioDeviceModule.prewarmRecording(options)
+          mainHandler.post {
+            result.success(null)
+          }
+        } catch (error: Throwable) {
+          mainHandler.post {
+            result.error("applyFailed", error.message, null)
+          }
+        }
+      }
+    } catch (error: RejectedExecutionException) {
+      result.error("rejectedPlatformUnavailable", "audio device module executor is unavailable", null)
+    }
+  }
+
+  private fun handleStopLocalRecording(result: Result) {
+    val audioDeviceModule = flutterWebRTCPlugin.audioDeviceModule
+    if (audioDeviceModule == null) {
+      result.error("stopLocalRecording", "audio device module is unavailable", null)
+      return
+    }
+
+    val executor = audioDeviceModuleExecutorOrError(result, "stopLocalRecording") ?: return
+    try {
+      executor.execute {
+        try {
+          audioDeviceModule.requestStopRecording()
+          mainHandler.post {
+            result.success(null)
+          }
+        } catch (error: Throwable) {
+          mainHandler.post {
+            result.error("stopLocalRecording", error.message, null)
+          }
+        }
+      }
+    } catch (error: RejectedExecutionException) {
+      result.error("stopLocalRecording", "audio device module executor is unavailable", null)
+    }
+  }
+
+  private fun audioDeviceModuleExecutorOrError(result: Result, code: String): ExecutorService? {
+    val executor = audioDeviceModuleExecutor
+    if (executor == null || executor.isShutdown) {
+      result.error(code, "audio device module executor is unavailable", null)
+      return null
+    }
+    return executor
+  }
+
+  private fun audioProcessingOptions(call: MethodCall): AudioProcessingOptions =
+    AudioProcessingOptions(
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("echoCancellation") ?: true,
+        audioProcessingMode(call.argument<String>("echoCancellationMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("noiseSuppression") ?: true,
+        audioProcessingMode(call.argument<String>("noiseSuppressionMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("autoGainControl") ?: true,
+        audioProcessingMode(call.argument<String>("autoGainControlMode")),
+      ),
+      AudioProcessingComponentOptions(
+        call.argument<Boolean>("highPassFilter") ?: false,
+        audioProcessingMode(call.argument<String>("highPassFilterMode")),
+      ),
+    )
+
+  private fun audioProcessingMode(value: String?): AudioProcessingMode = when (value) {
+    "platform" -> AudioProcessingMode.PLATFORM
+    "software" -> AudioProcessingMode.SOFTWARE
+    else -> AudioProcessingMode.AUTOMATIC
+  }
+
+  private fun audioProcessingResultCodeString(code: AudioProcessingOptionsResult.Code): String = when (code) {
+    AudioProcessingOptionsResult.Code.APPLIED -> "applied"
+    AudioProcessingOptionsResult.Code.STORED -> "stored"
+    AudioProcessingOptionsResult.Code.REJECTED_REMOTE_TRACK -> "unknown"
+    AudioProcessingOptionsResult.Code.REJECTED_INVALID_COMBINATION -> "rejectedInvalidCombination"
+    AudioProcessingOptionsResult.Code.REJECTED_PLATFORM_UNAVAILABLE -> "rejectedPlatformUnavailable"
+    AudioProcessingOptionsResult.Code.APPLY_FAILED -> "applyFailed"
+  }
+
+  private fun handleGetAudioProcessingState(result: Result) {
+    val factory = flutterWebRTCPlugin.getPeerConnectionFactory()
+    if (factory == null) {
+      result.success(null)
+      return
+    }
+    result.success(audioProcessingStateToMap(factory.audioProcessingState))
+  }
+
+  private fun audioProcessingModeString(mode: AudioProcessingMode): String = when (mode) {
+    AudioProcessingMode.PLATFORM -> "platform"
+    AudioProcessingMode.SOFTWARE -> "software"
+    AudioProcessingMode.AUTOMATIC -> "auto"
+  }
+
+  private fun audioProcessingImplementationString(implementation: AudioProcessingImplementation): String =
+    when (implementation) {
+      AudioProcessingImplementation.UNKNOWN -> "unknown"
+      AudioProcessingImplementation.DISABLED -> "disabled"
+      AudioProcessingImplementation.SOFTWARE -> "software"
+      AudioProcessingImplementation.PLATFORM -> "platform"
+      AudioProcessingImplementation.SOFTWARE_AND_PLATFORM -> "softwareAndPlatform"
+    }
+
+  private fun requestedToMap(requested: AudioProcessingComponentOptions?): Map<String, Any?>? =
+    requested?.let {
+      mapOf(
+        "enabled" to it.isEnabled,
+        "mode" to audioProcessingModeString(it.mode),
+      )
+    }
+
+  private fun componentToMap(state: AudioProcessingComponentState): Map<String, Any?> = mapOf(
+    "requested" to requestedToMap(state.requested),
+    "isSoftwareResolved" to state.isSoftwareResolved,
+    "isSoftwareActive" to state.isSoftwareActive,
+    "isPlatformAvailable" to state.isPlatformAvailable,
+    "isPlatformResolved" to state.isPlatformResolved,
+    "isPlatformActive" to state.isPlatformActive,
+    "effective" to audioProcessingImplementationString(state.effective),
+  )
+
+  private fun audioProcessingStateToMap(state: AudioProcessingState): Map<String, Any?> = mapOf(
+    "hasAudioProcessingModule" to state.hasAudioProcessingModule,
+    "echoCancellation" to componentToMap(state.echoCancellation),
+    "noiseSuppression" to componentToMap(state.noiseSuppression),
+    "autoGainControl" to componentToMap(state.autoGainControl),
+    "highPassFilter" to componentToMap(state.highPassFilter),
+  )
+
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
       "startVisualizer" -> {
@@ -228,6 +424,42 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
         handleStopAudioRenderer(call, result)
       }
 
+      "setAudioProcessingOptions" -> {
+        handleSetAudioProcessingOptions(call, result)
+      }
+
+      "startLocalRecording" -> {
+        handleStartLocalRecording(call, result)
+      }
+
+      "stopLocalRecording" -> {
+        handleStopLocalRecording(result)
+      }
+
+      "getAudioProcessingState" -> {
+        handleGetAudioProcessingState(result)
+      }
+
+      "configureAndroidAudioSession" -> {
+        @Suppress("UNCHECKED_CAST")
+        val configuration = call.arguments as? Map<String, Any?> ?: emptyMap()
+        audioSwitchManager?.configure(configuration)
+        audioSwitchManager?.start()
+        result.success(null)
+      }
+
+      "stopAndroidAudioSession" -> {
+        audioSwitchManager?.stop()
+        result.success(null)
+      }
+
+      "setAndroidSpeakerphoneOn" -> {
+        val enable = call.argument<Boolean>("enable") ?: false
+        val force = call.argument<Boolean>("force") ?: false
+        audioSwitchManager?.setSpeakerphoneOn(enable, force)
+        result.success(null)
+      }
+
       else -> {
         result.notImplemented()
       }
@@ -236,6 +468,12 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+
+    audioSwitchManager?.dispose()
+    audioSwitchManager = null
+
+    audioDeviceModuleExecutor?.shutdown()
+    audioDeviceModuleExecutor = null
 
     // Cleanup all processors
     audioProcessors.values.forEach { it.cleanup() }

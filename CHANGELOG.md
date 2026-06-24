@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2.8.0
+
+* Added: Session API support for simpler E2EE setup
+* Changed: Manual video quality selection can be used with adaptive stream enabled
+* Changed: Generated protocol definitions for LiveKit protocol v1.45.8
+* Fixed: waitForBufferStatusLow busy-waiting after engine close
+* Fixed: Simulcast lower layers exceeding the top layer
+* Fixed: forceRelay log message interpolation
+* Fixed: sendSyncState error handling so sync-state preparation failures are not swallowed
+* Fixed: Screen share simulcast default low layer alignment
+* Fixed: Region failover null-provider dereference
+* Fixed: Android builds with dependencies that require compileSdk 36
+* Fixed: Deferred track listener leaks across reconnects
+* Fixed: Adaptive stream dimensions on high-density displays
+* Fixed: Session.start() reentrancy during concurrent calls
+* Fixed: Connected server address resolving from the wrong peer connection
+* Fixed: Reconnect counter null assertion on the first reconnect attempt
+* Fixed: Premature publication disposal during unpublish
+
 ## 2.7.0
 
 * Added: Add setVideoDimensions for remote track publications
