@@ -39,7 +39,7 @@ void main() {
           rules: [
             CertificatePinningRule(
               hosts: const [_testServerHost],
-              pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
             ),
           ],
         ),
@@ -62,7 +62,7 @@ void main() {
           rules: [
             CertificatePinningRule(
               hosts: const [_testServerHost],
-              trustedCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              trustedCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
             ),
           ],
         ),
@@ -85,7 +85,7 @@ void main() {
           rules: [
             CertificatePinningRule(
               hosts: const [_testServerHost],
-              trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
+              trustedCertificates: [CertificateBytes.pem(_pemBytes(_trustedCaCertificatePem))],
             ),
           ],
         ),
@@ -111,7 +111,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
               ),
             ],
           ),
@@ -140,7 +140,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
+                trustedCertificates: [CertificateBytes.pem(_pemBytes(_trustedCaCertificatePem))],
               ),
             ],
           ),
@@ -169,7 +169,7 @@ void main() {
               CertificatePinningRule(
                 hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
-                pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+                pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
               ),
             ],
           ),
@@ -197,7 +197,7 @@ void main() {
             CertificatePinningRule(
               hosts: const [_testServerHost],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
-              pinnedLeafCertificateBytes: [_pemBytes(_localhostCertificatePem)],
+              pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
             ),
           ],
         ),
@@ -221,7 +221,7 @@ void main() {
             CertificatePinningRule(
               hosts: const [_testServerHost],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
-              trustedCertificateBytes: [_pemBytes(_trustedCaCertificatePem)],
+              trustedCertificates: [CertificateBytes.pem(_pemBytes(_trustedCaCertificatePem))],
             ),
           ],
         ),

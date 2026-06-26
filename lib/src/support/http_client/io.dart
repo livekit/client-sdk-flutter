@@ -118,15 +118,15 @@ class _CertificatePinningConnectionFactory {
     List<CertificatePinningRule> rules, {
     required bool allowPinnedCertificateBypass,
   }) {
-    final trustedCertificateBytes =
-        rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificateBytes).toList();
-    if (trustedCertificateBytes.isEmpty) {
+    final trustedCertificates =
+        rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificates).toList();
+    if (trustedCertificates.isEmpty) {
       return allowPinnedCertificateBypass ? io.SecurityContext(withTrustedRoots: false) : null;
     }
 
     final context = io.SecurityContext(withTrustedRoots: false);
-    for (final certificateBytes in trustedCertificateBytes) {
-      context.setTrustedCertificatesBytes(certificatePemBytes(certificateBytes));
+    for (final certificate in trustedCertificates) {
+      context.setTrustedCertificatesBytes(certificatePemBytes(certificate));
     }
     return context;
   }

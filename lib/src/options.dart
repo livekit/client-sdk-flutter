@@ -84,6 +84,23 @@ class CertificatePinningOptions {
   bool get isEnabled => rules.any((rule) => rule.isEnabled);
 }
 
+/// Encoding for certificate bytes used by certificate pinning rules.
+enum CertificateBytesEncoding {
+  pem,
+  der,
+}
+
+/// Certificate bytes with an explicit PEM or DER encoding.
+class CertificateBytes {
+  final List<int> bytes;
+
+  final CertificateBytesEncoding encoding;
+
+  const CertificateBytes.pem(this.bytes) : encoding = CertificateBytesEncoding.pem;
+
+  const CertificateBytes.der(this.bytes) : encoding = CertificateBytesEncoding.der;
+}
+
 /// A set of accepted certificate checks for one or more host patterns.
 ///
 /// Empty [hosts] applies the rule to every SDK-owned TLS connection. Multiple
@@ -112,14 +129,14 @@ class CertificatePinningRule {
   ///
   /// This mode trusts only the configured leaf certificate bytes for matching
   /// hosts. Renewing or changing the leaf certificate requires shipping updated
-  /// bytes unless SPKI pins or [trustedCertificateBytes] also allow the new
+  /// bytes unless SPKI pins or [trustedCertificates] also allow the new
   /// certificate.
   ///
   /// When this is the only trust material configured for a host, an exact leaf
   /// match is allowed even if the platform trust store would reject it. Combine
-  /// it with [trustedCertificateBytes] if the connection should also validate
+  /// it with [trustedCertificates] if the connection should also validate
   /// against a pinned leaf, intermediate, or root certificate trust store.
-  final List<List<int>> pinnedLeafCertificateBytes;
+  final List<CertificateBytes> pinnedLeafCertificates;
 
   /// PEM or DER encoded certificates to use as the TLS trust store for
   /// matching hosts.
@@ -129,14 +146,14 @@ class CertificatePinningRule {
   /// in the same style as Dart's `SecurityContext.setTrustedCertificatesBytes`.
   /// If this is configured with SPKI pins or exact leaf certificates, the custom
   /// trust store and the other configured checks must all pass.
-  final List<List<int>> trustedCertificateBytes;
+  final List<CertificateBytes> trustedCertificates;
 
   const CertificatePinningRule({
     this.hosts = const [],
     this.primaryPins = const [],
     this.backupPins = const [],
-    this.pinnedLeafCertificateBytes = const [],
-    this.trustedCertificateBytes = const [],
+    this.pinnedLeafCertificates = const [],
+    this.trustedCertificates = const [],
   });
 
   List<String> get allPins => [
@@ -146,9 +163,9 @@ class CertificatePinningRule {
 
   bool get hasSpkiPins => allPins.isNotEmpty;
 
-  bool get hasPinnedLeafCertificates => pinnedLeafCertificateBytes.isNotEmpty;
+  bool get hasPinnedLeafCertificates => pinnedLeafCertificates.isNotEmpty;
 
-  bool get hasTrustedCertificates => trustedCertificateBytes.isNotEmpty;
+  bool get hasTrustedCertificates => trustedCertificates.isNotEmpty;
 
   bool get isEnabled => hasSpkiPins || hasPinnedLeafCertificates || hasTrustedCertificates;
 }

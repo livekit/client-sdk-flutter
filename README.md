@@ -245,9 +245,9 @@ Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPi
 
 Certificate rules can also enforce exact leaf certificates or a custom TLS trust store.
 
-Use `pinnedLeafCertificateBytes` to require an exact peer leaf certificate. This mode trusts only the configured leaf certificate bytes for matching hosts. Renewing or changing the leaf certificate requires shipping updated certificate bytes unless SPKI pins or `trustedCertificateBytes` also allow the new certificate.
+Use `pinnedLeafCertificates` to require an exact peer leaf certificate. This mode trusts only the configured leaf certificates for matching hosts. Renewing or changing the leaf certificate requires shipping updated certificates unless SPKI pins or `trustedCertificates` also allow the new certificate.
 
-By itself, `pinnedLeafCertificateBytes` permits the exact configured leaf certificate even if the platform trust store would reject it. This matches the asset-based Flutter pattern where the app ships the certificate it trusts. Combine it with `trustedCertificateBytes` if the connection should also validate against a pinned leaf, intermediate, or root certificate trust store.
+By itself, `pinnedLeafCertificates` permits the exact configured leaf certificate even if the platform trust store would reject it. This matches the asset-based Flutter pattern where the app ships the certificate it trusts. Combine it with `trustedCertificates` if the connection should also validate against a pinned leaf, intermediate, or root certificate trust store.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
@@ -258,7 +258,9 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['my-project.livekit.cloud'],
-          pinnedLeafCertificateBytes: [certificate.buffer.asUint8List()],
+          pinnedLeafCertificates: [
+            CertificateBytes.pem(certificate.buffer.asUint8List()),
+          ],
         ),
       ],
     ),
@@ -266,7 +268,7 @@ final roomOptions = RoomOptions(
 );
 ```
 
-Use `trustedCertificateBytes` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these bytes and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
+Use `trustedCertificates` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these certificates and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_intermediate_ca.pem');
@@ -277,7 +279,9 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['*.livekit.cloud'],
-          trustedCertificateBytes: [certificate.buffer.asUint8List()],
+          trustedCertificates: [
+            CertificateBytes.pem(certificate.buffer.asUint8List()),
+          ],
         ),
       ],
     ),

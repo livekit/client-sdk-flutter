@@ -84,7 +84,7 @@ class CertificatePinValidator {
     final host = uri.host.toLowerCase();
     final pinnedCertificates = rulesForHost(host)
         .where((rule) => rule.hasPinnedLeafCertificates)
-        .expand((rule) => rule.pinnedLeafCertificateBytes)
+        .expand((rule) => rule.pinnedLeafCertificates)
         .expand(certificateDerCertificates)
         .toList();
     if (pinnedCertificates.isEmpty) {
@@ -118,7 +118,16 @@ String certificateSpkiSha256Pin(List<int> certificateDer) {
   return 'sha256/${base64Encode(digest.bytes)}';
 }
 
-Iterable<List<int>> certificateDerCertificates(List<int> certificateBytes) sync* {
+Iterable<List<int>> certificateDerCertificates(CertificateBytes certificate) sync* {
+  switch (certificate.encoding) {
+    case CertificateBytesEncoding.pem:
+      yield* _certificateDerCertificatesFromPem(certificate.bytes);
+    case CertificateBytesEncoding.der:
+      yield certificate.bytes;
+  }
+}
+
+Iterable<List<int>> _certificateDerCertificatesFromPem(List<int> certificateBytes) sync* {
   final text = utf8.decode(certificateBytes, allowMalformed: true);
   final pemMatches = _certificatePemPattern.allMatches(text);
   var foundPem = false;
@@ -127,16 +136,20 @@ Iterable<List<int>> certificateDerCertificates(List<int> certificateBytes) sync*
     yield base64Decode(match.group(1)!.replaceAll(RegExp(r'\s'), ''));
   }
   if (!foundPem) {
-    yield certificateBytes;
+    throw const FormatException('No PEM certificates found');
   }
 }
 
-List<int> certificatePemBytes(List<int> certificateBytes) {
-  final text = utf8.decode(certificateBytes, allowMalformed: true);
-  if (_certificatePemPattern.hasMatch(text)) {
-    return certificateBytes;
+List<int> certificatePemBytes(CertificateBytes certificate) {
+  switch (certificate.encoding) {
+    case CertificateBytesEncoding.pem:
+      return certificate.bytes;
+    case CertificateBytesEncoding.der:
+      return _certificatePemBytesFromDer(certificate.bytes);
   }
+}
 
+List<int> _certificatePemBytesFromDer(List<int> certificateBytes) {
   final base64Certificate = base64Encode(certificateBytes);
   final lines = <String>[];
   for (var offset = 0; offset < base64Certificate.length; offset += 64) {

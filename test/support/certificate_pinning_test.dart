@@ -38,12 +38,12 @@ void main() {
   });
 
   test('wraps DER certificates as PEM bytes for SecurityContext', () {
-    final pemBytes = certificatePemBytes(_realCertificateDer());
+    final pemBytes = certificatePemBytes(CertificateBytes.der(_realCertificateDer()));
     final pemText = ascii.decode(pemBytes);
 
     expect(pemText, startsWith('-----BEGIN CERTIFICATE-----\n'));
     expect(pemText, endsWith('-----END CERTIFICATE-----\n'));
-    expect(certificateDerCertificates(pemBytes).single, _realCertificateDer());
+    expect(certificateDerCertificates(CertificateBytes.pem(pemBytes)).single, _realCertificateDer());
   });
 
   test('accepts primary and backup pins for matching hosts', () {
@@ -129,7 +129,7 @@ void main() {
       rules: [
         CertificatePinningRule(
           hosts: const ['livekit.example.com'],
-          pinnedLeafCertificateBytes: [certificate],
+          pinnedLeafCertificates: [CertificateBytes.der(certificate)],
         ),
         CertificatePinningRule(
           hosts: const ['*.example.com'],
