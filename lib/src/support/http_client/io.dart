@@ -17,7 +17,6 @@ import 'dart:io' as io;
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart' as http_io;
 
-import '../../exceptions.dart';
 import '../../options.dart';
 import '../certificate_pinning.dart';
 
@@ -62,35 +61,14 @@ class _CertificatePinningConnectionFactory {
     }
 
     final validatePinnedLeafCertificate = rules.any((rule) => rule.hasPinnedLeafCertificates);
-    final context = _securityContextFor(rules, allowPinnedCertificateBypass: validatePinnedLeafCertificate);
-    CertificatePinningException? pinnedLeafCertificateFailure;
+    final context = _securityContextFor(rules);
     final task = await io.SecureSocket.startConnect(
       url.host,
       _portFor(url),
       context: context,
-      onBadCertificate: validatePinnedLeafCertificate && !rules.any((rule) => rule.hasTrustedCertificates)
-          ? (certificate) {
-              try {
-                _validator.validatePinnedLeafCertificate(
-                  uri: url,
-                  certificateDer: certificate.der,
-                );
-                return true;
-              } on CertificatePinningException catch (error) {
-                pinnedLeafCertificateFailure = error;
-                return false;
-              }
-            }
-          : null,
     );
 
-    final socket = task.socket.catchError((Object error) {
-      final failure = pinnedLeafCertificateFailure;
-      if (failure != null) {
-        throw failure;
-      }
-      throw error;
-    }).then<io.Socket>((socket) {
+    final socket = task.socket.then<io.Socket>((socket) {
       if (validatePinnedLeafCertificate) {
         _validator.validatePinnedLeafCertificate(
           uri: url,
@@ -114,14 +92,11 @@ class _CertificatePinningConnectionFactory {
     return _validator.rulesForHost(url.host).where((rule) => rule.isEnabled).toList(growable: false);
   }
 
-  io.SecurityContext? _securityContextFor(
-    List<CertificatePinningRule> rules, {
-    required bool allowPinnedCertificateBypass,
-  }) {
+  io.SecurityContext? _securityContextFor(List<CertificatePinningRule> rules) {
     final trustedCertificates =
         rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificates).toList();
     if (trustedCertificates.isEmpty) {
-      return allowPinnedCertificateBypass ? io.SecurityContext(withTrustedRoots: false) : null;
+      return null;
     }
 
     final context = io.SecurityContext(withTrustedRoots: false);

@@ -127,15 +127,10 @@ class CertificatePinningRule {
   /// PEM or DER encoded leaf certificates that may exactly match the peer leaf
   /// certificate for matching hosts.
   ///
-  /// This mode trusts only the configured leaf certificate bytes for matching
-  /// hosts. Renewing or changing the leaf certificate requires shipping updated
-  /// bytes unless SPKI pins or [trustedCertificates] also allow the new
-  /// certificate.
-  ///
-  /// When this is the only trust material configured for a host, an exact leaf
-  /// match is allowed even if the platform trust store would reject it. Combine
-  /// it with [trustedCertificates] if the connection should also validate
-  /// against a pinned leaf, intermediate, or root certificate trust store.
+  /// This is an additional identity check after TLS trust validation succeeds.
+  /// It does not trust private or self-signed certificates by itself. Configure
+  /// [trustedCertificates] as well when the connection should use a custom leaf,
+  /// intermediate, or root certificate trust store.
   final List<CertificateBytes> pinnedLeafCertificates;
 
   /// PEM or DER encoded certificates to use as the TLS trust store for

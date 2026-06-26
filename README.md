@@ -245,9 +245,9 @@ Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPi
 
 Certificate rules can also enforce exact leaf certificates or a custom TLS trust store.
 
-Use `pinnedLeafCertificates` to require an exact peer leaf certificate. This mode trusts only the configured leaf certificates for matching hosts. Renewing or changing the leaf certificate requires shipping updated certificates unless SPKI pins or `trustedCertificates` also allow the new certificate.
+Use `pinnedLeafCertificates` to require an exact peer leaf certificate after TLS trust validation succeeds. Renewing or changing the leaf certificate requires shipping updated pinned certificates.
 
-By itself, `pinnedLeafCertificates` permits the exact configured leaf certificate even if the platform trust store would reject it. This matches the asset-based Flutter pattern where the app ships the certificate it trusts. Combine it with `trustedCertificates` if the connection should also validate against a pinned leaf, intermediate, or root certificate trust store.
+By itself, `pinnedLeafCertificates` does not trust private or self-signed certificates. For private PKI, also configure `trustedCertificates` with the leaf, intermediate, or root certificate that should anchor TLS validation.
 
 ```dart
 final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
@@ -259,6 +259,9 @@ final roomOptions = RoomOptions(
         CertificatePinningRule(
           hosts: ['my-project.livekit.cloud'],
           pinnedLeafCertificates: [
+            CertificateBytes.pem(certificate.buffer.asUint8List()),
+          ],
+          trustedCertificates: [
             CertificateBytes.pem(certificate.buffer.asUint8List()),
           ],
         ),

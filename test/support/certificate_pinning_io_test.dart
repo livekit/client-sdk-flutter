@@ -28,7 +28,32 @@ import 'package:livekit_client/src/support/websocket.dart';
 const _testServerHost = '127.0.0.1';
 
 void main() {
-  test('allows exact pinned leaf certificates without SPKI pins', () async {
+  test('rejects exact pinned leaf certificates without trusted certificates', () async {
+    final server = await _TlsTestServer.start();
+    addTearDown(server.close);
+
+    await expectLater(
+      sdkHttpGet(
+        Uri.parse('https://$_testServerHost:${server.port}/settings'),
+        networkOptions: NetworkOptions(
+          certificatePinning: CertificatePinningOptions(
+            rules: [
+              CertificatePinningRule(
+                hosts: const [_testServerHost],
+                pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
+              ),
+            ],
+          ),
+        ),
+      ),
+      throwsA(isA<io.HandshakeException>()),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(server.receivedBytes, isEmpty);
+  });
+
+  test('allows exact pinned leaf certificates with trusted leaf certificate stores', () async {
     final server = await _TlsTestServer.start();
     addTearDown(server.close);
 
@@ -40,6 +65,7 @@ void main() {
             CertificatePinningRule(
               hosts: const [_testServerHost],
               pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
+              trustedCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
             ),
           ],
         ),
@@ -112,6 +138,7 @@ void main() {
                 hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
                 pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
+                trustedCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
               ),
             ],
           ),
@@ -170,6 +197,7 @@ void main() {
                 hosts: const [_testServerHost],
                 primaryPins: const ['sha256/not-the-presented-pin'],
                 pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
+                trustedCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
               ),
             ],
           ),
@@ -198,6 +226,7 @@ void main() {
               hosts: const [_testServerHost],
               primaryPins: [certificateSpkiSha256Pin(_certificateDerFromPem(_localhostCertificatePem))],
               pinnedLeafCertificates: [CertificateBytes.pem(_pemBytes(_localhostCertificatePem))],
+              trustedCertificates: [CertificateBytes.pem(_pemBytes(_trustedCaCertificatePem))],
             ),
           ],
         ),
@@ -344,7 +373,7 @@ class _TlsTestServer {
   late final StreamSubscription<io.SecureSocket> _subscription;
 
   _TlsTestServer._(this._server) {
-    _subscription = _server.listen(_handleSocket);
+    _subscription = _server.listen(_handleSocket, onError: (_) {});
   }
 
   int get port => _server.port;
