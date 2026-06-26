@@ -250,7 +250,9 @@ Use `pinnedLeafCertificates` to require an exact peer leaf certificate after TLS
 By itself, `pinnedLeafCertificates` does not trust private or self-signed certificates. For private PKI, also configure `trustedCertificates` with the leaf, intermediate, or root certificate that should anchor TLS validation.
 
 ```dart
-final certificate = await rootBundle.load('assets/livekit_leaf_cert.pem');
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_leaf_cert.pem',
+);
 
 final roomOptions = RoomOptions(
   networkOptions: NetworkOptions(
@@ -258,12 +260,8 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['my-project.livekit.cloud'],
-          pinnedLeafCertificates: [
-            CertificateBytes.pem(certificate.buffer.asUint8List()),
-          ],
-          trustedCertificates: [
-            CertificateBytes.pem(certificate.buffer.asUint8List()),
-          ],
+          pinnedLeafCertificates: [certificate],
+          trustedCertificates: [certificate],
         ),
       ],
     ),
@@ -274,7 +272,9 @@ final roomOptions = RoomOptions(
 Use `trustedCertificates` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these certificates and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
 
 ```dart
-final certificate = await rootBundle.load('assets/livekit_intermediate_ca.pem');
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_intermediate_ca.pem',
+);
 
 final roomOptions = RoomOptions(
   networkOptions: NetworkOptions(
@@ -282,9 +282,7 @@ final roomOptions = RoomOptions(
       rules: [
         CertificatePinningRule(
           hosts: ['*.livekit.cloud'],
-          trustedCertificates: [
-            CertificateBytes.pem(certificate.buffer.asUint8List()),
-          ],
+          trustedCertificates: [certificate],
         ),
       ],
     ),

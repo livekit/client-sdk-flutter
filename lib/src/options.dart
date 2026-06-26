@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+
 import 'constants.dart';
 import 'e2ee/options.dart';
 import 'track/local/audio.dart';
@@ -99,6 +101,23 @@ class CertificateBytes {
   const CertificateBytes.pem(this.bytes) : encoding = CertificateBytesEncoding.pem;
 
   const CertificateBytes.der(this.bytes) : encoding = CertificateBytesEncoding.der;
+
+  /// Loads certificate bytes from a Flutter asset bundle.
+  ///
+  /// PEM is the default because certificate assets are commonly stored as
+  /// `.pem` files. Pass [CertificateBytesEncoding.der] for DER encoded assets.
+  static Future<CertificateBytes> fromAsset(
+    String key, {
+    AssetBundle? bundle,
+    CertificateBytesEncoding encoding = CertificateBytesEncoding.pem,
+  }) async {
+    final data = await (bundle ?? rootBundle).load(key);
+    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    return switch (encoding) {
+      CertificateBytesEncoding.pem => CertificateBytes.pem(bytes),
+      CertificateBytesEncoding.der => CertificateBytes.der(bytes),
+    };
+  }
 }
 
 /// A set of accepted certificate checks for one or more host patterns.
