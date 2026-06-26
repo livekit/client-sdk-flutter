@@ -227,7 +227,8 @@ final roomOptions = RoomOptions(
   ),
 );
 
-await room.connect(url, token, roomOptions: roomOptions);
+final room = Room(roomOptions: roomOptions);
+await room.connect(url, token);
 ```
 
 To generate an SPKI pin:
