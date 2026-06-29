@@ -33,13 +33,32 @@ class RpcTestController extends ChangeNotifier {
 
   List<RpcHandlerEntry> get handlers => List.unmodifiable(_handlers);
 
+  bool get canRegisterHandlers {
+    final room = _room;
+    return room != null && !room.isDisposed;
+  }
+
   bool isRegistered(String topic) => _handlers.any((h) => h.topic == topic);
 
-  void registerHandler(Room room, String topic, String staticResponse) {
-    if (isRegistered(topic)) {
+  void attachRoom(Room room) {
+    if (identical(_room, room) && !room.isDisposed) {
       return;
     }
-    _room = room;
+
+    final hadHandlers = _handlers.isNotEmpty;
+    _unregisterAll();
+    _room = room.isDisposed ? null : room;
+    if (hadHandlers) {
+      notifyListeners();
+    }
+  }
+
+  bool registerHandler(String topic, String staticResponse) {
+    final room = _room;
+    if (room == null || room.isDisposed || isRegistered(topic)) {
+      return false;
+    }
+
     final entry = RpcHandlerEntry(topic: topic, staticResponse: staticResponse);
     _handlers.add(entry);
     room.registerRpcMethod(topic, (data) async {
@@ -57,6 +76,7 @@ class RpcTestController extends ChangeNotifier {
       return entry.staticResponse;
     });
     notifyListeners();
+    return true;
   }
 
   void unregisterHandler(String topic) {
@@ -64,7 +84,10 @@ class RpcTestController extends ChangeNotifier {
     if (idx < 0) {
       return;
     }
-    _room?.unregisterRpcMethod(topic);
+    final room = _room;
+    if (room != null && !room.isDisposed) {
+      room.unregisterRpcMethod(topic);
+    }
     _handlers.removeAt(idx);
     notifyListeners();
   }
@@ -83,14 +106,19 @@ class RpcTestController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _unregisterAll();
+    _room = null;
+    super.dispose();
+  }
+
+  void _unregisterAll() {
     final room = _room;
-    if (room != null) {
+    if (room != null && !room.isDisposed) {
       for (final entry in _handlers) {
         room.unregisterRpcMethod(entry.topic);
       }
     }
     _handlers.clear();
-    super.dispose();
   }
 }
 
@@ -141,6 +169,20 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
   String? _selectedIdentity;
   bool _isSending = false;
   _SendResult? _lastResult;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.attachRoom(widget.room);
+  }
+
+  @override
+  void didUpdateWidget(covariant RpcTestSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.room, widget.room) || !identical(oldWidget.controller, widget.controller)) {
+      widget.controller.attachRoom(widget.room);
+    }
+  }
 
   @override
   void dispose() {
@@ -207,7 +249,13 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
       );
       return;
     }
-    widget.controller.registerHandler(widget.room, topic, _handlerResponseCtl.text);
+    final registered = widget.controller.registerHandler(topic, _handlerResponseCtl.text);
+    if (!registered) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Room is no longer available')),
+      );
+      return;
+    }
     _handlerTopicCtl.clear();
   }
 
@@ -395,7 +443,7 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
               ),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: _register,
+                onPressed: widget.controller.canRegisterHandlers ? _register : null,
                 icon: const Icon(Icons.add),
                 label: const Text('Register'),
               ),
@@ -473,8 +521,7 @@ class _HandlerCardState extends State<_HandlerCard> {
                 Expanded(
                   child: Text(
                     entry.topic,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold, color: theme.scaffoldBackgroundColor),
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 TextButton.icon(
@@ -495,7 +542,6 @@ class _HandlerCardState extends State<_HandlerCard> {
                 isDense: true,
               ),
               onChanged: (value) => widget.controller.updateStaticResponse(entry.topic, value),
-              style: TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
             ),
             const SizedBox(height: 8),
             Row(
