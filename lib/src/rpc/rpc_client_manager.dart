@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -59,11 +60,11 @@ class RpcClientManager {
 
     const maxRoundTripLatency = Duration(seconds: 7);
     const minEffectiveTimeout = Duration(milliseconds: 1000);
-    final effectiveTimeout = Duration(
-      milliseconds: (params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds)
-          .clamp(minEffectiveTimeout.inMilliseconds, double.infinity)
-          .toInt(),
+    final effectiveTimeoutMs = math.max(
+      minEffectiveTimeout.inMilliseconds,
+      params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds,
     );
+    final effectiveTimeout = Duration(milliseconds: effectiveTimeoutMs);
 
     final destination = params.destinationIdentity;
     final remoteParticipant = _room.getParticipantByIdentity(destination);
