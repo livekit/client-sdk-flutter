@@ -74,10 +74,7 @@ extension ProtocolVersionExt on ProtocolVersion {
 }
 
 extension ClientProtocolVersionExt on ClientProtocolVersion {
-  int toIntValue() => {
-        ClientProtocolVersion.v0: 0,
-        ClientProtocolVersion.v1: 1,
-      }[this]!;
+  int toIntValue() => wireValue;
 
   String toStringValue() => toIntValue().toString();
 }

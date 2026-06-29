@@ -19,7 +19,6 @@ import 'package:uuid/uuid.dart';
 
 import '../core/room.dart';
 import '../data_stream/stream_reader.dart';
-import '../extensions.dart';
 import '../logger.dart';
 import '../participant/local.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -68,8 +67,8 @@ class RpcClientManager {
 
     final destination = params.destinationIdentity;
     final remoteParticipant = _room.getParticipantByIdentity(destination);
-    final remoteProtocol = remoteParticipant?.clientProtocol ?? ClientProtocolVersion.v0.toIntValue();
-    final useV2 = remoteProtocol >= ClientProtocolVersion.v1.toIntValue();
+    final remoteProtocol = remoteParticipant?.clientProtocol ?? ClientProtocolVersion.v0;
+    final useV2 = remoteProtocol >= ClientProtocolVersion.v1;
 
     // Register pending bookkeeping BEFORE any await so that a fast inline ack/response
     // (delivered while we're still publishing) cannot land before we are ready to match it.

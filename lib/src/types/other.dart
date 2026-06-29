@@ -45,18 +45,41 @@ enum ProtocolVersion {
 /// and the `client_protocol` join URL query parameter. Governs peer-to-peer feature
 /// negotiation; distinct from [ProtocolVersion], which tracks the signaling protocol.
 ///
-/// Each variant's integer wire value comes from [ClientProtocolVersionExt.toIntValue].
-enum ClientProtocolVersion {
+/// Each variant's integer wire value is sent on the wire as `client_protocol`.
+enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   /// Spec: `CLIENT_PROTOCOL_DEFAULT`. Legacy client — only supports RPC v1.
-  v0,
+  v0(0),
 
   /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
-  v1;
+  v1(1);
+
+  const ClientProtocolVersion(this.wireValue);
+
+  /// Integer value used in `ParticipantInfo.clientProtocol` and the join URL.
+  final int wireValue;
 
   /// The highest version this SDK build supports. Used as the default for
   /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
   /// "the current SDK".
   static const ClientProtocolVersion current = v1;
+
+  /// Maps wire values to the highest protocol version this SDK can use.
+  static ClientProtocolVersion fromIntValue(int? value) {
+    if (value == null) return v0;
+    if (value >= v1.wireValue) return v1;
+    return v0;
+  }
+
+  @override
+  int compareTo(ClientProtocolVersion other) => wireValue.compareTo(other.wireValue);
+
+  bool operator <(ClientProtocolVersion other) => compareTo(other) < 0;
+
+  bool operator <=(ClientProtocolVersion other) => compareTo(other) <= 0;
+
+  bool operator >(ClientProtocolVersion other) => compareTo(other) > 0;
+
+  bool operator >=(ClientProtocolVersion other) => compareTo(other) >= 0;
 }
 
 /// Connection state type used throughout the SDK.

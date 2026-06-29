@@ -99,9 +99,10 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
 
   /// Client-to-client protocol version this participant supports, as advertised in
   /// `ParticipantInfo.clientProtocol`. Drives the caller- and handler-side decision
-  /// between RPC v1 packets and RPC v2 data streams. Absent / unrecognized values
-  /// from older clients resolve to `0` (matches [ClientProtocolVersion.v0]).
-  int get clientProtocol => _participantInfo?.clientProtocol ?? ClientProtocolVersion.v0.toIntValue();
+  /// between RPC v1 packets and RPC v2 data streams. Absent / older-client values
+  /// resolve to [ClientProtocolVersion.v0]; future values clamp to the highest
+  /// supported version.
+  ClientProtocolVersion get clientProtocol => ClientProtocolVersion.fromIntValue(_participantInfo?.clientProtocol);
 
   /// if [Participant] is currently speaking.
   bool get isSpeaking => _isSpeaking;
