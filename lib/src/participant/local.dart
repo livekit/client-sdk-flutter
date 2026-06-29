@@ -54,7 +54,6 @@ import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
-import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
 import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, isSVCCodec;
 import 'participant.dart';
@@ -975,16 +974,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await room.engine.negotiate();
 
     logger.info('published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
-  }
-}
-
-extension RPCMethods on LocalParticipant {
-  /// Initiate an RPC call to a remote participant.
-  /// @param [params] - RPC call parameters.
-  /// @returns A future that resolves with the response payload or rejects with [RpcError].
-  /// @throws [RpcError] on failure. Details in `message`.
-  Future<String> performRpc(PerformRpcParams params) {
-    return room.rpcClientManager.performRpc(params);
   }
 }
 
