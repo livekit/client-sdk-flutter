@@ -148,7 +148,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   // for testing — pass-through to the server manager's handler map.
   @internal
-  Map<String, RpcRequestHandler> get rpcHandlers => _rpcServerManager.handlers;
+  Map<String, RpcRequestHandler> get rpcHandlers => Map.unmodifiable(_rpcServerManager.handlers);
 
   // Internal RPC v2 reserved topics are also stored in `_textStreamHandlers` so
   // they ride the same dispatch path, but exposing them via the public-facing
