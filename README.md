@@ -197,6 +197,99 @@ try {
 await room.localParticipant.setMicrophoneEnabled(true);
 ```
 
+### Certificate pinning
+
+Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to Flutter web, WebRTC media, TURN, or application-owned token endpoints.
+
+On native platforms, validation runs during TLS connection setup after the peer certificate is available and before the SDK writes HTTP or WSS request bytes. If validation fails, request headers and bodies are not sent.
+
+Rules are selected by host. Exact hosts like `project.livekit.cloud`, single-label wildcards like `*.livekit.cloud`, and `*` are supported. `*.livekit.cloud` matches `project.livekit.cloud`, but not `a.b.livekit.cloud`. Rules with empty `hosts` apply to every SDK-owned TLS connection.
+
+All rules that match the connection host are applied. Within one check type, any configured value may match. Across check types, each configured type must pass. For example, two matching SPKI rules are treated as one accepted pin set, while SPKI pins plus exact leaf certificates require both the SPKI check and the exact leaf certificate check to pass.
+
+Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted. Backup pins are useful for certificate rotation because the SDK accepts either set.
+
+```dart
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['*.livekit.cloud'],
+          primaryPins: ['sha256/current-public-key-pin'],
+          backupPins: [
+            'sha256/next-public-key-pin-1',
+            'sha256/next-public-key-pin-2',
+          ],
+        ),
+      ],
+    ),
+  ),
+);
+
+final room = Room(roomOptions: roomOptions);
+await room.connect(url, token);
+```
+
+To generate an SPKI pin:
+
+```bash
+openssl s_client -connect your-host:443 -servername your-host </dev/null 2>/dev/null \
+  | openssl x509 -pubkey -noout \
+  | openssl pkey -pubin -outform der \
+  | openssl dgst -sha256 -binary \
+  | openssl base64
+```
+
+Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPins`.
+
+Certificate rules can also enforce exact leaf certificates or a custom TLS trust store.
+
+Use `pinnedLeafCertificates` to require an exact peer leaf certificate after TLS trust validation succeeds. Renewing or changing the leaf certificate requires shipping updated pinned certificates.
+
+By itself, `pinnedLeafCertificates` does not trust private or self-signed certificates. For private PKI, also configure `trustedCertificates` with the leaf, intermediate, or root certificate that should anchor TLS validation.
+
+```dart
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_leaf_cert.pem',
+);
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['my-project.livekit.cloud'],
+          pinnedLeafCertificates: [certificate],
+          trustedCertificates: [certificate],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
+Use `trustedCertificates` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these certificates and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
+
+```dart
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_intermediate_ca.pem',
+);
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['*.livekit.cloud'],
+          trustedCertificates: [certificate],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
 ### Screen sharing
 
 Screen sharing is supported across all platforms. You can enable it with:

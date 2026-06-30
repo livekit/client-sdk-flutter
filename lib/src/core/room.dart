@@ -16,7 +16,6 @@ import 'dart:async';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:collection/collection.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../audio/audio_manager.dart';
@@ -40,6 +39,7 @@ import '../preconnect/pre_connect_audio_buffer.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart' show WebSocketException;
@@ -222,17 +222,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     logger.info('prepareConnection to $url');
     try {
       if (isCloudUrl(Uri.parse(url)) && token != null) {
-        _regionUrlProvider = RegionUrlProvider(token: token, url: url);
+        _regionUrlProvider = RegionUrlProvider(token: token, url: url, networkOptions: roomOptions.networkOptions);
         final regionUrl = await _regionUrlProvider!.getNextBestRegionUrl();
         // we will not replace the regionUrl if an attempt had already started
         // to avoid overriding regionUrl after a new connection attempt had started
         if (regionUrl != null && connectionState == ConnectionState.disconnected) {
           _regionUrl = regionUrl;
-          await http.head(Uri.parse(toHttpUrl(regionUrl)));
+          await sdkHttpHead(Uri.parse(toHttpUrl(regionUrl)), networkOptions: roomOptions.networkOptions);
           logger.fine('prepared connection to ${regionUrl}');
         }
       } else {
-        await http.head(Uri.parse(toHttpUrl(url)));
+        await sdkHttpHead(Uri.parse(toHttpUrl(url)), networkOptions: roomOptions.networkOptions);
       }
     } catch (e) {
       logger.warning('could not prepare connection');
@@ -278,7 +278,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
     if (isCloudUrl(Uri.parse(url))) {
       if (_regionUrlProvider == null) {
-        _regionUrlProvider = RegionUrlProvider(url: url, token: token);
+        _regionUrlProvider = RegionUrlProvider(url: url, token: token, networkOptions: roomOptions.networkOptions);
       } else {
         _regionUrlProvider?.updateToken(token);
       }

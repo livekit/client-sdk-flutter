@@ -51,6 +51,18 @@ class MediaConnectException extends LiveKitException {
   MediaConnectException([String msg = 'Ice connection failed']) : super._(msg);
 }
 
+/// Certificate pinning validation failed for an SDK-owned TLS connection.
+class CertificatePinningException extends LiveKitException {
+  final String host;
+  final String? presentedPin;
+
+  CertificatePinningException(
+    String msg, {
+    required this.host,
+    this.presentedPin,
+  }) : super._(msg);
+}
+
 /// An internal state of the SDK is not correct and can not continue to execute.
 /// This should not occur frequently.
 class UnexpectedStateException extends LiveKitException {
