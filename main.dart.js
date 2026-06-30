@@ -35644,7 +35644,7 @@ $S:2}
 A.aTJ.prototype={
 $1(a){var s=A.e_().b
 s=s==null?null:s.canvasKitBaseUrl
-return(s==null?"https://www.gstatic.com/flutter-canvaskit/77e2e94772b6eb43759e34ed1ad7da4674e19cab/":s)+a},
+return(s==null?"https://www.gstatic.com/flutter-canvaskit/a10d8ac38de835021c8d2f920dbf50a920ccc030/":s)+a},
 $S:58}
 A.Wy.prototype={
 gp(a){var s=this.a
@@ -101452,7 +101452,7 @@ if(J.d(j,n.toUpperCase())){m=k.i(l,"payload")
 continue}continue}if(m===0)continue
 for(o=J.aV(g.i(a,"fmtp"));o.q();){i=o.gK()
 n=J.aO(i)
-if(J.d(n.i(i,"payload"),m)){if(!B.c.n(A.bJ(n.i(i,h)),"x-google-start-bitrate"))n.m(i,h,J.aeT(n.i(i,h),";x-google-start-bitrate="+B.d.cq(p.d*0.7)))
+if(J.d(n.i(i,"payload"),m)){if(!B.c.n(A.bJ(n.i(i,h)),"x-google-start-bitrate"))n.m(i,h,J.aeT(n.i(i,h),";x-google-start-bitrate="+B.d.cq(p.d*0.9)))
 break}}continue}}},
 $S:15}
 A.TK.prototype={
@@ -102835,7 +102835,7 @@ break
 case 12:s=14
 return A.e(A.Wn(b1,B.lm),$async$jy)
 case 14:case 13:if(!(A.kx()===B.cp&&a0===B.b6)){k=a8.a.c
-if(B.b.n(A.b(["vp9","av1"],j),k.toLowerCase())){k=B.b.gX(a8.b).c
+if(B.b.n(A.b(["vp8","vp9","av1","h264","h265"],j),k.toLowerCase())){k=B.b.gX(a8.b).c
 k=k!=null}else k=!1
 if(k){k=l.e
 if(k!=null){j=b1.lV()
@@ -103169,7 +103169,7 @@ break
 case 7:s=9
 return A.e(A.Wn(n,B.lm),$async$$0)
 case 9:case 8:if(!(A.kx()===B.cp&&n.x===B.b6)){k=l.a.c
-if(B.b.n(A.b(["vp9","av1"],t.s),k.toLowerCase())){k=B.b.gX(l.b).c
+if(B.b.n(A.b(["vp8","vp9","av1","h264","h265"],t.s),k.toLowerCase())){k=B.b.gX(l.b).c
 k=k!=null}else k=!1
 if(k){k=m.e
 if(k!=null){n=n.lV()
