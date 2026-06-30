@@ -56,7 +56,7 @@ import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
-import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
+import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec, isVideoCodec;
 import 'participant.dart';
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
@@ -404,7 +404,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+      } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+        // Apply start bitrate for all video codecs to prevent initial blurriness
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
@@ -502,7 +503,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+      } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+        // Apply start bitrate for all video codecs to prevent initial blurriness
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
