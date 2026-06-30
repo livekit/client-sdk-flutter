@@ -605,4 +605,200 @@ void main() {
       v2Room.unregisterRpcMethod('hangs-for-bob');
     });
   });
+
+  group('rpc v2 caller transport edge cases', () {
+    late E2EContainer edgeCaseContainer;
+    late Room edgeCaseRoom;
+
+    setUp(() async {
+      resetMockDataChannels();
+      edgeCaseContainer = E2EContainer();
+      edgeCaseRoom = edgeCaseContainer.room;
+      await edgeCaseContainer.connectRoom(
+        localClientProtocol: ClientProtocolVersion.current.toIntValue(),
+      );
+    });
+
+    tearDown(() async {
+      await edgeCaseContainer.dispose();
+    });
+
+    void interceptOutbound(bool Function(lk_models.DataPacket packet) onPacket) {
+      for (final dc in mockDataChannels) {
+        final existing = dc.onMessageSend;
+        dc.onMessageSend = (message) {
+          late lk_models.DataPacket packet;
+          try {
+            packet = lk_models.DataPacket.fromBuffer(message.binary);
+          } catch (_) {
+            // ignore non-DataPacket messages
+            existing?.call(message);
+            return;
+          }
+          edgeCaseContainer.capturedDataPackets.add(packet);
+          if (!onPacket(packet)) {
+            return;
+          }
+          existing?.call(message);
+        };
+      }
+    }
+
+    bool hasCapturedPacketWhere(bool Function(lk_models.DataPacket) test) =>
+        edgeCaseContainer.capturedDataPackets.any(test);
+
+    test('v2 caller falls back to v1 RpcRequest packet for legacy remote', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin(
+        'legacy-v1',
+        clientProtocol: ClientProtocolVersion.v0.toIntValue(),
+      );
+
+      String? requestId;
+      interceptOutbound((packet) {
+        if (!packet.destinationIdentities.contains('legacy-v1')) {
+          return true;
+        }
+        if (packet.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
+          requestId = packet.rpcRequest.id;
+          edgeCaseContainer.simulateInboundRpcAck('legacy-v1', requestId!);
+          edgeCaseContainer.simulateInboundRpcResponse(
+            'legacy-v1',
+            requestId!,
+            payload: 'legacy-response',
+          );
+        }
+        return false;
+      });
+
+      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: 'legacy-v1',
+        method: 'legacy-method',
+        payload: 'hello',
+      ));
+
+      expect(response, 'legacy-response');
+      expect(requestId, isNotNull);
+
+      final request = edgeCaseContainer.capturedDataPackets.firstWhere(
+        (p) => p.whichValue() == lk_models.DataPacket_Value.rpcRequest,
+      );
+      expect(request.rpcRequest.version, kRpcVersion);
+      expect(request.rpcRequest.method, 'legacy-method');
+      expect(request.destinationIdentities, contains('legacy-v1'));
+      expect(
+        hasCapturedPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+        ),
+        isFalse,
+      );
+    });
+
+    test('v2 caller v1 fallback rejects payloads over 15 KB before publish', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin(
+        'legacy-large',
+        clientProtocol: ClientProtocolVersion.v0.toIntValue(),
+      );
+      interceptOutbound((_) => true);
+
+      RpcError? error;
+      try {
+        await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: 'legacy-large',
+          method: 'large',
+          payload: 'a' * (kRpcMaxPayloadBytes + 1),
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, RpcError.requestPayloadTooLarge);
+      expect(
+        hasCapturedPacketWhere(
+          (p) =>
+              p.whichValue() == lk_models.DataPacket_Value.rpcRequest ||
+              (p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic),
+        ),
+        isFalse,
+      );
+    });
+
+    test('v2 caller does not drop ack and response received before request publish completes', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin('fast-v2');
+
+      String? requestId;
+      interceptOutbound((packet) {
+        if (!packet.destinationIdentities.contains('fast-v2')) {
+          return true;
+        }
+        if (packet.whichValue() == lk_models.DataPacket_Value.streamHeader &&
+            packet.streamHeader.topic == kRpcRequestTopic &&
+            requestId == null) {
+          requestId = packet.streamHeader.attributes[kRpcAttrRequestId];
+          edgeCaseContainer.simulateInboundRpcAck('fast-v2', requestId!);
+          edgeCaseContainer.simulateInboundV2RpcResponseStream('fast-v2', requestId!, 'fast-response');
+        }
+        return false;
+      });
+
+      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: 'fast-v2',
+        method: 'fast-method',
+        payload: 'request',
+      ));
+
+      expect(response, 'fast-response');
+      expect(requestId, isNotNull);
+      expect(
+        hasCapturedPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+        ),
+        isTrue,
+      );
+      expect(
+        hasCapturedPacketWhere((p) => p.whichValue() == lk_models.DataPacket_Value.rpcRequest),
+        isFalse,
+      );
+    });
+
+    test('v2 caller ignores response stream missing request id', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin('missing-id');
+
+      interceptOutbound((packet) {
+        if (packet.destinationIdentities.contains('missing-id')) {
+          return false;
+        }
+        return true;
+      });
+
+      bool resolved = false;
+      RpcError? caught;
+      final future = edgeCaseRoom.localParticipant!
+          .performRpc(PerformRpcParams(
+            destinationIdentity: 'missing-id',
+            method: 'hangs',
+            payload: 'x',
+            responseTimeoutMs: const Duration(seconds: 30),
+          ))
+          .then((_) => resolved = true)
+          .catchError((e) {
+        if (e is RpcError) {
+          caught = e;
+        }
+        return false;
+      });
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      edgeCaseContainer.simulateInboundV2RpcResponseStreamWithoutRequestId('missing-id', 'ignored');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(resolved, isFalse);
+      expect(caught, isNull);
+
+      await edgeCaseContainer.simulateRemoteParticipantDisconnect('missing-id');
+      await future;
+      expect(caught?.code, RpcError.recipientDisconnected);
+    });
+  });
 }

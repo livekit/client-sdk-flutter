@@ -220,6 +220,16 @@ class E2EContainer {
     );
   }
 
+  /// Simulate a malformed v2 RPC response data stream without a request ID.
+  void simulateInboundV2RpcResponseStreamWithoutRequestId(String fromIdentity, String payload) {
+    _simulateInboundTextStream(
+      fromIdentity: fromIdentity,
+      topic: kRpcResponseTopic,
+      attributes: const {},
+      body: payload,
+    );
+  }
+
   /// Simulate a v2 RPC request data stream from [fromIdentity].
   void simulateInboundV2RpcRequestStream({
     required String fromIdentity,
