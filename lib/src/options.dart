@@ -59,12 +59,18 @@ class ConnectOptions {
   /// The protocol version to be used. Usually this doesn't need to be modified.
   final ProtocolVersion protocolVersion;
 
+  /// The client-to-client protocol version to advertise, used for peer feature
+  /// negotiation (e.g. RPC v2 data streams). Usually this doesn't need to be modified;
+  /// pinning to [ClientProtocolVersion.v0] forces all peer RPCs to the legacy v1 path.
+  final ClientProtocolVersion clientProtocolVersion;
+
   final Timeouts timeouts;
 
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
     this.protocolVersion = ProtocolVersion.v16,
+    this.clientProtocolVersion = ClientProtocolVersion.current,
     this.timeouts = Timeouts.defaultTimeouts,
   });
 }

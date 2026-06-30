@@ -73,6 +73,12 @@ extension ProtocolVersionExt on ProtocolVersion {
       }[this]!;
 }
 
+extension ClientProtocolVersionExt on ClientProtocolVersion {
+  int toIntValue() => wireValue;
+
+  String toStringValue() => toIntValue().toString();
+}
+
 extension ReliabilityExt on Reliability {
   lk_models.DataPacket_Kind toPBType() => {
         Reliability.reliable: lk_models.DataPacket_Kind.RELIABLE,

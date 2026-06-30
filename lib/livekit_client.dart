@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'src/types/rpc.dart' show kRpcVersion;
+
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/core/room_preconnect.dart';
@@ -23,7 +25,7 @@ export 'src/e2ee/key_provider.dart';
 export 'src/e2ee/options.dart';
 export 'src/events.dart';
 export 'src/exceptions.dart';
-export 'src/extensions.dart' show WidgetsBindingCompatible;
+export 'src/extensions.dart' show ClientProtocolVersionExt, WidgetsBindingCompatible;
 export 'src/hardware/hardware.dart';
 export 'src/livekit.dart';
 export 'src/logger.dart';
@@ -83,3 +85,8 @@ export 'src/token_source/custom.dart';
 export 'src/token_source/caching.dart';
 export 'src/token_source/sandbox.dart';
 export 'src/token_source/jwt.dart';
+
+/// Misspelled alias for [kRpcVersion]. Kept for backwards compatibility with code
+/// that referenced the original typo.
+@Deprecated('Use kRpcVersion instead — the original was misspelled.')
+final int kRpcVesion = kRpcVersion;

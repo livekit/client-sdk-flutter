@@ -195,6 +195,7 @@ class Utils {
         if (reconnect && reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
+        'client_protocol': connectOptions.clientProtocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
         'network': networkType,

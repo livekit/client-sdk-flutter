@@ -12,13 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@Timeout(Duration(seconds: 5))
+@Timeout(Duration(seconds: 10))
 library;
 
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/data_stream/errors.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import '../mock/e2e_container.dart';
+import '../mock/peerconnection_mock.dart';
 
 void main() {
   E2EContainer? container;
@@ -230,6 +233,572 @@ void main() {
         RpcError.responseTimeout,
         error?.code,
       );
+    });
+  });
+
+  // RPC v2 tests run with the local participant advertising
+  // `clientProtocol = ClientProtocolVersion.current`, so the self-loop path
+  // routes through the data-stream transport instead of the v1 packet path.
+  group('rpc v2 tests', () {
+    late E2EContainer v2Container;
+    late Room v2Room;
+
+    setUpAll(() async {
+      // Tear down any previous container's data channels so the new pair gets wired.
+      resetMockDataChannels();
+      v2Container = E2EContainer();
+      v2Room = v2Container.room;
+      await v2Container.connectRoom(
+        localClientProtocol: ClientProtocolVersion.current.toIntValue(),
+        captureOutbound: true,
+      );
+    });
+
+    bool hasOutboundPacketWhere(bool Function(lk_models.DataPacket) test) => v2Container.capturedDataPackets.any(test);
+
+    test('RPC v2 text stream topics are reserved for SDK internals', () async {
+      expect(
+        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+      expect(
+        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        throwsA(isA<DataStreamError>()),
+      );
+
+      // Reserved-topic unregister calls must be no-ops; otherwise this would remove
+      // the SDK's internal request/response handlers and break v2 RPC routing.
+      v2Room.unregisterTextStreamHandler(kRpcRequestTopic);
+      v2Room.unregisterTextStreamHandler(kRpcResponseTopic);
+
+      v2Room.registerRpcMethod('reserved-topic-echo', (RpcInvocationData data) async {
+        return data.payload;
+      });
+
+      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: v2Room.localParticipant!.identity,
+        method: 'reserved-topic-echo',
+        payload: 'ok',
+      ));
+
+      expect(response, 'ok');
+      v2Room.unregisterRpcMethod('reserved-topic-echo');
+    });
+
+    test('v2 caller happy path (short payload)', () async {
+      v2Container.capturedDataPackets.clear();
+      v2Room.registerRpcMethod('echo-v2', (RpcInvocationData data) async {
+        return 'echo: ${data.payload}';
+      });
+
+      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: v2Room.localParticipant!.identity,
+        method: 'echo-v2',
+        payload: 'hello v2',
+      ));
+
+      expect(response, 'echo: hello v2');
+      // Spec: v2 requests must use data streams, never the rpcRequest packet.
+      expect(
+        hasOutboundPacketWhere((p) => p.whichValue() == lk_models.DataPacket_Value.rpcRequest),
+        isFalse,
+        reason: 'v2 caller should not produce any RpcRequest packets',
+      );
+      // Spec: v2 success responses use data streams, not the rpcResponse packet.
+      expect(
+        hasOutboundPacketWhere((p) => p.whichValue() == lk_models.DataPacket_Value.rpcResponse),
+        isFalse,
+        reason: 'v2 success response should not produce any RpcResponse packets',
+      );
+      // The request and response both flow as text streams on the reserved topics.
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic),
+        isTrue,
+      );
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        isTrue,
+      );
+
+      v2Room.unregisterRpcMethod('echo-v2');
+    });
+
+    test('v2 large payload (> 15 KB) succeeds without size error', () async {
+      v2Container.capturedDataPackets.clear();
+      final big = 'a' * 20000; // exceeds kRpcMaxPayloadBytes (15360)
+
+      v2Room.registerRpcMethod('echo-big', (RpcInvocationData data) async {
+        // Confirm the handler sees the full payload.
+        expect(data.payload.length, 20000);
+        return data.payload; // echo a 20k response
+      });
+
+      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: v2Room.localParticipant!.identity,
+        method: 'echo-big',
+        payload: big,
+        responseTimeoutMs: const Duration(seconds: 30),
+      ));
+
+      expect(response.length, 20000);
+      expect(response, big);
+
+      v2Room.unregisterRpcMethod('echo-big');
+    }, timeout: const Timeout(Duration(seconds: 60)));
+
+    test('v2 unregistered method: ack then v1 error packet', () async {
+      v2Container.capturedDataPackets.clear();
+      RpcError? error;
+      try {
+        await v2Room.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'method-does-not-exist',
+          payload: 'x',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, RpcError.unsupportedMethod);
+
+      // An ack packet must be observed regardless (handler is alive).
+      expect(
+        hasOutboundPacketWhere((p) => p.whichValue() == lk_models.DataPacket_Value.rpcAck),
+        isTrue,
+        reason: 'handler must ack before rejecting unknown method',
+      );
+      // Error responses are always packets, never streams.
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
+            p.rpcResponse.hasError() &&
+            p.rpcResponse.error.code == RpcError.unsupportedMethod),
+        isTrue,
+      );
+      // No v2 response stream should be opened on the response topic.
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        isFalse,
+      );
+    });
+
+    test('v2 unhandled error returns APPLICATION_ERROR via packet', () async {
+      v2Container.capturedDataPackets.clear();
+      v2Room.registerRpcMethod('throws-generic', (_) async {
+        throw Exception('boom');
+      });
+
+      RpcError? error;
+      try {
+        await v2Room.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'throws-generic',
+          payload: 'x',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, RpcError.applicationError);
+      // Error responses always travel as packets, even between v2 peers.
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
+            p.rpcResponse.hasError() &&
+            p.rpcResponse.error.code == RpcError.applicationError),
+        isTrue,
+      );
+      expect(
+        hasOutboundPacketWhere((p) =>
+            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        isFalse,
+        reason: 'error responses must not use a data stream',
+      );
+
+      v2Room.unregisterRpcMethod('throws-generic');
+    });
+
+    test('v2 RpcError passthrough preserves code and message', () async {
+      v2Container.capturedDataPackets.clear();
+      v2Room.registerRpcMethod('throws-rpc-error', (_) async {
+        throw RpcError(code: 101, message: 'Custom error', data: 'extra');
+      });
+
+      RpcError? error;
+      try {
+        await v2Room.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'throws-rpc-error',
+          payload: 'x',
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, 101);
+      expect(error?.message, 'Custom error');
+      expect(error?.data, 'extra');
+
+      v2Room.unregisterRpcMethod('throws-rpc-error');
+    });
+
+    test('v2 response timeout', () async {
+      v2Container.capturedDataPackets.clear();
+      v2Room.registerRpcMethod('hangs', (_) async {
+        await Future.delayed(const Duration(seconds: 10));
+        return 'never';
+      });
+
+      RpcError? error;
+      try {
+        await v2Room.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'hangs',
+          payload: 'x',
+          responseTimeoutMs: const Duration(seconds: 2),
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, RpcError.responseTimeout);
+      v2Room.unregisterRpcMethod('hangs');
+    });
+
+    test('v2 concurrent performRpc calls resolve independently', () async {
+      v2Container.capturedDataPackets.clear();
+      v2Room.registerRpcMethod('echo-concurrent', (RpcInvocationData data) async {
+        return 'r-${data.payload}';
+      });
+
+      final futures = List.generate(
+        5,
+        (i) => v2Room.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'echo-concurrent',
+          payload: '$i',
+        )),
+      );
+
+      final results = await Future.wait(futures);
+      expect(results, ['r-0', 'r-1', 'r-2', 'r-3', 'r-4']);
+      // Five distinct outbound request streams.
+      final requestHeaders = v2Container.capturedDataPackets.where(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic);
+      expect(requestHeaders.length, greaterThanOrEqualTo(5));
+
+      v2Room.unregisterRpcMethod('echo-concurrent');
+    });
+
+    test('v2 participant disconnect rejects pending RPCs', () async {
+      // Inject a remote participant that supports v2.
+      await v2Container.simulateRemoteParticipantJoin('alice');
+
+      // Register a handler that never completes so the request never resolves on its own.
+      // The remote 'alice' is fake; our local engine will still see the v2 request
+      // stream via loopback and try to invoke the handler — which hangs forever.
+      v2Room.registerRpcMethod('hangs-for-alice', (_) async {
+        await Future.delayed(const Duration(seconds: 60));
+        return 'never';
+      });
+
+      // Attach the catch handler synchronously so the future's eventual rejection
+      // isn't reported as an unhandled async error if it lands before `await`.
+      RpcError? error;
+      final caught = v2Room.localParticipant!
+          .performRpc(PerformRpcParams(
+        destinationIdentity: 'alice',
+        method: 'hangs-for-alice',
+        payload: 'x',
+        responseTimeoutMs: const Duration(seconds: 30),
+      ))
+          .catchError((e) {
+        if (e is RpcError) {
+          error = e;
+        }
+        return '';
+      });
+
+      // Let the publish settle so pending is registered.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Simulate alice disconnecting.
+      await v2Container.simulateRemoteParticipantDisconnect('alice');
+
+      await caught;
+      expect(error?.code, RpcError.recipientDisconnected);
+
+      v2Room.unregisterRpcMethod('hangs-for-alice');
+    });
+
+    test('v2 response stream from wrong sender is ignored', () async {
+      v2Container.capturedDataPackets.clear();
+      // Inject the legitimate destination.
+      await v2Container.simulateRemoteParticipantJoin('bob');
+
+      // Register a hanging handler so the legit response never arrives during the test window.
+      v2Room.registerRpcMethod('hangs-for-bob', (_) async {
+        await Future.delayed(const Duration(seconds: 60));
+        return 'never';
+      });
+
+      bool resolved = false;
+      RpcError? caught;
+      final future = v2Room.localParticipant!
+          .performRpc(PerformRpcParams(
+            destinationIdentity: 'bob',
+            method: 'hangs-for-bob',
+            payload: 'x',
+            responseTimeoutMs: const Duration(seconds: 30),
+          ))
+          .then((_) => resolved = true)
+          .catchError((e) {
+        if (e is RpcError) caught = e;
+        return false;
+      });
+
+      // Let the publish settle and the request stream loop back.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      // Extract the request_id the SDK generated, from the outbound request stream header.
+      final requestHeader = v2Container.capturedDataPackets.firstWhere(
+        (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+      );
+      final requestId = requestHeader.streamHeader.attributes[kRpcAttrRequestId]!;
+
+      // Inject a v2 response from "mallory" — wrong sender. Should be ignored.
+      v2Container.simulateInboundV2RpcResponseStream('mallory', requestId, 'evil payload');
+
+      // Give the response handler time to run and discard.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      // Pending must still be unresolved.
+      expect(resolved, isFalse);
+      expect(caught, isNull);
+
+      // Now disconnect bob to release the pending entry cleanly.
+      await v2Container.simulateRemoteParticipantDisconnect('bob');
+      await future;
+      // After disconnect, the pending should resolve to recipientDisconnected — not the
+      // payload "evil payload" from mallory.
+      expect(caught?.code, RpcError.recipientDisconnected);
+
+      v2Room.unregisterRpcMethod('hangs-for-bob');
+    });
+  });
+
+  group('rpc v2 caller transport edge cases', () {
+    late E2EContainer edgeCaseContainer;
+    late Room edgeCaseRoom;
+
+    setUp(() async {
+      resetMockDataChannels();
+      edgeCaseContainer = E2EContainer();
+      edgeCaseRoom = edgeCaseContainer.room;
+      await edgeCaseContainer.connectRoom(
+        localClientProtocol: ClientProtocolVersion.current.toIntValue(),
+      );
+    });
+
+    tearDown(() async {
+      await edgeCaseContainer.dispose();
+    });
+
+    void interceptOutbound(bool Function(lk_models.DataPacket packet) onPacket) {
+      for (final dc in mockDataChannels) {
+        final existing = dc.onMessageSend;
+        dc.onMessageSend = (message) {
+          late lk_models.DataPacket packet;
+          try {
+            packet = lk_models.DataPacket.fromBuffer(message.binary);
+          } catch (_) {
+            // ignore non-DataPacket messages
+            existing?.call(message);
+            return;
+          }
+          edgeCaseContainer.capturedDataPackets.add(packet);
+          if (!onPacket(packet)) {
+            return;
+          }
+          existing?.call(message);
+        };
+      }
+    }
+
+    bool hasCapturedPacketWhere(bool Function(lk_models.DataPacket) test) =>
+        edgeCaseContainer.capturedDataPackets.any(test);
+
+    test('v2 caller falls back to v1 RpcRequest packet for legacy remote', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin(
+        'legacy-v1',
+        clientProtocol: ClientProtocolVersion.v0.toIntValue(),
+      );
+
+      String? requestId;
+      interceptOutbound((packet) {
+        if (!packet.destinationIdentities.contains('legacy-v1')) {
+          return true;
+        }
+        if (packet.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
+          requestId = packet.rpcRequest.id;
+          edgeCaseContainer.simulateInboundRpcAck('legacy-v1', requestId!);
+          edgeCaseContainer.simulateInboundRpcResponse(
+            'legacy-v1',
+            requestId!,
+            payload: 'legacy-response',
+          );
+        }
+        return false;
+      });
+
+      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: 'legacy-v1',
+        method: 'legacy-method',
+        payload: 'hello',
+      ));
+
+      expect(response, 'legacy-response');
+      expect(requestId, isNotNull);
+
+      final request = edgeCaseContainer.capturedDataPackets.firstWhere(
+        (p) => p.whichValue() == lk_models.DataPacket_Value.rpcRequest,
+      );
+      expect(request.rpcRequest.version, kRpcVersion);
+      expect(request.rpcRequest.method, 'legacy-method');
+      expect(request.destinationIdentities, contains('legacy-v1'));
+      expect(
+        hasCapturedPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+        ),
+        isFalse,
+      );
+    });
+
+    test('v2 caller v1 fallback rejects payloads over 15 KB before publish', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin(
+        'legacy-large',
+        clientProtocol: ClientProtocolVersion.v0.toIntValue(),
+      );
+      interceptOutbound((_) => true);
+
+      RpcError? error;
+      try {
+        await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+          destinationIdentity: 'legacy-large',
+          method: 'large',
+          payload: 'a' * (kRpcMaxPayloadBytes + 1),
+        ));
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, RpcError.requestPayloadTooLarge);
+      expect(
+        hasCapturedPacketWhere(
+          (p) =>
+              p.whichValue() == lk_models.DataPacket_Value.rpcRequest ||
+              (p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic),
+        ),
+        isFalse,
+      );
+    });
+
+    test('v2 caller does not drop ack and response received before request publish completes', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin('fast-v2');
+
+      String? requestId;
+      interceptOutbound((packet) {
+        if (!packet.destinationIdentities.contains('fast-v2')) {
+          return true;
+        }
+        if (packet.whichValue() == lk_models.DataPacket_Value.streamHeader &&
+            packet.streamHeader.topic == kRpcRequestTopic &&
+            requestId == null) {
+          requestId = packet.streamHeader.attributes[kRpcAttrRequestId];
+          edgeCaseContainer.simulateInboundRpcAck('fast-v2', requestId!);
+          edgeCaseContainer.simulateInboundV2RpcResponseStream('fast-v2', requestId!, 'fast-response');
+        }
+        return false;
+      });
+
+      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
+        destinationIdentity: 'fast-v2',
+        method: 'fast-method',
+        payload: 'request',
+      ));
+
+      expect(response, 'fast-response');
+      expect(requestId, isNotNull);
+      expect(
+        hasCapturedPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+        ),
+        isTrue,
+      );
+      expect(
+        hasCapturedPacketWhere((p) => p.whichValue() == lk_models.DataPacket_Value.rpcRequest),
+        isFalse,
+      );
+    });
+
+    test('v2 caller ignores response stream missing request id', () async {
+      await edgeCaseContainer.simulateRemoteParticipantJoin('missing-id');
+
+      interceptOutbound((packet) {
+        if (packet.destinationIdentities.contains('missing-id')) {
+          return false;
+        }
+        return true;
+      });
+
+      bool resolved = false;
+      RpcError? caught;
+      final future = edgeCaseRoom.localParticipant!
+          .performRpc(PerformRpcParams(
+            destinationIdentity: 'missing-id',
+            method: 'hangs',
+            payload: 'x',
+            responseTimeoutMs: const Duration(seconds: 30),
+          ))
+          .then((_) => resolved = true)
+          .catchError((e) {
+        if (e is RpcError) {
+          caught = e;
+        }
+        return false;
+      });
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      edgeCaseContainer.simulateInboundV2RpcResponseStreamWithoutRequestId('missing-id', 'ignored');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(resolved, isFalse);
+      expect(caught, isNull);
+
+      await edgeCaseContainer.simulateRemoteParticipantDisconnect('missing-id');
+      await future;
+      expect(caught?.code, RpcError.recipientDisconnected);
     });
   });
 }

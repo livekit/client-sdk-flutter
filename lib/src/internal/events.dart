@@ -641,6 +641,11 @@ class EngineSipDtmfReceivedEvent with EngineEvent, InternalEvent {
   String toString() => '${runtimeType}(dtmf: ${dtmf}, identity: ${identity})';
 }
 
+/// Only produced for RPC v1 callers. RPC v2 requests arrive via
+/// [EngineDataStreamHeaderEvent] on the `lk.rpc_request` topic — see
+/// [RpcServerManager.handleIncomingV2RequestStream]. Acks
+/// ([EngineRPCAckReceivedEvent]) and most response packets
+/// ([EngineRPCResponseReceivedEvent]) are still produced for both versions.
 @internal
 class EngineRPCRequestReceivedEvent with EngineEvent, InternalEvent {
   final lk_models.RpcRequest request;
