@@ -44,7 +44,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
     if (didStart) {
       try {
         // web support
-        await audio.startAudio(getCid(), mediaStreamTrack);
+        await audio.startAudio(getCid(), rtcTrack);
         if (_deviceId != null) {
           audio.setSinkId(getCid(), _deviceId!);
         }
@@ -79,14 +79,14 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null || events.isDisposed || !isActive) {
+    if (rtcReceiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
     try {
       final stats = await getReceiverStats();
 
-      if (stats != null && prevStats != null && receiver != null) {
+      if (stats != null && prevStats != null && rtcReceiver != null) {
         final bitrate = computeBitrateForReceiverStats(stats, prevStats);
         _currentBitrate = bitrate;
         events.emit(AudioReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
@@ -101,13 +101,13 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
   }
 
   Future<AudioReceiverStats?> getReceiverStats() async {
-    if (receiver == null) {
+    if (rtcReceiver == null) {
       return null;
     }
 
     late List<rtc.StatsReport> stats;
     try {
-      stats = await receiver!.getStats();
+      stats = await rtcReceiver!.getStats();
     } catch (e) {
       rethrow;
     }

@@ -37,17 +37,31 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   final TrackType kind;
   final TrackSource source;
 
-  // read only
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this getter will be removed in a future release.')
   rtc.MediaStream get mediaStream => _mediaStream;
+
+  /// The underlying flutter_webrtc stream. SDK-internal; not part of the
+  /// public API.
+  @internal
+  rtc.MediaStream get rtcStream => _mediaStream;
   rtc.MediaStream _mediaStream;
 
-  // read only
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this getter will be removed in a future release.')
   rtc.MediaStreamTrack get mediaStreamTrack => _mediaStreamTrack;
+
+  /// The underlying flutter_webrtc track. SDK-internal; not part of the
+  /// public API.
+  @internal
+  rtc.MediaStreamTrack get rtcTrack => _mediaStreamTrack;
   rtc.MediaStreamTrack _mediaStreamTrack;
 
   rtc.MediaStreamTrack? _originalTrack;
 
   String? sid;
+
+  @internal
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
 
@@ -58,11 +72,32 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   bool _muted = false;
   bool get muted => _muted;
 
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this getter will be removed in a future release.')
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
-  rtc.RTCRtpReceiver? receiver;
+  /// The underlying flutter_webrtc RTP sender. SDK-internal; not part of the
+  /// public API.
+  @internal
+  rtc.RTCRtpSender? get rtcSender => transceiver?.sender;
 
-  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack, {this.receiver}) {
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this getter will be removed in a future release.')
+  rtc.RTCRtpReceiver? get receiver => rtcReceiver;
+
+  // receiver was previously a public mutable field; keep assignability until
+  // the deprecated surface is removed.
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this setter will be removed in a future release.')
+  set receiver(rtc.RTCRtpReceiver? receiver) => rtcReceiver = receiver;
+
+  /// The underlying flutter_webrtc RTP receiver. SDK-internal; not part of
+  /// the public API.
+  @internal
+  rtc.RTCRtpReceiver? rtcReceiver;
+
+  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack, {rtc.RTCRtpReceiver? receiver})
+      : rtcReceiver = receiver {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.finer('[TrackEvent] $event, will notifyListeners()');
@@ -77,6 +112,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     });
   }
 
+  @Deprecated('flutter_webrtc types are being removed from the LiveKit public API '
+      'and this getter will be removed in a future release.')
   rtc.RTCRtpMediaType get mediaType {
     switch (kind) {
       case TrackType.AUDIO:
@@ -90,7 +127,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   }
 
   String getCid() {
-    var cid = _cid ?? mediaStreamTrack.id;
+    var cid = _cid ?? rtcTrack.id;
 
     if (cid == null) {
       cid = uuid.v4();
@@ -133,7 +170,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     logger.fine('$objectId.stop()');
 
     if (!kIsWeb) {
-      await mediaStreamTrack.stop();
+      await rtcTrack.stop();
     }
 
     if (_originalTrack != null) {
@@ -146,10 +183,10 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   }
 
   Future<void> enable() async {
-    logger.fine('$objectId.enable() enabling ${mediaStreamTrack.objectId}...');
+    logger.fine('$objectId.enable() enabling ${rtcTrack.objectId}...');
     try {
       if (_active) {
-        mediaStreamTrack.enabled = true;
+        rtcTrack.enabled = true;
       }
     } catch (e) {
       logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
@@ -157,10 +194,10 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   }
 
   Future<void> disable() async {
-    logger.fine('$objectId.disable() disabling ${mediaStreamTrack.objectId}...');
+    logger.fine('$objectId.disable() disabling ${rtcTrack.objectId}...');
     try {
       if (_active) {
-        mediaStreamTrack.enabled = false;
+        rtcTrack.enabled = false;
       }
     } catch (e) {
       logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');

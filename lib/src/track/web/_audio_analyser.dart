@@ -65,7 +65,7 @@ AudioAnalyser? createAudioAnalyser(
   if (audioContext == null) {
     throw Exception('Audio Context not supported on this browser');
   }
-  final streamTrack = opts.cloneTrack == true ? track.mediaStreamTrack.clone() : track.mediaStreamTrack;
+  final streamTrack = opts.cloneTrack == true ? track.rtcTrack.clone() : track.rtcTrack;
   final mediaStreamSource = audioContext.createMediaStreamSource(
       MediaStreamWeb(web.MediaStream([(streamTrack as MediaStreamTrackWeb).jsTrack].toJS), '').jsStream);
   final analyser = audioContext.createAnalyser();

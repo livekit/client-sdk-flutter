@@ -82,7 +82,7 @@ mixin AudioTrack on Track {
   }) {
     final group = _captureGroups.putIfAbsent(
       options,
-      () => _AudioCaptureGroup(track: mediaStreamTrack, options: options),
+      () => _AudioCaptureGroup(track: rtcTrack, options: options),
     );
     group.renderers.add(onFrame);
 
@@ -219,12 +219,12 @@ abstract class LocalTrack extends Track {
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
-        await mediaStreamTrack.stop();
+        await rtcTrack.stop();
       } catch (error) {
         logger.severe('MediaStreamTrack.stop() did throw $error');
       }
       try {
-        await mediaStream.dispose();
+        await rtcStream.dispose();
       } catch (error) {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
@@ -289,7 +289,7 @@ abstract class LocalTrack extends Track {
   Future<void> restartTrack([
     LocalTrackOptions? options,
   ]) async {
-    if (sender == null) throw TrackCreateException('could not restart track');
+    if (rtcSender == null) throw TrackCreateException('could not restart track');
     if (options != null && currentOptions.runtimeType != options.runtimeType) {
       throw Exception('options must be a ${currentOptions.runtimeType}');
     }
@@ -309,7 +309,7 @@ abstract class LocalTrack extends Track {
 
     // replace track on sender
     try {
-      await sender?.replaceTrack(newTrack);
+      await rtcSender?.replaceTrack(newTrack);
       if (this is LocalVideoTrack) {
         final videoTrack = this as LocalVideoTrack;
         await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
@@ -347,8 +347,8 @@ abstract class LocalTrack extends Track {
     _processor = processor;
 
     final processorOptions = kind == TrackType.VIDEO
-        ? VideoProcessorOptions(track: mediaStreamTrack)
-        : AudioProcessorOptions(track: mediaStreamTrack);
+        ? VideoProcessorOptions(track: rtcTrack)
+        : AudioProcessorOptions(track: rtcTrack);
 
     await _processor!.init(processorOptions);
 

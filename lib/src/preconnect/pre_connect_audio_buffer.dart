@@ -120,14 +120,14 @@ class PreConnectAudioBuffer {
     _agentReadyManager.setTimer(timeout, timeoutReason: 'Agent did not become ready within timeout');
 
     _localTrack = await LocalAudioTrack.create();
-    logger.fine('[Preconnect audio] created local track ${_localTrack!.mediaStreamTrack.id}');
+    logger.fine('[Preconnect audio] created local track ${_localTrack!.rtcTrack.id}');
 
     final rendererId = Uuid().v4();
     logger.info('Starting audio renderer with rendererId: $rendererId');
 
     _audioCapture = createAudioFrameCapture();
     final result = await _audioCapture!.start(
-      track: _localTrack!.mediaStreamTrack,
+      track: _localTrack!.rtcTrack,
       rendererId: rendererId,
       sampleRate: _requestSampleRate,
       channels: 1,
