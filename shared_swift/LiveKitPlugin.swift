@@ -438,6 +438,65 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         ])
     }
 
+    // MARK: - Microphone mute mode
+
+    static func muteModeString(_ mode: RTCAudioEngineMuteMode) -> String {
+        switch mode {
+        case .voiceProcessing: return "voiceProcessing"
+        case .restartEngine: return "restart"
+        case .inputMixer: return "inputMixer"
+        default: return "unknown"
+        }
+    }
+
+    static func muteMode(from string: String) -> RTCAudioEngineMuteMode {
+        switch string {
+        case "voiceProcessing": return .voiceProcessing
+        case "restart": return .restartEngine
+        case "inputMixer": return .inputMixer
+        default: return .unknown
+        }
+    }
+
+    public func handleSetMicrophoneMuteMode(args: [String: Any?], result: @escaping FlutterResult) {
+        let modeString = args["mode"] as? String ?? ""
+        let mode = LiveKitPlugin.muteMode(from: modeString)
+        if mode == .unknown {
+            result(FlutterError(code: "setMicrophoneMuteMode", message: "invalid mute mode: \(modeString)", details: nil))
+            return
+        }
+
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "setMicrophoneMuteMode", message: "audio device module is unavailable", details: nil))
+            return
+        }
+
+        // Changing the mode while muted can rebuild the audio engine, so keep
+        // that work off the platform thread.
+        DispatchQueue.global(qos: .userInitiated).async {
+            let admResult = adm.setMuteMode(mode)
+            DispatchQueue.main.async {
+                if admResult == 0 {
+                    result(nil)
+                } else {
+                    result(FlutterError(
+                        code: "setMicrophoneMuteMode",
+                        message: "Audio engine returned error code: \(admResult)",
+                        details: nil
+                    ))
+                }
+            }
+        }
+    }
+
+    public func handleGetMicrophoneMuteMode(result: @escaping FlutterResult) {
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "getMicrophoneMuteMode", message: "audio device module is unavailable", details: nil))
+            return
+        }
+        result(LiveKitPlugin.muteModeString(adm.muteMode))
+    }
+
     public func handleStartLocalRecording(args: [String: Any?], result: @escaping FlutterResult) {
         guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "rejectedPlatformUnavailable", message: "audio device module is unavailable", details: nil))
@@ -600,6 +659,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStartAudioRenderer(args: args, result: result)
         case "stopAudioRenderer":
             handleStopAudioRenderer(args: args, result: result)
+        case "setMicrophoneMuteMode":
+            handleSetMicrophoneMuteMode(args: args, result: result)
+        case "getMicrophoneMuteMode":
+            handleGetMicrophoneMuteMode(result: result)
         case "startLocalRecording":
             handleStartLocalRecording(args: args, result: result)
         case "stopLocalRecording":

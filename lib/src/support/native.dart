@@ -231,6 +231,31 @@ class Native {
     }
   }
 
+  /// Sets how the audio device module mutes microphone input (iOS/macOS).
+  ///
+  /// Unlike most methods in this class this deliberately does not swallow
+  /// platform errors: a failed change means muting behaves differently from
+  /// what the caller selected, so the error must reach the caller.
+  @internal
+  static Future<void> setMicrophoneMuteMode(String mode) async {
+    await channel.invokeMethod<void>(
+      'setMicrophoneMuteMode',
+      <String, dynamic>{'mode': mode},
+    );
+  }
+
+  /// Reads the audio device module's microphone mute mode (iOS/macOS).
+  /// Returns null when the native side cannot provide it.
+  @internal
+  static Future<String?> getMicrophoneMuteMode() async {
+    try {
+      return await channel.invokeMethod<String>('getMicrophoneMuteMode', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('getMicrophoneMuteMode did throw $error');
+      return null;
+    }
+  }
+
   @internal
   static Future<bool> startVisualizer(
     String trackId, {
