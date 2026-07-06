@@ -205,9 +205,9 @@ Certificate pinning is not supported on Flutter web because browsers do not expo
 
 On native platforms, validation runs during TLS connection setup after the peer certificate is available and before the SDK writes HTTP or WSS request bytes. If validation fails, request headers and bodies are not sent.
 
-Rules are selected by host. Exact hosts like `project.livekit.cloud`, single-label wildcards like `*.livekit.cloud`, and `*` are supported. `*.livekit.cloud` matches `project.livekit.cloud`, but not `a.b.livekit.cloud`. Rules with empty `hosts` apply to every SDK-owned TLS connection.
+Rules are selected by host. Exact hosts like `project.livekit.cloud`, single-label wildcards like `*.livekit.cloud`, multi-label wildcards like `**.livekit.cloud`, and `*` are supported. `*.livekit.cloud` matches `project.livekit.cloud`, but not `a.b.livekit.cloud`. `**.livekit.cloud` matches both. Rules with empty `hosts` apply to every SDK-owned TLS connection.
 
-Hosts that match no rule are connected with platform trust only, and the SDK logs a warning. Keep in mind the SDK also connects to hosts you did not write yourself: LiveKit Cloud region failover uses server-provided regional hostnames, which may carry more labels than your project URL. Verify your host patterns cover those hosts, or use a rule with empty `hosts` to pin every SDK-owned connection.
+Hosts that match no rule are connected with platform trust only, and the SDK logs a warning. Keep in mind the SDK also connects to hosts you did not write yourself: LiveKit Cloud region failover uses server-provided regional hostnames like `project.region.production.livekit.cloud`, which carry more labels than your project URL. Use `**.livekit.cloud` so pinning also covers those hosts, and make sure the pin set includes the keys the regional endpoints serve.
 
 All rules that match the connection host are applied. Within one check type, any configured value may match. Across check types, each configured type must pass. For example, two matching SPKI rules are treated as one accepted pin set, while SPKI pins plus exact leaf certificates require both the SPKI check and the exact leaf certificate check to pass.
 
@@ -221,7 +221,7 @@ final roomOptions = RoomOptions(
     certificatePinning: CertificatePinningOptions(
       rules: [
         CertificatePinningRule(
-          hosts: ['*.livekit.cloud'],
+          hosts: ['**.livekit.cloud'],
           primaryPins: ['sha256/current-public-key-pin'],
           backupPins: [
             'sha256/next-public-key-pin-1',
@@ -287,7 +287,7 @@ final roomOptions = RoomOptions(
     certificatePinning: CertificatePinningOptions(
       rules: [
         CertificatePinningRule(
-          hosts: ['*.livekit.cloud'],
+          hosts: ['**.livekit.cloud'],
           trustedCertificates: [certificate],
         ),
       ],
