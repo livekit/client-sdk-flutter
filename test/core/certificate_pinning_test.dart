@@ -56,10 +56,12 @@ void main() {
       roomOptions: roomOptions,
     );
 
-    expect(
-        connector.uri,
-        Uri.parse(
-            'ws://www.example.com/rtc?auto_subscribe=1&adaptive_stream=0&protocol=16&sdk=flutter&version=${LiveKitClient.version}&network=wifi&os=test'));
+    // avoid exact URI equality so unrelated query parameters added to
+    // Utils.buildUri do not break this test
+    expect(connector.uri?.scheme, 'ws');
+    expect(connector.uri?.host, 'www.example.com');
+    expect(connector.uri?.path, '/rtc');
+    expect(connector.uri?.queryParameters, containsPair('sdk', 'flutter'));
     expect(connector.headers, {'Authorization': 'Bearer $token'});
     expect(connector.networkOptions, same(roomOptions.networkOptions));
   });
