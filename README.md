@@ -296,6 +296,8 @@ final roomOptions = RoomOptions(
 );
 ```
 
+When a pinning rule matches a host, the SDK owns TLS setup for that connection and `HttpOverrides.global` or `HttpClient.badCertificateCallback` are not consulted. An app that relies on a bad certificate callback to accept a self-signed server certificate will see a `HandshakeException` once pinning is enabled for that host. Use `trustedCertificates` to trust the self-signed or private CA certificate instead.
+
 ### Screen sharing
 
 Screen sharing is supported across all platforms. You can enable it with:
