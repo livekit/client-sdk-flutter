@@ -199,7 +199,9 @@ await room.localParticipant.setMicrophoneEnabled(true);
 
 ### Certificate pinning
 
-Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to Flutter web, WebRTC media, TURN, or application-owned token endpoints.
+Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to WebRTC media, TURN, or application-owned token endpoints.
+
+Certificate pinning is not supported on Flutter web because browsers do not expose certificate material to application code. Configuring it on web is treated as a misconfiguration and fails fast: `Room.connect` throws `UnsupportedError` instead of silently connecting without pinning. Only enable `certificatePinning` on web builds if you want that behavior, otherwise leave it unset when targeting web.
 
 On native platforms, validation runs during TLS connection setup after the peer certificate is available and before the SDK writes HTTP or WSS request bytes. If validation fails, request headers and bodies are not sent.
 

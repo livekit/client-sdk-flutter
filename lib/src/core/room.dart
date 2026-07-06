@@ -235,7 +235,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         await sdkHttpHead(Uri.parse(toHttpUrl(url)), networkOptions: roomOptions.networkOptions);
       }
     } catch (e) {
-      logger.warning('could not prepare connection');
+      logger.warning('could not prepare connection: $e');
     }
   }
 
@@ -247,6 +247,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     FastConnectOptions? fastConnectOptions,
   }) async {
     var roomOptions = this.roomOptions;
+    if (lkPlatformIs(PlatformType.web) && (roomOptions.networkOptions.certificatePinning?.isEnabled ?? false)) {
+      throw UnsupportedError('Certificate pinning is not supported on Flutter web, '
+          'remove certificatePinning from NetworkOptions when targeting web');
+    }
     connectOptions ??= ConnectOptions();
     _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
     // ignore: deprecated_member_use_from_same_package
