@@ -1106,12 +1106,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
+        // clean up before emitting, room's EngineDisconnectedEvent handler
+        // drops the event while fullReconnectOnNext is still true and
+        // cleanUp() is what resets it
+        await cleanUp();
         events.emit(EngineDisconnectedEvent(
           reason: e is CertificatePinningException
               ? DisconnectReason.signalingConnectionFailure
               : DisconnectReason.disconnected,
         ));
-        await cleanUp();
       }
     } finally {
       _attemptingReconnect = false;
@@ -1365,9 +1368,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await handleReconnect(ClientDisconnectReason.signal,
             reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED);
       } else if (event.reason == DisconnectReason.signalingConnectionFailure) {
-        events.emit(EngineDisconnectedEvent(
-          reason: event.reason,
-        ));
+        // while reconnecting, attemptReconnect owns disconnect handling and
+        // emits EngineDisconnectedEvent itself, relaying here as well would
+        // race it with a duplicate event. _attemptingReconnect covers the
+        // window where cleanUp() has already reset _isReconnecting but
+        // attemptReconnect has not finished its error handling yet
+        if (!_isReconnecting && !_attemptingReconnect) {
+          events.emit(EngineDisconnectedEvent(
+            reason: event.reason,
+          ));
+        }
       }
     })
     ..on<SignalOfferEvent>((event) async {
