@@ -268,7 +268,7 @@ void main() {
     // anchors on a label boundary
     expect(
       () => validator.validate(
-        uri: Uri.parse('https://evil-livekit.cloud'),
+        uri: Uri.parse('https://other-livekit.cloud'),
         certificateDer: mismatchedCertificate,
       ),
       returnsNormally,
@@ -276,14 +276,14 @@ void main() {
     // does not match when the suffix is embedded in a longer domain
     expect(
       () => validator.validate(
-        uri: Uri.parse('https://livekit.cloud.evil.com'),
+        uri: Uri.parse('https://livekit.cloud.example.com'),
         certificateDer: mismatchedCertificate,
       ),
       returnsNormally,
     );
     expect(
       () => validator.validate(
-        uri: Uri.parse('https://project.livekit.cloud.evil.com'),
+        uri: Uri.parse('https://project.livekit.cloud.example.com'),
         certificateDer: mismatchedCertificate,
       ),
       returnsNormally,
