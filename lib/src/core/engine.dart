@@ -1096,7 +1096,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fullReconnectOnNext = true;
       }
 
-      if (e is UnexpectedConnectionState) {
+      if (e is UnexpectedConnectionState || e is CertificatePinningException) {
+        // certificate pinning failures are deterministic, retrying would only
+        // repeat TLS handshakes against an untrusted endpoint
         recoverable = false;
       }
 
@@ -1105,7 +1107,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       } else {
         logger.fine('attemptReconnect: disconnecting...');
         events.emit(EngineDisconnectedEvent(
-          reason: DisconnectReason.disconnected,
+          reason: e is CertificatePinningException
+              ? DisconnectReason.signalingConnectionFailure
+              : DisconnectReason.disconnected,
         ));
         await cleanUp();
       }
