@@ -132,6 +132,13 @@ class CertificatePinningRule {
   /// like `*.livekit.cloud`, or leave this empty to apply the rule to all
   /// SDK-owned TLS connections. `*.livekit.cloud` matches
   /// `project.livekit.cloud`, but not `a.b.livekit.cloud`.
+  ///
+  /// Hosts that match no rule are connected with platform trust only and a
+  /// warning is logged. Keep in mind the SDK also connects to hosts you did
+  /// not write yourself: LiveKit Cloud region failover uses server-provided
+  /// regional hostnames, which may carry more labels than your project URL.
+  /// Verify your patterns cover those hosts, or use an empty [hosts] list to
+  /// pin every SDK-owned connection.
   final List<String> hosts;
 
   /// Primary SHA-256 SPKI pins, formatted as `sha256/<base64>`.

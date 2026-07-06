@@ -17,6 +17,7 @@ import 'dart:io' as io;
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart' as http_io;
 
+import '../../logger.dart';
 import '../../options.dart';
 import '../certificate_pinning.dart';
 
@@ -96,7 +97,12 @@ class _CertificatePinningConnectionFactory {
     if (!_isTlsScheme(url.scheme)) {
       return const [];
     }
-    return _validator.rulesForHost(url.host).where((rule) => rule.isEnabled).toList(growable: false);
+    final rules = _validator.rulesForHost(url.host).where((rule) => rule.isEnabled).toList(growable: false);
+    if (rules.isEmpty) {
+      logger.warning('Certificate pinning is enabled but no rule matches host ${url.host}, '
+          'this connection uses platform trust only');
+    }
+    return rules;
   }
 
   io.SecurityContext? _securityContextFor(List<CertificatePinningRule> rules) {
