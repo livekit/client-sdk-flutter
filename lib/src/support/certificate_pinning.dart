@@ -181,6 +181,12 @@ bool _hostMatches(String host, String pattern) {
   if (normalizedPattern == '*') {
     return true;
   }
+  if (normalizedPattern.startsWith('**.')) {
+    final suffix = normalizedPattern.substring(3);
+    // anchor on a label boundary so **.livekit.cloud does not match
+    // evil-livekit.cloud or livekit.cloud itself
+    return host != suffix && host.endsWith('.$suffix');
+  }
   if (normalizedPattern.startsWith('*.')) {
     final suffix = normalizedPattern.substring(2);
     if (host == suffix || !host.endsWith('.$suffix')) {

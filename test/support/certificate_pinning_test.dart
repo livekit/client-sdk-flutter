@@ -221,6 +221,59 @@ void main() {
       returnsNormally,
     );
   });
+
+  test('multi-label wildcard hosts match any depth', () {
+    final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
+    final mismatchedCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
+    final validator = CertificatePinValidator(CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: const ['**.livekit.cloud'],
+          primaryPins: [certificateSpkiSha256Pin(certificate)],
+        ),
+      ],
+    ));
+
+    // matches one label deep
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.livekit.cloud'),
+        certificateDer: certificate,
+      ),
+      returnsNormally,
+    );
+    // matches regional hosts with multiple labels
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.otokyo1a.production.livekit.cloud'),
+        certificateDer: certificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.otokyo1a.production.livekit.cloud'),
+        certificateDer: mismatchedCertificate,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+    // does not match the bare suffix
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://livekit.cloud'),
+        certificateDer: mismatchedCertificate,
+      ),
+      returnsNormally,
+    );
+    // anchors on a label boundary
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://evil-livekit.cloud'),
+        certificateDer: mismatchedCertificate,
+      ),
+      returnsNormally,
+    );
+  });
 }
 
 List<int> _certificate(List<int> subjectPublicKeyInfo) {
