@@ -142,12 +142,18 @@ class CertificatePinningRule {
   final List<String> hosts;
 
   /// Primary SHA-256 SPKI pins, formatted as `sha256/<base64>`.
+  ///
+  /// Pins are matched against the leaf certificate's SubjectPublicKeyInfo
+  /// only. Dart does not expose the rest of the chain, so pinning an
+  /// intermediate or root CA key never matches and fails every connection.
   final List<String> primaryPins;
 
   /// Backup SHA-256 SPKI pins, formatted as `sha256/<base64>`.
   ///
   /// Backup pins are accepted the same way as primary pins and are intended
-  /// for certificate rotation.
+  /// for certificate rotation. Like [primaryPins], they are matched against
+  /// the leaf certificate only, so a backup pin must be the key of a future
+  /// leaf certificate you control, not an intermediate CA.
   final List<String> backupPins;
 
   /// PEM or DER encoded leaf certificates that may exactly match the peer leaf

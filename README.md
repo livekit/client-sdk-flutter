@@ -213,6 +213,8 @@ All rules that match the connection host are applied. Within one check type, any
 
 Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted. Backup pins are useful for certificate rotation because the SDK accepts either set.
 
+SPKI pins are matched against the leaf certificate's public key only. Unlike OkHttp or HPKP, the rest of the chain is not checked because Dart does not expose it, so pinning an intermediate or root CA key never matches and fails every connection. Pin leaf keys, and use backup pins for the future leaf keys you plan to rotate to.
+
 ```dart
 final roomOptions = RoomOptions(
   networkOptions: NetworkOptions(
