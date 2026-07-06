@@ -1220,6 +1220,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _regionUrlProvider?.resetAttempts();
       events.emit(const EngineRestartedEvent());
     } catch (error) {
+      // Certificate pinning failures skip region failover. The pin set is
+      // client-wide config, so every region would be validated against the
+      // same pins and each attempt is another TLS handshake with an endpoint
+      // that already failed validation. Initial connect behaves the same way,
+      // room.connect only fails over on WebSocketException/ConnectException.
+      if (error is CertificatePinningException) {
+        _regionUrlProvider?.resetAttempts();
+        rethrow;
+      }
       final nextRegionUrl = await _regionUrlProvider?.getNextBestRegionUrl();
       if (nextRegionUrl != null) {
         await restartConnection(regionUrl: nextRegionUrl);
