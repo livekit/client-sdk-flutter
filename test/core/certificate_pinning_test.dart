@@ -86,4 +86,25 @@ void main() {
     );
     expect(client.connectionState, ConnectionState.disconnected);
   });
+
+  test('does not emit disconnected event on certificate pinning failures while reconnecting', () async {
+    connector.connectError = CertificatePinningException('Certificate pin mismatch', host: 'www.example.com');
+
+    final emitted = <SignalEvent>[];
+    client.events.streamCtrl.stream.listen(emitted.add);
+
+    await expectLater(
+      client.connect(
+        exampleUri,
+        token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: true,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+    expect(emitted.whereType<SignalDisconnectedEvent>(), isEmpty);
+  });
 }
