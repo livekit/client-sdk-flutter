@@ -273,6 +273,29 @@ void main() {
       ),
       returnsNormally,
     );
+    // does not match when the suffix is embedded in a longer domain
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://livekit.cloud.evil.com'),
+        certificateDer: mismatchedCertificate,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://project.livekit.cloud.evil.com'),
+        certificateDer: mismatchedCertificate,
+      ),
+      returnsNormally,
+    );
+    // matches case-insensitively
+    expect(
+      () => validator.validate(
+        uri: Uri.parse('https://PROJECT.OTOKYO1A.Production.LiveKit.Cloud'),
+        certificateDer: mismatchedCertificate,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
   });
 }
 
