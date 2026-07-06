@@ -18,7 +18,9 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/support/websocket.dart';
+import 'package:livekit_client/src/types/internal.dart';
 import '../mock/e2e_container.dart';
 
 const exampleUri = 'ws://www.example.com';
@@ -79,5 +81,34 @@ void main() {
 
     expect(disconnectedEvents, hasLength(1));
     expect(disconnectedEvents.single.reason, DisconnectReason.joinFailure);
+  });
+
+  test('emits exactly one disconnected event when pinning fails during a full reconnect', () async {
+    await container.connectRoom();
+
+    final engineDisconnectedEvents = <EngineDisconnectedEvent>[];
+    container.engine.events.listen((event) {
+      if (event is EngineDisconnectedEvent) {
+        engineDisconnectedEvents.add(event);
+      }
+    });
+    final roomDisconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.listen((event) {
+      if (event is RoomDisconnectedEvent) {
+        roomDisconnectedEvents.add(event);
+      }
+    });
+
+    container.wsConnector.connectError =
+        CertificatePinningException('Certificate pin mismatch', host: 'www.example.com');
+    container.engine.fullReconnectOnNext = true;
+    await container.engine.attemptReconnect(ClientDisconnectReason.reconnectRetry);
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(engineDisconnectedEvents, hasLength(1));
+    expect(engineDisconnectedEvents.single.reason, DisconnectReason.signalingConnectionFailure);
+    expect(roomDisconnectedEvents, hasLength(1));
+    expect(roomDisconnectedEvents.single.reason, DisconnectReason.signalingConnectionFailure);
   });
 }

@@ -268,11 +268,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
 
-      events.emit(EngineDisconnectedEvent(
-        reason: error is CertificatePinningException
-            ? DisconnectReason.signalingConnectionFailure
-            : DisconnectReason.joinFailure,
-      ));
+      // during a reconnect this connect() runs inside restartConnection and
+      // attemptReconnect owns disconnect emission, emitting here as well
+      // would produce two events for one failure
+      if (!_isReconnecting && !_attemptingReconnect) {
+        events.emit(EngineDisconnectedEvent(
+          reason: error is CertificatePinningException
+              ? DisconnectReason.signalingConnectionFailure
+              : DisconnectReason.joinFailure,
+        ));
+      }
       rethrow;
     }
   }
