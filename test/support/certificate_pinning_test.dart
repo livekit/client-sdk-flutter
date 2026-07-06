@@ -67,21 +67,21 @@ void main() {
     ));
 
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: certificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: backupCertificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: secondBackupCertificate,
       ),
@@ -107,14 +107,14 @@ void main() {
     ));
 
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.example.com'),
         certificateDer: backupCertificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.example.com'),
         certificateDer: otherCertificate,
       ),
@@ -138,19 +138,45 @@ void main() {
       ],
     ));
 
+    // passes the exact leaf check but fails the SPKI check
     expect(
-      () => validator.validatePinnedLeafCertificate(
-        uri: Uri.parse('https://livekit.example.com'),
-        certificateDer: certificate,
-      ),
-      returnsNormally,
-    );
-    expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.example.com'),
         certificateDer: certificate,
       ),
       throwsA(isA<CertificatePinningException>()),
+    );
+    // passes the SPKI check but fails the exact leaf check
+    expect(
+      () => validator.validatePeerCertificate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: otherCertificate,
+      ),
+      throwsA(isA<CertificatePinningException>()),
+    );
+  });
+
+  test('accepts certificates that satisfy every configured check type', () {
+    final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
+    final validator = CertificatePinValidator(CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: const ['livekit.example.com'],
+          pinnedLeafCertificates: [CertificateBytes.der(certificate)],
+        ),
+        CertificatePinningRule(
+          hosts: const ['*.example.com'],
+          primaryPins: [certificateSpkiSha256Pin(certificate)],
+        ),
+      ],
+    ));
+
+    expect(
+      () => validator.validatePeerCertificate(
+        uri: Uri.parse('https://livekit.example.com'),
+        certificateDer: certificate,
+      ),
+      returnsNormally,
     );
   });
 
@@ -167,7 +193,7 @@ void main() {
     ));
 
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.example.com'),
         certificateDer: otherCertificate,
       ),
@@ -187,7 +213,7 @@ void main() {
     ));
 
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://other.example.com'),
         certificateDer: certificate,
       ),
@@ -207,14 +233,14 @@ void main() {
     ));
 
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: certificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://a.b.livekit.cloud'),
         certificateDer: _certificate(_subjectPublicKeyInfo([5, 6, 7, 8])),
       ),
@@ -236,7 +262,7 @@ void main() {
 
     // matches one label deep
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud'),
         certificateDer: certificate,
       ),
@@ -244,14 +270,14 @@ void main() {
     );
     // matches regional hosts with multiple labels
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.otokyo1a.production.livekit.cloud'),
         certificateDer: certificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.otokyo1a.production.livekit.cloud'),
         certificateDer: mismatchedCertificate,
       ),
@@ -259,7 +285,7 @@ void main() {
     );
     // does not match the bare suffix
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.cloud'),
         certificateDer: mismatchedCertificate,
       ),
@@ -267,7 +293,7 @@ void main() {
     );
     // anchors on a label boundary
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://other-livekit.cloud'),
         certificateDer: mismatchedCertificate,
       ),
@@ -275,14 +301,14 @@ void main() {
     );
     // does not match when the suffix is embedded in a longer domain
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://livekit.cloud.example.com'),
         certificateDer: mismatchedCertificate,
       ),
       returnsNormally,
     );
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://project.livekit.cloud.example.com'),
         certificateDer: mismatchedCertificate,
       ),
@@ -290,7 +316,7 @@ void main() {
     );
     // matches case-insensitively
     expect(
-      () => validator.validate(
+      () => validator.validatePeerCertificate(
         uri: Uri.parse('https://PROJECT.OTOKYO1A.Production.LiveKit.Cloud'),
         certificateDer: mismatchedCertificate,
       ),

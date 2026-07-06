@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 
 import '../exceptions.dart';
@@ -28,7 +29,9 @@ class CertificatePinValidator {
 
   bool get isEnabled => _options?.isEnabled ?? false;
 
-  void validate({
+  /// Runs every check type configured for the connection host. Check types
+  /// are combined, each configured type must pass.
+  void validatePeerCertificate({
     required Uri uri,
     required List<int>? certificateDer,
   }) {
@@ -37,7 +40,13 @@ class CertificatePinValidator {
     }
 
     final host = uri.host.toLowerCase();
-    final acceptedPins = rulesForHost(host)
+    final rules = rulesForHost(host);
+    _validatePinnedLeafCertificates(host, rules, certificateDer);
+    _validateSpkiPins(host, rules, certificateDer);
+  }
+
+  void _validateSpkiPins(String host, List<CertificatePinningRule> rules, List<int>? certificateDer) {
+    final acceptedPins = rules
         .where((rule) => rule.hasSpkiPins)
         .expand((rule) => rule.allPins)
         .map(_normalizeSha256Pin)
@@ -73,16 +82,8 @@ class CertificatePinValidator {
     }
   }
 
-  void validatePinnedLeafCertificate({
-    required Uri uri,
-    required List<int>? certificateDer,
-  }) {
-    if (!isEnabled || (!uri.isScheme('https') && !uri.isScheme('wss'))) {
-      return;
-    }
-
-    final host = uri.host.toLowerCase();
-    final pinnedCertificates = rulesForHost(host)
+  void _validatePinnedLeafCertificates(String host, List<CertificatePinningRule> rules, List<int>? certificateDer) {
+    final pinnedCertificates = rules
         .where((rule) => rule.hasPinnedLeafCertificates)
         .expand((rule) => rule.pinnedLeafCertificates)
         .expand(certificateDerCertificates)
@@ -98,7 +99,8 @@ class CertificatePinValidator {
       );
     }
 
-    if (!pinnedCertificates.any((pinnedCertificate) => _bytesEqual(pinnedCertificate, certificateDer))) {
+    const bytesEquality = ListEquality<int>();
+    if (!pinnedCertificates.any((pinnedCertificate) => bytesEquality.equals(pinnedCertificate, certificateDer))) {
       throw CertificatePinningException(
         'Certificate mismatch for $host',
         host: host,
@@ -106,10 +108,13 @@ class CertificatePinValidator {
     }
   }
 
-  List<CertificatePinningRule> rulesForHost(String host) => [
-        for (final rule in _options?.rules ?? const <CertificatePinningRule>[])
-          if (rule.hosts.isEmpty || rule.hosts.any((pattern) => _hostMatches(host.toLowerCase(), pattern))) rule,
-      ];
+  List<CertificatePinningRule> rulesForHost(String host) {
+    final lowerHost = host.toLowerCase();
+    return [
+      for (final rule in _options?.rules ?? const <CertificatePinningRule>[])
+        if (rule.hosts.isEmpty || rule.hosts.any((pattern) => _hostMatches(lowerHost, pattern))) rule,
+    ];
+  }
 }
 
 String certificateSpkiSha256Pin(List<int> certificateDer) {
@@ -196,18 +201,6 @@ bool _hostMatches(String host, String pattern) {
     return !prefix.contains('.');
   }
   return host == normalizedPattern;
-}
-
-bool _bytesEqual(List<int> a, List<int> b) {
-  if (a.length != b.length) {
-    return false;
-  }
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 Uint8List _extractSubjectPublicKeyInfo(Uint8List certificateDer) {

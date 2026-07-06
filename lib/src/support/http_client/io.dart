@@ -38,7 +38,11 @@ io.HttpClient createSdkIoHttpClient(NetworkOptions networkOptions) {
 class _CertificatePinningConnectionFactory {
   final CertificatePinValidator _validator;
 
-  const _CertificatePinningConnectionFactory(this._validator);
+  // rules and certificate bytes are immutable for the client's lifetime, so
+  // the trust store for a host only needs to be built once
+  final Map<String, io.SecurityContext?> _securityContexts = {};
+
+  _CertificatePinningConnectionFactory(this._validator);
 
   Future<io.ConnectionTask<io.Socket>> connect(
     Uri url,
@@ -61,8 +65,7 @@ class _CertificatePinningConnectionFactory {
       return io.Socket.startConnect(url.host, _portFor(url));
     }
 
-    final validatePinnedLeafCertificate = rules.any((rule) => rule.hasPinnedLeafCertificates);
-    final context = _securityContextFor(rules);
+    final context = _securityContexts.putIfAbsent(url.host.toLowerCase(), () => _securityContextFor(rules));
     final task = await io.SecureSocket.startConnect(
       url.host,
       _portFor(url),
@@ -71,13 +74,7 @@ class _CertificatePinningConnectionFactory {
 
     final socket = task.socket.then<io.Socket>((socket) {
       try {
-        if (validatePinnedLeafCertificate) {
-          _validator.validatePinnedLeafCertificate(
-            uri: url,
-            certificateDer: socket.peerCertificate?.der,
-          );
-        }
-        _validator.validate(
+        _validator.validatePeerCertificate(
           uri: url,
           certificateDer: socket.peerCertificate?.der,
         );
