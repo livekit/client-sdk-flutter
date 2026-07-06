@@ -69,16 +69,23 @@ class _CertificatePinningConnectionFactory {
     );
 
     final socket = task.socket.then<io.Socket>((socket) {
-      if (validatePinnedLeafCertificate) {
-        _validator.validatePinnedLeafCertificate(
+      try {
+        if (validatePinnedLeafCertificate) {
+          _validator.validatePinnedLeafCertificate(
+            uri: url,
+            certificateDer: socket.peerCertificate?.der,
+          );
+        }
+        _validator.validate(
           uri: url,
           certificateDer: socket.peerCertificate?.der,
         );
+      } catch (_) {
+        // HttpClient never takes ownership of a socket whose future fails,
+        // close it here or the TLS connection leaks
+        socket.destroy();
+        rethrow;
       }
-      _validator.validate(
-        uri: url,
-        certificateDer: socket.peerCertificate?.der,
-      );
       return socket;
     });
 
