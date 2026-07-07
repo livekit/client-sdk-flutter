@@ -199,9 +199,8 @@ class AudioManager {
   /// iOS/macOS only. A no-op elsewhere, so it is always safe to call from
   /// cross-platform code.
   ///
-  /// Throws if the native side rejects the change (mirrors the Swift SDK's
-  /// throwing API), so callers never assume the engine is gated when it is
-  /// not.
+  /// Throws if the native side rejects the change, so callers never assume
+  /// the engine is gated when it is not.
   Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
     if (!lkPlatformIsApple()) return;
     await Native.setEngineAvailability(
