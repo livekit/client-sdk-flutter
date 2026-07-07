@@ -505,11 +505,20 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return
         }
 
+        let availability = RTCAudioEngineAvailability(isInputAvailable: ObjCBool(isInputAvailable),
+                                                      isOutputAvailable: ObjCBool(isOutputAvailable))
+
+        // Keep the pending value in sync so both the native static and this
+        // channel path record the latest intent. A later plugin registration
+        // (e.g. a second Flutter engine in the same process) re-applies the
+        // pending value, so it must never lag behind a Dart-side update.
+        LiveKitPlugin.engineAvailabilityLock.lock()
+        LiveKitPlugin.pendingEngineAvailability = availability
+        LiveKitPlugin.engineAvailabilityLock.unlock()
+
         // Availability changes can stop/start the engine, so keep that work
         // off the platform thread.
         DispatchQueue.global(qos: .userInitiated).async {
-            let availability = RTCAudioEngineAvailability(isInputAvailable: ObjCBool(isInputAvailable),
-                                                          isOutputAvailable: ObjCBool(isOutputAvailable))
             let admResult = adm.setEngineAvailability(availability)
             DispatchQueue.main.async {
                 if admResult == 0 {

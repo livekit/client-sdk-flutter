@@ -37,12 +37,17 @@ enum AudioSessionManagementMode {
   /// with `AudioManager.setEngineAvailability` so the engine only runs inside
   /// CallKit's `didActivate`/`didDeactivate` window.
   ///
-  /// On Android this currently behaves like [automatic], so a cross-platform
-  /// app can set this mode once at startup: iOS gets the CallKit contract and
-  /// Android keeps LiveKit's normal session management. When Telecom
-  /// (`androidx.core.telecom`) integration lands, this mode will stand down
-  /// LiveKit's audio-focus and routing management, which the Telecom
-  /// framework owns for registered calls.
+  /// On Android this currently behaves like [automatic] for session
+  /// configuration, so a cross-platform app can set this mode once at
+  /// startup: iOS gets the CallKit contract and Android keeps LiveKit's
+  /// normal session management. When Telecom (`androidx.core.telecom`)
+  /// integration lands, this mode will stand down LiveKit's audio-focus and
+  /// routing management, which the Telecom framework owns for registered
+  /// calls.
+  ///
+  /// `AudioManager.deactivateAudioSession` is disabled in this mode on all
+  /// platforms, since releasing platform audio belongs to the external call
+  /// system.
   externalCallSystem,
 }
 
