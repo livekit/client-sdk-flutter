@@ -332,14 +332,18 @@ class AudioManager {
   /// (e.g. `LocalParticipant.setMicrophoneEnabled(false)`) disables the
   /// track, and WebRTC mutes the engine input using this mode. With the
   /// default `AudioCaptureOptions.stopAudioCaptureOnMute` (true) the capture
-  /// is additionally stopped after muting; for the fastest silent mute
+  /// is additionally stopped after muting. For the fastest silent mute
   /// toggling combine [MicrophoneMuteMode.inputMixer] with
   /// `stopAudioCaptureOnMute: false`. Note that [MicrophoneMuteMode.restart]
   /// restarts the audio engine on every mute toggle, which also
   /// reconfigures the audio session (audible route changes on e.g.
   /// Bluetooth headsets).
   ///
-  /// This is engine-wide state; prefer setting it once before connecting.
+  /// Throws if the native side rejects the change (mirrors the Swift SDK's
+  /// throwing API), so callers never assume a muting behavior that is not
+  /// actually in effect.
+  ///
+  /// This is engine-wide state. Prefer setting it once before connecting.
   Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
     if (mode == MicrophoneMuteMode.unknown) return;
     if (!lkPlatformIsApple()) return;
