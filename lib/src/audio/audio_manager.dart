@@ -339,9 +339,8 @@ class AudioManager {
   /// reconfigures the audio session (audible route changes on e.g.
   /// Bluetooth headsets).
   ///
-  /// Throws if the native side rejects the change (mirrors the Swift SDK's
-  /// throwing API), so callers never assume a muting behavior that is not
-  /// actually in effect.
+  /// Throws if the native side rejects the change, so callers never assume
+  /// a muting behavior that is not actually in effect.
   ///
   /// This is engine-wide state. Prefer setting it once before connecting.
   Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
