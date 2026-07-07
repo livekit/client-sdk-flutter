@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/services.dart' show AssetBundle, rootBundle;
+
 import 'constants.dart';
 import 'e2ee/options.dart';
 import 'track/local/audio.dart';
@@ -44,6 +46,157 @@ class FastConnectOptions {
   final TrackOption<bool, LocalAudioTrack> microphone;
   final TrackOption<bool, LocalVideoTrack> camera;
   final TrackOption<bool, LocalVideoTrack> screen;
+}
+
+/// Options for SDK-owned network requests.
+///
+/// These options apply to LiveKit signaling and internal HTTPS requests made
+/// by the SDK. They do not apply to WebRTC media, TURN, or user-provided token
+/// endpoints.
+class NetworkOptions {
+  /// Certificate pinning options for native platforms.
+  ///
+  /// Certificate pinning is not supported on Flutter web because browsers do
+  /// not expose certificate material to application code.
+  final CertificatePinningOptions? certificatePinning;
+
+  const NetworkOptions({
+    this.certificatePinning,
+  });
+}
+
+/// Certificate pinning configuration for SDK-owned native TLS connections.
+///
+/// Validation runs during TLS connection setup after the peer certificate is
+/// available and before the SDK writes HTTP or WSS request bytes.
+class CertificatePinningOptions {
+  /// Pinning rules selected by connection host.
+  ///
+  /// Every rule whose [CertificatePinningRule.hosts] match the connection host
+  /// is applied. Within a check type, any matching value is accepted. This
+  /// means SPKI pins are matched as one set and exact leaf certificates are
+  /// matched as one set. Different check types are combined, so when a host has
+  /// SPKI pins and exact leaf certificates configured, both checks must pass.
+  final List<CertificatePinningRule> rules;
+
+  const CertificatePinningOptions({
+    this.rules = const [],
+  });
+
+  bool get isEnabled => rules.any((rule) => rule.isEnabled);
+}
+
+/// Encoding for certificate bytes used by certificate pinning rules.
+enum CertificateBytesEncoding {
+  pem,
+  der,
+}
+
+/// Certificate bytes with an explicit PEM or DER encoding.
+class CertificateBytes {
+  final List<int> bytes;
+
+  final CertificateBytesEncoding encoding;
+
+  const CertificateBytes.pem(this.bytes) : encoding = CertificateBytesEncoding.pem;
+
+  const CertificateBytes.der(this.bytes) : encoding = CertificateBytesEncoding.der;
+
+  /// Loads certificate bytes from a Flutter asset bundle.
+  ///
+  /// PEM is the default because certificate assets are commonly stored as
+  /// `.pem` files. Pass [CertificateBytesEncoding.der] for DER encoded assets.
+  static Future<CertificateBytes> fromAsset(
+    String key, {
+    AssetBundle? bundle,
+    CertificateBytesEncoding encoding = CertificateBytesEncoding.pem,
+  }) async {
+    final data = await (bundle ?? rootBundle).load(key);
+    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    return switch (encoding) {
+      CertificateBytesEncoding.pem => CertificateBytes.pem(bytes),
+      CertificateBytesEncoding.der => CertificateBytes.der(bytes),
+    };
+  }
+}
+
+/// A set of accepted certificate checks for one or more host patterns.
+///
+/// Empty [hosts] applies the rule to every SDK-owned TLS connection. Multiple
+/// rules may match the same host. Matching rules are merged by check type, so
+/// rules are additive instead of first-match-wins.
+class CertificatePinningRule {
+  /// Host patterns this rule applies to.
+  ///
+  /// Use exact hosts like `example.livekit.cloud`, single-label wildcard hosts
+  /// like `*.livekit.cloud`, multi-label wildcard hosts like
+  /// `**.livekit.cloud`, or leave this empty to apply the rule to all
+  /// SDK-owned TLS connections. `*.livekit.cloud` matches
+  /// `project.livekit.cloud`, but not `a.b.livekit.cloud`.
+  /// `**.livekit.cloud` matches both.
+  ///
+  /// Hosts that match no rule are connected with platform trust only and a
+  /// warning is logged. Keep in mind the SDK also connects to hosts you did
+  /// not write yourself: LiveKit Cloud region failover uses server-provided
+  /// regional hostnames like `project.region.production.livekit.cloud`,
+  /// which carry more labels than your project URL. Use a multi-label
+  /// wildcard like `**.livekit.cloud` so pinning also covers those hosts.
+  final List<String> hosts;
+
+  /// Primary SHA-256 SPKI pins, formatted as `sha256/<base64>`.
+  ///
+  /// Pins are matched against the leaf certificate's SubjectPublicKeyInfo
+  /// only. Dart does not expose the rest of the chain, so pinning an
+  /// intermediate or root CA key never matches and fails every connection.
+  final List<String> primaryPins;
+
+  /// Backup SHA-256 SPKI pins, formatted as `sha256/<base64>`.
+  ///
+  /// Backup pins are accepted the same way as primary pins and are intended
+  /// for certificate rotation. Like [primaryPins], they are matched against
+  /// the leaf certificate only, so a backup pin must be the key of a future
+  /// leaf certificate you control, not an intermediate CA.
+  final List<String> backupPins;
+
+  /// PEM or DER encoded leaf certificates that may exactly match the peer leaf
+  /// certificate for matching hosts.
+  ///
+  /// This is an additional identity check after TLS trust validation succeeds.
+  /// It does not trust private or self-signed certificates by itself. Configure
+  /// [trustedCertificates] as well when the connection should use a custom leaf,
+  /// intermediate, or root certificate trust store.
+  final List<CertificateBytes> pinnedLeafCertificates;
+
+  /// PEM or DER encoded certificates to use as the TLS trust store for
+  /// matching hosts.
+  ///
+  /// These are loaded into a per-connection SecurityContext without platform
+  /// trusted roots. This supports leaf, intermediate, or root certificate trust
+  /// in the same style as Dart's `SecurityContext.setTrustedCertificatesBytes`.
+  /// If this is configured with SPKI pins or exact leaf certificates, the custom
+  /// trust store and the other configured checks must all pass.
+  final List<CertificateBytes> trustedCertificates;
+
+  const CertificatePinningRule({
+    this.hosts = const [],
+    this.primaryPins = const [],
+    this.backupPins = const [],
+    this.pinnedLeafCertificates = const [],
+    this.trustedCertificates = const [],
+  });
+
+  List<String> get allPins => [
+        ...primaryPins,
+        ...backupPins,
+      ];
+
+  bool get hasSpkiPins => allPins.isNotEmpty;
+
+  bool get hasPinnedLeafCertificates => pinnedLeafCertificates.isNotEmpty;
+
+  bool get hasTrustedCertificates => trustedCertificates.isNotEmpty;
+
+  bool get isEnabled => hasSpkiPins || hasPinnedLeafCertificates || hasTrustedCertificates;
 }
 
 /// Options used when connecting to the server.
@@ -127,6 +280,9 @@ class RoomOptions {
   /// fast track publication
   final bool fastPublish;
 
+  /// Options for SDK-owned network requests.
+  final NetworkOptions networkOptions;
+
   /// deprecated, use [createVisualizer] instead
   /// please refer to example/lib/widgets/sound_waveform.dart
   @Deprecated('Use createVisualizer instead')
@@ -146,6 +302,7 @@ class RoomOptions {
     this.encryption,
     this.enableVisualizer = false,
     this.fastPublish = true,
+    this.networkOptions = const NetworkOptions(),
   });
 
   RoomOptions copyWith({
@@ -161,6 +318,7 @@ class RoomOptions {
     E2EEOptions? e2eeOptions,
     E2EEOptions? encryption,
     bool? fastPublish,
+    NetworkOptions? networkOptions,
   }) {
     return RoomOptions(
       defaultCameraCaptureOptions: defaultCameraCaptureOptions ?? this.defaultCameraCaptureOptions,
@@ -176,6 +334,7 @@ class RoomOptions {
       e2eeOptions: e2eeOptions ?? this.e2eeOptions,
       encryption: encryption ?? this.encryption,
       fastPublish: fastPublish ?? this.fastPublish,
+      networkOptions: networkOptions ?? this.networkOptions,
     );
   }
 }
