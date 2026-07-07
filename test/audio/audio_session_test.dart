@@ -605,6 +605,18 @@ void main() {
       expect(calls.single.arguments, {'isInputAvailable': false, 'isOutputAvailable': true});
     });
 
+    test('initial session options seed under an external call system', () async {
+      AudioManager.instance.resetForTest();
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
+
+      const options = AudioSessionOptions.mediaPlayback();
+      AudioManager.instance.setInitialAudioSessionOptions(options);
+
+      expect(AudioManager.instance.options, options);
+
+      AudioManager.instance.resetForTest();
+    });
+
     test('deactivateAudioSession is a no-op under an external call system', () async {
       AudioManager.instance.resetForTest();
       await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);

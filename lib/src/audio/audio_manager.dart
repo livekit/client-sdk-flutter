@@ -148,11 +148,16 @@ class AudioManager {
   /// `LiveKitClient.initialize(initialAudioSessionOptions: ...)` uses this so the
   /// WebRTC initialization-time Android audio attributes and LiveKit's automatic
   /// runtime session policy start from the same intent. Unlike
-  /// [setAudioSessionOptions], this keeps automatic management enabled and does
+  /// [setAudioSessionOptions], this keeps the current management mode and does
   /// not apply native session changes immediately.
+  ///
+  /// Applies under [AudioSessionManagementMode.automatic] and
+  /// [AudioSessionManagementMode.externalCallSystem], both of which drive
+  /// configuration from engine lifecycle. Skipped under
+  /// [AudioSessionManagementMode.manual], where the app owns the options.
   @internal
   void setInitialAudioSessionOptions(AudioSessionOptions options) {
-    if (_managementMode != AudioSessionManagementMode.automatic) {
+    if (!_isAutomaticConfigurationEnabled) {
       return;
     }
     _options = options;
@@ -193,6 +198,10 @@ class AudioManager {
   ///
   /// iOS/macOS only. A no-op elsewhere, so it is always safe to call from
   /// cross-platform code.
+  ///
+  /// Throws if the native side rejects the change (mirrors the Swift SDK's
+  /// throwing API), so callers never assume the engine is gated when it is
+  /// not.
   Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
     if (!lkPlatformIsApple()) return;
     await Native.setEngineAvailability(

@@ -242,6 +242,11 @@ class Native {
   }
 
   /// Sets whether the WebRTC audio engine is allowed to run (iOS/macOS).
+  ///
+  /// Unlike most methods in this class this deliberately does not swallow
+  /// platform errors: a failed availability change means the engine may run
+  /// outside the window the caller intended (e.g. CallKit's
+  /// didActivate/didDeactivate), so the error must reach the caller.
   @internal
   static Future<void> setEngineAvailability({
     required bool isInputAvailable,
