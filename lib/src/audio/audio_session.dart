@@ -27,6 +27,21 @@ enum AudioSessionManagementMode {
   /// The app must call AudioManager APIs when it wants to apply a session
   /// configuration.
   manual,
+
+  /// An external telephony system (iOS CallKit / Android Telecom) owns the
+  /// platform audio lifecycle.
+  ///
+  /// On iOS, LiveKit keeps configuring the session's category/mode/options
+  /// from the audio engine lifecycle like [automatic], but never activates or
+  /// deactivates the session, since CallKit owns activation timing. Combine
+  /// with `AudioManager.setEngineAvailability` so the engine only runs inside
+  /// CallKit's `didActivate`/`didDeactivate` window.
+  ///
+  /// On Android this currently behaves like [manual]. When Telecom
+  /// (`androidx.core.telecom`) integration lands, this mode will also stand
+  /// down LiveKit's audio-focus and routing management, which the Telecom
+  /// framework owns for registered calls.
+  externalCallSystem,
 }
 
 @immutable
