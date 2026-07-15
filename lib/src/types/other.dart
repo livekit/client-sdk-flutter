@@ -233,3 +233,50 @@ class ParticipantTrackPermission {
     this.allowedTrackSids,
   );
 }
+
+/// Controls how a video view's logical size is scaled to physical pixels when
+/// computing adaptive-stream dimensions. Mirrors the JS SDK's `pixelDensity`
+/// option (`number | 'screen'`).
+///
+/// Server layers are sized in physical pixels, so on high-density (retina)
+/// displays the logical view size under-represents the pixels needed. Set on a
+/// view via [VideoTrackRenderer]; the largest result is requested across all
+/// views attached to the track.
+class AdaptiveStreamPixelDensity {
+  /// Upper bound applied to the resolved density to keep bandwidth in check.
+  static const maxDensity = 3.0;
+
+  /// Fixed multiplier, or `null` to use the view's device pixel ratio ([auto]).
+  final double? value;
+
+  const AdaptiveStreamPixelDensity._(this.value);
+
+  /// Use the view's actual device pixel ratio, read via `MediaQuery`.
+  /// Equivalent to the JS SDK's `'screen'` setting. Capped at [maxDensity].
+  static const auto = AdaptiveStreamPixelDensity._(null);
+
+  /// A positive fixed pixel-density multiplier (fractional allowed, e.g. `1.5`,
+  /// `2.0`, `2.75`). The effective value is capped at [maxDensity] (3x) when
+  /// resolved.
+  const AdaptiveStreamPixelDensity.fixed(double density)
+      : assert(density > 0, 'density must be positive'),
+        value = density;
+
+  /// Resolves the effective multiplier, capped at [maxDensity]. For [auto],
+  /// falls back to the supplied [devicePixelRatio].
+  double resolve(double devicePixelRatio) {
+    final density = value ?? devicePixelRatio;
+    if (density.isNaN || density <= 0) return 1.0;
+    return density > maxDensity ? maxDensity : density;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is AdaptiveStreamPixelDensity && other.value == value);
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => value == null ? 'AdaptiveStreamPixelDensity.auto' : 'AdaptiveStreamPixelDensity.fixed($value)';
+}

@@ -1143,6 +1143,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     $core.String? stream,
     $0.BackupCodecPolicy? backupCodecPolicy,
     $core.Iterable<$0.AudioTrackFeature>? audioFeatures,
+    $core.Iterable<$0.PacketTrailerFeature>? packetTrailerFeatures,
   }) {
     final result = create();
     if (cid != null) result.cid = cid;
@@ -1162,6 +1163,7 @@ class AddTrackRequest extends $pb.GeneratedMessage {
     if (stream != null) result.stream = stream;
     if (backupCodecPolicy != null) result.backupCodecPolicy = backupCodecPolicy;
     if (audioFeatures != null) result.audioFeatures.addAll(audioFeatures);
+    if (packetTrailerFeatures != null) result.packetTrailerFeatures.addAll(packetTrailerFeatures);
     return result;
   }
 
@@ -1195,6 +1197,10 @@ class AddTrackRequest extends $pb.GeneratedMessage {
         valueOf: $0.AudioTrackFeature.valueOf,
         enumValues: $0.AudioTrackFeature.values,
         defaultEnumValue: $0.AudioTrackFeature.TF_STEREO)
+    ..pc<$0.PacketTrailerFeature>(18, _omitFieldNames ? '' : 'packetTrailerFeatures', $pb.PbFieldType.KE,
+        valueOf: $0.PacketTrailerFeature.valueOf,
+        enumValues: $0.PacketTrailerFeature.values,
+        defaultEnumValue: $0.PacketTrailerFeature.PTF_USER_TIMESTAMP)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1364,6 +1370,9 @@ class AddTrackRequest extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(17)
   $pb.PbList<$0.AudioTrackFeature> get audioFeatures => $_getList(16);
+
+  @$pb.TagNumber(18)
+  $pb.PbList<$0.PacketTrailerFeature> get packetTrailerFeatures => $_getList(17);
 }
 
 class PublishDataTrackRequest extends $pb.GeneratedMessage {

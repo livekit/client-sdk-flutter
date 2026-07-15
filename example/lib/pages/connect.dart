@@ -211,7 +211,7 @@ class _ConnectPageState extends State<ConnectPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 70),
+                    padding: const EdgeInsets.fromLTRB(64, 0, 64, 70),
                     child: SvgPicture.asset(
                       'images/logo-dark.svg',
                     ),
@@ -352,7 +352,7 @@ class _ConnectPageState extends State<ConnectPage> {
                               ),
                             ),
                           ),
-                        const Text('CONNECT'),
+                        const Text('Connect'),
                       ],
                     ),
                   ),

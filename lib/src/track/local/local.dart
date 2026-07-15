@@ -35,27 +35,32 @@ import '../processor_native.dart' if (dart.library.js_interop) '../processor_web
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
+import '../video_track_view_registration.dart';
 import 'audio.dart';
 import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
+  /// The views attached to this track. Set by [VideoTrackRenderer] and read by
+  /// the visibility observer to compute adaptive-stream dimensions.
   @internal
-  final List<GlobalKey> viewKeys = [];
+  final List<VideoTrackViewRegistration> viewRegistrations = [];
 
   @internal
-  Function(Key)? onVideoViewBuild;
+  VoidCallback? onVideoViewBuild;
 
   @internal
-  GlobalKey addViewKey() {
-    final key = GlobalKey();
-    viewKeys.add(key);
-    return key;
+  VideoTrackViewRegistration addViewRegistration({
+    AdaptiveStreamPixelDensity pixelDensity = AdaptiveStreamPixelDensity.auto,
+  }) {
+    final registration = VideoTrackViewRegistration(pixelDensity: pixelDensity);
+    viewRegistrations.add(registration);
+    return registration;
   }
 
   @internal
-  void removeViewKey(GlobalKey key) {
-    viewKeys.remove(key);
+  void removeViewRegistration(VideoTrackViewRegistration registration) {
+    viewRegistrations.remove(registration);
   }
 }
 
