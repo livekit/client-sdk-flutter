@@ -233,7 +233,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       // Only dispose texture renderers we created ourselves. Platform view
       // controllers belong to RTCVideoPlatFormView and a cachedRenderer
       // belongs to the caller, who may hand it back on a later switch.
-      final ownsRenderer = _renderer is rtc.RTCVideoRenderer && !identical(_renderer, widget.cachedRenderer);
+      final ownsRenderer = _renderer is rtc.RTCVideoRenderer && !identical(_renderer, oldWidget.cachedRenderer);
       unawaited(_listener?.dispose());
       _listener = null;
       _aspectRatio = null;
