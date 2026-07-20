@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/foundation.dart';
+
 import '../../options.dart';
 import '../../publication/local.dart';
 import '../../stats/stats.dart';
@@ -85,8 +87,12 @@ class ConnectionProtocolCheck extends Checker {
 
     final stats = _bestStats!;
     if (stats.count > 0) {
-      // computeBitrateForSenderStats reports kbps
-      appendMessage('upstream bitrate: ${(stats.bitrateTotal / stats.count / 1000).toStringAsFixed(2)} mbps');
+      // computeBitrateForSenderStats returns bits-per-second on native
+      // platforms and kilobits-per-second on web. Normalize the average to
+      // megabits-per-second before displaying.
+      final avgBitrate = stats.bitrateTotal / stats.count;
+      final avgMbps = kIsWeb ? avgBitrate / 1e3 : avgBitrate / 1e6;
+      appendMessage('upstream bitrate: ${avgMbps.toStringAsFixed(2)} mbps');
       appendMessage('RTT: ${(stats.rttTotal / stats.count * 1000).toStringAsFixed(2)} ms');
       appendMessage('jitter: ${(stats.jitterTotal / stats.count * 1000).toStringAsFixed(2)} ms');
     }
