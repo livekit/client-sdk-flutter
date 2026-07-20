@@ -55,11 +55,12 @@ class AudioSessionOptions {
 
   /// One-way media playback preset.
   ///
-  /// This pre-fills playback-oriented platform policies. Apple playback policy
-  /// leaves routing to the platform, while Android speaker routing remains a
-  /// runtime preference. Override [apple] or [android] for exact platform
-  /// behavior.
-  const AudioSessionOptions.media({
+  /// This pre-fills playback-oriented platform policies. Apple and Android
+  /// media routing are platform-owned. On Android, pass this to
+  /// `LiveKitClient.initialize` before WebRTC initializes when WebRTC playout
+  /// should use media `AudioAttributes`; the same value seeds LiveKit's initial
+  /// automatic runtime media session policy.
+  const AudioSessionOptions.mediaPlayback({
     AppleAudioSessionConfiguration apple = AppleAudioSessionConfiguration.media,
     AndroidAudioSessionConfiguration android = AndroidAudioSessionConfiguration.media,
   }) : this._(apple: apple, android: android);

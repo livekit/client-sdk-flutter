@@ -1,0 +1,1 @@
+patch type="fixed" "Emit a single disconnected event when connecting fails"

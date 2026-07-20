@@ -15,16 +15,20 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import '../../exceptions.dart';
 import '../../extensions.dart';
 import '../../logger.dart';
+import '../../options.dart';
+import '../http_client/io.dart';
 import '../websocket.dart';
 
 Future<LiveKitWebSocketIO> lkWebSocketConnect(
   Uri uri, {
   WebSocketEventHandlers? options,
   Map<String, String>? headers,
+  NetworkOptions? networkOptions = const NetworkOptions(),
 }) =>
-    LiveKitWebSocketIO.connect(uri, options: options, headers: headers);
+    LiveKitWebSocketIO.connect(uri, options: options, headers: headers, networkOptions: networkOptions);
 
 class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;
@@ -74,15 +78,23 @@ class LiveKitWebSocketIO extends LiveKitWebSocket {
     Uri uri, {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
+    NetworkOptions? networkOptions = const NetworkOptions(),
   }) async {
     logger.fine('[WebSocketIO] Connecting(uri: ${uri.toString()})...');
+    final resolvedNetworkOptions = networkOptions ?? const NetworkOptions();
+    final useCustomClient = resolvedNetworkOptions.certificatePinning?.isEnabled ?? false;
+    final customClient = useCustomClient ? createSdkIoHttpClient(resolvedNetworkOptions) : null;
     try {
-      final ws = await io.WebSocket.connect(uri.toString(), headers: headers);
+      final ws = await io.WebSocket.connect(uri.toString(), headers: headers, customClient: customClient);
       logger.fine('[WebSocketIO] Connected');
       return LiveKitWebSocketIO._(ws, options);
+    } on CertificatePinningException {
+      rethrow;
     } catch (err) {
       logger.severe('[WebSocketIO] did throw $err');
       throw WebSocketException('Failed to connect', err);
+    } finally {
+      customClient?.close();
     }
   }
 }
