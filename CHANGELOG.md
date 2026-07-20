@@ -1,9 +1,5 @@
 # CHANGELOG
 
-## Unreleased
-
-* Added: Linux/Windows support for audio renderer (audio frame capture)
-
 ## 2.8.0
 
 * Added: Session API support for simpler E2EE setup
