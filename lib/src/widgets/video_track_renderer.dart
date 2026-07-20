@@ -127,7 +127,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     // A leftover platform view controller is owned by its RTCVideoPlatFormView
     // widget, which disposes it on unmount. Only drop our reference here.
     if (_renderer != null && _renderer is! rtc.RTCVideoRenderer) {
-      _detachRenderer();
+      _releaseRenderer(dispose: false);
     }
     if (_renderer == null) {
       final cachedRenderer = widget.cachedRenderer;
@@ -162,37 +162,19 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     unawaited(rtc.Helper.setExposurePoint(videoTrack, point));
   }
 
-  void disposeRenderer() {
+  /// Detaches the current renderer and drops our reference to it.
+  /// Pass [dispose] only for renderers this widget created and owns.
+  void _releaseRenderer({required bool dispose}) {
     final renderer = _renderer;
     _renderer = null;
     try {
       renderer?.onResize = null;
       renderer?.srcObject = null;
-      unawaited(renderer?.dispose());
+      if (dispose) {
+        unawaited(renderer?.dispose());
+      }
     } catch (e) {
-      logger.warning('Got error disposing renderer: $e');
-    }
-  }
-
-  void _detachRenderer() {
-    final renderer = _renderer;
-    _renderer = null;
-    try {
-      renderer?.onResize = null;
-      renderer?.srcObject = null;
-    } catch (e) {
-      logger.warning('Got error detaching renderer: $e');
-    }
-  }
-
-  void _resetRenderer({required bool dispose}) {
-    unawaited(_listener?.dispose());
-    _listener = null;
-    _aspectRatio = null;
-    if (dispose) {
-      disposeRenderer();
-    } else {
-      _detachRenderer();
+      logger.warning('Got error releasing renderer: $e');
     }
   }
 
@@ -217,7 +199,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     widget.track.removeViewRegistration(_viewRegistration);
     unawaited(_listener?.dispose());
     if (widget.autoDisposeRenderer) {
-      disposeRenderer();
+      _releaseRenderer(dispose: true);
     }
     super.dispose();
   }
@@ -248,13 +230,14 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_usesPlatformView(oldWidget.renderMode) != _shouldUsePlatformView) {
-      final renderer = _renderer;
       // Only dispose texture renderers we created ourselves. Platform view
-      // controllers are owned and disposed by RTCVideoPlatFormView, and a
-      // caller-provided cachedRenderer is owned by the caller. Disposing the
-      // cachedRenderer here would break re-adopting it on a later switch back.
-      final ownsRenderer = renderer is rtc.RTCVideoRenderer && !identical(renderer, widget.cachedRenderer);
-      _resetRenderer(dispose: ownsRenderer && oldWidget.autoDisposeRenderer);
+      // controllers belong to RTCVideoPlatFormView and a cachedRenderer
+      // belongs to the caller, who may hand it back on a later switch.
+      final ownsRenderer = _renderer is rtc.RTCVideoRenderer && !identical(_renderer, widget.cachedRenderer);
+      unawaited(_listener?.dispose());
+      _listener = null;
+      _aspectRatio = null;
+      _releaseRenderer(dispose: ownsRenderer && oldWidget.autoDisposeRenderer);
     }
 
     if (widget.track != oldWidget.track) {
