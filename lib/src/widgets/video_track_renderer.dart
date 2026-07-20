@@ -78,7 +78,7 @@ class VideoTrackRenderer extends StatefulWidget {
 
   /// Placeholder builder to display while the track is loading.
   ///
-  /// On iOS, this has no effect when [renderMode] is [VideoRenderMode.platformView].
+  /// On iOS and macOS, this has no effect when [renderMode] is [VideoRenderMode.platformView].
   final WidgetBuilder? placeholderBuilder;
 
   const VideoTrackRenderer(
