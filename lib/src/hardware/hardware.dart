@@ -119,8 +119,8 @@ class Hardware {
   }
 
   Future<void> selectAudioOutput(MediaDevice device) async {
-    if (!lkPlatformIsDesktop()) {
-      logger.warning('selectAudioOutput is only supported on Desktop');
+    if (lkPlatformIs(PlatformType.web) || lkPlatformIs(PlatformType.iOS)) {
+      logger.warning('selectAudioOutput is not supported on Web or iOS');
       return;
     }
     selectedAudioOutput = device;
