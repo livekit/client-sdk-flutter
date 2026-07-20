@@ -14,6 +14,11 @@
 
 import 'src/types/rpc.dart' show kRpcVersion;
 
+export 'src/connection_check/checks/checker.dart';
+export 'src/connection_check/checks/cloud_region.dart' show RegionStats;
+export 'src/connection_check/checks/connection_protocol.dart' show ProtocolStats;
+export 'src/connection_check/connection_check.dart';
+export 'src/connection_check/events.dart';
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/core/room_preconnect.dart';

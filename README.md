@@ -574,6 +574,38 @@ These controls are accessible on the `RemoteTrackPublication` object.
 
 For more info, see [Subscribing to tracks](https://docs.livekit.io/home/client/tracks/subscribe/).
 
+### Diagnosing connection issues
+
+`ConnectionCheck` runs a set of connection diagnostics against a LiveKit server — the same checks that power [livekit.io/connection-test](https://livekit.io/connection-test). Run it proactively at app start, or reactively when `room.connect()` fails, to determine why a connection cannot be established (firewall, VPN, blocked TURN, etc.).
+
+```dart
+final connectionCheck = ConnectionCheck(url, token);
+final listener = connectionCheck.createListener();
+listener.on<ConnectionCheckUpdateEvent>((event) {
+  print('${event.info.name}: ${event.info.status.name}');
+  for (final log in event.info.logs) {
+    print('  $log');
+  }
+});
+
+// the recommended minimum set of checks
+await connectionCheck.checkWebsocket();
+await connectionCheck.checkWebRTC();
+await connectionCheck.checkTURN();
+
+// additional checks
+await connectionCheck.checkReconnect();
+await connectionCheck.checkPublishAudio(); // requires microphone permission
+await connectionCheck.checkPublishVideo(); // requires camera permission
+await connectionCheck.checkConnectionProtocol();
+await connectionCheck.checkCloudRegion(); // LiveKit Cloud only
+
+print('all checks passed: ${connectionCheck.isSuccess}');
+
+await listener.dispose();
+await connectionCheck.dispose();
+```
+
 ## Getting help / Contributing
 
 Please join us on [Slack](https://livekit.io/join-slack) to get help from our devs / community members. We welcome your contributions(PRs) and details can be discussed there.
