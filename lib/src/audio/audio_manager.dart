@@ -20,9 +20,12 @@ import '../logger.dart';
 import '../support/native.dart';
 import '../support/platform.dart';
 import 'android_audio_session_adapter.dart';
+import 'audio_engine_availability.dart';
 import 'audio_processing_state.dart';
 import 'audio_session.dart';
 import 'audio_session_policy.dart';
+
+export 'audio_engine_availability.dart';
 
 /// Snapshot of the WebRTC audio engine's playout/recording state.
 ///
@@ -96,7 +99,11 @@ class AudioManager {
   /// A broadcast stream of audio engine state changes (native engine lifecycle).
   Stream<AudioEngineState> get audioEngineStateStream => _audioEngineStateController.stream;
 
-  bool get _isAutomaticConfigurationEnabled => _managementMode == AudioSessionManagementMode.automatic;
+  // externalCallSystem keeps engine-driven configuration (like automatic) but
+  // the native side never activates/deactivates the session.
+  bool get _isAutomaticConfigurationEnabled => _managementMode != AudioSessionManagementMode.manual;
+
+  bool get _isSessionActivationEnabled => _managementMode != AudioSessionManagementMode.externalCallSystem;
 
   @visibleForTesting
   void resetForTest() {
@@ -141,11 +148,16 @@ class AudioManager {
   /// `LiveKitClient.initialize(initialAudioSessionOptions: ...)` uses this so the
   /// WebRTC initialization-time Android audio attributes and LiveKit's automatic
   /// runtime session policy start from the same intent. Unlike
-  /// [setAudioSessionOptions], this keeps automatic management enabled and does
+  /// [setAudioSessionOptions], this keeps the current management mode and does
   /// not apply native session changes immediately.
+  ///
+  /// Applies under [AudioSessionManagementMode.automatic] and
+  /// [AudioSessionManagementMode.externalCallSystem], both of which drive
+  /// configuration from engine lifecycle. Skipped under
+  /// [AudioSessionManagementMode.manual], where the app owns the options.
   @internal
   void setInitialAudioSessionOptions(AudioSessionOptions options) {
-    if (_managementMode != AudioSessionManagementMode.automatic) {
+    if (!_isAutomaticConfigurationEnabled) {
       return;
     }
     _options = options;
@@ -160,10 +172,44 @@ class AudioManager {
   ///
   /// The speaker preference and force flag are owned by setSpeakerOutputPreferred
   /// and are preserved across this call.
+  ///
+  /// Under [AudioSessionManagementMode.externalCallSystem] the mode is
+  /// preserved: the configuration is applied without activating the session.
   Future<void> setAudioSessionOptions(AudioSessionOptions options) async {
     await _enterManualMode();
     _options = options;
     await _applyCurrentAudioSessionPolicy();
+  }
+
+  /// Sets whether the WebRTC audio engine is allowed to run.
+  ///
+  /// This is the highest-priority gate over anything that may start the
+  /// engine (enabling the microphone, remote audio playback). Requests made
+  /// while unavailable are honored as soon as availability allows, so it is
+  /// safe to connect a room and publish the microphone while the engine is
+  /// still gated off.
+  ///
+  /// This is the core of CallKit coordination on iOS: set
+  /// [AudioEngineAvailability.none] before connecting, then flip to
+  /// [AudioEngineAvailability.defaultAvailability] in CallKit's
+  /// `provider(didActivate:)` and back to `none` in `didDeactivate`. Combine
+  /// with [AudioSessionManagementMode.externalCallSystem] so LiveKit never
+  /// activates the session itself.
+  ///
+  /// iOS/macOS only. A no-op elsewhere, so it is always safe to call from
+  /// cross-platform code.
+  ///
+  /// Throws if the native side rejects the change, so callers never assume
+  /// the engine is gated when it is not.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
+    if (!lkPlatformIsApple()) return;
+    await Native.setEngineAvailability(
+      isInputAvailable: availability.isInputAvailable,
+      isOutputAvailable: availability.isOutputAvailable,
+    );
   }
 
   /// Selects whether LiveKit manages the platform audio session automatically.
@@ -186,8 +232,12 @@ class AudioManager {
   }
 
   /// Switches to manual mode if not already, syncing the native side once.
+  ///
+  /// [AudioSessionManagementMode.externalCallSystem] is preserved: an explicit
+  /// configuration under an external call system applies without LiveKit
+  /// taking over the session lifecycle.
   Future<void> _enterManualMode() async {
-    if (_managementMode == AudioSessionManagementMode.manual) return;
+    if (_managementMode != AudioSessionManagementMode.automatic) return;
     _managementMode = AudioSessionManagementMode.manual;
     await _syncAppleAudioSessionManagementMode();
   }
@@ -199,6 +249,10 @@ class AudioManager {
   /// session on its own. Re-apply a configuration with [setAudioSessionOptions],
   /// or hand control back with [setAudioSessionManagementMode].
   Future<void> deactivateAudioSession() async {
+    if (_managementMode == AudioSessionManagementMode.externalCallSystem) {
+      logger.warning('deactivateAudioSession skipped: the external call system owns session activation');
+      return;
+    }
     await _enterManualMode();
     if (lkPlatformIs(PlatformType.iOS)) {
       await Native.deactivateAppleAudioSession();
@@ -265,7 +319,10 @@ class AudioManager {
 
   Future<void> _syncAppleAudioSessionManagementMode() async {
     if (lkPlatformIs(PlatformType.iOS)) {
-      await Native.setAppleAudioSessionAutomaticManagementEnabled(_isAutomaticConfigurationEnabled);
+      await Native.setAppleAudioSessionAutomaticManagementEnabled(
+        _isAutomaticConfigurationEnabled,
+        sessionActivationEnabled: _isSessionActivationEnabled,
+      );
     }
   }
 

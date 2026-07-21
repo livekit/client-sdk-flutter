@@ -58,12 +58,13 @@ void main() {
       ).androidConfiguration;
 
   group('AudioSessionManagementMode', () {
-    test('supports automatic and manual management', () {
+    test('supports automatic, manual, and external call system management', () {
       expect(
         AudioSessionManagementMode.values,
         [
           AudioSessionManagementMode.automatic,
           AudioSessionManagementMode.manual,
+          AudioSessionManagementMode.externalCallSystem,
         ],
       );
     });
@@ -588,6 +589,45 @@ void main() {
 
       expect(calls.single.method, 'setAndroidSpeakerphoneOn');
       expect(calls.single.arguments, {'enable': true, 'force': true});
+    });
+
+    test('passes session activation ownership to Apple management method', () async {
+      await Native.setAppleAudioSessionAutomaticManagementEnabled(true, sessionActivationEnabled: false);
+
+      expect(calls.single.method, 'setAppleAudioSessionAutomaticManagementEnabled');
+      expect(calls.single.arguments, {'enabled': true, 'sessionActivationEnabled': false});
+    });
+
+    test('passes engine availability to platform method', () async {
+      await Native.setEngineAvailability(isInputAvailable: false, isOutputAvailable: true);
+
+      expect(calls.single.method, 'setEngineAvailability');
+      expect(calls.single.arguments, {'isInputAvailable': false, 'isOutputAvailable': true});
+    });
+
+    test('initial session options seed under an external call system', () async {
+      AudioManager.instance.resetForTest();
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
+
+      const options = AudioSessionOptions.mediaPlayback();
+      AudioManager.instance.setInitialAudioSessionOptions(options);
+
+      expect(AudioManager.instance.options, options);
+
+      AudioManager.instance.resetForTest();
+    });
+
+    test('deactivateAudioSession is a no-op under an external call system', () async {
+      AudioManager.instance.resetForTest();
+      await AudioManager.instance.setAudioSessionManagementMode(AudioSessionManagementMode.externalCallSystem);
+      calls.clear();
+
+      await AudioManager.instance.deactivateAudioSession();
+
+      expect(calls, isEmpty);
+      expect(AudioManager.instance.managementMode, AudioSessionManagementMode.externalCallSystem);
+
+      AudioManager.instance.resetForTest();
     });
 
     test('passes audio session deactivation to platform methods', () async {

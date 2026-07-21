@@ -89,6 +89,13 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         instance.audioEngineObserver = audioEngineObserver
         FlutterWebRTCPlugin.setAudioDeviceModuleObserver(audioEngineObserver)
 
+        // An AppDelegate may have gated engine availability before the Flutter
+        // engine existed (CallKit killed-state wake). Apply it now, before any
+        // audio operation can start the engine. This must run after the engine
+        // observer above, since applying forces creation of the peer
+        // connection factory, which attaches the observer.
+        applyPendingEngineAvailabilityIfNeeded()
+
         #if os(iOS)
         BroadcastManager.shared.isBroadcastingPublisher
             .sink { isBroadcasting in
@@ -381,7 +388,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         result(FlutterMethodNotImplemented)
         #else
         let enabled = (args["enabled"] as? Bool) ?? true
-        audioEngineObserver?.setAutomaticManagementEnabled(enabled)
+        let sessionActivationEnabled = (args["sessionActivationEnabled"] as? Bool) ?? true
+        audioEngineObserver?.setAutomaticManagementEnabled(enabled, sessionActivationEnabled: sessionActivationEnabled)
         result(true)
         #endif
     }
@@ -436,6 +444,94 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             "code": LiveKitPlugin.audioProcessingResultCodeString(processingResult.code),
             "message": processingResult.message,
         ])
+    }
+
+    // MARK: - Engine availability
+
+    private static let engineAvailabilityLock = NSLock()
+    private static var pendingEngineAvailability: RTCAudioEngineAvailability?
+
+    /// Sets whether the WebRTC audio engine is allowed to run. This is the
+    /// highest-priority gate over anything that may start the engine. Requests
+    /// made while unavailable are honored once availability allows.
+    ///
+    /// Public native API so an AppDelegate can gate audio before the Flutter
+    /// engine exists (e.g. a CallKit killed-state wake): when the audio device
+    /// module is not created yet, the value is stored and applied at plugin
+    /// registration, before any audio operation can start the engine.
+    ///
+    /// Returns `false` when the value was stored for deferred application,
+    /// `true` when it was applied to the live audio device module.
+    @objc @discardableResult
+    public static func setEngineAvailability(isInputAvailable: Bool, isOutputAvailable: Bool) -> Bool {
+        let availability = RTCAudioEngineAvailability(isInputAvailable: ObjCBool(isInputAvailable),
+                                                      isOutputAvailable: ObjCBool(isOutputAvailable))
+        engineAvailabilityLock.lock()
+        pendingEngineAvailability = availability
+        engineAvailabilityLock.unlock()
+
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            return false
+        }
+        return adm.setEngineAvailability(availability) == 0
+    }
+
+    private static func applyPendingEngineAvailabilityIfNeeded() {
+        engineAvailabilityLock.lock()
+        let pending = pendingEngineAvailability
+        engineAvailabilityLock.unlock()
+        guard let pending else { return }
+
+        // Accessing peerConnectionFactory creates it (and the audio device
+        // module) if needed. That is intentional here, so the gate is in
+        // place before anything else can start the engine.
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            print("[LiveKit] engine availability pending but audio device module is unavailable")
+            return
+        }
+        if adm.setEngineAvailability(pending) != 0 {
+            print("[LiveKit] failed to apply pending engine availability")
+        }
+    }
+
+    public func handleSetEngineAvailability(args: [String: Any?], result: @escaping FlutterResult) {
+        let isInputAvailable = (args["isInputAvailable"] as? Bool) ?? true
+        let isOutputAvailable = (args["isOutputAvailable"] as? Bool) ?? true
+
+        // Accessing peerConnectionFactory creates the audio device module if
+        // needed, so the gate is effective even before any track exists.
+        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "setEngineAvailability", message: "audio device module is unavailable", details: nil))
+            return
+        }
+
+        let availability = RTCAudioEngineAvailability(isInputAvailable: ObjCBool(isInputAvailable),
+                                                      isOutputAvailable: ObjCBool(isOutputAvailable))
+
+        // Keep the pending value in sync so both the native static and this
+        // channel path record the latest intent. A later plugin registration
+        // (e.g. a second Flutter engine in the same process) re-applies the
+        // pending value, so it must never lag behind a Dart-side update.
+        LiveKitPlugin.engineAvailabilityLock.lock()
+        LiveKitPlugin.pendingEngineAvailability = availability
+        LiveKitPlugin.engineAvailabilityLock.unlock()
+
+        // Availability changes can stop/start the engine, so keep that work
+        // off the platform thread.
+        DispatchQueue.global(qos: .userInitiated).async {
+            let admResult = adm.setEngineAvailability(availability)
+            DispatchQueue.main.async {
+                if admResult == 0 {
+                    result(nil)
+                } else {
+                    result(FlutterError(
+                        code: "setEngineAvailability",
+                        message: "Audio engine returned error code: \(admResult)",
+                        details: nil
+                    ))
+                }
+            }
+        }
     }
 
     public func handleStartLocalRecording(args: [String: Any?], result: @escaping FlutterResult) {
@@ -604,6 +700,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStartLocalRecording(args: args, result: result)
         case "stopLocalRecording":
             handleStopLocalRecording(result: result)
+        case "setEngineAvailability":
+            handleSetEngineAvailability(args: args, result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
         case "getAudioProcessingState":
@@ -637,19 +735,38 @@ extension LiveKitPlugin {
     /// Returns `nil` on success or the thrown error. Safe to call on any thread.
     static func applyAudioSessionConfiguration(_ configuration: RTCAudioSessionConfiguration,
                                                forceSpeakerOutput: Bool,
-                                               active: Bool) -> Error? {
+                                               isActive: Bool) -> Error? {
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
         do {
-            try rtcSession.setConfiguration(configuration, active: active)
+            if isActive {
+                try rtcSession.setConfiguration(configuration, active: true)
+            } else {
+                // Configure-only variant. setConfiguration(_:active:) always
+                // forwards its active flag to setActive, so passing false here
+                // would deactivate the session an external call system just
+                // activated.
+                try rtcSession.setConfiguration(configuration)
+            }
             // overrideOutputAudioPort hard-routes to the speaker even over a
             // connected headset. Plain speaker preference is expressed by the
             // selected audio mode/category options, so clear any stale hard
             // override unless the app explicitly forced speaker output.
-            // Only valid for the playAndRecord category.
-            if active, configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
-                try rtcSession.overrideOutputAudioPort(forceSpeakerOutput ? .speaker : .none)
+            // Only valid for the playAndRecord category. Applied regardless of
+            // who owns activation, since under an external call system the
+            // session is active during a call even though isActive is false.
+            if configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
+                do {
+                    try rtcSession.overrideOutputAudioPort(forceSpeakerOutput ? .speaker : .none)
+                } catch {
+                    // Before the external call system activates the session the
+                    // override can fail. Tolerate it, the configuration itself
+                    // succeeded and the override is re-applied on the next
+                    // engine lifecycle event.
+                    guard !isActive else { throw error }
+                    print("[LiveKit] overrideOutputAudioPort skipped, session not active yet: \(error)")
+                }
             }
             return nil
         } catch {
@@ -699,6 +816,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
     private var isAutomaticManagementEnabled = true
+    // False when an external call system (CallKit) owns session activation:
+    // configurations are applied without activating, and the session is never
+    // deactivated from engine lifecycle. CallKit activates/deactivates.
+    private var isSessionActivationEnabled = true
     // True when cached policy changes should apply immediately. This includes
     // an engine already running under manual mode, because switching back to
     // automatic should configure the live session without waiting for another
@@ -720,9 +841,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         return sessionActive
     }
 
-    func setAutomaticManagementEnabled(_ enabled: Bool) {
+    func setAutomaticManagementEnabled(_ enabled: Bool, sessionActivationEnabled: Bool = true) {
         lock.lock()
         isAutomaticManagementEnabled = enabled
+        isSessionActivationEnabled = sessionActivationEnabled
         lock.unlock()
     }
 
@@ -748,11 +870,12 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         lock.lock()
         let configuration = effectiveConfigurationLocked(isRecordingEnabled: lastIsRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
+        let isActive = isSessionActivationEnabled
         lock.unlock()
         guard let configuration else { return nil }
         return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
                                                             forceSpeakerOutput: forceSpeakerOutput,
-                                                            active: true)
+                                                            isActive: isActive)
     }
 
     private func applyManagedConfiguration(isRecordingEnabled: Bool) -> Error? {
@@ -760,12 +883,13 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         let shouldManageSession = isAutomaticManagementEnabled
         let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
+        let isActive = isSessionActivationEnabled
         lock.unlock()
 
         guard shouldManageSession, let configuration else { return nil }
         return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
                                                             forceSpeakerOutput: forceSpeakerOutput,
-                                                            active: true)
+                                                            isActive: isActive)
     }
 
     private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
@@ -849,7 +973,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
             }
         } else {
             lock.lock()
-            let shouldManageSession = isAutomaticManagementEnabled
+            let shouldManageSession = isAutomaticManagementEnabled && isSessionActivationEnabled
             lock.unlock()
 
             if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {

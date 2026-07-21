@@ -219,16 +219,46 @@ class Native {
 
   /// Enable or disable LiveKit's automatic iOS audio-session management from
   /// native WebRTC audio-engine lifecycle callbacks.
+  ///
+  /// [sessionActivationEnabled] controls whether LiveKit may activate or
+  /// deactivate the session at all. When false, LiveKit only configures the
+  /// category/mode and an external system (CallKit) owns activation timing.
   @internal
-  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(bool enabled) async {
+  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(
+    bool enabled, {
+    bool sessionActivationEnabled = true,
+  }) async {
     try {
       await channel.invokeMethod<void>(
         'setAppleAudioSessionAutomaticManagementEnabled',
-        <String, dynamic>{'enabled': enabled},
+        <String, dynamic>{
+          'enabled': enabled,
+          'sessionActivationEnabled': sessionActivationEnabled,
+        },
       );
     } catch (error) {
       logger.warning('setAppleAudioSessionAutomaticManagementEnabled did throw $error');
     }
+  }
+
+  /// Sets whether the WebRTC audio engine is allowed to run (iOS/macOS).
+  ///
+  /// Unlike most methods in this class this deliberately does not swallow
+  /// platform errors: a failed availability change means the engine may run
+  /// outside the window the caller intended (e.g. CallKit's
+  /// didActivate/didDeactivate), so the error must reach the caller.
+  @internal
+  static Future<void> setEngineAvailability({
+    required bool isInputAvailable,
+    required bool isOutputAvailable,
+  }) async {
+    await channel.invokeMethod<void>(
+      'setEngineAvailability',
+      <String, dynamic>{
+        'isInputAvailable': isInputAvailable,
+        'isOutputAvailable': isOutputAvailable,
+      },
+    );
   }
 
   @internal
