@@ -48,6 +48,9 @@ enum AudioSessionManagementMode {
   /// `AudioManager.deactivateAudioSession` is disabled in this mode on all
   /// platforms, since releasing platform audio belongs to the external call
   /// system.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   externalCallSystem,
 }
 
