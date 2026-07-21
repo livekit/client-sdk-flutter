@@ -201,6 +201,9 @@ class AudioManager {
   ///
   /// Throws if the native side rejects the change, so callers never assume
   /// the engine is gated when it is not.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
     if (!lkPlatformIsApple()) return;
     await Native.setEngineAvailability(
@@ -213,6 +216,9 @@ class AudioManager {
   ///
   /// Returns [AudioEngineAvailability.defaultAvailability] on platforms
   /// without engine gating (everything except iOS/macOS).
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<AudioEngineAvailability> getEngineAvailability() async {
     if (!lkPlatformIsApple()) return AudioEngineAvailability.defaultAvailability;
     final response = await Native.getEngineAvailability();

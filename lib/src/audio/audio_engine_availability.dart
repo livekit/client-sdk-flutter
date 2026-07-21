@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
+
 /// Whether the WebRTC audio engine is allowed to run, per direction.
 ///
 /// This is the highest-priority gate over anything that may start the engine
@@ -23,6 +25,9 @@
 /// timing, such as CallKit on iOS: keep the engine unavailable until
 /// `provider(didActivate:)` and make it available inside the
 /// activate/deactivate window. See `AudioManager.setEngineAvailability`.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioEngineAvailability {
   /// Whether the engine may run its input (microphone / recording) side.
   final bool isInputAvailable;
