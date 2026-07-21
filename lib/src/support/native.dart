@@ -261,18 +261,6 @@ class Native {
     );
   }
 
-  /// Reads the WebRTC audio engine's availability (iOS/macOS). Returns null
-  /// when the native side cannot provide it.
-  @internal
-  static Future<Map<dynamic, dynamic>?> getEngineAvailability() async {
-    try {
-      return await channel.invokeMethod<Map<dynamic, dynamic>>('getEngineAvailability', <String, dynamic>{});
-    } catch (error) {
-      logger.warning('getEngineAvailability did throw $error');
-      return null;
-    }
-  }
-
   @internal
   static Future<bool> startVisualizer(
     String trackId, {

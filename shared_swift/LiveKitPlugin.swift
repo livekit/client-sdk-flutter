@@ -534,18 +534,6 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    public func handleGetEngineAvailability(result: @escaping FlutterResult) {
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
-            result(FlutterError(code: "getEngineAvailability", message: "audio device module is unavailable", details: nil))
-            return
-        }
-        let availability = adm.engineAvailability
-        result([
-            "isInputAvailable": availability.isInputAvailable.boolValue,
-            "isOutputAvailable": availability.isOutputAvailable.boolValue,
-        ])
-    }
-
     public func handleStartLocalRecording(args: [String: Any?], result: @escaping FlutterResult) {
         guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "rejectedPlatformUnavailable", message: "audio device module is unavailable", details: nil))
@@ -714,8 +702,6 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStopLocalRecording(result: result)
         case "setEngineAvailability":
             handleSetEngineAvailability(args: args, result: result)
-        case "getEngineAvailability":
-            handleGetEngineAvailability(result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
         case "getAudioProcessingState":

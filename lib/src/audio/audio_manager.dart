@@ -212,23 +212,6 @@ class AudioManager {
     );
   }
 
-  /// The WebRTC audio engine's current availability.
-  ///
-  /// Returns [AudioEngineAvailability.defaultAvailability] on platforms
-  /// without engine gating (everything except iOS/macOS).
-  ///
-  /// Experimental: this API may change in a future release.
-  @experimental
-  Future<AudioEngineAvailability> getEngineAvailability() async {
-    if (!lkPlatformIsApple()) return AudioEngineAvailability.defaultAvailability;
-    final response = await Native.getEngineAvailability();
-    if (response == null) return AudioEngineAvailability.defaultAvailability;
-    return AudioEngineAvailability(
-      isInputAvailable: response['isInputAvailable'] as bool? ?? true,
-      isOutputAvailable: response['isOutputAvailable'] as bool? ?? true,
-    );
-  }
-
   /// Selects whether LiveKit manages the platform audio session automatically.
   ///
   /// In [AudioSessionManagementMode.manual], LiveKit does not update the audio
