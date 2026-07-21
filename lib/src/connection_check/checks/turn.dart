@@ -62,13 +62,18 @@ class TURNCheck extends Checker {
       appendWarning('TURN is configured server side, but TURN/TLS is unavailable.');
     }
     if (connectOptions?.rtcConfiguration.iceServers != null || hasTURN) {
+      final baseOptions = connectOptions ?? const ConnectOptions();
       await room.connect(
         url,
         token,
-        connectOptions: const ConnectOptions(
-          rtcConfiguration: RTCConfiguration(
+        connectOptions: ConnectOptions(
+          autoSubscribe: baseOptions.autoSubscribe,
+          rtcConfiguration: baseOptions.rtcConfiguration.copyWith(
             iceTransportPolicy: RTCIceTransportPolicy.relay,
           ),
+          protocolVersion: baseOptions.protocolVersion,
+          clientProtocolVersion: baseOptions.clientProtocolVersion,
+          timeouts: baseOptions.timeouts,
         ),
       );
     } else {
