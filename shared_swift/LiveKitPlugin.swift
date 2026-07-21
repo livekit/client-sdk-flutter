@@ -753,9 +753,20 @@ extension LiveKitPlugin {
             // connected headset. Plain speaker preference is expressed by the
             // selected audio mode/category options, so clear any stale hard
             // override unless the app explicitly forced speaker output.
-            // Only valid for the playAndRecord category.
-            if isActive, configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
-                try rtcSession.overrideOutputAudioPort(forceSpeakerOutput ? .speaker : .none)
+            // Only valid for the playAndRecord category. Applied regardless of
+            // who owns activation, since under an external call system the
+            // session is active during a call even though isActive is false.
+            if configuration.category == AVAudioSession.Category.playAndRecord.rawValue {
+                do {
+                    try rtcSession.overrideOutputAudioPort(forceSpeakerOutput ? .speaker : .none)
+                } catch {
+                    // Before the external call system activates the session the
+                    // override can fail. Tolerate it, the configuration itself
+                    // succeeded and the override is re-applied on the next
+                    // engine lifecycle event.
+                    guard !isActive else { throw error }
+                    print("[LiveKit] overrideOutputAudioPort skipped, session not active yet: \(error)")
+                }
             }
             return nil
         } catch {
