@@ -740,7 +740,15 @@ extension LiveKitPlugin {
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
         do {
-            try rtcSession.setConfiguration(configuration, active: isActive)
+            if isActive {
+                try rtcSession.setConfiguration(configuration, active: true)
+            } else {
+                // Configure-only variant. setConfiguration(_:active:) always
+                // forwards its active flag to setActive, so passing false here
+                // would deactivate the session an external call system just
+                // activated.
+                try rtcSession.setConfiguration(configuration)
+            }
             // overrideOutputAudioPort hard-routes to the speaker even over a
             // connected headset. Plain speaker preference is expressed by the
             // selected audio mode/category options, so clear any stale hard
