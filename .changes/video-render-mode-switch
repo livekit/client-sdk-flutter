@@ -1,0 +1,1 @@
+patch type="fixed" "Handle switching video render modes without stale renderers"

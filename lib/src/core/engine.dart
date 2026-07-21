@@ -268,9 +268,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
 
-      events.emit(EngineDisconnectedEvent(
-        reason: DisconnectReason.joinFailure,
-      ));
+      // during a reconnect this connect() runs inside restartConnection and
+      // attemptReconnect owns disconnect emission, emitting here as well
+      // would produce two events for one failure
+      if (!_isReconnecting && !_attemptingReconnect) {
+        events.emit(EngineDisconnectedEvent(
+          reason: error is CertificatePinningException
+              ? DisconnectReason.signalingConnectionFailure
+              : DisconnectReason.joinFailure,
+        ));
+      }
       rethrow;
     }
   }
@@ -1367,18 +1374,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleReconnect(ClientDisconnectReason.signal,
             reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED);
-      } else if (event.reason == DisconnectReason.signalingConnectionFailure) {
-        // while reconnecting, attemptReconnect owns disconnect handling and
-        // emits EngineDisconnectedEvent itself, relaying here as well would
-        // race it with a duplicate event. _attemptingReconnect covers the
-        // window where cleanUp() has already reset _isReconnecting but
-        // attemptReconnect has not finished its error handling yet
-        if (!_isReconnecting && !_attemptingReconnect) {
-          events.emit(EngineDisconnectedEvent(
-            reason: event.reason,
-          ));
-        }
       }
+      // signalingConnectionFailure is intentionally not relayed as
+      // EngineDisconnectedEvent here. The signal client emits it while the
+      // connect() call is failing, so connect()'s own catch (initial connect)
+      // or attemptReconnect (reconnect) already emits the engine event, and
+      // relaying here produced a duplicate disconnect per failure.
     })
     ..on<SignalOfferEvent>((event) async {
       if (subscriber == null) {
