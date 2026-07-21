@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:meta/meta.dart';
-
 /// Strategy used to mute microphone input on iOS/macOS.
 ///
 /// Applies to the AVAudioEngine-based audio device module, which is engine-wide
 /// (process-global) state. Set via `AudioManager.setMicrophoneMuteMode`.
-///
-/// Experimental: this API may change in a future release.
-@experimental
 enum MicrophoneMuteMode {
   /// Mute using Voice Processing I/O's input mute.
   ///

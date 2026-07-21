@@ -364,9 +364,6 @@ class AudioManager {
   /// How microphone input is muted on iOS/macOS.
   ///
   /// Returns [MicrophoneMuteMode.unknown] on other platforms.
-  ///
-  /// Experimental: this API may change in a future release.
-  @experimental
   Future<MicrophoneMuteMode> getMicrophoneMuteMode() async {
     if (!lkPlatformIsApple()) return MicrophoneMuteMode.unknown;
     final mode = await Native.getMicrophoneMuteMode();
@@ -402,9 +399,6 @@ class AudioManager {
   /// a muting behavior that is not actually in effect.
   ///
   /// This is engine-wide state. Prefer setting it once before connecting.
-  ///
-  /// Experimental: this API may change in a future release.
-  @experimental
   Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
     if (mode == MicrophoneMuteMode.unknown) return;
     if (!lkPlatformIsApple()) return;
