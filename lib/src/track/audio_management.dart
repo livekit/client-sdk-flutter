@@ -31,8 +31,12 @@ class NativeAudioManagement {
   }
 
   static Future<void> stop() async {
+    // Release mirrors acquire: applyOptionsForConnect starts the Android
+    // audio session in every mode except manual, including externalCallSystem,
+    // which behaves like automatic on Android until Telecom integration owns
+    // focus and routing for registered calls.
     if (lkPlatformIs(PlatformType.android) &&
-        AudioManager.instance.managementMode == AudioSessionManagementMode.automatic) {
+        AudioManager.instance.managementMode != AudioSessionManagementMode.manual) {
       await Native.stopAndroidAudioSession();
     }
   }
