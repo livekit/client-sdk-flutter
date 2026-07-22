@@ -18,6 +18,8 @@ import 'package:meta/meta.dart';
 
 import '../support/value_or_absent.dart';
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AudioSessionManagementMode {
   /// LiveKit updates the platform audio session based on room/track lifecycle.
   automatic,
@@ -55,6 +57,9 @@ enum AudioSessionManagementMode {
 }
 
 @immutable
+
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioSessionOptions {
   /// Exact Apple session configuration for manual mode.
   final AppleAudioSessionConfiguration apple;
@@ -102,6 +107,8 @@ class AudioSessionOptions {
 }
 
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
+/// Experimental: this API may change in a future release.
+@experimental
 enum AppleAudioCategory {
   soloAmbient,
   playback,
@@ -111,6 +118,8 @@ enum AppleAudioCategory {
 }
 
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/categoryoptions
+/// Experimental: this API may change in a future release.
+@experimental
 enum AppleAudioCategoryOption {
   mixWithOthers, // Only playAndRecord, playback, or multiRoute.
   duckOthers, // Only playAndRecord, playback, or multiRoute.
@@ -122,6 +131,8 @@ enum AppleAudioCategoryOption {
 }
 
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/mode
+/// Experimental: this API may change in a future release.
+@experimental
 enum AppleAudioMode {
   default_,
   gameChat,
@@ -135,6 +146,9 @@ enum AppleAudioMode {
 }
 
 @immutable
+
+/// Experimental: this API may change in a future release.
+@experimental
 class AppleAudioSessionConfiguration {
   /// AVAudioSession category.
   final AppleAudioCategory? category;
@@ -179,6 +193,8 @@ class AppleAudioSessionConfiguration {
       );
 }
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AndroidAudioMode {
   normal,
   callScreening,
@@ -187,6 +203,8 @@ enum AndroidAudioMode {
   ringtone,
 }
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AndroidAudioFocusMode {
   gain,
   gainTransient,
@@ -194,6 +212,8 @@ enum AndroidAudioFocusMode {
   gainTransientMayDuck,
 }
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AndroidAudioStreamType {
   accessibility,
   alarm,
@@ -205,6 +225,8 @@ enum AndroidAudioStreamType {
   voiceCall,
 }
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AndroidAudioAttributesUsageType {
   alarm,
   assistanceAccessibility,
@@ -221,6 +243,8 @@ enum AndroidAudioAttributesUsageType {
   voiceCommunicationSignalling,
 }
 
+/// Experimental: this API may change in a future release.
+@experimental
 enum AndroidAudioAttributesContentType {
   movie,
   music,
@@ -230,6 +254,9 @@ enum AndroidAudioAttributesContentType {
 }
 
 @immutable
+
+/// Experimental: this API may change in a future release.
+@experimental
 class AndroidAudioSessionConfiguration {
   /// Android AudioManager mode.
   final AndroidAudioMode? audioMode;
