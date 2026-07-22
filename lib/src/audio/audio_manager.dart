@@ -430,6 +430,9 @@ class AudioManager {
   /// the engine rather than any single track. Use it to verify native state
   /// after a `LocalAudioTrack.setAudioProcessingOptions` request. Returns
   /// `null` when the native side cannot provide it.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<AudioProcessingState?> getAudioProcessingState() async {
     final response = await Native.getAudioProcessingState();
     if (response == null) return null;

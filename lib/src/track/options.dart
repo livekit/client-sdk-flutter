@@ -14,6 +14,8 @@
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:meta/meta.dart';
+
 import '../support/native.dart';
 import '../support/platform.dart';
 import '../track/local/audio.dart';
@@ -243,6 +245,9 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 }
 
 /// Selects whether a voice-processing component uses platform or software processing.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 enum AudioProcessingMode {
   automatic('auto'),
   platform('platform'),
@@ -260,6 +265,9 @@ enum AudioProcessingMode {
 /// the updated processing config. The effective audio processing module config
 /// is shared by the native voice engine/channel, so conflicting updates from
 /// multiple local tracks are not isolated per track.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioProcessingOptions {
   const AudioProcessingOptions({
     required this.echoCancellation,
@@ -510,6 +518,9 @@ class AudioOutputOptions {
 }
 
 /// Reason that applying [AudioProcessingOptions] failed.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 enum AudioProcessingFailureReason {
   /// The requested mode combination is invalid for the native audio module.
   invalidCombination,
@@ -546,6 +557,9 @@ String _audioProcessingMessageOrDefault(AudioProcessingFailureReason reason, Str
 ///
 /// [reason] is a stable SDK category. [message] carries native details when
 /// available, or an SDK-provided fallback when native does not include details.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioProcessingException implements Exception {
   AudioProcessingException(this.reason, String message) : message = _audioProcessingMessageOrDefault(reason, message);
 
