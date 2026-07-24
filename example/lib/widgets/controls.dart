@@ -10,6 +10,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import '../exts.dart';
+import 'rpc_test_sheet.dart';
 
 class ControlsWidget extends StatefulWidget {
   //
@@ -36,7 +37,9 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   StreamSubscription? _subscription;
 
-  bool _speakerphoneOn = Hardware.instance.speakerOn ?? false;
+  bool _speakerphoneOn = AudioManager.instance.isSpeakerOutputPreferred;
+
+  final _rpcController = RpcTestController();
 
   @override
   void initState() {
@@ -52,6 +55,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
   void dispose() {
     unawaited(_subscription?.cancel());
     participant.removeListener(_onChange);
+    _rpcController.dispose();
     super.dispose();
   }
 
@@ -109,7 +113,7 @@ class _ControlsWidgetState extends State<ControlsWidget> {
 
   void _setSpeakerphoneOn() async {
     _speakerphoneOn = !_speakerphoneOn;
-    await widget.room.setSpeakerOn(_speakerphoneOn, forceSpeakerOutput: false);
+    await AudioManager.instance.setSpeakerOutputPreferred(_speakerphoneOn, force: false);
     setState(() {});
   }
 
@@ -459,8 +463,17 @@ class _ControlsWidgetState extends State<ControlsWidget> {
             icon: const Icon(Icons.bug_report),
             tooltip: 'Simulate scenario',
           ),
+          IconButton(
+            onPressed: _onTapRpcTest,
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: 'RPC test',
+          ),
         ],
       ),
     );
+  }
+
+  void _onTapRpcTest() {
+    unawaited(showRpcTestSheet(context, widget.room, _rpcController));
   }
 }

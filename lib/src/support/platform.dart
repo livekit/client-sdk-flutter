@@ -23,11 +23,16 @@ bool lkPlatformIsMobile() => [PlatformType.iOS, PlatformType.android].contains(l
 
 bool lkPlatformIsWebMobile() => lkPlatformIsWebMobileImplementation();
 
+bool lkPlatformIsApple() => [PlatformType.iOS, PlatformType.macOS].contains(lkPlatform());
+
 bool lkPlatformIsDesktop() => [
       PlatformType.macOS,
       PlatformType.windows,
       PlatformType.linux,
     ].contains(lkPlatform());
+
+bool lkPlatformSupportsExplicitAudioRecordingStart() =>
+    !lkPlatformIsTest() && [PlatformType.iOS, PlatformType.macOS, PlatformType.android].contains(lkPlatform());
 
 bool lkPlatformSupportsE2EE() => lkE2EESupportedImplementation();
 

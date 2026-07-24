@@ -1,0 +1,1 @@
+patch type="fixed" "Use maintain-resolution as the default video degradation preference for local video publishing"

@@ -1,0 +1,1 @@
+patch type="fixed" "Throw platformUnavailable when runtime audio processing is unsupported"

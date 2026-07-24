@@ -54,20 +54,13 @@ import '../types/audio_encoding.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
-import '../types/rpc.dart';
 import '../types/video_dimensions.dart';
-import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, compareVersions, isSVCCodec;
+import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, isSVCCodec, isVideoCodec;
 import 'participant.dart';
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
 class LocalParticipant extends Participant<LocalTrackPublication> {
-  // RPC Pending Acks
-  final Map<String, Function(String participantIdentity)> _pendingAcks = {};
-
-  // RPC Pending Responses
-  final Map<String, Function(String? payload, RpcError? error)> _pendingResponses = {};
-
   // Pending signal request responses (keyed by requestId)
   final Map<int, Completer<void>> _pendingSignalRequests = {};
 
@@ -179,82 +172,94 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final audioEncoding = publishOptions.encoding ?? AudioEncoding.presetMusic;
     final List<rtc.RTCRtpEncoding> encodings = [audioEncoding.toRTCRtpEncoding()];
 
-    final req = lk_rtc.AddTrackRequest(
-      cid: track.getCid(),
-      name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
-      type: track.kind.toPBType(),
-      source: track.source.toPBType(),
-      muted: track.muted,
-      stream: buildStreamId(publishOptions, track.source),
-      disableDtx: !publishOptions.dtx,
-      disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
-      encryption: room.roomOptions.lkEncryptionType,
-    );
+    final shouldStopOnFailure = !track.isActive;
+    try {
+      // Start capture before signaling so create-time audio processing failures
+      // abort publish without creating a server-side publication.
+      await track.start();
 
-    // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
-    req.audioFeatures.addAll([
-      if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
-      if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
-    ]);
-
-    Future<lk_models.TrackInfo> negotiate() async {
-      track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
-      await room.engine.negotiate();
-      return lk_models.TrackInfo();
-    }
-
-    late lk_models.TrackInfo trackInfo;
-    if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
-      final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
-      trackInfo = rets[0];
-    } else {
-      trackInfo = await room.engine.addTrack(req);
-
-      final transceiverInit = rtc.RTCRtpTransceiverInit(
-        direction: rtc.TransceiverDirection.SendOnly,
-        sendEncodings: encodings,
-      );
-      // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
-      track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-        track: track.mediaStreamTrack,
-        kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
-        init: transceiverInit,
+      final req = lk_rtc.AddTrackRequest(
+        cid: track.getCid(),
+        name: publishOptions.name ?? AudioPublishOptions.defaultMicrophoneName,
+        type: track.kind.toPBType(),
+        source: track.source.toPBType(),
+        muted: track.muted,
+        stream: buildStreamId(publishOptions, track.source),
+        disableDtx: !publishOptions.dtx,
+        disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
+        encryption: room.roomOptions.lkEncryptionType,
       );
 
-      await room.engine.negotiate();
+      // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
+      req.audioFeatures.addAll([
+        if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
+        if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
+      ]);
+
+      Future<lk_models.TrackInfo> negotiate() async {
+        track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, publishOptions!, encodings);
+        await room.engine.negotiate();
+        return lk_models.TrackInfo();
+      }
+
+      late lk_models.TrackInfo trackInfo;
+      if (room.engine.enabledPublishCodecs?.isNotEmpty ?? false) {
+        final rets = await Future.wait<lk_models.TrackInfo>([room.engine.addTrack(req), negotiate()]);
+        trackInfo = rets[0];
+      } else {
+        trackInfo = await room.engine.addTrack(req);
+
+        final transceiverInit = rtc.RTCRtpTransceiverInit(
+          direction: rtc.TransceiverDirection.SendOnly,
+          sendEncodings: encodings,
+        );
+        // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
+        track.transceiver = await room.engine.publisher?.pc.addTransceiver(
+          track: track.mediaStreamTrack,
+          kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
+          init: transceiverInit,
+        );
+
+        await room.engine.negotiate();
+      }
+
+      logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
+
+      track.lastPublishOptions = publishOptions;
+
+      final pub = LocalTrackPublication<LocalAudioTrack>(
+        participant: this,
+        info: trackInfo,
+        track: track,
+      );
+      addTrackPublication(pub);
+
+      // did publish
+      await track.onPublish();
+      await track.processor?.onPublish(room);
+
+      final listener = track.createListener();
+      listener.on((TrackEndedEvent event) async {
+        logger.fine('TrackEndedEvent: ${event.track}');
+        await removePublishedTrack(pub.sid);
+      });
+
+      [events, room.events].emit(LocalTrackPublishedEvent(
+        participant: this,
+        publication: pub,
+      ));
+
+      return pub;
+    } catch (error) {
+      if (shouldStopOnFailure) {
+        try {
+          await track.stop();
+        } catch (stopError) {
+          logger.warning('failed to stop audio track after publish failure: $stopError');
+        }
+      }
+      rethrow;
     }
-
-    logger.fine('publishAudioTrack engine.addTrack response: ${trackInfo}');
-
-    track.lastPublishOptions = publishOptions;
-
-    final pub = LocalTrackPublication<LocalAudioTrack>(
-      participant: this,
-      info: trackInfo,
-      track: track,
-    );
-    addTrackPublication(pub);
-
-    // did publish
-    await track.onPublish();
-    await track.processor?.onPublish(room);
-
-    await room.applyAudioSpeakerSettings();
-
-    final listener = track.createListener();
-    listener.on((TrackEndedEvent event) async {
-      logger.fine('TrackEndedEvent: ${event.track}');
-      await removePublishedTrack(pub.sid);
-    });
-
-    [events, room.events].emit(LocalTrackPublishedEvent(
-      participant: this,
-      publication: pub,
-    ));
-
-    await track.start();
-
-    return pub;
   }
 
   /// Publish a [LocalVideoTrack] to the [Room].
@@ -386,16 +391,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
 
       if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
-        final degradationPreference = publishOptions.degradationPreference ??
-            getDefaultDegradationPreference(
-              track,
-            );
+        final degradationPreference = publishOptions.degradationPreference ?? DegradationPreference.maintainResolution;
         await track.setDegradationPreference(degradationPreference);
       }
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+      } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+        // Apply start bitrate for all video codecs to prevent initial blurriness
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
@@ -487,16 +490,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
 
       if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
-        final degradationPreference = publishOptions.degradationPreference ??
-            getDefaultDegradationPreference(
-              track,
-            );
+        final degradationPreference = publishOptions.degradationPreference ?? DegradationPreference.maintainResolution;
         await track.setDegradationPreference(degradationPreference);
       }
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
-      } else if (isSVCCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+      } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
+        // Apply start bitrate for all video codecs to prevent initial blurriness
         room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
@@ -579,8 +580,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await track.processor?.onUnpublish();
         await track.stopProcessor();
       }
-
-      await room.applyAudioSpeakerSettings();
     }
 
     if (notify) {
@@ -591,17 +590,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     await pub.dispose();
-  }
-
-  DegradationPreference getDefaultDegradationPreference(LocalVideoTrack track) {
-    // a few of reasons we have different default paths:
-    // 1. without this, Chrome seems to aggressively resize the SVC video stating `quality-limitation: bandwidth` even when BW isn't an issue
-    // 2. since we are overriding contentHint to motion (to workaround L1T3 publishing), it overrides the default degradationPreference to `balanced`
-    final VideoDimensions dimensions = track.currentOptions.params.dimensions;
-    if (track.source == TrackSource.screenShareVideo || dimensions.height >= 1080) {
-      return DegradationPreference.maintainResolution;
-    }
-    return DegradationPreference.balanced;
   }
 
   /// Convenience method to unpublish all tracks.
@@ -988,234 +976,6 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     await room.engine.negotiate();
 
     logger.info('published backupCodec $backupCodec for track ${track.sid}, track info ${trackInfo}');
-  }
-}
-
-extension RPCMethods on LocalParticipant {
-  @internal
-  Future<void> publishRpcRequest({
-    required String destinationIdentity,
-    required String requestId,
-    required String method,
-    required String payload,
-    required Duration responseTimeout,
-    int? version,
-  }) async {
-    if (payload.length > kRpcMaxPayloadBytes) {
-      throw RpcError.builtIn(RpcError.requestPayloadTooLarge);
-    }
-
-    if ((room.engine.serverInfo?.version.isNotEmpty ?? false) &&
-        compareVersions(room.engine.serverInfo!.version, '1.8.0') < 0) {
-      throw RpcError.builtIn(RpcError.unsupportedServer);
-    }
-
-    final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      rpcRequest: lk_models.RpcRequest(
-        id: requestId,
-        method: method,
-        payload: payload,
-        responseTimeoutMs: responseTimeout.inMilliseconds,
-        version: version ?? kRpcVesion,
-      ),
-      participantIdentity: identity,
-      destinationIdentities: [destinationIdentity],
-    );
-
-    await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
-  }
-
-  @internal
-  Future<void> publishRpcResponse({
-    required String destinationIdentity,
-    required String requestId,
-    String? payload,
-    lk_models.RpcError? error,
-  }) async {
-    final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      rpcResponse: lk_models.RpcResponse(
-        requestId: requestId,
-        payload: error == null ? payload : null,
-        error: error,
-      ),
-      destinationIdentities: [destinationIdentity],
-      participantIdentity: identity,
-    );
-
-    await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
-  }
-
-  @internal
-  Future<void> publishRpcAck({
-    required String destinationIdentity,
-    required String requestId,
-  }) async {
-    final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      rpcAck: lk_models.RpcAck(
-        requestId: requestId,
-      ),
-      destinationIdentities: [destinationIdentity],
-      participantIdentity: identity,
-    );
-
-    await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
-  }
-
-  @internal
-  void handleIncomingRpcAck(String requestId) {
-    final handler = _pendingAcks[requestId];
-    if (handler != null) {
-      handler(requestId);
-      _pendingAcks.remove(requestId);
-    } else {
-      logger.warning('Ack received for unexpected RPC request $requestId');
-    }
-  }
-
-  @internal
-  void handleIncomingRpcResponse(
-    String requestId,
-    String? payload,
-    RpcError? error,
-  ) {
-    final handler = _pendingResponses[requestId];
-    if (handler != null) {
-      handler(payload, error);
-      _pendingResponses.remove(requestId);
-    } else {
-      logger.warning('Response received for unexpected RPC request $requestId');
-    }
-  }
-
-  @internal
-  Future<void> handleIncomingRpcRequest(
-    String callerIdentity,
-    String requestId,
-    String method,
-    String payload,
-    num responseTimeoutMs,
-    num version,
-  ) async {
-    await publishRpcAck(
-      destinationIdentity: callerIdentity,
-      requestId: requestId,
-    );
-
-    RpcError? responseError;
-    String? responsePayload;
-
-    try {
-      if (version != kRpcVesion) {
-        await publishRpcResponse(
-          destinationIdentity: callerIdentity,
-          requestId: requestId,
-          error: RpcError.builtIn(RpcError.unsupportedVersion).toProto(),
-        );
-        return;
-      }
-
-      final handler = room.rpcHandlers[method];
-      if (handler == null) {
-        await publishRpcResponse(
-          destinationIdentity: callerIdentity,
-          requestId: requestId,
-          error: RpcError.builtIn(RpcError.unsupportedMethod).toProto(),
-        );
-        return;
-      }
-
-      final response = await handler(RpcInvocationData(
-          requestId: requestId,
-          callerIdentity: callerIdentity,
-          payload: payload,
-          responseTimeoutMs: responseTimeoutMs.toInt()));
-
-      if (response.length > kRpcMaxPayloadBytes) {
-        responseError = RpcError.builtIn(RpcError.responsePayloadTooLarge);
-        logger.warning('RPC Response payload too large for $method');
-      } else {
-        responsePayload = response;
-      }
-    } catch (error) {
-      if (error is RpcError) {
-        responseError = error;
-      } else {
-        logger.warning(
-            'Uncaught error returned by RPC handler for ${method}. Returning RpcError.applicationError instead. $error');
-        responseError = RpcError(code: RpcError.applicationError, message: error.toString());
-      }
-    }
-
-    await publishRpcResponse(
-      destinationIdentity: callerIdentity,
-      requestId: requestId,
-      payload: responsePayload,
-      error: responseError?.toProto(),
-    );
-
-    logger.fine('RPC request ${method} handled');
-  }
-
-  /// Initiate an RPC call to a remote participant.
-  /// @param [params] - RPC call parameters.
-  /// @returns A promise that resolves with the response payload or rejects with an error.
-  /// @throws Error on failure. Details in `message`.
-  Future<String> performRpc(PerformRpcParams params) async {
-    final requestId = Uuid().v4();
-    final completer = Completer<String>();
-
-    final maxRoundTripLatency = Duration(seconds: 7);
-    final minEffectiveTimeout = const Duration(milliseconds: 1000);
-
-    try {
-      final effectiveTimeout = Duration(
-        milliseconds: (params.responseTimeoutMs.inMilliseconds - maxRoundTripLatency.inMilliseconds)
-            .clamp(minEffectiveTimeout.inMilliseconds, double.infinity)
-            .toInt(),
-      );
-      await publishRpcRequest(
-        destinationIdentity: params.destinationIdentity,
-        requestId: requestId,
-        method: params.method,
-        payload: params.payload,
-        responseTimeout: effectiveTimeout,
-        version: kRpcVesion,
-      );
-
-      final ackTimer = Timer(maxRoundTripLatency, () {
-        completer.completeError(RpcError.builtIn(RpcError.connectionTimeout));
-        _pendingResponses.remove(requestId);
-      });
-
-      _pendingAcks[requestId] = (id) {
-        ackTimer.cancel();
-      };
-
-      final responseTimer = Timer(params.responseTimeoutMs, () {
-        completer.completeError(RpcError.builtIn(RpcError.responseTimeout));
-        _pendingResponses.remove(requestId);
-      });
-
-      _pendingResponses[requestId] = (String? response, RpcError? error) {
-        responseTimer.cancel();
-        if (error != null) {
-          completer.completeError(error);
-        } else {
-          completer.complete(response!);
-        }
-        ackTimer.cancel();
-        _pendingAcks.remove(requestId);
-      };
-    } catch (e) {
-      if (!completer.isCompleted) {
-        completer.completeError(e);
-      }
-    }
-
-    return completer.future;
   }
 }
 

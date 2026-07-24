@@ -1,0 +1,3 @@
+patch type="fixed" "Apply Android media audio attributes during WebRTC initialization"
+patch type="fixed" "Use initialization audio options as the default Android session policy"
+patch type="fixed" "Avoid sticky Android speaker routing when updating route preference"
