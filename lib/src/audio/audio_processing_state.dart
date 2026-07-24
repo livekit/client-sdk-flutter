@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
+
 import '../track/options.dart';
 
 /// The implementation in effect for an audio processing component.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 enum AudioProcessingImplementation {
   unknown('unknown'),
   disabled('disabled'),
@@ -41,6 +46,9 @@ AudioProcessingMode _modeFromValue(String? value) {
 
 /// The caller's request for one audio processing component: enabled flag plus
 /// implementation mode.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioProcessingComponentRequest {
   const AudioProcessingComponentRequest({
     required this.enabled,
@@ -61,6 +69,9 @@ class AudioProcessingComponentRequest {
 /// three stages of one pipeline: requested (caller intent) -> resolved (the
 /// engine's per-path decision) -> active (live truth), with [effective] as
 /// the merged verdict.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioProcessingComponentState {
   const AudioProcessingComponentState({
     this.requested,
@@ -117,6 +128,9 @@ class AudioProcessingComponentState {
 /// engine-wide, so this reflects what is actually applied (per-component
 /// [AudioProcessingComponentState.effective]) versus what was requested — for
 /// the whole engine, not a single track.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioProcessingState {
   const AudioProcessingState({
     required this.hasAudioProcessingModule,

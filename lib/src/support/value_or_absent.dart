@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
+
 /// Distinguishes an omitted copy value from an explicit replacement value.
 ///
 /// This is useful for `copyWith` methods where a nullable field must be able to
@@ -33,6 +35,9 @@
 /// example.copyWith(name: ValueOrAbsent.value('room')); // set name
 /// example.copyWith(name: ValueOrAbsent.value(null)); // clear name
 /// ```
+///
+/// Experimental: this API may change in a future release.
+@experimental
 sealed class ValueOrAbsent<T> {
   const ValueOrAbsent();
 

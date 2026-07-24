@@ -34,6 +34,9 @@ export 'microphone_mute_mode.dart';
 /// Surfaced by [AudioManager] from real audio-engine lifecycle events on the
 /// native side (iOS and macOS). This is the source of truth for audio activity,
 /// replacing the legacy track-counting state.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioEngineState {
   /// Whether the engine has playout (output / remote audio) enabled.
   final bool isPlayoutEnabled;
@@ -95,10 +98,16 @@ class AudioManager {
 
   /// The current audio engine state, derived from native engine lifecycle
   /// events (iOS/macOS). On platforms without engine events this stays idle.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   AudioEngineState get audioEngineState =>
       AudioEngineState(isPlayoutEnabled: _isPlayoutEnabled, isRecordingEnabled: _isRecordingEnabled);
 
   /// A broadcast stream of audio engine state changes (native engine lifecycle).
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Stream<AudioEngineState> get audioEngineStateStream => _audioEngineStateController.stream;
 
   // externalCallSystem keeps engine-driven configuration (like automatic) but
@@ -177,6 +186,9 @@ class AudioManager {
   ///
   /// Under [AudioSessionManagementMode.externalCallSystem] the mode is
   /// preserved: the configuration is applied without activating the session.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setAudioSessionOptions(AudioSessionOptions options) async {
     await _enterManualMode();
     _options = options;
@@ -224,6 +236,9 @@ class AudioManager {
   /// Prefer setting this before connecting to a room. flutter_webrtc's own
   /// native audio management is always disabled (LiveKit owns the session).
   /// Switching back to automatic mode reapplies LiveKit's managed policy.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setAudioSessionManagementMode(AudioSessionManagementMode mode) async {
     final previousMode = _managementMode;
     _managementMode = mode;
@@ -250,6 +265,9 @@ class AudioManager {
   /// [AudioSessionManagementMode.manual] so LiveKit does not re-activate the
   /// session on its own. Re-apply a configuration with [setAudioSessionOptions],
   /// or hand control back with [setAudioSessionManagementMode].
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> deactivateAudioSession() async {
     if (_managementMode == AudioSessionManagementMode.externalCallSystem) {
       logger.warning('deactivateAudioSession skipped: the external call system owns session activation');
@@ -412,6 +430,9 @@ class AudioManager {
   /// the engine rather than any single track. Use it to verify native state
   /// after a `LocalAudioTrack.setAudioProcessingOptions` request. Returns
   /// `null` when the native side cannot provide it.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<AudioProcessingState?> getAudioProcessingState() async {
     final response = await Native.getAudioProcessingState();
     if (response == null) return null;
