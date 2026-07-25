@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.8.1
+
+* Added: Add agent deployment targeting to token source options
+* Fixed: Android plugin compatibility with AGP 9 built-in Kotlin
+* Fixed: Use maintain-resolution as the default video degradation preference for local video publishing
+
 ## 2.8.0
 
 * Added: Session API support for simpler E2EE setup
