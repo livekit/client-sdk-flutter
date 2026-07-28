@@ -212,8 +212,13 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
     super.dispose();
   }
 
+  // The selected identity is only usable while that participant is still in
+  // the room.
+  String? get _validSelectedIdentity =>
+      widget.room.remoteParticipants.values.any((p) => p.identity == _selectedIdentity) ? _selectedIdentity : null;
+
   Future<void> _send() async {
-    final identity = _selectedIdentity;
+    final identity = _validSelectedIdentity;
     final method = _methodCtl.text.trim();
     final local = widget.room.localParticipant;
     if (identity == null || method.isEmpty || local == null) {
@@ -340,7 +345,12 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
               final remotes = widget.room.remoteParticipants.values.toList();
               final identities = remotes.map((p) => p.identity).toList();
               final currentValue = identities.contains(_selectedIdentity) ? _selectedIdentity : null;
+              // The form field only reads initialValue when its state is
+              // created, so key it by the participant list. Otherwise a
+              // selection can outlive its participant and trip the framework
+              // assert that the value must be among the items.
               return DropdownButtonFormField<String>(
+                key: ValueKey(identities.join(',')),
                 initialValue: currentValue,
                 decoration: const InputDecoration(
                   labelText: 'Destination',
@@ -420,7 +430,7 @@ class _RpcTestSheetState extends State<RpcTestSheet> {
 
   bool _canSend() =>
       !_isSending &&
-      _selectedIdentity != null &&
+      _validSelectedIdentity != null &&
       _methodCtl.text.trim().isNotEmpty &&
       widget.room.localParticipant != null;
 
