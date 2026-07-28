@@ -21,8 +21,23 @@ on:
 
 jobs:
   publish:
+    runs-on: ubuntu-latest
     permissions:
       id-token: write # Required for authentication using OIDC
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    # with:
-    #   working-directory: path/to/package/within/repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Mints a temporary pub.dev token from the GitHub OIDC token and
+      # registers it in the shared pub config used by the publish step.
+      - name: Setup Dart for pub.dev auth
+        uses: dart-lang/setup-dart@v1
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # The exact flutter_webrtc pin is intentional (native WebRTC-SDK pods
+      # must match) but always triggers a pub validation warning, and pub
+      # treats warnings as fatal without --force.
+      - name: Publish
+        run: dart pub publish --force

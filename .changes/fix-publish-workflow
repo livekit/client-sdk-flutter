@@ -1,0 +1,1 @@
+patch type="fixed" "Publish workflow no longer fails on the intentional flutter_webrtc pin warning"
