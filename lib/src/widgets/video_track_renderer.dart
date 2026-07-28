@@ -39,8 +39,16 @@ enum VideoViewMirrorMode {
 }
 
 enum VideoRenderMode {
+  /// Let the SDK choose the rendering backend. Currently resolves to
+  /// [texture] on all platforms, but the resolution may change in a
+  /// future release.
   auto,
+
+  /// Render frames into a Flutter texture.
   texture,
+
+  /// Render with a native platform view. Supported on iOS and macOS,
+  /// other platforms fall back to [texture].
   platformView,
 }
 
@@ -85,7 +93,7 @@ class VideoTrackRenderer extends StatefulWidget {
     this.track, {
     this.fit = VideoViewFit.contain,
     this.mirrorMode = VideoViewMirrorMode.auto,
-    this.renderMode = VideoRenderMode.texture,
+    this.renderMode = VideoRenderMode.auto,
     this.autoDisposeRenderer = true,
     this.cachedRenderer,
     this.autoCenter = true,
