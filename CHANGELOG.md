@@ -22,6 +22,7 @@
 * Fixed: Support platform video rendering on macOS
 * Fixed: Emit a single disconnected event when connecting fails
 * Fixed: Handle switching video render modes without stale renderers
+* Docs: Add AGENTS.md with agent/contributor guidelines
 
 ## 2.8.1
 
