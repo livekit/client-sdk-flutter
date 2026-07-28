@@ -114,10 +114,7 @@ class RpcTestController extends ChangeNotifier {
   // is needed. Skip notifyListeners to avoid rebuild loops with the
   // editing TextField that drives this method.
   void updateStaticResponse(String topic, String response) {
-    final entry = _handlers.firstWhere(
-      (h) => h.topic == topic,
-      orElse: () => throw StateError('topic $topic not registered'),
-    );
+    final entry = _handlers.firstWhere((h) => h.topic == topic);
     entry.staticResponse = response;
   }
 
