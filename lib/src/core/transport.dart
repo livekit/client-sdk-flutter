@@ -29,13 +29,17 @@ import '../utils.dart';
 
 const ddExtensionURI = 'https://aomediacodec.github.io/av1-rtp-spec/#dependency-descriptor-rtp-header-extension';
 
-/* The svc codec (av1/vp9) would use a very low bitrate at the begining and
-increase slowly by the bandwidth estimator until it reach the target bitrate. The
-process commonly cost more than 10 seconds cause subscriber will get blur video at
-the first few seconds. So we use a 70% of target bitrate here as the start bitrate to
-eliminate this issue.
-*/
-const startBitrateForSVC = 0.7;
+/*
+ * Video codecs use a very low bitrate at the beginning and increase slowly by
+ * the bandwidth estimator until they reach the target bitrate. The process commonly
+ * costs more than 10 seconds causing subscribers to get blurry video at the first
+ * few seconds. We use x-google-start-bitrate to hint the BWE to start higher.
+ *
+ * Why 90%: Gives ~10% headroom for bandwidth estimation while starting close to target.
+ * Why same for all codecs: Target bitrate already accounts for codec efficiency
+ * (e.g., users set lower targets for VP9/AV1 knowing they're more efficient).
+ */
+const startBitrateMultiplier = 0.9;
 
 class TrackBitrateInfo {
   String? cid;
@@ -204,7 +208,7 @@ class Transport extends Disposable {
           for (var fmtp in media['fmtp']) {
             if (fmtp['payload'] == codecPayload) {
               if (!(fmtp['config'] as String).contains('x-google-start-bitrate')) {
-                fmtp['config'] += ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateForSVC).toInt()}';
+                fmtp['config'] += ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateMultiplier).toInt()}';
               }
               break;
             }

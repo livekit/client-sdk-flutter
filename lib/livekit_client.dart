@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'src/types/rpc.dart' show kRpcVersion;
+
+export 'src/connection_check/checks/checker.dart';
+export 'src/connection_check/checks/cloud_region.dart' show RegionStats;
+export 'src/connection_check/checks/connection_protocol.dart' show ProtocolStats;
+export 'src/connection_check/connection_check.dart';
+export 'src/connection_check/events.dart';
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/core/room_preconnect.dart';
@@ -23,7 +30,7 @@ export 'src/e2ee/key_provider.dart';
 export 'src/e2ee/options.dart';
 export 'src/events.dart';
 export 'src/exceptions.dart';
-export 'src/extensions.dart' show WidgetsBindingCompatible;
+export 'src/extensions.dart' show ClientProtocolVersionExt, WidgetsBindingCompatible;
 export 'src/hardware/hardware.dart';
 export 'src/livekit.dart';
 export 'src/logger.dart';
@@ -41,12 +48,15 @@ export 'src/agent/room_agent.dart';
 export 'src/participant/local.dart';
 export 'src/participant/participant.dart';
 export 'src/participant/remote.dart' hide ParticipantCreationResult;
+export 'src/audio/audio_manager.dart';
 export 'src/audio/audio_frame_capture.dart' show AudioFormat, AudioFrame, AudioFrameCallback, AudioRendererOptions;
+export 'src/audio/audio_session.dart';
 export 'src/preconnect/pre_connect_audio_buffer.dart';
 export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
 export 'src/support/platform.dart';
+export 'src/audio/audio_processing_state.dart';
 export 'src/track/audio_visualizer.dart';
 export 'src/track/local/audio.dart';
 export 'src/track/local/local.dart';
@@ -80,3 +90,8 @@ export 'src/token_source/custom.dart';
 export 'src/token_source/caching.dart';
 export 'src/token_source/sandbox.dart';
 export 'src/token_source/jwt.dart';
+
+/// Misspelled alias for [kRpcVersion]. Kept for backwards compatibility with code
+/// that referenced the original typo.
+@Deprecated('Use kRpcVersion instead — the original was misspelled.')
+final int kRpcVesion = kRpcVersion;

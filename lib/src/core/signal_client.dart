@@ -20,7 +20,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -33,6 +32,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
@@ -163,6 +163,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         headers: {
           'Authorization': 'Bearer $token',
         },
+        networkOptions: roomOptions.networkOptions,
       );
       future = future.timeout(connectOptions.timeouts.connection);
       _ws = await future;
@@ -170,6 +171,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
     } catch (socketError) {
+      if (socketError is CertificatePinningException) {
+        // In reconnect mode the engine owns state and event emission,
+        // emitting here would race its reconnect handling.
+        if (!reconnect) {
+          _connectionState = ConnectionState.disconnected;
+          events.emit(SignalDisconnectedEvent(reason: DisconnectReason.signalingConnectionFailure));
+        }
+        rethrow;
+      }
+
       // Skip validation if reconnect mode
       if (reconnect) rethrow;
 
@@ -186,11 +197,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           forceSecure: rtcUri.isSecureScheme,
         );
 
-        final validateResponse = await http.get(
+        final validateResponse = await sdkHttpGet(
           validateUri,
           headers: {
             'Authorization': 'Bearer $token',
           },
+          networkOptions: roomOptions.networkOptions,
         );
         if (validateResponse.statusCode != 200) {
           finalError = ConnectException(validateResponse.body,

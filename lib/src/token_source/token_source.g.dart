@@ -16,6 +16,7 @@ TokenRequestOptions _$TokenRequestOptionsFromJson(Map<String, dynamic> json) => 
       ),
       agentName: json['agentName'] as String?,
       agentMetadata: json['agentMetadata'] as String?,
+      agentDeployment: json['agentDeployment'] as String?,
     );
 
 Map<String, dynamic> _$TokenRequestOptionsToJson(TokenRequestOptions instance) => <String, dynamic>{
@@ -26,6 +27,7 @@ Map<String, dynamic> _$TokenRequestOptionsToJson(TokenRequestOptions instance) =
       if (instance.participantAttributes case final value?) 'participantAttributes': value,
       if (instance.agentName case final value?) 'agentName': value,
       if (instance.agentMetadata case final value?) 'agentMetadata': value,
+      if (instance.agentDeployment case final value?) 'agentDeployment': value,
     };
 
 TokenSourceRequest _$TokenSourceRequestFromJson(Map<String, dynamic> json) => TokenSourceRequest(

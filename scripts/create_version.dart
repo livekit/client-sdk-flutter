@@ -23,7 +23,7 @@ import 'dart:io';
 ///
 /// Where:
 /// - level: One of [patch, minor, major] indicating the version bump level
-/// - kind: One of [added, changed, fixed, refactor, performance, security, deprecated, removed, docs, chore]
+/// - kind: One of [added, changed, fixed, refactor, performance, security, deprecated, removed, docs]
 /// - description: A detailed description of the change
 ///
 /// Examples:
@@ -103,6 +103,10 @@ class Change {
   });
 }
 
+String _allowedChangeKinds() => ChangeKind.values.map((e) => e.name).join(', ');
+
+String _allowedChangeLevels() => ChangeLevel.values.map((e) => e.name).join(', ');
+
 class SemanticVersion {
   final int major;
   final int minor;
@@ -154,37 +158,53 @@ List<Change> parseChanges() {
   }
 
   final changes = <Change>[];
+  final errors = <String>[];
   final files = changesDir.listSync().whereType<File>().where((f) => !f.path.split('/').last.startsWith('.'));
 
   for (final file in files) {
     final content = file.readAsStringSync();
     final lines = content.split('\n');
 
-    for (final line in lines) {
+    for (var i = 0; i < lines.length; i++) {
+      final rawLine = lines[i];
+      final line = rawLine.trim();
+      final location = '${file.path}:${i + 1}';
+
       // Skip empty lines
-      if (line.trim().isEmpty) continue;
+      if (line.isEmpty) continue;
 
       // Parse format: level type="kind" "description"
-      final parts = line.split(RegExp(r'\s+'));
-      if (parts.length < 3) continue;
+      final match = RegExp(r'^(\w+)\s+type="([^"]+)"\s+"([^"]+)"$').firstMatch(line);
+      if (match == null) {
+        errors.add('$location: expected `level type="kind" "description"`, found `$rawLine`');
+        continue;
+      }
 
       // Extract level
-      final level = ChangeLevel.fromString(parts[0]);
-      if (level == null) continue;
+      final levelName = match.group(1)!;
+      final level = ChangeLevel.fromString(levelName);
+      if (level == null) {
+        errors.add('$location: unsupported level `$levelName`; expected one of: ${_allowedChangeLevels()}');
+        continue;
+      }
 
       // Extract type from type="kind" format
-      final typeMatch = RegExp(r'type="(\w+)"').firstMatch(parts[1]);
-      if (typeMatch == null) continue;
-      final kind = ChangeKind.fromString(typeMatch.group(1)!);
-      if (kind == null) continue;
+      final kindName = match.group(2)!;
+      final kind = ChangeKind.fromString(kindName);
+      if (kind == null) {
+        errors.add('$location: unsupported type `$kindName`; expected one of: ${_allowedChangeKinds()}');
+        continue;
+      }
 
       // Extract description from the last quoted string
-      final descMatch = RegExp(r'"([^"]+)"$').firstMatch(line);
-      if (descMatch == null) continue;
-      final description = descMatch.group(1)!;
+      final description = match.group(3)!;
 
       changes.add(Change(level: level, kind: kind, description: description));
     }
+  }
+
+  if (errors.isNotEmpty) {
+    throw Exception('Invalid change entries:\n${errors.map((e) => '  - $e').join('\n')}');
   }
 
   if (changes.isEmpty) {

@@ -41,6 +41,47 @@ enum ProtocolVersion {
   v16, // Supports moving (full participant move)
 }
 
+/// Client-to-client protocol version advertised in `ParticipantInfo.clientProtocol`
+/// and the `client_protocol` join URL query parameter. Governs peer-to-peer feature
+/// negotiation; distinct from [ProtocolVersion], which tracks the signaling protocol.
+///
+/// Each variant's integer wire value is sent on the wire as `client_protocol`.
+enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
+  /// Spec: `CLIENT_PROTOCOL_DEFAULT`. Legacy client — only supports RPC v1.
+  v0(0),
+
+  /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
+  v1(1);
+
+  const ClientProtocolVersion(this.wireValue);
+
+  /// Integer value used in `ParticipantInfo.clientProtocol` and the join URL.
+  final int wireValue;
+
+  /// The highest version this SDK build supports. Used as the default for
+  /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
+  /// "the current SDK".
+  static const ClientProtocolVersion current = v1;
+
+  /// Maps wire values to the highest protocol version this SDK can use.
+  static ClientProtocolVersion fromIntValue(int? value) {
+    if (value == null) return v0;
+    if (value >= v1.wireValue) return v1;
+    return v0;
+  }
+
+  @override
+  int compareTo(ClientProtocolVersion other) => wireValue.compareTo(other.wireValue);
+
+  bool operator <(ClientProtocolVersion other) => compareTo(other) < 0;
+
+  bool operator <=(ClientProtocolVersion other) => compareTo(other) <= 0;
+
+  bool operator >(ClientProtocolVersion other) => compareTo(other) > 0;
+
+  bool operator >=(ClientProtocolVersion other) => compareTo(other) >= 0;
+}
+
 /// Connection state type used throughout the SDK.
 enum ConnectionState {
   disconnected,
@@ -232,4 +273,51 @@ class ParticipantTrackPermission {
     this.allTracksAllowed,
     this.allowedTrackSids,
   );
+}
+
+/// Controls how a video view's logical size is scaled to physical pixels when
+/// computing adaptive-stream dimensions. Mirrors the JS SDK's `pixelDensity`
+/// option (`number | 'screen'`).
+///
+/// Server layers are sized in physical pixels, so on high-density (retina)
+/// displays the logical view size under-represents the pixels needed. Set on a
+/// view via [VideoTrackRenderer]; the largest result is requested across all
+/// views attached to the track.
+class AdaptiveStreamPixelDensity {
+  /// Upper bound applied to the resolved density to keep bandwidth in check.
+  static const maxDensity = 3.0;
+
+  /// Fixed multiplier, or `null` to use the view's device pixel ratio ([auto]).
+  final double? value;
+
+  const AdaptiveStreamPixelDensity._(this.value);
+
+  /// Use the view's actual device pixel ratio, read via `MediaQuery`.
+  /// Equivalent to the JS SDK's `'screen'` setting. Capped at [maxDensity].
+  static const auto = AdaptiveStreamPixelDensity._(null);
+
+  /// A positive fixed pixel-density multiplier (fractional allowed, e.g. `1.5`,
+  /// `2.0`, `2.75`). The effective value is capped at [maxDensity] (3x) when
+  /// resolved.
+  const AdaptiveStreamPixelDensity.fixed(double density)
+      : assert(density > 0, 'density must be positive'),
+        value = density;
+
+  /// Resolves the effective multiplier, capped at [maxDensity]. For [auto],
+  /// falls back to the supplied [devicePixelRatio].
+  double resolve(double devicePixelRatio) {
+    final density = value ?? devicePixelRatio;
+    if (density.isNaN || density <= 0) return 1.0;
+    return density > maxDensity ? maxDensity : density;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is AdaptiveStreamPixelDensity && other.value == value);
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => value == null ? 'AdaptiveStreamPixelDensity.auto' : 'AdaptiveStreamPixelDensity.fixed($value)';
 }

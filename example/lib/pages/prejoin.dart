@@ -520,7 +520,7 @@ class _PreJoinPageState extends State<PreJoinPage> {
                             ),
                           ),
                         ),
-                      const Text('JOIN'),
+                      const Text('Join'),
                     ],
                   ),
                 ),

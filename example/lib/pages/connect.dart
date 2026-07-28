@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_example/pages/connection_check.dart';
 import 'package:livekit_example/pages/prejoin.dart';
 import 'package:livekit_example/widgets/text_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -160,6 +161,20 @@ class _ConnectPageState extends State<ConnectPage> {
     }
   }
 
+  Future<void> _connectionCheck(BuildContext ctx) async {
+    // Save URL and Token for convenience
+    await _writePrefs();
+    if (!ctx.mounted) return;
+    await Navigator.push<void>(
+      ctx,
+      MaterialPageRoute(
+          builder: (_) => ConnectionCheckPage(
+                url: _uriCtrl.text,
+                token: _tokenCtrl.text,
+              )),
+    );
+  }
+
   void _setSimulcast(bool? value) async {
     if (value == null || _simulcast == value) return;
     setState(() {
@@ -211,7 +226,7 @@ class _ConnectPageState extends State<ConnectPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 70),
+                    padding: const EdgeInsets.fromLTRB(64, 0, 64, 70),
                     child: SvgPicture.asset(
                       'images/logo-dark.svg',
                     ),
@@ -352,9 +367,13 @@ class _ConnectPageState extends State<ConnectPage> {
                               ),
                             ),
                           ),
-                        const Text('CONNECT'),
+                        const Text('Connect'),
                       ],
                     ),
+                  ),
+                  TextButton(
+                    onPressed: _busy ? null : () => unawaited(_connectionCheck(context)),
+                    child: const Text('Connection Check'),
                   ),
                 ],
               ),
