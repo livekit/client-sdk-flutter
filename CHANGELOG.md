@@ -11,6 +11,7 @@
 * Added: Microphone mute mode control on iOS/macOS
 * Added: Runtime audio processing controls for local audio tracks
 * Added: Widget Placeholder added for VideoTrackRenderer
+* Changed: Default VideoTrackRenderer renderMode to auto, which currently resolves to texture rendering
 * Fixed: Apply Android media audio attributes during WebRTC initialization
 * Fixed: Use initialization audio options as the default Android session policy
 * Fixed: Avoid sticky Android speaker routing when updating route preference
