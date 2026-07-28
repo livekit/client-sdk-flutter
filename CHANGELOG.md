@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2.9.0
+
+* Added: Add native certificate pinning for SDK-owned connections
+* Added: Add RPC v2 (data-stream-based payloads) with v1 fallback
+* Added: Audio engine availability and externalCallSystem mode for CallKit
+* Added: AudioManager audio session options with engine-driven native lifecycle and platform routing controls
+* Added: Add ConnectionCheck utility for diagnosing connection issues (port of the client-sdk-js connection helper)
+* Added: Audio frame capture on Linux/Windows
+* Added: Microphone mute mode control on iOS/macOS
+* Added: Runtime audio processing controls for local audio tracks
+* Added: Widget Placeholder added for VideoTrackRenderer
+* Changed: Default VideoTrackRenderer renderMode to auto, which currently resolves to texture rendering
+* Fixed: Apply Android media audio attributes during WebRTC initialization
+* Fixed: Use initialization audio options as the default Android session policy
+* Fixed: Avoid sticky Android speaker routing when updating route preference
+* Fixed: Clean up local audio tracks when recording start fails
+* Fixed: Throw platformUnavailable when runtime audio processing is unsupported
+* Fixed: Apply create-time audio processing when local recording is prepared
+* Fixed: Remove non-public buttonPressed: selector from broadcast picker activation
+* Fixed: Allow selectAudioOutput on Android
+* Fixed: Support platform video rendering on macOS
+* Fixed: Emit a single disconnected event when connecting fails
+* Fixed: Handle switching video render modes without stale renderers
+* Docs: Add AGENTS.md with agent/contributor guidelines
+
+## 2.8.1
+
+* Added: Add agent deployment targeting to token source options
+* Fixed: Android plugin compatibility with AGP 9 built-in Kotlin
+* Fixed: Use maintain-resolution as the default video degradation preference for local video publishing
+
 ## 2.8.0
 
 * Added: Session API support for simpler E2EE setup
