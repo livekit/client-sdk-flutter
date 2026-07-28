@@ -1062,7 +1062,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
       mimeType: info.mimeType,
       topic: info.topic,
       timestamp: Int64(timestamp),
-      totalLength: Int64(options?.totalSize ?? 0),
+      totalLength: options?.totalSize != null ? Int64(options!.totalSize!) : null,
       attributes: options?.attributes.entries,
       textHeader: lk_models.DataStream_TextHeader(
         version: options?.version,
