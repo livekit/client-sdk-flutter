@@ -1,0 +1,1 @@
+patch type="changed" "Default VideoTrackRenderer renderMode to auto, which currently resolves to texture rendering"
