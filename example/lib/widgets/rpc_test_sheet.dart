@@ -28,8 +28,13 @@ class RpcHandlerEntry {
 }
 
 class RpcTestController extends ChangeNotifier {
+  // Oldest invocations are dropped past this point so a chatty peer cannot
+  // grow the log without bound.
+  static const _maxInvocationsPerHandler = 200;
+
   final List<RpcHandlerEntry> _handlers = [];
   Room? _room;
+  bool _disposed = false;
 
   List<RpcHandlerEntry> get handlers => List.unmodifiable(_handlers);
 
@@ -60,21 +65,33 @@ class RpcTestController extends ChangeNotifier {
     }
 
     final entry = RpcHandlerEntry(topic: topic, staticResponse: staticResponse);
+    try {
+      room.registerRpcMethod(topic, (data) async {
+        final bytes = utf8.encode(data.payload).length;
+        entry.invocations.insert(
+          0,
+          RpcInvocationRecord(
+            timestamp: DateTime.now(),
+            byteLength: bytes,
+            payload: data.payload,
+            callerIdentity: data.callerIdentity,
+          ),
+        );
+        if (entry.invocations.length > _maxInvocationsPerHandler) {
+          entry.invocations.removeLast();
+        }
+        if (!_disposed) {
+          notifyListeners();
+        }
+        return entry.staticResponse;
+      });
+    } on Exception {
+      // The room throws when another component already registered this
+      // method. Adding a card for it would let the tester unregister a
+      // handler it does not own.
+      return false;
+    }
     _handlers.add(entry);
-    room.registerRpcMethod(topic, (data) async {
-      final bytes = utf8.encode(data.payload).length;
-      entry.invocations.insert(
-        0,
-        RpcInvocationRecord(
-          timestamp: DateTime.now(),
-          byteLength: bytes,
-          payload: data.payload,
-          callerIdentity: data.callerIdentity,
-        ),
-      );
-      notifyListeners();
-      return entry.staticResponse;
-    });
     notifyListeners();
     return true;
   }
@@ -106,6 +123,8 @@ class RpcTestController extends ChangeNotifier {
 
   @override
   void dispose() {
+    // The flag keeps in flight RPC handlers from notifying after disposal.
+    _disposed = true;
     _unregisterAll();
     _room = null;
     super.dispose();
