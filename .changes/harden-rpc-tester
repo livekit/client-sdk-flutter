@@ -1,1 +1,1 @@
-patch type="fixed" "Example RPC tester: safe handler registration, capped invocation log, and valid destination selection after participants leave"
+patch type="fixed" "Harden the example RPC tester"
