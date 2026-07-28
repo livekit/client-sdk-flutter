@@ -1150,7 +1150,7 @@ extension DataStreamParticipantMethods on LocalParticipant {
     );
 
     final header = lk_models.DataStream_Header(
-      totalLength: Int64(info.size),
+      totalLength: options?.totalSize != null ? Int64(options!.totalSize!) : null,
       mimeType: info.mimeType,
       streamId: streamId,
       topic: options?.topic,
