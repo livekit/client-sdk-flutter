@@ -160,26 +160,35 @@ class ScreenSelectDialog extends Dialog {
   final List<StreamSubscription<rtc.DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
   Timer? _timer;
+  bool _disposed = false;
+
+  /// Idempotent so it can run again when the route is disposed, which covers
+  /// dismissals that bypass the buttons like a barrier tap or the back button.
+  void _disposeResources() {
+    _disposed = true;
+    _timer?.cancel();
+    for (final element in _subscriptions) {
+      unawaited(element.cancel());
+    }
+    _subscriptions.clear();
+  }
 
   Future<void> _ok(BuildContext context) async {
-    _timer?.cancel();
-    for (var element in _subscriptions) {
-      await element.cancel();
-    }
+    _disposeResources();
     Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
   Future<void> _cancel(BuildContext context) async {
-    _timer?.cancel();
-    for (var element in _subscriptions) {
-      await element.cancel();
-    }
+    _disposeResources();
     Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
     try {
       final sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
+      // The dialog may have been dismissed while getSources was in flight,
+      // starting the refresh timer now would leak it.
+      if (_disposed) return;
       for (var element in sources) {
         if (kDebugMode) {
           print('name: ${element.name}, id: ${element.id}, type: ${element.type}');
@@ -204,6 +213,13 @@ class ScreenSelectDialog extends Dialog {
 
   @override
   Widget build(BuildContext context) {
+    return _DisposeOnUnmount(
+      onDispose: _disposeResources,
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     return Material(
       type: MaterialType.transparency,
       child: Center(
@@ -346,4 +362,27 @@ class ScreenSelectDialog extends Dialog {
       )),
     );
   }
+}
+
+/// Runs [onDispose] when the widget leaves the tree, so the dialog cleans up
+/// no matter how its route is popped.
+class _DisposeOnUnmount extends StatefulWidget {
+  const _DisposeOnUnmount({required this.onDispose, required this.child});
+
+  final VoidCallback onDispose;
+  final Widget child;
+
+  @override
+  State<_DisposeOnUnmount> createState() => _DisposeOnUnmountState();
+}
+
+class _DisposeOnUnmountState extends State<_DisposeOnUnmount> {
+  @override
+  void dispose() {
+    widget.onDispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
