@@ -107,6 +107,16 @@ jobs:
           else
             xcodebuild -downloadPlatform iOS
           fi
+      # The Flutter tool copies plugins with SwiftPM plugin dependencies into the
+      # app build directory with rsync. Since the example lives inside the plugin
+      # repo that copy would recurse into its own output, so point the build
+      # directory outside the repository.
+      - name: Move example build dir outside the repository
+        working-directory: ./example
+        run: |
+          mkdir -p "$RUNNER_TEMP/example-build"
+          rm -rf build
+          ln -s "$RUNNER_TEMP/example-build" build
       - name: Build for iOS
         working-directory: ./example
         run: flutter build ios --release --no-codesign
@@ -131,6 +141,13 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
+      # See the iOS job, same flutter tool rsync recursion workaround.
+      - name: Move example build dir outside the repository
+        working-directory: ./example
+        run: |
+          mkdir -p "$RUNNER_TEMP/example-build"
+          rm -rf build
+          ln -s "$RUNNER_TEMP/example-build" build
       - name: Build for macOS
         working-directory: ./example
         run: flutter build macos --release
