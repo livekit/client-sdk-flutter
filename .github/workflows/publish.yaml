@@ -60,7 +60,7 @@ jobs:
           if [ "$status" -eq 0 ]; then
             exit 0
           fi
-          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'flutter_webrtc' || true)
+          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'dependency on "flutter_webrtc" should allow more than one version' || true)
           if echo "$output" | grep -q '^Package has 1 warning\.$' && [ -z "$unexpected" ]; then
             echo "Only the expected flutter_webrtc pin warning was found, continuing."
             exit 0
