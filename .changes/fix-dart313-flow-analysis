@@ -1,1 +1,0 @@
-patch type="fixed" "Fix compile errors on Dart 3.13 where nullable publish options are no longer promoted across await"
