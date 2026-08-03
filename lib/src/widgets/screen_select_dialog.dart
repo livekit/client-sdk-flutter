@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 class ThumbnailWidget extends StatefulWidget {
   const ThumbnailWidget({Key? key, required this.source, required this.selected, required this.onTap})
@@ -118,6 +119,33 @@ class ScreenSelectDialog extends Dialog {
     _subscriptions.add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
       _stateSetter?.call(() {});
     }));
+  }
+
+  /// Shows the picker and returns the id of the selected capture source, or
+  /// null if the user cancelled. Pass the returned id to
+  /// [ScreenShareCaptureOptions.sourceId] when creating a screen share track.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  static Future<String?> show(
+    BuildContext context, {
+    String titleText = 'Choose what to share',
+    String screenTabText = 'Entire Screen',
+    String windowTabText = 'Window',
+    String cancelText = 'Cancel',
+    String shareText = 'Share',
+  }) async {
+    final source = await showDialog<rtc.DesktopCapturerSource>(
+      context: context,
+      builder: (context) => ScreenSelectDialog(
+        titleText: titleText,
+        screenTabText: screenTabText,
+        windowTabText: windowTabText,
+        cancelText: cancelText,
+        shareText: shareText,
+      ),
+    );
+    return source?.id;
   }
 
   final String titleText;
