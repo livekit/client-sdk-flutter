@@ -31456,7 +31456,7 @@ k.toString
 l.m(0,"protocol",k)
 l.m(0,"client_protocol",B.e.j(b.d.c))
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.9.0")
+l.m(0,"version","2.10.0")
 l.m(0,"network",m)
 if(o!=null){i=A.u(i,i)
 k=o.a
