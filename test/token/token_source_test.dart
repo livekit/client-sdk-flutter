@@ -16,10 +16,10 @@ import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/src/token_source/custom.dart';
+import 'package:livekit_client/src/token_source/development.dart';
 import 'package:livekit_client/src/token_source/jwt.dart';
 import 'package:livekit_client/src/token_source/literal.dart';
 import 'package:livekit_client/src/token_source/room_configuration.dart';
-import 'package:livekit_client/src/token_source/sandbox.dart';
 import 'package:livekit_client/src/token_source/token_source.dart';
 
 void main() {
@@ -248,8 +248,18 @@ void main() {
     });
   });
 
+  group('DevelopmentTokenSource', () {
+    test('sanitizes id and uses default base URL', () {
+      final source = DevelopmentTokenSource(id: '  sandbox-123  ');
+
+      expect(source.uri.toString(), 'https://cloud-api.livekit.io/api/v2/sandbox/connection-details');
+      expect(source.headers['X-Sandbox-ID'], 'sandbox-123');
+    });
+  });
+
   group('SandboxTokenSource', () {
-    test('sanitizes sandbox id and uses default base URL', () {
+    test('deprecated alias keeps the old constructor shape', () {
+      // ignore: deprecated_member_use_from_same_package
       final source = SandboxTokenSource(sandboxId: '  sandbox-123  ');
 
       expect(source.uri.toString(), 'https://cloud-api.livekit.io/api/v2/sandbox/connection-details');
