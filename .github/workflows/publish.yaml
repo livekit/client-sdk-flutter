@@ -21,8 +21,52 @@ on:
 
 jobs:
   publish:
+    runs-on: ubuntu-latest
     permissions:
+      contents: read # Checkout needs this back once any permission is declared
       id-token: write # Required for authentication using OIDC
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    # with:
-    #   working-directory: path/to/package/within/repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check tag matches pubspec version
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match pubspec version $version"
+            exit 1
+          fi
+
+      # Mints a temporary pub.dev token from the GitHub OIDC token and
+      # registers it in the shared pub config used by the publish step.
+      - name: Setup Dart for pub.dev auth
+        uses: dart-lang/setup-dart@v1
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # The exact flutter_webrtc pin is intentional (native WebRTC-SDK pods
+      # must match) but always triggers a pub validation warning, and pub
+      # treats any warning as fatal without --force. Publishing needs --force
+      # because of that, so this step makes sure the pin warning is the only
+      # validation issue before the forced publish runs.
+      - name: Validate package, only the flutter_webrtc pin warning is allowed
+        run: |
+          set +e
+          output=$(dart pub publish --dry-run 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'dependency on "flutter_webrtc" should allow more than one version' || true)
+          if echo "$output" | grep -q '^Package has 1 warning\.$' && [ -z "$unexpected" ]; then
+            echo "Only the expected flutter_webrtc pin warning was found, continuing."
+            exit 0
+          fi
+          echo "Validation found issues other than the expected flutter_webrtc pin warning, refusing to publish."
+          exit 1
+
+      - name: Publish
+        run: dart pub publish --force
