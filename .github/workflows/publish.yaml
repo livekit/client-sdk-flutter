@@ -23,6 +23,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
+      contents: read # Checkout needs this back once any permission is declared
       id-token: write # Required for authentication using OIDC
     steps:
       - name: Checkout

@@ -60,4 +60,4 @@ Most regressions live in `lib/src/core/` (`room.dart`, `engine.dart`, `signal_cl
 
 ## Releases
 
-Every PR needs a changeset file in `.changes/` (format: `patch|minor|major type="fixed|added|changed|..." "description"`); CI checks for it and runs `dart-apitool` against `main` to require a `major` changeset for breaking public-API changes. Releases are tag-driven (`vX.Y.Z`) and publish to pub.dev.
+Every PR that affects the published package needs a changeset file in `.changes/` (format: `patch|minor|major type="fixed|added|changed|..." "description"`); CI checks for it and runs `dart-apitool` against `main` to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling are exempt, a changeset would put noise in the user facing changelog. Releases are tag-driven (`vX.Y.Z`) and publish to pub.dev.
