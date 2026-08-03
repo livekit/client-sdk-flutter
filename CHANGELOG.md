@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.10.0
+
+* Added: Swift Package Manager support for iOS and macOS. CocoaPods remains fully supported.
+* Added: Add ScreenSelectDialog.show and Hardware.requestCapturePermission so apps can start screen share without importing flutter_webrtc
+* Fixed: Omit data stream totalLength when size is unknown
+* Fixed: Fix compile errors on Dart 3.13 where nullable publish options are no longer promoted across await
+* Fixed: Harden the example RPC tester
+
 ## 2.9.0
 
 * Added: Add native certificate pinning for SDK-owned connections

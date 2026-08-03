@@ -1,1 +1,0 @@
-patch type="added" "Add ScreenSelectDialog.show and Hardware.requestCapturePermission so apps can start screen share without importing flutter_webrtc"
