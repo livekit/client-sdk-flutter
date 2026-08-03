@@ -28,6 +28,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Check tag matches pubspec version
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match pubspec version $version"
+            exit 1
+          fi
+
       # Mints a temporary pub.dev token from the GitHub OIDC token and
       # registers it in the shared pub config used by the publish step.
       - name: Setup Dart for pub.dev auth
@@ -38,6 +46,26 @@ jobs:
 
       # The exact flutter_webrtc pin is intentional (native WebRTC-SDK pods
       # must match) but always triggers a pub validation warning, and pub
-      # treats warnings as fatal without --force.
+      # treats any warning as fatal without --force. Publishing needs --force
+      # because of that, so this step makes sure the pin warning is the only
+      # validation issue before the forced publish runs.
+      - name: Validate package, only the flutter_webrtc pin warning is allowed
+        run: |
+          set +e
+          output=$(dart pub publish --dry-run 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'flutter_webrtc' || true)
+          if echo "$output" | grep -q '^Package has 1 warning\.$' && [ -z "$unexpected" ]; then
+            echo "Only the expected flutter_webrtc pin warning was found, continuing."
+            exit 0
+          fi
+          echo "Validation found issues other than the expected flutter_webrtc pin warning, refusing to publish."
+          exit 1
+
       - name: Publish
         run: dart pub publish --force
