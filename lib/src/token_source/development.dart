@@ -17,7 +17,7 @@ import 'endpoint.dart';
 /// A token source that queries LiveKit's development token server for development and testing.
 ///
 /// This token source connects to LiveKit Cloud's
-/// [development token server](https://cloud.livekit.io/projects/p_/sandbox/templates/token-server),
+/// [development token server](https://docs.livekit.io/frontends/build/authentication/sandbox-token-server/),
 /// which is perfect for quick prototyping and getting started with LiveKit development.
 ///
 /// **Warning:** This token source is **insecure** and should **never** be used in production.
