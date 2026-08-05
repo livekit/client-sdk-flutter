@@ -1107,14 +1107,13 @@ extension RoomPrivateMethods on Room {
     // consumed by _setUpSignalListeners) — it never appears on the Room's
     // [events], so listen where it actually fires or the future returned
     // here never completes.
-    final cancelRoomUpdateListen =
-        engine.signalClient.events.on<SignalRoomUpdateEvent>((event) {
+    final cancelRoomUpdateListen = engine.signalClient.events.on<SignalRoomUpdateEvent>((event) {
       if (event.room.sid.isNotEmpty && !completer.isCompleted) {
         completer.complete(event.room.sid);
       }
     });
 
-    events.once<RoomDisconnectedEvent>((event) {
+    final cancelDisconnectListen = events.once<RoomDisconnectedEvent>((event) {
       if (!completer.isCompleted) {
         completer.complete('');
       }
@@ -1126,7 +1125,10 @@ extension RoomPrivateMethods on Room {
       completer.complete(_roomInfo!.sid);
     }
 
-    return completer.future.whenComplete(cancelRoomUpdateListen);
+    return completer.future.whenComplete(() {
+      cancelRoomUpdateListen();
+      cancelDisconnectListen?.call();
+    });
   }
 }
 

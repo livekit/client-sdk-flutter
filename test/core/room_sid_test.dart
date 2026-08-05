@@ -58,8 +58,7 @@ void main() {
 
   /// Connects the container's room, answering with [joinResp] instead of the
   /// default join response.
-  Future<void> connectWith(
-      E2EContainer container, lk_rtc.SignalResponse joinResp) async {
+  Future<void> connectWith(E2EContainer container, lk_rtc.SignalResponse joinResp) async {
     final connectFuture = container.room.connect(exampleUri, token);
     Future.delayed(const Duration(milliseconds: 1), () {
       container.wsConnector.onData(joinResp.writeToBuffer());
@@ -79,8 +78,7 @@ void main() {
   });
 
   group('Room.getSid', () {
-    test('returns immediately when the join response carried the sid',
-        () async {
+    test('returns immediately when the join response carried the sid', () async {
       await connectWith(container, joinResponse);
 
       expect(await container.room.getSid(), 'room_sid');
@@ -95,8 +93,7 @@ void main() {
       expect(await sidFuture, 'RM_issued_later');
     });
 
-    test('resolves for a caller arriving after the RoomUpdate landed',
-        () async {
+    test('resolves for a caller arriving after the RoomUpdate landed', () async {
       await connectWith(container, emptySidJoinResponse);
 
       container.wsConnector.onData(sidRoomUpdateResponse.writeToBuffer());
