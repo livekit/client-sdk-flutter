@@ -1125,9 +1125,9 @@ extension RoomPrivateMethods on Room {
       completer.complete(_roomInfo!.sid);
     }
 
-    return completer.future.whenComplete(() {
-      cancelRoomUpdateListen();
-      cancelDisconnectListen?.call();
+    return completer.future.whenComplete(() async {
+      await cancelRoomUpdateListen();
+      await cancelDisconnectListen?.call();
     });
   }
 }
