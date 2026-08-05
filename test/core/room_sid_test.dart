@@ -102,6 +102,19 @@ void main() {
       expect(await sidFuture, '');
     });
 
+    test('repeated calls do not accumulate dispose hooks', () async {
+      await connectWith(container, emptySidJoinResponse);
+      final hooksBefore = container.room.disposeFuncCount;
+
+      for (var i = 0; i < 3; i++) {
+        final sidFuture = container.room.getSid();
+        container.wsConnector.onData(sidRoomUpdateResponse.writeToBuffer());
+        await sidFuture;
+      }
+
+      expect(container.room.disposeFuncCount, hooksBefore);
+    });
+
     test('resolves for a caller arriving after the RoomUpdate landed', () async {
       await connectWith(container, emptySidJoinResponse);
 

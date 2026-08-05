@@ -111,6 +111,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   lk_models.Room? _roomInfo;
 
+  // Pending getSid() waiters, completed with '' at disposal so a Room.dispose
+  // without a disconnect event can't leave them hanging. Tracked as a field
+  // (and drained by the constructor's dispose routine) so repeated getSid()
+  // calls don't accumulate per-call onDispose closures.
+  final Set<Completer<String>> _pendingSidCompleters = {};
+
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers => UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
@@ -203,6 +209,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     preConnectAudioBuffer = PreConnectAudioBuffer(this);
 
     onDispose(() async {
+      // complete pending getSid() waiters so they don't hang on teardown
+      for (final completer in _pendingSidCompleters) {
+        if (!completer.isCompleted) {
+          completer.complete('');
+        }
+      }
+      _pendingSidCompleters.clear();
       // clean up routine
       await _cleanUp();
       // reject any in-flight RPC calls
@@ -1122,13 +1135,10 @@ extension RoomPrivateMethods on Room {
     });
 
     // Disposal without a disconnect event (Room.dispose during teardown)
-    // cancels the listeners above — complete instead of leaving the returned
+    // cancels the listeners above — the constructor's dispose routine
+    // completes every tracked waiter with '' instead of leaving the returned
     // future pending forever.
-    onDispose(() async {
-      if (!completer.isCompleted) {
-        completer.complete('');
-      }
-    });
+    _pendingSidCompleters.add(completer);
 
     // The update may have been applied between the check above and the
     // listener registration.
@@ -1137,6 +1147,7 @@ extension RoomPrivateMethods on Room {
     }
 
     return completer.future.whenComplete(() async {
+      _pendingSidCompleters.remove(completer);
       await roomUpdateListener.dispose();
       await cancelDisconnectListen?.call();
     });
