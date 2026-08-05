@@ -88,7 +88,7 @@ export 'src/token_source/literal.dart';
 export 'src/token_source/endpoint.dart';
 export 'src/token_source/custom.dart';
 export 'src/token_source/caching.dart';
-export 'src/token_source/sandbox.dart';
+export 'src/token_source/development.dart';
 export 'src/token_source/jwt.dart';
 
 /// Misspelled alias for [kRpcVersion]. Kept for backwards compatibility with code
