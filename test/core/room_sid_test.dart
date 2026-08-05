@@ -93,6 +93,15 @@ void main() {
       expect(await sidFuture, 'RM_issued_later');
     });
 
+    test('completes with an empty sid when the room is disposed while waiting', () async {
+      await connectWith(container, emptySidJoinResponse);
+
+      final sidFuture = container.room.getSid();
+      await container.room.dispose();
+
+      expect(await sidFuture, '');
+    });
+
     test('resolves for a caller arriving after the RoomUpdate landed', () async {
       await connectWith(container, emptySidJoinResponse);
 

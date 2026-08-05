@@ -1106,14 +1106,25 @@ extension RoomPrivateMethods on Room {
     // SignalRoomUpdateEvent is emitted on the signal client's emitter (and
     // consumed by _setUpSignalListeners) — it never appears on the Room's
     // [events], so listen where it actually fires or the future returned
-    // here never completes.
-    final cancelRoomUpdateListen = engine.signalClient.events.on<SignalRoomUpdateEvent>((event) {
+    // here never completes. Created via createListener() so it is cancelled
+    // with its owner.
+    final roomUpdateListener = engine.signalClient.createListener();
+    roomUpdateListener.on<SignalRoomUpdateEvent>((event) {
       if (event.room.sid.isNotEmpty && !completer.isCompleted) {
         completer.complete(event.room.sid);
       }
     });
 
     final cancelDisconnectListen = events.once<RoomDisconnectedEvent>((event) {
+      if (!completer.isCompleted) {
+        completer.complete('');
+      }
+    });
+
+    // Disposal without a disconnect event (Room.dispose during teardown)
+    // cancels the listeners above — complete instead of leaving the returned
+    // future pending forever.
+    onDispose(() async {
       if (!completer.isCompleted) {
         completer.complete('');
       }
@@ -1126,7 +1137,7 @@ extension RoomPrivateMethods on Room {
     }
 
     return completer.future.whenComplete(() async {
-      await cancelRoomUpdateListen();
+      await roomUpdateListener.dispose();
       await cancelDisconnectListen?.call();
     });
   }
