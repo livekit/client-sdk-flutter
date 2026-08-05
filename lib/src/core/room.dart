@@ -1103,7 +1103,12 @@ extension RoomPrivateMethods on Room {
 
     final completer = Completer<String>();
 
-    events.on<SignalRoomUpdateEvent>((event) {
+    // SignalRoomUpdateEvent is emitted on the signal client's emitter (and
+    // consumed by _setUpSignalListeners) — it never appears on the Room's
+    // [events], so listen where it actually fires or the future returned
+    // here never completes.
+    final cancelRoomUpdateListen =
+        engine.signalClient.events.on<SignalRoomUpdateEvent>((event) {
       if (event.room.sid.isNotEmpty && !completer.isCompleted) {
         completer.complete(event.room.sid);
       }
@@ -1115,7 +1120,13 @@ extension RoomPrivateMethods on Room {
       }
     });
 
-    return completer.future;
+    // The update may have been applied between the check above and the
+    // listener registration.
+    if (_roomInfo != null && _roomInfo!.sid.isNotEmpty && !completer.isCompleted) {
+      completer.complete(_roomInfo!.sid);
+    }
+
+    return completer.future.whenComplete(cancelRoomUpdateListen);
   }
 }
 
