@@ -1128,6 +1128,16 @@ extension RoomPrivateMethods on Room {
       }
     });
 
+    // A caller waiting while the connection is still being established: the
+    // sid may arrive inside the JoinResponse, which is applied via
+    // EngineJoinResponseEvent without a SignalRoomUpdateEvent.
+    final joinListener = engine.createListener();
+    joinListener.on<EngineJoinResponseEvent>((event) {
+      if (event.response.room.sid.isNotEmpty && !completer.isCompleted) {
+        completer.complete(event.response.room.sid);
+      }
+    });
+
     final cancelDisconnectListen = events.once<RoomDisconnectedEvent>((event) {
       if (!completer.isCompleted) {
         completer.complete('');
@@ -1149,6 +1159,7 @@ extension RoomPrivateMethods on Room {
     return completer.future.whenComplete(() async {
       _pendingSidCompleters.remove(completer);
       await roomUpdateListener.dispose();
+      await joinListener.dispose();
       await cancelDisconnectListen?.call();
     });
   }

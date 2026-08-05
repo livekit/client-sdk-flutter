@@ -102,6 +102,20 @@ void main() {
       expect(await sidFuture, '');
     });
 
+    test('resolves with the join-response sid for callers waiting during connect', () async {
+      final connectFuture = container.room.connect(exampleUri, token);
+      Future.delayed(const Duration(milliseconds: 5), () {
+        container.wsConnector.onData(joinResponse.writeToBuffer());
+        container.wsConnector.onData(offerResponse.writeToBuffer());
+      });
+      // Ask while the signal connection is still being established.
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+      final sidFuture = container.room.getSid();
+
+      await connectFuture;
+      expect(await sidFuture, 'room_sid');
+    });
+
     test('repeated calls do not accumulate dispose hooks', () async {
       await connectWith(container, emptySidJoinResponse);
       final hooksBefore = container.room.disposeFuncCount;
