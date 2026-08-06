@@ -111,6 +111,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   lk_models.Room? _roomInfo;
 
+  // Pending getSid() waiters, completed with '' at disposal so a Room.dispose
+  // without a disconnect event can't leave them hanging. Tracked as a field
+  // (and drained by the constructor's dispose routine) so repeated getSid()
+  // calls don't accumulate per-call onDispose closures.
+  final Set<Completer<String>> _pendingSidCompleters = {};
+
   /// a list of participants that are actively speaking, including local participant.
   UnmodifiableListView<Participant> get activeSpeakers => UnmodifiableListView<Participant>(_activeSpeakers);
   List<Participant> _activeSpeakers = [];
@@ -203,6 +209,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     preConnectAudioBuffer = PreConnectAudioBuffer(this);
 
     onDispose(() async {
+      // complete pending getSid() waiters so they don't hang on teardown
+      for (final completer in _pendingSidCompleters) {
+        if (!completer.isCompleted) {
+          completer.complete('');
+        }
+      }
+      _pendingSidCompleters.clear();
       // clean up routine
       await _cleanUp();
       // reject any in-flight RPC calls
@@ -1103,19 +1116,52 @@ extension RoomPrivateMethods on Room {
 
     final completer = Completer<String>();
 
-    events.on<SignalRoomUpdateEvent>((event) {
+    // SignalRoomUpdateEvent is emitted on the signal client's emitter (and
+    // consumed by _setUpSignalListeners) — it never appears on the Room's
+    // [events], so listen where it actually fires or the future returned
+    // here never completes. Created via createListener() so it is cancelled
+    // with its owner.
+    final roomUpdateListener = engine.signalClient.createListener();
+    roomUpdateListener.on<SignalRoomUpdateEvent>((event) {
       if (event.room.sid.isNotEmpty && !completer.isCompleted) {
         completer.complete(event.room.sid);
       }
     });
 
-    events.once<RoomDisconnectedEvent>((event) {
+    // A caller waiting while the connection is still being established: the
+    // sid may arrive inside the JoinResponse, which is applied via
+    // EngineJoinResponseEvent without a SignalRoomUpdateEvent.
+    final joinListener = engine.createListener();
+    joinListener.on<EngineJoinResponseEvent>((event) {
+      if (event.response.room.sid.isNotEmpty && !completer.isCompleted) {
+        completer.complete(event.response.room.sid);
+      }
+    });
+
+    final cancelDisconnectListen = events.once<RoomDisconnectedEvent>((event) {
       if (!completer.isCompleted) {
         completer.complete('');
       }
     });
 
-    return completer.future;
+    // Disposal without a disconnect event (Room.dispose during teardown)
+    // cancels the listeners above — the constructor's dispose routine
+    // completes every tracked waiter with '' instead of leaving the returned
+    // future pending forever.
+    _pendingSidCompleters.add(completer);
+
+    // The update may have been applied between the check above and the
+    // listener registration.
+    if (_roomInfo != null && _roomInfo!.sid.isNotEmpty && !completer.isCompleted) {
+      completer.complete(_roomInfo!.sid);
+    }
+
+    return completer.future.whenComplete(() async {
+      _pendingSidCompleters.remove(completer);
+      await roomUpdateListener.dispose();
+      await joinListener.dispose();
+      await cancelDisconnectListen?.call();
+    });
   }
 }
 
