@@ -266,13 +266,16 @@ extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
 }
 
 extension DegradationPreferenceExt on DegradationPreference {
-  rtc.RTCDegradationPreference toRTCType() => {
-        DegradationPreference.maintainFramerate: rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
-        DegradationPreference.maintainResolution: rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
-        DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
-        DegradationPreference.maintainFramerateAndResolution:
-            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
-      }[this]!;
+  rtc.RTCDegradationPreference toRTCType() => switch (this) {
+        // WebRTC defines DISABLED as an alias for MAINTAIN_FRAMERATE_AND_RESOLUTION
+        // ignore: deprecated_member_use_from_same_package
+        DegradationPreference.disabled => rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
+        DegradationPreference.maintainFramerate => rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
+        DegradationPreference.maintainResolution => rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
+        DegradationPreference.balanced => rtc.RTCDegradationPreference.BALANCED,
+        DegradationPreference.maintainFramerateAndResolution =>
+          rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
+      };
 }
 
 extension RoomOptionsEx on RoomOptions {
