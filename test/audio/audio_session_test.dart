@@ -38,24 +38,22 @@ void main() {
     bool preferSpeakerOutput = true,
     bool forceSpeakerOutput = false,
     bool automatic = true,
-  }) =>
-      ResolvedAudioSessionPolicy(
-        options: options,
-        preferSpeakerOutput: preferSpeakerOutput,
-        forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
-        automatic: automatic,
-      ).appleConfiguration;
+  }) => ResolvedAudioSessionPolicy(
+    options: options,
+    preferSpeakerOutput: preferSpeakerOutput,
+    forceSpeakerOutput: forceSpeakerOutput && preferSpeakerOutput,
+    automatic: automatic,
+  ).appleConfiguration;
 
   AndroidAudioSessionConfiguration resolveAndroidPolicy(
     AudioSessionOptions options, {
     bool automatic = true,
-  }) =>
-      ResolvedAudioSessionPolicy(
-        options: options,
-        preferSpeakerOutput: AudioManager.instance.isSpeakerOutputPreferred,
-        forceSpeakerOutput: AudioManager.instance.isSpeakerOutputForced,
-        automatic: automatic,
-      ).androidConfiguration;
+  }) => ResolvedAudioSessionPolicy(
+    options: options,
+    preferSpeakerOutput: AudioManager.instance.isSpeakerOutputPreferred,
+    forceSpeakerOutput: AudioManager.instance.isSpeakerOutputForced,
+    automatic: automatic,
+  ).androidConfiguration;
 
   group('AudioSessionManagementMode', () {
     test('supports automatic, manual, and external call system management', () {
@@ -741,11 +739,13 @@ void main() {
 
       await expectLater(
         Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
-        throwsA(isA<PlatformException>().having(
-          (error) => error.code,
-          'code',
-          'rejectedPlatformUnavailable',
-        )),
+        throwsA(
+          isA<PlatformException>().having(
+            (error) => error.code,
+            'code',
+            'rejectedPlatformUnavailable',
+          ),
+        ),
       );
     });
 
@@ -760,11 +760,13 @@ void main() {
 
       await expectLater(
         Native.startLocalRecording(<String, dynamic>{'echoCancellation': true}),
-        throwsA(isA<PlatformException>().having(
-          (error) => error.code,
-          'code',
-          'rejectedPlatformUnavailable',
-        )),
+        throwsA(
+          isA<PlatformException>().having(
+            (error) => error.code,
+            'code',
+            'rejectedPlatformUnavailable',
+          ),
+        ),
       );
       expect(calls.single.method, 'startLocalRecording');
     });

@@ -27,12 +27,12 @@ abstract class RemoteTrack extends Track {
     rtc.MediaStreamTrack track, {
     rtc.RTCRtpReceiver? receiver,
   }) : super(
-          kind,
-          source,
-          stream,
-          track,
-          receiver: receiver,
-        );
+         kind,
+         source,
+         stream,
+         track,
+         receiver: receiver,
+       );
 
   @override
   Future<bool> start() async {

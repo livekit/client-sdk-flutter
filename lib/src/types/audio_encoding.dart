@@ -39,12 +39,11 @@ class AudioEncoding {
     int? maxBitrate,
     Priority? bitratePriority,
     Priority? networkPriority,
-  }) =>
-      AudioEncoding(
-        maxBitrate: maxBitrate ?? this.maxBitrate,
-        bitratePriority: bitratePriority ?? this.bitratePriority,
-        networkPriority: networkPriority ?? this.networkPriority,
-      );
+  }) => AudioEncoding(
+    maxBitrate: maxBitrate ?? this.maxBitrate,
+    bitratePriority: bitratePriority ?? this.bitratePriority,
+    networkPriority: networkPriority ?? this.networkPriority,
+  );
 
   @override
   String toString() =>
@@ -81,8 +80,8 @@ class AudioEncoding {
 /// Convenience extension for [AudioEncoding].
 extension AudioEncodingExt on AudioEncoding {
   rtc.RTCRtpEncoding toRTCRtpEncoding() => rtc.RTCRtpEncoding(
-        maxBitrate: maxBitrate,
-        priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
-        networkPriority: networkPriority?.toRtcpPriorityType(),
-      );
+    maxBitrate: maxBitrate,
+    priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
+    networkPriority: networkPriority?.toRtcpPriorityType(),
+  );
 }

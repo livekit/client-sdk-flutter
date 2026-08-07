@@ -15,7 +15,8 @@
 enum AudioContextState {
   suspended('suspended'),
   running('running'),
-  closed('closed');
+  closed('closed')
+  ;
 
   final String value;
   static AudioContextState fromValue(String value) => values.firstWhere((e) => e.value == value);

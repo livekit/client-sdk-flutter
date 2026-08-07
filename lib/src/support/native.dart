@@ -110,15 +110,15 @@ class Native {
   }
 
   static Map<String, dynamic> _audioProcessingPlatformUnavailable() => <String, dynamic>{
-        'result': false,
-        'code': 'rejectedPlatformUnavailable',
-        'message': 'Audio processing options are unavailable on this platform.',
-      };
+    'result': false,
+    'code': 'rejectedPlatformUnavailable',
+    'message': 'Audio processing options are unavailable on this platform.',
+  };
 
   static PlatformException _audioProcessingPlatformUnavailableException() => PlatformException(
-        code: 'rejectedPlatformUnavailable',
-        message: 'Audio processing options are unavailable on this platform.',
-      );
+    code: 'rejectedPlatformUnavailable',
+    message: 'Audio processing options are unavailable on this platform.',
+  );
 
   /// Starts the native WebRTC audio device module recording path with the
   /// capture-time audio processing options for the local microphone track.

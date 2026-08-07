@@ -265,16 +265,18 @@ void main() {
     final proxy = await _PlainHttpProxyServer.start();
     addTearDown(proxy.close);
 
-    final client = createSdkIoHttpClient(const NetworkOptions(
-      certificatePinning: CertificatePinningOptions(
-        rules: [
-          CertificatePinningRule(
-            hosts: ['pinned.example.com'],
-            primaryPins: ['sha256/not-the-presented-pin'],
-          ),
-        ],
+    final client = createSdkIoHttpClient(
+      const NetworkOptions(
+        certificatePinning: CertificatePinningOptions(
+          rules: [
+            CertificatePinningRule(
+              hosts: ['pinned.example.com'],
+              primaryPins: ['sha256/not-the-presented-pin'],
+            ),
+          ],
+        ),
       ),
-    ));
+    );
     addTearDown(() => client.close(force: true));
 
     client.findProxy = (_) => 'PROXY $_testServerHost:${proxy.port}';
@@ -294,16 +296,18 @@ void main() {
     final proxy = await _PlainHttpProxyServer.start();
     addTearDown(proxy.close);
 
-    final client = createSdkIoHttpClient(const NetworkOptions(
-      certificatePinning: CertificatePinningOptions(
-        rules: [
-          CertificatePinningRule(
-            hosts: [_testServerHost],
-            primaryPins: ['sha256/not-the-presented-pin'],
-          ),
-        ],
+    final client = createSdkIoHttpClient(
+      const NetworkOptions(
+        certificatePinning: CertificatePinningOptions(
+          rules: [
+            CertificatePinningRule(
+              hosts: [_testServerHost],
+              primaryPins: ['sha256/not-the-presented-pin'],
+            ),
+          ],
+        ),
       ),
-    ));
+    );
     addTearDown(() => client.close(force: true));
 
     client.findProxy = (_) => 'PROXY $_testServerHost:${proxy.port}';

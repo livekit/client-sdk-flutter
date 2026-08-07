@@ -205,11 +205,13 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     if (_muted == muted) return;
     _muted = muted;
     if (shouldNotify) {
-      events.emit(InternalTrackMuteUpdatedEvent(
-        track: this,
-        muted: muted,
-        shouldSendSignal: shouldSendSignal,
-      ));
+      events.emit(
+        InternalTrackMuteUpdatedEvent(
+          track: this,
+          muted: muted,
+          shouldSendSignal: shouldSendSignal,
+        ),
+      );
     }
   }
 
@@ -217,10 +219,12 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   void updateMediaStreamAndTrack(rtc.MediaStream stream, rtc.MediaStreamTrack track) {
     _mediaStream = stream;
     _mediaStreamTrack = track;
-    events.emit(TrackStreamUpdatedEvent(
-      track: this,
-      stream: stream,
-    ));
+    events.emit(
+      TrackStreamUpdatedEvent(
+        track: this,
+        stream: stream,
+      ),
+    );
   }
 
   @internal

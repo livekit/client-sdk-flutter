@@ -373,11 +373,11 @@ class AudioManager {
   }
 
   ResolvedAudioSessionPolicy _resolvedAudioSessionPolicy(AudioSessionOptions options) => ResolvedAudioSessionPolicy(
-        options: options,
-        preferSpeakerOutput: _preferSpeakerOutput,
-        forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
-        automatic: _isAutomaticConfigurationEnabled,
-      );
+    options: options,
+    preferSpeakerOutput: _preferSpeakerOutput,
+    forceSpeakerOutput: _forceSpeakerOutput && _preferSpeakerOutput,
+    automatic: _isAutomaticConfigurationEnabled,
+  );
 
   /// How microphone input is muted on iOS/macOS.
   ///

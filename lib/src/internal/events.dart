@@ -44,9 +44,9 @@ class EngineSubscriberPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent 
     required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          state: state,
-          isPrimary: isPrimary,
-        );
+         state: state,
+         isPrimary: isPrimary,
+       );
 
   @override
   String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
@@ -58,9 +58,9 @@ class EnginePublisherPeerStateUpdatedEvent extends EnginePeerStateUpdatedEvent {
     required rtc.RTCPeerConnectionState state,
     required bool isPrimary,
   }) : super(
-          state: state,
-          isPrimary: isPrimary,
-        );
+         state: state,
+         isPrimary: isPrimary,
+       );
   @override
   String toString() => '${runtimeType}(state: ${state}, isPrimary: ${isPrimary})';
 }
@@ -247,7 +247,8 @@ class EngineAttemptReconnectEvent with InternalEvent, EngineEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(attempt: ${attempt}, maxAttempts: ${maxAttempts}, '
       'nextRetryDelaysInMs: ${nextRetryDelaysInMs})';
 }
@@ -471,7 +472,8 @@ class SignalLeaveEvent with SignalEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(canReconnect: ${canReconnect}, action: ${action}, reason: ${reason}, regions: ${regions})';
 }
 
@@ -511,7 +513,8 @@ class SignalSubscribedQualityUpdatedEvent with SignalEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(trackSid: ${trackSid}, subscribedQualities: ${subscribedQualities}, '
       'subscribedCodecs: ${subscribedCodecs})';
 }
@@ -528,7 +531,8 @@ class SignalSubscriptionPermissionUpdateEvent with SignalEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(participantSid: ${participantSid}, trackSid: ${trackSid}, allowed: ${allowed})';
 }
 
@@ -549,7 +553,8 @@ class SignalRequestResponseEvent with SignalEvent, InternalEvent {
   const SignalRequestResponseEvent({required this.response});
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(requestId: ${response.requestId}, reason: ${response.reason})';
 }
 
@@ -624,7 +629,8 @@ class EngineTranscriptionReceivedEvent with EngineEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(transcription: ${transcription}, identity: ${identity})';
 }
 
@@ -702,7 +708,8 @@ class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(header: ${header}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
@@ -718,7 +725,8 @@ class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(chunk: ${chunk}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
@@ -734,7 +742,8 @@ class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(trailer: ${trailer}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
@@ -750,7 +759,8 @@ abstract class DataChannelStateUpdatedEvent with EngineEvent, InternalEvent {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(isPrimary: ${isPrimary}, type: ${type}, state: ${state})';
 }
 
@@ -761,10 +771,10 @@ class PublisherDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEvent
     required Reliability type,
     required rtc.RTCDataChannelState state,
   }) : super(
-          isPrimary: isPrimary,
-          type: type,
-          state: state,
-        );
+         isPrimary: isPrimary,
+         type: type,
+         state: state,
+       );
 }
 
 @internal
@@ -774,10 +784,10 @@ class SubscriberDataChannelStateUpdatedEvent extends DataChannelStateUpdatedEven
     required Reliability type,
     required rtc.RTCDataChannelState state,
   }) : super(
-          isPrimary: isPrimary,
-          type: type,
-          state: state,
-        );
+         isPrimary: isPrimary,
+         type: type,
+         state: state,
+       );
 }
 
 @internal
