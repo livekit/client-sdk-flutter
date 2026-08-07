@@ -156,13 +156,6 @@ extension VideoQualityExt on lk_models.VideoQuality {
         lk_models.VideoQuality.LOW => VideoQuality.LOW,
         _ => VideoQuality.LOW,
       };
-
-  String toRid() => switch (this) {
-        lk_models.VideoQuality.HIGH => 'f',
-        lk_models.VideoQuality.MEDIUM => 'h',
-        lk_models.VideoQuality.LOW => 'q',
-        _ => 'q',
-      };
 }
 
 extension PBVideoQualityExt on VideoQuality {
