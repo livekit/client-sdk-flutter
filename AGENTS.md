@@ -32,6 +32,28 @@ CI (`build.yaml`) runs all of the above plus example-app builds for every platfo
 
 Web/native divergence is handled with conditional imports (e.g. `track/processor_native.dart` vs `processor_web.dart`) — new platform-specific code should follow that pattern.
 
+## The Rust core (`livekit_uniffi`)
+
+`lib/src/uniffi/` wraps `livekit_uniffi`, a Dart package generated from the `livekit-uniffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
+
+There is no dynamic library to load on the web, so `uniffi.dart` splits native/web the same way the rest of the SDK does. **`uniffi_io.dart` is the only file allowed to import `package:livekit_uniffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. Guard calls with `LiveKitUniffi.isAvailable`.
+
+### Local development loop
+
+`livekit_uniffi` is not on pub.dev yet, so both `pubspec.yaml` and `example/pubspec.yaml` override it to a path in a sibling `rust-sdks` checkout (overrides don't propagate from a dependency, hence both). To produce or refresh it:
+
+```sh
+cd ../rust-sdks/livekit-uniffi
+cargo make dart-package    # generates packages/dart/: bindings, pubspec, build hook, host cdylib
+cd -
+flutter pub get
+flutter test test/uniffi/  # smoke test: calls buildVersion() across the FFI boundary
+```
+
+Requires `cargo-make`, `protoc` and `tera`. Re-run `cargo make dart-package` whenever the crate's exported surface changes — the build hook tracks the copied library, so a stale one won't be silently reused.
+
+Two things to know about that hook: it picks the locally built library purely on target *OS*, not architecture, so a host build can be bundled into an iOS or Android build by mistake — verify the desktop target first when debugging. And its download mode (used when no local library is present) fetches `build-<triple>.zip` from a `livekit-uniffi` GitHub release; no release currently carries those assets, so download mode fails until the `cdylib` job is re-enabled in `rust-sdks`.
+
 ## Common pitfalls (from issue history)
 
 - `flutter_webrtc` is pinned to an exact version on purpose: livekit_client and flutter_webrtc must agree on the same WebRTC-SDK native pods, and mismatches break user builds (CocoaPods conflicts). Bump it only in sync with a matching WebRTC-SDK version.
