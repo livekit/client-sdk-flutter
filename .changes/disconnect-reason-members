@@ -1,0 +1,1 @@
+minor type="added" "DisconnectReason gained members for the newer server reasons (roomClosed, migration, signalClose, userUnavailable, userRejected, sipTrunkFailure, connectionTimeout, mediaFailure, agentError), previously reported as unknown"

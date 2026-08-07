@@ -161,6 +161,15 @@ enum DisconnectReason {
   disconnected,
   signalingConnectionFailure,
   reconnectAttemptsExceeded,
+  migration,
+  signalClose,
+  roomClosed,
+  userUnavailable,
+  userRejected,
+  sipTrunkFailure,
+  connectionTimeout,
+  mediaFailure,
+  agentError,
 }
 
 /// The reason why a track failed to publish.
