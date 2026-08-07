@@ -340,8 +340,8 @@ final $typed_data.Uint8List roomDescriptor =
         '50cxIjCg1jcmVhdGlvbl90aW1lGAUgASgDUgxjcmVhdGlvblRpbWUSKAoQY3JlYXRpb25fdGlt'
         'ZV9tcxgPIAEoA1IOY3JlYXRpb25UaW1lTXMSIwoNdHVybl9wYXNzd29yZBgGIAEoCVIMdHVybl'
         'Bhc3N3b3JkEjUKDmVuYWJsZWRfY29kZWNzGAcgAygLMg4ubGl2ZWtpdC5Db2RlY1INZW5hYmxl'
-        'ZENvZGVjcxJACghtZXRhZGF0YRgIIAEoCUIkqFABslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fS'
-        'BieXRlcyk+UghtZXRhZGF0YRIpChBudW1fcGFydGljaXBhbnRzGAkgASgNUg9udW1QYXJ0aWNp'
+        'ZENvZGVjcxJACghtZXRhZGF0YRgIIAEoCUIkslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieX'
+        'Rlcyk+wFABUghtZXRhZGF0YRIpChBudW1fcGFydGljaXBhbnRzGAkgASgNUg9udW1QYXJ0aWNp'
         'cGFudHMSJQoObnVtX3B1Ymxpc2hlcnMYCyABKA1SDW51bVB1Ymxpc2hlcnMSKQoQYWN0aXZlX3'
         'JlY29yZGluZxgKIAEoCFIPYWN0aXZlUmVjb3JkaW5nEi8KB3ZlcnNpb24YDSABKAsyFS5saXZl'
         'a2l0LlRpbWVkVmVyc2lvblIHdmVyc2lvbg==');
@@ -447,6 +447,7 @@ const ParticipantInfo$json = {
     {'1': 'kind_details', '3': 18, '4': 3, '5': 14, '6': '.livekit.ParticipantInfo.KindDetail', '10': 'kindDetails'},
     {'1': 'data_tracks', '3': 19, '4': 3, '5': 11, '6': '.livekit.DataTrackInfo', '10': 'dataTracks'},
     {'1': 'client_protocol', '3': 20, '4': 1, '5': 5, '10': 'clientProtocol'},
+    {'1': 'capabilities', '3': 21, '4': 3, '5': 14, '6': '.livekit.ClientInfo.Capability', '10': 'capabilities'},
   ],
   '3': [ParticipantInfo_AttributesEntry$json],
   '4': [ParticipantInfo_State$json, ParticipantInfo_Kind$json, ParticipantInfo_KindDetail$json],
@@ -504,25 +505,26 @@ final $typed_data.Uint8List participantInfoDescriptor =
     $convert.base64Decode('Cg9QYXJ0aWNpcGFudEluZm8SEAoDc2lkGAEgASgJUgNzaWQSGgoIaWRlbnRpdHkYAiABKAlSCG'
         'lkZW50aXR5EjQKBXN0YXRlGAMgASgOMh4ubGl2ZWtpdC5QYXJ0aWNpcGFudEluZm8uU3RhdGVS'
         'BXN0YXRlEioKBnRyYWNrcxgEIAMoCzISLmxpdmVraXQuVHJhY2tJbmZvUgZ0cmFja3MSQAoIbW'
-        'V0YWRhdGEYBSABKAlCJKhQAbJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPlIIbWV0'
+        'V0YWRhdGEYBSABKAlCJLJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPsBQAVIIbWV0'
         'YWRhdGESGwoJam9pbmVkX2F0GAYgASgDUghqb2luZWRBdBIgCgxqb2luZWRfYXRfbXMYESABKA'
-        'NSCmpvaW5lZEF0TXMSFwoEbmFtZRgJIAEoCUIDqFABUgRuYW1lEhgKB3ZlcnNpb24YCiABKA1S'
+        'NSCmpvaW5lZEF0TXMSFwoEbmFtZRgJIAEoCUIDwFABUgRuYW1lEhgKB3ZlcnNpb24YCiABKA1S'
         'B3ZlcnNpb24SPgoKcGVybWlzc2lvbhgLIAEoCzIeLmxpdmVraXQuUGFydGljaXBhbnRQZXJtaX'
         'NzaW9uUgpwZXJtaXNzaW9uEhYKBnJlZ2lvbhgMIAEoCVIGcmVnaW9uEiEKDGlzX3B1Ymxpc2hl'
         'chgNIAEoCFILaXNQdWJsaXNoZXISMQoEa2luZBgOIAEoDjIdLmxpdmVraXQuUGFydGljaXBhbn'
         'RJbmZvLktpbmRSBGtpbmQSbgoKYXR0cmlidXRlcxgPIAMoCzIoLmxpdmVraXQuUGFydGljaXBh'
-        'bnRJbmZvLkF0dHJpYnV0ZXNFbnRyeUIkqFABslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieX'
-        'Rlcyk+UgphdHRyaWJ1dGVzEkYKEWRpc2Nvbm5lY3RfcmVhc29uGBAgASgOMhkubGl2ZWtpdC5E'
+        'bnRJbmZvLkF0dHJpYnV0ZXNFbnRyeUIkslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieXRlcy'
+        'k+wFABUgphdHRyaWJ1dGVzEkYKEWRpc2Nvbm5lY3RfcmVhc29uGBAgASgOMhkubGl2ZWtpdC5E'
         'aXNjb25uZWN0UmVhc29uUhBkaXNjb25uZWN0UmVhc29uEkYKDGtpbmRfZGV0YWlscxgSIAMoDj'
         'IjLmxpdmVraXQuUGFydGljaXBhbnRJbmZvLktpbmREZXRhaWxSC2tpbmREZXRhaWxzEjcKC2Rh'
         'dGFfdHJhY2tzGBMgAygLMhYubGl2ZWtpdC5EYXRhVHJhY2tJbmZvUgpkYXRhVHJhY2tzEicKD2'
-        'NsaWVudF9wcm90b2NvbBgUIAEoBVIOY2xpZW50UHJvdG9jb2waPQoPQXR0cmlidXRlc0VudHJ5'
-        'EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEiPgoFU3RhdGUSCw'
-        'oHSk9JTklORxAAEgoKBkpPSU5FRBABEgoKBkFDVElWRRACEhAKDERJU0NPTk5FQ1RFRBADIlwK'
-        'BEtpbmQSDAoIU1RBTkRBUkQQABILCgdJTkdSRVNTEAESCgoGRUdSRVNTEAISBwoDU0lQEAMSCQ'
-        'oFQUdFTlQQBBINCglDT05ORUNUT1IQBxIKCgZCUklER0UQCCJrCgpLaW5kRGV0YWlsEg8KC0NM'
-        'T1VEX0FHRU5UEAASDQoJRk9SV0FSREVEEAESFgoSQ09OTkVDVE9SX1dIQVRTQVBQEAISFAoQQ0'
-        '9OTkVDVE9SX1RXSUxJTxADEg8KC0JSSURHRV9SVFNQEAQ=');
+        'NsaWVudF9wcm90b2NvbBgUIAEoBVIOY2xpZW50UHJvdG9jb2wSQgoMY2FwYWJpbGl0aWVzGBUg'
+        'AygOMh4ubGl2ZWtpdC5DbGllbnRJbmZvLkNhcGFiaWxpdHlSDGNhcGFiaWxpdGllcxo9Cg9BdH'
+        'RyaWJ1dGVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4'
+        'ASI+CgVTdGF0ZRILCgdKT0lOSU5HEAASCgoGSk9JTkVEEAESCgoGQUNUSVZFEAISEAoMRElTQ0'
+        '9OTkVDVEVEEAMiXAoES2luZBIMCghTVEFOREFSRBAAEgsKB0lOR1JFU1MQARIKCgZFR1JFU1MQ'
+        'AhIHCgNTSVAQAxIJCgVBR0VOVBAEEg0KCUNPTk5FQ1RPUhAHEgoKBkJSSURHRRAIImsKCktpbm'
+        'REZXRhaWwSDwoLQ0xPVURfQUdFTlQQABINCglGT1JXQVJERUQQARIWChJDT05ORUNUT1JfV0hB'
+        'VFNBUFAQAhIUChBDT05ORUNUT1JfVFdJTElPEAMSDwoLQlJJREdFX1JUU1AQBA==');
 
 @$core.Deprecated('Use encryptionDescriptor instead')
 const Encryption$json = {
@@ -639,7 +641,7 @@ const TrackInfo$json = {
 /// Descriptor for `TrackInfo`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackInfoDescriptor =
     $convert.base64Decode('CglUcmFja0luZm8SEAoDc2lkGAEgASgJUgNzaWQSJgoEdHlwZRgCIAEoDjISLmxpdmVraXQuVH'
-        'JhY2tUeXBlUgR0eXBlEhcKBG5hbWUYAyABKAlCA6hQAVIEbmFtZRIUCgVtdXRlZBgEIAEoCFIF'
+        'JhY2tUeXBlUgR0eXBlEhcKBG5hbWUYAyABKAlCA8BQAVIEbmFtZRIUCgVtdXRlZBgEIAEoCFIF'
         'bXV0ZWQSFAoFd2lkdGgYBSABKA1SBXdpZHRoEhYKBmhlaWdodBgGIAEoDVIGaGVpZ2h0EiAKCX'
         'NpbXVsY2FzdBgHIAEoCEICGAFSCXNpbXVsY2FzdBIjCgtkaXNhYmxlX2R0eBgIIAEoCEICGAFS'
         'CmRpc2FibGVEdHgSLAoGc291cmNlGAkgASgOMhQubGl2ZWtpdC5UcmFja1NvdXJjZVIGc291cm'
@@ -1210,6 +1212,7 @@ const ClientInfo_Capability$json = {
   '2': [
     {'1': 'CAP_UNUSED', '2': 0},
     {'1': 'CAP_PACKET_TRAILER', '2': 1},
+    {'1': 'CAP_COMPRESSION_DEFLATE_RAW', '2': 2},
   ],
 };
 
@@ -1226,8 +1229,8 @@ final $typed_data.Uint8List clientInfoDescriptor =
         'bGl0aWVzIrMBCgNTREsSCwoHVU5LTk9XThAAEgYKAkpTEAESCQoFU1dJRlQQAhILCgdBTkRST0'
         'lEEAMSCwoHRkxVVFRFUhAEEgYKAkdPEAUSCQoFVU5JVFkQBhIQCgxSRUFDVF9OQVRJVkUQBxII'
         'CgRSVVNUEAgSCgoGUFlUSE9OEAkSBwoDQ1BQEAoSDQoJVU5JVFlfV0VCEAsSCAoETk9ERRAMEg'
-        'oKBlVOUkVBTBANEgkKBUVTUDMyEA4iNAoKQ2FwYWJpbGl0eRIOCgpDQVBfVU5VU0VEEAASFgoS'
-        'Q0FQX1BBQ0tFVF9UUkFJTEVSEAE=');
+        'oKBlVOUkVBTBANEgkKBUVTUDMyEA4iVQoKQ2FwYWJpbGl0eRIOCgpDQVBfVU5VU0VEEAASFgoS'
+        'Q0FQX1BBQ0tFVF9UUkFJTEVSEAESHwobQ0FQX0NPTVBSRVNTSU9OX0RFRkxBVEVfUkFXEAI=');
 
 @$core.Deprecated('Use clientConfigurationDescriptor instead')
 const ClientConfiguration$json = {
@@ -1533,7 +1536,7 @@ const DataStream$json = {
     DataStream_Chunk$json,
     DataStream_Trailer$json
   ],
-  '4': [DataStream_OperationType$json],
+  '4': [DataStream_OperationType$json, DataStream_CompressionType$json],
 };
 
 @$core.Deprecated('Use dataStreamDescriptor instead')
@@ -1577,11 +1580,14 @@ const DataStream_Header$json = {
     {'1': 'attributes', '3': 8, '4': 3, '5': 11, '6': '.livekit.DataStream.Header.AttributesEntry', '10': 'attributes'},
     {'1': 'text_header', '3': 9, '4': 1, '5': 11, '6': '.livekit.DataStream.TextHeader', '9': 0, '10': 'textHeader'},
     {'1': 'byte_header', '3': 10, '4': 1, '5': 11, '6': '.livekit.DataStream.ByteHeader', '9': 0, '10': 'byteHeader'},
+    {'1': 'inline_content', '3': 11, '4': 1, '5': 12, '9': 2, '10': 'inlineContent', '17': true},
+    {'1': 'compression', '3': 12, '4': 1, '5': 14, '6': '.livekit.DataStream.CompressionType', '10': 'compression'},
   ],
   '3': [DataStream_Header_AttributesEntry$json],
   '8': [
     {'1': 'content_header'},
     {'1': '_total_length'},
+    {'1': '_inline_content'},
   ],
 };
 
@@ -1658,6 +1664,15 @@ const DataStream_OperationType$json = {
   ],
 };
 
+@$core.Deprecated('Use dataStreamDescriptor instead')
+const DataStream_CompressionType$json = {
+  '1': 'CompressionType',
+  '2': [
+    {'1': 'NONE', '2': 0},
+    {'1': 'DEFLATE_RAW', '2': 1},
+  ],
+};
+
 /// Descriptor for `DataStream`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List dataStreamDescriptor =
     $convert.base64Decode('CgpEYXRhU3RyZWFtGv8BCgpUZXh0SGVhZGVyEkgKDm9wZXJhdGlvbl90eXBlGAEgASgOMiEubG'
@@ -1665,7 +1680,7 @@ final $typed_data.Uint8List dataStreamDescriptor =
         'bhgCIAEoBVIHdmVyc2lvbhI/ChJyZXBseV90b19zdHJlYW1faWQYAyABKAlCErpQD3JlcGx5VG'
         '9TdHJlYW1JRFIPcmVwbHlUb1N0cmVhbUlkEi4KE2F0dGFjaGVkX3N0cmVhbV9pZHMYBCADKAlS'
         'EWF0dGFjaGVkU3RyZWFtSWRzEhwKCWdlbmVyYXRlZBgFIAEoCFIJZ2VuZXJhdGVkGiAKCkJ5dG'
-        'VIZWFkZXISEgoEbmFtZRgBIAEoCVIEbmFtZRqmBAoGSGVhZGVyEigKCXN0cmVhbV9pZBgBIAEo'
+        'VIZWFkZXISEgoEbmFtZRgBIAEoCVIEbmFtZRqsBQoGSGVhZGVyEigKCXN0cmVhbV9pZBgBIAEo'
         'CUILulAIc3RyZWFtSURSCHN0cmVhbUlkEhwKCXRpbWVzdGFtcBgCIAEoA1IJdGltZXN0YW1wEh'
         'QKBXRvcGljGAMgASgJUgV0b3BpYxIbCgltaW1lX3R5cGUYBCABKAlSCG1pbWVUeXBlEiYKDHRv'
         'dGFsX2xlbmd0aBgFIAEoBEgBUgt0b3RhbExlbmd0aIgBARJFCg9lbmNyeXB0aW9uX3R5cGUYBy'
@@ -1673,17 +1688,20 @@ final $typed_data.Uint8List dataStreamDescriptor =
         'dHJpYnV0ZXMYCCADKAsyKi5saXZla2l0LkRhdGFTdHJlYW0uSGVhZGVyLkF0dHJpYnV0ZXNFbn'
         'RyeVIKYXR0cmlidXRlcxJBCgt0ZXh0X2hlYWRlchgJIAEoCzIeLmxpdmVraXQuRGF0YVN0cmVh'
         'bS5UZXh0SGVhZGVySABSCnRleHRIZWFkZXISQQoLYnl0ZV9oZWFkZXIYCiABKAsyHi5saXZla2'
-        'l0LkRhdGFTdHJlYW0uQnl0ZUhlYWRlckgAUgpieXRlSGVhZGVyGj0KD0F0dHJpYnV0ZXNFbnRy'
-        'eRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBQhAKDmNvbnRlbn'
-        'RfaGVhZGVyQg8KDV90b3RhbF9sZW5ndGgapgEKBUNodW5rEigKCXN0cmVhbV9pZBgBIAEoCUIL'
-        'ulAIc3RyZWFtSURSCHN0cmVhbUlkEh8KC2NodW5rX2luZGV4GAIgASgEUgpjaHVua0luZGV4Eh'
-        'gKB2NvbnRlbnQYAyABKAxSB2NvbnRlbnQSGAoHdmVyc2lvbhgEIAEoBVIHdmVyc2lvbhIXCgJp'
-        'dhgFIAEoDEICGAFIAFICaXaIAQFCBQoDX2l2GtcBCgdUcmFpbGVyEigKCXN0cmVhbV9pZBgBIA'
-        'EoCUILulAIc3RyZWFtSURSCHN0cmVhbUlkEhYKBnJlYXNvbhgCIAEoCVIGcmVhc29uEksKCmF0'
-        'dHJpYnV0ZXMYAyADKAsyKy5saXZla2l0LkRhdGFTdHJlYW0uVHJhaWxlci5BdHRyaWJ1dGVzRW'
-        '50cnlSCmF0dHJpYnV0ZXMaPQoPQXR0cmlidXRlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQK'
-        'BXZhbHVlGAIgASgJUgV2YWx1ZToCOAEiQQoNT3BlcmF0aW9uVHlwZRIKCgZDUkVBVEUQABIKCg'
-        'ZVUERBVEUQARIKCgZERUxFVEUQAhIMCghSRUFDVElPThAD');
+        'l0LkRhdGFTdHJlYW0uQnl0ZUhlYWRlckgAUgpieXRlSGVhZGVyEioKDmlubGluZV9jb250ZW50'
+        'GAsgASgMSAJSDWlubGluZUNvbnRlbnSIAQESRQoLY29tcHJlc3Npb24YDCABKA4yIy5saXZla2'
+        'l0LkRhdGFTdHJlYW0uQ29tcHJlc3Npb25UeXBlUgtjb21wcmVzc2lvbho9Cg9BdHRyaWJ1dGVz'
+        'RW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AUIQCg5jb2'
+        '50ZW50X2hlYWRlckIPCg1fdG90YWxfbGVuZ3RoQhEKD19pbmxpbmVfY29udGVudBqmAQoFQ2h1'
+        'bmsSKAoJc3RyZWFtX2lkGAEgASgJQgu6UAhzdHJlYW1JRFIIc3RyZWFtSWQSHwoLY2h1bmtfaW'
+        '5kZXgYAiABKARSCmNodW5rSW5kZXgSGAoHY29udGVudBgDIAEoDFIHY29udGVudBIYCgd2ZXJz'
+        'aW9uGAQgASgFUgd2ZXJzaW9uEhcKAml2GAUgASgMQgIYAUgAUgJpdogBAUIFCgNfaXYa1wEKB1'
+        'RyYWlsZXISKAoJc3RyZWFtX2lkGAEgASgJQgu6UAhzdHJlYW1JRFIIc3RyZWFtSWQSFgoGcmVh'
+        'c29uGAIgASgJUgZyZWFzb24SSwoKYXR0cmlidXRlcxgDIAMoCzIrLmxpdmVraXQuRGF0YVN0cm'
+        'VhbS5UcmFpbGVyLkF0dHJpYnV0ZXNFbnRyeVIKYXR0cmlidXRlcxo9Cg9BdHRyaWJ1dGVzRW50'
+        'cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ASJBCg1PcGVyYX'
+        'Rpb25UeXBlEgoKBkNSRUFURRAAEgoKBlVQREFURRABEgoKBkRFTEVURRACEgwKCFJFQUNUSU9O'
+        'EAMiLAoPQ29tcHJlc3Npb25UeXBlEggKBE5PTkUQABIPCgtERUZMQVRFX1JBVxAB');
 
 @$core.Deprecated('Use filterParamsDescriptor instead')
 const FilterParams$json = {

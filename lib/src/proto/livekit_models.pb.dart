@@ -728,6 +728,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
     $core.Iterable<DataTrackInfo>? dataTracks,
     $core.int? clientProtocol,
+    $core.Iterable<ClientInfo_Capability>? capabilities,
   }) {
     final result = create();
     if (sid != null) result.sid = sid;
@@ -748,6 +749,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (kindDetails != null) result.kindDetails.addAll(kindDetails);
     if (dataTracks != null) result.dataTracks.addAll(dataTracks);
     if (clientProtocol != null) result.clientProtocol = clientProtocol;
+    if (capabilities != null) result.capabilities.addAll(capabilities);
     return result;
   }
 
@@ -786,6 +788,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..pPM<DataTrackInfo>(19, _omitFieldNames ? '' : 'dataTracks', subBuilder: DataTrackInfo.create)
     ..aI(20, _omitFieldNames ? '' : 'clientProtocol')
+    ..pc<ClientInfo_Capability>(21, _omitFieldNames ? '' : 'capabilities', $pb.PbFieldType.KE,
+        valueOf: ClientInfo_Capability.valueOf,
+        enumValues: ClientInfo_Capability.values,
+        defaultEnumValue: ClientInfo_Capability.CAP_UNUSED)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -950,6 +956,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasClientProtocol() => $_has(17);
   @$pb.TagNumber(20)
   void clearClientProtocol() => $_clearField(20);
+
+  /// capabilities the participant's client advertises, mirrored from ClientInfo.
+  /// Lets other participants perform client-side feature detection.
+  @$pb.TagNumber(21)
+  $pb.PbList<ClientInfo_Capability> get capabilities => $_getList(18);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -5397,6 +5408,8 @@ class DataStream_Header extends $pb.GeneratedMessage {
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? attributes,
     DataStream_TextHeader? textHeader,
     DataStream_ByteHeader? byteHeader,
+    $core.List<$core.int>? inlineContent,
+    DataStream_CompressionType? compression,
   }) {
     final result = create();
     if (streamId != null) result.streamId = streamId;
@@ -5408,6 +5421,8 @@ class DataStream_Header extends $pb.GeneratedMessage {
     if (attributes != null) result.attributes.addEntries(attributes);
     if (textHeader != null) result.textHeader = textHeader;
     if (byteHeader != null) result.byteHeader = byteHeader;
+    if (inlineContent != null) result.inlineContent = inlineContent;
+    if (compression != null) result.compression = compression;
     return result;
   }
 
@@ -5441,6 +5456,9 @@ class DataStream_Header extends $pb.GeneratedMessage {
         packageName: const $pb.PackageName('livekit'))
     ..aOM<DataStream_TextHeader>(9, _omitFieldNames ? '' : 'textHeader', subBuilder: DataStream_TextHeader.create)
     ..aOM<DataStream_ByteHeader>(10, _omitFieldNames ? '' : 'byteHeader', subBuilder: DataStream_ByteHeader.create)
+    ..a<$core.List<$core.int>>(11, _omitFieldNames ? '' : 'inlineContent', $pb.PbFieldType.OY)
+    ..aE<DataStream_CompressionType>(12, _omitFieldNames ? '' : 'compression',
+        enumValues: DataStream_CompressionType.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5550,6 +5568,25 @@ class DataStream_Header extends $pb.GeneratedMessage {
   void clearByteHeader() => $_clearField(10);
   @$pb.TagNumber(10)
   DataStream_ByteHeader ensureByteHeader() => $_ensure(8);
+
+  /// Optional inline content so that a data stream can be sent as a single packet for short payloads.
+  @$pb.TagNumber(11)
+  $core.List<$core.int> get inlineContent => $_getN(9);
+  @$pb.TagNumber(11)
+  set inlineContent($core.List<$core.int> value) => $_setBytes(9, value);
+  @$pb.TagNumber(11)
+  $core.bool hasInlineContent() => $_has(9);
+  @$pb.TagNumber(11)
+  void clearInlineContent() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  DataStream_CompressionType get compression => $_getN(10);
+  @$pb.TagNumber(12)
+  set compression(DataStream_CompressionType value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasCompression() => $_has(10);
+  @$pb.TagNumber(12)
+  void clearCompression() => $_clearField(12);
 }
 
 class DataStream_Chunk extends $pb.GeneratedMessage {

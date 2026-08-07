@@ -16,18 +16,11 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'package:async/async.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
-import 'package:mime_type/mime_type.dart';
-import 'package:path/path.dart';
-import 'package:uuid/uuid.dart';
 
 import '../core/engine.dart';
 import '../core/room.dart';
@@ -1010,221 +1003,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 }
 
 extension DataStreamParticipantMethods on LocalParticipant {
-  Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) async {
-    final streamId = Uuid().v4();
-    final textInBytes = text.codeUnits;
-    final totalTextLength = textInBytes.length;
+  /// Sends a complete text payload as a data stream.
+  Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) => room.dataStreams.sendText(text, options);
 
-    final fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
-    var len = 0;
-    if (fileIds != null && fileIds.isNotEmpty) {
-      len = fileIds.length + 1;
-    } else {
-      len = 1;
-    }
-    final progresses = List<num>.filled(len, 0);
+  /// Sends a complete in-memory byte payload as a data stream.
+  Future<ByteStreamInfo> sendBytes(List<int> bytes, {SendBytesOptions? options}) =>
+      room.dataStreams.sendBytes(bytes, options);
 
-    handleProgress(num progress, int idx) {
-      progresses[idx] = progress;
-      final totalProgress = progresses.reduce((acc, val) => acc + val);
-      options?.onProgress?.call(totalProgress.toDouble() / len);
-    }
+  /// Sends a file as a byte data stream, returning `{'id': streamId}`.
+  Future<Map<String, String>> sendFile(File file, {required SendFileOptions options}) =>
+      room.dataStreams.sendFile(file, options);
 
-    final writer = await streamText(
-      StreamTextOptions(
-        streamId: streamId,
-        totalSize: totalTextLength,
-        destinationIdentities: options?.destinationIdentities ?? [],
-        topic: options?.topic,
-        attachedStreamIds: fileIds ?? [],
-        attributes: options?.attributes ?? {},
-      ),
-    );
+  /// Opens an incremental text stream. Incremental writers are never compressed or inlined.
+  Future<TextStreamWriter> streamText(StreamTextOptions? options) => room.dataStreams.streamText(options);
 
-    await writer.write(text);
-    // set text part of progress to 1
-    handleProgress(1, 0);
-
-    await writer.close();
-
-    if (options?.attachments != null) {
-      var idx = 0;
-      await Future.wait<void>(
-        options?.attachments.map(
-              (file) {
-                final curIdx = idx++;
-                return _sendFile(
-                  fileIds![curIdx],
-                  file,
-                  SendFileOptions(
-                    topic: options.topic,
-                    mimeType: mime(basename(file.path)),
-                    onProgress: (progress) {
-                      handleProgress(progress, curIdx + 1);
-                    },
-                  ),
-                );
-              },
-            ).toList() ??
-            [],
-      );
-    }
-    return writer.info;
-  }
-
-  Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
-    final streamId = options?.streamId ?? Uuid().v4();
-    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
-
-    final info = TextStreamInfo(
-      id: streamId,
-      mimeType: 'text/plain',
-      timestamp: timestamp,
-      topic: options?.topic ?? '',
-      size: options?.totalSize ?? 0,
-      replyToStreamId: options?.replyToStreamId,
-      attachedStreamIds: options?.attachedStreamIds ?? [],
-      version: options?.version,
-      generated: options?.generated ?? false,
-      operationType: options?.type,
-      sendingParticipantIdentity: identity,
-    );
-
-    final header = lk_models.DataStream_Header(
-      streamId: streamId,
-      mimeType: info.mimeType,
-      topic: info.topic,
-      timestamp: Int64(timestamp),
-      totalLength: options?.totalSize != null ? Int64(options!.totalSize!) : null,
-      attributes: options?.attributes.entries,
-      textHeader: lk_models.DataStream_TextHeader(
-        version: options?.version,
-        attachedStreamIds: options?.attachedStreamIds,
-        replyToStreamId: options?.replyToStreamId,
-        generated: options?.generated ?? false,
-        operationType: options?.type?.toPBType(),
-      ),
-    );
-
-    final destinationIdentities = options?.destinationIdentities;
-    final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      destinationIdentities: destinationIdentities,
-      streamHeader: header,
-    );
-    await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
-
-    final writableStream = WritableStream<String>(
-      destinationIdentities: destinationIdentities!,
-      engine: room.engine,
-      streamId: streamId,
-    );
-
-    onEngineClose() async {
-      await writableStream.close();
-    }
-
-    final cancelFun = room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
-
-    final writer = TextStreamWriter(writableStream: writableStream, info: info, onClose: cancelFun);
-
-    return writer;
-  }
-
-  Future<Map<String, String>> sendFile(
-    File file, {
-    required SendFileOptions options,
-  }) async {
-    final streamId = Uuid().v4();
-    await _sendFile(streamId, file, options);
-    return {'id': streamId};
-  }
-
-  Future<void> _sendFile(
-    String streamId,
-    File file,
-    SendFileOptions options,
-  ) async {
-    final totalLength = await file.length();
-
-    final streamBytesOptions = StreamBytesOptions(
-      streamId: streamId,
-      totalSize: totalLength,
-      topic: options.topic,
-      mimeType: options.mimeType ?? mime(basename(file.path)),
-      name: basename(file.path),
-      destinationIdentities: options.destinationIdentities,
-      encryptionType: options.encryptionType,
-    );
-
-    final writer = await streamBytes(streamBytesOptions);
-
-    final reader = ChunkedStreamReader(file.openRead());
-
-    final totalChunks = (totalLength / kStreamChunkSize).ceil();
-    for (var i = 0; i < totalChunks; i++) {
-      final chunkData = await reader.readBytes(min((i + 1) * kStreamChunkSize, kStreamChunkSize));
-      await writer.write(chunkData);
-      options.onProgress?.call((i + 1) / totalChunks);
-    }
-    await writer.close();
-  }
-
-  Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
-    final streamId = options?.streamId ?? Uuid().v4();
-    final timestamp = DateTime.timestamp().millisecondsSinceEpoch;
-
-    final info = ByteStreamInfo(
-      name: options?.name ?? 'unknown',
-      id: streamId,
-      mimeType: options?.mimeType ?? 'application/octet-stream',
-      timestamp: timestamp,
-      topic: options?.topic ?? '',
-      size: options?.totalSize ?? 0,
-      attributes: options?.attributes ?? {},
-      sendingParticipantIdentity: identity,
-    );
-
-    final header = lk_models.DataStream_Header(
-      totalLength: options?.totalSize != null ? Int64(options!.totalSize!) : null,
-      mimeType: info.mimeType,
-      streamId: streamId,
-      topic: options?.topic,
-      encryptionType: options?.encryptionType,
-      timestamp: Int64(timestamp),
-      byteHeader: lk_models.DataStream_ByteHeader(
-        name: info.name,
-      ),
-      attributes: options?.attributes.entries,
-    );
-
-    final destinationIdentities = options?.destinationIdentities;
-    final packet = lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      destinationIdentities: destinationIdentities,
-      streamHeader: header,
-    );
-
-    await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
-
-    final writableStream = WritableStream<Uint8List>(
-      destinationIdentities: destinationIdentities,
-      streamId: streamId,
-      engine: room.engine,
-    );
-
-    onEngineClose() async {
-      await writableStream.close();
-    }
-
-    final cancelFun = room.engine.events.once<EngineClosingEvent>((_) => onEngineClose);
-
-    final byteWriter = ByteStreamWriter(
-      writableStream: writableStream,
-      info: info,
-      onClose: cancelFun,
-    );
-
-    return byteWriter;
-  }
+  /// Opens an incremental byte stream. Incremental writers are never compressed or inlined.
+  Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) => room.dataStreams.streamBytes(options);
 }

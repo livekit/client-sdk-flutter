@@ -33,6 +33,7 @@ import 'logger.dart';
 import 'options.dart';
 import 'support/platform.dart';
 import 'track/local/video.dart';
+import 'types/client_capability.dart';
 import 'types/other.dart';
 import 'types/priority.dart';
 import 'types/video_dimensions.dart';
@@ -199,6 +200,10 @@ class Utils {
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
         'client_protocol': connectOptions.clientProtocolVersion.toStringValue(),
+        // Optional feature flags, negotiated per-peer independently of `client_protocol`. Omitted
+        // entirely when empty (web), which peers read as "no optional features".
+        if (ClientCapability.advertised.isNotEmpty)
+          'capabilities': ClientCapability.advertised.map((c) => c.toWireName()).join(','),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
         'network': networkType,

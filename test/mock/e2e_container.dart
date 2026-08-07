@@ -140,6 +140,7 @@ class E2EContainer {
     String identity, {
     int? clientProtocol,
     String? sid,
+    List<lk_models.ClientInfo_Capability> capabilities = const [],
   }) async {
     clientProtocol ??= ClientProtocolVersion.current.toIntValue();
     final info = lk_models.ParticipantInfo(
@@ -147,6 +148,7 @@ class E2EContainer {
       identity: identity,
       state: lk_models.ParticipantInfo_State.ACTIVE,
       clientProtocol: clientProtocol,
+      capabilities: capabilities,
     );
     final resp = lk_rtc.SignalResponse(
       update: lk_rtc.ParticipantUpdate(participants: [info]),

@@ -14,6 +14,7 @@
 
 // ignore_for_file: constant_identifier_names
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../extensions.dart';
@@ -51,7 +52,12 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   v0(0),
 
   /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
-  v1(1)
+  v1(1),
+
+  /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_V2`. Understands data streams v2 — in particular
+  /// single-packet inline sends. Crossing this threshold is a baseline commitment with no opt-out;
+  /// optional v2 features such as compression are negotiated separately via [ClientCapability].
+  v2(2)
   ;
 
   const ClientProtocolVersion(this.wireValue);
@@ -62,11 +68,16 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   /// The highest version this SDK build supports. Used as the default for
   /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
   /// "the current SDK".
-  static const ClientProtocolVersion current = v1;
+  ///
+  /// Web stays at [v1]: data streams v2 is implemented by the Rust core, which cannot run in a
+  /// browser. Advertising a lower protocol there is what makes a v2 sender fall back to
+  /// uncompressed multi-packet framing, which the Dart implementation understands.
+  static const ClientProtocolVersion current = kIsWeb ? v1 : v2;
 
   /// Maps wire values to the highest protocol version this SDK can use.
   static ClientProtocolVersion fromIntValue(int? value) {
     if (value == null) return v0;
+    if (value >= v2.wireValue) return v2;
     if (value >= v1.wireValue) return v1;
     return v0;
   }

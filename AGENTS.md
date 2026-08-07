@@ -36,7 +36,16 @@ Web/native divergence is handled with conditional imports (e.g. `track/processor
 
 `lib/src/uniffi/` wraps `livekit_uniffi`, a Dart package generated from the `livekit-uniffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
 
-There is no dynamic library to load on the web, so `uniffi.dart` splits native/web the same way the rest of the SDK does. **`uniffi_io.dart` is the only file allowed to import `package:livekit_uniffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. Guard calls with `LiveKitUniffi.isAvailable`.
+There is no dynamic library to load on the web, so `uniffi.dart` splits native/web the same way the rest of the SDK does. **Only `uniffi_io.dart` and files under `lib/src/data_stream/` whose names end in `_native.dart` (plus `ffi_bridged.dart`) may import `package:livekit_uniffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. No generated uniffi type may appear in a public API signature; convert at the boundary (`data_stream/ffi_bridged.dart`). Guard calls with `LiveKitUniffi.isAvailable`.
+
+### Data streams
+
+`lib/src/data_stream/` has two implementations behind one interface (`data_streams.dart`, conditional import): `data_streams_native.dart` delegates to the Rust core, which implements **data streams v2** (inline single-packet sends, deflate-raw compression, UTF-8-aware chunking, MTU-bounded headers); `data_streams_web.dart` is the original Dart v1 code, kept because the cdylib can't run in a browser. Web advertises `ClientProtocolVersion.v1` and no capabilities, so v2 senders fall back to uncompressed multi-packet for it.
+
+Two things to know when touching the native path:
+
+- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`. Both managers are therefore constructed with `delegate: null` and drained via `nextPackets()` / `nextOpenedStream()`. `RemoteParticipantRegistryDelegate` is the one safe callback: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
+- **Only the pump may dispose a uniffi reader.** Disposing from a subscription's `onCancel` frees the Rust handle while a `next()` may still be in flight — a use-after-free that surfaces as a SIGBUS with no Dart stack.
 
 ### Local development loop
 

@@ -20,10 +20,9 @@ import 'package:meta/meta.dart';
 
 import '../audio/audio_manager.dart';
 import '../core/signal_client.dart';
+import '../data_stream/data_streams.dart';
 import '../data_stream/errors.dart';
-import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -138,13 +137,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late final RpcClientManager _rpcClientManager;
   late final RpcServerManager _rpcServerManager;
 
-  final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _byteStreamControllers = {};
-
-  final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _textStreamControllers = {};
-
-  final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
-
-  final Map<String, TextStreamHandler> _textStreamHandlers = {};
+  /// Owns the data-stream subsystem: the topic registry, the send path and inbound routing. On
+  /// native this is backed by the Rust core (data streams v2); on web by the original Dart
+  /// implementation. Created eagerly below so there is exactly one for the room's lifetime, and it
+  /// survives disconnect so handler registrations outlive a reconnect.
+  late final DataStreams dataStreams;
 
   @internal
   late final PreConnectAudioBuffer preConnectAudioBuffer;
@@ -161,13 +158,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // getter would surprise SDK consumers — filter them out here.
   @internal
   Map<String, TextStreamHandler> get textStreamHandlers => Map.fromEntries(
-    _textStreamHandlers.entries.where(
+    dataStreams.textStreamHandlers.entries.where(
       (e) => e.key != kRpcRequestTopic && e.key != kRpcResponseTopic,
     ),
   );
 
   @internal
-  Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
+  Map<String, ByteStreamHandler> get byteStreamHandlers => dataStreams.byteStreamHandlers;
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -181,6 +178,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
              roomOptions: roomOptions,
            ) {
     //
+    dataStreams = createDataStreams(this);
+
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
 
@@ -221,6 +220,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _cleanUp();
       // reject any in-flight RPC calls
       _rpcClientManager.dispose();
+      await dataStreams.dispose();
       // dispose preConnectAudioBuffer
       await preConnectAudioBuffer.dispose();
       // dispose events
@@ -1081,6 +1081,11 @@ extension RoomPrivateMethods on Room {
   Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
     logger.fine('[${objectId}] cleanUp()');
 
+    // Fail any open data streams so their handlers return rather than awaiting a reader that will
+    // never finish. Handler registrations deliberately survive, so streams arriving after a
+    // reconnect are still routed.
+    await dataStreams.reset();
+
     // clean up RemoteParticipants
     final participants = _remoteParticipants.toList();
     _remoteParticipants.clear();
@@ -1386,8 +1391,8 @@ extension RoomRPCMethods on Room {
 
     // Register v2 data-stream-based request/response handlers. These topics
     // are reserved by the SDK, so bypass the public registration guard.
-    _textStreamHandlers[kRpcRequestTopic] = _rpcServerManager.handleIncomingV2RequestStream;
-    _textStreamHandlers[kRpcResponseTopic] = _rpcClientManager.handleIncomingV2ResponseStream;
+    dataStreams.registerTextStreamHandler(kRpcRequestTopic, _rpcServerManager.handleIncomingV2RequestStream);
+    dataStreams.registerTextStreamHandler(kRpcResponseTopic, _rpcClientManager.handleIncomingV2ResponseStream);
   }
 
   /// Register a handler for incoming RPC requests.
@@ -1420,48 +1425,41 @@ const _reservedRpcTopicPrefix = 'lk.rpc';
 
 extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
-    _engineListener
-      ..on<EngineDataStreamHeaderEvent>((event) async {
-        await handleStreamHeader(event.header, event.identity, event.encryptionType);
-      })
-      ..on<EngineDataStreamChunkEvent>((event) async {
-        handleStreamChunk(event.chunk, event.encryptionType);
-      })
-      ..on<EngineDataStreamTrailerEvent>((event) async {
-        await handleStreamTrailer(event.trailer, event.encryptionType);
-      });
+    _engineListener.on<EngineDataStreamPacketEvent>((event) async {
+      dataStreams.handleIncomingPacket(event.packet, event.encryptionType);
+    });
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
     _ensureNotReservedRpcTopic(topic);
-    if (_textStreamHandlers.containsKey(topic)) {
+    if (dataStreams.textStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A text stream handler for topic "${topic}" has already been set.',
         reason: DataStreamErrorReason.HandlerAlreadyRegistered,
       );
     }
-    _textStreamHandlers[topic] = callback;
+    dataStreams.registerTextStreamHandler(topic, callback);
   }
 
   void unregisterTextStreamHandler(String topic) {
     if (_isReservedRpcTopic(topic)) return;
-    _textStreamHandlers.remove(topic);
+    dataStreams.unregisterTextStreamHandler(topic);
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
     _ensureNotReservedRpcTopic(topic);
-    if (_byteStreamHandlers.containsKey(topic)) {
+    if (dataStreams.byteStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A byte stream handler for topic "${topic}" has already been set.',
         reason: DataStreamErrorReason.HandlerAlreadyRegistered,
       );
     }
-    _byteStreamHandlers[topic] = callback;
+    dataStreams.registerByteStreamHandler(topic, callback);
   }
 
   void unregisterByteStreamHandler(String topic) {
     if (_isReservedRpcTopic(topic)) return;
-    _byteStreamHandlers.remove(topic);
+    dataStreams.unregisterByteStreamHandler(topic);
   }
 
   void _ensureNotReservedRpcTopic(String topic) {
@@ -1476,208 +1474,6 @@ extension DataStreamRoomMethods on Room {
   bool _isReservedRpcTopic(String topic) => topic.startsWith(_reservedRpcTopicPrefix);
 
   @internal
-  Future<void> handleStreamHeader(
-    lk_models.DataStream_Header streamHeader,
-    String participantIdentity,
-    EncryptionType encryptionType,
-  ) async {
-    if (streamHeader.hasByteHeader()) {
-      final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
-
-      if (streamHandlerCallback == null) {
-        logger.info('ignoring incoming byte stream due to no handler for topic ${streamHeader.topic}');
-        return;
-      }
-
-      final info = ByteStreamInfo(
-        id: streamHeader.streamId,
-        name: streamHeader.byteHeader.name,
-        mimeType: streamHeader.mimeType,
-        size: streamHeader.hasTotalLength() ? streamHeader.totalLength.toInt() : 0,
-        topic: streamHeader.topic,
-        timestamp: streamHeader.timestamp.toInt(),
-        attributes: streamHeader.attributes,
-        encryptionType: encryptionType,
-        sendingParticipantIdentity: participantIdentity,
-      );
-
-      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
-        info: info,
-        streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.timestamp().millisecondsSinceEpoch,
-      );
-
-      if (_byteStreamControllers.containsKey(streamHeader.streamId)) {
-        throw DataStreamError(
-          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
-        );
-      }
-
-      _byteStreamControllers[streamHeader.streamId] = streamController;
-
-      streamHandlerCallback(
-        ByteStreamReader(info, streamController, streamHeader.totalLength.toInt()),
-        participantIdentity,
-      );
-    } else if (streamHeader.hasTextHeader()) {
-      final streamHandlerCallback = _textStreamHandlers[streamHeader.topic];
-
-      if (streamHandlerCallback == null) {
-        logger.warning('ignoring incoming text stream due to no handler for topic ${streamHeader.topic}');
-        return;
-      }
-
-      final info = TextStreamInfo(
-        id: streamHeader.streamId,
-        mimeType: streamHeader.mimeType,
-        size: streamHeader.hasTotalLength() ? streamHeader.totalLength.toInt() : 0,
-        topic: streamHeader.topic,
-        timestamp: streamHeader.timestamp.toInt(),
-        attributes: streamHeader.attributes,
-        replyToStreamId: streamHeader.textHeader.hasReplyToStreamId() ? streamHeader.textHeader.replyToStreamId : null,
-        attachedStreamIds: streamHeader.textHeader.attachedStreamIds.toList(),
-        version: streamHeader.textHeader.hasVersion() ? streamHeader.textHeader.version : null,
-        generated: streamHeader.textHeader.hasGenerated() ? streamHeader.textHeader.generated : false,
-        operationType: streamHeader.textHeader.hasOperationType()
-            ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
-            : null,
-        encryptionType: encryptionType,
-        sendingParticipantIdentity: participantIdentity,
-      );
-
-      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
-        info: info,
-        streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.timestamp().millisecondsSinceEpoch,
-      );
-
-      if (_textStreamControllers.containsKey(streamHeader.streamId)) {
-        throw DataStreamError(
-          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
-        );
-      }
-
-      _textStreamControllers[streamHeader.streamId] = streamController;
-
-      streamHandlerCallback(
-        TextStreamReader(info, streamController, streamHeader.totalLength.toInt()),
-        participantIdentity,
-      );
-    }
-  }
-
-  @internal
-  void handleStreamChunk(lk_models.DataStream_Chunk chunk, EncryptionType encryptionType) {
-    final fileBuffer = _byteStreamControllers[chunk.streamId];
-
-    if (fileBuffer != null) {
-      if (fileBuffer.info.encryptionType != encryptionType) {
-        fileBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _byteStreamControllers.remove(chunk.streamId);
-      } else if (chunk.content.isNotEmpty) {
-        fileBuffer.write(chunk);
-      }
-    }
-    final textBuffer = _textStreamControllers[chunk.streamId];
-    if (textBuffer != null) {
-      if (textBuffer.info.encryptionType != encryptionType) {
-        textBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
-        _textStreamControllers.remove(chunk.streamId);
-      } else if (chunk.content.isNotEmpty) {
-        textBuffer.write(chunk);
-      }
-    }
-  }
-
-  @internal
-  Future<void> handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
-    final textBuffer = _textStreamControllers[trailer.streamId];
-    if (textBuffer != null) {
-      if (textBuffer.info.encryptionType != encryptionType) {
-        textBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _textStreamControllers.remove(trailer.streamId);
-        return;
-      } else {
-        textBuffer.info.attributes = {
-          ...textBuffer.info.attributes,
-          ...trailer.attributes,
-        };
-        await textBuffer.close();
-        _textStreamControllers.remove(trailer.streamId);
-      }
-    }
-
-    final fileBuffer = _byteStreamControllers[trailer.streamId];
-    if (fileBuffer != null) {
-      if (fileBuffer.info.encryptionType != encryptionType) {
-        fileBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _byteStreamControllers.remove(trailer.streamId);
-        return;
-      } else {
-        fileBuffer.info.attributes = {...fileBuffer.info.attributes, ...trailer.attributes};
-        await fileBuffer.close();
-        _byteStreamControllers.remove(trailer.streamId);
-      }
-    }
-  }
-
-  @internal
-  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
-    // Terminate any in flight data stream receives from the given participant
-    final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
-        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
-        .toList();
-
-    final byteStreamsBeingSentByDisconnectingParticipant = _byteStreamControllers.values
-        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
-        .toList();
-    if (textStreamsBeingSentByDisconnectingParticipant.isNotEmpty ||
-        byteStreamsBeingSentByDisconnectingParticipant.isNotEmpty) {
-      final abnormalEndError = DataStreamError(
-        message: 'Participant ${participantIdentity} unexpectedly disconnected in the middle of sending data',
-        reason: DataStreamErrorReason.AbnormalEnd,
-      );
-      for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
-        controller.error(abnormalEndError);
-        await controller.close();
-        _byteStreamControllers.remove(controller.info.id);
-      }
-      for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
-        controller.error(abnormalEndError);
-        await controller.close();
-        _textStreamControllers.remove(controller.info.id);
-      }
-    }
-  }
+  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) =>
+      dataStreams.closeStreamsFrom(participantIdentity);
 }

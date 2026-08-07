@@ -581,13 +581,16 @@ class ClientInfo_Capability extends $pb.ProtobufEnum {
   static const ClientInfo_Capability CAP_UNUSED = ClientInfo_Capability._(0, _omitEnumNames ? '' : 'CAP_UNUSED');
   static const ClientInfo_Capability CAP_PACKET_TRAILER =
       ClientInfo_Capability._(1, _omitEnumNames ? '' : 'CAP_PACKET_TRAILER');
+  static const ClientInfo_Capability CAP_COMPRESSION_DEFLATE_RAW =
+      ClientInfo_Capability._(2, _omitEnumNames ? '' : 'CAP_COMPRESSION_DEFLATE_RAW');
 
   static const $core.List<ClientInfo_Capability> values = <ClientInfo_Capability>[
     CAP_UNUSED,
     CAP_PACKET_TRAILER,
+    CAP_COMPRESSION_DEFLATE_RAW,
   ];
 
-  static final $core.List<ClientInfo_Capability?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static final $core.List<ClientInfo_Capability?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
   static ClientInfo_Capability? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
@@ -613,6 +616,27 @@ class DataStream_OperationType extends $pb.ProtobufEnum {
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const DataStream_OperationType._(super.value, super.name);
+}
+
+/// The compression type of the whole data stream
+///
+/// This will only get populated when send to participants with a
+/// client protocol >= 2 which advertise a client capability of CAP_COMPRESSION_DEFLATE_RAW
+class DataStream_CompressionType extends $pb.ProtobufEnum {
+  static const DataStream_CompressionType NONE = DataStream_CompressionType._(0, _omitEnumNames ? '' : 'NONE');
+  static const DataStream_CompressionType DEFLATE_RAW =
+      DataStream_CompressionType._(1, _omitEnumNames ? '' : 'DEFLATE_RAW');
+
+  static const $core.List<DataStream_CompressionType> values = <DataStream_CompressionType>[
+    NONE,
+    DEFLATE_RAW,
+  ];
+
+  static final $core.List<DataStream_CompressionType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static DataStream_CompressionType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const DataStream_CompressionType._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -1,0 +1,539 @@
+// Copyright 2026 LiveKit, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:fixnum/fixnum.dart';
+import 'package:livekit_uniffi/livekit_uniffi.dart' as ffi;
+import 'package:path/path.dart' show basename;
+import 'package:uuid/uuid.dart';
+
+import '../core/room.dart';
+import '../e2ee/options.dart';
+import '../extensions.dart';
+import '../logger.dart';
+import '../participant/participant.dart';
+import '../proto/livekit_models.pb.dart' as lk_models;
+import '../types/data_stream.dart';
+import '../types/other.dart';
+import 'data_streams.dart';
+import 'errors.dart';
+import 'ffi_bridged.dart';
+import 'stream_reader.dart';
+import 'stream_writer.dart';
+
+DataStreams createDataStreams(Room room) => NativeDataStreams(room);
+
+/// Data streams backed by the Rust core in `package:livekit_uniffi`, which implements v2:
+/// single-packet inline sends, deflate-raw compression, UTF-8-aware chunking and MTU-bounded
+/// headers. This layer owns topic routing, the public type conversions, and the transport hop —
+/// the wire format itself is entirely Rust's.
+///
+/// The FFI boundary is serialized `DataPacket` bytes in both directions. Inbound, [Room] hands over
+/// already-decrypted packets; outbound, packets come back encoded and are re-sent through
+/// [Engine.sendDataPacket] so E2EE wrapping, reliable sequencing and resume-resend all still apply.
+///
+/// Both managers run in **pull** mode. The Rust core can also push through delegates, but a uniffi
+/// callback in Dart is compiled to `Pointer.fromFunction`, which is only valid on the thread owning
+/// the isolate; the core invokes those delegates from its tokio runtime, which aborts the VM with
+/// "Cannot invoke native callback outside an isolate". Awaiting `nextPackets`/`nextOpenedStream`
+/// instead keeps every crossing on a thread we control.
+///
+/// [RemoteParticipantRegistryDelegate] is the one exception and is safe: it is only ever called
+/// synchronously inside a `send*` future, and uniffi polls those from whichever thread calls
+/// `rust_future_poll` — us.
+class NativeDataStreams implements DataStreams {
+  NativeDataStreams(Room room) : _room = WeakReference(room) {
+    _outgoing = ffi.OutgoingDataStreamManager(
+      // Pull mode: no delegate. See the class docs.
+      delegate: null,
+      registry: _Registry(room),
+    );
+    unawaited(_pumpOutgoing());
+  }
+
+  /// Weak so the Rust-side strong reference to the registry delegate can't keep the [Room] alive.
+  final WeakReference<Room> _room;
+
+  late final ffi.OutgoingDataStreamManager _outgoing;
+
+  /// Created on the first inbound packet rather than here, so a `maxPayloadSize` supplied at
+  /// connect time is picked up.
+  ffi.IncomingDataStreamManager? _incoming;
+
+  final Map<String, TextStreamHandler> _textStreamHandlers = {};
+  final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
+
+  /// Serializes outbound sends so packet order survives the hop from the pump into the engine's
+  /// async send.
+  Future<void> _sendChain = Future.value();
+
+  bool _disposed = false;
+
+  @override
+  Map<String, TextStreamHandler> get textStreamHandlers => _textStreamHandlers;
+
+  @override
+  Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
+
+  @override
+  void registerTextStreamHandler(String topic, TextStreamHandler callback) => _textStreamHandlers[topic] = callback;
+
+  @override
+  void unregisterTextStreamHandler(String topic) => _textStreamHandlers.remove(topic);
+
+  @override
+  void registerByteStreamHandler(String topic, ByteStreamHandler callback) => _byteStreamHandlers[topic] = callback;
+
+  @override
+  void unregisterByteStreamHandler(String topic) => _byteStreamHandlers.remove(topic);
+
+  // MARK: - Send
+
+  @override
+  Future<TextStreamInfo> sendText(String text, SendTextOptions? options) async {
+    // Attachments are still composed here: the core sends one stream, and each attachment is its
+    // own byte stream referenced by `attachedStreamIds` in the text header.
+    final attachments = options?.attachments ?? const <File>[];
+    final attachmentIds = [for (var i = 0; i < attachments.length; i++) const Uuid().v4()];
+
+    final info = await mappingFfiErrors(
+      () => _outgoing.sendText(
+        text: text,
+        options: ffi.StreamTextOptions(
+          topic: options?.topic ?? '',
+          attributes: options?.attributes ?? const {},
+          destinationIdentities: options?.destinationIdentities ?? const [],
+          attachedStreamIds: attachmentIds,
+          compress: options?.compress,
+        ),
+      ),
+    );
+
+    // The core does its own chunking, so there is no per-chunk progress to report; the text part
+    // is simply done. Attachments still report individually.
+    options?.onProgress?.call(attachments.isEmpty ? 1 : 1 / (attachments.length + 1));
+
+    for (var i = 0; i < attachments.length; i++) {
+      await _sendFileWithId(
+        attachmentIds[i],
+        attachments[i],
+        SendFileOptions(topic: options?.topic, destinationIdentities: options?.destinationIdentities ?? const []),
+      );
+      options?.onProgress?.call((i + 2) / (attachments.length + 1));
+    }
+
+    return info.toLK(
+      sendingParticipantIdentity: _localIdentity,
+      encryptionType: _currentEncryptionType,
+    );
+  }
+
+  @override
+  Future<ByteStreamInfo> sendBytes(List<int> bytes, SendBytesOptions? options) async {
+    final info = await mappingFfiErrors(
+      () => _outgoing.sendBytes(
+        data: Uint8List.fromList(bytes),
+        options: ffi.StreamByteOptions(
+          topic: options?.topic ?? '',
+          attributes: options?.attributes ?? const {},
+          destinationIdentities: options?.destinationIdentities ?? const [],
+          name: options?.name,
+          mimeType: options?.mimeType,
+          compress: options?.compress,
+        ),
+      ),
+    );
+    return info.toLK(
+      sendingParticipantIdentity: _localIdentity,
+      encryptionType: _currentEncryptionType,
+    );
+  }
+
+  @override
+  Future<Map<String, String>> sendFile(File file, SendFileOptions options) async {
+    final id = const Uuid().v4();
+    await _sendFileWithId(id, file, options);
+    return {'id': id};
+  }
+
+  Future<void> _sendFileWithId(String id, File file, SendFileOptions options) async {
+    await mappingFfiErrors(
+      () => _outgoing.sendFile(
+        // The core streams the file from disk rather than buffering it.
+        path: file.path,
+        options: ffi.StreamByteOptions(
+          topic: options.topic ?? '',
+          attributes: const {},
+          destinationIdentities: options.destinationIdentities,
+          id: id,
+          mimeType: options.mimeType,
+          name: basename(file.path),
+        ),
+      ),
+    );
+    options.onProgress?.call(1);
+  }
+
+  @override
+  Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
+    final writer = await mappingFfiErrors(
+      () => _outgoing.streamText(
+        options: ffi.StreamTextOptions(
+          topic: options?.topic ?? '',
+          attributes: options?.attributes ?? const {},
+          destinationIdentities: options?.destinationIdentities ?? const [],
+          id: options?.streamId,
+          operationType: options?.type?.toFfi(),
+          version: options?.version,
+          replyToStreamId: options?.replyToStreamId,
+          attachedStreamIds: options?.attachedStreamIds ?? const [],
+          generated: options?.generated,
+        ),
+      ),
+    );
+    return TextStreamWriter(
+      writableStream: _FfiTextStreamWriter(writer),
+      info: writer.info().toLK(
+        sendingParticipantIdentity: _localIdentity,
+        encryptionType: _currentEncryptionType,
+      ),
+      onClose: () async => writer.dispose(),
+    );
+  }
+
+  @override
+  Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
+    final writer = await mappingFfiErrors(
+      () => _outgoing.streamBytes(
+        options: ffi.StreamByteOptions(
+          topic: options?.topic ?? '',
+          attributes: options?.attributes ?? const {},
+          destinationIdentities: options?.destinationIdentities ?? const [],
+          id: options?.streamId,
+          mimeType: options?.mimeType,
+          name: options?.name,
+          totalLength: options?.totalSize,
+        ),
+      ),
+    );
+    return ByteStreamWriter(
+      writableStream: _FfiByteStreamWriter(writer),
+      info: writer.info().toLK(
+        sendingParticipantIdentity: _localIdentity,
+        encryptionType: _currentEncryptionType,
+      ),
+      onClose: () async => writer.dispose(),
+    );
+  }
+
+  /// Drains outbound packets from the core and puts them on the wire, in order.
+  Future<void> _pumpOutgoing() async {
+    while (!_disposed) {
+      final List<Uint8List>? batch;
+      try {
+        batch = await _outgoing.nextPackets();
+      } catch (e) {
+        logger.warning('[DataStreams] outgoing pump failed: $e');
+        return;
+      }
+      if (batch == null) return; // shutting down
+      for (final encoded in batch) {
+        _enqueueSend(encoded);
+      }
+    }
+  }
+
+  void _enqueueSend(Uint8List encoded) {
+    _sendChain = _sendChain.then((_) async {
+      final room = _room.target;
+      if (room == null || _disposed) return;
+      try {
+        // Back through the engine rather than the data channel directly, so E2EE wrapping,
+        // reliable sequencing and resume-resend all still apply.
+        await room.engine.sendDataPacket(
+          lk_models.DataPacket.fromBuffer(encoded),
+          reliability: Reliability.reliable,
+        );
+      } catch (e) {
+        // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
+        logger.warning('[DataStreams] failed to send outbound packet: $e');
+      }
+    });
+  }
+
+  // MARK: - Receive
+
+  ffi.IncomingDataStreamManager _incomingManager() {
+    final existing = _incoming;
+    if (existing != null) return existing;
+    final created = ffi.IncomingDataStreamManager(
+      // Pull mode: no delegate. See the class docs.
+      delegate: null,
+      maxPayloadByteLength: null,
+    );
+    _incoming = created;
+    unawaited(_pumpIncoming(created));
+    return created;
+  }
+
+  @override
+  void handleIncomingPacket(lk_models.DataPacket packet, EncryptionType encryptionType) {
+    if (_disposed) return;
+    // The core decodes the header/chunk/trailer itself, so hand it the whole packet.
+    _incomingManager().handlePacketReceived(packet: packet.writeToBuffer());
+  }
+
+  /// Drains opened streams from the core and dispatches them to the registered topic handler.
+  Future<void> _pumpIncoming(ffi.IncomingDataStreamManager manager) async {
+    while (!_disposed) {
+      final ffi.OpenedStream? opened;
+      try {
+        opened = await manager.nextOpenedStream();
+      } catch (e) {
+        logger.warning('[DataStreams] incoming pump failed: $e');
+        return;
+      }
+      if (opened == null) return; // shutting down
+      try {
+        _dispatchOpenedStream(opened);
+      } catch (e) {
+        logger.warning('[DataStreams] failed to dispatch opened stream: $e');
+      }
+    }
+  }
+
+  void _dispatchOpenedStream(ffi.OpenedStream opened) {
+    final identity = opened.identity;
+    final encryptionType = _currentEncryptionType;
+
+    final textReader = opened.textReader;
+    if (textReader != null) {
+      final info = textReader.info().toLK(
+        sendingParticipantIdentity: identity,
+        encryptionType: encryptionType,
+      );
+      final handler = _textStreamHandlers[info.topic];
+      if (handler == null) {
+        logger.info('[DataStreams] ignoring text stream on unhandled topic "${info.topic}"');
+        textReader.dispose();
+        return;
+      }
+      // The core yields decoded pieces; re-frame them as protobuf chunks so the public reader —
+      // which is a Stream<DataStream_Chunk> — behaves exactly as it did before.
+      final controller = _controllerFor<String>(
+        info: info,
+        next: textReader.next,
+        toBytes: (piece) => Uint8List.fromList(utf8.encode(piece)),
+        streamId: info.id,
+        dispose: textReader.dispose,
+      );
+      handler(TextStreamReader(info, controller, info.size), identity);
+      return;
+    }
+
+    final byteReader = opened.byteReader;
+    if (byteReader != null) {
+      final info = byteReader.info().toLK(
+        sendingParticipantIdentity: identity,
+        encryptionType: encryptionType,
+      );
+      final handler = _byteStreamHandlers[info.topic];
+      if (handler == null) {
+        logger.info('[DataStreams] ignoring byte stream on unhandled topic "${info.topic}"');
+        byteReader.dispose();
+        return;
+      }
+      final controller = _controllerFor<Uint8List>(
+        info: info,
+        next: byteReader.next,
+        toBytes: (piece) => piece,
+        streamId: info.id,
+        dispose: byteReader.dispose,
+      );
+      handler(ByteStreamReader(info, controller, info.size), identity);
+    }
+  }
+
+  /// Adapts the core's pull-based reader onto the [DataStreamController] the public readers wrap.
+  ///
+  /// Pulling is driven by the subscription: nothing is read until someone listens, and the loop
+  /// stops while the subscription is paused, so the core's backpressure is preserved rather than
+  /// buffering the whole stream into Dart.
+  ///
+  /// The pump owns the reader's lifetime and is the only thing that may dispose it. Disposing from
+  /// `onCancel` instead would free the Rust handle while a `next()` is still in flight — a
+  /// use-after-free that shows up as a SIGBUS, not a Dart exception.
+  DataStreamController<lk_models.DataStream_Chunk> _controllerFor<T extends Object>({
+    required BaseStreamInfo info,
+    required Future<T?> Function() next,
+    required Uint8List Function(T piece) toBytes,
+    required String streamId,
+    required void Function() dispose,
+  }) {
+    late final StreamController<lk_models.DataStream_Chunk> controller;
+    late final DataStreamController<lk_models.DataStream_Chunk> wrapper;
+    var chunkIndex = 0;
+    var running = false;
+    var cancelled = false;
+    var disposed = false;
+
+    void disposeOnce() {
+      if (disposed) return;
+      disposed = true;
+      dispose();
+    }
+
+    Future<void> pump() async {
+      if (running) return;
+      running = true;
+      try {
+        while (!cancelled && !controller.isClosed && !controller.isPaused) {
+          final piece = await next();
+          if (piece == null) break;
+          if (cancelled || controller.isClosed) break;
+          wrapper.write(
+            lk_models.DataStream_Chunk(
+              streamId: streamId,
+              chunkIndex: Int64(chunkIndex++),
+              content: toBytes(piece),
+            ),
+          );
+        }
+        // Paused means the consumer will resume us later, so leave the reader open.
+        if (cancelled || (!controller.isPaused && !controller.isClosed)) {
+          await wrapper.close();
+          disposeOnce();
+        }
+      } on ffi.DataStreamException catch (e) {
+        wrapper.error(toLKError(e));
+        await wrapper.close();
+        disposeOnce();
+      } catch (e) {
+        wrapper.error(
+          DataStreamError(
+            reason: DataStreamErrorReason.AbnormalEnd,
+            message: 'Data stream failed: $e',
+          ),
+        );
+        await wrapper.close();
+        disposeOnce();
+      } finally {
+        running = false;
+      }
+    }
+
+    controller = StreamController<lk_models.DataStream_Chunk>(
+      onListen: () => unawaited(pump()),
+      onResume: () => unawaited(pump()),
+      // Only flag it: the pump disposes once it has stopped touching the reader. If it is blocked
+      // in `next()` the reader stays alive until that resolves, which is the safe order.
+      onCancel: () {
+        cancelled = true;
+        if (!running) disposeOnce();
+      },
+    );
+    wrapper = DataStreamController<lk_models.DataStream_Chunk>(
+      info: info,
+      streamController: controller,
+      startTime: DateTime.timestamp().millisecondsSinceEpoch,
+    );
+    return wrapper;
+  }
+
+  // MARK: - Lifecycle
+
+  @override
+  Future<void> closeStreamsFrom(String identity) async {
+    _incoming?.abortStreamsFrom(identity: identity);
+  }
+
+  @override
+  Future<void> reset() async {
+    _incoming?.abortAllStreams();
+  }
+
+  @override
+  Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    _incoming?.abortAllStreams();
+    _incoming?.dispose();
+    _incoming = null;
+    _outgoing.dispose();
+  }
+
+  // MARK: - Helpers
+
+  String get _localIdentity => _room.target?.localParticipant?.identity ?? '';
+
+  /// The FFI normalizes every stream's encryption type to none — payload crypto happens in the
+  /// engine — so surface the room's data-channel setting to preserve the previous behavior.
+  EncryptionType get _currentEncryptionType {
+    final room = _room.target;
+    final enabled = room?.e2eeManager?.isDataChannelEncryptionEnabled ?? false;
+    return enabled ? EncryptionType.kGcm : EncryptionType.kNone;
+  }
+}
+
+/// Answers the core's per-send eligibility questions from the room's current participant list.
+///
+/// A separate object rather than [NativeDataStreams] itself because the Rust manager retains its
+/// registry strongly; holding the room weakly here keeps that from pinning the room alive.
+class _Registry implements ffi.RemoteParticipantRegistryDelegate {
+  _Registry(Room room) : _room = WeakReference(room);
+
+  final WeakReference<Room> _room;
+
+  @override
+  int remoteClientProtocol(String identity) =>
+      _participant(identity)?.clientProtocol.toIntValue() ?? ClientProtocolVersion.v0.wireValue;
+
+  @override
+  List<ffi.ClientCapability> remoteCapabilities(String identity) =>
+      _participant(identity)?.capabilities.map((c) => c.toFfi()).toList() ?? const [];
+
+  @override
+  List<String> remoteIdentities() => _room.target?.remoteParticipants.keys.toList() ?? const [];
+
+  Participant? _participant(String identity) => _room.target?.remoteParticipants[identity];
+}
+
+/// Bridges the core's text writer onto the [StreamWriter] the public writer wraps.
+class _FfiTextStreamWriter implements StreamWriter<String> {
+  _FfiTextStreamWriter(this._writer);
+
+  final ffi.TextStreamWriter _writer;
+
+  @override
+  Future<void> write(String chunk) => mappingFfiErrors(() => _writer.write(text: chunk));
+
+  @override
+  Future<void> close() => mappingFfiErrors(() => _writer.close());
+}
+
+class _FfiByteStreamWriter implements StreamWriter<Uint8List> {
+  _FfiByteStreamWriter(this._writer);
+
+  final ffi.ByteStreamWriter _writer;
+
+  @override
+  Future<void> write(Uint8List chunk) => mappingFfiErrors(() => _writer.write(data: chunk));
+
+  @override
+  Future<void> close() => mappingFfiErrors(() => _writer.close());
+}

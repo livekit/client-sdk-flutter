@@ -18,7 +18,6 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/data_stream/errors.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';

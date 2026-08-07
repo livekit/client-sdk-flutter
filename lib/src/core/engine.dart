@@ -1024,29 +1024,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           identity: dp.participantIdentity,
         ),
       );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader) {
-      // Data Stream Header
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader ||
+        dp.whichValue() == lk_models.DataPacket_Value.streamChunk ||
+        dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
+      // Data stream header / chunk / trailer, forwarded whole — see EngineDataStreamPacketEvent.
       events.emit(
-        EngineDataStreamHeaderEvent(
-          header: dp.streamHeader,
-          identity: dp.participantIdentity,
-          encryptionType: encryptionType,
-        ),
-      );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
-      // Data Stream Chunk
-      events.emit(
-        EngineDataStreamChunkEvent(
-          chunk: dp.streamChunk,
-          identity: dp.participantIdentity,
-          encryptionType: encryptionType,
-        ),
-      );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
-      // Data Stream trailer
-      events.emit(
-        EngineDataStreamTrailerEvent(
-          trailer: dp.streamTrailer,
+        EngineDataStreamPacketEvent(
+          packet: dp,
           identity: dp.participantIdentity,
           encryptionType: encryptionType,
         ),
