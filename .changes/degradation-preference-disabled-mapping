@@ -1,0 +1,1 @@
+patch type="fixed" "The deprecated DegradationPreference.disabled is now handled as maintainFramerateAndResolution, matching how WebRTC defines it"

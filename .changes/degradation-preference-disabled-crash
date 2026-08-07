@@ -1,1 +1,0 @@
-patch type="fixed" "Publishing a video track with the deprecated DegradationPreference.disabled no longer crashes, it now maps to maintainFramerateAndResolution as WebRTC defines it"
