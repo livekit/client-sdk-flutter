@@ -556,12 +556,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
           if (track is LocalVideoTrack) {
-            track.simulcastCodecs.forEach((key, simulcastTrack) async {
-              await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
-            });
+            for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
+              final simulcastSender = simulcastTrack.sender;
+              if (simulcastSender != null) {
+                await room.engine.publisher?.pc.removeTrack(simulcastSender);
+              }
+            }
           }
         } catch (e) {
           logger.warning('[$objectId] rtc.removeTrack() did throw $e');
+        }
+        if (track is LocalVideoTrack) {
+          track.clearSimulcastState();
         }
 
         // doesn't make sense to negotiate if already disposed
@@ -605,7 +611,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (track.track is LocalAudioTrack) {
         await publishAudioTrack(track.track as LocalAudioTrack);
       } else if (track.track is LocalVideoTrack) {
-        await publishVideoTrack(track.track as LocalVideoTrack);
+        final videoTrack = track.track as LocalVideoTrack;
+        // a full reconnect replaced the peer connection, so any simulcast
+        // codec senders the track still holds belong to the old one
+        videoTrack.clearSimulcastState();
+        await publishVideoTrack(videoTrack);
       }
     }
   }
