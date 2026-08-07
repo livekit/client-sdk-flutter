@@ -1512,7 +1512,7 @@ extension EngineInternalMethods on Engine {
       throw UnexpectedConnectionState('publisher is closed');
     }
 
-    if (track.mediaStreamTrack.kind == 'video' && opts is VideoPublishOptions) {
+    if (track.rtcTrack.kind == 'video' && opts is VideoPublishOptions) {
       track.codec = opts.videoCodec;
     }
     final transceiverInit = rtc.RTCRtpTransceiverInit(
@@ -1522,7 +1522,7 @@ extension EngineInternalMethods on Engine {
       transceiverInit.sendEncodings = encodings;
     }
     final transceiver = await publisher!.pc.addTransceiver(
-      track: track.mediaStreamTrack,
+      track: track.rtcTrack,
       kind: track is LocalVideoTrack
           ? rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo
           : rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,

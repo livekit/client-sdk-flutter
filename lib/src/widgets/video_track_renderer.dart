@@ -213,7 +213,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   Future<void> _attach() async {
-    _renderer?.srcObject = widget.track.mediaStream;
+    _renderer?.srcObject = widget.track.rtcStream;
     await _listener?.dispose();
     _listener = widget.track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
@@ -259,7 +259,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     }
 
     if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {
-      _renderer?.srcObject = widget.track.mediaStream;
+      _renderer?.srcObject = widget.track.rtcStream;
     }
   }
 
@@ -289,7 +289,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
         objectFit: widget.fit.toRTCType(),
         onViewReady: (controller) async {
           _renderer = controller;
-          _renderer?.srcObject = widget.track.mediaStream;
+          _renderer?.srcObject = widget.track.rtcStream;
           await _attach();
         },
       );
@@ -396,7 +396,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     if (widget.mirrorMode == VideoViewMirrorMode.auto) {
       final track = widget.track;
       if (track is LocalVideoTrack) {
-        final settings = track.mediaStreamTrack.getSettings();
+        final settings = track.rtcTrack.getSettings();
         final facingMode = settings['facingMode'];
         if (facingMode != null) {
           return facingMode == 'user';

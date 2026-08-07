@@ -45,14 +45,14 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
 
   @override
   Future<bool> monitorStats() async {
-    if (receiver == null || events.isDisposed || !isActive) {
+    if (rtcReceiver == null || events.isDisposed || !isActive) {
       _currentBitrate = 0;
       return false;
     }
     try {
       final stats = await getReceiverStats();
 
-      if (stats != null && prevStats != null && receiver != null) {
+      if (stats != null && prevStats != null && rtcReceiver != null) {
         final bitrate = computeBitrateForReceiverStats(stats, prevStats);
         _currentBitrate = bitrate;
         events.emit(VideoReceiverStatsEvent(stats: stats, currentBitrate: bitrate));
@@ -68,13 +68,13 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
   }
 
   Future<VideoReceiverStats?> getReceiverStats() async {
-    if (receiver == null) {
+    if (rtcReceiver == null) {
       return null;
     }
 
     late List<rtc.StatsReport> stats;
     try {
-      stats = await receiver!.getStats();
+      stats = await rtcReceiver!.getStats();
     } catch (e) {
       rethrow;
     }

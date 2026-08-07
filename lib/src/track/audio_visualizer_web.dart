@@ -16,7 +16,7 @@ class AudioVisualizerWeb extends AudioVisualizer {
   MultiBandTrackVolumeOptions options = MultiBandTrackVolumeOptions();
   Timer? _timer;
   final AudioTrack? _audioTrack;
-  MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
+  MediaStreamTrack get mediaStreamTrack => _audioTrack!.rtcTrack;
 
   final AudioVisualizerOptions visualizerOptions;
 

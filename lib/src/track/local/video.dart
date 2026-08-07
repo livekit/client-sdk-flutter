@@ -119,11 +119,11 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   }
 
   Future<List<VideoSenderStats>> getSenderStats() async {
-    if (sender == null) {
+    if (rtcSender == null) {
       return [];
     }
 
-    final stats = await sender!.getStats();
+    final stats = await rtcSender!.getStats();
     final List<VideoSenderStats> items = [];
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
@@ -290,7 +290,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       params: options.params,
     );
     await restartTrack(newOptions);
-    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+    await replaceTrackForMultiCodecSimulcast(rtcTrack);
     currentOptions = newOptions;
   }
 
@@ -303,13 +303,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
 
     if (fastSwitch) {
       currentOptions = options.copyWith(deviceId: deviceId);
-      await rtc.Helper.switchCamera(mediaStreamTrack, deviceId, mediaStream);
+      await rtc.Helper.switchCamera(rtcTrack, deviceId, rtcStream);
       return;
     }
 
     await restartTrack(options.copyWith(deviceId: deviceId));
 
-    await replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+    await replaceTrackForMultiCodecSimulcast(rtcTrack);
   }
 
   Future<void> replaceTrackForMultiCodecSimulcast(
@@ -317,7 +317,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   ) async {
     simulcastCodecs.forEach((key, simulcastTrack) async {
       await simulcastTrack.sender?.replaceTrack(newTrack);
-      simulcastTrack.mediaStreamTrack = mediaStreamTrack;
+      simulcastTrack.mediaStreamTrack = rtcTrack;
     });
   }
 
@@ -372,12 +372,12 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }) async {
     logger.fine('Update publishing layers: $layers');
 
-    if (track?.sender == null) {
+    if (track?.rtcSender == null) {
       logger.fine('Update publishing layers: sender is null');
       return;
     }
 
-    final params = track?.sender?.parameters;
+    final params = track?.rtcSender?.parameters;
     if (params == null) {
       logger.fine('Update publishing layers: sender params are null');
       return;
@@ -389,7 +389,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       return;
     }
 
-    return setPublishingLayersForSender(track!.sender!, encodings, layers, isSVC: isSVC);
+    return setPublishingLayersForSender(track!.rtcSender!, encodings, layers, isSVC: isSVC);
   }
 
   lk_models.VideoQuality _videoQualityForRid(String rid) {
@@ -495,7 +495,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     final SimulcastTrackInfo simulcastCodecInfo = SimulcastTrackInfo(
       codec: codec,
       encodings: encodings,
-      mediaStreamTrack: mediaStreamTrack,
+      mediaStreamTrack: rtcTrack,
     );
 
     simulcastCodecs[codec] = simulcastCodecInfo;
@@ -503,11 +503,11 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   }
 
   Future<void> setDegradationPreference(DegradationPreference preference) async {
-    final params = sender?.parameters;
+    final params = rtcSender?.parameters;
     if (params == null) {
       return;
     }
     params.degradationPreference = preference.toRTCType();
-    await sender?.setParameters(params);
+    await rtcSender?.setParameters(params);
   }
 }

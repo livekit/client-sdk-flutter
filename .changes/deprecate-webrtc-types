@@ -1,0 +1,1 @@
+minor type="changed" "Deprecate rtc-typed Track getters (mediaStream, mediaStreamTrack, sender, receiver, mediaType); flutter_webrtc types are being removed from the public API"

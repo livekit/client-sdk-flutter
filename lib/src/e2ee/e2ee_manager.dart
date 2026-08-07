@@ -54,7 +54,7 @@ class E2EEManager {
             return;
           }
           final frameCryptor = await _addRtpSender(
-              sender: event.publication.track!.sender!,
+              sender: event.publication.track!.rtcSender!,
               identity: event.participant.identity,
               sid: event.publication.sid);
           if (kIsWeb && event.publication.track!.codec != null) {

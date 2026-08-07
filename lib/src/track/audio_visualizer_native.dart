@@ -16,7 +16,7 @@ class AudioVisualizerNative extends AudioVisualizer {
   final AudioTrack? _audioTrack;
   final AudioVisualizerOptions visualizerOptions;
 
-  MediaStreamTrack get mediaStreamTrack => _audioTrack!.mediaStreamTrack;
+  MediaStreamTrack get mediaStreamTrack => _audioTrack!.rtcTrack;
 
   AudioVisualizerNative(this._audioTrack, {required this.visualizerOptions}) {
     onDispose(() async {

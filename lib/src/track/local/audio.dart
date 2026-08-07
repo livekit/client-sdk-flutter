@@ -62,7 +62,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   Future<void> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
     final response = await Native.setAudioProcessingOptions(
-      mediaStreamTrack.id!,
+      rtcTrack.id!,
       options.toMap(),
     );
 
@@ -106,7 +106,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     try {
       final stats = await getSenderStats();
 
-      if (stats != null && prevStats != null && sender != null) {
+      if (stats != null && prevStats != null && rtcSender != null) {
         final bitrate = computeBitrateForSenderStats(stats, prevStats);
         _currentBitrate = bitrate;
         events.emit(AudioSenderStatsEvent(stats: stats, currentBitrate: bitrate));
@@ -121,13 +121,13 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   }
 
   Future<AudioSenderStats?> getSenderStats() async {
-    if (sender == null) {
+    if (rtcSender == null) {
       return null;
     }
 
     late List<rtc.StatsReport> stats;
     try {
-      stats = await sender!.getStats();
+      stats = await rtcSender!.getStats();
     } catch (e) {
       rethrow;
     }

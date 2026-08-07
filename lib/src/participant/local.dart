@@ -162,7 +162,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
-    if (audioTrackPublications.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (audioTrackPublications.any((e) => e.track?.rtcTrack.id == track.rtcTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
@@ -215,7 +215,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         );
         // addTransceiver cannot pass in a kind parameter due to a bug in flutter-webrtc (web)
         track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-          track: track.mediaStreamTrack,
+          track: track.rtcTrack,
           kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeAudio,
           init: transceiverInit,
         );
@@ -276,7 +276,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
-    if (videoTrackPublications.any((e) => e.track?.mediaStreamTrack.id == track.mediaStreamTrack.id)) {
+    if (videoTrackPublications.any((e) => e.track?.rtcTrack.id == track.rtcTrack.id)) {
       throw TrackPublishException('track already exists');
     }
 
@@ -329,7 +329,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       // getSettings() is only implemented for Web & Mobile
       try {
         // try to use getSettings for more accurate resolution
-        final settings = track.mediaStreamTrack.getSettings();
+        final settings = track.rtcTrack.getSettings();
         if ((settings['width'] is int && settings['width'] as int > 0) &&
             (settings['height'] is int && settings['height'] as int > 0)) {
           dimensions = dimensions.copyWith(width: settings['width'] as int);
@@ -475,7 +475,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       logger.fine('publishVideoTrack publisher: ${room.engine.publisher}');
 
       track.transceiver = await room.engine.publisher?.pc.addTransceiver(
-        track: track.mediaStreamTrack,
+        track: track.rtcTrack,
         kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
         init: transceiverInit,
       );
