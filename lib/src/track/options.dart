@@ -37,10 +37,10 @@ enum CameraExposureMode { auto, locked }
 /// Convenience extension for [CameraPosition].
 extension CameraPositionExt on CameraPosition {
   /// Return a [CameraPosition] which front and back is switched.
-  CameraPosition switched() => {
-        CameraPosition.front: CameraPosition.back,
-        CameraPosition.back: CameraPosition.front,
-      }[this]!;
+  CameraPosition switched() => switch (this) {
+        CameraPosition.front => CameraPosition.back,
+        CameraPosition.back => CameraPosition.front,
+      };
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the camera.

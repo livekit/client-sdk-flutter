@@ -1,0 +1,1 @@
+patch type="fixed" "Protobuf enum conversions no longer crash on values from newer servers, unrecognized values now fall back to a safe default (for example a new DisconnectReason maps to unknown instead of failing disconnect handling)"

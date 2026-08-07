@@ -16,39 +16,39 @@ import '../audio/audio_session.dart' show AppleAudioCategory, AppleAudioCategory
 import 'value_or_absent.dart';
 
 extension AppleAudioCategoryExt on AppleAudioCategory {
-  String toStringValue() => <AppleAudioCategory, String>{
-        AppleAudioCategory.soloAmbient: 'soloAmbient',
-        AppleAudioCategory.playback: 'playback',
-        AppleAudioCategory.record: 'record',
-        AppleAudioCategory.playAndRecord: 'playAndRecord',
-        AppleAudioCategory.multiRoute: 'multiRoute',
-      }[this]!;
+  String toStringValue() => switch (this) {
+        AppleAudioCategory.soloAmbient => 'soloAmbient',
+        AppleAudioCategory.playback => 'playback',
+        AppleAudioCategory.record => 'record',
+        AppleAudioCategory.playAndRecord => 'playAndRecord',
+        AppleAudioCategory.multiRoute => 'multiRoute',
+      };
 }
 
 extension AppleAudioCategoryOptionExt on AppleAudioCategoryOption {
-  String toStringValue() => <AppleAudioCategoryOption, String>{
-        AppleAudioCategoryOption.mixWithOthers: 'mixWithOthers',
-        AppleAudioCategoryOption.duckOthers: 'duckOthers',
-        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers: 'interruptSpokenAudioAndMixWithOthers',
-        AppleAudioCategoryOption.allowBluetooth: 'allowBluetooth',
-        AppleAudioCategoryOption.allowBluetoothA2DP: 'allowBluetoothA2DP',
-        AppleAudioCategoryOption.allowAirPlay: 'allowAirPlay',
-        AppleAudioCategoryOption.defaultToSpeaker: 'defaultToSpeaker',
-      }[this]!;
+  String toStringValue() => switch (this) {
+        AppleAudioCategoryOption.mixWithOthers => 'mixWithOthers',
+        AppleAudioCategoryOption.duckOthers => 'duckOthers',
+        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers => 'interruptSpokenAudioAndMixWithOthers',
+        AppleAudioCategoryOption.allowBluetooth => 'allowBluetooth',
+        AppleAudioCategoryOption.allowBluetoothA2DP => 'allowBluetoothA2DP',
+        AppleAudioCategoryOption.allowAirPlay => 'allowAirPlay',
+        AppleAudioCategoryOption.defaultToSpeaker => 'defaultToSpeaker',
+      };
 }
 
 extension AppleAudioModeExt on AppleAudioMode {
-  String toStringValue() => <AppleAudioMode, String>{
-        AppleAudioMode.default_: 'default',
-        AppleAudioMode.gameChat: 'gameChat',
-        AppleAudioMode.measurement: 'measurement',
-        AppleAudioMode.moviePlayback: 'moviePlayback',
-        AppleAudioMode.spokenAudio: 'spokenAudio',
-        AppleAudioMode.videoChat: 'videoChat',
-        AppleAudioMode.videoRecording: 'videoRecording',
-        AppleAudioMode.voiceChat: 'voiceChat',
-        AppleAudioMode.voicePrompt: 'voicePrompt',
-      }[this]!;
+  String toStringValue() => switch (this) {
+        AppleAudioMode.default_ => 'default',
+        AppleAudioMode.gameChat => 'gameChat',
+        AppleAudioMode.measurement => 'measurement',
+        AppleAudioMode.moviePlayback => 'moviePlayback',
+        AppleAudioMode.spokenAudio => 'spokenAudio',
+        AppleAudioMode.videoChat => 'videoChat',
+        AppleAudioMode.videoRecording => 'videoRecording',
+        AppleAudioMode.voiceChat => 'voiceChat',
+        AppleAudioMode.voicePrompt => 'voicePrompt',
+      };
 }
 
 class NativeAudioConfiguration {
