@@ -23,8 +23,10 @@ false_secrets:
   - /test/support/certificate_pinning_io_test.dart
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
-  flutter: ">=3.27.0"
+  # Native Assets (build hooks / code assets) is how livekit_uniffi delivers the
+  # Rust core; it is only stable from Flutter 3.38 / Dart 3.10 onwards.
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter_web_plugins:
@@ -54,6 +56,17 @@ dependencies:
   # Fix version to avoid version conflicts between WebRTC-SDK pods, which both this package and flutter_webrtc depend on.
   flutter_webrtc: 1.6.0
   dart_webrtc: ^1.8.0
+
+  # Rust core (livekit-uniffi), delivered as a bundled cdylib via Native Assets.
+  # Native platforms only — see lib/src/uniffi/.
+  livekit_uniffi: ^0.1.7
+
+# livekit_uniffi is not published to pub.dev yet, so it resolves out of a sibling
+# rust-sdks checkout produced by `cargo make dart-package`. See AGENTS.md. Drop
+# this once the package is published.
+dependency_overrides:
+  livekit_uniffi:
+    path: ../rust-sdks/livekit-uniffi/packages/dart
 
 dev_dependencies:
   flutter_test:

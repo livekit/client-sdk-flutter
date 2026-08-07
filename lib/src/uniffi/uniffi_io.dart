@@ -1,4 +1,4 @@
-// Copyright 2024 LiveKit, Inc.
+// Copyright 2026 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-enum AudioContextState {
-  suspended('suspended'),
-  running('running'),
-  closed('closed')
-  ;
+import 'package:livekit_uniffi/livekit_uniffi.dart' as uniffi;
 
-  final String value;
-  static AudioContextState fromValue(String value) => values.firstWhere((e) => e.value == value);
-  static Iterable<AudioContextState> fromValues(Iterable<String> values) => values.map(fromValue);
-  const AudioContextState(this.value);
-}
+/// Native implementation of [LiveKitUniffi]. See `uniffi.dart`.
+///
+/// This is the only file in the SDK that may import the generated bindings:
+/// the conditional import in `uniffi.dart` keeps it out of web builds.
+const bool isAvailable = true;
+
+String buildVersion() => uniffi.buildVersion();

@@ -185,11 +185,13 @@ class E2EContainer {
   }
 
   void simulateInboundRpcAck(String fromIdentity, String requestId) {
-    deliverInboundDataPacket(lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      participantIdentity: fromIdentity,
-      rpcAck: lk_models.RpcAck(requestId: requestId),
-    ));
+    deliverInboundDataPacket(
+      lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: fromIdentity,
+        rpcAck: lk_models.RpcAck(requestId: requestId),
+      ),
+    );
   }
 
   void simulateInboundRpcResponse(
@@ -198,15 +200,17 @@ class E2EContainer {
     String? payload,
     lk_models.RpcError? error,
   }) {
-    deliverInboundDataPacket(lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      participantIdentity: fromIdentity,
-      rpcResponse: lk_models.RpcResponse(
-        requestId: requestId,
-        payload: error == null ? payload : null,
-        error: error,
+    deliverInboundDataPacket(
+      lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: fromIdentity,
+        rpcResponse: lk_models.RpcResponse(
+          requestId: requestId,
+          payload: error == null ? payload : null,
+          error: error,
+        ),
       ),
-    ));
+    );
   }
 
   /// Simulate a v2 RPC response data stream from [fromIdentity] for [requestId].
@@ -267,28 +271,34 @@ class E2EContainer {
       attributes: attributes.entries,
       textHeader: lk_models.DataStream_TextHeader(),
     );
-    deliverInboundDataPacket(lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      participantIdentity: fromIdentity,
-      streamHeader: header,
-    ));
+    deliverInboundDataPacket(
+      lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: fromIdentity,
+        streamHeader: header,
+      ),
+    );
 
     final chunk = lk_models.DataStream_Chunk(
       streamId: streamId,
       chunkIndex: Int64(0),
       content: Uint8List.fromList(body.codeUnits),
     );
-    deliverInboundDataPacket(lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      participantIdentity: fromIdentity,
-      streamChunk: chunk,
-    ));
+    deliverInboundDataPacket(
+      lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: fromIdentity,
+        streamChunk: chunk,
+      ),
+    );
 
     final trailer = lk_models.DataStream_Trailer(streamId: streamId);
-    deliverInboundDataPacket(lk_models.DataPacket(
-      kind: lk_models.DataPacket_Kind.RELIABLE,
-      participantIdentity: fromIdentity,
-      streamTrailer: trailer,
-    ));
+    deliverInboundDataPacket(
+      lk_models.DataPacket(
+        kind: lk_models.DataPacket_Kind.RELIABLE,
+        participantIdentity: fromIdentity,
+        streamTrailer: trailer,
+      ),
+    );
   }
 }

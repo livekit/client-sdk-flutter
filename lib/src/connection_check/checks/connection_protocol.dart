@@ -42,7 +42,8 @@ class ProtocolStats {
   int count = 0;
 
   @override
-  String toString() => '$runtimeType(protocol: ${protocol.name}, packetsSent: $packetsSent, '
+  String toString() =>
+      '$runtimeType(protocol: ${protocol.name}, packetsSent: $packetsSent, '
       'packetsLost: $packetsLost, count: $count)';
 }
 

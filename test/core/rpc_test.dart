@@ -39,12 +39,14 @@ void main() {
 
       expect(room.rpcHandlers.keys.first, 'echo');
 
-      final response = await room.rpcHandlers['echo']!(RpcInvocationData(
-        requestId: '1',
-        callerIdentity: room.localParticipant!.identity,
-        payload: 'hello',
-        responseTimeoutMs: 10000,
-      ));
+      final response = await room.rpcHandlers['echo']!(
+        RpcInvocationData(
+          requestId: '1',
+          callerIdentity: room.localParticipant!.identity,
+          payload: 'hello',
+          responseTimeoutMs: 10000,
+        ),
+      );
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
@@ -59,11 +61,13 @@ void main() {
       });
 
       /// test performRpc
-      final response = await room.localParticipant?.performRpc(PerformRpcParams(
-        destinationIdentity: room.localParticipant!.identity,
-        method: 'echo',
-        payload: 'hello',
-      ));
+      final response = await room.localParticipant?.performRpc(
+        PerformRpcParams(
+          destinationIdentity: room.localParticipant!.identity,
+          method: 'echo',
+          payload: 'hello',
+        ),
+      );
 
       expect(response, 'echo: => ${room.localParticipant!.identity} hello');
 
@@ -73,11 +77,13 @@ void main() {
       try {
         room.engine.serverInfo?.version = '1.7.9';
 
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'hello',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -104,11 +110,13 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'hello',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -126,11 +134,13 @@ void main() {
       RpcError? error;
 
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'no_method',
-          payload: 'hello',
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'no_method',
+            payload: 'hello',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -146,11 +156,13 @@ void main() {
     test('test request playload too large', () async {
       RpcError? error;
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'a' * 1024 * 1024,
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'a' * 1024 * 1024,
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -169,11 +181,13 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'hello',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -192,11 +206,13 @@ void main() {
       });
 
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'hello',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -217,12 +233,14 @@ void main() {
       });
       RpcError? error;
       try {
-        await room.localParticipant?.performRpc(PerformRpcParams(
-          destinationIdentity: room.localParticipant!.identity,
-          method: 'echo',
-          payload: 'hello',
-          responseTimeoutMs: Duration(seconds: 2),
-        ));
+        await room.localParticipant?.performRpc(
+          PerformRpcParams(
+            destinationIdentity: room.localParticipant!.identity,
+            method: 'echo',
+            payload: 'hello',
+            responseTimeoutMs: Duration(seconds: 2),
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -258,19 +276,19 @@ void main() {
 
     test('RPC v2 text stream topics are reserved for SDK internals', () async {
       expect(
-        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, __) async {}),
+        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, __) async {}),
+        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
 
@@ -283,11 +301,13 @@ void main() {
         return data.payload;
       });
 
-      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
-        destinationIdentity: v2Room.localParticipant!.identity,
-        method: 'reserved-topic-echo',
-        payload: 'ok',
-      ));
+      final response = await v2Room.localParticipant!.performRpc(
+        PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'reserved-topic-echo',
+          payload: 'ok',
+        ),
+      );
 
       expect(response, 'ok');
       v2Room.unregisterRpcMethod('reserved-topic-echo');
@@ -299,11 +319,13 @@ void main() {
         return 'echo: ${data.payload}';
       });
 
-      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
-        destinationIdentity: v2Room.localParticipant!.identity,
-        method: 'echo-v2',
-        payload: 'hello v2',
-      ));
+      final response = await v2Room.localParticipant!.performRpc(
+        PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'echo-v2',
+          payload: 'hello v2',
+        ),
+      );
 
       expect(response, 'echo: hello v2');
       // Spec: v2 requests must use data streams, never the rpcRequest packet.
@@ -320,13 +342,15 @@ void main() {
       );
       // The request and response both flow as text streams on the reserved topics.
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic),
+        hasOutboundPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+        ),
         isTrue,
       );
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        hasOutboundPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic,
+        ),
         isTrue,
       );
 
@@ -343,12 +367,14 @@ void main() {
         return data.payload; // echo a 20k response
       });
 
-      final response = await v2Room.localParticipant!.performRpc(PerformRpcParams(
-        destinationIdentity: v2Room.localParticipant!.identity,
-        method: 'echo-big',
-        payload: big,
-        responseTimeoutMs: const Duration(seconds: 30),
-      ));
+      final response = await v2Room.localParticipant!.performRpc(
+        PerformRpcParams(
+          destinationIdentity: v2Room.localParticipant!.identity,
+          method: 'echo-big',
+          payload: big,
+          responseTimeoutMs: const Duration(seconds: 30),
+        ),
+      );
 
       expect(response.length, 20000);
       expect(response, big);
@@ -360,11 +386,13 @@ void main() {
       v2Container.capturedDataPackets.clear();
       RpcError? error;
       try {
-        await v2Room.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: v2Room.localParticipant!.identity,
-          method: 'method-does-not-exist',
-          payload: 'x',
-        ));
+        await v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'method-does-not-exist',
+            payload: 'x',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -381,16 +409,19 @@ void main() {
       );
       // Error responses are always packets, never streams.
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
-            p.rpcResponse.hasError() &&
-            p.rpcResponse.error.code == RpcError.unsupportedMethod),
+        hasOutboundPacketWhere(
+          (p) =>
+              p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
+              p.rpcResponse.hasError() &&
+              p.rpcResponse.error.code == RpcError.unsupportedMethod,
+        ),
         isTrue,
       );
       // No v2 response stream should be opened on the response topic.
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        hasOutboundPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic,
+        ),
         isFalse,
       );
     });
@@ -403,11 +434,13 @@ void main() {
 
       RpcError? error;
       try {
-        await v2Room.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: v2Room.localParticipant!.identity,
-          method: 'throws-generic',
-          payload: 'x',
-        ));
+        await v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'throws-generic',
+            payload: 'x',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -417,15 +450,18 @@ void main() {
       expect(error?.code, RpcError.applicationError);
       // Error responses always travel as packets, even between v2 peers.
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
-            p.rpcResponse.hasError() &&
-            p.rpcResponse.error.code == RpcError.applicationError),
+        hasOutboundPacketWhere(
+          (p) =>
+              p.whichValue() == lk_models.DataPacket_Value.rpcResponse &&
+              p.rpcResponse.hasError() &&
+              p.rpcResponse.error.code == RpcError.applicationError,
+        ),
         isTrue,
       );
       expect(
-        hasOutboundPacketWhere((p) =>
-            p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic),
+        hasOutboundPacketWhere(
+          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcResponseTopic,
+        ),
         isFalse,
         reason: 'error responses must not use a data stream',
       );
@@ -441,11 +477,13 @@ void main() {
 
       RpcError? error;
       try {
-        await v2Room.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: v2Room.localParticipant!.identity,
-          method: 'throws-rpc-error',
-          payload: 'x',
-        ));
+        await v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'throws-rpc-error',
+            payload: 'x',
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -468,12 +506,14 @@ void main() {
 
       RpcError? error;
       try {
-        await v2Room.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: v2Room.localParticipant!.identity,
-          method: 'hangs',
-          payload: 'x',
-          responseTimeoutMs: const Duration(seconds: 2),
-        ));
+        await v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'hangs',
+            payload: 'x',
+            responseTimeoutMs: const Duration(seconds: 2),
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -492,18 +532,21 @@ void main() {
 
       final futures = List.generate(
         5,
-        (i) => v2Room.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: v2Room.localParticipant!.identity,
-          method: 'echo-concurrent',
-          payload: '$i',
-        )),
+        (i) => v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'echo-concurrent',
+            payload: '$i',
+          ),
+        ),
       );
 
       final results = await Future.wait(futures);
       expect(results, ['r-0', 'r-1', 'r-2', 'r-3', 'r-4']);
       // Five distinct outbound request streams.
       final requestHeaders = v2Container.capturedDataPackets.where(
-          (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic);
+        (p) => p.whichValue() == lk_models.DataPacket_Value.streamHeader && p.streamHeader.topic == kRpcRequestTopic,
+      );
       expect(requestHeaders.length, greaterThanOrEqualTo(5));
 
       v2Room.unregisterRpcMethod('echo-concurrent');
@@ -525,18 +568,20 @@ void main() {
       // isn't reported as an unhandled async error if it lands before `await`.
       RpcError? error;
       final caught = v2Room.localParticipant!
-          .performRpc(PerformRpcParams(
-        destinationIdentity: 'alice',
-        method: 'hangs-for-alice',
-        payload: 'x',
-        responseTimeoutMs: const Duration(seconds: 30),
-      ))
+          .performRpc(
+            PerformRpcParams(
+              destinationIdentity: 'alice',
+              method: 'hangs-for-alice',
+              payload: 'x',
+              responseTimeoutMs: const Duration(seconds: 30),
+            ),
+          )
           .catchError((e) {
-        if (e is RpcError) {
-          error = e;
-        }
-        return '';
-      });
+            if (e is RpcError) {
+              error = e;
+            }
+            return '';
+          });
 
       // Let the publish settle so pending is registered.
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -564,17 +609,19 @@ void main() {
       bool resolved = false;
       RpcError? caught;
       final future = v2Room.localParticipant!
-          .performRpc(PerformRpcParams(
-            destinationIdentity: 'bob',
-            method: 'hangs-for-bob',
-            payload: 'x',
-            responseTimeoutMs: const Duration(seconds: 30),
-          ))
+          .performRpc(
+            PerformRpcParams(
+              destinationIdentity: 'bob',
+              method: 'hangs-for-bob',
+              payload: 'x',
+              responseTimeoutMs: const Duration(seconds: 30),
+            ),
+          )
           .then((_) => resolved = true)
           .catchError((e) {
-        if (e is RpcError) caught = e;
-        return false;
-      });
+            if (e is RpcError) caught = e;
+            return false;
+          });
 
       // Let the publish settle and the request stream loop back.
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -670,11 +717,13 @@ void main() {
         return false;
       });
 
-      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
-        destinationIdentity: 'legacy-v1',
-        method: 'legacy-method',
-        payload: 'hello',
-      ));
+      final response = await edgeCaseRoom.localParticipant!.performRpc(
+        PerformRpcParams(
+          destinationIdentity: 'legacy-v1',
+          method: 'legacy-method',
+          payload: 'hello',
+        ),
+      );
 
       expect(response, 'legacy-response');
       expect(requestId, isNotNull);
@@ -702,11 +751,13 @@ void main() {
 
       RpcError? error;
       try {
-        await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
-          destinationIdentity: 'legacy-large',
-          method: 'large',
-          payload: 'a' * (kRpcMaxPayloadBytes + 1),
-        ));
+        await edgeCaseRoom.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: 'legacy-large',
+            method: 'large',
+            payload: 'a' * (kRpcMaxPayloadBytes + 1),
+          ),
+        );
       } catch (e) {
         if (e is RpcError) {
           error = e;
@@ -742,11 +793,13 @@ void main() {
         return false;
       });
 
-      final response = await edgeCaseRoom.localParticipant!.performRpc(PerformRpcParams(
-        destinationIdentity: 'fast-v2',
-        method: 'fast-method',
-        payload: 'request',
-      ));
+      final response = await edgeCaseRoom.localParticipant!.performRpc(
+        PerformRpcParams(
+          destinationIdentity: 'fast-v2',
+          method: 'fast-method',
+          payload: 'request',
+        ),
+      );
 
       expect(response, 'fast-response');
       expect(requestId, isNotNull);
@@ -775,19 +828,21 @@ void main() {
       bool resolved = false;
       RpcError? caught;
       final future = edgeCaseRoom.localParticipant!
-          .performRpc(PerformRpcParams(
-            destinationIdentity: 'missing-id',
-            method: 'hangs',
-            payload: 'x',
-            responseTimeoutMs: const Duration(seconds: 30),
-          ))
+          .performRpc(
+            PerformRpcParams(
+              destinationIdentity: 'missing-id',
+              method: 'hangs',
+              payload: 'x',
+              responseTimeoutMs: const Duration(seconds: 30),
+            ),
+          )
           .then((_) => resolved = true)
           .catchError((e) {
-        if (e is RpcError) {
-          caught = e;
-        }
-        return false;
-      });
+            if (e is RpcError) {
+              caught = e;
+            }
+            return false;
+          });
 
       await Future<void>.delayed(const Duration(milliseconds: 100));
       edgeCaseContainer.simulateInboundV2RpcResponseStreamWithoutRequestId('missing-id', 'ignored');

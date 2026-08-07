@@ -347,14 +347,16 @@ void main() {
         final futures = <Future>[];
 
         for (int i = 0; i < 10; i++) {
-          futures.add(Future(() async {
-            final future = completer.future;
-            if (i == 0) {
-              await Future.delayed(Duration(milliseconds: 1));
-              completer.complete('winner');
-            }
-            return future;
-          }));
+          futures.add(
+            Future(() async {
+              final future = completer.future;
+              if (i == 0) {
+                await Future.delayed(Duration(milliseconds: 1));
+                completer.complete('winner');
+              }
+              return future;
+            }),
+          );
         }
 
         final results = await Future.wait(futures, eagerError: false);

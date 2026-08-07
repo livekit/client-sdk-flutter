@@ -23,7 +23,7 @@ import 'package:meta/meta.dart';
 
 class ThumbnailWidget extends StatefulWidget {
   const ThumbnailWidget({Key? key, required this.source, required this.selected, required this.onTap})
-      : super(key: key);
+    : super(key: key);
   final rtc.DesktopCapturerSource source;
   final bool selected;
   final Function(rtc.DesktopCapturerSource) onTap;
@@ -42,16 +42,20 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
     super.initState();
     _name = widget.source.name;
     _thumbnail = widget.source.thumbnail?.isNotEmpty == true ? widget.source.thumbnail : null;
-    _subscriptions.add(widget.source.onThumbnailChanged.stream.listen((thumbnail) {
-      setState(() {
-        _thumbnail = thumbnail;
-      });
-    }));
-    _subscriptions.add(widget.source.onNameChanged.stream.listen((name) {
-      setState(() {
-        _name = name;
-      });
-    }));
+    _subscriptions.add(
+      widget.source.onThumbnailChanged.stream.listen((thumbnail) {
+        setState(() {
+          _thumbnail = thumbnail;
+        });
+      }),
+    );
+    _subscriptions.add(
+      widget.source.onNameChanged.stream.listen((name) {
+        setState(() {
+          _name = name;
+        });
+      }),
+    );
   }
 
   @override
@@ -67,28 +71,32 @@ class ThumbnailWidgetState extends State<ThumbnailWidget> {
     return Column(
       children: [
         Expanded(
-            child: Container(
-          decoration: widget.selected ? BoxDecoration(border: Border.all(width: 2, color: Colors.blueAccent)) : null,
-          child: InkWell(
-            onTap: () {
-              if (kDebugMode) {
-                print('Selected source id => ${widget.source.id}');
-              }
-              widget.onTap(widget.source);
-            },
-            child: _thumbnail != null
-                ? Image.memory(
-                    _thumbnail!,
-                    gaplessPlayback: true,
-                    alignment: Alignment.center,
-                  )
-                : Container(),
+          child: Container(
+            decoration: widget.selected ? BoxDecoration(border: Border.all(width: 2, color: Colors.blueAccent)) : null,
+            child: InkWell(
+              onTap: () {
+                if (kDebugMode) {
+                  print('Selected source id => ${widget.source.id}');
+                }
+                widget.onTap(widget.source);
+              },
+              child: _thumbnail != null
+                  ? Image.memory(
+                      _thumbnail!,
+                      gaplessPlayback: true,
+                      alignment: Alignment.center,
+                    )
+                  : Container(),
+            ),
           ),
-        )),
+        ),
         Text(
           _name,
           style: TextStyle(
-              fontSize: 12, color: Colors.black87, fontWeight: widget.selected ? FontWeight.bold : FontWeight.normal),
+            fontSize: 12,
+            color: Colors.black87,
+            fontWeight: widget.selected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
       ],
     );
@@ -106,19 +114,25 @@ class ScreenSelectDialog extends Dialog {
     this.shareText = 'Share',
   }) : super(key: key) {
     Timer(const Duration(milliseconds: 100), _getSources);
-    _subscriptions.add(rtc.desktopCapturer.onAdded.stream.listen((source) {
-      _sources[source.id] = source;
-      _stateSetter?.call(() {});
-    }));
+    _subscriptions.add(
+      rtc.desktopCapturer.onAdded.stream.listen((source) {
+        _sources[source.id] = source;
+        _stateSetter?.call(() {});
+      }),
+    );
 
-    _subscriptions.add(rtc.desktopCapturer.onRemoved.stream.listen((source) {
-      _sources.remove(source.id);
-      _stateSetter?.call(() {});
-    }));
+    _subscriptions.add(
+      rtc.desktopCapturer.onRemoved.stream.listen((source) {
+        _sources.remove(source.id);
+        _stateSetter?.call(() {});
+      }),
+    );
 
-    _subscriptions.add(rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
-      _stateSetter?.call(() {});
-    }));
+    _subscriptions.add(
+      rtc.desktopCapturer.onThumbnailChanged.stream.listen((source) {
+        _stateSetter?.call(() {});
+      }),
+    );
   }
 
   /// Shows the picker and returns the id of the selected capture source, or
@@ -223,143 +237,155 @@ class ScreenSelectDialog extends Dialog {
     return Material(
       type: MaterialType.transparency,
       child: Center(
-          child: Container(
-        width: 640,
-        height: 560,
-        color: Colors.white,
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Stack(
-                children: <Widget>[
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      titleText,
-                      style: const TextStyle(fontSize: 16, color: Colors.black87),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: InkWell(
-                      child: const Icon(Icons.close),
-                      onTap: () async => await _cancel(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Container(
-                width: double.infinity,
+        child: Container(
+          width: 640,
+          height: 560,
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Padding(
                 padding: const EdgeInsets.all(10),
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    _stateSetter = setState;
-                    return DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            constraints: const BoxConstraints.expand(height: 24),
-                            child: TabBar(
-                                onTap: (value) => Timer(const Duration(milliseconds: 300), () {
-                                      _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
-                                      unawaited(_getSources());
-                                    }),
-                                tabs: [
-                                  Tab(
-                                      child: Text(
-                                    screenTabText,
-                                    style: const TextStyle(color: Colors.black54),
-                                  )),
-                                  Tab(
-                                      child: Text(
-                                    windowTabText,
-                                    style: const TextStyle(color: Colors.black54),
-                                  )),
-                                ]),
-                          ),
-                          const SizedBox(
-                            height: 2,
-                          ),
-                          Expanded(
-                            child: TabBarView(children: [
-                              Align(
-                                  alignment: Alignment.center,
-                                  child: GridView.count(
-                                    crossAxisSpacing: 8,
-                                    crossAxisCount: 2,
-                                    children: _sources.entries
-                                        .where((element) => element.value.type == rtc.SourceType.Screen)
-                                        .map((e) => ThumbnailWidget(
-                                              onTap: (source) {
-                                                setState(() {
-                                                  _selectedSource = source;
-                                                });
-                                              },
-                                              source: e.value,
-                                              selected: _selectedSource?.id == e.value.id,
-                                            ))
-                                        .toList(),
-                                  )),
-                              Align(
-                                  alignment: Alignment.center,
-                                  child: GridView.count(
-                                    crossAxisSpacing: 8,
-                                    crossAxisCount: 3,
-                                    children: _sources.entries
-                                        .where((element) => element.value.type == rtc.SourceType.Window)
-                                        .map((e) => ThumbnailWidget(
-                                              onTap: (source) {
-                                                setState(() {
-                                                  _selectedSource = source;
-                                                });
-                                              },
-                                              source: e.value,
-                                              selected: _selectedSource?.id == e.value.id,
-                                            ))
-                                        .toList(),
-                                  )),
-                            ]),
-                          )
-                        ],
+                child: Stack(
+                  children: <Widget>[
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        titleText,
+                        style: const TextStyle(fontSize: 16, color: Colors.black87),
                       ),
-                    );
-                  },
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: InkWell(
+                        child: const Icon(Icons.close),
+                        onTap: () async => await _cancel(context),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: OverflowBar(
-                children: <Widget>[
-                  MaterialButton(
-                    child: Text(
-                      cancelText,
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                    onPressed: () async {
-                      await _cancel(context);
+              Expanded(
+                flex: 1,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  child: StatefulBuilder(
+                    builder: (context, setState) {
+                      _stateSetter = setState;
+                      return DefaultTabController(
+                        length: 2,
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              constraints: const BoxConstraints.expand(height: 24),
+                              child: TabBar(
+                                onTap: (value) => Timer(const Duration(milliseconds: 300), () {
+                                  _sourceType = value == 0 ? rtc.SourceType.Screen : rtc.SourceType.Window;
+                                  unawaited(_getSources());
+                                }),
+                                tabs: [
+                                  Tab(
+                                    child: Text(
+                                      screenTabText,
+                                      style: const TextStyle(color: Colors.black54),
+                                    ),
+                                  ),
+                                  Tab(
+                                    child: Text(
+                                      windowTabText,
+                                      style: const TextStyle(color: Colors.black54),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 2,
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: GridView.count(
+                                      crossAxisSpacing: 8,
+                                      crossAxisCount: 2,
+                                      children: _sources.entries
+                                          .where((element) => element.value.type == rtc.SourceType.Screen)
+                                          .map(
+                                            (e) => ThumbnailWidget(
+                                              onTap: (source) {
+                                                setState(() {
+                                                  _selectedSource = source;
+                                                });
+                                              },
+                                              source: e.value,
+                                              selected: _selectedSource?.id == e.value.id,
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: GridView.count(
+                                      crossAxisSpacing: 8,
+                                      crossAxisCount: 3,
+                                      children: _sources.entries
+                                          .where((element) => element.value.type == rtc.SourceType.Window)
+                                          .map(
+                                            (e) => ThumbnailWidget(
+                                              onTap: (source) {
+                                                setState(() {
+                                                  _selectedSource = source;
+                                                });
+                                              },
+                                              source: e.value,
+                                              selected: _selectedSource?.id == e.value.id,
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                   ),
-                  MaterialButton(
-                    color: Theme.of(context).primaryColor,
-                    child: Text(
-                      shareText,
-                    ),
-                    onPressed: () async {
-                      await _ok(context);
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(
+                width: double.infinity,
+                child: OverflowBar(
+                  children: <Widget>[
+                    MaterialButton(
+                      child: Text(
+                        cancelText,
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+                      onPressed: () async {
+                        await _cancel(context);
+                      },
+                    ),
+                    MaterialButton(
+                      color: Theme.of(context).primaryColor,
+                      child: Text(
+                        shareText,
+                      ),
+                      onPressed: () async {
+                        await _ok(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

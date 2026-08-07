@@ -29,6 +29,10 @@ dependency_overrides:
   # Pin packages that use Apple APIs unavailable on CI runner's Xcode version.
   connectivity_plus: '>=7.0.0 <7.1.0' # NWPath.isUltraConstrained
   device_info_plus: '>=12.3.0 <12.4.0' # NSProcessInfo.isiOSAppOnVision
+  # Overrides do not propagate from a dependency, so livekit_client's override of
+  # livekit_uniffi has to be repeated here. Drop both once it is on pub.dev.
+  livekit_uniffi:
+    path: ../../rust-sdks/livekit-uniffi/packages/dart
 
 dev_dependencies:
   flutter_test:
