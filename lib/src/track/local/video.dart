@@ -526,6 +526,10 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     }
     final params = sender.parameters;
     params.degradationPreference = preference.toRTCType();
-    await sender.setParameters(params);
+    try {
+      await sender.setParameters(params);
+    } catch (e) {
+      logger.warning('Failed to set degradation preference on sender $e');
+    }
   }
 }
