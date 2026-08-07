@@ -348,6 +348,29 @@ enum DegradationPreference {
   maintainFramerateAndResolution,
 }
 
+/// Returns the degradation preference to use for a video track published under
+/// [source], when the application did not set one explicitly.
+///
+/// - Camera: [DegradationPreference.maintainFramerate] (smoother video for
+///   real-time communication)
+/// - Screen share: [DegradationPreference.maintainResolution] (clarity is
+///   critical for reading text/UI)
+/// - Other/unknown: [DegradationPreference.balanced]
+///
+/// Any other source means the application declined to declare a
+/// motion-vs-detail intent, so this falls back to balanced, the preference the
+/// WebRTC spec mandates as the default.
+DegradationPreference getDefaultDegradationPreference(TrackSource source) {
+  switch (source) {
+    case TrackSource.camera:
+      return DegradationPreference.maintainFramerate;
+    case TrackSource.screenShareVideo:
+      return DegradationPreference.maintainResolution;
+    default:
+      return DegradationPreference.balanced;
+  }
+}
+
 class BackupVideoCodec {
   const BackupVideoCodec({
     this.enabled = true,
@@ -415,6 +438,13 @@ class VideoPublishOptions extends PublishOptions {
   /// Defaults to true.
   final bool simulcast;
 
+  /// Controls how the encoder trades off between resolution and framerate when
+  /// bandwidth is constrained.
+  ///
+  /// When null, the SDK picks a default based on the track's source, see
+  /// [getDefaultDegradationPreference]. A preference is always applied to video
+  /// senders, so leaving this null selects that default rather than deferring to
+  /// WebRTC's own implicit choice.
   final DegradationPreference? degradationPreference;
 
   final List<VideoParameters> videoSimulcastLayers;
