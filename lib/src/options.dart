@@ -340,7 +340,7 @@ class RoomOptions {
 }
 
 enum DegradationPreference {
-  @Deprecated('DISABLED is Deprecated for DegradationPreference')
+  @Deprecated('Use maintainFramerateAndResolution instead, WebRTC defines disabled as an alias for it')
   disabled,
   maintainFramerate,
   maintainResolution,

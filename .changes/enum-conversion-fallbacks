@@ -1,0 +1,1 @@
+patch type="changed" "Unrecognized protobuf enum values from newer servers now fall back to safe defaults, for example a new DisconnectReason maps to unknown"
