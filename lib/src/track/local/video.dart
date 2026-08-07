@@ -507,7 +507,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   Future<void> setDegradationPreference(DegradationPreference preference) async {
     _degradationPreference = preference;
     await applyDegradationPreference(sender);
-    for (final simulcastCodec in simulcastCodecs.values) {
+    for (final simulcastCodec in simulcastCodecs.values.toList()) {
       await applyDegradationPreference(simulcastCodec.sender);
     }
   }
