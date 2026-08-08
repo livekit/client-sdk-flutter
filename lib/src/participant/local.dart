@@ -555,18 +555,24 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (sender != null) {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
-          if (track is LocalVideoTrack) {
-            for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
-              final simulcastSender = simulcastTrack.sender;
-              if (simulcastSender != null) {
-                await room.engine.publisher?.pc.removeTrack(simulcastSender);
-              }
-            }
-          }
         } catch (e) {
           logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
         if (track is LocalVideoTrack) {
+          // remove each backup sender on its own, one failure should not
+          // prevent removal of the others
+          for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
+            final simulcastSender = simulcastTrack.sender;
+            if (simulcastSender == null) {
+              continue;
+            }
+            try {
+              await room.engine.publisher?.pc.removeTrack(simulcastSender);
+            } catch (e) {
+              logger.warning('[$objectId] rtc.removeTrack() did throw $e');
+            }
+            simulcastTrack.sender = null;
+          }
           track.clearSimulcastState();
         }
 
