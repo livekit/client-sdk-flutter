@@ -552,35 +552,41 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
 
       final sender = track.transceiver?.sender;
+      var didRemoveSender = false;
       if (sender != null) {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
         } catch (e) {
           logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
-        if (track is LocalVideoTrack) {
-          // remove each backup sender on its own, one failure should not
-          // prevent removal of the others
-          for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
-            final simulcastSender = simulcastTrack.sender;
-            if (simulcastSender == null) {
-              continue;
-            }
-            try {
-              await room.engine.publisher?.pc.removeTrack(simulcastSender);
-            } catch (e) {
-              logger.warning('[$objectId] rtc.removeTrack() did throw $e');
-            }
-            simulcastTrack.sender = null;
-          }
-          track.clearSimulcastState();
-        }
+        didRemoveSender = true;
+      }
 
-        // doesn't make sense to negotiate if already disposed
-        if (!isDisposed) {
-          // manual negotiation since track changed
-          await room.engine.negotiate();
+      // not gated on the primary sender, stale backup codec state must not
+      // survive unpublish even when the track never got a live sender
+      if (track is LocalVideoTrack) {
+        // remove each backup sender on its own, one failure should not
+        // prevent removal of the others
+        for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
+          final simulcastSender = simulcastTrack.sender;
+          if (simulcastSender == null) {
+            continue;
+          }
+          try {
+            await room.engine.publisher?.pc.removeTrack(simulcastSender);
+          } catch (e) {
+            logger.warning('[$objectId] rtc.removeTrack() did throw $e');
+          }
+          simulcastTrack.sender = null;
+          didRemoveSender = true;
         }
+        track.clearSimulcastState();
+      }
+
+      // doesn't make sense to negotiate if already disposed
+      if (didRemoveSender && !isDisposed) {
+        // manual negotiation since track changed
+        await room.engine.negotiate();
       }
 
       // did unpublish
