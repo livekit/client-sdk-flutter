@@ -43,6 +43,8 @@ enum SignalRequest_Message {
   publishDataTrackRequest,
   unpublishDataTrackRequest,
   updateDataSubscription,
+  storeDataBlobRequest,
+  getDataBlobRequest,
   notSet
 }
 
@@ -68,6 +70,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     PublishDataTrackRequest? publishDataTrackRequest,
     UnpublishDataTrackRequest? unpublishDataTrackRequest,
     UpdateDataSubscription? updateDataSubscription,
+    StoreDataBlobRequest? storeDataBlobRequest,
+    GetDataBlobRequest? getDataBlobRequest,
   }) {
     final result = create();
     if (offer != null) result.offer = offer;
@@ -90,6 +94,8 @@ class SignalRequest extends $pb.GeneratedMessage {
     if (publishDataTrackRequest != null) result.publishDataTrackRequest = publishDataTrackRequest;
     if (unpublishDataTrackRequest != null) result.unpublishDataTrackRequest = unpublishDataTrackRequest;
     if (updateDataSubscription != null) result.updateDataSubscription = updateDataSubscription;
+    if (storeDataBlobRequest != null) result.storeDataBlobRequest = storeDataBlobRequest;
+    if (getDataBlobRequest != null) result.getDataBlobRequest = getDataBlobRequest;
     return result;
   }
 
@@ -122,11 +128,13 @@ class SignalRequest extends $pb.GeneratedMessage {
     19: SignalRequest_Message.publishDataTrackRequest,
     20: SignalRequest_Message.unpublishDataTrackRequest,
     21: SignalRequest_Message.updateDataSubscription,
+    22: SignalRequest_Message.storeDataBlobRequest,
+    23: SignalRequest_Message.getDataBlobRequest,
     0: SignalRequest_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SignalRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
     ..aOM<SessionDescription>(1, _omitFieldNames ? '' : 'offer', subBuilder: SessionDescription.create)
     ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer', subBuilder: SessionDescription.create)
     ..aOM<TrickleRequest>(3, _omitFieldNames ? '' : 'trickle', subBuilder: TrickleRequest.create)
@@ -154,6 +162,9 @@ class SignalRequest extends $pb.GeneratedMessage {
         subBuilder: UnpublishDataTrackRequest.create)
     ..aOM<UpdateDataSubscription>(21, _omitFieldNames ? '' : 'updateDataSubscription',
         subBuilder: UpdateDataSubscription.create)
+    ..aOM<StoreDataBlobRequest>(22, _omitFieldNames ? '' : 'storeDataBlobRequest',
+        subBuilder: StoreDataBlobRequest.create)
+    ..aOM<GetDataBlobRequest>(23, _omitFieldNames ? '' : 'getDataBlobRequest', subBuilder: GetDataBlobRequest.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -193,6 +204,8 @@ class SignalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
+  @$pb.TagNumber(22)
+  @$pb.TagNumber(23)
   SignalRequest_Message whichMessage() => _SignalRequest_MessageByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -214,6 +227,8 @@ class SignalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   @$pb.TagNumber(20)
   @$pb.TagNumber(21)
+  @$pb.TagNumber(22)
+  @$pb.TagNumber(23)
   void clearMessage() => $_clearField($_whichOneof(0));
 
   /// participant offer for publisher
@@ -456,6 +471,30 @@ class SignalRequest extends $pb.GeneratedMessage {
   void clearUpdateDataSubscription() => $_clearField(21);
   @$pb.TagNumber(21)
   UpdateDataSubscription ensureUpdateDataSubscription() => $_ensure(19);
+
+  /// Store a data blob.
+  @$pb.TagNumber(22)
+  StoreDataBlobRequest get storeDataBlobRequest => $_getN(20);
+  @$pb.TagNumber(22)
+  set storeDataBlobRequest(StoreDataBlobRequest value) => $_setField(22, value);
+  @$pb.TagNumber(22)
+  $core.bool hasStoreDataBlobRequest() => $_has(20);
+  @$pb.TagNumber(22)
+  void clearStoreDataBlobRequest() => $_clearField(22);
+  @$pb.TagNumber(22)
+  StoreDataBlobRequest ensureStoreDataBlobRequest() => $_ensure(20);
+
+  /// Retrieve a stored data blob.
+  @$pb.TagNumber(23)
+  GetDataBlobRequest get getDataBlobRequest => $_getN(21);
+  @$pb.TagNumber(23)
+  set getDataBlobRequest(GetDataBlobRequest value) => $_setField(23, value);
+  @$pb.TagNumber(23)
+  $core.bool hasGetDataBlobRequest() => $_has(21);
+  @$pb.TagNumber(23)
+  void clearGetDataBlobRequest() => $_clearField(23);
+  @$pb.TagNumber(23)
+  GetDataBlobRequest ensureGetDataBlobRequest() => $_ensure(21);
 }
 
 enum SignalResponse_Message {
@@ -487,6 +526,8 @@ enum SignalResponse_Message {
   publishDataTrackResponse,
   unpublishDataTrackResponse,
   dataTrackSubscriberHandles,
+  storeDataBlobResponse,
+  getDataBlobResponse,
   notSet
 }
 
@@ -520,6 +561,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     PublishDataTrackResponse? publishDataTrackResponse,
     UnpublishDataTrackResponse? unpublishDataTrackResponse,
     DataTrackSubscriberHandles? dataTrackSubscriberHandles,
+    StoreDataBlobResponse? storeDataBlobResponse,
+    GetDataBlobResponse? getDataBlobResponse,
   }) {
     final result = create();
     if (join != null) result.join = join;
@@ -550,6 +593,8 @@ class SignalResponse extends $pb.GeneratedMessage {
     if (publishDataTrackResponse != null) result.publishDataTrackResponse = publishDataTrackResponse;
     if (unpublishDataTrackResponse != null) result.unpublishDataTrackResponse = unpublishDataTrackResponse;
     if (dataTrackSubscriberHandles != null) result.dataTrackSubscriberHandles = dataTrackSubscriberHandles;
+    if (storeDataBlobResponse != null) result.storeDataBlobResponse = storeDataBlobResponse;
+    if (getDataBlobResponse != null) result.getDataBlobResponse = getDataBlobResponse;
     return result;
   }
 
@@ -590,11 +635,44 @@ class SignalResponse extends $pb.GeneratedMessage {
     27: SignalResponse_Message.publishDataTrackResponse,
     28: SignalResponse_Message.unpublishDataTrackResponse,
     29: SignalResponse_Message.dataTrackSubscriberHandles,
+    30: SignalResponse_Message.storeDataBlobResponse,
+    31: SignalResponse_Message.getDataBlobResponse,
     0: SignalResponse_Message.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SignalResponse',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29])
+    ..oo(0, [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ])
     ..aOM<JoinResponse>(1, _omitFieldNames ? '' : 'join', subBuilder: JoinResponse.create)
     ..aOM<SessionDescription>(2, _omitFieldNames ? '' : 'answer', subBuilder: SessionDescription.create)
     ..aOM<SessionDescription>(3, _omitFieldNames ? '' : 'offer', subBuilder: SessionDescription.create)
@@ -633,6 +711,9 @@ class SignalResponse extends $pb.GeneratedMessage {
         subBuilder: UnpublishDataTrackResponse.create)
     ..aOM<DataTrackSubscriberHandles>(29, _omitFieldNames ? '' : 'dataTrackSubscriberHandles',
         subBuilder: DataTrackSubscriberHandles.create)
+    ..aOM<StoreDataBlobResponse>(30, _omitFieldNames ? '' : 'storeDataBlobResponse',
+        subBuilder: StoreDataBlobResponse.create)
+    ..aOM<GetDataBlobResponse>(31, _omitFieldNames ? '' : 'getDataBlobResponse', subBuilder: GetDataBlobResponse.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -680,6 +761,8 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   SignalResponse_Message whichMessage() => _SignalResponse_MessageByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -709,6 +792,8 @@ class SignalResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(27)
   @$pb.TagNumber(28)
   @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   void clearMessage() => $_clearField($_whichOneof(0));
 
   /// sent when join is accepted
@@ -1043,6 +1128,30 @@ class SignalResponse extends $pb.GeneratedMessage {
   void clearDataTrackSubscriberHandles() => $_clearField(29);
   @$pb.TagNumber(29)
   DataTrackSubscriberHandles ensureDataTrackSubscriberHandles() => $_ensure(27);
+
+  /// Sent in response to `StoreDataBlobRequest`.
+  @$pb.TagNumber(30)
+  StoreDataBlobResponse get storeDataBlobResponse => $_getN(28);
+  @$pb.TagNumber(30)
+  set storeDataBlobResponse(StoreDataBlobResponse value) => $_setField(30, value);
+  @$pb.TagNumber(30)
+  $core.bool hasStoreDataBlobResponse() => $_has(28);
+  @$pb.TagNumber(30)
+  void clearStoreDataBlobResponse() => $_clearField(30);
+  @$pb.TagNumber(30)
+  StoreDataBlobResponse ensureStoreDataBlobResponse() => $_ensure(28);
+
+  /// Sent in response to `GetDataBlobRequest`.
+  @$pb.TagNumber(31)
+  GetDataBlobResponse get getDataBlobResponse => $_getN(29);
+  @$pb.TagNumber(31)
+  set getDataBlobResponse(GetDataBlobResponse value) => $_setField(31, value);
+  @$pb.TagNumber(31)
+  $core.bool hasGetDataBlobResponse() => $_has(29);
+  @$pb.TagNumber(31)
+  void clearGetDataBlobResponse() => $_clearField(31);
+  @$pb.TagNumber(31)
+  GetDataBlobResponse ensureGetDataBlobResponse() => $_ensure(29);
 }
 
 class SimulcastCodec extends $pb.GeneratedMessage {
@@ -1380,11 +1489,15 @@ class PublishDataTrackRequest extends $pb.GeneratedMessage {
     $core.int? pubHandle,
     $core.String? name,
     $0.Encryption_Type? encryption,
+    $0.DataTrackFrameEncoding? frameEncoding,
+    $0.DataTrackSchemaId? schema,
   }) {
     final result = create();
     if (pubHandle != null) result.pubHandle = pubHandle;
     if (name != null) result.name = name;
     if (encryption != null) result.encryption = encryption;
+    if (frameEncoding != null) result.frameEncoding = frameEncoding;
+    if (schema != null) result.schema = schema;
     return result;
   }
 
@@ -1402,6 +1515,9 @@ class PublishDataTrackRequest extends $pb.GeneratedMessage {
     ..aI(1, _omitFieldNames ? '' : 'pubHandle', fieldType: $pb.PbFieldType.OU3)
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..aE<$0.Encryption_Type>(3, _omitFieldNames ? '' : 'encryption', enumValues: $0.Encryption_Type.values)
+    ..aOM<$0.DataTrackFrameEncoding>(4, _omitFieldNames ? '' : 'frameEncoding',
+        subBuilder: $0.DataTrackFrameEncoding.create)
+    ..aOM<$0.DataTrackSchemaId>(5, _omitFieldNames ? '' : 'schema', subBuilder: $0.DataTrackSchemaId.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1453,6 +1569,31 @@ class PublishDataTrackRequest extends $pb.GeneratedMessage {
   $core.bool hasEncryption() => $_has(2);
   @$pb.TagNumber(3)
   void clearEncryption() => $_clearField(3);
+
+  /// Encoding for frame payloads on this track. If unspecified, the track is untyped.
+  @$pb.TagNumber(4)
+  $0.DataTrackFrameEncoding get frameEncoding => $_getN(3);
+  @$pb.TagNumber(4)
+  set frameEncoding($0.DataTrackFrameEncoding value) => $_setField(4, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFrameEncoding() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFrameEncoding() => $_clearField(4);
+  @$pb.TagNumber(4)
+  $0.DataTrackFrameEncoding ensureFrameEncoding() => $_ensure(3);
+
+  /// ID of the schema used by frames on this track if the track is typed.
+  /// If set, the associated schema must be stored with `StoreDataBlobRequest`.
+  @$pb.TagNumber(5)
+  $0.DataTrackSchemaId get schema => $_getN(4);
+  @$pb.TagNumber(5)
+  set schema($0.DataTrackSchemaId value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasSchema() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSchema() => $_clearField(5);
+  @$pb.TagNumber(5)
+  $0.DataTrackSchemaId ensureSchema() => $_ensure(4);
 }
 
 class PublishDataTrackResponse extends $pb.GeneratedMessage {
@@ -2617,6 +2758,281 @@ class UpdateDataSubscription extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(1)
   $pb.PbList<UpdateDataSubscription_Update> get updates => $_getList(0);
+}
+
+class StoreDataBlobRequest extends $pb.GeneratedMessage {
+  factory StoreDataBlobRequest({
+    $core.int? requestId,
+    $0.DataBlob? blob,
+  }) {
+    final result = create();
+    if (requestId != null) result.requestId = requestId;
+    if (blob != null) result.blob = blob;
+    return result;
+  }
+
+  StoreDataBlobRequest._();
+
+  factory StoreDataBlobRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory StoreDataBlobRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StoreDataBlobRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'requestId', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$0.DataBlob>(2, _omitFieldNames ? '' : 'blob', subBuilder: $0.DataBlob.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StoreDataBlobRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StoreDataBlobRequest copyWith(void Function(StoreDataBlobRequest) updates) =>
+      super.copyWith((message) => updates(message as StoreDataBlobRequest)) as StoreDataBlobRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static StoreDataBlobRequest create() => StoreDataBlobRequest._();
+  @$core.override
+  StoreDataBlobRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static StoreDataBlobRequest getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StoreDataBlobRequest>(create);
+  static StoreDataBlobRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get requestId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set requestId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRequestId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRequestId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $0.DataBlob get blob => $_getN(1);
+  @$pb.TagNumber(2)
+  set blob($0.DataBlob value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBlob() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBlob() => $_clearField(2);
+  @$pb.TagNumber(2)
+  $0.DataBlob ensureBlob() => $_ensure(1);
+}
+
+class StoreDataBlobResponse extends $pb.GeneratedMessage {
+  factory StoreDataBlobResponse({
+    $core.int? requestId,
+    $0.DataBlobKey? key,
+  }) {
+    final result = create();
+    if (requestId != null) result.requestId = requestId;
+    if (key != null) result.key = key;
+    return result;
+  }
+
+  StoreDataBlobResponse._();
+
+  factory StoreDataBlobResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory StoreDataBlobResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StoreDataBlobResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'requestId', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$0.DataBlobKey>(2, _omitFieldNames ? '' : 'key', subBuilder: $0.DataBlobKey.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StoreDataBlobResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  StoreDataBlobResponse copyWith(void Function(StoreDataBlobResponse) updates) =>
+      super.copyWith((message) => updates(message as StoreDataBlobResponse)) as StoreDataBlobResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static StoreDataBlobResponse create() => StoreDataBlobResponse._();
+  @$core.override
+  StoreDataBlobResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static StoreDataBlobResponse getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<StoreDataBlobResponse>(create);
+  static StoreDataBlobResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get requestId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set requestId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRequestId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRequestId() => $_clearField(1);
+
+  /// Unique key the data blob was stored under.
+  @$pb.TagNumber(2)
+  $0.DataBlobKey get key => $_getN(1);
+  @$pb.TagNumber(2)
+  set key($0.DataBlobKey value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearKey() => $_clearField(2);
+  @$pb.TagNumber(2)
+  $0.DataBlobKey ensureKey() => $_ensure(1);
+}
+
+class GetDataBlobRequest extends $pb.GeneratedMessage {
+  factory GetDataBlobRequest({
+    $core.int? requestId,
+    $core.String? participantIdentity,
+    $0.DataBlobKey? key,
+  }) {
+    final result = create();
+    if (requestId != null) result.requestId = requestId;
+    if (participantIdentity != null) result.participantIdentity = participantIdentity;
+    if (key != null) result.key = key;
+    return result;
+  }
+
+  GetDataBlobRequest._();
+
+  factory GetDataBlobRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetDataBlobRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetDataBlobRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'requestId', fieldType: $pb.PbFieldType.OU3)
+    ..aOS(2, _omitFieldNames ? '' : 'participantIdentity')
+    ..aOM<$0.DataBlobKey>(3, _omitFieldNames ? '' : 'key', subBuilder: $0.DataBlobKey.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetDataBlobRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetDataBlobRequest copyWith(void Function(GetDataBlobRequest) updates) =>
+      super.copyWith((message) => updates(message as GetDataBlobRequest)) as GetDataBlobRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetDataBlobRequest create() => GetDataBlobRequest._();
+  @$core.override
+  GetDataBlobRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetDataBlobRequest getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetDataBlobRequest>(create);
+  static GetDataBlobRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get requestId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set requestId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRequestId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRequestId() => $_clearField(1);
+
+  /// Identity of the participant who owns the blob.
+  @$pb.TagNumber(2)
+  $core.String get participantIdentity => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set participantIdentity($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasParticipantIdentity() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearParticipantIdentity() => $_clearField(2);
+
+  /// Unique key of the data blob to retrieve.
+  @$pb.TagNumber(3)
+  $0.DataBlobKey get key => $_getN(2);
+  @$pb.TagNumber(3)
+  set key($0.DataBlobKey value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasKey() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearKey() => $_clearField(3);
+  @$pb.TagNumber(3)
+  $0.DataBlobKey ensureKey() => $_ensure(2);
+}
+
+class GetDataBlobResponse extends $pb.GeneratedMessage {
+  factory GetDataBlobResponse({
+    $core.int? requestId,
+    $0.DataBlob? blob,
+  }) {
+    final result = create();
+    if (requestId != null) result.requestId = requestId;
+    if (blob != null) result.blob = blob;
+    return result;
+  }
+
+  GetDataBlobResponse._();
+
+  factory GetDataBlobResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetDataBlobResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'GetDataBlobResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'requestId', fieldType: $pb.PbFieldType.OU3)
+    ..aOM<$0.DataBlob>(2, _omitFieldNames ? '' : 'blob', subBuilder: $0.DataBlob.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetDataBlobResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetDataBlobResponse copyWith(void Function(GetDataBlobResponse) updates) =>
+      super.copyWith((message) => updates(message as GetDataBlobResponse)) as GetDataBlobResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetDataBlobResponse create() => GetDataBlobResponse._();
+  @$core.override
+  GetDataBlobResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetDataBlobResponse getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<GetDataBlobResponse>(create);
+  static GetDataBlobResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get requestId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set requestId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRequestId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRequestId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $0.DataBlob get blob => $_getN(1);
+  @$pb.TagNumber(2)
+  set blob($0.DataBlob value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBlob() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBlob() => $_clearField(2);
+  @$pb.TagNumber(2)
+  $0.DataBlob ensureBlob() => $_ensure(1);
 }
 
 class UpdateTrackSettings extends $pb.GeneratedMessage {
