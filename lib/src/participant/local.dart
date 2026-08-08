@@ -390,10 +390,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         );
       }
 
-      if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
-        final degradationPreference = options.degradationPreference ?? DegradationPreference.maintainResolution;
-        await track.setDegradationPreference(degradationPreference);
-      }
+      await track.setDegradationPreference(
+        options.degradationPreference ?? getDefaultDegradationPreference(track.source),
+      );
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
@@ -489,10 +488,9 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         );
       }
 
-      if ([TrackSource.camera, TrackSource.screenShareVideo].contains(track.source)) {
-        final degradationPreference = publishOptions.degradationPreference ?? DegradationPreference.maintainResolution;
-        await track.setDegradationPreference(degradationPreference);
-      }
+      await track.setDegradationPreference(
+        publishOptions.degradationPreference ?? getDefaultDegradationPreference(track.source),
+      );
 
       if (kIsWeb && lkBrowser() == BrowserType.firefox && track.kind == TrackType.AUDIO) {
         //TOOD:
@@ -943,6 +941,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       publication,
       backupCodec,
     );
+
+    // the backup codec publishes over its own sender, so it needs the same
+    // degradation preference the primary sender resolved to.
+    await track.applyDegradationPreference(simulcastTrack.sender);
 
     final cid = simulcastTrack.sender!.senderId;
 

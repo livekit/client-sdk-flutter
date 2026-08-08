@@ -434,6 +434,9 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? roomTags,
     $core.String? roomName,
     $0.Timestamp? roomStartTime,
+    $core.String? jobId,
+    $core.bool? simulated,
+    $core.bool? redactionEnabled,
   }) {
     final result = create();
     if (roomId != null) result.roomId = roomId;
@@ -442,6 +445,9 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
     if (roomTags != null) result.roomTags.addEntries(roomTags);
     if (roomName != null) result.roomName = roomName;
     if (roomStartTime != null) result.roomStartTime = roomStartTime;
+    if (jobId != null) result.jobId = jobId;
+    if (simulated != null) result.simulated = simulated;
+    if (redactionEnabled != null) result.redactionEnabled = redactionEnabled;
     return result;
   }
 
@@ -466,6 +472,9 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
         packageName: const $pb.PackageName('livekit'))
     ..aOS(6, _omitFieldNames ? '' : 'roomName')
     ..aOM<$0.Timestamp>(7, _omitFieldNames ? '' : 'roomStartTime', subBuilder: $0.Timestamp.create)
+    ..aOS(8, _omitFieldNames ? '' : 'jobId')
+    ..aOB(9, _omitFieldNames ? '' : 'simulated')
+    ..aOB(10, _omitFieldNames ? '' : 'redactionEnabled')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -537,6 +546,33 @@ class MetricsRecordingHeader extends $pb.GeneratedMessage {
   void clearRoomStartTime() => $_clearField(7);
   @$pb.TagNumber(7)
   $0.Timestamp ensureRoomStartTime() => $_ensure(5);
+
+  @$pb.TagNumber(8)
+  $core.String get jobId => $_getSZ(6);
+  @$pb.TagNumber(8)
+  set jobId($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(8)
+  $core.bool hasJobId() => $_has(6);
+  @$pb.TagNumber(8)
+  void clearJobId() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.bool get simulated => $_getBF(7);
+  @$pb.TagNumber(9)
+  set simulated($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(9)
+  $core.bool hasSimulated() => $_has(7);
+  @$pb.TagNumber(9)
+  void clearSimulated() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.bool get redactionEnabled => $_getBF(8);
+  @$pb.TagNumber(10)
+  set redactionEnabled($core.bool value) => $_setBool(8, value);
+  @$pb.TagNumber(10)
+  $core.bool hasRedactionEnabled() => $_has(8);
+  @$pb.TagNumber(10)
+  void clearRedactionEnabled() => $_clearField(10);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -144,6 +144,24 @@ const SignalRequest$json = {
       '9': 0,
       '10': 'updateDataSubscription'
     },
+    {
+      '1': 'store_data_blob_request',
+      '3': 22,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.StoreDataBlobRequest',
+      '9': 0,
+      '10': 'storeDataBlobRequest'
+    },
+    {
+      '1': 'get_data_blob_request',
+      '3': 23,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GetDataBlobRequest',
+      '9': 0,
+      '10': 'getDataBlobRequest'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -176,7 +194,10 @@ final $typed_data.Uint8List signalRequestDescriptor =
         'JlcXVlc3QYFCABKAsyIi5saXZla2l0LlVucHVibGlzaERhdGFUcmFja1JlcXVlc3RIAFIZdW5w'
         'dWJsaXNoRGF0YVRyYWNrUmVxdWVzdBJbChh1cGRhdGVfZGF0YV9zdWJzY3JpcHRpb24YFSABKA'
         'syHy5saXZla2l0LlVwZGF0ZURhdGFTdWJzY3JpcHRpb25IAFIWdXBkYXRlRGF0YVN1YnNjcmlw'
-        'dGlvbkIJCgdtZXNzYWdl');
+        'dGlvbhJWChdzdG9yZV9kYXRhX2Jsb2JfcmVxdWVzdBgWIAEoCzIdLmxpdmVraXQuU3RvcmVEYX'
+        'RhQmxvYlJlcXVlc3RIAFIUc3RvcmVEYXRhQmxvYlJlcXVlc3QSUAoVZ2V0X2RhdGFfYmxvYl9y'
+        'ZXF1ZXN0GBcgASgLMhsubGl2ZWtpdC5HZXREYXRhQmxvYlJlcXVlc3RIAFISZ2V0RGF0YUJsb2'
+        'JSZXF1ZXN0QgkKB21lc3NhZ2U=');
 
 @$core.Deprecated('Use signalResponseDescriptor instead')
 const SignalResponse$json = {
@@ -330,6 +351,24 @@ const SignalResponse$json = {
       '9': 0,
       '10': 'dataTrackSubscriberHandles'
     },
+    {
+      '1': 'store_data_blob_response',
+      '3': 30,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.StoreDataBlobResponse',
+      '9': 0,
+      '10': 'storeDataBlobResponse'
+    },
+    {
+      '1': 'get_data_blob_response',
+      '3': 31,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GetDataBlobResponse',
+      '9': 0,
+      '10': 'getDataBlobResponse'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -374,7 +413,10 @@ final $typed_data.Uint8List signalResponseDescriptor =
         'VraXQuVW5wdWJsaXNoRGF0YVRyYWNrUmVzcG9uc2VIAFIadW5wdWJsaXNoRGF0YVRyYWNrUmVz'
         'cG9uc2USaAodZGF0YV90cmFja19zdWJzY3JpYmVyX2hhbmRsZXMYHSABKAsyIy5saXZla2l0Lk'
         'RhdGFUcmFja1N1YnNjcmliZXJIYW5kbGVzSABSGmRhdGFUcmFja1N1YnNjcmliZXJIYW5kbGVz'
-        'QgkKB21lc3NhZ2U=');
+        'ElkKGHN0b3JlX2RhdGFfYmxvYl9yZXNwb25zZRgeIAEoCzIeLmxpdmVraXQuU3RvcmVEYXRhQm'
+        'xvYlJlc3BvbnNlSABSFXN0b3JlRGF0YUJsb2JSZXNwb25zZRJTChZnZXRfZGF0YV9ibG9iX3Jl'
+        'c3BvbnNlGB8gASgLMhwubGl2ZWtpdC5HZXREYXRhQmxvYlJlc3BvbnNlSABSE2dldERhdGFCbG'
+        '9iUmVzcG9uc2VCCQoHbWVzc2FnZQ==');
 
 @$core.Deprecated('Use simulcastCodecDescriptor instead')
 const SimulcastCodec$json = {
@@ -471,6 +513,21 @@ const PublishDataTrackRequest$json = {
     {'1': 'pub_handle', '3': 1, '4': 1, '5': 13, '10': 'pubHandle'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'encryption', '3': 3, '4': 1, '5': 14, '6': '.livekit.Encryption.Type', '10': 'encryption'},
+    {
+      '1': 'frame_encoding',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackFrameEncoding',
+      '9': 0,
+      '10': 'frameEncoding',
+      '17': true
+    },
+    {'1': 'schema', '3': 5, '4': 1, '5': 11, '6': '.livekit.DataTrackSchemaId', '9': 1, '10': 'schema', '17': true},
+  ],
+  '8': [
+    {'1': '_frame_encoding'},
+    {'1': '_schema'},
   ],
 };
 
@@ -478,7 +535,10 @@ const PublishDataTrackRequest$json = {
 final $typed_data.Uint8List publishDataTrackRequestDescriptor =
     $convert.base64Decode('ChdQdWJsaXNoRGF0YVRyYWNrUmVxdWVzdBIdCgpwdWJfaGFuZGxlGAEgASgNUglwdWJIYW5kbG'
         'USEgoEbmFtZRgCIAEoCVIEbmFtZRI4CgplbmNyeXB0aW9uGAMgASgOMhgubGl2ZWtpdC5FbmNy'
-        'eXB0aW9uLlR5cGVSCmVuY3J5cHRpb24=');
+        'eXB0aW9uLlR5cGVSCmVuY3J5cHRpb24SSwoOZnJhbWVfZW5jb2RpbmcYBCABKAsyHy5saXZla2'
+        'l0LkRhdGFUcmFja0ZyYW1lRW5jb2RpbmdIAFINZnJhbWVFbmNvZGluZ4gBARI3CgZzY2hlbWEY'
+        'BSABKAsyGi5saXZla2l0LkRhdGFUcmFja1NjaGVtYUlkSAFSBnNjaGVtYYgBAUIRCg9fZnJhbW'
+        'VfZW5jb2RpbmdCCQoHX3NjaGVtYQ==');
 
 @$core.Deprecated('Use publishDataTrackResponseDescriptor instead')
 const PublishDataTrackResponse$json = {
@@ -795,6 +855,64 @@ final $typed_data.Uint8List updateDataSubscriptionDescriptor =
         'Rpb25zGAMgASgLMiUubGl2ZWtpdC5EYXRhVHJhY2tTdWJzY3JpcHRpb25PcHRpb25zUgdvcHRp'
         'b25z');
 
+@$core.Deprecated('Use storeDataBlobRequestDescriptor instead')
+const StoreDataBlobRequest$json = {
+  '1': 'StoreDataBlobRequest',
+  '2': [
+    {'1': 'request_id', '3': 1, '4': 1, '5': 13, '8': {}, '10': 'requestId'},
+    {'1': 'blob', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataBlob', '10': 'blob'},
+  ],
+};
+
+/// Descriptor for `StoreDataBlobRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List storeDataBlobRequestDescriptor =
+    $convert.base64Decode('ChRTdG9yZURhdGFCbG9iUmVxdWVzdBIrCgpyZXF1ZXN0X2lkGAEgASgNQgy6UAlyZXF1ZXN0SU'
+        'RSCXJlcXVlc3RJZBIlCgRibG9iGAIgASgLMhEubGl2ZWtpdC5EYXRhQmxvYlIEYmxvYg==');
+
+@$core.Deprecated('Use storeDataBlobResponseDescriptor instead')
+const StoreDataBlobResponse$json = {
+  '1': 'StoreDataBlobResponse',
+  '2': [
+    {'1': 'request_id', '3': 1, '4': 1, '5': 13, '8': {}, '10': 'requestId'},
+    {'1': 'key', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataBlobKey', '10': 'key'},
+  ],
+};
+
+/// Descriptor for `StoreDataBlobResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List storeDataBlobResponseDescriptor =
+    $convert.base64Decode('ChVTdG9yZURhdGFCbG9iUmVzcG9uc2USKwoKcmVxdWVzdF9pZBgBIAEoDUIMulAJcmVxdWVzdE'
+        'lEUglyZXF1ZXN0SWQSJgoDa2V5GAIgASgLMhQubGl2ZWtpdC5EYXRhQmxvYktleVIDa2V5');
+
+@$core.Deprecated('Use getDataBlobRequestDescriptor instead')
+const GetDataBlobRequest$json = {
+  '1': 'GetDataBlobRequest',
+  '2': [
+    {'1': 'request_id', '3': 1, '4': 1, '5': 13, '8': {}, '10': 'requestId'},
+    {'1': 'participant_identity', '3': 2, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {'1': 'key', '3': 3, '4': 1, '5': 11, '6': '.livekit.DataBlobKey', '10': 'key'},
+  ],
+};
+
+/// Descriptor for `GetDataBlobRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getDataBlobRequestDescriptor =
+    $convert.base64Decode('ChJHZXREYXRhQmxvYlJlcXVlc3QSKwoKcmVxdWVzdF9pZBgBIAEoDUIMulAJcmVxdWVzdElEUg'
+        'lyZXF1ZXN0SWQSMQoUcGFydGljaXBhbnRfaWRlbnRpdHkYAiABKAlSE3BhcnRpY2lwYW50SWRl'
+        'bnRpdHkSJgoDa2V5GAMgASgLMhQubGl2ZWtpdC5EYXRhQmxvYktleVIDa2V5');
+
+@$core.Deprecated('Use getDataBlobResponseDescriptor instead')
+const GetDataBlobResponse$json = {
+  '1': 'GetDataBlobResponse',
+  '2': [
+    {'1': 'request_id', '3': 1, '4': 1, '5': 13, '8': {}, '10': 'requestId'},
+    {'1': 'blob', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataBlob', '10': 'blob'},
+  ],
+};
+
+/// Descriptor for `GetDataBlobResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getDataBlobResponseDescriptor =
+    $convert.base64Decode('ChNHZXREYXRhQmxvYlJlc3BvbnNlEisKCnJlcXVlc3RfaWQYASABKA1CDLpQCXJlcXVlc3RJRF'
+        'IJcmVxdWVzdElkEiUKBGJsb2IYAiABKAsyES5saXZla2l0LkRhdGFCbG9iUgRibG9i');
+
 @$core.Deprecated('Use updateTrackSettingsDescriptor instead')
 const UpdateTrackSettings$json = {
   '1': 'UpdateTrackSettings',
@@ -922,11 +1040,11 @@ const UpdateParticipantMetadata_AttributesEntry$json = {
 
 /// Descriptor for `UpdateParticipantMetadata`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List updateParticipantMetadataDescriptor =
-    $convert.base64Decode('ChlVcGRhdGVQYXJ0aWNpcGFudE1ldGFkYXRhEkAKCG1ldGFkYXRhGAEgASgJQiSoUAGyUB48cm'
-        'VkYWN0ZWQgKHt7IC5TaXplIH19IGJ5dGVzKT5SCG1ldGFkYXRhEjgKBG5hbWUYAiABKAlCJKhQ'
-        'AbJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPlIEbmFtZRJ4CgphdHRyaWJ1dGVzGA'
+    $convert.base64Decode('ChlVcGRhdGVQYXJ0aWNpcGFudE1ldGFkYXRhEkAKCG1ldGFkYXRhGAEgASgJQiSyUB48cmVkYW'
+        'N0ZWQgKHt7IC5TaXplIH19IGJ5dGVzKT7AUAFSCG1ldGFkYXRhEjgKBG5hbWUYAiABKAlCJLJQ'
+        'HjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPsBQAVIEbmFtZRJ4CgphdHRyaWJ1dGVzGA'
         'MgAygLMjIubGl2ZWtpdC5VcGRhdGVQYXJ0aWNpcGFudE1ldGFkYXRhLkF0dHJpYnV0ZXNFbnRy'
-        'eUIkqFABslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieXRlcyk+UgphdHRyaWJ1dGVzEisKCn'
+        'eUIkslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieXRlcyk+wFABUgphdHRyaWJ1dGVzEisKCn'
         'JlcXVlc3RfaWQYBCABKA1CDLpQCXJlcXVlc3RJRFIJcmVxdWVzdElkGj0KD0F0dHJpYnV0ZXNF'
         'bnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
 
@@ -942,8 +1060,8 @@ const ICEServer$json = {
 
 /// Descriptor for `ICEServer`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List iCEServerDescriptor =
-    $convert.base64Decode('CglJQ0VTZXJ2ZXISEgoEdXJscxgBIAMoCVIEdXJscxIfCgh1c2VybmFtZRgCIAEoCUIDqFABUg'
-        'h1c2VybmFtZRIjCgpjcmVkZW50aWFsGAMgASgJQgOoUAFSCmNyZWRlbnRpYWw=');
+    $convert.base64Decode('CglJQ0VTZXJ2ZXISEgoEdXJscxgBIAMoCVIEdXJscxIfCgh1c2VybmFtZRgCIAEoCUIDwFABUg'
+        'h1c2VybmFtZRIjCgpjcmVkZW50aWFsGAMgASgJQgPAUAJSCmNyZWRlbnRpYWw=');
 
 @$core.Deprecated('Use speakersChangedDescriptor instead')
 const SpeakersChanged$json = {
@@ -1434,6 +1552,7 @@ const RequestResponse_Reason$json = {
     {'1': 'INVALID_NAME', '2': 8},
     {'1': 'DUPLICATE_HANDLE', '2': 9},
     {'1': 'DUPLICATE_NAME', '2': 10},
+    {'1': 'INVALID_REQUEST', '2': 11},
   ],
 };
 
@@ -1451,11 +1570,12 @@ final $typed_data.Uint8List requestResponseDescriptor =
         'l0LlVwZGF0ZUxvY2FsVmlkZW9UcmFja0gAUhB1cGRhdGVWaWRlb1RyYWNrElAKEnB1Ymxpc2hf'
         'ZGF0YV90cmFjaxgKIAEoCzIgLmxpdmVraXQuUHVibGlzaERhdGFUcmFja1JlcXVlc3RIAFIQcH'
         'VibGlzaERhdGFUcmFjaxJWChR1bnB1Ymxpc2hfZGF0YV90cmFjaxgLIAEoCzIiLmxpdmVraXQu'
-        'VW5wdWJsaXNoRGF0YVRyYWNrUmVxdWVzdEgAUhJ1bnB1Ymxpc2hEYXRhVHJhY2sizgEKBlJlYX'
+        'VW5wdWJsaXNoRGF0YVRyYWNrUmVxdWVzdEgAUhJ1bnB1Ymxpc2hEYXRhVHJhY2si4wEKBlJlYX'
         'NvbhIGCgJPSxAAEg0KCU5PVF9GT1VORBABEg8KC05PVF9BTExPV0VEEAISEgoOTElNSVRfRVhD'
         'RUVERUQQAxIKCgZRVUVVRUQQBBIUChBVTlNVUFBPUlRFRF9UWVBFEAUSFgoSVU5DTEFTU0lGSU'
         'VEX0VSUk9SEAYSEgoOSU5WQUxJRF9IQU5ETEUQBxIQCgxJTlZBTElEX05BTUUQCBIUChBEVVBM'
-        'SUNBVEVfSEFORExFEAkSEgoORFVQTElDQVRFX05BTUUQCkIJCgdyZXF1ZXN0');
+        'SUNBVEVfSEFORExFEAkSEgoORFVQTElDQVRFX05BTUUQChITCg9JTlZBTElEX1JFUVVFU1QQC0'
+        'IJCgdyZXF1ZXN0');
 
 @$core.Deprecated('Use trackSubscribedDescriptor instead')
 const TrackSubscribed$json = {
@@ -1541,10 +1661,10 @@ const JoinRequest_ParticipantAttributesEntry$json = {
 final $typed_data.Uint8List joinRequestDescriptor =
     $convert.base64Decode('CgtKb2luUmVxdWVzdBI0CgtjbGllbnRfaW5mbxgBIAEoCzITLmxpdmVraXQuQ2xpZW50SW5mb1'
         'IKY2xpZW50SW5mbxJMChNjb25uZWN0aW9uX3NldHRpbmdzGAIgASgLMhsubGl2ZWtpdC5Db25u'
-        'ZWN0aW9uU2V0dGluZ3NSEmNvbm5lY3Rpb25TZXR0aW5ncxJACghtZXRhZGF0YRgDIAEoCUIkqF'
-        'ABslAePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieXRlcyk+UghtZXRhZGF0YRKMAQoWcGFydGlj'
+        'ZWN0aW9uU2V0dGluZ3NSEmNvbm5lY3Rpb25TZXR0aW5ncxJACghtZXRhZGF0YRgDIAEoCUIksl'
+        'AePHJlZGFjdGVkICh7eyAuU2l6ZSB9fSBieXRlcyk+wFABUghtZXRhZGF0YRKMAQoWcGFydGlj'
         'aXBhbnRfYXR0cmlidXRlcxgEIAMoCzIvLmxpdmVraXQuSm9pblJlcXVlc3QuUGFydGljaXBhbn'
-        'RBdHRyaWJ1dGVzRW50cnlCJKhQAbJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPlIV'
+        'RBdHRyaWJ1dGVzRW50cnlCJLJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPsBQAVIV'
         'cGFydGljaXBhbnRBdHRyaWJ1dGVzEkYKEmFkZF90cmFja19yZXF1ZXN0cxgFIAMoCzIYLmxpdm'
         'VraXQuQWRkVHJhY2tSZXF1ZXN0UhBhZGRUcmFja1JlcXVlc3RzEkQKD3B1Ymxpc2hlcl9vZmZl'
         'chgGIAEoCzIbLmxpdmVraXQuU2Vzc2lvbkRlc2NyaXB0aW9uUg5wdWJsaXNoZXJPZmZlchIcCg'
