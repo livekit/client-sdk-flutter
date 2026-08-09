@@ -1,1 +1,0 @@
-patch type="fixed" "Room.getSid() now resolves when the room sid is issued after the join response"
