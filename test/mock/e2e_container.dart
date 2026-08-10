@@ -37,12 +37,12 @@ class E2EContainer {
   /// since [connectRoom] returned. Populated only when [captureOutbound] is true.
   final List<lk_models.DataPacket> capturedDataPackets = [];
 
-  E2EContainer() {
+  E2EContainer({RoomOptions roomOptions = const RoomOptions()}) {
     wsConnector = MockWebSocketConnector();
     client = SignalClient(wsConnector.connect);
     engine = Engine(
       connectOptions: const ConnectOptions(),
-      roomOptions: const RoomOptions(),
+      roomOptions: roomOptions,
       signalClient: client,
       peerConnectionCreate: MockPeerConnection.create,
     );
@@ -58,8 +58,19 @@ class E2EContainer {
   /// that value (used to exercise v1 vs v2 caller paths in self-loop tests).
   /// When [captureOutbound] is true, all DataPackets sent over the reliable
   /// data channel are recorded in [capturedDataPackets].
-  Future<void> connectRoom({int? localClientProtocol, bool captureOutbound = false}) async {
-    final connectFuture = room.connect(exampleUri, token);
+  Future<void> connectRoom({
+    int? localClientProtocol,
+    bool captureOutbound = false,
+    ConnectOptions? connectOptions,
+    @Deprecated('mirrors the deprecated Room.connect parameter') RoomOptions? roomOptions,
+  }) async {
+    final connectFuture = room.connect(
+      exampleUri,
+      token,
+      connectOptions: connectOptions,
+      // ignore: deprecated_member_use_from_same_package
+      roomOptions: roomOptions,
+    );
     Future.delayed(const Duration(milliseconds: 1), () {
       final resp = _buildJoinResponse(localClientProtocol);
       wsConnector.onData(resp.writeToBuffer());
