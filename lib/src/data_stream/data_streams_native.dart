@@ -47,22 +47,21 @@ DataStreams createDataStreams(Room room) => NativeDataStreams(room);
 /// already-decrypted packets; outbound, packets come back encoded and are re-sent through
 /// [Engine.sendDataPacket] so E2EE wrapping, reliable sequencing and resume-resend all still apply.
 ///
-/// Both managers run in **pull** mode. The Rust core can also push through delegates, but a uniffi
-/// callback in Dart is compiled to `Pointer.fromFunction`, which is only valid on the thread owning
-/// the isolate; the core invokes those delegates from its tokio runtime, which aborts the VM with
-/// "Cannot invoke native callback outside an isolate". Awaiting `nextPackets`/`nextOpenedStream`
-/// instead keeps every crossing on a thread we control.
+/// Both managers are built through the core's `polled*` adapters rather than constructed directly.
+/// The core normally pushes its output to a foreign delegate from its tokio runtime, which Dart
+/// cannot accept: uniffi compiles a callback interface to `Pointer.fromFunction`, valid only on the
+/// thread owning the isolate, so such a call aborts the VM outright with "Cannot invoke native
+/// callback outside an isolate". The adapters keep the delegate on the Rust side and buffer into a
+/// channel we await, so nothing crosses the FFI until we pull.
 ///
-/// [RemoteParticipantRegistryDelegate] is the one exception and is safe: it is only ever called
-/// synchronously inside a `send*` future, and uniffi polls those from whichever thread calls
-/// `rust_future_poll` — us.
+/// [ffi.RemoteParticipantRegistryDelegate] is the one callback we do implement, and it is safe: it
+/// is only ever called synchronously inside a `send*` future, and uniffi polls those from whichever
+/// thread called `rust_future_poll` — us.
 class NativeDataStreams implements DataStreams {
   NativeDataStreams(Room room) : _room = WeakReference(room) {
-    _outgoing = ffi.OutgoingDataStreamManager(
-      // Pull mode: no delegate. See the class docs.
-      delegate: null,
-      registry: _Registry(room),
-    );
+    final outgoing = ffi.polledOutgoingDataStreamManager(registry: _Registry(room));
+    _outgoing = outgoing.manager;
+    _outgoingPackets = outgoing.packets;
     unawaited(_pumpOutgoing());
   }
 
@@ -70,10 +69,12 @@ class NativeDataStreams implements DataStreams {
   final WeakReference<Room> _room;
 
   late final ffi.OutgoingDataStreamManager _outgoing;
+  late final ffi.OutgoingPacketQueue _outgoingPackets;
 
   /// Created on the first inbound packet rather than here, so a `maxPayloadSize` supplied at
   /// connect time is picked up.
   ffi.IncomingDataStreamManager? _incoming;
+  ffi.IncomingStreamQueue? _incomingStreams;
 
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
   final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
@@ -242,19 +243,23 @@ class NativeDataStreams implements DataStreams {
   }
 
   /// Drains outbound packets from the core and puts them on the wire, in order.
+  ///
+  /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
+  /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
+  /// queue rather than releasing it.
   Future<void> _pumpOutgoing() async {
-    while (!_disposed) {
-      final List<Uint8List>? batch;
-      try {
-        batch = await _outgoing.nextPackets();
-      } catch (e) {
-        logger.warning('[DataStreams] outgoing pump failed: $e');
-        return;
+    try {
+      while (true) {
+        final batch = await _outgoingPackets.nextPackets();
+        if (batch == null) break; // closed or shutting down
+        for (final encoded in batch) {
+          _enqueueSend(encoded);
+        }
       }
-      if (batch == null) return; // shutting down
-      for (final encoded in batch) {
-        _enqueueSend(encoded);
-      }
+    } catch (e) {
+      logger.warning('[DataStreams] outgoing pump failed: $e');
+    } finally {
+      _outgoingPackets.dispose();
     }
   }
 
@@ -281,14 +286,11 @@ class NativeDataStreams implements DataStreams {
   ffi.IncomingDataStreamManager _incomingManager() {
     final existing = _incoming;
     if (existing != null) return existing;
-    final created = ffi.IncomingDataStreamManager(
-      // Pull mode: no delegate. See the class docs.
-      delegate: null,
-      maxPayloadByteLength: null,
-    );
-    _incoming = created;
-    unawaited(_pumpIncoming(created));
-    return created;
+    final incoming = ffi.polledIncomingDataStreamManager(maxPayloadByteLength: null);
+    _incoming = incoming.manager;
+    _incomingStreams = incoming.streams;
+    unawaited(_pumpIncoming(incoming.streams));
+    return incoming.manager;
   }
 
   @override
@@ -299,21 +301,23 @@ class NativeDataStreams implements DataStreams {
   }
 
   /// Drains opened streams from the core and dispatches them to the registered topic handler.
-  Future<void> _pumpIncoming(ffi.IncomingDataStreamManager manager) async {
-    while (!_disposed) {
-      final ffi.OpenedStream? opened;
-      try {
-        opened = await manager.nextOpenedStream();
-      } catch (e) {
-        logger.warning('[DataStreams] incoming pump failed: $e');
-        return;
+  ///
+  /// Owns the queue's lifetime, for the same reason as [_pumpOutgoing].
+  Future<void> _pumpIncoming(ffi.IncomingStreamQueue streams) async {
+    try {
+      while (true) {
+        final opened = await streams.nextOpenedStream();
+        if (opened == null) break; // closed or shutting down
+        try {
+          _dispatchOpenedStream(opened);
+        } catch (e) {
+          logger.warning('[DataStreams] failed to dispatch opened stream: $e');
+        }
       }
-      if (opened == null) return; // shutting down
-      try {
-        _dispatchOpenedStream(opened);
-      } catch (e) {
-        logger.warning('[DataStreams] failed to dispatch opened stream: $e');
-      }
+    } catch (e) {
+      logger.warning('[DataStreams] incoming pump failed: $e');
+    } finally {
+      streams.dispose();
     }
   }
 
@@ -471,7 +475,13 @@ class NativeDataStreams implements DataStreams {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    // Error out open readers first so their handlers unwind, then close the queues so each pump
+    // wakes, exits and disposes the queue it owns. The managers have nothing awaiting them, so
+    // they can be released here.
     _incoming?.abortAllStreams();
+    _incomingStreams?.close();
+    _incomingStreams = null;
+    _outgoingPackets.close();
     _incoming?.dispose();
     _incoming = null;
     _outgoing.dispose();

@@ -44,8 +44,8 @@ There is no dynamic library to load on the web, so `uniffi.dart` splits native/w
 
 Two things to know when touching the native path:
 
-- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`. Both managers are therefore constructed with `delegate: null` and drained via `nextPackets()` / `nextOpenedStream()`. `RemoteParticipantRegistryDelegate` is the one safe callback: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
-- **Only the pump may dispose a uniffi reader.** Disposing from a subscription's `onCancel` frees the Rust handle while a `next()` may still be in flight — a use-after-free that surfaces as a SIGBUS with no Dart stack.
+- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`, which is not catchable. The managers are therefore built through the crate's `polled*` adapters (`livekit-uniffi/src/data_stream/polled.rs`), which implement the delegates *in Rust*, buffer into a channel, and expose an `async fn next_*` we await. `RemoteParticipantRegistryDelegate` is the one callback we implement directly, and it is safe: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
+- **Whoever awaits a uniffi object is the only thing that may dispose it.** Freeing the Rust handle while a `next()`/`nextPackets()` is in flight is a use-after-free that surfaces as a SIGBUS with no Dart stack. Hence readers are disposed by their pump rather than from a subscription's `onCancel`, and `dispose()` calls `close()` on the queues to wake their pumps instead of releasing them directly.
 
 ### Local development loop
 
