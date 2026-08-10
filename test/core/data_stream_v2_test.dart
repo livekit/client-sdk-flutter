@@ -282,4 +282,90 @@ void main() {
       expect(fired, isFalse);
     });
   });
+
+  group('maxPayloadByteLength', () {
+    test('a stream declaring more than the cap fails its reader', () async {
+      // A fresh container so the cap is set at connect time, which is when the native manager
+      // reads it.
+      resetMockDataChannels();
+      final capped = E2EContainer();
+      addTearDown(capped.dispose);
+      await capped.connectRoom(
+        connectOptions: const ConnectOptions(
+          dataStream: DataStreamOptions(maxPayloadByteLength: 16),
+        ),
+      );
+
+      // The handler is still invoked — the core reports the stream opened before applying the
+      // cap — and it is the read that fails.
+      final outcome = Completer<Object?>();
+      capped.room.registerTextStreamHandler('capped', (reader, identity) async {
+        try {
+          await reader.readAll();
+          outcome.complete(null);
+        } catch (e) {
+          outcome.complete(e);
+        }
+      });
+
+      capped.deliverInboundDataPacket(
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamHeader: lk_models.DataStream_Header(
+            streamId: 'too-big',
+            topic: 'capped',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            totalLength: Int64(1000),
+            inlineContent: Uint8List.fromList(utf8.encode('x' * 1000)),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        ),
+      );
+
+      final error = await outcome.future.timeout(const Duration(seconds: 5));
+      expect(error, isA<DataStreamError>());
+      expect(
+        (error as DataStreamError).reason,
+        DataStreamErrorReason.LengthExceeded,
+        reason: 'the payload exceeds maxPayloadByteLength',
+      );
+    });
+
+    test('a stream within the cap is delivered', () async {
+      resetMockDataChannels();
+      final capped = E2EContainer();
+      addTearDown(capped.dispose);
+      await capped.connectRoom(
+        connectOptions: const ConnectOptions(
+          dataStream: DataStreamOptions(maxPayloadByteLength: 1000),
+        ),
+      );
+
+      const text = 'small enough';
+      final received = Completer<String>();
+      capped.room.registerTextStreamHandler('capped', (reader, identity) async {
+        received.complete(await reader.readAll());
+      });
+
+      capped.deliverInboundDataPacket(
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamHeader: lk_models.DataStream_Header(
+            streamId: 'small',
+            topic: 'capped',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            totalLength: Int64(utf8.encode(text).length),
+            inlineContent: Uint8List.fromList(utf8.encode(text)),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        ),
+      );
+
+      expect(await received.future, equals(text));
+    });
+  });
 }

@@ -26,6 +26,7 @@ import '../core/room.dart';
 import '../e2ee/options.dart';
 import '../internal/events.dart';
 import '../logger.dart';
+import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
 import '../types/other.dart';
@@ -58,6 +59,32 @@ class WebDataStreams implements DataStreams {
 
   final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _byteStreamControllers = {};
   final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _textStreamControllers = {};
+
+  /// Content bytes delivered so far per stream id, checked against
+  /// [DataStreamOptions.maxPayloadByteLength].
+  final Map<String, int> _receivedBytes = {};
+
+  int get _maxPayloadByteLength => _room.connectOptions.dataStream.maxPayloadByteLength ?? kDefaultMaxPayloadByteLength;
+
+  /// Whether a stream declaring [totalLength] is over the payload cap. Streams of unknown length
+  /// pass here and are capped as their chunks arrive instead.
+  bool _declaresOverCap(int? totalLength) => totalLength != null && totalLength > _maxPayloadByteLength;
+
+  /// Fails an oversized stream's reader, after its handler has been given it.
+  ///
+  /// Matches the Rust core, which emits the stream-opened event before applying the cap: the
+  /// consumer is told the stream failed rather than never hearing about it.
+  Future<void> _failOverCap(
+    DataStreamController<lk_models.DataStream_Chunk> controller,
+    String streamId,
+  ) async {
+    logger.warning(
+      'incoming stream $streamId exceeds the maxPayloadByteLength of $_maxPayloadByteLength',
+    );
+    controller.error(_payloadTooLarge());
+    await controller.close();
+    _forgetStream(streamId);
+  }
 
   @override
   void registerTextStreamHandler(String topic, TextStreamHandler callback) => textStreamHandlers[topic] = callback;
@@ -124,6 +151,9 @@ class WebDataStreams implements DataStreams {
       _byteStreamControllers[streamHeader.streamId] = controller;
 
       streamHandlerCallback(ByteStreamReader(info, controller, info.size), participantIdentity);
+      if (_declaresOverCap(streamHeader.hasTotalLength() ? info.size : null)) {
+        await _failOverCap(controller, streamHeader.streamId);
+      }
       return;
     }
 
@@ -166,6 +196,9 @@ class WebDataStreams implements DataStreams {
       _textStreamControllers[streamHeader.streamId] = controller;
 
       streamHandlerCallback(TextStreamReader(info, controller, info.size), participantIdentity);
+      if (_declaresOverCap(streamHeader.hasTotalLength() ? info.size : null)) {
+        await _failOverCap(controller, streamHeader.streamId);
+      }
     }
   }
 
@@ -174,8 +207,14 @@ class WebDataStreams implements DataStreams {
     if (textController != null) {
       if (textController.info.encryptionType != encryptionType) {
         textController.error(_encryptionMismatch());
-        _textStreamControllers.remove(chunk.streamId);
+        _forgetStream(chunk.streamId);
       } else if (chunk.content.isNotEmpty) {
+        if (_exceedsPayloadCap(chunk)) {
+          textController.error(_payloadTooLarge());
+          unawaited(textController.close());
+          _forgetStream(chunk.streamId);
+          return;
+        }
         textController.write(chunk);
       }
     }
@@ -184,11 +223,36 @@ class WebDataStreams implements DataStreams {
     if (byteController != null) {
       if (byteController.info.encryptionType != encryptionType) {
         byteController.error(_encryptionMismatch());
-        _byteStreamControllers.remove(chunk.streamId);
+        _forgetStream(chunk.streamId);
       } else if (chunk.content.isNotEmpty) {
+        if (_exceedsPayloadCap(chunk)) {
+          byteController.error(_payloadTooLarge());
+          unawaited(byteController.close());
+          _forgetStream(chunk.streamId);
+          return;
+        }
         byteController.write(chunk);
       }
     }
+  }
+
+  /// Accumulates this chunk against the stream's running total, returning true once the payload
+  /// cap is passed.
+  bool _exceedsPayloadCap(lk_models.DataStream_Chunk chunk) {
+    final total = (_receivedBytes[chunk.streamId] ?? 0) + chunk.content.length;
+    _receivedBytes[chunk.streamId] = total;
+    return total > _maxPayloadByteLength;
+  }
+
+  DataStreamError _payloadTooLarge() => DataStreamError(
+    message: 'Stream payload exceeds the maxPayloadByteLength of $_maxPayloadByteLength',
+    reason: DataStreamErrorReason.LengthExceeded,
+  );
+
+  void _forgetStream(String streamId) {
+    _textStreamControllers.remove(streamId);
+    _byteStreamControllers.remove(streamId);
+    _receivedBytes.remove(streamId);
   }
 
   Future<void> _handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
@@ -196,24 +260,24 @@ class WebDataStreams implements DataStreams {
     if (textController != null) {
       if (textController.info.encryptionType != encryptionType) {
         textController.error(_encryptionMismatch());
-        _textStreamControllers.remove(trailer.streamId);
+        _forgetStream(trailer.streamId);
         return;
       }
       textController.info.attributes = {...textController.info.attributes, ...trailer.attributes};
       await textController.close();
-      _textStreamControllers.remove(trailer.streamId);
+      _forgetStream(trailer.streamId);
     }
 
     final byteController = _byteStreamControllers[trailer.streamId];
     if (byteController != null) {
       if (byteController.info.encryptionType != encryptionType) {
         byteController.error(_encryptionMismatch());
-        _byteStreamControllers.remove(trailer.streamId);
+        _forgetStream(trailer.streamId);
         return;
       }
       byteController.info.attributes = {...byteController.info.attributes, ...trailer.attributes};
       await byteController.close();
-      _byteStreamControllers.remove(trailer.streamId);
+      _forgetStream(trailer.streamId);
     }
   }
 
@@ -461,12 +525,12 @@ class WebDataStreams implements DataStreams {
     for (final controller in bytes) {
       controller.error(abnormalEndError);
       await controller.close();
-      _byteStreamControllers.remove(controller.info.id);
+      _forgetStream(controller.info.id);
     }
     for (final controller in texts) {
       controller.error(abnormalEndError);
       await controller.close();
-      _textStreamControllers.remove(controller.info.id);
+      _forgetStream(controller.info.id);
     }
   }
 
@@ -477,6 +541,7 @@ class WebDataStreams implements DataStreams {
     }
     _textStreamControllers.clear();
     _byteStreamControllers.clear();
+    _receivedBytes.clear();
   }
 
   @override

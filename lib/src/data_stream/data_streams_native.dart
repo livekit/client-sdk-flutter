@@ -71,8 +71,8 @@ class NativeDataStreams implements DataStreams {
   late final ffi.OutgoingDataStreamManager _outgoing;
   late final ffi.OutgoingPacketQueue _outgoingPackets;
 
-  /// Created on the first inbound packet rather than here, so a `maxPayloadSize` supplied at
-  /// connect time is picked up.
+  /// Created on the first inbound packet rather than here, so a
+  /// [DataStreamOptions.maxPayloadByteLength] supplied at connect time is picked up.
   ffi.IncomingDataStreamManager? _incoming;
   ffi.IncomingStreamQueue? _incomingStreams;
 
@@ -286,7 +286,11 @@ class NativeDataStreams implements DataStreams {
   ffi.IncomingDataStreamManager _incomingManager() {
     final existing = _incoming;
     if (existing != null) return existing;
-    final incoming = ffi.polledIncomingDataStreamManager(maxPayloadByteLength: null);
+    // Read now rather than at construction: this runs on the first inbound packet, i.e. after
+    // connect, so a cap supplied via `connect(connectOptions:)` is in effect by this point.
+    final incoming = ffi.polledIncomingDataStreamManager(
+      maxPayloadByteLength: _room.target?.connectOptions.dataStream.maxPayloadByteLength,
+    );
     _incoming = incoming.manager;
     _incomingStreams = incoming.streams;
     unawaited(_pumpIncoming(incoming.streams));
