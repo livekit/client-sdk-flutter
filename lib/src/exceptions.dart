@@ -25,6 +25,7 @@ enum ConnectionErrorReason {
   NotAllowed,
   InternalError,
   Timeout,
+  ServiceNotFound,
 }
 
 /// An exception occurred while attempting to connect.
