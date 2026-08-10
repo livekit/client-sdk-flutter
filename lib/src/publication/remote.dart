@@ -160,7 +160,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
           max(s1.height, s2.height),
         );
 
-    final videoTrack = track as VideoTrack;
+    final currentTrack = track;
+    if (currentTrack is! VideoTrack) return;
+    final videoTrack = currentTrack as VideoTrack;
 
     // Filter visible build contexts and scale each view's logical size by its
     // own pixel density, so the server is asked for physical-pixel dimensions

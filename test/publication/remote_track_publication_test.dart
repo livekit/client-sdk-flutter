@@ -235,6 +235,40 @@ void main() {
       expect(manualSettings!.disabled, isTrue, reason: 'manual video settings should keep hidden tracks disabled');
       expect(manualSettings.quality, lk_models.VideoQuality.LOW);
     });
+
+    test('stale video view callback is ignored after track removal', () async {
+      await room.dispose();
+      await connectTestRoom(
+        roomOptions: const RoomOptions(adaptiveStream: true),
+      );
+
+      final participant = room.remoteParticipants.values.first;
+      const sid = 'TR_remote_pub_adaptive_removed';
+      final pub = RemoteTrackPublication<RemoteVideoTrack>(
+        participant: participant,
+        info: lk_models.TrackInfo(
+          sid: sid,
+          name: 'video',
+          type: lk_models.TrackType.VIDEO,
+        ),
+      );
+      addTearDown(() async => await pub.dispose());
+
+      final stream = _FakeMediaStream('stream-$sid');
+      final mediaTrack = _FakeMediaStreamTrack(id: sid, kind: 'video');
+      await stream.addTrack(mediaTrack);
+      final videoTrack = RemoteVideoTrack(
+        TrackSource.camera,
+        stream,
+        mediaTrack,
+      );
+
+      await pub.updateTrack(videoTrack);
+      await pub.updateTrack(null);
+
+      expect(videoTrack.onVideoViewBuild, isNotNull);
+      expect(videoTrack.onVideoViewBuild!, returnsNormally);
+    });
   });
 }
 
