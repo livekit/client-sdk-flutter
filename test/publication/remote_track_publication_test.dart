@@ -97,9 +97,8 @@ void main() {
 
   /// The most recent [lk_rtc.UpdateTrackSettings] the SDK sent for [sid], if any.
   lk_rtc.UpdateTrackSettings? lastSettingsFor(String sid) {
-    final matches = connector.socket.sent
-        .where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid))
-        .toList();
+    final matches =
+        connector.socket.sent.where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid)).toList();
     return matches.isEmpty ? null : matches.last.trackSetting;
   }
 
@@ -150,14 +149,12 @@ void main() {
       addTearDown(() async => await pub.dispose());
 
       await pub.disable();
-      final countAfterFirst = connector.socket.sent
-          .where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid))
-          .length;
+      final countAfterFirst =
+          connector.socket.sent.where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid)).length;
 
       await pub.disable();
-      final countAfterSecond = connector.socket.sent
-          .where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid))
-          .length;
+      final countAfterSecond =
+          connector.socket.sent.where((r) => r.hasTrackSetting() && r.trackSetting.trackSids.contains(sid)).length;
 
       expect(countAfterFirst, 1);
       expect(countAfterSecond, 1, reason: 'a second disable() with no state change should not re-send');

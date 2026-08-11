@@ -61,11 +61,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     required String identity,
     required String name,
   }) : super(
-         room: room,
-         sid: sid,
-         identity: identity,
-         name: name,
-       );
+          room: room,
+          sid: sid,
+          identity: identity,
+          name: name,
+        );
 
   /// Creates a fully initialized RemoteParticipant without emitting events.
   ///
@@ -333,7 +333,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
   @internal
   lk_models.ParticipantTracks participantTracks() => lk_models.ParticipantTracks(
-    participantSid: sid,
-    trackSids: trackPublications.values.map((e) => e.sid),
-  );
+        participantSid: sid,
+        trackSids: trackPublications.values.map((e) => e.sid),
+      );
 }

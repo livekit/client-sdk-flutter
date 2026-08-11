@@ -57,6 +57,7 @@ enum AudioSessionManagementMode {
 }
 
 @immutable
+
 /// Experimental: this API may change in a future release.
 @experimental
 class AudioSessionOptions {
@@ -98,10 +99,11 @@ class AudioSessionOptions {
   AudioSessionOptions copyWith({
     ValueOrAbsent<AppleAudioSessionConfiguration> apple = const ValueOrAbsent.absent(),
     ValueOrAbsent<AndroidAudioSessionConfiguration> android = const ValueOrAbsent.absent(),
-  }) => AudioSessionOptions._(
-    apple: apple.valueOr(this.apple),
-    android: android.valueOr(this.android),
-  );
+  }) =>
+      AudioSessionOptions._(
+        apple: apple.valueOr(this.apple),
+        android: android.valueOr(this.android),
+      );
 }
 
 // https://developer.apple.com/documentation/avfaudio/avaudiosession/category
@@ -144,6 +146,7 @@ enum AppleAudioMode {
 }
 
 @immutable
+
 /// Experimental: this API may change in a future release.
 @experimental
 class AppleAudioSessionConfiguration {
@@ -182,11 +185,12 @@ class AppleAudioSessionConfiguration {
     ValueOrAbsent<AppleAudioCategory?> category = const ValueOrAbsent.absent(),
     ValueOrAbsent<Set<AppleAudioCategoryOption>?> categoryOptions = const ValueOrAbsent.absent(),
     ValueOrAbsent<AppleAudioMode?> mode = const ValueOrAbsent.absent(),
-  }) => AppleAudioSessionConfiguration(
-    category: category.valueOr(this.category),
-    categoryOptions: categoryOptions.valueOr(this.categoryOptions),
-    mode: mode.valueOr(this.mode),
-  );
+  }) =>
+      AppleAudioSessionConfiguration(
+        category: category.valueOr(this.category),
+        categoryOptions: categoryOptions.valueOr(this.categoryOptions),
+        mode: mode.valueOr(this.mode),
+      );
 }
 
 /// Experimental: this API may change in a future release.
@@ -250,6 +254,7 @@ enum AndroidAudioAttributesContentType {
 }
 
 @immutable
+
 /// Experimental: this API may change in a future release.
 @experimental
 class AndroidAudioSessionConfiguration {
@@ -310,13 +315,14 @@ class AndroidAudioSessionConfiguration {
     ValueOrAbsent<AndroidAudioAttributesUsageType?> usageType = const ValueOrAbsent.absent(),
     ValueOrAbsent<AndroidAudioAttributesContentType?> contentType = const ValueOrAbsent.absent(),
     ValueOrAbsent<bool?> forceAudioRouting = const ValueOrAbsent.absent(),
-  }) => AndroidAudioSessionConfiguration(
-    audioMode: audioMode.valueOr(this.audioMode),
-    manageAudioFocus: manageAudioFocus.valueOr(this.manageAudioFocus),
-    focusMode: focusMode.valueOr(this.focusMode),
-    streamType: streamType.valueOr(this.streamType),
-    usageType: usageType.valueOr(this.usageType),
-    contentType: contentType.valueOr(this.contentType),
-    forceAudioRouting: forceAudioRouting.valueOr(this.forceAudioRouting),
-  );
+  }) =>
+      AndroidAudioSessionConfiguration(
+        audioMode: audioMode.valueOr(this.audioMode),
+        manageAudioFocus: manageAudioFocus.valueOr(this.manageAudioFocus),
+        focusMode: focusMode.valueOr(this.focusMode),
+        streamType: streamType.valueOr(this.streamType),
+        usageType: usageType.valueOr(this.usageType),
+        contentType: contentType.valueOr(this.contentType),
+        forceAudioRouting: forceAudioRouting.valueOr(this.forceAudioRouting),
+      );
 }

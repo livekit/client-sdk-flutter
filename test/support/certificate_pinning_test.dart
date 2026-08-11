@@ -360,7 +360,7 @@ List<int> _certificate(List<int> subjectPublicKeyInfo) {
 }
 
 List<int> _realCertificateDer() => base64Decode(
-  '''
+      '''
 MIIDxzCCAq+gAwIBAgIUGhRL7309IUNTm6hvItsQIT62H2gwDQYJKoZIhvcNAQEL
 BQAwVzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRAwDgYDVQQKDAdMaXZlS2l0
 MQ0wCwYDVQQLDARUZXN0MRowGAYDVQQDDBFMaXZlS2l0IFRlc3QgQ0EgNjAeFw0y
@@ -383,13 +383,13 @@ CxyX1bjWBvpPpwVVVtz9Ydrp5Uvmzd4IrtYJRz/Ty62y2YKmqEVmsfBqBvdxbF5R
 jOt2XQ4kR0oSVkU+KyVyGtMhNjjQnWjJOuVpo/rdhtEKz4/9B4ofKYgoaeATqoQg
 Jioy3puXYIMud+Y=
 '''
-      .replaceAll(RegExp(r'\s'), ''),
-);
+          .replaceAll(RegExp(r'\s'), ''),
+    );
 
 List<int> _subjectPublicKeyInfo(List<int> publicKeyBytes) => _sequence([
-  ..._sequence(const []),
-  ..._bitString(publicKeyBytes),
-]);
+      ..._sequence(const []),
+      ..._bitString(publicKeyBytes),
+    ]);
 
 List<int> _explicitVersion() => _element(0xa0, _integer(2));
 
@@ -400,10 +400,10 @@ List<int> _sequence(List<int> value) => _element(0x30, value);
 List<int> _bitString(List<int> value) => _element(0x03, [0, ...value]);
 
 List<int> _element(int tag, List<int> value) => [
-  tag,
-  ..._length(value.length),
-  ...value,
-];
+      tag,
+      ..._length(value.length),
+      ...value,
+    ];
 
 List<int> _length(int length) {
   if (length < 0x80) {

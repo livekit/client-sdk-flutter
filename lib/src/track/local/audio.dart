@@ -167,11 +167,11 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     rtc.MediaStreamTrack track,
     this.currentOptions,
   ) : super(
-        TrackType.AUDIO,
-        source,
-        stream,
-        track,
-      );
+          TrackType.AUDIO,
+          source,
+          stream,
+          track,
+        );
 
   /// Creates a new audio track from the default audio input device.
   static Future<LocalAudioTrack> create([

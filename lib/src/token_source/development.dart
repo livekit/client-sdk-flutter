@@ -30,11 +30,11 @@ class DevelopmentTokenSource extends EndpointTokenSource {
   DevelopmentTokenSource({
     required String id,
   }) : super(
-         url: Uri.parse('https://cloud-api.livekit.io/api/v2/sandbox/connection-details'),
-         headers: {
-           'X-Sandbox-ID': _sanitizeId(id),
-         },
-       );
+          url: Uri.parse('https://cloud-api.livekit.io/api/v2/sandbox/connection-details'),
+          headers: {
+            'X-Sandbox-ID': _sanitizeId(id),
+          },
+        );
 }
 
 /// A token source that queries LiveKit's sandbox token server for development and testing.

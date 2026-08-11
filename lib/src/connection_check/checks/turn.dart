@@ -28,8 +28,7 @@ class TURNCheck extends Checker {
   Future<void> perform() async {
     if (isCloudUrl(Uri.parse(url))) {
       appendMessage('Using region specific url');
-      url =
-          await RegionUrlProvider(
+      url = await RegionUrlProvider(
             url: url,
             token: token,
             networkOptions: networkOptions,

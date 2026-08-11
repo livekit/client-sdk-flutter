@@ -37,7 +37,6 @@ class TrackE2EEStateEvent with RoomEvent, ParticipantEvent {
   });
 
   @override
-  String toString() =>
-      '${runtimeType}'
+  String toString() => '${runtimeType}'
       '(participant: ${participant}, publication: ${publication}, state: ${state})';
 }

@@ -289,9 +289,8 @@ void main() {
       // Verify no unexpected files received
       for (int i = 0; i < receivedFiles.length; i++) {
         final receivedFile = receivedFiles[i];
-        final matchingExpected = expectedFiles
-            .where((expected) => listEquality.equals(receivedFile, expected))
-            .toList();
+        final matchingExpected =
+            expectedFiles.where((expected) => listEquality.equals(receivedFile, expected)).toList();
 
         expect(matchingExpected.length, equals(1), reason: 'Received file ${i} should match exactly one expected file');
       }

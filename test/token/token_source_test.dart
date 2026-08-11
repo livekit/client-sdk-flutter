@@ -505,8 +505,7 @@ String _generateToken({
 }) {
   final payload = <String, dynamic>{
     'sub': subject ?? 'test-participant',
-    'video':
-        video ??
+    'video': video ??
         {
           'room': 'test-room',
           'room_join': true,

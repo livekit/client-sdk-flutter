@@ -34,12 +34,12 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
     rtc.MediaStreamTrack track, {
     rtc.RTCRtpReceiver? receiver,
   }) : super(
-         TrackType.AUDIO,
-         source,
-         stream,
-         track,
-         receiver: receiver,
-       );
+          TrackType.AUDIO,
+          source,
+          stream,
+          track,
+          receiver: receiver,
+        );
 
   @override
   Future<bool> start() async {

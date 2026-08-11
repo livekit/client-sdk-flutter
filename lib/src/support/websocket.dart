@@ -38,13 +38,12 @@ class WebSocketEventHandlers {
   });
 }
 
-typedef WebSocketConnector =
-    Future<LiveKitWebSocket> Function(
-      Uri uri, {
-      WebSocketEventHandlers? options,
-      Map<String, String>? headers,
-      NetworkOptions? networkOptions,
-    });
+typedef WebSocketConnector = Future<LiveKitWebSocket> Function(
+  Uri uri, {
+  WebSocketEventHandlers? options,
+  Map<String, String>? headers,
+  NetworkOptions? networkOptions,
+});
 
 abstract class LiveKitWebSocket extends Disposable {
   void send(List<int> data);
@@ -54,5 +53,6 @@ abstract class LiveKitWebSocket extends Disposable {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
     NetworkOptions? networkOptions = const NetworkOptions(),
-  }) => lkWebSocketConnect(uri, options: options, headers: headers, networkOptions: networkOptions);
+  }) =>
+      lkWebSocketConnect(uri, options: options, headers: headers, networkOptions: networkOptions);
 }

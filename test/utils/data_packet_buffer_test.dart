@@ -287,10 +287,8 @@ void main() {
         }
 
         // Verify buffer is consistent
-        final totalSizeCalculated = buffer
-            .getAll()
-            .map((p) => p.message.binary.length)
-            .fold<int>(0, (sum, size) => sum + size);
+        final totalSizeCalculated =
+            buffer.getAll().map((p) => p.message.binary.length).fold<int>(0, (sum, size) => sum + size);
 
         expect(buffer.totalSize, equals(totalSizeCalculated));
         expect(buffer.length, equals(buffer.getAll().length));

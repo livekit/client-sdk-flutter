@@ -23,7 +23,7 @@ import 'package:meta/meta.dart';
 
 class ThumbnailWidget extends StatefulWidget {
   const ThumbnailWidget({Key? key, required this.source, required this.selected, required this.onTap})
-    : super(key: key);
+      : super(key: key);
   final rtc.DesktopCapturerSource source;
   final bool selected;
   final Function(rtc.DesktopCapturerSource) onTap;

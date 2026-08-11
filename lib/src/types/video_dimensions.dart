@@ -33,10 +33,11 @@ class VideoDimensions {
   VideoDimensions copyWith({
     int? width,
     int? height,
-  }) => VideoDimensions(
-    width ?? this.width,
-    height ?? this.height,
-  );
+  }) =>
+      VideoDimensions(
+        width ?? this.width,
+        height ?? this.height,
+      );
 
   // ----------------------------------------------------------------------
   // equality

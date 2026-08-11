@@ -44,16 +44,14 @@ extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
-typedef RetryFuture<T> =
-    Future<T> Function(
-      int triesLeft,
-      List<Object> errors,
-    );
-typedef RetryCondition =
-    bool Function(
-      int triesLeft,
-      List<Object> errors,
-    );
+typedef RetryFuture<T> = Future<T> Function(
+  int triesLeft,
+  List<Object> errors,
+);
+typedef RetryCondition = bool Function(
+  int triesLeft,
+  List<Object> errors,
+);
 
 // Collection of state-less static methods
 class Utils {
@@ -66,7 +64,6 @@ class Utils {
   /// thrown objects by the [future].
   static Future<T> retry<T>(
     RetryFuture<T> future, {
-
     /// number of total tries (first try + retries)
     int tries = 1,
     Duration delay = const Duration(seconds: 1),
@@ -339,11 +336,10 @@ class Utils {
     required List<VideoParameters> requestedPresets,
     required bool isScreenShare,
   }) {
-    final params =
-        (requestedPresets.isNotEmpty
-                ? requestedPresets
-                : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
-            .sorted();
+    final params = (requestedPresets.isNotEmpty
+            ? requestedPresets
+            : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
+        .sorted();
 
     if (params.isEmpty) {
       return [original];
@@ -381,9 +377,8 @@ class Utils {
 
     final rawScaleDownBy = inDimensions.max() / preset.dimensions.max();
     final clampedFramerate = math.min(presetEncoding.maxFramerate, topEncoding.maxFramerate);
-    final clampedBitrate = rawScaleDownBy <= 1.0
-        ? math.min(presetEncoding.maxBitrate, topEncoding.maxBitrate)
-        : presetEncoding.maxBitrate;
+    final clampedBitrate =
+        rawScaleDownBy <= 1.0 ? math.min(presetEncoding.maxBitrate, topEncoding.maxBitrate) : presetEncoding.maxBitrate;
 
     if (clampedFramerate == presetEncoding.maxFramerate && clampedBitrate == presetEncoding.maxBitrate) {
       return preset;
@@ -611,10 +606,10 @@ class Utils {
 
   @internal
   static lk_models.VideoQuality? videoQualityForRid(String? rid) => {
-    'f': lk_models.VideoQuality.HIGH,
-    'h': lk_models.VideoQuality.MEDIUM,
-    'q': lk_models.VideoQuality.LOW,
-  }[rid];
+        'f': lk_models.VideoQuality.HIGH,
+        'h': lk_models.VideoQuality.MEDIUM,
+        'q': lk_models.VideoQuality.LOW,
+      }[rid];
 
   // makes a debounce func, with 1 param
   @internal
@@ -775,8 +770,8 @@ int compareVersions(String v1, String v2) {
   return parts1.length == parts2.length
       ? 0
       : parts1.length < parts2.length
-      ? -1
-      : 1;
+          ? -1
+          : 1;
 }
 
 List<Uint8List> splitUtf8(String s, int n) {

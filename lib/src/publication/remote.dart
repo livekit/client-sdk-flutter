@@ -43,10 +43,10 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   final RemoteParticipant participant;
 
   bool get enabled => !resolveDisabled(
-    enabledPreference: _enabledPreference,
-    adaptiveStreamActive: _adaptiveStreamActive,
-    adaptiveStreamVisible: _adaptiveStreamVisible,
-  );
+        enabledPreference: _enabledPreference,
+        adaptiveStreamActive: _adaptiveStreamActive,
+        adaptiveStreamVisible: _adaptiveStreamVisible,
+      );
 
   /// The user's explicit enable/disable request via [enable] / [disable].
   /// [TrackEnabledPreference.unset] means no explicit request, in which case
@@ -158,9 +158,9 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
   }) {
     //
     Size maxOfSizes(Size s1, Size s2) => Size(
-      max(s1.width, s2.width),
-      max(s1.height, s2.height),
-    );
+          max(s1.width, s2.width),
+          max(s1.height, s2.height),
+        );
 
     final videoTrack = track as VideoTrack;
 
@@ -449,7 +449,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       ),
     );
 
-    if (!_subscriptionAllowed && super.subscribed /* track != null */ ) {
+    if (!_subscriptionAllowed && super.subscribed /* track != null */) {
       // Ideally, we should wait for WebRTC's onRemoveTrack event
       // but it does not work reliably across platforms.
       // So for now we will assume remove track succeeded.

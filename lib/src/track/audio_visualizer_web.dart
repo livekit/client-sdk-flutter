@@ -67,9 +67,8 @@ class AudioVisualizerWeb extends AudioVisualizer {
           Float32List chunks = Float32List(visualizerOptions.barCount);
 
           for (var i = 0; i < bands; i++) {
-            final summedVolumes = normalizedFrequencies
-                .sublist(i * chunkSize, (i + 1) * chunkSize)
-                .reduce((acc, val) => (acc += val));
+            final summedVolumes =
+                normalizedFrequencies.sublist(i * chunkSize, (i + 1) * chunkSize).reduce((acc, val) => (acc += val));
             chunks[i] = (summedVolumes / chunkSize);
           }
 

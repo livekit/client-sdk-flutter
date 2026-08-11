@@ -294,7 +294,8 @@ a=rtpmap:32 MPV/90000
   static Future<RTCPeerConnection> create(
     Map<String, dynamic> configuration, [
     Map<String, dynamic>? constraints,
-  ]) async => MockPeerConnection();
+  ]) async =>
+      MockPeerConnection();
 
   @override
   // TODO: implement restartIce

@@ -186,9 +186,9 @@ class CertificatePinningRule {
   });
 
   List<String> get allPins => [
-    ...primaryPins,
-    ...backupPins,
-  ];
+        ...primaryPins,
+        ...backupPins,
+      ];
 
   bool get hasSpkiPins => allPins.isNotEmpty;
 
@@ -481,19 +481,20 @@ class VideoPublishOptions extends PublishOptions {
     String? scalabilityMode,
     String? name,
     String? stream,
-  }) => VideoPublishOptions(
-    videoEncoding: videoEncoding ?? this.videoEncoding,
-    screenShareEncoding: screenShareEncoding ?? this.screenShareEncoding,
-    simulcast: simulcast ?? this.simulcast,
-    videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
-    screenShareSimulcastLayers: screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
-    videoCodec: videoCodec ?? this.videoCodec,
-    backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
-    degradationPreference: degradationPreference ?? this.degradationPreference,
-    scalabilityMode: scalabilityMode ?? this.scalabilityMode,
-    name: name ?? this.name,
-    stream: stream ?? this.stream,
-  );
+  }) =>
+      VideoPublishOptions(
+        videoEncoding: videoEncoding ?? this.videoEncoding,
+        screenShareEncoding: screenShareEncoding ?? this.screenShareEncoding,
+        simulcast: simulcast ?? this.simulcast,
+        videoSimulcastLayers: videoSimulcastLayers ?? this.videoSimulcastLayers,
+        screenShareSimulcastLayers: screenShareSimulcastLayers ?? this.screenShareSimulcastLayers,
+        videoCodec: videoCodec ?? this.videoCodec,
+        backupVideoCodec: backupVideoCodec ?? this.backupVideoCodec,
+        degradationPreference: degradationPreference ?? this.degradationPreference,
+        scalabilityMode: scalabilityMode ?? this.scalabilityMode,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
+      );
 
   @override
   String toString() => '${runtimeType}(videoEncoding: ${videoEncoding}, simulcast: ${simulcast})';
@@ -535,14 +536,15 @@ class AudioPublishOptions extends PublishOptions {
     String? stream,
     bool? red,
     bool? preConnect,
-  }) => AudioPublishOptions(
-    encoding: encoding ?? this.encoding,
-    dtx: dtx ?? this.dtx,
-    name: name ?? this.name,
-    stream: stream ?? this.stream,
-    red: red ?? this.red,
-    preConnect: preConnect ?? this.preConnect,
-  );
+  }) =>
+      AudioPublishOptions(
+        encoding: encoding ?? this.encoding,
+        dtx: dtx ?? this.dtx,
+        name: name ?? this.name,
+        stream: stream ?? this.stream,
+        red: red ?? this.red,
+        preConnect: preConnect ?? this.preConnect,
+      );
 
   @override
   String toString() => '${runtimeType}(encoding: ${encoding}, dtx: ${dtx}, red: ${red}, preConnect: ${preConnect})';

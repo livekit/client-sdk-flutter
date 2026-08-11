@@ -198,9 +198,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
     E2EEManager? e2eeManager,
-  }) : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
-       _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection,
-       _e2eeManager = e2eeManager {
+  })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
+        _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection,
+        _e2eeManager = e2eeManager {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -535,24 +535,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _publisherConnectionCompleter = completer;
 
     unawaited(
-      _publisherEnsureConnected()
-          .then(
-            (_) {
-              if (!completer.isCompleted) {
-                completer.complete();
-              }
-            },
-            onError: (Object error, StackTrace stackTrace) {
-              if (!completer.isCompleted) {
-                completer.completeError(error, stackTrace);
-              }
-            },
-          )
-          .whenComplete(() {
-            if (identical(_publisherConnectionCompleter, completer)) {
-              _publisherConnectionCompleter = null;
-            }
-          }),
+      _publisherEnsureConnected().then(
+        (_) {
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (!completer.isCompleted) {
+            completer.completeError(error, stackTrace);
+          }
+        },
+      ).whenComplete(() {
+        if (identical(_publisherConnectionCompleter, completer)) {
+          _publisherConnectionCompleter = null;
+        }
+      }),
     );
 
     return completer.future;
@@ -1347,9 +1345,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   void _setUpEngineListeners() => events.on<SignalReconnectedEvent>((event) async {
-    // send queued requests if engine re-connected
-    signalClient.sendQueuedRequests();
-  });
+        // send queued requests if engine re-connected
+        signalClient.sendQueuedRequests();
+      });
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {

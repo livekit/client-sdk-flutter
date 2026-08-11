@@ -27,7 +27,8 @@ Future<LiveKitWebSocketIO> lkWebSocketConnect(
   WebSocketEventHandlers? options,
   Map<String, String>? headers,
   NetworkOptions? networkOptions = const NetworkOptions(),
-}) => LiveKitWebSocketIO.connect(uri, options: options, headers: headers, networkOptions: networkOptions);
+}) =>
+    LiveKitWebSocketIO.connect(uri, options: options, headers: headers, networkOptions: networkOptions);
 
 class LiveKitWebSocketIO extends LiveKitWebSocket {
   final io.WebSocket _ws;

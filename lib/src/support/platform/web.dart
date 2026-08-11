@@ -40,9 +40,8 @@ bool isScriptTransformSupported() {
 bool isInsertableStreamSupported() {
   return web.window.hasProperty('RTCRtpSender'.toJS).isDefinedAndNotNull &&
       ((web.window.getProperty('RTCRtpSender'.toJS) as JSObject).getProperty(
-                'prototype'.toJS,
-              )
-              as JSObject)
+        'prototype'.toJS,
+      ) as JSObject)
           .getProperty('createEncodedStreams'.toJS)
           .isDefinedAndNotNull;
 }

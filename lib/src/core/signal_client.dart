@@ -475,44 +475,44 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 extension SignalClientRequests on SignalClient {
   @internal
   void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(
-    lk_rtc.SignalRequest(
-      offer: offer.toPBType(),
-    ),
-  );
+        lk_rtc.SignalRequest(
+          offer: offer.toPBType(),
+        ),
+      );
 
   @internal
   void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(
-    lk_rtc.SignalRequest(
-      answer: answer.toPBType(),
-    ),
-  );
+        lk_rtc.SignalRequest(
+          answer: answer.toPBType(),
+        ),
+      );
 
   @internal
   void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
-    lk_rtc.SignalRequest(
-      trickle: lk_rtc.TrickleRequest(
-        candidateInit: candidate.toJson(),
-        target: target,
-      ),
-    ),
-  );
+        lk_rtc.SignalRequest(
+          trickle: lk_rtc.TrickleRequest(
+            candidateInit: candidate.toJson(),
+            target: target,
+          ),
+        ),
+      );
 
   @internal
   void sendMuteTrack(String trackSid, bool muted) => _sendRequest(
-    lk_rtc.SignalRequest(
-      mute: lk_rtc.MuteTrackRequest(
-        sid: trackSid,
-        muted: muted,
-      ),
-    ),
-  );
+        lk_rtc.SignalRequest(
+          mute: lk_rtc.MuteTrackRequest(
+            sid: trackSid,
+            muted: muted,
+          ),
+        ),
+      );
 
   @internal
   void sendAddTrack(lk_rtc.AddTrackRequest req) => _sendRequest(
-    lk_rtc.SignalRequest(
-      addTrack: req,
-    ),
-  );
+        lk_rtc.SignalRequest(
+          addTrack: req,
+        ),
+      );
 
   @internal
   int sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) {
@@ -524,30 +524,31 @@ extension SignalClientRequests on SignalClient {
 
   @internal
   void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) => _sendRequest(
-    lk_rtc.SignalRequest(
-      trackSetting: settings,
-    ),
-  );
+        lk_rtc.SignalRequest(
+          trackSetting: settings,
+        ),
+      );
 
   @internal
   void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) => _sendRequest(
-    lk_rtc.SignalRequest(
-      subscription: subscription,
-    ),
-  );
+        lk_rtc.SignalRequest(
+          subscription: subscription,
+        ),
+      );
 
   @internal
   void sendUpdateSubscriptionPermissions({
     required bool allParticipants,
     required Iterable<lk_rtc.TrackPermission> trackPermissions,
-  }) => _sendRequest(
-    lk_rtc.SignalRequest(
-      subscriptionPermission: lk_rtc.SubscriptionPermission(
-        allParticipants: allParticipants,
-        trackPermissions: trackPermissions,
-      ),
-    ),
-  );
+  }) =>
+      _sendRequest(
+        lk_rtc.SignalRequest(
+          subscriptionPermission: lk_rtc.SubscriptionPermission(
+            allParticipants: allParticipants,
+            trackPermissions: trackPermissions,
+          ),
+        ),
+      );
 
   @internal
   void sendSyncState({
@@ -558,19 +559,20 @@ extension SignalClientRequests on SignalClient {
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
     required List<String> trackSidsDisabled,
     List<lk_rtc.DataChannelReceiveState>? dataChannelReceiveStates,
-  }) => _sendRequest(
-    lk_rtc.SignalRequest(
-      syncState: lk_rtc.SyncState(
-        answer: answer,
-        offer: offer,
-        subscription: subscription,
-        publishTracks: publishTracks,
-        dataChannels: dataChannelInfo,
-        trackSidsDisabled: trackSidsDisabled,
-        datachannelReceiveStates: dataChannelReceiveStates,
-      ),
-    ),
-  );
+  }) =>
+      _sendRequest(
+        lk_rtc.SignalRequest(
+          syncState: lk_rtc.SyncState(
+            answer: answer,
+            offer: offer,
+            subscription: subscription,
+            publishTracks: publishTracks,
+            dataChannels: dataChannelInfo,
+            trackSidsDisabled: trackSidsDisabled,
+            datachannelReceiveStates: dataChannelReceiveStates,
+          ),
+        ),
+      );
 
   @internal
   void sendSimulateScenario({
@@ -579,29 +581,30 @@ extension SignalClientRequests on SignalClient {
     bool? migration,
     bool? serverLeave,
     bool? switchCandidate,
-  }) => _sendRequest(
-    lk_rtc.SignalRequest(
-      simulate: lk_rtc.SimulateScenario(
-        speakerUpdate: speakerUpdate,
-        nodeFailure: nodeFailure,
-        migration: migration,
-        serverLeave: serverLeave,
-        switchCandidateProtocol: (switchCandidate != null && switchCandidate) ? lk_rtc.CandidateProtocol.TCP : null,
-      ),
-    ),
-  );
+  }) =>
+      _sendRequest(
+        lk_rtc.SignalRequest(
+          simulate: lk_rtc.SimulateScenario(
+            speakerUpdate: speakerUpdate,
+            nodeFailure: nodeFailure,
+            migration: migration,
+            serverLeave: serverLeave,
+            switchCandidateProtocol: (switchCandidate != null && switchCandidate) ? lk_rtc.CandidateProtocol.TCP : null,
+          ),
+        ),
+      );
 }
 
 // private methods
 extension on lk_rtc.SignalRequest {
   // returns if this request can be queued
   bool _canQueue() => ![
-    // list of types that cannot be queued
-    lk_rtc.SignalRequest_Message.syncState,
-    lk_rtc.SignalRequest_Message.trickle,
-    lk_rtc.SignalRequest_Message.answer,
-    lk_rtc.SignalRequest_Message.simulate,
-  ].contains(whichMessage());
+        // list of types that cannot be queued
+        lk_rtc.SignalRequest_Message.syncState,
+        lk_rtc.SignalRequest_Message.trickle,
+        lk_rtc.SignalRequest_Message.answer,
+        lk_rtc.SignalRequest_Message.simulate,
+      ].contains(whichMessage());
 }
 
 // internal methods
