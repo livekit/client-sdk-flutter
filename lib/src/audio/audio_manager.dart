@@ -20,15 +20,23 @@ import '../logger.dart';
 import '../support/native.dart';
 import '../support/platform.dart';
 import 'android_audio_session_adapter.dart';
+import 'audio_engine_availability.dart';
 import 'audio_processing_state.dart';
 import 'audio_session.dart';
 import 'audio_session_policy.dart';
+import 'microphone_mute_mode.dart';
+
+export 'audio_engine_availability.dart';
+export 'microphone_mute_mode.dart';
 
 /// Snapshot of the WebRTC audio engine's playout/recording state.
 ///
 /// Surfaced by [AudioManager] from real audio-engine lifecycle events on the
 /// native side (iOS and macOS). This is the source of truth for audio activity,
 /// replacing the legacy track-counting state.
+///
+/// Experimental: this API may change in a future release.
+@experimental
 class AudioEngineState {
   /// Whether the engine has playout (output / remote audio) enabled.
   final bool isPlayoutEnabled;
@@ -90,13 +98,23 @@ class AudioManager {
 
   /// The current audio engine state, derived from native engine lifecycle
   /// events (iOS/macOS). On platforms without engine events this stays idle.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   AudioEngineState get audioEngineState =>
       AudioEngineState(isPlayoutEnabled: _isPlayoutEnabled, isRecordingEnabled: _isRecordingEnabled);
 
   /// A broadcast stream of audio engine state changes (native engine lifecycle).
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Stream<AudioEngineState> get audioEngineStateStream => _audioEngineStateController.stream;
 
-  bool get _isAutomaticConfigurationEnabled => _managementMode == AudioSessionManagementMode.automatic;
+  // externalCallSystem keeps engine-driven configuration (like automatic) but
+  // the native side never activates/deactivates the session.
+  bool get _isAutomaticConfigurationEnabled => _managementMode != AudioSessionManagementMode.manual;
+
+  bool get _isSessionActivationEnabled => _managementMode != AudioSessionManagementMode.externalCallSystem;
 
   @visibleForTesting
   void resetForTest() {
@@ -136,6 +154,26 @@ class AudioManager {
     _audioEngineStateController.add(nextState);
   }
 
+  /// Seeds the initial session intent without taking over the session lifecycle.
+  ///
+  /// `LiveKitClient.initialize(initialAudioSessionOptions: ...)` uses this so the
+  /// WebRTC initialization-time Android audio attributes and LiveKit's automatic
+  /// runtime session policy start from the same intent. Unlike
+  /// [setAudioSessionOptions], this keeps the current management mode and does
+  /// not apply native session changes immediately.
+  ///
+  /// Applies under [AudioSessionManagementMode.automatic] and
+  /// [AudioSessionManagementMode.externalCallSystem], both of which drive
+  /// configuration from engine lifecycle. Skipped under
+  /// [AudioSessionManagementMode.manual], where the app owns the options.
+  @internal
+  void setInitialAudioSessionOptions(AudioSessionOptions options) {
+    if (!_isAutomaticConfigurationEnabled) {
+      return;
+    }
+    _options = options;
+  }
+
   /// Applies an explicit audio session configuration and switches to manual mode.
   ///
   /// Calling this puts [AudioManager] in [AudioSessionManagementMode.manual]:
@@ -145,10 +183,47 @@ class AudioManager {
   ///
   /// The speaker preference and force flag are owned by setSpeakerOutputPreferred
   /// and are preserved across this call.
+  ///
+  /// Under [AudioSessionManagementMode.externalCallSystem] the mode is
+  /// preserved: the configuration is applied without activating the session.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setAudioSessionOptions(AudioSessionOptions options) async {
     await _enterManualMode();
     _options = options;
     await _applyCurrentAudioSessionPolicy();
+  }
+
+  /// Sets whether the WebRTC audio engine is allowed to run.
+  ///
+  /// This is the highest-priority gate over anything that may start the
+  /// engine (enabling the microphone, remote audio playback). Requests made
+  /// while unavailable are honored as soon as availability allows, so it is
+  /// safe to connect a room and publish the microphone while the engine is
+  /// still gated off.
+  ///
+  /// This is the core of CallKit coordination on iOS: set
+  /// [AudioEngineAvailability.none] before connecting, then flip to
+  /// [AudioEngineAvailability.defaultAvailability] in CallKit's
+  /// `provider(didActivate:)` and back to `none` in `didDeactivate`. Combine
+  /// with [AudioSessionManagementMode.externalCallSystem] so LiveKit never
+  /// activates the session itself.
+  ///
+  /// iOS/macOS only. A no-op elsewhere, so it is always safe to call from
+  /// cross-platform code.
+  ///
+  /// Throws if the native side rejects the change, so callers never assume
+  /// the engine is gated when it is not.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
+    if (!lkPlatformIsApple()) return;
+    await Native.setEngineAvailability(
+      isInputAvailable: availability.isInputAvailable,
+      isOutputAvailable: availability.isOutputAvailable,
+    );
   }
 
   /// Selects whether LiveKit manages the platform audio session automatically.
@@ -161,6 +236,9 @@ class AudioManager {
   /// Prefer setting this before connecting to a room. flutter_webrtc's own
   /// native audio management is always disabled (LiveKit owns the session).
   /// Switching back to automatic mode reapplies LiveKit's managed policy.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setAudioSessionManagementMode(AudioSessionManagementMode mode) async {
     final previousMode = _managementMode;
     _managementMode = mode;
@@ -171,8 +249,12 @@ class AudioManager {
   }
 
   /// Switches to manual mode if not already, syncing the native side once.
+  ///
+  /// [AudioSessionManagementMode.externalCallSystem] is preserved: an explicit
+  /// configuration under an external call system applies without LiveKit
+  /// taking over the session lifecycle.
   Future<void> _enterManualMode() async {
-    if (_managementMode == AudioSessionManagementMode.manual) return;
+    if (_managementMode != AudioSessionManagementMode.automatic) return;
     _managementMode = AudioSessionManagementMode.manual;
     await _syncAppleAudioSessionManagementMode();
   }
@@ -183,7 +265,14 @@ class AudioManager {
   /// [AudioSessionManagementMode.manual] so LiveKit does not re-activate the
   /// session on its own. Re-apply a configuration with [setAudioSessionOptions],
   /// or hand control back with [setAudioSessionManagementMode].
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> deactivateAudioSession() async {
+    if (_managementMode == AudioSessionManagementMode.externalCallSystem) {
+      logger.warning('deactivateAudioSession skipped: the external call system owns session activation');
+      return;
+    }
     await _enterManualMode();
     if (lkPlatformIs(PlatformType.iOS)) {
       await Native.deactivateAppleAudioSession();
@@ -250,7 +339,10 @@ class AudioManager {
 
   Future<void> _syncAppleAudioSessionManagementMode() async {
     if (lkPlatformIs(PlatformType.iOS)) {
-      await Native.setAppleAudioSessionAutomaticManagementEnabled(_isAutomaticConfigurationEnabled);
+      await Native.setAppleAudioSessionAutomaticManagementEnabled(
+        _isAutomaticConfigurationEnabled,
+        sessionActivationEnabled: _isSessionActivationEnabled,
+      );
     }
   }
 
@@ -287,6 +379,50 @@ class AudioManager {
         automatic: _isAutomaticConfigurationEnabled,
       );
 
+  /// How microphone input is muted on iOS/macOS.
+  ///
+  /// Returns [MicrophoneMuteMode.unknown] on other platforms.
+  Future<MicrophoneMuteMode> getMicrophoneMuteMode() async {
+    if (!lkPlatformIsApple()) return MicrophoneMuteMode.unknown;
+    final mode = await Native.getMicrophoneMuteMode();
+    return MicrophoneMuteMode.values.firstWhere(
+      (value) => value.name == mode,
+      orElse: () => MicrophoneMuteMode.unknown,
+    );
+  }
+
+  /// Sets how microphone input is muted on iOS/macOS. No-op elsewhere,
+  /// including for [MicrophoneMuteMode.unknown], so
+  /// `setMicrophoneMuteMode(await getMicrophoneMuteMode())` round-trips
+  /// safely on every platform.
+  ///
+  /// The default, [MicrophoneMuteMode.voiceProcessing], plays the platform's
+  /// mute/unmute sound effect and keeps the microphone observable for
+  /// muted-talker detection. Use [MicrophoneMuteMode.inputMixer] or
+  /// [MicrophoneMuteMode.restart] to mute silently.
+  ///
+  /// The mode applies whenever the engine mutes microphone input, which
+  /// includes LiveKit's own mute path: muting a published local audio track
+  /// (e.g. `LocalParticipant.setMicrophoneEnabled(false)`) disables the
+  /// track, and WebRTC mutes the engine input using this mode. With the
+  /// default `AudioCaptureOptions.stopAudioCaptureOnMute` (true) the capture
+  /// is additionally stopped after muting. For the fastest silent mute
+  /// toggling combine [MicrophoneMuteMode.inputMixer] with
+  /// `stopAudioCaptureOnMute: false`. Note that [MicrophoneMuteMode.restart]
+  /// restarts the audio engine on every mute toggle, which also
+  /// reconfigures the audio session (audible route changes on e.g.
+  /// Bluetooth headsets).
+  ///
+  /// Throws if the native side rejects the change, so callers never assume
+  /// a muting behavior that is not actually in effect.
+  ///
+  /// This is engine-wide state. Prefer setting it once before connecting.
+  Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
+    if (mode == MicrophoneMuteMode.unknown) return;
+    if (!lkPlatformIsApple()) return;
+    await Native.setMicrophoneMuteMode(mode.name);
+  }
+
   /// Diagnostic snapshot of the resolved audio processing state.
   ///
   /// The audio processing module is owned by the native peer connection factory
@@ -294,6 +430,9 @@ class AudioManager {
   /// the engine rather than any single track. Use it to verify native state
   /// after a `LocalAudioTrack.setAudioProcessingOptions` request. Returns
   /// `null` when the native side cannot provide it.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<AudioProcessingState?> getAudioProcessingState() async {
     final response = await Native.getAudioProcessingState();
     if (response == null) return null;

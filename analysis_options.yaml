@@ -29,6 +29,10 @@ analyzer:
     - "**/*.pbjson.dart"
     - "**/*.pbserver.dart"
     # - 'web/*.dart'
+    # Xcode vendors Swift package checkouts under build when Swift Package
+    # Manager is enabled and this package ships Package.swift.
+    - build/**
+    - example/build/**
 
 linter:
   rules:

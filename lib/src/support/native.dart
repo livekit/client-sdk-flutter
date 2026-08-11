@@ -219,16 +219,71 @@ class Native {
 
   /// Enable or disable LiveKit's automatic iOS audio-session management from
   /// native WebRTC audio-engine lifecycle callbacks.
+  ///
+  /// [sessionActivationEnabled] controls whether LiveKit may activate or
+  /// deactivate the session at all. When false, LiveKit only configures the
+  /// category/mode and an external system (CallKit) owns activation timing.
   @internal
-  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(bool enabled) async {
+  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(
+    bool enabled, {
+    bool sessionActivationEnabled = true,
+  }) async {
     try {
       await channel.invokeMethod<void>(
         'setAppleAudioSessionAutomaticManagementEnabled',
-        <String, dynamic>{'enabled': enabled},
+        <String, dynamic>{
+          'enabled': enabled,
+          'sessionActivationEnabled': sessionActivationEnabled,
+        },
       );
     } catch (error) {
       logger.warning('setAppleAudioSessionAutomaticManagementEnabled did throw $error');
     }
+  }
+
+  /// Sets how the audio device module mutes microphone input (iOS/macOS).
+  ///
+  /// Unlike most methods in this class this deliberately does not swallow
+  /// platform errors: a failed change means muting behaves differently from
+  /// what the caller selected, so the error must reach the caller.
+  @internal
+  static Future<void> setMicrophoneMuteMode(String mode) async {
+    await channel.invokeMethod<void>(
+      'setMicrophoneMuteMode',
+      <String, dynamic>{'mode': mode},
+    );
+  }
+
+  /// Reads the audio device module's microphone mute mode (iOS/macOS).
+  /// Returns null when the native side cannot provide it.
+  @internal
+  static Future<String?> getMicrophoneMuteMode() async {
+    try {
+      return await channel.invokeMethod<String>('getMicrophoneMuteMode', <String, dynamic>{});
+    } catch (error) {
+      logger.warning('getMicrophoneMuteMode did throw $error');
+      return null;
+    }
+  }
+
+  /// Sets whether the WebRTC audio engine is allowed to run (iOS/macOS).
+  ///
+  /// Unlike most methods in this class this deliberately does not swallow
+  /// platform errors: a failed availability change means the engine may run
+  /// outside the window the caller intended (e.g. CallKit's
+  /// didActivate/didDeactivate), so the error must reach the caller.
+  @internal
+  static Future<void> setEngineAvailability({
+    required bool isInputAvailable,
+    required bool isOutputAvailable,
+  }) async {
+    await channel.invokeMethod<void>(
+      'setEngineAvailability',
+      <String, dynamic>{
+        'isInputAvailable': isInputAvailable,
+        'isOutputAvailable': isOutputAvailable,
+      },
+    );
   }
 
   @internal

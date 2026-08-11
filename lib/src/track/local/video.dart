@@ -68,6 +68,8 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   Map<String, SimulcastTrackInfo> simulcastCodecs = {};
   Map<(String, int), rtc.RTCRtpEncoding> encodingBackups = {};
 
+  DegradationPreference? _degradationPreference;
+
   List<lk_rtc.SubscribedCodec> subscribedCodecs = [];
 
   @override
@@ -502,12 +504,44 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return simulcastCodecInfo;
   }
 
+  /// Drops all simulcast codec state tied to the current publish session.
+  ///
+  /// Must be called when the track's senders are no longer valid, on unpublish
+  /// and before republishing after a full reconnect. Otherwise later publishes
+  /// see stale senders and [addSimulcastTrack] rejects the codec as a duplicate
+  /// when the server requests the backup codec again.
+  @internal
+  void clearSimulcastState() {
+    simulcastCodecs.clear();
+    encodingBackups.clear();
+  }
+
   Future<void> setDegradationPreference(DegradationPreference preference) async {
-    final params = sender?.parameters;
-    if (params == null) {
+    _degradationPreference = preference;
+    await applyDegradationPreference(sender);
+    for (final simulcastCodec in simulcastCodecs.values.toList()) {
+      await applyDegradationPreference(simulcastCodec.sender);
+    }
+  }
+
+  /// Applies the degradation preference resolved for this track to [sender].
+  ///
+  /// Degradation preference is a property of the sender, not of the track, so
+  /// every sender publishing this track needs it applied separately. A backup
+  /// codec publishes over its own sender, which would otherwise resolve a
+  /// preference implicitly and diverge from the primary encoder.
+  @internal
+  Future<void> applyDegradationPreference(rtc.RTCRtpSender? sender) async {
+    final preference = _degradationPreference;
+    if (sender == null || preference == null) {
       return;
     }
+    final params = sender.parameters;
     params.degradationPreference = preference.toRTCType();
-    await sender?.setParameters(params);
+    try {
+      await sender.setParameters(params);
+    } catch (e) {
+      logger.warning('Failed to set degradation preference on sender $e');
+    }
   }
 }

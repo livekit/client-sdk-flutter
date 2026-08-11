@@ -56,6 +56,9 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   /// [LocalTrackOptionsUpdatedEvent]. When the native layer cannot apply the
   /// options, throws [track_options.AudioProcessingException] and leaves
   /// [currentOptions] unchanged.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
   Future<void> setAudioProcessingOptions(track_options.AudioProcessingOptions options) async {
     final nextOptions = currentOptions.copyWith(processing: options);
     final response = await Native.setAudioProcessingOptions(

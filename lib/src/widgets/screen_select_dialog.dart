@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 class ThumbnailWidget extends StatefulWidget {
   const ThumbnailWidget({Key? key, required this.source, required this.selected, required this.onTap})
@@ -120,6 +121,33 @@ class ScreenSelectDialog extends Dialog {
     }));
   }
 
+  /// Shows the picker and returns the id of the selected capture source, or
+  /// null if the user cancelled. Pass the returned id to
+  /// [ScreenShareCaptureOptions.sourceId] when creating a screen share track.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  static Future<String?> show(
+    BuildContext context, {
+    String titleText = 'Choose what to share',
+    String screenTabText = 'Entire Screen',
+    String windowTabText = 'Window',
+    String cancelText = 'Cancel',
+    String shareText = 'Share',
+  }) async {
+    final source = await showDialog<rtc.DesktopCapturerSource>(
+      context: context,
+      builder: (context) => ScreenSelectDialog(
+        titleText: titleText,
+        screenTabText: screenTabText,
+        windowTabText: windowTabText,
+        cancelText: cancelText,
+        shareText: shareText,
+      ),
+    );
+    return source?.id;
+  }
+
   final String titleText;
   final String screenTabText;
   final String windowTabText;
@@ -132,26 +160,35 @@ class ScreenSelectDialog extends Dialog {
   final List<StreamSubscription<rtc.DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
   Timer? _timer;
+  bool _disposed = false;
+
+  /// Idempotent so it can run again when the route is disposed, which covers
+  /// dismissals that bypass the buttons like a barrier tap or the back button.
+  void _disposeResources() {
+    _disposed = true;
+    _timer?.cancel();
+    for (final element in _subscriptions) {
+      unawaited(element.cancel());
+    }
+    _subscriptions.clear();
+  }
 
   Future<void> _ok(BuildContext context) async {
-    _timer?.cancel();
-    for (var element in _subscriptions) {
-      await element.cancel();
-    }
+    _disposeResources();
     Navigator.pop<rtc.DesktopCapturerSource>(context, _selectedSource);
   }
 
   Future<void> _cancel(BuildContext context) async {
-    _timer?.cancel();
-    for (var element in _subscriptions) {
-      await element.cancel();
-    }
+    _disposeResources();
     Navigator.pop<rtc.DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
     try {
       final sources = await rtc.desktopCapturer.getSources(types: [_sourceType]);
+      // The dialog may have been dismissed while getSources was in flight,
+      // starting the refresh timer now would leak it.
+      if (_disposed) return;
       for (var element in sources) {
         if (kDebugMode) {
           print('name: ${element.name}, id: ${element.id}, type: ${element.type}');
@@ -176,6 +213,13 @@ class ScreenSelectDialog extends Dialog {
 
   @override
   Widget build(BuildContext context) {
+    return _DisposeOnUnmount(
+      onDispose: _disposeResources,
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     return Material(
       type: MaterialType.transparency,
       child: Center(
@@ -318,4 +362,27 @@ class ScreenSelectDialog extends Dialog {
       )),
     );
   }
+}
+
+/// Runs [onDispose] when the widget leaves the tree, so the dialog cleans up
+/// no matter how its route is popped.
+class _DisposeOnUnmount extends StatefulWidget {
+  const _DisposeOnUnmount({required this.onDispose, required this.child});
+
+  final VoidCallback onDispose;
+  final Widget child;
+
+  @override
+  State<_DisposeOnUnmount> createState() => _DisposeOnUnmountState();
+}
+
+class _DisposeOnUnmountState extends State<_DisposeOnUnmount> {
+  @override
+  void dispose() {
+    widget.onDispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

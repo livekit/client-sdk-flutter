@@ -27,10 +27,11 @@ import 'proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'types/other.dart';
 
 extension DataPacketKindExt on lk_models.DataPacket_Kind {
-  Reliability toSDKType() => {
-        lk_models.DataPacket_Kind.RELIABLE: Reliability.reliable,
-        lk_models.DataPacket_Kind.LOSSY: Reliability.lossy,
-      }[this]!;
+  Reliability toSDKType() => switch (this) {
+        lk_models.DataPacket_Kind.RELIABLE => Reliability.reliable,
+        lk_models.DataPacket_Kind.LOSSY => Reliability.lossy,
+        _ => Reliability.lossy,
+      };
 }
 
 extension LiveKitEventExt on Iterable<EventsEmitter<LiveKitEvent>> {
@@ -54,30 +55,36 @@ extension ObjectExt on Object {
 }
 
 extension ProtocolVersionExt on ProtocolVersion {
-  String toStringValue() => {
-        ProtocolVersion.v2: '2',
-        ProtocolVersion.v3: '3',
-        ProtocolVersion.v4: '4',
-        ProtocolVersion.v5: '5',
-        ProtocolVersion.v6: '6',
-        ProtocolVersion.v7: '7',
-        ProtocolVersion.v8: '8',
-        ProtocolVersion.v9: '9',
-        ProtocolVersion.v10: '10',
-        ProtocolVersion.v11: '11',
-        ProtocolVersion.v12: '12',
-        ProtocolVersion.v13: '13',
-        ProtocolVersion.v14: '14',
-        ProtocolVersion.v15: '15',
-        ProtocolVersion.v16: '16',
-      }[this]!;
+  String toStringValue() => switch (this) {
+        ProtocolVersion.v2 => '2',
+        ProtocolVersion.v3 => '3',
+        ProtocolVersion.v4 => '4',
+        ProtocolVersion.v5 => '5',
+        ProtocolVersion.v6 => '6',
+        ProtocolVersion.v7 => '7',
+        ProtocolVersion.v8 => '8',
+        ProtocolVersion.v9 => '9',
+        ProtocolVersion.v10 => '10',
+        ProtocolVersion.v11 => '11',
+        ProtocolVersion.v12 => '12',
+        ProtocolVersion.v13 => '13',
+        ProtocolVersion.v14 => '14',
+        ProtocolVersion.v15 => '15',
+        ProtocolVersion.v16 => '16',
+      };
+}
+
+extension ClientProtocolVersionExt on ClientProtocolVersion {
+  int toIntValue() => wireValue;
+
+  String toStringValue() => toIntValue().toString();
 }
 
 extension ReliabilityExt on Reliability {
-  lk_models.DataPacket_Kind toPBType() => {
-        Reliability.reliable: lk_models.DataPacket_Kind.RELIABLE,
-        Reliability.lossy: lk_models.DataPacket_Kind.LOSSY,
-      }[this]!;
+  lk_models.DataPacket_Kind toPBType() => switch (this) {
+        Reliability.reliable => lk_models.DataPacket_Kind.RELIABLE,
+        Reliability.lossy => lk_models.DataPacket_Kind.LOSSY,
+      };
 }
 
 extension RTCDataChannelExt on rtc.RTCDataChannel {
@@ -112,10 +119,10 @@ extension RTCPeerConnectionStateExt on rtc.RTCPeerConnectionState {
 }
 
 extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
-  String toStringValue() => {
-        RTCIceTransportPolicy.all: 'all',
-        RTCIceTransportPolicy.relay: 'relay',
-      }[this]!;
+  String toStringValue() => switch (this) {
+        RTCIceTransportPolicy.all => 'all',
+        RTCIceTransportPolicy.relay => 'relay',
+      };
 }
 
 // not so neat to directly expose protobuf types so we
@@ -133,86 +140,74 @@ extension SessionDescriptionExt on lk_rtc.SessionDescription {
 }
 
 extension ConnectionQualityExt on lk_models.ConnectionQuality {
-  ConnectionQuality toLKType() =>
-      {
-        lk_models.ConnectionQuality.LOST: ConnectionQuality.lost,
-        lk_models.ConnectionQuality.POOR: ConnectionQuality.poor,
-        lk_models.ConnectionQuality.GOOD: ConnectionQuality.good,
-        lk_models.ConnectionQuality.EXCELLENT: ConnectionQuality.excellent,
-      }[this] ??
-      ConnectionQuality.unknown;
+  ConnectionQuality toLKType() => switch (this) {
+        lk_models.ConnectionQuality.LOST => ConnectionQuality.lost,
+        lk_models.ConnectionQuality.POOR => ConnectionQuality.poor,
+        lk_models.ConnectionQuality.GOOD => ConnectionQuality.good,
+        lk_models.ConnectionQuality.EXCELLENT => ConnectionQuality.excellent,
+        _ => ConnectionQuality.unknown,
+      };
 }
 
 extension VideoQualityExt on lk_models.VideoQuality {
-  VideoQuality toLKType() =>
-      {
-        lk_models.VideoQuality.HIGH: VideoQuality.HIGH,
-        lk_models.VideoQuality.MEDIUM: VideoQuality.MEDIUM,
-        lk_models.VideoQuality.LOW: VideoQuality.LOW,
-      }[this] ??
-      VideoQuality.LOW;
-
-  String toRid() => {
-        lk_models.VideoQuality.HIGH: 'f',
-        lk_models.VideoQuality.MEDIUM: 'h',
-        lk_models.VideoQuality.LOW: 'q',
-      }[this]!;
+  VideoQuality toLKType() => switch (this) {
+        lk_models.VideoQuality.HIGH => VideoQuality.HIGH,
+        lk_models.VideoQuality.MEDIUM => VideoQuality.MEDIUM,
+        lk_models.VideoQuality.LOW => VideoQuality.LOW,
+        _ => VideoQuality.LOW,
+      };
 }
 
 extension PBVideoQualityExt on VideoQuality {
-  lk_models.VideoQuality toPBType() => {
-        VideoQuality.HIGH: lk_models.VideoQuality.HIGH,
-        VideoQuality.MEDIUM: lk_models.VideoQuality.MEDIUM,
-        VideoQuality.LOW: lk_models.VideoQuality.LOW,
-      }[this]!;
+  lk_models.VideoQuality toPBType() => switch (this) {
+        VideoQuality.HIGH => lk_models.VideoQuality.HIGH,
+        VideoQuality.MEDIUM => lk_models.VideoQuality.MEDIUM,
+        VideoQuality.LOW => lk_models.VideoQuality.LOW,
+      };
 }
 
 extension TrackTypeExt on lk_models.TrackType {
-  TrackType toLKType() =>
-      {
-        lk_models.TrackType.AUDIO: TrackType.AUDIO,
-        lk_models.TrackType.VIDEO: TrackType.VIDEO,
-        lk_models.TrackType.DATA: TrackType.DATA,
-      }[this] ??
-      TrackType.AUDIO;
+  TrackType toLKType() => switch (this) {
+        lk_models.TrackType.AUDIO => TrackType.AUDIO,
+        lk_models.TrackType.VIDEO => TrackType.VIDEO,
+        lk_models.TrackType.DATA => TrackType.DATA,
+        _ => TrackType.AUDIO,
+      };
 }
 
 extension PBTrackTypeExt on TrackType {
-  lk_models.TrackType toPBType() => {
-        TrackType.AUDIO: lk_models.TrackType.AUDIO,
-        TrackType.VIDEO: lk_models.TrackType.VIDEO,
-        TrackType.DATA: lk_models.TrackType.DATA,
-      }[this]!;
+  lk_models.TrackType toPBType() => switch (this) {
+        TrackType.AUDIO => lk_models.TrackType.AUDIO,
+        TrackType.VIDEO => lk_models.TrackType.VIDEO,
+        TrackType.DATA => lk_models.TrackType.DATA,
+      };
 }
 
 extension PBTrackSourceExt on lk_models.TrackSource {
-  TrackSource toLKType() =>
-      <lk_models.TrackSource, TrackSource>{
-        lk_models.TrackSource.CAMERA: TrackSource.camera,
-        lk_models.TrackSource.MICROPHONE: TrackSource.microphone,
-        lk_models.TrackSource.SCREEN_SHARE: TrackSource.screenShareVideo,
-        lk_models.TrackSource.SCREEN_SHARE_AUDIO: TrackSource.screenShareAudio,
-      }[this] ??
-      TrackSource.unknown;
+  TrackSource toLKType() => switch (this) {
+        lk_models.TrackSource.CAMERA => TrackSource.camera,
+        lk_models.TrackSource.MICROPHONE => TrackSource.microphone,
+        lk_models.TrackSource.SCREEN_SHARE => TrackSource.screenShareVideo,
+        lk_models.TrackSource.SCREEN_SHARE_AUDIO => TrackSource.screenShareAudio,
+        _ => TrackSource.unknown,
+      };
 }
 
 extension LKTrackSourceExt on TrackSource {
-  lk_models.TrackSource toPBType() =>
-      <TrackSource, lk_models.TrackSource>{
-        TrackSource.camera: lk_models.TrackSource.CAMERA,
-        TrackSource.microphone: lk_models.TrackSource.MICROPHONE,
-        TrackSource.screenShareVideo: lk_models.TrackSource.SCREEN_SHARE,
-        TrackSource.screenShareAudio: lk_models.TrackSource.SCREEN_SHARE_AUDIO,
-      }[this] ??
-      lk_models.TrackSource.UNKNOWN;
+  lk_models.TrackSource toPBType() => switch (this) {
+        TrackSource.camera => lk_models.TrackSource.CAMERA,
+        TrackSource.microphone => lk_models.TrackSource.MICROPHONE,
+        TrackSource.screenShareVideo => lk_models.TrackSource.SCREEN_SHARE,
+        TrackSource.screenShareAudio => lk_models.TrackSource.SCREEN_SHARE_AUDIO,
+        TrackSource.unknown => lk_models.TrackSource.UNKNOWN,
+      };
 }
 
 extension PBStreamStateExt on lk_rtc.StreamState {
-  StreamState toLKType() =>
-      <lk_rtc.StreamState, StreamState>{
-        lk_rtc.StreamState.ACTIVE: StreamState.active,
-      }[this] ??
-      StreamState.paused;
+  StreamState toLKType() => switch (this) {
+        lk_rtc.StreamState.ACTIVE => StreamState.active,
+        _ => StreamState.paused,
+      };
 }
 
 extension ParticipantTrackPermissionExt on ParticipantTrackPermission {
@@ -229,56 +224,69 @@ extension WidgetsBindingCompatible on WidgetsBinding {
 }
 
 extension EncryptionTypeExt on lk_models.Encryption_Type {
-  EncryptionType toLkType() => {
-        lk_models.Encryption_Type.NONE: EncryptionType.kNone,
-        lk_models.Encryption_Type.GCM: EncryptionType.kGcm,
-        lk_models.Encryption_Type.CUSTOM: EncryptionType.kCustom,
-      }[this]!;
+  EncryptionType toLkType() => switch (this) {
+        lk_models.Encryption_Type.NONE => EncryptionType.kNone,
+        lk_models.Encryption_Type.GCM => EncryptionType.kGcm,
+        lk_models.Encryption_Type.CUSTOM => EncryptionType.kCustom,
+        _ => EncryptionType.kNone,
+      };
 }
 
 extension DisconnectReasonExt on lk_models.DisconnectReason {
-  DisconnectReason toSDKType() => {
-        lk_models.DisconnectReason.UNKNOWN_REASON: DisconnectReason.unknown,
-        lk_models.DisconnectReason.CLIENT_INITIATED: DisconnectReason.clientInitiated,
-        lk_models.DisconnectReason.DUPLICATE_IDENTITY: DisconnectReason.duplicateIdentity,
-        lk_models.DisconnectReason.SERVER_SHUTDOWN: DisconnectReason.serverShutdown,
-        lk_models.DisconnectReason.PARTICIPANT_REMOVED: DisconnectReason.participantRemoved,
-        lk_models.DisconnectReason.ROOM_DELETED: DisconnectReason.roomDeleted,
-        lk_models.DisconnectReason.STATE_MISMATCH: DisconnectReason.stateMismatch,
-        lk_models.DisconnectReason.JOIN_FAILURE: DisconnectReason.joinFailure,
-      }[this]!;
+  DisconnectReason toSDKType() => switch (this) {
+        lk_models.DisconnectReason.UNKNOWN_REASON => DisconnectReason.unknown,
+        lk_models.DisconnectReason.CLIENT_INITIATED => DisconnectReason.clientInitiated,
+        lk_models.DisconnectReason.DUPLICATE_IDENTITY => DisconnectReason.duplicateIdentity,
+        lk_models.DisconnectReason.SERVER_SHUTDOWN => DisconnectReason.serverShutdown,
+        lk_models.DisconnectReason.PARTICIPANT_REMOVED => DisconnectReason.participantRemoved,
+        lk_models.DisconnectReason.ROOM_DELETED => DisconnectReason.roomDeleted,
+        lk_models.DisconnectReason.STATE_MISMATCH => DisconnectReason.stateMismatch,
+        lk_models.DisconnectReason.JOIN_FAILURE => DisconnectReason.joinFailure,
+        lk_models.DisconnectReason.MIGRATION => DisconnectReason.migration,
+        lk_models.DisconnectReason.SIGNAL_CLOSE => DisconnectReason.signalClose,
+        lk_models.DisconnectReason.ROOM_CLOSED => DisconnectReason.roomClosed,
+        lk_models.DisconnectReason.USER_UNAVAILABLE => DisconnectReason.userUnavailable,
+        lk_models.DisconnectReason.USER_REJECTED => DisconnectReason.userRejected,
+        lk_models.DisconnectReason.SIP_TRUNK_FAILURE => DisconnectReason.sipTrunkFailure,
+        lk_models.DisconnectReason.CONNECTION_TIMEOUT => DisconnectReason.connectionTimeout,
+        lk_models.DisconnectReason.MEDIA_FAILURE => DisconnectReason.mediaFailure,
+        lk_models.DisconnectReason.AGENT_ERROR => DisconnectReason.agentError,
+        _ => DisconnectReason.unknown,
+      };
 }
 
 extension ParticipantTypeExt on lk_models.ParticipantInfo_Kind {
-  ParticipantKind toLKType() => {
-        lk_models.ParticipantInfo_Kind.STANDARD: ParticipantKind.STANDARD,
-        lk_models.ParticipantInfo_Kind.INGRESS: ParticipantKind.INGRESS,
-        lk_models.ParticipantInfo_Kind.EGRESS: ParticipantKind.EGRESS,
-        lk_models.ParticipantInfo_Kind.SIP: ParticipantKind.SIP,
-        lk_models.ParticipantInfo_Kind.AGENT: ParticipantKind.AGENT,
-      }[this]!;
+  ParticipantKind toLKType() => switch (this) {
+        lk_models.ParticipantInfo_Kind.STANDARD => ParticipantKind.STANDARD,
+        lk_models.ParticipantInfo_Kind.INGRESS => ParticipantKind.INGRESS,
+        lk_models.ParticipantInfo_Kind.EGRESS => ParticipantKind.EGRESS,
+        lk_models.ParticipantInfo_Kind.SIP => ParticipantKind.SIP,
+        lk_models.ParticipantInfo_Kind.AGENT => ParticipantKind.AGENT,
+        _ => ParticipantKind.STANDARD,
+      };
 }
 
 extension DegradationPreferenceExt on DegradationPreference {
-  rtc.RTCDegradationPreference toRTCType() => {
-        DegradationPreference.maintainFramerate: rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
-        DegradationPreference.maintainResolution: rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
-        DegradationPreference.balanced: rtc.RTCDegradationPreference.BALANCED,
-        DegradationPreference.maintainFramerateAndResolution:
-            rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
-      }[this]!;
+  rtc.RTCDegradationPreference toRTCType() => switch (this) {
+        // WebRTC defines DISABLED as an alias for MAINTAIN_FRAMERATE_AND_RESOLUTION
+        // ignore: deprecated_member_use_from_same_package
+        DegradationPreference.disabled => rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
+        DegradationPreference.maintainFramerate => rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE,
+        DegradationPreference.maintainResolution => rtc.RTCDegradationPreference.MAINTAIN_RESOLUTION,
+        DegradationPreference.balanced => rtc.RTCDegradationPreference.BALANCED,
+        DegradationPreference.maintainFramerateAndResolution =>
+          rtc.RTCDegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
+      };
 }
 
 extension RoomOptionsEx on RoomOptions {
   lk_models.Encryption_Type get lkEncryptionType {
     // ignore: deprecated_member_use_from_same_package
     final e2ee = encryption ?? e2eeOptions;
-    return (e2ee != null)
-        ? {
-            EncryptionType.kNone: lk_models.Encryption_Type.NONE,
-            EncryptionType.kGcm: lk_models.Encryption_Type.GCM,
-            EncryptionType.kCustom: lk_models.Encryption_Type.CUSTOM,
-          }[e2ee.encryptionType]!
-        : lk_models.Encryption_Type.NONE;
+    return switch (e2ee?.encryptionType) {
+      EncryptionType.kNone || null => lk_models.Encryption_Type.NONE,
+      EncryptionType.kGcm => lk_models.Encryption_Type.GCM,
+      EncryptionType.kCustom => lk_models.Encryption_Type.CUSTOM,
+    };
   }
 }

@@ -16,6 +16,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../audio/audio_manager.dart';
 import '../audio/audio_session.dart';
@@ -85,8 +86,7 @@ class Hardware {
   // Backed by [AudioManager] so there is a single source of truth for the
   // management mode. See [AudioManager.setAudioSessionManagementMode].
   @Deprecated('Use AudioManager.instance.managementMode instead')
-  bool get isAutomaticConfigurationEnabled =>
-      AudioManager.instance.managementMode == AudioSessionManagementMode.automatic;
+  bool get isAutomaticConfigurationEnabled => AudioManager.instance.managementMode != AudioSessionManagementMode.manual;
 
   @Deprecated('Use AudioManager.instance.setAudioSessionManagementMode instead')
   void setAutomaticConfigurationEnabled({required bool enable}) {
@@ -119,8 +119,8 @@ class Hardware {
   }
 
   Future<void> selectAudioOutput(MediaDevice device) async {
-    if (!lkPlatformIsDesktop()) {
-      logger.warning('selectAudioOutput is only supported on Desktop');
+    if (lkPlatformIs(PlatformType.web) || lkPlatformIs(PlatformType.iOS)) {
+      logger.warning('selectAudioOutput is not supported on Web or iOS');
       return;
     }
     selectedAudioOutput = device;
@@ -168,6 +168,23 @@ class Hardware {
       'audio': false,
       'video': device != null ? constraints : true,
     });
+  }
+
+  /// Requests permission to capture the screen before starting a screen share.
+  ///
+  /// On Android this shows the MediaProjection consent dialog, on macOS it
+  /// triggers the screen recording permission check. Returns true when
+  /// permission was granted. On platforms that do not require an upfront
+  /// request this is a no-op that returns true, so it is safe to call
+  /// unconditionally.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<bool> requestCapturePermission({bool fullScreenOnly = false}) async {
+    if (lkPlatformIs(PlatformType.android) || lkPlatformIs(PlatformType.macOS)) {
+      return rtc.Helper.requestCapturePermission(fullScreenOnly: fullScreenOnly);
+    }
+    return true;
   }
 
   dynamic _onDeviceChange(dynamic _) async {

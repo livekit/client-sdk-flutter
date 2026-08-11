@@ -1,16 +1,19 @@
 import 'dart:convert' show json;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:http/http.dart' as http;
 
 import '../exceptions.dart';
 import '../logger.dart';
+import '../options.dart';
 import '../proto/livekit_rtc.pb.dart' as lk_models;
+import 'http_client.dart';
 
 class RegionUrlProvider {
   Uri serverUrl;
 
   String token;
+
+  final NetworkOptions networkOptions;
 
   lk_models.RegionSettings? regionSettings;
 
@@ -20,7 +23,11 @@ class RegionUrlProvider {
 
   int settingsCacheTime = 5000; // 5 seconds
 
-  RegionUrlProvider({required String url, required this.token}) : serverUrl = Uri.parse(url);
+  RegionUrlProvider({
+    required String url,
+    required this.token,
+    this.networkOptions = const NetworkOptions(),
+  }) : serverUrl = Uri.parse(url);
 
   void updateToken(String token) {
     this.token = token;
@@ -59,9 +66,13 @@ class RegionUrlProvider {
   /* @internal */
   Future<lk_models.RegionSettings> fetchRegionSettings() async {
     final url = '${getCloudConfigUrl(serverUrl)}/regions';
-    final http.Response regionSettingsResponse = await http.get(Uri.parse(url), headers: {
-      'authorization': 'Bearer $token',
-    });
+    final regionSettingsResponse = await sdkHttpGet(
+      Uri.parse(url),
+      headers: {
+        'authorization': 'Bearer $token',
+      },
+      networkOptions: networkOptions,
+    );
     if (regionSettingsResponse.statusCode == 200) {
       final mapData = json.decode(regionSettingsResponse.body);
       final regions = (mapData['regions'] as List<dynamic>)
