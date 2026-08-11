@@ -31763,7 +31763,7 @@ if(d&&a2!=null)l.m(0,"sid",a2)
 l.m(0,"protocol",A.btA(b.c))
 l.m(0,"client_protocol",B.e.j(b.d.c))
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.10.0")
+l.m(0,"version","2.11.0")
 l.m(0,"network",m)
 if(o!=null){i=A.v(i,i)
 k=o.a
@@ -112090,7 +112090,7 @@ A.a4Q.prototype={
 K(a){var s,r=null,q=A.X(a).ok.c
 q=A.bB("Flutter SDK example",r,r,r,r,q==null?r:q.aFo(B.dU,0),r,r)
 s=A.X(a).ok.w
-return A.dz(A.b([new A.a23(210,new A.ND("images/logo-dark.svg",r,r,r,r),r,r),B.k3,q,B.dy,A.bB("SDK Version 2.10.0",r,r,r,r,s==null?r:s.bI(B.cF),r,r)],t.p),B.aX,B.B,B.ar)}}
+return A.dz(A.b([new A.a23(210,new A.ND("images/logo-dark.svg",r,r,r,r),r,r),B.k3,q,B.dy,A.bB("SDK Version 2.11.0",r,r,r,r,s==null?r:s.bI(B.cF),r,r)],t.p),B.aX,B.B,B.ar)}}
 A.a4R.prototype={
 K(a){return A.rW(B.agE,null,new A.aMP(this),B.h,this.e,"Connect options",t.yX)}}
 A.aMP.prototype={
