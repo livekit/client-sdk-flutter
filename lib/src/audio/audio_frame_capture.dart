@@ -21,8 +21,7 @@ import 'audio_frame_capture_native.dart' if (dart.library.js_interop) 'audio_fra
 /// PCM sample format for audio frame capture.
 enum AudioFormat {
   Int16('int16'),
-  Float32('float32')
-  ;
+  Float32('float32');
 
   final String value;
   const AudioFormat(this.value);

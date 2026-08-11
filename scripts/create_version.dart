@@ -68,8 +68,7 @@ enum ChangeKind {
   security,
   deprecated,
   removed,
-  docs
-  ;
+  docs;
 
   static ChangeKind? fromString(String value) {
     return ChangeKind.values.where((e) => e.name == value).firstOrNull;
@@ -79,8 +78,7 @@ enum ChangeKind {
 enum ChangeLevel implements Comparable<ChangeLevel> {
   patch(0),
   minor(1),
-  major(2)
-  ;
+  major(2);
 
   final int priority;
   const ChangeLevel(this.priority);

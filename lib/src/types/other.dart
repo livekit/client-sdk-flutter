@@ -51,8 +51,7 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   v0(0),
 
   /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
-  v1(1)
-  ;
+  v1(1);
 
   const ClientProtocolVersion(this.wireValue);
 

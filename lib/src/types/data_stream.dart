@@ -214,8 +214,7 @@ enum TextStreamOperationType {
   create,
   update,
   delete,
-  reaction
-  ;
+  reaction;
 
   static TextStreamOperationType? fromPBType(lk_models.DataStream_OperationType? type) {
     if (type == null) return TextStreamOperationType.create;

@@ -217,8 +217,7 @@ enum AgentFailure {
   timeout,
 
   /// The agent left the room unexpectedly.
-  left
-  ;
+  left;
 
   /// A human-readable error message.
   String get message => switch (this) {

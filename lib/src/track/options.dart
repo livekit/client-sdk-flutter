@@ -249,8 +249,7 @@ abstract class VideoCaptureOptions extends LocalTrackOptions {
 enum AudioProcessingMode {
   automatic('auto'),
   platform('platform'),
-  software('software')
-  ;
+  software('software');
 
   const AudioProcessingMode(this.constraintValue);
 

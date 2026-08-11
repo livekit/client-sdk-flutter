@@ -25,8 +25,7 @@ enum AudioProcessingImplementation {
   disabled('disabled'),
   software('software'),
   platform('platform'),
-  softwareAndPlatform('softwareAndPlatform')
-  ;
+  softwareAndPlatform('softwareAndPlatform');
 
   const AudioProcessingImplementation(this.value);
 
