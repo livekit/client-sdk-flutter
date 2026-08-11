@@ -82,7 +82,7 @@ class BaseKeyProvider implements KeyProvider {
         uncryptedMagicBytes: Uint8List.fromList((uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
         failureTolerance: failureTolerance ?? defaultFailureTolerance,
         keyRingSize: keyRingSize ?? defaultKeyRingSize,
-        discardFrameWhenCryptorNotReady: defaultDiscardFrameWhenCryptorNotReady);
+        discardFrameWhenCryptorNotReady: discardFrameWhenCryptorNotReady ?? defaultDiscardFrameWhenCryptorNotReady);
     final keyProvider = await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);
   }
