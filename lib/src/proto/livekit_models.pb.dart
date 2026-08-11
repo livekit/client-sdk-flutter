@@ -728,6 +728,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     $core.Iterable<ParticipantInfo_KindDetail>? kindDetails,
     $core.Iterable<DataTrackInfo>? dataTracks,
     $core.int? clientProtocol,
+    $core.Iterable<ClientInfo_Capability>? capabilities,
   }) {
     final result = create();
     if (sid != null) result.sid = sid;
@@ -748,6 +749,7 @@ class ParticipantInfo extends $pb.GeneratedMessage {
     if (kindDetails != null) result.kindDetails.addAll(kindDetails);
     if (dataTracks != null) result.dataTracks.addAll(dataTracks);
     if (clientProtocol != null) result.clientProtocol = clientProtocol;
+    if (capabilities != null) result.capabilities.addAll(capabilities);
     return result;
   }
 
@@ -786,6 +788,10 @@ class ParticipantInfo extends $pb.GeneratedMessage {
         defaultEnumValue: ParticipantInfo_KindDetail.CLOUD_AGENT)
     ..pPM<DataTrackInfo>(19, _omitFieldNames ? '' : 'dataTracks', subBuilder: DataTrackInfo.create)
     ..aI(20, _omitFieldNames ? '' : 'clientProtocol')
+    ..pc<ClientInfo_Capability>(21, _omitFieldNames ? '' : 'capabilities', $pb.PbFieldType.KE,
+        valueOf: ClientInfo_Capability.valueOf,
+        enumValues: ClientInfo_Capability.values,
+        defaultEnumValue: ClientInfo_Capability.CAP_UNUSED)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -950,6 +956,11 @@ class ParticipantInfo extends $pb.GeneratedMessage {
   $core.bool hasClientProtocol() => $_has(17);
   @$pb.TagNumber(20)
   void clearClientProtocol() => $_clearField(20);
+
+  /// capabilities the participant's client advertises, mirrored from ClientInfo.
+  /// Lets other participants perform client-side feature detection.
+  @$pb.TagNumber(21)
+  $pb.PbList<ClientInfo_Capability> get capabilities => $_getList(18);
 }
 
 class Encryption extends $pb.GeneratedMessage {
@@ -1394,12 +1405,16 @@ class DataTrackInfo extends $pb.GeneratedMessage {
     $core.String? sid,
     $core.String? name,
     Encryption_Type? encryption,
+    DataTrackFrameEncoding? frameEncoding,
+    DataTrackSchemaId? schema,
   }) {
     final result = create();
     if (pubHandle != null) result.pubHandle = pubHandle;
     if (sid != null) result.sid = sid;
     if (name != null) result.name = name;
     if (encryption != null) result.encryption = encryption;
+    if (frameEncoding != null) result.frameEncoding = frameEncoding;
+    if (schema != null) result.schema = schema;
     return result;
   }
 
@@ -1417,6 +1432,8 @@ class DataTrackInfo extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'sid')
     ..aOS(3, _omitFieldNames ? '' : 'name')
     ..aE<Encryption_Type>(4, _omitFieldNames ? '' : 'encryption', enumValues: Encryption_Type.values)
+    ..aOM<DataTrackFrameEncoding>(5, _omitFieldNames ? '' : 'frameEncoding', subBuilder: DataTrackFrameEncoding.create)
+    ..aOM<DataTrackSchemaId>(6, _omitFieldNames ? '' : 'schema', subBuilder: DataTrackSchemaId.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1475,6 +1492,263 @@ class DataTrackInfo extends $pb.GeneratedMessage {
   $core.bool hasEncryption() => $_has(3);
   @$pb.TagNumber(4)
   void clearEncryption() => $_clearField(4);
+
+  /// Encoding for frame payloads on this track. If unspecified, the track is untyped.
+  @$pb.TagNumber(5)
+  DataTrackFrameEncoding get frameEncoding => $_getN(4);
+  @$pb.TagNumber(5)
+  set frameEncoding(DataTrackFrameEncoding value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFrameEncoding() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFrameEncoding() => $_clearField(5);
+  @$pb.TagNumber(5)
+  DataTrackFrameEncoding ensureFrameEncoding() => $_ensure(4);
+
+  /// ID of the schema used by frames on this track if the track is typed.
+  @$pb.TagNumber(6)
+  DataTrackSchemaId get schema => $_getN(5);
+  @$pb.TagNumber(6)
+  set schema(DataTrackSchemaId value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSchema() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSchema() => $_clearField(6);
+  @$pb.TagNumber(6)
+  DataTrackSchemaId ensureSchema() => $_ensure(5);
+}
+
+enum DataTrackFrameEncoding_Value { wellKnown, custom, notSet }
+
+/// Encoding for frame payloads.
+class DataTrackFrameEncoding extends $pb.GeneratedMessage {
+  factory DataTrackFrameEncoding({
+    DataTrackFrameEncoding_WellKnownFrameEncoding? wellKnown,
+    $core.String? custom,
+  }) {
+    final result = create();
+    if (wellKnown != null) result.wellKnown = wellKnown;
+    if (custom != null) result.custom = custom;
+    return result;
+  }
+
+  DataTrackFrameEncoding._();
+
+  factory DataTrackFrameEncoding.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackFrameEncoding.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, DataTrackFrameEncoding_Value> _DataTrackFrameEncoding_ValueByTag = {
+    1: DataTrackFrameEncoding_Value.wellKnown,
+    2: DataTrackFrameEncoding_Value.custom,
+    0: DataTrackFrameEncoding_Value.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackFrameEncoding',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..oo(0, [1, 2])
+    ..aE<DataTrackFrameEncoding_WellKnownFrameEncoding>(1, _omitFieldNames ? '' : 'wellKnown',
+        enumValues: DataTrackFrameEncoding_WellKnownFrameEncoding.values)
+    ..aOS(2, _omitFieldNames ? '' : 'custom')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackFrameEncoding clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackFrameEncoding copyWith(void Function(DataTrackFrameEncoding) updates) =>
+      super.copyWith((message) => updates(message as DataTrackFrameEncoding)) as DataTrackFrameEncoding;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackFrameEncoding create() => DataTrackFrameEncoding._();
+  @$core.override
+  DataTrackFrameEncoding createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackFrameEncoding getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackFrameEncoding>(create);
+  static DataTrackFrameEncoding? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  DataTrackFrameEncoding_Value whichValue() => _DataTrackFrameEncoding_ValueByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  void clearValue() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  DataTrackFrameEncoding_WellKnownFrameEncoding get wellKnown => $_getN(0);
+  @$pb.TagNumber(1)
+  set wellKnown(DataTrackFrameEncoding_WellKnownFrameEncoding value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWellKnown() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWellKnown() => $_clearField(1);
+
+  /// Identifier of a custom encoding not covered by the well-known cases.
+  /// This must be non-empty and no longer than 32 characters.
+  @$pb.TagNumber(2)
+  $core.String get custom => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set custom($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCustom() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCustom() => $_clearField(2);
+}
+
+enum DataTrackSchemaEncoding_Value { wellKnown, custom, notSet }
+
+/// Encoding for schema definition.
+class DataTrackSchemaEncoding extends $pb.GeneratedMessage {
+  factory DataTrackSchemaEncoding({
+    DataTrackSchemaEncoding_WellKnownSchemaEncoding? wellKnown,
+    $core.String? custom,
+  }) {
+    final result = create();
+    if (wellKnown != null) result.wellKnown = wellKnown;
+    if (custom != null) result.custom = custom;
+    return result;
+  }
+
+  DataTrackSchemaEncoding._();
+
+  factory DataTrackSchemaEncoding.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackSchemaEncoding.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, DataTrackSchemaEncoding_Value> _DataTrackSchemaEncoding_ValueByTag = {
+    1: DataTrackSchemaEncoding_Value.wellKnown,
+    2: DataTrackSchemaEncoding_Value.custom,
+    0: DataTrackSchemaEncoding_Value.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackSchemaEncoding',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..oo(0, [1, 2])
+    ..aE<DataTrackSchemaEncoding_WellKnownSchemaEncoding>(1, _omitFieldNames ? '' : 'wellKnown',
+        enumValues: DataTrackSchemaEncoding_WellKnownSchemaEncoding.values)
+    ..aOS(2, _omitFieldNames ? '' : 'custom')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSchemaEncoding clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSchemaEncoding copyWith(void Function(DataTrackSchemaEncoding) updates) =>
+      super.copyWith((message) => updates(message as DataTrackSchemaEncoding)) as DataTrackSchemaEncoding;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSchemaEncoding create() => DataTrackSchemaEncoding._();
+  @$core.override
+  DataTrackSchemaEncoding createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSchemaEncoding getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackSchemaEncoding>(create);
+  static DataTrackSchemaEncoding? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  DataTrackSchemaEncoding_Value whichValue() => _DataTrackSchemaEncoding_ValueByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  void clearValue() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  DataTrackSchemaEncoding_WellKnownSchemaEncoding get wellKnown => $_getN(0);
+  @$pb.TagNumber(1)
+  set wellKnown(DataTrackSchemaEncoding_WellKnownSchemaEncoding value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasWellKnown() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearWellKnown() => $_clearField(1);
+
+  /// Identifier of a custom encoding not covered by the well-known cases.
+  /// This must be non-empty and no longer than 32 characters.
+  @$pb.TagNumber(2)
+  $core.String get custom => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set custom($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCustom() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCustom() => $_clearField(2);
+}
+
+/// Identifier for a data track schema.
+///
+/// Schemas with the same name but different encodings are distinct.
+class DataTrackSchemaId extends $pb.GeneratedMessage {
+  factory DataTrackSchemaId({
+    $core.String? name,
+    DataTrackSchemaEncoding? encoding,
+  }) {
+    final result = create();
+    if (name != null) result.name = name;
+    if (encoding != null) result.encoding = encoding;
+    return result;
+  }
+
+  DataTrackSchemaId._();
+
+  factory DataTrackSchemaId.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataTrackSchemaId.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataTrackSchemaId',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOM<DataTrackSchemaEncoding>(2, _omitFieldNames ? '' : 'encoding', subBuilder: DataTrackSchemaEncoding.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSchemaId clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataTrackSchemaId copyWith(void Function(DataTrackSchemaId) updates) =>
+      super.copyWith((message) => updates(message as DataTrackSchemaId)) as DataTrackSchemaId;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSchemaId create() => DataTrackSchemaId._();
+  @$core.override
+  DataTrackSchemaId createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataTrackSchemaId getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataTrackSchemaId>(create);
+  static DataTrackSchemaId? _defaultInstance;
+
+  /// This must be non-empty and no longer than 256 characters.
+  @$pb.TagNumber(1)
+  $core.String get name => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set name($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasName() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearName() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  DataTrackSchemaEncoding get encoding => $_getN(1);
+  @$pb.TagNumber(2)
+  set encoding(DataTrackSchemaEncoding value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEncoding() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEncoding() => $_clearField(2);
+  @$pb.TagNumber(2)
+  DataTrackSchemaEncoding ensureEncoding() => $_ensure(1);
 }
 
 class DataTrackExtensionParticipantSid extends $pb.GeneratedMessage {
@@ -1592,6 +1866,153 @@ class DataTrackSubscriptionOptions extends $pb.GeneratedMessage {
   $core.bool hasTargetFps() => $_has(0);
   @$pb.TagNumber(1)
   void clearTargetFps() => $_clearField(1);
+}
+
+enum DataBlobKey_Key { generic, schemaId, notSet }
+
+/// Key used to uniquely identify a data blob for storage and retrieval.
+class DataBlobKey extends $pb.GeneratedMessage {
+  factory DataBlobKey({
+    $core.String? generic,
+    DataTrackSchemaId? schemaId,
+  }) {
+    final result = create();
+    if (generic != null) result.generic = generic;
+    if (schemaId != null) result.schemaId = schemaId;
+    return result;
+  }
+
+  DataBlobKey._();
+
+  factory DataBlobKey.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataBlobKey.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, DataBlobKey_Key> _DataBlobKey_KeyByTag = {
+    1: DataBlobKey_Key.generic,
+    2: DataBlobKey_Key.schemaId,
+    0: DataBlobKey_Key.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataBlobKey',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..oo(0, [1, 2])
+    ..aOS(1, _omitFieldNames ? '' : 'generic')
+    ..aOM<DataTrackSchemaId>(2, _omitFieldNames ? '' : 'schemaId', subBuilder: DataTrackSchemaId.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataBlobKey clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataBlobKey copyWith(void Function(DataBlobKey) updates) =>
+      super.copyWith((message) => updates(message as DataBlobKey)) as DataBlobKey;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataBlobKey create() => DataBlobKey._();
+  @$core.override
+  DataBlobKey createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataBlobKey getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataBlobKey>(create);
+  static DataBlobKey? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  DataBlobKey_Key whichKey() => _DataBlobKey_KeyByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  @$pb.TagNumber(2)
+  void clearKey() => $_clearField($_whichOneof(0));
+
+  /// Generic string key, blob contains arbitrary data.
+  @$pb.TagNumber(1)
+  $core.String get generic => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set generic($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasGeneric() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearGeneric() => $_clearField(1);
+
+  /// Data track schema identifier, blob contains schema definition.
+  @$pb.TagNumber(2)
+  DataTrackSchemaId get schemaId => $_getN(1);
+  @$pb.TagNumber(2)
+  set schemaId(DataTrackSchemaId value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSchemaId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSchemaId() => $_clearField(2);
+  @$pb.TagNumber(2)
+  DataTrackSchemaId ensureSchemaId() => $_ensure(1);
+}
+
+/// A blob of data stored in a room identified by a unique key.
+class DataBlob extends $pb.GeneratedMessage {
+  factory DataBlob({
+    DataBlobKey? key,
+    $core.List<$core.int>? contents,
+  }) {
+    final result = create();
+    if (key != null) result.key = key;
+    if (contents != null) result.contents = contents;
+    return result;
+  }
+
+  DataBlob._();
+
+  factory DataBlob.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DataBlob.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataBlob',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..aOM<DataBlobKey>(1, _omitFieldNames ? '' : 'key', subBuilder: DataBlobKey.create)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'contents', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataBlob clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DataBlob copyWith(void Function(DataBlob) updates) =>
+      super.copyWith((message) => updates(message as DataBlob)) as DataBlob;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DataBlob create() => DataBlob._();
+  @$core.override
+  DataBlob createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DataBlob getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataBlob>(create);
+  static DataBlob? _defaultInstance;
+
+  /// Unique key the data blob is identified by.
+  @$pb.TagNumber(1)
+  DataBlobKey get key => $_getN(0);
+  @$pb.TagNumber(1)
+  set key(DataBlobKey value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKey() => $_clearField(1);
+  @$pb.TagNumber(1)
+  DataBlobKey ensureKey() => $_ensure(0);
+
+  /// Contents of the data blob. This must not exceed 50 KB.
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get contents => $_getN(1);
+  @$pb.TagNumber(2)
+  set contents($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasContents() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearContents() => $_clearField(2);
 }
 
 /// provide information about available spatial layers
@@ -5397,6 +5818,8 @@ class DataStream_Header extends $pb.GeneratedMessage {
     $core.Iterable<$core.MapEntry<$core.String, $core.String>>? attributes,
     DataStream_TextHeader? textHeader,
     DataStream_ByteHeader? byteHeader,
+    $core.List<$core.int>? inlineContent,
+    DataStream_CompressionType? compression,
   }) {
     final result = create();
     if (streamId != null) result.streamId = streamId;
@@ -5408,6 +5831,8 @@ class DataStream_Header extends $pb.GeneratedMessage {
     if (attributes != null) result.attributes.addEntries(attributes);
     if (textHeader != null) result.textHeader = textHeader;
     if (byteHeader != null) result.byteHeader = byteHeader;
+    if (inlineContent != null) result.inlineContent = inlineContent;
+    if (compression != null) result.compression = compression;
     return result;
   }
 
@@ -5441,6 +5866,9 @@ class DataStream_Header extends $pb.GeneratedMessage {
         packageName: const $pb.PackageName('livekit'))
     ..aOM<DataStream_TextHeader>(9, _omitFieldNames ? '' : 'textHeader', subBuilder: DataStream_TextHeader.create)
     ..aOM<DataStream_ByteHeader>(10, _omitFieldNames ? '' : 'byteHeader', subBuilder: DataStream_ByteHeader.create)
+    ..a<$core.List<$core.int>>(11, _omitFieldNames ? '' : 'inlineContent', $pb.PbFieldType.OY)
+    ..aE<DataStream_CompressionType>(12, _omitFieldNames ? '' : 'compression',
+        enumValues: DataStream_CompressionType.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5550,6 +5978,25 @@ class DataStream_Header extends $pb.GeneratedMessage {
   void clearByteHeader() => $_clearField(10);
   @$pb.TagNumber(10)
   DataStream_ByteHeader ensureByteHeader() => $_ensure(8);
+
+  /// Optional inline content so that a data stream can be sent as a single packet for short payloads.
+  @$pb.TagNumber(11)
+  $core.List<$core.int> get inlineContent => $_getN(9);
+  @$pb.TagNumber(11)
+  set inlineContent($core.List<$core.int> value) => $_setBytes(9, value);
+  @$pb.TagNumber(11)
+  $core.bool hasInlineContent() => $_has(9);
+  @$pb.TagNumber(11)
+  void clearInlineContent() => $_clearField(11);
+
+  @$pb.TagNumber(12)
+  DataStream_CompressionType get compression => $_getN(10);
+  @$pb.TagNumber(12)
+  set compression(DataStream_CompressionType value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasCompression() => $_has(10);
+  @$pb.TagNumber(12)
+  void clearCompression() => $_clearField(12);
 }
 
 class DataStream_Chunk extends $pb.GeneratedMessage {

@@ -41,6 +41,47 @@ enum ProtocolVersion {
   v16, // Supports moving (full participant move)
 }
 
+/// Client-to-client protocol version advertised in `ParticipantInfo.clientProtocol`
+/// and the `client_protocol` join URL query parameter. Governs peer-to-peer feature
+/// negotiation; distinct from [ProtocolVersion], which tracks the signaling protocol.
+///
+/// Each variant's integer wire value is sent on the wire as `client_protocol`.
+enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
+  /// Spec: `CLIENT_PROTOCOL_DEFAULT`. Legacy client — only supports RPC v1.
+  v0(0),
+
+  /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
+  v1(1);
+
+  const ClientProtocolVersion(this.wireValue);
+
+  /// Integer value used in `ParticipantInfo.clientProtocol` and the join URL.
+  final int wireValue;
+
+  /// The highest version this SDK build supports. Used as the default for
+  /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
+  /// "the current SDK".
+  static const ClientProtocolVersion current = v1;
+
+  /// Maps wire values to the highest protocol version this SDK can use.
+  static ClientProtocolVersion fromIntValue(int? value) {
+    if (value == null) return v0;
+    if (value >= v1.wireValue) return v1;
+    return v0;
+  }
+
+  @override
+  int compareTo(ClientProtocolVersion other) => wireValue.compareTo(other.wireValue);
+
+  bool operator <(ClientProtocolVersion other) => compareTo(other) < 0;
+
+  bool operator <=(ClientProtocolVersion other) => compareTo(other) <= 0;
+
+  bool operator >(ClientProtocolVersion other) => compareTo(other) > 0;
+
+  bool operator >=(ClientProtocolVersion other) => compareTo(other) >= 0;
+}
+
 /// Connection state type used throughout the SDK.
 enum ConnectionState {
   disconnected,
@@ -108,18 +149,78 @@ enum StreamState {
   active,
 }
 
+/// The reason a participant was disconnected from the room.
+///
+/// Most values mirror the server's disconnect reasons from the LiveKit
+/// protocol. [disconnected], [signalingConnectionFailure] and
+/// [reconnectAttemptsExceeded] are produced by this SDK for client side
+/// conditions and are never sent by the server.
 enum DisconnectReason {
   unknown,
+
+  /// The client initiated the disconnect.
   clientInitiated,
+
+  /// Another participant with the same identity has joined the room.
   duplicateIdentity,
+
+  /// The server instance is shutting down.
   serverShutdown,
+
+  /// RoomService.RemoveParticipant was called.
   participantRemoved,
+
+  /// RoomService.DeleteRoom was called.
   roomDeleted,
+
+  /// The client attempted to resume a session, but the server is not aware
+  /// of it.
   stateMismatch,
+
+  /// The client was unable to connect fully.
   joinFailure,
+
+  /// The signaling connection was closed. Client side, not sent by the
+  /// server.
   disconnected,
+
+  /// The signaling connection could not be established. Client side, not
+  /// sent by the server.
   signalingConnectionFailure,
+
+  /// The client gave up reconnecting after exhausting all attempts. Client
+  /// side, not sent by the server.
   reconnectAttemptsExceeded,
+
+  /// Cloud only. The server requested the participant to migrate the
+  /// connection elsewhere.
+  migration,
+
+  /// The signal websocket was closed unexpectedly.
+  signalClose,
+
+  /// The room was closed, due to all Standard and Ingress participants
+  /// having left. Distinct from [roomDeleted], which is an explicit
+  /// RoomService.DeleteRoom call.
+  roomClosed,
+
+  /// SIP callee did not respond in time.
+  userUnavailable,
+
+  /// SIP callee rejected the call (busy).
+  userRejected,
+
+  /// SIP protocol failure or unexpected response.
+  sipTrunkFailure,
+
+  /// The server timed out the participant session.
+  connectionTimeout,
+
+  /// Media stream failure or media timeout.
+  mediaFailure,
+
+  /// The agent encountered an error.
+  agentError,
 }
 
 /// The reason why a track failed to publish.

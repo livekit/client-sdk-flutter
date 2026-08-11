@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:livekit_client/src/options.dart';
 import 'package:livekit_client/src/support/websocket.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
@@ -21,6 +22,10 @@ class MockWebSocket extends LiveKitWebSocket {
 
 class MockWebSocketConnector {
   WebSocketEventHandlers? handlers;
+  Uri? uri;
+  Map<String, String>? headers;
+  NetworkOptions? networkOptions;
+  Object? connectError;
 
   WebSocketOnData get onData => handlers!.onData!;
 
@@ -32,7 +37,17 @@ class MockWebSocketConnector {
     Uri uri, {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
+    NetworkOptions? networkOptions = const NetworkOptions(),
   }) async {
+    this.uri = uri;
+    this.headers = headers;
+    this.networkOptions = networkOptions;
+
+    final error = connectError;
+    if (error != null) {
+      throw error;
+    }
+
     handlers = options;
     return MockWebSocket();
   }

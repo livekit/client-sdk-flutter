@@ -199,7 +199,7 @@ abstract class TokenSourceFixed {
 /// production applications that need flexible authentication and room management.
 ///
 /// Common implementations:
-/// - [SandboxTokenSource]: For testing with LiveKit Cloud sandbox token server
+/// - [DevelopmentTokenSource]: For testing with LiveKit Cloud development token server
 /// - [EndpointTokenSource]: For custom backend endpoints using LiveKit's JSON format
 /// - [CachingTokenSource]: For caching credentials (or use the `.cached()` extension method)
 abstract class TokenSourceConfigurable {
