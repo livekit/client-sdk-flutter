@@ -8,6 +8,7 @@
 * Changed: Update generated protocol definitions to v1.50.4
 * Changed: Unrecognized protobuf enum values from newer servers now fall back to safe defaults, for example a new DisconnectReason maps to unknown
 * Changed: Update dependencies: device_info_plus to 13.x, connectivity_plus 7.3.1, dart_webrtc 1.8.1, synchronized 3.4.1, uuid 4.6.0
+* Fixed: Room.connect no longer ignores the roomOptions argument passed to it
 * Fixed: Room.getSid() now resolves when the room sid is issued after the join response
 * Fixed: Backup codec state is cleared on unpublish and full reconnect, so republishing no longer acts on senders from a torn down connection
 * Fixed: DegradationPreference.disabled now maps to maintainFramerateAndResolution, as WebRTC defines it
