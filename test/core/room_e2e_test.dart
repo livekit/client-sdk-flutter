@@ -104,10 +104,16 @@ void main() {
       await cancel();
 
       // Verify participant had tracks when connected event was emitted
-      expect(participantHadTracksOnConnect, isTrue,
-          reason: 'Participant should have tracks when ParticipantConnectedEvent is emitted');
-      expect(trackCountOnConnect, greaterThan(0),
-          reason: 'Participant should have at least one track when connected event fires');
+      expect(
+        participantHadTracksOnConnect,
+        isTrue,
+        reason: 'Participant should have tracks when ParticipantConnectedEvent is emitted',
+      );
+      expect(
+        trackCountOnConnect,
+        greaterThan(0),
+        reason: 'Participant should have at least one track when connected event fires',
+      );
 
       // Verify the participant is in the room
       expect(room.remoteParticipants.length, 1);
@@ -138,8 +144,9 @@ void main() {
       expect(
         room.events.streamCtrl.stream,
         emits(
-          predicate<ParticipantMetadataUpdatedEvent>((event) =>
-              event.participant.metadata == participantMetadataChangedResponse.update.participants[0].metadata),
+          predicate<ParticipantMetadataUpdatedEvent>(
+            (event) => event.participant.metadata == participantMetadataChangedResponse.update.participants[0].metadata,
+          ),
         ),
       );
     });
@@ -147,8 +154,11 @@ void main() {
     test('room metadata update', () async {
       expect(
         room.events.streamCtrl.stream,
-        emits(predicate<RoomMetadataChangedEvent>((event) =>
-            event.metadata == roomUpdateResponse.roomUpdate.room.metadata && room.metadata == event.metadata)),
+        emits(
+          predicate<RoomMetadataChangedEvent>(
+            (event) => event.metadata == roomUpdateResponse.roomUpdate.room.metadata && room.metadata == event.metadata,
+          ),
+        ),
       );
       ws.onData(roomUpdateResponse.writeToBuffer());
     });
@@ -156,9 +166,13 @@ void main() {
     test('connection quality', () async {
       expect(
         room.events.streamCtrl.stream,
-        emits(predicate<ParticipantConnectionQualityUpdatedEvent>((event) =>
-            event.participant.sid == localParticipantData.sid &&
-            event.connectionQuality == ConnectionQuality.excellent)),
+        emits(
+          predicate<ParticipantConnectionQualityUpdatedEvent>(
+            (event) =>
+                event.participant.sid == localParticipantData.sid &&
+                event.connectionQuality == ConnectionQuality.excellent,
+          ),
+        ),
       );
       ws.onData(connectionQualityResponse.writeToBuffer());
     });
@@ -177,8 +191,10 @@ void main() {
     });
 
     test('leave', () async {
-      expect(room.events.streamCtrl.stream,
-          emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)));
+      expect(
+        room.events.streamCtrl.stream,
+        emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)),
+      );
       ws.onData(leaveResponse.writeToBuffer());
     });
 
@@ -195,11 +211,13 @@ void main() {
       });
 
       // Emit onTrack before participant update arrives.
-      container.engine.events.emit(EngineTrackAddedEvent(
-        track: fakeTrack,
-        stream: fakeStream,
-        receiver: null,
-      ));
+      container.engine.events.emit(
+        EngineTrackAddedEvent(
+          track: fakeTrack,
+          stream: fakeStream,
+          receiver: null,
+        ),
+      );
 
       // Now deliver participant metadata.
       ws.onData(participantJoinResponse.writeToBuffer());

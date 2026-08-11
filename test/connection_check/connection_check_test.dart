@@ -27,15 +27,23 @@ void main() {
     test('aggregates results of multiple checks', () async {
       final connectionCheck = ConnectionCheck('ws://www.example.com', 'token');
 
-      final ok = await connectionCheck.runCheck(FakeChecker(onPerform: (checker) async {
-        checker.addMessage('fine');
-      }));
+      final ok = await connectionCheck.runCheck(
+        FakeChecker(
+          onPerform: (checker) async {
+            checker.addMessage('fine');
+          },
+        ),
+      );
       expect(ok.status, CheckStatus.success);
       expect(connectionCheck.isSuccess, true);
 
-      final failed = await connectionCheck.runCheck(FakeChecker(onPerform: (checker) async {
-        throw const CheckException('nope');
-      }));
+      final failed = await connectionCheck.runCheck(
+        FakeChecker(
+          onPerform: (checker) async {
+            throw const CheckException('nope');
+          },
+        ),
+      );
       expect(failed.status, CheckStatus.failed);
       expect(connectionCheck.isSuccess, false);
 
@@ -71,9 +79,13 @@ void main() {
 
     test('skipped checks do not fail the run', () async {
       final connectionCheck = ConnectionCheck('ws://www.example.com', 'token');
-      final skipped = await connectionCheck.runCheck(FakeChecker(onPerform: (checker) async {
-        checker.doSkip();
-      }));
+      final skipped = await connectionCheck.runCheck(
+        FakeChecker(
+          onPerform: (checker) async {
+            checker.doSkip();
+          },
+        ),
+      );
       expect(skipped.status, CheckStatus.skipped);
       expect(connectionCheck.isSuccess, true);
       await connectionCheck.dispose();

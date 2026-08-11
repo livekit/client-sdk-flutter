@@ -59,12 +59,14 @@ class AudioFrameCaptureNative implements AudioFrameCapture {
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
       try {
         final rawFormat = event['commonFormat'] as String?;
-        _controller.add(AudioFrame(
-          sampleRate: event['sampleRate'] as int,
-          channels: event['channels'] as int,
-          data: event['data'] as Uint8List,
-          format: rawFormat == AudioFormat.Float32.value ? AudioFormat.Float32 : AudioFormat.Int16,
-        ));
+        _controller.add(
+          AudioFrame(
+            sampleRate: event['sampleRate'] as int,
+            channels: event['channels'] as int,
+            data: event['data'] as Uint8List,
+            format: rawFormat == AudioFormat.Float32.value ? AudioFormat.Float32 : AudioFormat.Int16,
+          ),
+        );
       } catch (e) {
         logger.warning('[AudioFrameCapture] Error parsing native event: $e');
       }

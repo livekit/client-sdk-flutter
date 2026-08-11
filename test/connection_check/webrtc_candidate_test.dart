@@ -30,7 +30,8 @@ void main() {
 
     test('parses a passive tcp candidate with extensions', () {
       final candidate = parseIceCandidate(
-          'candidate:1467250027 1 tcp 1518280447 198.51.100.1 443 typ host tcptype passive generation 0');
+        'candidate:1467250027 1 tcp 1518280447 198.51.100.1 443 typ host tcptype passive generation 0',
+      );
       expect(candidate, isNotNull);
       expect(candidate!.protocol, 'tcp');
       expect(candidate.address, '198.51.100.1');
@@ -41,7 +42,8 @@ void main() {
 
     test('parses a relay candidate with raddr/rport', () {
       final candidate = parseIceCandidate(
-          'candidate:3098175849 1 udp 25108223 192.0.2.10 60690 typ relay raddr 203.0.113.5 rport 40183');
+        'candidate:3098175849 1 udp 25108223 192.0.2.10 60690 typ relay raddr 203.0.113.5 rport 40183',
+      );
       expect(candidate, isNotNull);
       expect(candidate!.type, 'relay');
       expect(candidate.address, '192.0.2.10');

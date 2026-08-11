@@ -24,15 +24,18 @@ import '../local/local.dart';
 import 'remote.dart';
 
 class RemoteVideoTrack extends RemoteTrack with VideoTrack {
-  RemoteVideoTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
-      {rtc.RTCRtpReceiver? receiver})
-      : super(
-          TrackType.VIDEO,
-          source,
-          stream,
-          track,
-          receiver: receiver,
-        );
+  RemoteVideoTrack(
+    TrackSource source,
+    rtc.MediaStream stream,
+    rtc.MediaStreamTrack track, {
+    rtc.RTCRtpReceiver? receiver,
+  }) : super(
+         TrackType.VIDEO,
+         source,
+         stream,
+         track,
+         receiver: receiver,
+       );
 
   VideoReceiverStats? prevStats;
   num? _currentBitrate;

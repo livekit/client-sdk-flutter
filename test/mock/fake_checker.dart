@@ -20,8 +20,8 @@ class FakeChecker extends Checker {
   FakeChecker({
     Future<void> Function(FakeChecker checker)? onPerform,
     CheckerOptions? options,
-  })  : _onPerform = onPerform,
-        super('ws://www.example.com', 'token', options: options);
+  }) : _onPerform = onPerform,
+       super('ws://www.example.com', 'token', options: options);
 
   final Future<void> Function(FakeChecker checker)? _onPerform;
 
