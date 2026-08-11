@@ -847,13 +847,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _reliableDCSub = dc;
         _reliableDCSub?.onMessage = _onDCMessage;
         _reliableDCSub?.stateChangeStream.listen(
-          (state) => _reliableDCPub?.stateChangeStream.listen(
-            (state) => events.emit(
-              SubscriberDataChannelStateUpdatedEvent(
-                isPrimary: _subscriberPrimary,
-                state: state,
-                type: Reliability.reliable,
-              ),
+          (state) => events.emit(
+            SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.reliable,
             ),
           ),
         );
@@ -863,13 +861,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _lossyDCSub = dc;
         _lossyDCSub?.onMessage = _onDCMessage;
         _lossyDCSub?.stateChangeStream.listen(
-          (event) => _reliableDCPub?.stateChangeStream.listen(
-            (state) => events.emit(
-              SubscriberDataChannelStateUpdatedEvent(
-                isPrimary: _subscriberPrimary,
-                state: state,
-                type: Reliability.lossy,
-              ),
+          (state) => events.emit(
+            SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.lossy,
             ),
           ),
         );

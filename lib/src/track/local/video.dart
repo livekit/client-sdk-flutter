@@ -504,6 +504,18 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     return simulcastCodecInfo;
   }
 
+  /// Drops all simulcast codec state tied to the current publish session.
+  ///
+  /// Must be called when the track's senders are no longer valid, on unpublish
+  /// and before republishing after a full reconnect. Otherwise later publishes
+  /// see stale senders and [addSimulcastTrack] rejects the codec as a duplicate
+  /// when the server requests the backup codec again.
+  @internal
+  void clearSimulcastState() {
+    simulcastCodecs.clear();
+    encodingBackups.clear();
+  }
+
   Future<void> setDegradationPreference(DegradationPreference preference) async {
     _degradationPreference = preference;
     await applyDegradationPreference(sender);

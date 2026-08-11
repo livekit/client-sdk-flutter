@@ -275,8 +275,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     @Deprecated('deprecated, please use roomOptions in Room constructor') RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) async {
-    var roomOptions = this.roomOptions;
-    if (lkPlatformIs(PlatformType.web) && (roomOptions.networkOptions.certificatePinning?.isEnabled ?? false)) {
+    var effectiveRoomOptions = roomOptions ?? this.roomOptions;
+    if (lkPlatformIs(PlatformType.web) &&
+        (effectiveRoomOptions.networkOptions.certificatePinning?.isEnabled ?? false)) {
       throw UnsupportedError(
         'Certificate pinning is not supported on Flutter web, '
         'remove certificatePinning from NetworkOptions when targeting web',
@@ -285,13 +286,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     connectOptions ??= ConnectOptions();
     _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
     // ignore: deprecated_member_use_from_same_package
-    if ((roomOptions.encryption != null || roomOptions.e2eeOptions != null) && engine.e2eeManager == null) {
+    if ((effectiveRoomOptions.encryption != null || effectiveRoomOptions.e2eeOptions != null) &&
+        engine.e2eeManager == null) {
       if (!lkPlatformSupportsE2EE()) {
         throw LiveKitE2EEException('E2EE is not supported on this platform');
       }
       // ignore: deprecated_member_use_from_same_package
-      final e2eeOptions = roomOptions.encryption ?? roomOptions.e2eeOptions;
-      _e2eeManager = E2EEManager(e2eeOptions!.keyProvider, dcEncryptionEnabled: roomOptions.encryption != null);
+      final e2eeOptions = effectiveRoomOptions.encryption ?? effectiveRoomOptions.e2eeOptions;
+      _e2eeManager = E2EEManager(
+        e2eeOptions!.keyProvider,
+        dcEncryptionEnabled: effectiveRoomOptions.encryption != null,
+      );
       await _e2eeManager!.setup(this);
       engine.setE2eeManager(_e2eeManager);
     } else {
@@ -300,8 +305,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     if (_e2eeManager != null) {
       // Disable backup codec when e2ee is enabled
-      roomOptions = roomOptions.copyWith(
-        defaultVideoPublishOptions: roomOptions.defaultVideoPublishOptions.copyWith(
+      effectiveRoomOptions = effectiveRoomOptions.copyWith(
+        defaultVideoPublishOptions: effectiveRoomOptions.defaultVideoPublishOptions.copyWith(
           backupVideoCodec: const BackupVideoCodec(enabled: false),
         ),
       );
@@ -313,7 +318,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     }
     if (isCloudUrl(Uri.parse(url))) {
       if (_regionUrlProvider == null) {
-        _regionUrlProvider = RegionUrlProvider(url: url, token: token, networkOptions: roomOptions.networkOptions);
+        _regionUrlProvider = RegionUrlProvider(
+          url: url,
+          token: token,
+          networkOptions: effectiveRoomOptions.networkOptions,
+        );
       } else {
         _regionUrlProvider?.updateToken(token);
       }
@@ -336,7 +345,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // AudioManager once, on the first connect. Skipping it on a later manual
     // connect of the same Room keeps a runtime speaker change from being
     // reverted. New code should call setSpeakerOutputPreferred directly.
-    final legacySpeakerOn = roomOptions.defaultAudioOutputOptions.speakerOn;
+    final legacySpeakerOn = effectiveRoomOptions.defaultAudioOutputOptions.speakerOn;
     if (legacySpeakerOn != null && !_legacySpeakerBridged && lkPlatformIsMobile()) {
       _legacySpeakerBridged = true;
       await AudioManager.instance.setSpeakerOutputPreferred(legacySpeakerOn);
@@ -351,7 +360,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         _regionUrl ?? url,
         token,
         connectOptions: connectOptions,
-        roomOptions: roomOptions,
+        roomOptions: effectiveRoomOptions,
         fastConnectOptions: fastConnectOptions,
         regionUrlProvider: _regionUrlProvider,
       );
@@ -374,7 +383,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             nextUrl,
             token,
             connectOptions: connectOptions,
-            roomOptions: roomOptions,
+            roomOptions: effectiveRoomOptions,
             fastConnectOptions: fastConnectOptions,
             regionUrlProvider: _regionUrlProvider,
           );
