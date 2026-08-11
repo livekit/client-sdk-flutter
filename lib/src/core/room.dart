@@ -925,7 +925,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
-      if (localParticipant != null) localParticipant!.sid: localParticipant!,
+      ?localParticipant?.sid: ?localParticipant,
       ..._remoteParticipants.bySid,
     };
 

@@ -276,19 +276,19 @@ void main() {
 
     test('RPC v2 text stream topics are reserved for SDK internals', () async {
       expect(
-        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        () => v2Room.registerTextStreamHandler(kRpcRequestTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, __) async {}),
+        () => v2Room.registerTextStreamHandler(kRpcResponseTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, __) async {}),
+        () => v2Room.registerTextStreamHandler('lk.rpc_future', (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
       expect(
-        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, __) async {}),
+        () => v2Room.registerByteStreamHandler(kRpcRequestTopic, (_, _) async {}),
         throwsA(isA<DataStreamError>()),
       );
 
