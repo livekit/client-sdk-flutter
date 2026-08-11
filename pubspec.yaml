@@ -23,8 +23,10 @@ false_secrets:
   - /test/support/certificate_pinning_io_test.dart
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
-  flutter: ">=3.27.0"
+  # Flutter 3.38 / Dart 3.10 is the floor for stable native assets
+  # (build hooks), which the upcoming Rust core is delivered through.
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter_web_plugins:
