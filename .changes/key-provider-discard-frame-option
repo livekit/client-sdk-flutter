@@ -1,0 +1,1 @@
+patch type="fixed" "BaseKeyProvider.create now honors the discardFrameWhenCryptorNotReady option instead of always using the default"
