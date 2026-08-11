@@ -395,7 +395,9 @@ class _RoomPageState extends State<RoomPage> {
                   builder: (context, constraints) {
                     final wide = constraints.maxWidth >= 900;
                     final messages = MessagesPanel(
-                      messages: _messages,
+                      // copy so MessagesPanel.didUpdateWidget sees a new list
+                      // and can detect appended messages to autoscroll
+                      messages: List.of(_messages),
                       controller: _messageCtrl,
                       onSend: () => unawaited(_sendMessage()),
                       onClose: () {
