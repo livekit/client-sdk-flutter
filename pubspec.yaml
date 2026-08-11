@@ -23,8 +23,8 @@ false_secrets:
   - /test/support/certificate_pinning_io_test.dart
 
 environment:
-  # Native Assets (build hooks / code assets) is how livekit_uniffi delivers the
-  # Rust core; it is only stable from Flutter 3.38 / Dart 3.10 onwards.
+  # Flutter 3.38 / Dart 3.10 is the floor for stable native assets
+  # (build hooks), which the upcoming Rust core is delivered through.
   sdk: ">=3.10.0 <4.0.0"
   flutter: ">=3.38.0"
 
