@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2.11.0
+
+* Added: New DisconnectReason members for newer server disconnect reasons, previously reported as unknown
+* Added: Add DevelopmentTokenSource, the new name for the now-deprecated SandboxTokenSource
+* Changed: Default video degradation preference is now based on the track source (camera maintains framerate, screen share maintains resolution, others balanced) and is applied to the backup codec's sender as well
+* Changed: Update generated protocol definitions to v1.50.4
+* Changed: Unrecognized protobuf enum values from newer servers now fall back to safe defaults, for example a new DisconnectReason maps to unknown
+* Changed: Update dependencies: device_info_plus to 13.x, connectivity_plus 7.3.1, dart_webrtc 1.8.1, synchronized 3.4.1, uuid 4.6.0
+* Changed: Modernize the example app with a redesigned connect page, connection history, room header, focus layout, and an in-room messages panel
+* Fixed: Room.connect no longer ignores the roomOptions argument passed to it
+* Fixed: Room.getSid() now resolves when the room sid is issued after the join response
+* Fixed: Backup codec state is cleared on unpublish and full reconnect, so republishing no longer acts on senders from a torn down connection
+* Fixed: DegradationPreference.disabled now maps to maintainFramerateAndResolution, as WebRTC defines it
+
 ## 2.10.0
 
 * Added: Swift Package Manager support for iOS and macOS. CocoaPods remains fully supported.

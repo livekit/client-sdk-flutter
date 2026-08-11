@@ -1,1 +1,0 @@
-patch type="fixed" "Backup codec state is cleared on unpublish and full reconnect, so republishing no longer acts on senders from a torn down connection"
