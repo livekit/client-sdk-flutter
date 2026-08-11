@@ -32,9 +32,9 @@ enum AudioProcessingImplementation {
   final String value;
 
   static AudioProcessingImplementation fromValue(String? value) => AudioProcessingImplementation.values.firstWhere(
-        (e) => e.value == value,
-        orElse: () => AudioProcessingImplementation.unknown,
-      );
+    (e) => e.value == value,
+    orElse: () => AudioProcessingImplementation.unknown,
+  );
 }
 
 AudioProcessingMode _modeFromValue(String? value) {
@@ -56,9 +56,9 @@ class AudioProcessingComponentRequest {
   });
 
   factory AudioProcessingComponentRequest.fromMap(Map<dynamic, dynamic> map) => AudioProcessingComponentRequest(
-        enabled: (map['enabled'] as bool?) ?? false,
-        mode: _modeFromValue(map['mode'] as String?),
-      );
+    enabled: (map['enabled'] as bool?) ?? false,
+    mode: _modeFromValue(map['mode'] as String?),
+  );
 
   final bool enabled;
   final AudioProcessingMode mode;
@@ -84,16 +84,16 @@ class AudioProcessingComponentState {
   });
 
   factory AudioProcessingComponentState.fromMap(Map<dynamic, dynamic> map) => AudioProcessingComponentState(
-        requested: map['requested'] is Map
-            ? AudioProcessingComponentRequest.fromMap(Map<dynamic, dynamic>.from(map['requested'] as Map))
-            : null,
-        isSoftwareResolved: (map['isSoftwareResolved'] as bool?) ?? false,
-        isSoftwareActive: (map['isSoftwareActive'] as bool?) ?? false,
-        isPlatformAvailable: (map['isPlatformAvailable'] as bool?) ?? false,
-        isPlatformResolved: (map['isPlatformResolved'] as bool?) ?? false,
-        isPlatformActive: (map['isPlatformActive'] as bool?) ?? false,
-        effective: AudioProcessingImplementation.fromValue(map['effective'] as String?),
-      );
+    requested: map['requested'] is Map
+        ? AudioProcessingComponentRequest.fromMap(Map<dynamic, dynamic>.from(map['requested'] as Map))
+        : null,
+    isSoftwareResolved: (map['isSoftwareResolved'] as bool?) ?? false,
+    isSoftwareActive: (map['isSoftwareActive'] as bool?) ?? false,
+    isPlatformAvailable: (map['isPlatformAvailable'] as bool?) ?? false,
+    isPlatformResolved: (map['isPlatformResolved'] as bool?) ?? false,
+    isPlatformActive: (map['isPlatformActive'] as bool?) ?? false,
+    effective: AudioProcessingImplementation.fromValue(map['effective'] as String?),
+  );
 
   /// What the caller most recently requested for this component. Null when no
   /// audio processing options have ever been applied — "nobody asked".
@@ -141,15 +141,12 @@ class AudioProcessingState {
   });
 
   factory AudioProcessingState.fromMap(Map<dynamic, dynamic> map) => AudioProcessingState(
-        hasAudioProcessingModule: (map['hasAudioProcessingModule'] as bool?) ?? false,
-        echoCancellation:
-            AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['echoCancellation'] as Map)),
-        noiseSuppression:
-            AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['noiseSuppression'] as Map)),
-        autoGainControl:
-            AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['autoGainControl'] as Map)),
-        highPassFilter: AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['highPassFilter'] as Map)),
-      );
+    hasAudioProcessingModule: (map['hasAudioProcessingModule'] as bool?) ?? false,
+    echoCancellation: AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['echoCancellation'] as Map)),
+    noiseSuppression: AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['noiseSuppression'] as Map)),
+    autoGainControl: AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['autoGainControl'] as Map)),
+    highPassFilter: AudioProcessingComponentState.fromMap(Map<dynamic, dynamic>.from(map['highPassFilter'] as Map)),
+  );
 
   final bool hasAudioProcessingModule;
   final AudioProcessingComponentState echoCancellation;

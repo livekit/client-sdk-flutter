@@ -68,18 +68,18 @@ class TestKeyProvider implements rtc.KeyProvider {
 
 class TestE2EEManager implements E2EEManager {
   TestE2EEManager({bool dcEncryptionEnabled = true})
-      : _keyProvider = BaseKeyProvider(
-          TestKeyProvider(),
-          rtc.KeyProviderOptions(
-            sharedKey: true,
-            ratchetSalt: Uint8List(16),
-            ratchetWindowSize: 16,
-            keyRingSize: 1,
-            failureTolerance: -1,
-            discardFrameWhenCryptorNotReady: false,
-          ),
+    : _keyProvider = BaseKeyProvider(
+        TestKeyProvider(),
+        rtc.KeyProviderOptions(
+          sharedKey: true,
+          ratchetSalt: Uint8List(16),
+          ratchetWindowSize: 16,
+          keyRingSize: 1,
+          failureTolerance: -1,
+          discardFrameWhenCryptorNotReady: false,
         ),
-        _dcEncryptionEnabled = dcEncryptionEnabled;
+      ),
+      _dcEncryptionEnabled = dcEncryptionEnabled;
 
   final BaseKeyProvider _keyProvider;
   final bool _dcEncryptionEnabled;

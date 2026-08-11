@@ -73,11 +73,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     required String identity,
     required String name,
   }) : super(
-          room: room,
-          sid: sid,
-          identity: identity,
-          name: name,
-        );
+         room: room,
+         sid: sid,
+         identity: identity,
+         name: name,
+       );
 
   @internal
   static Future<LocalParticipant> createFromInfo({
@@ -419,7 +419,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
-      name: publishOptions.name ??
+      name:
+          publishOptions.name ??
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
@@ -998,7 +999,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
-      name: options.name ??
+      name:
+          options.name ??
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),

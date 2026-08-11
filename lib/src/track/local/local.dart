@@ -173,12 +173,12 @@ abstract class LocalTrack extends Track {
   TrackProcessor? get processor => _processor;
 
   LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
-      : super(
-          kind,
-          source,
-          mediaStream,
-          mediaStreamTrack,
-        ) {
+    : super(
+        kind,
+        source,
+        mediaStream,
+        mediaStreamTrack,
+      ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');
       events.emit(TrackEndedEvent(track: this));
@@ -249,8 +249,8 @@ abstract class LocalTrack extends Track {
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
-              ? (options).captureScreenAudio
-              : false,
+          ? (options).captureScreenAudio
+          : false,
       'video': options is VideoCaptureOptions ? options.toMediaConstraintsMap() : false,
     };
 

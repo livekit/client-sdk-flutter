@@ -112,16 +112,16 @@ class RegionUrlProvider {
 
 extension RegionInfoExtension on lk_models.RegionInfo {
   lk_models.RegionInfo fromJson(Map<String, dynamic> json) => lk_models.RegionInfo(
-        region: json['region'],
-        url: json['url'],
-        distance: json['distance'],
-      );
+    region: json['region'],
+    url: json['url'],
+    distance: json['distance'],
+  );
 }
 
 extension RegionSettingsExtension on lk_models.RegionSettings {
   lk_models.RegionSettings fromJson(Map<String, dynamic> json) => lk_models.RegionSettings(
-        regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
-      );
+    regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
+  );
 }
 
 bool isCloudUrl(Uri uri) {

@@ -569,19 +569,19 @@ void main() {
       RpcError? error;
       final caught = v2Room.localParticipant!
           .performRpc(
-        PerformRpcParams(
-          destinationIdentity: 'alice',
-          method: 'hangs-for-alice',
-          payload: 'x',
-          responseTimeoutMs: const Duration(seconds: 30),
-        ),
-      )
+            PerformRpcParams(
+              destinationIdentity: 'alice',
+              method: 'hangs-for-alice',
+              payload: 'x',
+              responseTimeoutMs: const Duration(seconds: 30),
+            ),
+          )
           .catchError((e) {
-        if (e is RpcError) {
-          error = e;
-        }
-        return '';
-      });
+            if (e is RpcError) {
+              error = e;
+            }
+            return '';
+          });
 
       // Let the publish settle so pending is registered.
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -619,9 +619,9 @@ void main() {
           )
           .then((_) => resolved = true)
           .catchError((e) {
-        if (e is RpcError) caught = e;
-        return false;
-      });
+            if (e is RpcError) caught = e;
+            return false;
+          });
 
       // Let the publish settle and the request stream loop back.
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -838,11 +838,11 @@ void main() {
           )
           .then((_) => resolved = true)
           .catchError((e) {
-        if (e is RpcError) {
-          caught = e;
-        }
-        return false;
-      });
+            if (e is RpcError) {
+              caught = e;
+            }
+            return false;
+          });
 
       await Future<void>.delayed(const Duration(milliseconds: 100));
       edgeCaseContainer.simulateInboundV2RpcResponseStreamWithoutRequestId('missing-id', 'ignored');

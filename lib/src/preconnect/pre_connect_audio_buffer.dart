@@ -77,8 +77,8 @@ class PreConnectAudioBuffer {
     this._room, {
     PreConnectOnError? onError,
     int sampleRate = defaultSampleRate,
-  })  : _onError = onError,
-        _requestSampleRate = sampleRate;
+  }) : _onError = onError,
+       _requestSampleRate = sampleRate;
 
   /// Whether pre-connect recording is currently active.
   bool get isRecording => _isRecording;

@@ -105,8 +105,10 @@ class _CertificatePinningConnectionFactory {
   }
 
   io.SecurityContext? _securityContextFor(List<CertificatePinningRule> rules) {
-    final trustedCertificates =
-        rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificates).toList();
+    final trustedCertificates = rules
+        .where((rule) => rule.hasTrustedCertificates)
+        .expand((rule) => rule.trustedCertificates)
+        .toList();
     if (trustedCertificates.isEmpty) {
       return null;
     }

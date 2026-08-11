@@ -136,9 +136,9 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   }
 
   bool get isEncrypted => [
-        ...audioTrackPublications,
-        ...videoTrackPublications,
-      ].every((track) => track.encryptionType != EncryptionType.kNone);
+    ...audioTrackPublications,
+    ...videoTrackPublications,
+  ].every((track) => track.encryptionType != EncryptionType.kNone);
 
   @internal
   bool get hasInfo => _participantInfo != null;
@@ -310,7 +310,9 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
     final result = trackPublications.values.firstWhereOrNull((e) => e.source == source);
     if (result != null) return result;
     // try to find by compatibility
-    return trackPublications.values.where((e) => e.source == TrackSource.unknown).firstWhereOrNull(
+    return trackPublications.values
+        .where((e) => e.source == TrackSource.unknown)
+        .firstWhereOrNull(
           (e) =>
               (source == TrackSource.microphone && e.kind == TrackType.AUDIO) ||
               (source == TrackSource.camera && e.kind == TrackType.VIDEO) ||

@@ -280,8 +280,9 @@ class RpcServerManager {
 
     String? truncatedData;
     if (originalData != null) {
-      truncatedData =
-          originalData.length > kRpcMaxPayloadBytes ? originalData.substring(0, kRpcMaxPayloadBytes) : originalData;
+      truncatedData = originalData.length > kRpcMaxPayloadBytes
+          ? originalData.substring(0, kRpcMaxPayloadBytes)
+          : originalData;
     }
 
     if (truncatedMessage.length != originalMessage.length ||

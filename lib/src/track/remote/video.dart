@@ -30,12 +30,12 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
     rtc.MediaStreamTrack track, {
     rtc.RTCRtpReceiver? receiver,
   }) : super(
-          TrackType.VIDEO,
-          source,
-          stream,
-          track,
-          receiver: receiver,
-        );
+         TrackType.VIDEO,
+         source,
+         stream,
+         track,
+         receiver: receiver,
+       );
 
   VideoReceiverStats? prevStats;
   num? _currentBitrate;

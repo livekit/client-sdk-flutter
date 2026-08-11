@@ -329,17 +329,20 @@ class FrameCryptor {
       frameTrailer.setInt8(0, IV_LENGTH);
       frameTrailer.setInt8(1, keyIndex);
 
-      final cipherText = await worker.crypto.subtle
-          .encrypt(
-            {
-              'name': 'AES-GCM',
-              'iv': iv,
-              'additionalData': srcFrame.buffer.sublist(0, headerLength),
-            }.jsify() as web.AlgorithmIdentifier,
-            secretKey,
-            srcFrame.buffer.sublist(headerLength, srcFrame.buffer.length).toJS,
-          )
-          .toDart as JSArrayBuffer;
+      final cipherText =
+          await worker.crypto.subtle
+                  .encrypt(
+                    {
+                          'name': 'AES-GCM',
+                          'iv': iv,
+                          'additionalData': srcFrame.buffer.sublist(0, headerLength),
+                        }.jsify()
+                        as web.AlgorithmIdentifier,
+                    secretKey,
+                    srcFrame.buffer.sublist(headerLength, srcFrame.buffer.length).toJS,
+                  )
+                  .toDart
+              as JSArrayBuffer;
 
       logger.finer(
         'encodeFunction: encrypted buffer: ${srcFrame.buffer.length}, cipherText: ${cipherText.toDart.asUint8List().length}',
@@ -480,18 +483,21 @@ class FrameCryptor {
       var currentkeySet = initialKeySet;
 
       Future<void> decryptFrameInternal() async {
-        decrypted = ((await worker.crypto.subtle
-                .decrypt(
-                  {
-                    'name': 'AES-GCM',
-                    'iv': iv,
-                    'additionalData': srcFrame.buffer.sublist(0, headerLength),
-                  }.jsify() as web.AlgorithmIdentifier,
-                  currentkeySet.encryptionKey,
-                  srcFrame.buffer.sublist(headerLength, srcFrame.buffer.length - ivLength - 2).toJS,
-                )
-                .toDart) as JSArrayBuffer)
-            .toDart;
+        decrypted =
+            ((await worker.crypto.subtle
+                        .decrypt(
+                          {
+                                'name': 'AES-GCM',
+                                'iv': iv,
+                                'additionalData': srcFrame.buffer.sublist(0, headerLength),
+                              }.jsify()
+                              as web.AlgorithmIdentifier,
+                          currentkeySet.encryptionKey,
+                          srcFrame.buffer.sublist(headerLength, srcFrame.buffer.length - ivLength - 2).toJS,
+                        )
+                        .toDart)
+                    as JSArrayBuffer)
+                .toDart;
         logger.finer('decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
 
         if (decrypted == null) {
