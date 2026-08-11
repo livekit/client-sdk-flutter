@@ -77,8 +77,8 @@ class PreConnectAudioBuffer {
     this._room, {
     PreConnectOnError? onError,
     int sampleRate = defaultSampleRate,
-  })  : _onError = onError,
-        _requestSampleRate = sampleRate;
+  }) : _onError = onError,
+       _requestSampleRate = sampleRate;
 
   /// Whether pre-connect recording is currently active.
   bool get isRecording => _isRecording;
@@ -175,17 +175,18 @@ class PreConnectAudioBuffer {
 
     // Listen for agent readiness and send the buffer when active.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
-        filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
-        (event) async {
-      logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
-      try {
-        await sendAudioData(agents: [event.participant.identity]);
-        _agentReadyManager.complete();
-      } catch (error) {
-        _agentReadyManager.completeError(error);
-        _onError?.call(error);
-      }
-    });
+      filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
+      (event) async {
+        logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
+        try {
+          await sendAudioData(agents: [event.participant.identity]);
+          _agentReadyManager.complete();
+        } catch (error) {
+          _agentReadyManager.completeError(error);
+          _onError?.call(error);
+        }
+      },
+    );
 
     _localTrackPublishedEvent = _room.events.waitFor<LocalTrackPublishedEvent>(
       duration: Duration(seconds: 10),
@@ -193,10 +194,12 @@ class PreConnectAudioBuffer {
     );
 
     // Emit the started event
-    _room.events.emit(PreConnectAudioBufferStartedEvent(
-      sampleRate: _requestSampleRate,
-      timeout: timeout,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStartedEvent(
+        sampleRate: _requestSampleRate,
+        timeout: timeout,
+      ),
+    );
   }
 
   /// Stops recording and releases audio capture resources.
@@ -227,10 +230,12 @@ class PreConnectAudioBuffer {
     withError != null ? _agentReadyManager.completeError(withError) : _agentReadyManager.complete();
 
     // Emit the stopped event
-    _room.events.emit(PreConnectAudioBufferStoppedEvent(
-      bufferedSize: _buffer.length,
-      isBufferSent: _isBufferSent,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStoppedEvent(
+        bufferedSize: _buffer.length,
+        isBufferSent: _isBufferSent,
+      ),
+    );
 
     logger.info('[Preconnect audio] stopped recording');
   }
@@ -332,7 +337,8 @@ class PreConnectAudioBuffer {
     final double secondsOfAudio = totalFrames / sampleRate;
 
     logger.info(
-        '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
+      '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)',
+    );
   }
 
   /// Updates the callback invoked when pre-connect audio fails.

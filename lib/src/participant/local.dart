@@ -73,11 +73,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     required String identity,
     required String name,
   }) : super(
-          room: room,
-          sid: sid,
-          identity: identity,
-          name: name,
-        );
+         room: room,
+         sid: sid,
+         identity: identity,
+         name: name,
+       );
 
   @internal
   static Future<LocalParticipant> createFromInfo({
@@ -244,10 +244,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         await removePublishedTrack(pub.sid);
       });
 
-      [events, room.events].emit(LocalTrackPublishedEvent(
-        participant: this,
-        publication: pub,
-      ));
+      [events, room.events].emit(
+        LocalTrackPublishedEvent(
+          participant: this,
+          publication: pub,
+        ),
+      );
 
       return pub;
     } catch (error) {
@@ -360,10 +362,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     ];
 
     if (publishOptions.backupVideoCodec.enabled && publishOptions.backupVideoCodec.codec != publishOptions.videoCodec) {
-      simulcastCodecs.add(lk_rtc.SimulcastCodec(
-        codec: publishOptions.backupVideoCodec.codec.toLowerCase(),
-        cid: '',
-      ));
+      simulcastCodecs.add(
+        lk_rtc.SimulcastCodec(
+          codec: publishOptions.backupVideoCodec.codec.toLowerCase(),
+          cid: '',
+        ),
+      );
     }
 
     final layers = Utils.computeVideoLayers(
@@ -398,11 +402,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(options.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+        room.engine.publisher?.setTrackBitrateInfo(
+          TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
             codec: options.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000));
+            maxbr: encodings![0].maxBitrate! ~/ 1000,
+          ),
+        );
       }
 
       await room.engine.negotiate();
@@ -412,7 +419,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final req = lk_rtc.AddTrackRequest(
       cid: track.getCid(),
-      name: publishOptions.name ??
+      name:
+          publishOptions.name ??
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
@@ -496,11 +504,14 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(TrackBitrateInfo(
+        room.engine.publisher?.setTrackBitrateInfo(
+          TrackBitrateInfo(
             cid: track.getCid(),
             transceiver: track.transceiver,
             codec: publishOptions.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000));
+            maxbr: encodings![0].maxBitrate! ~/ 1000,
+          ),
+        );
       }
 
       await room.engine.negotiate();
@@ -530,10 +541,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       await removePublishedTrack(pub.sid);
     });
 
-    [events, room.events].emit(LocalTrackPublishedEvent(
-      participant: this,
-      publication: pub,
-    ));
+    [events, room.events].emit(
+      LocalTrackPublishedEvent(
+        participant: this,
+        publication: pub,
+      ),
+    );
 
     return pub;
   }
@@ -599,10 +612,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     }
 
     if (notify) {
-      [events, room.events].emit(LocalTrackUnpublishedEvent(
-        participant: this,
-        publication: pub,
-      ));
+      [events, room.events].emit(
+        LocalTrackUnpublishedEvent(
+          participant: this,
+          publication: pub,
+        ),
+      );
     }
 
     await pub.dispose();
@@ -771,20 +786,30 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
   }
 
   /// Shortcut for publishing a [TrackSource.screenShareVideo]
-  Future<LocalTrackPublication?> setScreenShareEnabled(bool enabled,
-      {bool? captureScreenAudio, ScreenShareCaptureOptions? screenShareCaptureOptions}) async {
+  Future<LocalTrackPublication?> setScreenShareEnabled(
+    bool enabled, {
+    bool? captureScreenAudio,
+    ScreenShareCaptureOptions? screenShareCaptureOptions,
+  }) async {
     screenShareCaptureOptions ??= room.roomOptions.defaultScreenShareCaptureOptions;
-    return setSourceEnabled(TrackSource.screenShareVideo, enabled,
-        captureScreenAudio: captureScreenAudio, screenShareCaptureOptions: screenShareCaptureOptions);
+    return setSourceEnabled(
+      TrackSource.screenShareVideo,
+      enabled,
+      captureScreenAudio: captureScreenAudio,
+      screenShareCaptureOptions: screenShareCaptureOptions,
+    );
   }
 
   /// A convenience method to publish a track for a specific [TrackSource].
   /// This is the recommended method to publish tracks.
-  Future<LocalTrackPublication?> setSourceEnabled(TrackSource source, bool enabled,
-      {bool? captureScreenAudio,
-      AudioCaptureOptions? audioCaptureOptions,
-      CameraCaptureOptions? cameraCaptureOptions,
-      ScreenShareCaptureOptions? screenShareCaptureOptions}) {
+  Future<LocalTrackPublication?> setSourceEnabled(
+    TrackSource source,
+    bool enabled, {
+    bool? captureScreenAudio,
+    AudioCaptureOptions? audioCaptureOptions,
+    CameraCaptureOptions? cameraCaptureOptions,
+    ScreenShareCaptureOptions? screenShareCaptureOptions,
+  }) {
     return _publishRunner.run(() async {
       if (TrackSource.screenShareVideo == source && lkPlatformIsWebMobile()) {
         throw TrackCreateException('Screen sharing is not supported on mobile devices');
@@ -908,11 +933,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final oldValue = super.setPermissions(newValue);
     if (oldValue != null) {
       // notify
-      [events, room.events].emit(ParticipantPermissionsUpdatedEvent(
-        participant: this,
-        permissions: newValue,
-        oldPermissions: oldValue,
-      ));
+      [events, room.events].emit(
+        ParticipantPermissionsUpdatedEvent(
+          participant: this,
+          permissions: newValue,
+          oldPermissions: oldValue,
+        ),
+      );
     }
     return oldValue;
   }
@@ -972,7 +999,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final req = lk_rtc.AddTrackRequest(
       cid: cid,
-      name: options.name ??
+      name:
+          options.name ??
           (track.source == TrackSource.screenShareVideo
               ? VideoPublishOptions.defaultScreenShareName
               : VideoPublishOptions.defaultCameraName),
@@ -1024,14 +1052,16 @@ extension DataStreamParticipantMethods on LocalParticipant {
       options?.onProgress?.call(totalProgress.toDouble() / len);
     }
 
-    final writer = await streamText(StreamTextOptions(
-      streamId: streamId,
-      totalSize: totalTextLength,
-      destinationIdentities: options?.destinationIdentities ?? [],
-      topic: options?.topic,
-      attachedStreamIds: fileIds ?? [],
-      attributes: options?.attributes ?? {},
-    ));
+    final writer = await streamText(
+      StreamTextOptions(
+        streamId: streamId,
+        totalSize: totalTextLength,
+        destinationIdentities: options?.destinationIdentities ?? [],
+        topic: options?.topic,
+        attachedStreamIds: fileIds ?? [],
+        attributes: options?.attributes ?? {},
+      ),
+    );
 
     await writer.write(text);
     // set text part of progress to 1
@@ -1049,11 +1079,12 @@ extension DataStreamParticipantMethods on LocalParticipant {
                   fileIds![curIdx],
                   file,
                   SendFileOptions(
-                      topic: options.topic,
-                      mimeType: mime(basename(file.path)),
-                      onProgress: (progress) {
-                        handleProgress(progress, curIdx + 1);
-                      }),
+                    topic: options.topic,
+                    mimeType: mime(basename(file.path)),
+                    onProgress: (progress) {
+                      handleProgress(progress, curIdx + 1);
+                    },
+                  ),
                 );
               },
             ).toList() ??
@@ -1105,8 +1136,11 @@ extension DataStreamParticipantMethods on LocalParticipant {
     );
     await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
 
-    final writableStream =
-        WritableStream<String>(destinationIdentities: destinationIdentities!, engine: room.engine, streamId: streamId);
+    final writableStream = WritableStream<String>(
+      destinationIdentities: destinationIdentities!,
+      engine: room.engine,
+      streamId: streamId,
+    );
 
     onEngineClose() async {
       await writableStream.close();

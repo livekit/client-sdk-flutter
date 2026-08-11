@@ -38,9 +38,9 @@ enum CameraExposureMode { auto, locked }
 extension CameraPositionExt on CameraPosition {
   /// Return a [CameraPosition] which front and back is switched.
   CameraPosition switched() => switch (this) {
-        CameraPosition.front => CameraPosition.back,
-        CameraPosition.back => CameraPosition.front,
-      };
+    CameraPosition.front => CameraPosition.back,
+    CameraPosition.back => CameraPosition.front,
+  };
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the camera.
@@ -66,29 +66,29 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     this.stopCameraCaptureOnMute = true,
     TrackProcessor<VideoProcessorOptions>? processor,
   }) : super(
-          params: params,
-          deviceId: deviceId,
-          maxFrameRate: maxFrameRate,
-          processor: processor,
-        );
+         params: params,
+         deviceId: deviceId,
+         maxFrameRate: maxFrameRate,
+         processor: processor,
+       );
 
   CameraCaptureOptions.from({required VideoCaptureOptions captureOptions})
-      : cameraPosition = CameraPosition.front,
-        focusMode = CameraFocusMode.auto,
-        exposureMode = CameraExposureMode.auto,
-        stopCameraCaptureOnMute = true,
-        super(
-          params: captureOptions.params,
-          deviceId: captureOptions.deviceId,
-          maxFrameRate: captureOptions.maxFrameRate,
-          processor: captureOptions.processor,
-        );
+    : cameraPosition = CameraPosition.front,
+      focusMode = CameraFocusMode.auto,
+      exposureMode = CameraExposureMode.auto,
+      stopCameraCaptureOnMute = true,
+      super(
+        params: captureOptions.params,
+        deviceId: captureOptions.deviceId,
+        maxFrameRate: captureOptions.maxFrameRate,
+        processor: captureOptions.processor,
+      );
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
     final constraints = <String, dynamic>{
       ...super.toMediaConstraintsMap(),
-      if (deviceId == null) 'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment'
+      if (deviceId == null) 'facingMode': cameraPosition == CameraPosition.front ? 'user' : 'environment',
     };
     if (deviceId != null && deviceId!.isNotEmpty) {
       if (kIsWeb) {
@@ -99,7 +99,7 @@ class CameraCaptureOptions extends VideoCaptureOptions {
         }
       } else {
         constraints['optional'] = [
-          {'sourceId': deviceId}
+          {'sourceId': deviceId},
         ];
       }
     }
@@ -119,17 +119,16 @@ class CameraCaptureOptions extends VideoCaptureOptions {
     VideoParameters? params,
     bool? stopCameraCaptureOnMute,
     TrackProcessor<VideoProcessorOptions>? processor,
-  }) =>
-      CameraCaptureOptions(
-        cameraPosition: cameraPosition ?? this.cameraPosition,
-        focusMode: focusMode ?? this.focusMode,
-        exposureMode: exposureMode ?? this.exposureMode,
-        deviceId: deviceId ?? this.deviceId,
-        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        params: params ?? this.params,
-        stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
-        processor: processor ?? this.processor,
-      );
+  }) => CameraCaptureOptions(
+    cameraPosition: cameraPosition ?? this.cameraPosition,
+    focusMode: focusMode ?? this.focusMode,
+    exposureMode: exposureMode ?? this.exposureMode,
+    deviceId: deviceId ?? this.deviceId,
+    maxFrameRate: maxFrameRate ?? this.maxFrameRate,
+    params: params ?? this.params,
+    stopCameraCaptureOnMute: stopCameraCaptureOnMute ?? this.stopCameraCaptureOnMute,
+    processor: processor ?? this.processor,
+  );
 }
 
 /// Options used when creating a [LocalVideoTrack] that captures the screen.
@@ -158,13 +157,13 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     VideoParameters params = VideoParametersPresets.screenShareH1080FPS15,
   }) : super(params: params, deviceId: sourceId, maxFrameRate: maxFrameRate);
 
-  ScreenShareCaptureOptions.from(
-      {this.useiOSBroadcastExtension = false,
-      this.captureScreenAudio = false,
-      this.preferCurrentTab = false,
-      this.selfBrowserSurface,
-      required VideoCaptureOptions captureOptions})
-      : super(params: captureOptions.params);
+  ScreenShareCaptureOptions.from({
+    this.useiOSBroadcastExtension = false,
+    this.captureScreenAudio = false,
+    this.preferCurrentTab = false,
+    this.selfBrowserSurface,
+    required VideoCaptureOptions captureOptions,
+  }) : super(params: captureOptions.params);
 
   ScreenShareCaptureOptions copyWith({
     bool? useiOSBroadcastExtension,
@@ -174,16 +173,15 @@ class ScreenShareCaptureOptions extends VideoCaptureOptions {
     double? maxFrameRate,
     bool? preferCurrentTab,
     String? selfBrowserSurface,
-  }) =>
-      ScreenShareCaptureOptions(
-        useiOSBroadcastExtension: useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
-        captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
-        params: params ?? this.params,
-        sourceId: sourceId ?? deviceId,
-        maxFrameRate: maxFrameRate ?? this.maxFrameRate,
-        preferCurrentTab: preferCurrentTab ?? this.preferCurrentTab,
-        selfBrowserSurface: selfBrowserSurface ?? this.selfBrowserSurface,
-      );
+  }) => ScreenShareCaptureOptions(
+    useiOSBroadcastExtension: useiOSBroadcastExtension ?? this.useiOSBroadcastExtension,
+    captureScreenAudio: captureScreenAudio ?? this.captureScreenAudio,
+    params: params ?? this.params,
+    sourceId: sourceId ?? deviceId,
+    maxFrameRate: maxFrameRate ?? this.maxFrameRate,
+    preferCurrentTab: preferCurrentTab ?? this.preferCurrentTab,
+    selfBrowserSurface: selfBrowserSurface ?? this.selfBrowserSurface,
+  );
 
   @override
   Map<String, dynamic> toMediaConstraintsMap() {
@@ -281,24 +279,24 @@ class AudioProcessingOptions {
   });
 
   const AudioProcessingOptions.communication()
-      : echoCancellation = true,
-        noiseSuppression = true,
-        autoGainControl = true,
-        highPassFilter = true,
-        echoCancellationMode = AudioProcessingMode.automatic,
-        noiseSuppressionMode = AudioProcessingMode.automatic,
-        autoGainControlMode = AudioProcessingMode.automatic,
-        highPassFilterMode = AudioProcessingMode.automatic;
+    : echoCancellation = true,
+      noiseSuppression = true,
+      autoGainControl = true,
+      highPassFilter = true,
+      echoCancellationMode = AudioProcessingMode.automatic,
+      noiseSuppressionMode = AudioProcessingMode.automatic,
+      autoGainControlMode = AudioProcessingMode.automatic,
+      highPassFilterMode = AudioProcessingMode.automatic;
 
   const AudioProcessingOptions.noProcessing()
-      : echoCancellation = false,
-        noiseSuppression = false,
-        autoGainControl = false,
-        highPassFilter = false,
-        echoCancellationMode = AudioProcessingMode.automatic,
-        noiseSuppressionMode = AudioProcessingMode.automatic,
-        autoGainControlMode = AudioProcessingMode.automatic,
-        highPassFilterMode = AudioProcessingMode.automatic;
+    : echoCancellation = false,
+      noiseSuppression = false,
+      autoGainControl = false,
+      highPassFilter = false,
+      echoCancellationMode = AudioProcessingMode.automatic,
+      noiseSuppressionMode = AudioProcessingMode.automatic,
+      autoGainControlMode = AudioProcessingMode.automatic,
+      highPassFilterMode = AudioProcessingMode.automatic;
 
   final bool echoCancellation;
   final bool noiseSuppression;
@@ -310,15 +308,15 @@ class AudioProcessingOptions {
   final AudioProcessingMode highPassFilterMode;
 
   Map<String, dynamic> toMap() => {
-        'echoCancellation': echoCancellation,
-        'noiseSuppression': noiseSuppression,
-        'autoGainControl': autoGainControl,
-        'highPassFilter': highPassFilter,
-        'echoCancellationMode': echoCancellationMode.constraintValue,
-        'noiseSuppressionMode': noiseSuppressionMode.constraintValue,
-        'autoGainControlMode': autoGainControlMode.constraintValue,
-        'highPassFilterMode': highPassFilterMode.constraintValue,
-      };
+    'echoCancellation': echoCancellation,
+    'noiseSuppression': noiseSuppression,
+    'autoGainControl': autoGainControl,
+    'highPassFilter': highPassFilter,
+    'echoCancellationMode': echoCancellationMode.constraintValue,
+    'noiseSuppressionMode': noiseSuppressionMode.constraintValue,
+    'autoGainControlMode': autoGainControlMode.constraintValue,
+    'highPassFilterMode': highPassFilterMode.constraintValue,
+  };
 }
 
 /// Options used when creating a [LocalAudioTrack].
@@ -398,15 +396,15 @@ class AudioCaptureOptions extends LocalTrackOptions implements AudioProcessingOp
   });
 
   AudioProcessingOptions get processing => AudioProcessingOptions(
-        echoCancellation: echoCancellation,
-        noiseSuppression: noiseSuppression,
-        autoGainControl: autoGainControl,
-        highPassFilter: highPassFilter,
-        echoCancellationMode: echoCancellationMode,
-        noiseSuppressionMode: noiseSuppressionMode,
-        autoGainControlMode: autoGainControlMode,
-        highPassFilterMode: highPassFilterMode,
-      );
+    echoCancellation: echoCancellation,
+    noiseSuppression: noiseSuppression,
+    autoGainControl: autoGainControl,
+    highPassFilter: highPassFilter,
+    echoCancellationMode: echoCancellationMode,
+    noiseSuppressionMode: noiseSuppressionMode,
+    autoGainControlMode: autoGainControlMode,
+    highPassFilterMode: highPassFilterMode,
+  );
 
   @override
   Map<String, dynamic> toMap() => processing.toMap();

@@ -28,15 +28,18 @@ import 'remote.dart';
 
 class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagementMixin {
   String? _deviceId;
-  RemoteAudioTrack(TrackSource source, rtc.MediaStream stream, rtc.MediaStreamTrack track,
-      {rtc.RTCRtpReceiver? receiver})
-      : super(
-          TrackType.AUDIO,
-          source,
-          stream,
-          track,
-          receiver: receiver,
-        );
+  RemoteAudioTrack(
+    TrackSource source,
+    rtc.MediaStream stream,
+    rtc.MediaStreamTrack track, {
+    rtc.RTCRtpReceiver? receiver,
+  }) : super(
+         TrackType.AUDIO,
+         source,
+         stream,
+         track,
+         receiver: receiver,
+       );
 
   @override
   Future<bool> start() async {

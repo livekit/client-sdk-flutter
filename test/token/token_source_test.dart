@@ -179,8 +179,8 @@ void main() {
             {
               'agent_name': 'demo-agent',
               'metadata': '{"foo":"bar"}',
-            }
-          ]
+            },
+          ],
         },
       );
 
@@ -224,8 +224,8 @@ void main() {
       final token = _generateToken(
         roomConfig: {
           'agents': [
-            {'agent_name': 'assistant'}
-          ]
+            {'agent_name': 'assistant'},
+          ],
         },
       );
 
@@ -311,10 +311,12 @@ void main() {
       }
 
       final source = CustomTokenSource(customFunction);
-      final result = await source.fetch(const TokenRequestOptions(
-        participantName: 'custom-participant',
-        roomName: 'custom-room',
-      ));
+      final result = await source.fetch(
+        const TokenRequestOptions(
+          participantName: 'custom-participant',
+          roomName: 'custom-room',
+        ),
+      );
 
       expect(result.serverUrl, 'https://custom.livekit.io');
       expect(result.participantToken, 'custom-token');
@@ -503,7 +505,8 @@ String _generateToken({
 }) {
   final payload = <String, dynamic>{
     'sub': subject ?? 'test-participant',
-    'video': video ??
+    'video':
+        video ??
         {
           'room': 'test-room',
           'room_join': true,

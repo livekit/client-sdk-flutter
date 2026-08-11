@@ -44,13 +44,12 @@ class VideoEncoding implements Comparable<VideoEncoding> {
     int? maxBitrate,
     Priority? bitratePriority,
     Priority? networkPriority,
-  }) =>
-      VideoEncoding(
-        maxFramerate: maxFramerate ?? this.maxFramerate,
-        maxBitrate: maxBitrate ?? this.maxBitrate,
-        bitratePriority: bitratePriority ?? this.bitratePriority,
-        networkPriority: networkPriority ?? this.networkPriority,
-      );
+  }) => VideoEncoding(
+    maxFramerate: maxFramerate ?? this.maxFramerate,
+    maxBitrate: maxBitrate ?? this.maxBitrate,
+    bitratePriority: bitratePriority ?? this.bitratePriority,
+    networkPriority: networkPriority ?? this.networkPriority,
+  );
 
   @override
   String toString() =>
@@ -98,14 +97,13 @@ extension VideoEncodingExt on VideoEncoding {
     String? rid,
     double? scaleResolutionDownBy = 1.0,
     int? numTemporalLayers,
-  }) =>
-      rtc.RTCRtpEncoding(
-        rid: rid,
-        scaleResolutionDownBy: scaleResolutionDownBy,
-        maxFramerate: maxFramerate,
-        maxBitrate: maxBitrate,
-        numTemporalLayers: numTemporalLayers,
-        priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
-        networkPriority: networkPriority?.toRtcpPriorityType(),
-      );
+  }) => rtc.RTCRtpEncoding(
+    rid: rid,
+    scaleResolutionDownBy: scaleResolutionDownBy,
+    maxFramerate: maxFramerate,
+    maxBitrate: maxBitrate,
+    numTemporalLayers: numTemporalLayers,
+    priority: bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
+    networkPriority: networkPriority?.toRtcpPriorityType(),
+  );
 }

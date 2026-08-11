@@ -71,9 +71,11 @@ class DataPacketBuffer {
 
     // Log buffer limit enforcement
     if (removedCount > 0) {
-      logger.warning('DataPacketBuffer limit reached: removed $removedCount old packets. '
-          'Current: ${_buffer.length} packets, ${(_totalSize / 1024).round()}KB. '
-          'Limits: $maxPacketCount packets, ${(maxBufferSize / 1024).round()}KB');
+      logger.warning(
+        'DataPacketBuffer limit reached: removed $removedCount old packets. '
+        'Current: ${_buffer.length} packets, ${(_totalSize / 1024).round()}KB. '
+        'Limits: $maxPacketCount packets, ${(maxBufferSize / 1024).round()}KB',
+      );
     }
   }
 

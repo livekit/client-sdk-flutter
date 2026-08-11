@@ -304,39 +304,40 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   Widget _videoViewForNative() => FutureBuilder(
-      future: _initializeRenderer(),
-      builder: (context, snapshot) {
-        if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
-          return Builder(
-            key: _viewRegistration.key,
-            builder: (ctx) {
-              // let it render before notifying build
-              WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
-                widget.track.onVideoViewBuild?.call();
-              });
+    future: _initializeRenderer(),
+    builder: (context, snapshot) {
+      if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
+        return Builder(
+          key: _viewRegistration.key,
+          builder: (ctx) {
+            // let it render before notifying build
+            WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
+              widget.track.onVideoViewBuild?.call();
+            });
 
-              if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
-                return _videoRendererView();
-              }
-              return LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return GestureDetector(
-                    onScaleStart: (details) {},
-                    onScaleUpdate: (details) {
-                      if (details.scale != 1.0) {
-                        setZoom(details.scale);
-                      }
-                    },
-                    onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
-                    child: _videoRendererView(),
-                  );
-                },
-              );
-            },
-          );
-        }
-        return widget.placeholderBuilder?.call(context) ?? const SizedBox.shrink();
-      });
+            if (!lkPlatformIsMobile() || widget.track is! LocalVideoTrack) {
+              return _videoRendererView();
+            }
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return GestureDetector(
+                  onScaleStart: (details) {},
+                  onScaleUpdate: (details) {
+                    if (details.scale != 1.0) {
+                      setZoom(details.scale);
+                    }
+                  },
+                  onTapDown: (TapDownDetails details) => onViewFinderTap(details, constraints),
+                  child: _videoRendererView(),
+                );
+              },
+            );
+          },
+        );
+      }
+      return widget.placeholderBuilder?.call(context) ?? const SizedBox.shrink();
+    },
+  );
 
   // FutureBuilder will cause flickering for flutter web. so using
   // different rendering methods for web and native.
