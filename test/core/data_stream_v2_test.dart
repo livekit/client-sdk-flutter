@@ -30,6 +30,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
+import 'package:livekit_client/src/data_stream/data_streams_native.dart';
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
 
@@ -280,6 +281,109 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 100));
       expect(fired, isFalse);
+    });
+  });
+
+  group('encryption', () {
+    // Transport encryption is applied and undone in the engine, on the whole packet, either side
+    // of the FFI: the core only ever sees plaintext. The SDK passes along how each packet
+    // actually arrived, and the core holds every stream to the encryption its header arrived
+    // under. Injected at the same seam Room uses, below the engine's decrypt.
+    lk_models.DataPacket header(String streamId, String topic, {Int64? totalLength, List<int>? inline}) =>
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamHeader: lk_models.DataStream_Header(
+            streamId: streamId,
+            topic: topic,
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            totalLength: totalLength,
+            inlineContent: inline == null ? null : Uint8List.fromList(inline),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        );
+
+    test('a chunk that changes encryption fails the reader', () async {
+      final outcome = Completer<Object?>();
+      room.registerTextStreamHandler('sealed', (reader, identity) async {
+        try {
+          await reader.readAll();
+          outcome.complete(null);
+        } catch (e) {
+          outcome.complete(e);
+        }
+      });
+
+      room.dataStreams.handleIncomingPacket(
+        header('sealed-1', 'sealed', totalLength: Int64(5)),
+        EncryptionType.kGcm,
+      );
+      room.dataStreams.handleIncomingPacket(
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamChunk: lk_models.DataStream_Chunk(
+            streamId: 'sealed-1',
+            chunkIndex: Int64(0),
+            content: Uint8List.fromList(utf8.encode('hello')),
+          ),
+        ),
+        EncryptionType.kNone,
+      );
+
+      final error = await outcome.future.timeout(const Duration(seconds: 5));
+      expect(error, isA<DataStreamError>());
+      expect((error as DataStreamError).reason, DataStreamErrorReason.EncryptionTypeMismatch);
+      // The core reports which types disagreed.
+      expect(error.message, contains('expected'));
+    });
+
+    test('stream info reports the encryption the stream arrived under', () async {
+      // NOT the room's own setting: a plaintext stream in an encrypted room must be reported as
+      // plaintext, and vice versa.
+      final received = Completer<TextStreamInfo?>();
+      room.registerTextStreamHandler('sealed-info', (reader, identity) async {
+        received.complete(reader.info);
+      });
+
+      room.dataStreams.handleIncomingPacket(
+        header('sealed-2', 'sealed-info', totalLength: Int64(2), inline: utf8.encode('hi')),
+        EncryptionType.kGcm,
+      );
+
+      final info = await received.future.timeout(const Duration(seconds: 5));
+      expect(info?.encryptionType, EncryptionType.kGcm);
+    });
+  });
+
+  group('open stream accounting', () {
+    test('the count follows headers, and reset discards the manager', () async {
+      room.registerTextStreamHandler('counted', (reader, identity) async {});
+      final ds = room.dataStreams as NativeDataStreams;
+      expect(await ds.debugOpenStreamCount(), 0);
+
+      // A header with a declared total and no inline content stays open awaiting chunks. The
+      // count query is answered in order with the packet fed before it — no polling.
+      room.dataStreams.handleIncomingPacket(
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamHeader: lk_models.DataStream_Header(
+            streamId: 'counted-1',
+            topic: 'counted',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            totalLength: Int64(5),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        ),
+        EncryptionType.kNone,
+      );
+      expect(await ds.debugOpenStreamCount(), 1);
+
+      await room.dataStreams.reset();
+      expect(await ds.debugOpenStreamCount(), 0, reason: 'reset discards the manager');
     });
   });
 

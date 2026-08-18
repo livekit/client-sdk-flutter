@@ -19,6 +19,7 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:livekit_uniffi/livekit_uniffi.dart' as ffi;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' show basename;
 import 'package:uuid/uuid.dart';
 
@@ -532,6 +533,13 @@ class NativeDataStreams implements DataStreams {
   }
 
   // MARK: - Helpers
+
+  /// Number of incoming streams the core currently has open: announced by a header and still
+  /// awaiting more packets. Answered on the core's loop in order with the packets and aborts fed
+  /// before it, so a test can wait deterministically for one to land instead of polling. Zero
+  /// when no manager exists (before the first packet, or after [reset]).
+  @visibleForTesting
+  Future<int> debugOpenStreamCount() async => await _incoming?.openStreamCount() ?? 0;
 
   String get _localIdentity => _room.target?.localParticipant?.identity ?? '';
 
