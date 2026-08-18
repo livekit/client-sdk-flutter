@@ -293,7 +293,13 @@ class NativeDataStreams implements DataStreams {
     );
     _incoming = incoming.manager;
     _incomingStreams = incoming.streams;
-    unawaited(_pumpIncoming(incoming.streams));
+    // The two pumps share one queue object, so neither may dispose it on its own way out --
+    // the other might still have a call in flight (a use-after-free, not a Dart exception).
+    // Dispose exactly once, after both have exited; close() wakes them both.
+    final streams = incoming.streams;
+    unawaited(
+      Future.wait([_pumpIncoming(streams), _pumpClosed(streams)]).whenComplete(streams.dispose),
+    );
     return incoming.manager;
   }
 
@@ -312,7 +318,8 @@ class NativeDataStreams implements DataStreams {
 
   /// Drains opened streams from the core and dispatches them to the registered topic handler.
   ///
-  /// Owns the queue's lifetime, for the same reason as [_pumpOutgoing].
+  /// Queue disposal is coordinated in [_incomingManager], not here: the closed-stream pump shares
+  /// the queue object.
   Future<void> _pumpIncoming(ffi.IncomingStreamQueue streams) async {
     try {
       while (true) {
@@ -326,8 +333,19 @@ class NativeDataStreams implements DataStreams {
       }
     } catch (e) {
       logger.warning('[DataStreams] incoming pump failed: $e');
-    } finally {
-      streams.dispose();
+    }
+  }
+
+  /// Drains stream-closed notifications and discards them.
+  ///
+  /// Nothing consumes the signal yet -- it exists for ordered per-topic delivery, which this SDK
+  /// does not implement -- but the queue is unbounded on the Rust side, so leaving it undrained
+  /// would grow memory with every stream received for the manager's lifetime.
+  Future<void> _pumpClosed(ffi.IncomingStreamQueue streams) async {
+    try {
+      while (await streams.nextClosedStream() != null) {}
+    } catch (e) {
+      logger.warning('[DataStreams] closed-stream pump failed: $e');
     }
   }
 
