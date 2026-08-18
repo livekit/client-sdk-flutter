@@ -499,7 +499,20 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<void> reset() async {
-    _incoming?.abortAllStreams();
+    // Discard the manager rather than reuse it: its payload cap is fixed at construction, and
+    // the connect options it came from can change between sessions of the same Room. The next
+    // inbound packet builds a fresh one against the current options; handler registrations live
+    // on this class and survive.
+    final incoming = _incoming;
+    final streams = _incomingStreams;
+    _incoming = null;
+    _incomingStreams = null;
+    if (incoming == null) return;
+    // Fail blocked readers first, then wake the pumps by closing the queue; they dispose the
+    // queue they share once both have exited. The manager itself has nothing awaiting it.
+    incoming.abortAllStreams();
+    streams?.close();
+    incoming.dispose();
   }
 
   @override
