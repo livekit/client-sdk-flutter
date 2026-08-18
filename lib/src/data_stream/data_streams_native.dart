@@ -301,7 +301,13 @@ class NativeDataStreams implements DataStreams {
   void handleIncomingPacket(lk_models.DataPacket packet, EncryptionType encryptionType) {
     if (_disposed) return;
     // The core decodes the header/chunk/trailer itself, so hand it the whole packet.
-    _incomingManager().handlePacketReceived(packet: packet.writeToBuffer());
+    // [encryptionType] is how the packet actually arrived, as determined by the engine; the core
+    // cannot recover it from the bytes (decryption replaces the encrypted_packet oneof member)
+    // and uses it to hold every stream to the encryption its header arrived under.
+    _incomingManager().handlePacketReceived(
+      packet: packet.writeToBuffer(),
+      encryptionType: encryptionType.toFfi(),
+    );
   }
 
   /// Drains opened streams from the core and dispatches them to the registered topic handler.
@@ -327,13 +333,15 @@ class NativeDataStreams implements DataStreams {
 
   void _dispatchOpenedStream(ffi.OpenedStream opened) {
     final identity = opened.identity;
-    final encryptionType = _currentEncryptionType;
 
     final textReader = opened.textReader;
     if (textReader != null) {
-      final info = textReader.info().toLK(
+      final ffiInfo = textReader.info();
+      // The core stamps incoming infos with the encryption the stream's header arrived under, so
+      // a plaintext stream is reported as plaintext even in a room with encryption enabled.
+      final info = ffiInfo.toLK(
         sendingParticipantIdentity: identity,
-        encryptionType: encryptionType,
+        encryptionType: ffiInfo.encryptionType.toLK(),
       );
       final handler = _textStreamHandlers[info.topic];
       if (handler == null) {
@@ -356,9 +364,10 @@ class NativeDataStreams implements DataStreams {
 
     final byteReader = opened.byteReader;
     if (byteReader != null) {
-      final info = byteReader.info().toLK(
+      final ffiInfo = byteReader.info();
+      final info = ffiInfo.toLK(
         sendingParticipantIdentity: identity,
-        encryptionType: encryptionType,
+        encryptionType: ffiInfo.encryptionType.toLK(),
       );
       final handler = _byteStreamHandlers[info.topic];
       if (handler == null) {
@@ -495,8 +504,10 @@ class NativeDataStreams implements DataStreams {
 
   String get _localIdentity => _room.target?.localParticipant?.identity ?? '';
 
-  /// The FFI normalizes every stream's encryption type to none — payload crypto happens in the
-  /// engine — so surface the room's data-channel setting to preserve the previous behavior.
+  /// The room's data-channel encryption, stamped onto OUTGOING streams only: payload crypto
+  /// happens in the engine after the core, so the core normalizes outgoing infos to none.
+  /// Incoming streams need no fixup — the core stamps them with the encryption their header
+  /// actually arrived under, as passed to [handleIncomingPacket].
   EncryptionType get _currentEncryptionType {
     final room = _room.target;
     final enabled = room?.e2eeManager?.isDataChannelEncryptionEnabled ?? false;

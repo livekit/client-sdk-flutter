@@ -26,8 +26,9 @@ import 'errors.dart';
 /// public types, so those stay free of any `livekit_uniffi` import. Dart has no `internal import`
 /// to enforce that, so the rule is by convention — see AGENTS.md.
 ///
-/// The FFI's stream info carries no encryption type (the Rust core normalizes it to `none` and
-/// expects already-decrypted packets), so callers inject the room's current one.
+/// Incoming stream infos carry the encryption type the core was told the stream's header arrived
+/// under (via `handlePacketReceived`); outgoing infos are normalized to `none` because payload
+/// crypto happens in the engine, after the core, so callers inject the room's current one there.
 extension FfiTextStreamInfo on ffi.TextStreamInfo {
   TextStreamInfo toLK({
     required String sendingParticipantIdentity,
@@ -84,6 +85,22 @@ extension LKTextStreamOperationType on TextStreamOperationType {
   };
 }
 
+extension FfiEncryptionType on ffi.EncryptionType {
+  EncryptionType toLK() => switch (this) {
+    ffi.EncryptionType.none => EncryptionType.kNone,
+    ffi.EncryptionType.gcm => EncryptionType.kGcm,
+    ffi.EncryptionType.custom => EncryptionType.kCustom,
+  };
+}
+
+extension LKEncryptionType on EncryptionType {
+  ffi.EncryptionType toFfi() => switch (this) {
+    EncryptionType.kNone => ffi.EncryptionType.none,
+    EncryptionType.kGcm => ffi.EncryptionType.gcm,
+    EncryptionType.kCustom => ffi.EncryptionType.custom,
+  };
+}
+
 extension LKClientCapability on ClientCapability {
   ffi.ClientCapability toFfi() => switch (this) {
     ClientCapability.packetTrailer => ffi.ClientCapability.packetTrailer,
@@ -108,7 +125,13 @@ DataStreamError toLKError(ffi.DataStreamException e) {
     ffi.EncryptionTypeMismatchDataStreamException() => DataStreamErrorReason.EncryptionTypeMismatch,
     _ => DataStreamErrorReason.AbnormalEnd,
   };
-  return DataStreamError(reason: reason, message: e.toString());
+  final message = switch (e) {
+    // Carry the typed detail the core now reports, so the app can say WHICH types disagreed.
+    ffi.EncryptionTypeMismatchDataStreamException(:final expected, :final received) =>
+      'Encryption type mismatch: expected ${expected.toLK()}, received ${received.toLK()}',
+    _ => e.toString(),
+  };
+  return DataStreamError(reason: reason, message: message);
 }
 
 /// Runs [body], translating any FFI error into the public [DataStreamError].
