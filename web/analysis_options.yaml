@@ -28,6 +28,18 @@ analyzer:
     avoid_print: ignore
     deprecated_member_use_from_same_package: ignore
 
+linter:
+  rules:
+    # Preference of the SDK
+    prefer_single_quotes: true
+    prefer_final_locals: true
+    unnecessary_brace_in_string_interps: false
+    avoid_print: true
+
+    # Enforce this for correct async logic
+    unawaited_futures: true
+    discarded_futures: true
+
 formatter:
   page_width: 120
   trailing_commas: preserve
