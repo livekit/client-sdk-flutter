@@ -33,6 +33,12 @@ analyzer:
     # Manager is enabled and this package ships Package.swift.
     - build/**
     - example/build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:
