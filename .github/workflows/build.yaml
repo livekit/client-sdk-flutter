@@ -66,6 +66,12 @@ jobs:
       - uses: ./.github/actions/setup-flutter
       - name: Dart Analyze Check
         run: flutter analyze
+      # `flutter analyze` runs Flutter's AnalysisOptionsMigration first, which
+      # forces `web/**` into analysis_options.yaml. This package keeps real Dart
+      # source there (the E2EE worker), so analyze it separately -- `dart
+      # analyze` does not run migrators.
+      - name: Dart Analyze Check (web sources)
+        run: dart analyze web/
 
   dart-test-check:
     name: Dart Test
