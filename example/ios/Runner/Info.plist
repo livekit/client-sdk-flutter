@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>RTCScreenSharingExtension</key>
-	<string>io.livekit.example.flutter.LiveKit-Broadcast-Extension</string>
-	<key>RTCAppGroupIdentifier</key>
-	<string>group.io.livekit.example.flutter</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -32,6 +28,12 @@
 	<string>$(PRODUCT_NAME) will use camera</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) will use microphone</string>
+	<key>RTCAppGroupIdentifier</key>
+	<string>group.io.livekit.example.flutter</string>
+	<key>RTCScreenSharingExtension</key>
+	<string>io.livekit.example.flutter.LiveKit-Broadcast-Extension</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -55,7 +57,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 </dict>
 </plist>
