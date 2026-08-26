@@ -26,9 +26,13 @@ class RoomAgentDispatch {
   /// Metadata for the agent.
   final String? metadata;
 
+  /// Optional deployment to target. Leave empty to target the production deployment.
+  final String? deployment;
+
   const RoomAgentDispatch({
     this.agentName,
     this.metadata,
+    this.deployment,
   });
 
   factory RoomAgentDispatch.fromJson(Map<String, dynamic> json) => _$RoomAgentDispatchFromJson(json);

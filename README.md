@@ -46,7 +46,7 @@ Include this package to your `pubspec.yaml`
 ```yaml
 ---
 dependencies:
-  livekit_client: ^2.6.4
+  livekit_client: ^2.11.0
 ```
 
 ### iOS
@@ -150,30 +150,18 @@ void main() async {
 
 #### Audio Modes
 
-By default, we use the `communication` audio mode on Android which works best for two-way voice communication.
+By default LiveKit uses the `communication` audio mode on Android, which works best for two-way voice communication.
 
-If your app is media playback oriented and does not need the use of the device's microphone, you can use the `media`
-audio mode which will provide better audio quality.
+If your app is media playback oriented and does not need the device's microphone, apply the `media` session yourself. This
+switches `AudioManager` to manual mode, where your app owns the session.
 
 ```dart
-import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
-
-Future<void> _initializeAndroidAudioSettings() async {
-  await webrtc.WebRTC.initialize(options: {
-    'androidAudioConfiguration': webrtc.AndroidAudioConfiguration.media.toMap()
-  });
-  webrtc.Helper.setAndroidAudioConfiguration(
-      webrtc.AndroidAudioConfiguration.media);
-}
-
-void main() async {
-  await _initializeAudioSettings();
-  runApp(const MyApp());
-}
+await AudioManager.instance.setAudioSessionOptions(
+  const AudioSessionOptions.media(),
+);
 ```
 
-Note: the audio routing will become controlled by the system and cannot be manually changed with functions like
-`Hardware.selectAudioOutput`.
+See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/doc/audio.md) for more.
 
 ### Desktop support
 
@@ -208,6 +196,107 @@ try {
 
 await room.localParticipant.setMicrophoneEnabled(true);
 ```
+
+### Certificate pinning
+
+Certificate pinning is available for native platforms through `RoomOptions.networkOptions`. It applies to SDK-owned WSS signaling and internal HTTPS requests. It does not apply to WebRTC media, TURN, or application-owned token endpoints.
+
+Certificate pinning is not supported on Flutter web because browsers do not expose certificate material to application code. Configuring it on web is treated as a misconfiguration and fails fast: `Room.connect` throws `UnsupportedError` instead of silently connecting without pinning. Only enable `certificatePinning` on web builds if you want that behavior, otherwise leave it unset when targeting web.
+
+On native platforms, validation runs during TLS connection setup after the peer certificate is available and before the SDK writes HTTP or WSS request bytes. If validation fails, request headers and bodies are not sent.
+
+Rules are selected by host. Exact hosts like `project.livekit.cloud`, single-label wildcards like `*.livekit.cloud`, multi-label wildcards like `**.livekit.cloud`, and `*` are supported. `*.livekit.cloud` matches `project.livekit.cloud`, but not `a.b.livekit.cloud`. `**.livekit.cloud` matches both. Rules with empty `hosts` apply to every SDK-owned TLS connection.
+
+Hosts that match no rule are connected with platform trust only, and the SDK logs a warning. Keep in mind the SDK also connects to hosts you did not write yourself: LiveKit Cloud region failover uses server-provided regional hostnames like `project.region.production.livekit.cloud`, which carry more labels than your project URL. Use `**.livekit.cloud` so pinning also covers those hosts, and make sure the pin set includes the keys the regional endpoints serve.
+
+All rules that match the connection host are applied. Within one check type, any configured value may match. Across check types, each configured type must pass. For example, two matching SPKI rules are treated as one accepted pin set, while SPKI pins plus exact leaf certificates require both the SPKI check and the exact leaf certificate check to pass.
+
+Use SPKI SHA-256 pins when possible. `primaryPins` and `backupPins` are both accepted. Backup pins are useful for certificate rotation because the SDK accepts either set.
+
+SPKI pins are matched against the leaf certificate's public key only. Unlike OkHttp or HPKP, the rest of the chain is not checked because Dart does not expose it, so pinning an intermediate or root CA key never matches and fails every connection. Pin leaf keys, and use backup pins for the future leaf keys you plan to rotate to.
+
+```dart
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['**.livekit.cloud'],
+          primaryPins: ['sha256/current-public-key-pin'],
+          backupPins: [
+            'sha256/next-public-key-pin-1',
+            'sha256/next-public-key-pin-2',
+          ],
+        ),
+      ],
+    ),
+  ),
+);
+
+final room = Room(roomOptions: roomOptions);
+await room.connect(url, token);
+```
+
+To generate an SPKI pin:
+
+```bash
+openssl s_client -connect your-host:443 -servername your-host </dev/null 2>/dev/null \
+  | openssl x509 -pubkey -noout \
+  | openssl pkey -pubin -outform der \
+  | openssl dgst -sha256 -binary \
+  | openssl base64
+```
+
+Prefix the output with `sha256/` before passing it to `primaryPins` or `backupPins`.
+
+Certificate rules can also enforce exact leaf certificates or a custom TLS trust store.
+
+Use `pinnedLeafCertificates` to require an exact peer leaf certificate after TLS trust validation succeeds. Renewing or changing the leaf certificate requires shipping updated pinned certificates.
+
+By itself, `pinnedLeafCertificates` does not trust private or self-signed certificates. For private PKI, also configure `trustedCertificates` with the leaf, intermediate, or root certificate that should anchor TLS validation.
+
+```dart
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_leaf_cert.pem',
+);
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['my-project.livekit.cloud'],
+          pinnedLeafCertificates: [certificate],
+          trustedCertificates: [certificate],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
+Use `trustedCertificates` to validate TLS against a custom trust store, similar to `SecurityContext.setTrustedCertificatesBytes`. The SDK builds a per-connection trust store from these certificates and does not include the platform trusted roots for that host. The bytes can contain a leaf, intermediate, or root certificate.
+
+```dart
+final certificate = await CertificateBytes.fromAsset(
+  'assets/livekit_intermediate_ca.pem',
+);
+
+final roomOptions = RoomOptions(
+  networkOptions: NetworkOptions(
+    certificatePinning: CertificatePinningOptions(
+      rules: [
+        CertificatePinningRule(
+          hosts: ['**.livekit.cloud'],
+          trustedCertificates: [certificate],
+        ),
+      ],
+    ),
+  ),
+);
+```
+
+When a pinning rule matches a host, the SDK owns TLS setup for that connection and `HttpOverrides.global` or `HttpClient.badCertificateCallback` are not consulted. An app that relies on a bad certificate callback to accept a self-signed server certificate will see a `HandshakeException` once pinning is enabled for that host. Use `trustedCertificates` to trust the self-signed or private CA certificate instead.
 
 ### Screen sharing
 
@@ -321,6 +410,13 @@ Widget build(BuildContext context) {
 ### Audio handling
 
 Audio tracks are played automatically as long as you are subscribed to them.
+
+LiveKit owns the platform audio session through `AudioManager`. A call is managed automatically with no setup. Speaker routing and, when you need it, manual session control go through the same object. See the [audio session guide](https://github.com/livekit/client-sdk-flutter/blob/main/doc/audio.md) for examples covering the automatic and manual modes, speaker routing, per platform overrides, and migration from the older `Hardware` APIs.
+
+```dart
+// A call is managed automatically. Route to the speaker when you want.
+await AudioManager.instance.setSpeakerOutputPreferred(true);
+```
 
 ### Handling changes
 
@@ -478,6 +574,38 @@ These controls are accessible on the `RemoteTrackPublication` object.
 
 For more info, see [Subscribing to tracks](https://docs.livekit.io/home/client/tracks/subscribe/).
 
+### Diagnosing connection issues
+
+`ConnectionCheck` runs a set of connection diagnostics against a LiveKit server — the same checks that power [livekit.io/connection-test](https://livekit.io/connection-test). Run it proactively at app start, or reactively when `room.connect()` fails, to determine why a connection cannot be established (firewall, VPN, blocked TURN, etc.).
+
+```dart
+final connectionCheck = ConnectionCheck(url, token);
+final listener = connectionCheck.createListener();
+listener.on<ConnectionCheckUpdateEvent>((event) {
+  print('${event.info.name}: ${event.info.status.name}');
+  for (final log in event.info.logs) {
+    print('  $log');
+  }
+});
+
+// the recommended minimum set of checks
+await connectionCheck.checkWebsocket();
+await connectionCheck.checkWebRTC();
+await connectionCheck.checkTURN();
+
+// additional checks
+await connectionCheck.checkReconnect();
+await connectionCheck.checkPublishAudio(); // requires microphone permission
+await connectionCheck.checkPublishVideo(); // requires camera permission
+await connectionCheck.checkConnectionProtocol();
+await connectionCheck.checkCloudRegion(); // LiveKit Cloud only
+
+print('all checks passed: ${connectionCheck.isSuccess}');
+
+await listener.dispose();
+await connectionCheck.dispose();
+```
+
 ## Getting help / Contributing
 
 Please join us on [Slack](https://livekit.io/join-slack) to get help from our devs / community members. We welcome your contributions(PRs) and details can be discussed there.
@@ -494,12 +622,14 @@ A huge thank you to [flutter-webrtc](https://github.com/flutter-webrtc/flutter-w
 <br/><table>
 <thead><tr><th colspan="2">LiveKit Ecosystem</th></tr></thead>
 <tbody>
-<tr><td>LiveKit SDKs</td><td><a href="https://github.com/livekit/client-sdk-js">Browser</a> · <a href="https://github.com/livekit/client-sdk-swift">iOS/macOS/visionOS</a> · <a href="https://github.com/livekit/client-sdk-android">Android</a> · <b>Flutter</b> · <a href="https://github.com/livekit/client-sdk-react-native">React Native</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/client-sdk-unity">Unity</a> · <a href="https://github.com/livekit/client-sdk-unity-web">Unity (WebGL)</a> · <a href="https://github.com/livekit/client-sdk-esp32">ESP32</a></td></tr><tr></tr>
-<tr><td>Server APIs</td><td><a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/server-sdk-go">Golang</a> · <a href="https://github.com/livekit/server-sdk-ruby">Ruby</a> · <a href="https://github.com/livekit/server-sdk-kotlin">Java/Kotlin</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/agence104/livekit-server-sdk-php">PHP (community)</a> · <a href="https://github.com/pabloFuente/livekit-server-sdk-dotnet">.NET (community)</a></td></tr><tr></tr>
+<tr><td>Agents SDKs</td><td><a href="https://github.com/livekit/agents">Python</a> · <a href="https://github.com/livekit/agents-js">Node.js</a></td></tr><tr></tr>
+<tr><td>LiveKit SDKs</td><td><a href="https://github.com/livekit/client-sdk-js">Browser</a> · <a href="https://github.com/livekit/client-sdk-swift">Swift</a> · <a href="https://github.com/livekit/client-sdk-android">Android</a> · <b>Flutter</b> · <a href="https://github.com/livekit/client-sdk-react-native">React Native</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/client-sdk-unity">Unity</a> · <a href="https://github.com/livekit/client-sdk-unity-web">Unity (WebGL)</a> · <a href="https://github.com/livekit/client-sdk-esp32">ESP32</a> · <a href="https://github.com/livekit/client-sdk-cpp">C++</a></td></tr><tr></tr>
+<tr><td>Starter Apps</td><td><a href="https://github.com/livekit-examples/agent-starter-python">Python Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-node">TypeScript Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-react">React App</a> · <a href="https://github.com/livekit-examples/agent-starter-swift">SwiftUI App</a> · <a href="https://github.com/livekit-examples/agent-starter-android">Android App</a> · <a href="https://github.com/livekit-examples/agent-starter-flutter">Flutter App</a> · <a href="https://github.com/livekit-examples/agent-starter-react-native">React Native App</a> · <a href="https://github.com/livekit-examples/agent-starter-embed">Web Embed</a></td></tr><tr></tr>
 <tr><td>UI Components</td><td><a href="https://github.com/livekit/components-js">React</a> · <a href="https://github.com/livekit/components-android">Android Compose</a> · <a href="https://github.com/livekit/components-swift">SwiftUI</a> · <a href="https://github.com/livekit/components-flutter">Flutter</a></td></tr><tr></tr>
-<tr><td>Agents Frameworks</td><td><a href="https://github.com/livekit/agents">Python</a> · <a href="https://github.com/livekit/agents-js">Node.js</a> · <a href="https://github.com/livekit/agent-playground">Playground</a></td></tr><tr></tr>
-<tr><td>Services</td><td><a href="https://github.com/livekit/livekit">LiveKit server</a> · <a href="https://github.com/livekit/egress">Egress</a> · <a href="https://github.com/livekit/ingress">Ingress</a> · <a href="https://github.com/livekit/sip">SIP</a></td></tr><tr></tr>
-<tr><td>Resources</td><td><a href="https://docs.livekit.io">Docs</a> · <a href="https://github.com/livekit-examples">Example apps</a> · <a href="https://livekit.io/cloud">Cloud</a> · <a href="https://docs.livekit.io/home/self-hosting/deployment">Self-hosting</a> · <a href="https://github.com/livekit/livekit-cli">CLI</a></td></tr>
+<tr><td>Server APIs</td><td><a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/server-sdk-go">Golang</a> · <a href="https://github.com/livekit/server-sdk-ruby">Ruby</a> · <a href="https://github.com/livekit/server-sdk-kotlin">Java/Kotlin</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/agence104/livekit-server-sdk-php">PHP (community)</a> · <a href="https://github.com/pabloFuente/livekit-server-sdk-dotnet">.NET (community)</a></td></tr><tr></tr>
+<tr><td>Resources</td><td><a href="https://docs.livekit.io">Docs</a> · <a href="https://docs.livekit.io/mcp">Docs MCP Server</a> · <a href="https://github.com/livekit/livekit-cli">CLI</a> · <a href="https://cloud.livekit.io">LiveKit Cloud</a></td></tr><tr></tr>
+<tr><td>LiveKit Server OSS</td><td><a href="https://github.com/livekit/livekit">LiveKit server</a> · <a href="https://github.com/livekit/egress">Egress</a> · <a href="https://github.com/livekit/ingress">Ingress</a> · <a href="https://github.com/livekit/sip">SIP</a></td></tr><tr></tr>
+<tr><td>Community</td><td><a href="https://community.livekit.io">Developer Community</a> · <a href="https://livekit.io/join-slack">Slack</a> · <a href="https://x.com/livekit">X</a> · <a href="https://www.youtube.com/@livekit_io">YouTube</a></td></tr>
 </tbody>
 </table>
 <!--END_REPO_NAV-->

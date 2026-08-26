@@ -14,22 +14,21 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
+import '../audio/audio_frame_capture.dart';
 import '../core/room.dart';
 import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
 import '../support/byte_ring_buffer.dart';
+import '../support/native.dart';
+import '../support/platform.dart';
 import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_state.dart';
-import 'audio_frame_capture.dart';
 
 typedef PreConnectOnError = void Function(Object error);
 
@@ -78,8 +77,8 @@ class PreConnectAudioBuffer {
     this._room, {
     PreConnectOnError? onError,
     int sampleRate = defaultSampleRate,
-  })  : _onError = onError,
-        _requestSampleRate = sampleRate;
+  }) : _onError = onError,
+       _requestSampleRate = sampleRate;
 
   /// Whether pre-connect recording is currently active.
   bool get isRecording => _isRecording;
@@ -132,7 +131,7 @@ class PreConnectAudioBuffer {
       rendererId: rendererId,
       sampleRate: _requestSampleRate,
       channels: 1,
-      commonFormat: 'int16',
+      format: AudioFormat.Int16,
     );
 
     if (!result) {
@@ -145,9 +144,16 @@ class PreConnectAudioBuffer {
       throw error;
     }
 
-    if (!kIsWeb) {
-      await webrtc.NativeAudioManagement.startLocalRecording();
-      _nativeRecordingStarted = true;
+    try {
+      await _localTrack!.start();
+      _nativeRecordingStarted = lkPlatformSupportsExplicitAudioRecordingStart();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to start local recording: $error');
+      _onError?.call(error);
+      await stopRecording(withError: error);
+      await _localTrack?.stop();
+      _localTrack = null;
+      rethrow;
     }
 
     logger.info('startAudioRenderer result: $result');
@@ -169,17 +175,18 @@ class PreConnectAudioBuffer {
 
     // Listen for agent readiness and send the buffer when active.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
-        filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
-        (event) async {
-      logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
-      try {
-        await sendAudioData(agents: [event.participant.identity]);
-        _agentReadyManager.complete();
-      } catch (error) {
-        _agentReadyManager.completeError(error);
-        _onError?.call(error);
-      }
-    });
+      filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
+      (event) async {
+        logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
+        try {
+          await sendAudioData(agents: [event.participant.identity]);
+          _agentReadyManager.complete();
+        } catch (error) {
+          _agentReadyManager.completeError(error);
+          _onError?.call(error);
+        }
+      },
+    );
 
     _localTrackPublishedEvent = _room.events.waitFor<LocalTrackPublishedEvent>(
       duration: Duration(seconds: 10),
@@ -187,10 +194,12 @@ class PreConnectAudioBuffer {
     );
 
     // Emit the started event
-    _room.events.emit(PreConnectAudioBufferStartedEvent(
-      sampleRate: _requestSampleRate,
-      timeout: timeout,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStartedEvent(
+        sampleRate: _requestSampleRate,
+        timeout: timeout,
+      ),
+    );
   }
 
   /// Stops recording and releases audio capture resources.
@@ -210,9 +219,9 @@ class PreConnectAudioBuffer {
     await _audioCapture?.stop();
     _audioCapture = null;
 
-    // Stop native recording session if it was started.
-    if (_nativeRecordingStarted) {
-      await webrtc.NativeAudioManagement.stopLocalRecording();
+    // Only stop native recording on error, the room's mic track still uses it.
+    if (withError != null && _nativeRecordingStarted) {
+      await Native.stopLocalRecording();
     }
 
     _nativeRecordingStarted = false;
@@ -221,10 +230,12 @@ class PreConnectAudioBuffer {
     withError != null ? _agentReadyManager.completeError(withError) : _agentReadyManager.complete();
 
     // Emit the stopped event
-    _room.events.emit(PreConnectAudioBufferStoppedEvent(
-      bufferedSize: _buffer.length,
-      isBufferSent: _isBufferSent,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStoppedEvent(
+        bufferedSize: _buffer.length,
+        isBufferSent: _isBufferSent,
+      ),
+    );
 
     logger.info('[Preconnect audio] stopped recording');
   }
@@ -326,7 +337,8 @@ class PreConnectAudioBuffer {
     final double secondsOfAudio = totalFrames / sampleRate;
 
     logger.info(
-        '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
+      '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)',
+    );
   }
 
   /// Updates the callback invoked when pre-connect audio fails.

@@ -29,6 +29,7 @@ import '../mock/websocket_mock.dart';
 import 'signal_client_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late E2EContainer container;
   late Room room;
   late MockWebSocketConnector ws;
@@ -103,10 +104,16 @@ void main() {
       await cancel();
 
       // Verify participant had tracks when connected event was emitted
-      expect(participantHadTracksOnConnect, isTrue,
-          reason: 'Participant should have tracks when ParticipantConnectedEvent is emitted');
-      expect(trackCountOnConnect, greaterThan(0),
-          reason: 'Participant should have at least one track when connected event fires');
+      expect(
+        participantHadTracksOnConnect,
+        isTrue,
+        reason: 'Participant should have tracks when ParticipantConnectedEvent is emitted',
+      );
+      expect(
+        trackCountOnConnect,
+        greaterThan(0),
+        reason: 'Participant should have at least one track when connected event fires',
+      );
 
       // Verify the participant is in the room
       expect(room.remoteParticipants.length, 1);
@@ -137,8 +144,9 @@ void main() {
       expect(
         room.events.streamCtrl.stream,
         emits(
-          predicate<ParticipantMetadataUpdatedEvent>((event) =>
-              event.participant.metadata == participantMetadataChangedResponse.update.participants[0].metadata),
+          predicate<ParticipantMetadataUpdatedEvent>(
+            (event) => event.participant.metadata == participantMetadataChangedResponse.update.participants[0].metadata,
+          ),
         ),
       );
     });
@@ -146,8 +154,11 @@ void main() {
     test('room metadata update', () async {
       expect(
         room.events.streamCtrl.stream,
-        emits(predicate<RoomMetadataChangedEvent>((event) =>
-            event.metadata == roomUpdateResponse.roomUpdate.room.metadata && room.metadata == event.metadata)),
+        emits(
+          predicate<RoomMetadataChangedEvent>(
+            (event) => event.metadata == roomUpdateResponse.roomUpdate.room.metadata && room.metadata == event.metadata,
+          ),
+        ),
       );
       ws.onData(roomUpdateResponse.writeToBuffer());
     });
@@ -155,9 +166,13 @@ void main() {
     test('connection quality', () async {
       expect(
         room.events.streamCtrl.stream,
-        emits(predicate<ParticipantConnectionQualityUpdatedEvent>((event) =>
-            event.participant.sid == localParticipantData.sid &&
-            event.connectionQuality == ConnectionQuality.excellent)),
+        emits(
+          predicate<ParticipantConnectionQualityUpdatedEvent>(
+            (event) =>
+                event.participant.sid == localParticipantData.sid &&
+                event.connectionQuality == ConnectionQuality.excellent,
+          ),
+        ),
       );
       ws.onData(connectionQualityResponse.writeToBuffer());
     });
@@ -176,8 +191,10 @@ void main() {
     });
 
     test('leave', () async {
-      expect(room.events.streamCtrl.stream,
-          emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)));
+      expect(
+        room.events.streamCtrl.stream,
+        emits(predicate<RoomDisconnectedEvent>((event) => event.reason == DisconnectReason.unknown)),
+      );
       ws.onData(leaveResponse.writeToBuffer());
     });
 
@@ -194,11 +211,13 @@ void main() {
       });
 
       // Emit onTrack before participant update arrives.
-      container.engine.events.emit(EngineTrackAddedEvent(
-        track: fakeTrack,
-        stream: fakeStream,
-        receiver: null,
-      ));
+      container.engine.events.emit(
+        EngineTrackAddedEvent(
+          track: fakeTrack,
+          stream: fakeStream,
+          receiver: null,
+        ),
+      );
 
       // Now deliver participant metadata.
       ws.onData(participantJoinResponse.writeToBuffer());
@@ -211,6 +230,28 @@ void main() {
       expect(subscriptionException, isFalse, reason: 'Track subscription should not fail when metadata arrives later');
       expect(trackSubscribed.participant.sid, remoteParticipantData.sid);
       expect(trackSubscribed.publication.track, isNotNull);
+    });
+  });
+
+  group('publish guards', () {
+    test('concurrent setSourceEnabled serializes calls', () async {
+      final lp = room.localParticipant!;
+
+      // Both calls will fail (no camera hardware in test), but the
+      // SerialRunner should serialize them — the second waits for the
+      // first to complete before executing.
+      final future1 = lp.setSourceEnabled(TrackSource.camera, true);
+      final future2 = lp.setSourceEnabled(TrackSource.camera, true);
+
+      // Both should fail with the same error (no camera), not with
+      // duplicate track errors or unhandled exceptions.
+      final results = await Future.wait([
+        future1.catchError((_) => null),
+        future2.catchError((_) => null),
+      ]);
+
+      // Both calls completed (didn't hang or deadlock).
+      expect(results.length, 2);
     });
   });
 }

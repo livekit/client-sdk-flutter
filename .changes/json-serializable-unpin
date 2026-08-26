@@ -1,0 +1,1 @@
+patch type="changed" "Update json_annotation to 4.12 and regenerate serialization code with json_serializable 6.14"

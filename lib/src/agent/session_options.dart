@@ -13,10 +13,16 @@
 // limitations under the License.
 
 import '../core/room.dart';
+import '../e2ee/options.dart';
+import '../options.dart';
 
 /// Options for creating a [Session].
 class SessionOptions {
   /// The underlying [Room] used by the session.
+  ///
+  /// If neither [room] nor [encryption] is provided, a default [Room] is
+  /// created. Passing both throws [ArgumentError] — configure E2EE on the
+  /// [Room] directly if you need a custom [Room] with encryption.
   final Room room;
 
   /// Whether to enable audio pre-connect with [PreConnectAudioBuffer].
@@ -30,11 +36,33 @@ class SessionOptions {
   /// to a failed state.
   final Duration agentConnectTimeout;
 
+  /// Creates [SessionOptions].
+  ///
+  /// Pass [encryption] to configure end-to-end encryption on the internally
+  /// created [Room]. Use [E2EEOptions.sharedKey] for the common shared-key
+  /// case. For advanced setups (custom [RoomOptions], per-participant keys),
+  /// build a [Room] yourself and pass it via [room] instead.
+  ///
+  /// Passing both [room] and [encryption] throws [ArgumentError].
   SessionOptions({
     Room? room,
+    E2EEOptions? encryption,
     this.preConnectAudio = true,
     this.agentConnectTimeout = const Duration(seconds: 20),
-  }) : room = room ?? Room();
+  }) : room = _buildRoom(room, encryption);
+
+  static Room _buildRoom(Room? room, E2EEOptions? encryption) {
+    if (room != null && encryption != null) {
+      throw ArgumentError(
+        'SessionOptions: pass either `room` or `encryption`, not both. '
+        'To use encryption with a custom Room, configure E2EE on the Room directly.',
+      );
+    }
+    if (encryption != null) {
+      return Room(roomOptions: RoomOptions(encryption: encryption));
+    }
+    return room ?? Room();
+  }
 
   SessionOptions copyWith({
     Room? room,

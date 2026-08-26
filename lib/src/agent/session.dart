@@ -66,9 +66,9 @@ class Session extends DisposableChangeNotifier {
     required SessionOptions options,
     List<MessageSender>? senders,
     List<MessageReceiver>? receivers,
-  })  : _tokenSourceConfiguration = tokenSourceConfiguration,
-        _options = options,
-        room = options.room {
+  }) : _tokenSourceConfiguration = tokenSourceConfiguration,
+       _options = options,
+       room = options.room {
     _agent.addListener(notifyListeners);
 
     final textMessageSender = TextMessageSender(room: room);
@@ -150,6 +150,7 @@ class Session extends DisposableChangeNotifier {
   final _TokenSourceConfiguration _tokenSourceConfiguration;
 
   final Agent _agent = Agent();
+  bool _isStarting = false;
   Agent get agent => _agent;
 
   SessionError? get error => _error;
@@ -159,9 +160,9 @@ class Session extends DisposableChangeNotifier {
   ConnectionState _connectionState = ConnectionState.disconnected;
 
   bool get isConnected => switch (_connectionState) {
-        ConnectionState.connecting || ConnectionState.connected || ConnectionState.reconnecting => true,
-        ConnectionState.disconnected => false,
-      };
+    ConnectionState.connecting || ConnectionState.connected || ConnectionState.reconnecting => true,
+    ConnectionState.disconnected => false,
+  };
 
   final LinkedHashMap<String, ReceivedMessage> _messages = LinkedHashMap();
   UnmodifiableListView<ReceivedMessage> _messagesView = UnmodifiableListView<ReceivedMessage>(const []);
@@ -175,12 +176,20 @@ class Session extends DisposableChangeNotifier {
   EventsListener<RoomEvent>? _roomListener;
   Timer? _agentTimeoutTimer;
 
+  /// Enables or disables end-to-end encryption for the session.
+  ///
+  /// Requires that encryption was configured via [SessionOptions] (by passing
+  /// `encryption:`) or that the [Room] was created with [E2EEOptions].
+  /// Throws [LiveKitE2EEException] if encryption was not configured.
+  Future<void> setEncryptionEnabled(bool enabled) => room.setE2EEEnabled(enabled);
+
   /// Starts the session by fetching credentials and connecting to the room.
   Future<void> start() async {
-    if (room.connectionState != ConnectionState.disconnected) {
+    if (_isStarting || room.connectionState != ConnectionState.disconnected) {
       logger.info('Session.start() ignored: room already connecting or connected.');
       return;
     }
+    _isStarting = true;
 
     _setError(null);
     _agentTimeoutTimer?.cancel();
@@ -229,6 +238,8 @@ class Session extends DisposableChangeNotifier {
       _setError(SessionError.connection(error));
       _setConnectionState(ConnectionState.disconnected);
       _agent.disconnected();
+    } finally {
+      _isStarting = false;
     }
   }
 
@@ -274,7 +285,9 @@ class Session extends DisposableChangeNotifier {
     _messages
       ..clear()
       ..addEntries(
-        messages.sorted((a, b) => a.timestamp.compareTo(b.timestamp)).map(
+        messages
+            .sorted((a, b) => a.timestamp.compareTo(b.timestamp))
+            .map(
               (message) => MapEntry(message.id, message),
             ),
       );
@@ -396,10 +409,10 @@ class SessionError {
   final Object cause;
 
   String get message => switch (kind) {
-        SessionErrorKind.connection => 'Connection failed: ${cause}',
-        SessionErrorKind.sender => 'Message sender failed: ${cause}',
-        SessionErrorKind.receiver => 'Message receiver failed: ${cause}',
-      };
+    SessionErrorKind.connection => 'Connection failed: ${cause}',
+    SessionErrorKind.sender => 'Message sender failed: ${cause}',
+    SessionErrorKind.receiver => 'Message receiver failed: ${cause}',
+  };
 
   static SessionError connection(Object cause) => SessionError._(SessionErrorKind.connection, cause);
 

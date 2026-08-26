@@ -30,6 +30,19 @@ MockDataChannel? findMockDataChannelByLabel(String label, {bool requireListener 
   return null;
 }
 
+/// All mock data channels created in the current test process. Test code can wrap
+/// `onMessageSend` to capture outbound packets without breaking the existing
+/// publisher↔subscriber loopback.
+List<MockDataChannel> get mockDataChannels => _dataChannels;
+
+/// Reset the global mock-channel list. Tests that create a fresh `E2EContainer`
+/// after an earlier one finished must call this before re-connecting, otherwise
+/// the publisher↔subscriber pairing (which only fires when the list reaches
+/// length 2) will not happen on the new channels.
+void resetMockDataChannels() {
+  _dataChannels.clear();
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
@@ -154,8 +167,11 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack? track, RTCRtpMediaType? kind, RTCRtpTransceiverInit? init}) {
+  Future<RTCRtpTransceiver> addTransceiver({
+    MediaStreamTrack? track,
+    RTCRtpMediaType? kind,
+    RTCRtpTransceiverInit? init,
+  }) {
     // TODO: implement addTransceiver
     throw UnimplementedError();
   }
@@ -275,9 +291,10 @@ a=rtpmap:32 MPV/90000
     throw UnimplementedError();
   }
 
-  static Future<RTCPeerConnection> create(Map<String, dynamic> configuration,
-          [Map<String, dynamic>? constraints]) async =>
-      MockPeerConnection();
+  static Future<RTCPeerConnection> create(
+    Map<String, dynamic> configuration, [
+    Map<String, dynamic>? constraints,
+  ]) async => MockPeerConnection();
 
   @override
   // TODO: implement restartIce

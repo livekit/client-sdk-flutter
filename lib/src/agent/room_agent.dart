@@ -28,14 +28,14 @@ extension AgentRoom on Room {
   ///   participants whose `lk.publish_on_behalf` attribute matches the agent's
   ///   identity.
   Iterable<RemoteParticipant> get agentParticipants => remoteParticipants.values.where(
-        (participant) {
-          if (participant.kind != ParticipantKind.AGENT) {
-            return false;
-          }
-          final publishOnBehalf = participant.attributes[lkPublishOnBehalfAttributeKey];
-          return publishOnBehalf == null || publishOnBehalf.isEmpty;
-        },
-      );
+    (participant) {
+      if (participant.kind != ParticipantKind.AGENT) {
+        return false;
+      }
+      final publishOnBehalf = participant.attributes[lkPublishOnBehalfAttributeKey];
+      return publishOnBehalf == null || publishOnBehalf.isEmpty;
+    },
+  );
 
   /// The first agent participant in the room, if one exists.
   RemoteParticipant? get agentParticipant => agentParticipants.firstOrNull;

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import '../options.dart';
 import '../support/disposable.dart';
 import 'websocket/io.dart' if (dart.library.js_interop) 'websocket/web.dart';
 
@@ -37,11 +38,13 @@ class WebSocketEventHandlers {
   });
 }
 
-typedef WebSocketConnector = Future<LiveKitWebSocket> Function(
-  Uri uri, {
-  WebSocketEventHandlers? options,
-  Map<String, String>? headers,
-});
+typedef WebSocketConnector =
+    Future<LiveKitWebSocket> Function(
+      Uri uri, {
+      WebSocketEventHandlers? options,
+      Map<String, String>? headers,
+      NetworkOptions? networkOptions,
+    });
 
 abstract class LiveKitWebSocket extends Disposable {
   void send(List<int> data);
@@ -50,6 +53,6 @@ abstract class LiveKitWebSocket extends Disposable {
     Uri uri, {
     WebSocketEventHandlers? options,
     Map<String, String>? headers,
-  }) =>
-      lkWebSocketConnect(uri, options: options, headers: headers);
+    NetworkOptions? networkOptions = const NetworkOptions(),
+  }) => lkWebSocketConnect(uri, options: options, headers: headers, networkOptions: networkOptions);
 }

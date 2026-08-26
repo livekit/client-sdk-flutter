@@ -44,14 +44,16 @@ extension UriExt on Uri {
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
 }
 
-typedef RetryFuture<T> = Future<T> Function(
-  int triesLeft,
-  List<Object> errors,
-);
-typedef RetryCondition = bool Function(
-  int triesLeft,
-  List<Object> errors,
-);
+typedef RetryFuture<T> =
+    Future<T> Function(
+      int triesLeft,
+      List<Object> errors,
+    );
+typedef RetryCondition =
+    bool Function(
+      int triesLeft,
+      List<Object> errors,
+    );
 
 // Collection of state-less static methods
 class Utils {
@@ -64,6 +66,7 @@ class Utils {
   /// thrown objects by the [future].
   static Future<T> retry<T>(
     RetryFuture<T> future, {
+
     /// number of total tries (first try + retries)
     int tries = 1,
     Duration delay = const Duration(seconds: 1),
@@ -166,6 +169,7 @@ class Utils {
     bool validate = false,
     bool forceSecure = false,
     String? sid,
+    lk_models.ReconnectReason? reconnectReason,
   }) async {
     final Uri uri = Uri.parse(uriString);
 
@@ -191,8 +195,10 @@ class Utils {
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
+        if (reconnect && reconnectReason != null) 'reconnect_reason': reconnectReason.value.toString(),
         if (reconnect && sid != null) 'sid': sid,
         'protocol': connectOptions.protocolVersion.toStringValue(),
+        'client_protocol': connectOptions.clientProtocolVersion.toStringValue(),
         'sdk': 'flutter',
         'version': LiveKitClient.version,
         'network': networkType,
@@ -227,23 +233,26 @@ class Utils {
   static List<VideoParameters> _computeDefaultScreenShareSimulcastParams({
     required VideoParameters original,
   }) {
-    final layers = [rtc.RTCRtpEncoding(scaleResolutionDownBy: 2, maxFramerate: 3)];
-    return layers.map((e) {
-      final scale = e.scaleResolutionDownBy ?? 1;
-      final fps = e.maxFramerate ?? 3;
+    final originalEncoding = original.encoding!;
+    const scale = 2.0;
 
-      return VideoParameters(
-        dimensions:
-            VideoDimensions((original.dimensions.width / scale).floor(), (original.dimensions.height / scale).floor()),
+    return [
+      VideoParameters(
+        dimensions: VideoDimensions(
+          (original.dimensions.width / scale).floor(),
+          (original.dimensions.height / scale).floor(),
+        ),
         encoding: VideoEncoding(
           maxBitrate: math.max(
             150 * 1000,
-            (original.encoding!.maxBitrate / (math.pow(scale, 2) * (original.encoding!.maxFramerate / fps))).floor(),
+            (originalEncoding.maxBitrate / math.pow(scale, 2)).floor(),
           ),
-          maxFramerate: fps,
+          maxFramerate: originalEncoding.maxFramerate,
+          bitratePriority: originalEncoding.bitratePriority,
+          networkPriority: originalEncoding.networkPriority,
         ),
-      );
-    }).toList();
+      ),
+    ];
   }
 
   static List<VideoParameters> _computeDefaultSimulcastParams({
@@ -309,16 +318,85 @@ class Utils {
       if (i >= videoRids.length) {
         return;
       }
-      final size = dimensions.min();
+      final size = dimensions.max();
       final rid = videoRids[i];
       if (e.encoding != null) {
-        result.add(e.encoding!.toRTCRtpEncoding(
-          rid: rid,
-          scaleResolutionDownBy: math.max(1, size / e.dimensions.min()),
-        ));
+        result.add(
+          e.encoding!.toRTCRtpEncoding(
+            rid: rid,
+            scaleResolutionDownBy: math.max(1, size / e.dimensions.max()),
+          ),
+        );
       }
     });
     return result;
+  }
+
+  @internal
+  static List<VideoParameters> computeSimulcastPresets({
+    required VideoDimensions dimensions,
+    required VideoParameters original,
+    required List<VideoParameters> requestedPresets,
+    required bool isScreenShare,
+  }) {
+    final params =
+        (requestedPresets.isNotEmpty
+                ? requestedPresets
+                : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
+            .sorted();
+
+    if (params.isEmpty) {
+      return [original];
+    }
+    final lowPreset = params.first;
+    final midPreset = params.length > 1 ? params[1] : null;
+
+    final size = dimensions.max();
+    if (size >= 960 && midPreset != null) {
+      return [
+        _clampSimulcastPreset(lowPreset, to: original, inDimensions: dimensions),
+        _clampSimulcastPreset(midPreset, to: original, inDimensions: dimensions),
+        original,
+      ];
+    }
+    if (size >= 480) {
+      return [
+        _clampSimulcastPreset(lowPreset, to: original, inDimensions: dimensions),
+        original,
+      ];
+    }
+    return [original];
+  }
+
+  static VideoParameters _clampSimulcastPreset(
+    VideoParameters preset, {
+    required VideoParameters to,
+    required VideoDimensions inDimensions,
+  }) {
+    final presetEncoding = preset.encoding;
+    final topEncoding = to.encoding;
+    if (presetEncoding == null || topEncoding == null) {
+      return preset;
+    }
+
+    final rawScaleDownBy = inDimensions.max() / preset.dimensions.max();
+    final clampedFramerate = math.min(presetEncoding.maxFramerate, topEncoding.maxFramerate);
+    final clampedBitrate = rawScaleDownBy <= 1.0
+        ? math.min(presetEncoding.maxBitrate, topEncoding.maxBitrate)
+        : presetEncoding.maxBitrate;
+
+    if (clampedFramerate == presetEncoding.maxFramerate && clampedBitrate == presetEncoding.maxBitrate) {
+      return preset;
+    }
+
+    return VideoParameters(
+      description: preset.description,
+      dimensions: preset.dimensions,
+      encoding: presetEncoding.copyWith(
+        maxFramerate: clampedFramerate,
+        maxBitrate: clampedBitrate,
+      ),
+    );
   }
 
   @internal
@@ -426,13 +504,15 @@ class Utils {
         final sm = ScalabilityMode(scalabilityMode);
         for (var i = 0; i < sm.spatial; i += 1) {
           // in legacy SVC, scaleResolutionDownBy cannot be set
-          encodings.add(rtc.RTCRtpEncoding(
-            rid: videoRids[2 - i],
-            maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
-            maxFramerate: original.encoding!.maxFramerate,
-            priority: videoEncoding.bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
-            networkPriority: videoEncoding.networkPriority?.toRtcpPriorityType(),
-          ));
+          encodings.add(
+            rtc.RTCRtpEncoding(
+              rid: videoRids[2 - i],
+              maxBitrate: videoEncoding.maxBitrate ~/ math.pow(3, i),
+              maxFramerate: original.encoding!.maxFramerate,
+              priority: videoEncoding.bitratePriority?.toRtcpPriorityType() ?? rtc.RTCPriorityType.low,
+              networkPriority: videoEncoding.networkPriority?.toRtcpPriorityType(),
+            ),
+          );
         }
       } else {
         encodings.add(videoEncoding.toRTCRtpEncoding());
@@ -448,25 +528,12 @@ class Utils {
     // compute simulcast encodings
     final userParams = isScreenShare ? options.screenShareSimulcastLayers : options.videoSimulcastLayers;
 
-    final params = (userParams.isNotEmpty
-            ? userParams
-            : _computeDefaultSimulcastParams(isScreenShare: isScreenShare, original: original))
-        .sorted();
-
-    final VideoParameters lowPreset = params.first;
-    VideoParameters? midPreset;
-    if (params.length > 1) {
-      midPreset = params[1];
-    }
-
-    final size = dimensions.max();
-    List<VideoParameters> computedParams = [original];
-
-    if (size >= 960 && midPreset != null) {
-      computedParams = [lowPreset, midPreset, original];
-    } else if (size >= 480) {
-      computedParams = [lowPreset, original];
-    }
+    final computedParams = computeSimulcastPresets(
+      dimensions: dimensions,
+      original: original,
+      requestedPresets: userParams,
+      isScreenShare: isScreenShare,
+    );
 
     return encodingsFromPresets(
       dimensions,
@@ -506,7 +573,7 @@ class Utils {
           width: dimensions.width,
           height: dimensions.height,
           bitrate: 0,
-        )
+        ),
       ];
     }
 
@@ -515,12 +582,14 @@ class Utils {
       final List<lk_models.VideoLayer> layers = [];
       final maxBitrate = encodings[0].maxBitrate ?? 0;
       for (var i = 0; i < sm.spatial; i++) {
-        layers.add(lk_models.VideoLayer(
-          quality: lk_models.VideoQuality.valueOf(lk_models.VideoQuality.HIGH.value - i),
-          width: (dimensions.width / math.pow(2, i)).floor(),
-          height: (dimensions.height / math.pow(2, i)).floor(),
-          bitrate: (maxBitrate / math.pow(3, i)).ceil(),
-        ));
+        layers.add(
+          lk_models.VideoLayer(
+            quality: lk_models.VideoQuality.valueOf(lk_models.VideoQuality.HIGH.value - i),
+            width: (dimensions.width / math.pow(2, i)).floor(),
+            height: (dimensions.height / math.pow(2, i)).floor(),
+            bitrate: (maxBitrate / math.pow(3, i)).ceil(),
+          ),
+        );
       }
       return layers;
     }
@@ -542,10 +611,10 @@ class Utils {
 
   @internal
   static lk_models.VideoQuality? videoQualityForRid(String? rid) => {
-        'f': lk_models.VideoQuality.HIGH,
-        'h': lk_models.VideoQuality.MEDIUM,
-        'q': lk_models.VideoQuality.LOW,
-      }[rid];
+    'f': lk_models.VideoQuality.HIGH,
+    'h': lk_models.VideoQuality.MEDIUM,
+    'q': lk_models.VideoQuality.LOW,
+  }[rid];
 
   // makes a debounce func, with 1 param
   @internal
@@ -570,6 +639,8 @@ class Utils {
 const refreshSubscribedCodecAfterNewCodec = 5000;
 
 bool isSVCCodec(String codec) => ['vp9', 'av1'].contains(codec.toLowerCase());
+
+bool isVideoCodec(String codec) => ['vp8', 'vp9', 'av1', 'h264', 'h265'].contains(codec.toLowerCase());
 
 bool isAV1Codec(String codec) => codec.toLowerCase() == 'av1';
 
@@ -704,8 +775,8 @@ int compareVersions(String v1, String v2) {
   return parts1.length == parts2.length
       ? 0
       : parts1.length < parts2.length
-          ? -1
-          : 1;
+      ? -1
+      : 1;
 }
 
 List<Uint8List> splitUtf8(String s, int n) {

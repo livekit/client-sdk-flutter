@@ -19,9 +19,7 @@ import 'dart:typed_data';
 ///
 /// Keeps the newest [capacity] bytes and discards the oldest as needed.
 class ByteRingBuffer {
-  ByteRingBuffer(this.capacity)
-      : assert(capacity > 0),
-        _buffer = Uint8List(capacity);
+  ByteRingBuffer(this.capacity) : assert(capacity > 0), _buffer = Uint8List(capacity);
 
   final int capacity;
   final Uint8List _buffer;

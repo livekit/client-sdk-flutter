@@ -1,16 +1,19 @@
 import 'dart:convert' show json;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:http/http.dart' as http;
 
 import '../exceptions.dart';
 import '../logger.dart';
+import '../options.dart';
 import '../proto/livekit_rtc.pb.dart' as lk_models;
+import 'http_client.dart';
 
 class RegionUrlProvider {
   Uri serverUrl;
 
   String token;
+
+  final NetworkOptions networkOptions;
 
   lk_models.RegionSettings? regionSettings;
 
@@ -20,7 +23,11 @@ class RegionUrlProvider {
 
   int settingsCacheTime = 5000; // 5 seconds
 
-  RegionUrlProvider({required String url, required this.token}) : serverUrl = Uri.parse(url);
+  RegionUrlProvider({
+    required String url,
+    required this.token,
+    this.networkOptions = const NetworkOptions(),
+  }) : serverUrl = Uri.parse(url);
 
   void updateToken(String token) {
     this.token = token;
@@ -59,14 +66,23 @@ class RegionUrlProvider {
   /* @internal */
   Future<lk_models.RegionSettings> fetchRegionSettings() async {
     final url = '${getCloudConfigUrl(serverUrl)}/regions';
-    final http.Response regionSettingsResponse = await http.get(Uri.parse(url), headers: {
-      'authorization': 'Bearer $token',
-    });
+    final regionSettingsResponse = await sdkHttpGet(
+      Uri.parse(url),
+      headers: {
+        'authorization': 'Bearer $token',
+      },
+      networkOptions: networkOptions,
+    );
     if (regionSettingsResponse.statusCode == 200) {
       final mapData = json.decode(regionSettingsResponse.body);
       final regions = (mapData['regions'] as List<dynamic>)
-          .map((region) => lk_models.RegionInfo(
-              distance: Int64(int.parse(region['distance'])), region: region['region'], url: region['url']))
+          .map(
+            (region) => lk_models.RegionInfo(
+              distance: Int64(int.parse(region['distance'])),
+              region: region['region'],
+              url: region['url'],
+            ),
+          )
           .toList();
       final regionSettings = lk_models.RegionSettings(
         regions: regions,
@@ -75,11 +91,12 @@ class RegionUrlProvider {
       return regionSettings;
     } else {
       throw ConnectException(
-          'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
-          reason: regionSettingsResponse.statusCode == 401
-              ? ConnectionErrorReason.NotAllowed
-              : ConnectionErrorReason.InternalError,
-          statusCode: regionSettingsResponse.statusCode);
+        'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
+        reason: regionSettingsResponse.statusCode == 401
+            ? ConnectionErrorReason.NotAllowed
+            : ConnectionErrorReason.InternalError,
+        statusCode: regionSettingsResponse.statusCode,
+      );
     }
   }
 
@@ -95,16 +112,16 @@ class RegionUrlProvider {
 
 extension RegionInfoExtension on lk_models.RegionInfo {
   lk_models.RegionInfo fromJson(Map<String, dynamic> json) => lk_models.RegionInfo(
-        region: json['region'],
-        url: json['url'],
-        distance: json['distance'],
-      );
+    region: json['region'],
+    url: json['url'],
+    distance: json['distance'],
+  );
 }
 
 extension RegionSettingsExtension on lk_models.RegionSettings {
   lk_models.RegionSettings fromJson(Map<String, dynamic> json) => lk_models.RegionSettings(
-        regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
-      );
+    regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
+  );
 }
 
 bool isCloudUrl(Uri uri) {

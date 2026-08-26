@@ -16,12 +16,12 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
+import '../audio/audio_manager.dart';
+import '../audio/audio_session.dart';
 import '../logger.dart';
-import '../support/native.dart';
-import '../support/native_audio.dart';
 import '../support/platform.dart';
-import '../track/audio_management.dart';
 
 class MediaDevice {
   const MediaDevice(this.deviceId, this.label, this.kind, this.groupId);
@@ -52,11 +52,13 @@ class MediaDevice {
 class Hardware {
   Hardware._internal() {
     rtc.navigator.mediaDevices.ondevicechange = _onDeviceChange;
-    unawaited(enumerateDevices().then((devices) {
-      selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
-      selectedAudioOutput ??= devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
-      selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
-    }));
+    unawaited(
+      enumerateDevices().then((devices) {
+        selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
+        selectedAudioOutput ??= devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
+        selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
+      }),
+    );
   }
 
   static final Hardware instance = Hardware._internal();
@@ -69,27 +71,32 @@ class Hardware {
 
   MediaDevice? selectedVideoInput;
 
-  bool? get speakerOn => _preferSpeakerOutput;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool? get speakerOn => AudioManager.instance.isSpeakerOutputPreferred;
 
-  bool _preferSpeakerOutput = false;
-
-  bool get preferSpeakerOutput => _preferSpeakerOutput;
-
-  bool _forceSpeakerOutput = false;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputPreferred instead')
+  bool get preferSpeakerOutput => AudioManager.instance.isSpeakerOutputPreferred;
 
   /// if true, will force speaker output even if headphones or bluetooth is connected
-  /// only supported on iOS for now
-  bool get forceSpeakerOutput => _forceSpeakerOutput && _preferSpeakerOutput;
+  @Deprecated('Use AudioManager.instance.isSpeakerOutputForced instead')
+  bool get forceSpeakerOutput => AudioManager.instance.isSpeakerOutputForced;
 
-  // This flag is used to determine if automatic native configuration
-  // of audio is enabled. If set to false Natvive.configureAudio
-  // will not be called, and the user is responsible for configuring
-  // the native audio configuration manually.
-  bool _isAutomaticConfigurationEnabled = true;
-  bool get isAutomaticConfigurationEnabled => _isAutomaticConfigurationEnabled;
+  // Whether automatic native audio configuration is enabled. If disabled,
+  // Native.configureAudio is not called and the app is responsible for
+  // configuring the native audio session manually.
+  //
+  // Backed by [AudioManager] so there is a single source of truth for the
+  // management mode. See [AudioManager.setAudioSessionManagementMode].
+  @Deprecated('Use AudioManager.instance.managementMode instead')
+  bool get isAutomaticConfigurationEnabled => AudioManager.instance.managementMode != AudioSessionManagementMode.manual;
 
+  @Deprecated('Use AudioManager.instance.setAudioSessionManagementMode instead')
   void setAutomaticConfigurationEnabled({required bool enable}) {
-    _isAutomaticConfigurationEnabled = enable;
+    unawaited(
+      AudioManager.instance.setAudioSessionManagementMode(
+        enable ? AudioSessionManagementMode.automatic : AudioSessionManagementMode.manual,
+      ),
+    );
   }
 
   Future<List<MediaDevice>> enumerateDevices({String? type}) async {
@@ -114,8 +121,8 @@ class Hardware {
   }
 
   Future<void> selectAudioOutput(MediaDevice device) async {
-    if (!lkPlatformIsDesktop()) {
-      logger.warning('selectAudioOutput is only supported on Desktop');
+    if (lkPlatformIs(PlatformType.web) || lkPlatformIs(PlatformType.iOS)) {
+      logger.warning('selectAudioOutput is not supported on Web or iOS');
       return;
     }
     selectedAudioOutput = device;
@@ -131,47 +138,19 @@ class Hardware {
     await rtc.Helper.selectAudioInput(device.deviceId);
   }
 
-  @Deprecated('use setSpeakerphoneOn')
-  Future<void> setPreferSpeakerOutput(bool enable) => setSpeakerphoneOn(enable);
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> setPreferSpeakerOutput(bool enable) => AudioManager.instance.setSpeakerOutputPreferred(enable);
 
-  bool get canSwitchSpeakerphone => lkPlatformIsMobile();
+  @Deprecated('Use AudioManager.instance.canSwitchSpeakerphone instead')
+  bool get canSwitchSpeakerphone => AudioManager.instance.canSwitchSpeakerphone;
 
   /// [enable] set speakerphone on or off, by default wired/bluetooth headsets will still
   /// be prioritized even if set to true.
   /// [forceSpeakerOutput] if true, will force speaker output even if headphones
-  /// or bluetooth is connected, only supported on iOS for now
-  Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) async {
-    if (canSwitchSpeakerphone) {
-      _preferSpeakerOutput = enable;
-      _forceSpeakerOutput = forceSpeakerOutput;
-      if (lkPlatformIs(PlatformType.iOS)) {
-        NativeAudioConfiguration? config;
-        if (lkPlatformIs(PlatformType.iOS)) {
-          // Only iOS for now...
-          config = await onConfigureNativeAudio.call(audioTrackState);
-          if (_preferSpeakerOutput && _forceSpeakerOutput) {
-            config = config.copyWith(
-              appleAudioCategoryOptions: {
-                AppleAudioCategoryOption.defaultToSpeaker,
-              },
-            );
-          }
-          logger.fine('configuring for ${audioTrackState} using ${config}...');
-          try {
-            if (_isAutomaticConfigurationEnabled) {
-              await Native.configureAudio(config);
-            }
-          } catch (error) {
-            logger.warning('failed to configure ${error}');
-          }
-        }
-      } else {
-        await rtc.Helper.setSpeakerphoneOn(enable);
-      }
-    } else {
-      logger.warning('setSpeakerphoneOn only support on iOS/Android');
-    }
-  }
+  /// or bluetooth is connected.
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> setSpeakerphoneOn(bool enable, {bool forceSpeakerOutput = false}) =>
+      AudioManager.instance.setSpeakerOutputPreferred(enable, force: forceSpeakerOutput);
 
   Future<rtc.MediaStream> openCamera({MediaDevice? device, bool? facingMode}) async {
     final constraints = <String, dynamic>{
@@ -182,7 +161,7 @@ class Hardware {
         constraints['deviceId'] = device.deviceId;
       } else {
         constraints['optional'] = [
-          {'sourceId': device.deviceId}
+          {'sourceId': device.deviceId},
         ];
       }
     }
@@ -193,6 +172,23 @@ class Hardware {
     });
   }
 
+  /// Requests permission to capture the screen before starting a screen share.
+  ///
+  /// On Android this shows the MediaProjection consent dialog, on macOS it
+  /// triggers the screen recording permission check. Returns true when
+  /// permission was granted. On platforms that do not require an upfront
+  /// request this is a no-op that returns true, so it is safe to call
+  /// unconditionally.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<bool> requestCapturePermission({bool fullScreenOnly = false}) async {
+    if (lkPlatformIs(PlatformType.android) || lkPlatformIs(PlatformType.macOS)) {
+      return rtc.Helper.requestCapturePermission(fullScreenOnly: fullScreenOnly);
+    }
+    return true;
+  }
+
   dynamic _onDeviceChange(dynamic _) async {
     final devices = await enumerateDevices();
     selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
@@ -201,8 +197,8 @@ class Hardware {
     onDeviceChange.add(devices);
   }
 
-  void reset() {
-    _preferSpeakerOutput = false;
-    _forceSpeakerOutput = false;
-  }
+  /// Resets speaker output preference to the default (headset/earpiece preferred,
+  /// not forced). Call after a call ends to clear any preference set during it.
+  @Deprecated('Use AudioManager.instance.setSpeakerOutputPreferred instead')
+  Future<void> reset() => AudioManager.instance.setSpeakerOutputPreferred(false);
 }

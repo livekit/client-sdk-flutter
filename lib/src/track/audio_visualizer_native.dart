@@ -40,10 +40,12 @@ class AudioVisualizerNative extends AudioVisualizer {
 
     _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
-      events.emit(AudioVisualizerEvent(
-        track: _audioTrack!,
-        event: event,
-      ));
+      events.emit(
+        AudioVisualizerEvent(
+          track: _audioTrack!,
+          event: event,
+        ),
+      );
     });
   }
 
@@ -53,11 +55,13 @@ class AudioVisualizerNative extends AudioVisualizer {
       return;
     }
 
-    await Native.stopVisualizer(mediaStreamTrack.id!, visualizerId: visualizerId);
-
+    // Cancel subscription before native stop, otherwise the native
+    // StreamHandler is already removed and cancel throws MissingPluginException.
     await _streamSubscription?.cancel();
     _streamSubscription = null;
     _eventChannel = null;
+
+    await Native.stopVisualizer(mediaStreamTrack.id!, visualizerId: visualizerId);
   }
 }
 

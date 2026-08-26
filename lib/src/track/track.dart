@@ -55,21 +55,14 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   bool _active = false;
   bool get isActive => _active;
 
-  bool _muted;
+  bool _muted = false;
   bool get muted => _muted;
 
   rtc.RTCRtpSender? get sender => transceiver?.sender;
 
   rtc.RTCRtpReceiver? receiver;
 
-  Track(
-    this.kind,
-    this.source,
-    this._mediaStream,
-    this._mediaStreamTrack, {
-    this.receiver,
-    bool muted = false,
-  }) : _muted = muted {
+  Track(this.kind, this.source, this._mediaStream, this._mediaStreamTrack, {this.receiver}) {
     // Any event emitted will trigger ChangeNotifier
     events.listen((event) {
       logger.finer('[TrackEvent] $event, will notifyListeners()');
@@ -117,11 +110,10 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     logger.fine('$objectId.start()');
 
-    startMonitor();
-
-    await onStarted();
+    await startCapture();
 
     _active = true;
+    startMonitor();
     return true;
   }
 
@@ -136,7 +128,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
     stopMonitor();
 
-    await onStopped();
+    await stopCapture();
 
     logger.fine('$objectId.stop()');
 
@@ -159,8 +151,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       if (_active) {
         mediaStreamTrack.enabled = true;
       }
-    } catch (_) {
-      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    } catch (e) {
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
     }
   }
 
@@ -170,8 +162,8 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       if (_active) {
         mediaStreamTrack.enabled = false;
       }
-    } catch (_) {
-      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw ${_}');
+    } catch (e) {
+      logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
     }
   }
 
@@ -180,11 +172,14 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   @internal
   Future<bool> monitorStats();
 
+  /// Called by [start] before this track is marked active.
   @internal
-  Future<void> onStarted() async {}
+  Future<void> startCapture() async {}
 
+  /// Called by [stop] while this track is still active, before the media track
+  /// is stopped.
   @internal
-  Future<void> onStopped() async {}
+  Future<void> stopCapture() async {}
 
   @internal
   void startMonitor() {
@@ -210,11 +205,13 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     if (_muted == muted) return;
     _muted = muted;
     if (shouldNotify) {
-      events.emit(InternalTrackMuteUpdatedEvent(
-        track: this,
-        muted: muted,
-        shouldSendSignal: shouldSendSignal,
-      ));
+      events.emit(
+        InternalTrackMuteUpdatedEvent(
+          track: this,
+          muted: muted,
+          shouldSendSignal: shouldSendSignal,
+        ),
+      );
     }
   }
 
@@ -222,10 +219,12 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   void updateMediaStreamAndTrack(rtc.MediaStream stream, rtc.MediaStreamTrack track) {
     _mediaStream = stream;
     _mediaStreamTrack = track;
-    events.emit(TrackStreamUpdatedEvent(
-      track: this,
-      stream: stream,
-    ));
+    events.emit(
+      TrackStreamUpdatedEvent(
+        track: this,
+        stream: stream,
+      ),
+    );
   }
 
   @internal
