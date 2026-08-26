@@ -30,6 +30,12 @@ class NativeAudioManagement {
     await AudioManager.instance.applyOptionsForConnect();
   }
 
+  /// Makes sure the platform audio session permits recording before a local
+  /// audio track opens the microphone, which can happen before connect.
+  static Future<void> prepareRecording() async {
+    await AudioManager.instance.prepareRecording();
+  }
+
   static Future<void> stop() async {
     // Release mirrors acquire: applyOptionsForConnect starts the Android
     // audio session in every mode except manual, including externalCallSystem,

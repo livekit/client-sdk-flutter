@@ -86,6 +86,10 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   Future<void> startCapture() async {
     await super.startCapture();
     if (lkPlatformSupportsExplicitAudioRecordingStart()) {
+      // The audio engine rejects recording while the audio session does not
+      // permit it, and capture can start before connect has pushed the session
+      // policy (pre-connect audio, a pre-join preview). No-op once pushed.
+      await NativeAudioManagement.prepareRecording();
       try {
         // Match Swift: start the ADM before publishing so capture-time audio
         // processing options are applied before WebRTC opens the microphone.

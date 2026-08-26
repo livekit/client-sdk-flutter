@@ -81,6 +81,11 @@ class AudioManager {
   bool _forceSpeakerOutput = false;
   bool _isPlayoutEnabled = false;
   bool _isRecordingEnabled = false;
+  // Whether an Apple audio session policy has been pushed to native at least
+  // once. Native caches the last policy it was given and has no category to
+  // apply until something has been pushed, which is what [prepareRecording]
+  // checks before pushing one itself.
+  bool _hasPushedAppleSessionPolicy = false;
   final StreamController<AudioEngineState> _audioEngineStateController = StreamController<AudioEngineState>.broadcast();
 
   AudioSessionOptions get options => _options;
@@ -124,6 +129,7 @@ class AudioManager {
     _forceSpeakerOutput = false;
     _isPlayoutEnabled = false;
     _isRecordingEnabled = false;
+    _hasPushedAppleSessionPolicy = false;
   }
 
   /// Invoked from native when the WebRTC audio engine's playout/recording state
@@ -310,6 +316,7 @@ class AudioManager {
           selectCategoryByEngineState: true,
           forceSpeakerOutput: policy.forceSpeakerOutput,
         );
+        _hasPushedAppleSessionPolicy = true;
       } else {
         // Manual mode: re-apply the fixed Apple config. Non-forced receiver vs
         // speaker behavior comes from that config. Force is carried separately
@@ -327,6 +334,30 @@ class AudioManager {
     } else if (lkPlatformIs(PlatformType.android)) {
       await _configureAndroidAudioSession(_options);
     }
+  }
+
+  /// Prepares the platform audio session for recording.
+  ///
+  /// On iOS the audio engine refuses to open the microphone unless the audio
+  /// session already permits recording, and LiveKit owns that session. The
+  /// policy is normally pushed on connect, but recording can start earlier —
+  /// pre-connect audio buffering, or a pre-join microphone preview — so this is
+  /// called for every local audio track before its capture starts.
+  ///
+  /// Does nothing once a policy has been pushed, so it never re-applies a
+  /// configuration to a live session, and nothing in
+  /// [AudioSessionManagementMode.manual], where the app owns the session and is
+  /// responsible for a recording-capable category. iOS only; a no-op elsewhere,
+  /// so it is always safe to call from cross-platform code.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<void> prepareRecording() async {
+    if (!lkPlatformIs(PlatformType.iOS)) return;
+    if (_hasPushedAppleSessionPolicy) return;
+    await _syncAppleAudioSessionManagementMode();
+    if (!_isAutomaticConfigurationEnabled) return;
+    await _configureAppleAudioSession(_options);
   }
 
   @internal
@@ -360,6 +391,7 @@ class AudioManager {
       selectCategoryByEngineState: _isAutomaticConfigurationEnabled,
       forceSpeakerOutput: policy.forceSpeakerOutput,
     );
+    _hasPushedAppleSessionPolicy = true;
   }
 
   Future<void> _configureAndroidAudioSession(AudioSessionOptions options) async {
