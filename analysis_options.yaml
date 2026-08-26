@@ -33,6 +33,18 @@ analyzer:
     # Manager is enabled and this package ships Package.swift.
     - build/**
     - example/build/**
+    # Flutter's AnalysisOptionsMigration (flutter_tools) appends these seven
+    # patterns to this file on every `flutter analyze`/`pub get`/`run`. There is
+    # no opt-out, so they are committed here to stop the file being rewritten.
+    # Note this excludes web/, which in this package holds real Dart source (the
+    # E2EE worker) rather than just assets -- CI analyzes it explicitly with
+    # `dart analyze web/`, which does not run migrators.
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:
