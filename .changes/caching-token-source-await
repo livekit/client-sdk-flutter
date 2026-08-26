@@ -1,0 +1,1 @@
+patch type="fixed" "CachingTokenSource.fetch now awaits its result, so errors surface and the in-flight entry is cleared correctly"
