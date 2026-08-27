@@ -603,6 +603,12 @@ void main() {
       expect(calls.single.arguments, {'enabled': true, 'sessionActivationEnabled': false});
     });
 
+    test('prepareRecording leaves the platform alone off iOS', () async {
+      await AudioManager.instance.prepareRecording();
+
+      expect(calls, isEmpty);
+    });
+
     test('passes engine availability to platform method', () async {
       await Native.setEngineAvailability(isInputAvailable: false, isOutputAvailable: true);
 
