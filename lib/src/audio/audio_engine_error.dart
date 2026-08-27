@@ -33,20 +33,15 @@ const String audioEngineErrorCodeAudioSessionConfigureFailed = 'audioSessionConf
 /// mapping.
 @internal
 LiveKitException? audioEngineExceptionFrom(PlatformException error) {
-  final message = error.message?.trim();
+  final native = error.message?.trim() ?? '';
+  String message(String fallback) => native.isEmpty ? fallback : native;
   switch (error.code) {
     case audioEngineErrorCodeDeviceAccessDenied:
-      return TrackCreateException(
-        message?.isNotEmpty == true ? message! : 'Microphone permission is not granted',
-      );
+      return TrackCreateException(message('Microphone permission is not granted'));
     case audioEngineErrorCodeAudioSessionInvalidCategory:
-      return AudioSessionException(
-        message?.isNotEmpty == true ? message! : 'Audio session category does not support recording',
-      );
+      return AudioSessionException(message('Audio session category does not support recording'));
     case audioEngineErrorCodeAudioSessionConfigureFailed:
-      return AudioSessionException(
-        message?.isNotEmpty == true ? message! : 'Failed to configure the audio session',
-      );
+      return AudioSessionException(message('Failed to configure the audio session'));
     default:
       return null;
   }

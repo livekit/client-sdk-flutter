@@ -679,6 +679,7 @@ void main() {
         ),
         automatic: true,
         selectCategoryByEngineState: true,
+        preferSpeakerOutput: false,
       );
 
       expect(calls.single.method, 'configureNativeAudio');

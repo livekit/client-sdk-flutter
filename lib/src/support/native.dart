@@ -50,7 +50,7 @@ class Native {
     bool automatic = false,
     bool selectCategoryByEngineState = false,
     bool forceSpeakerOutput = false,
-    bool preferSpeakerOutput = false,
+    bool preferSpeakerOutput = true,
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(

@@ -1,1 +1,1 @@
-patch type="changed" "Microphone permission and audio session failures from the audio engine surface as TrackCreateException and the new AudioSessionException instead of AudioProcessingException(applyFailed)"
+patch type="changed" "Microphone permission and audio session failures now throw TrackCreateException / AudioSessionException instead of AudioProcessingException"

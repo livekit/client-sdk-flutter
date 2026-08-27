@@ -360,7 +360,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let automatic = args["automatic"] as? Bool ?? false
         let selectCategoryByEngineState = args["selectCategoryByEngineState"] as? Bool ?? false
         let forceSpeakerOutput = args["forceSpeakerOutput"] as? Bool ?? false
-        let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool ?? false
+        let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool ?? true
         audioEngineObserver?.updatePolicy(configuration,
                                           automaticManagementEnabled: automatic,
                                           selectCategoryByEngineState: selectCategoryByEngineState,
@@ -916,8 +916,9 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
     // Speaker preference for the built-in recording preset (videoChat routes to
-    // the speaker, voiceChat to the receiver), same as the Dart-side policy.
-    private var preferSpeakerOutput = false
+    // the speaker, voiceChat to the receiver). Defaults to true like the Dart
+    // AudioManager, so the preset matches the policy Dart pushes on connect.
+    private var preferSpeakerOutput = true
     private var isAutomaticManagementEnabled = true
     // False when an external call system (CallKit) owns session activation:
     // configurations are applied without activating, and the session is never
@@ -1020,18 +1021,13 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// same as if the default policy had been pushed. Returns `nil` only in
     /// manual mode with nothing pushed, where the app owns the session.
     private func effectiveConfigurationLocked(isRecordingEnabled: Bool) -> RTCAudioSessionConfiguration? {
-        let configuration: RTCAudioSessionConfiguration
-        let selectCategoryByEngineState: Bool
-        if let cachedConfiguration {
-            configuration = cachedConfiguration
-            selectCategoryByEngineState = self.selectCategoryByEngineState
-        } else if isAutomaticManagementEnabled {
-            configuration = defaultRecordingConfigurationLocked()
-            selectCategoryByEngineState = true
-        } else {
-            return nil
-        }
-        guard selectCategoryByEngineState, !isRecordingEnabled else { return configuration }
+        let usesDefaultPreset = cachedConfiguration == nil
+        guard let configuration = cachedConfiguration
+            ?? (isAutomaticManagementEnabled ? defaultRecordingConfigurationLocked() : nil)
+        else { return nil }
+        // The default preset is always resolved by engine state, like the Dart
+        // automatic-mode push it stands in for.
+        guard usesDefaultPreset || selectCategoryByEngineState, !isRecordingEnabled else { return configuration }
 
         let playback = copyConfiguration(configuration)
         playback.category = AVAudioSession.Category.playback.rawValue

@@ -1,1 +1,1 @@
-patch type="fixed" "iOS: the audio engine now configures a playAndRecord audio session on its own when recording starts before any session policy was pushed (pre-connect audio, pre-join microphone preview, CallKit-driven engine start), instead of failing with audio engine error -9001"
+patch type="fixed" "iOS: audio session is configured for recording even when capture starts before connect (pre-connect audio, pre-join mic), fixing audio engine error -9001"
