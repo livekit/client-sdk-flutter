@@ -105,8 +105,9 @@ class PreConnectAudioBuffer {
   /// [agentReadyFuture] completes with an error and callers should [reset] the
   /// buffer.
   ///
-  /// Ensure microphone permissions are granted before calling this.
-  /// Audio capture may fail without permissions.
+  /// Requires microphone permission. On iOS/macOS it is requested here while
+  /// the app is in the foreground. Throws a [TrackCreateException] when it is
+  /// denied or cannot be requested (app not in the foreground).
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {

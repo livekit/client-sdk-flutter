@@ -272,6 +272,25 @@ class Native {
   /// platform errors: a failed availability change means the engine may run
   /// outside the window the caller intended (e.g. CallKit's
   /// didActivate/didDeactivate), so the error must reach the caller.
+  /// Requests microphone permission before audio capture starts (iOS/macOS).
+  ///
+  /// The WebRTC audio device only checks the permission and fails when it is
+  /// missing, so the SDK requests it here. On iOS the prompt is only shown while
+  /// the app is active. Throws a [PlatformException] with code
+  /// `deviceAccessDenied` when permission is denied, restricted, or could not be
+  /// requested. A no-op where the platform does not implement it.
+  @internal
+  static Future<void> ensureMicrophoneAccess() async {
+    try {
+      await channel.invokeMethod<void>('ensureMicrophoneAccess', <String, dynamic>{});
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') return;
+      rethrow;
+    } on MissingPluginException {
+      return;
+    }
+  }
+
   @internal
   static Future<void> setEngineAvailability({
     required bool isInputAvailable,

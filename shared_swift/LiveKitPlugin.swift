@@ -542,6 +542,49 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    // MARK: - Microphone permission
+
+    /// Ensures microphone access is granted before audio capture starts.
+    ///
+    /// The WebRTC audio device does not request microphone permission itself. It
+    /// only checks it and fails with kAudioEngineErrorInsufficientDevicePermission,
+    /// so requesting is the SDK's job. On iOS the request is only made while the
+    /// app is active: while inactive or in the background the system defers the
+    /// alert, and waiting on it would suspend the caller, and the publish queue
+    /// behind it, for as long as the app stays there. Failing fast lets the next
+    /// attempt prompt normally. macOS can present the prompt regardless.
+    ///
+    /// Method channel handlers run on the main thread, which UIApplication needs.
+    public func handleEnsureMicrophoneAccess(result: @escaping FlutterResult) {
+        let denied = { (message: String) in
+            result(FlutterError(code: LiveKitPlugin.deviceAccessDeniedErrorCode, message: message, details: nil))
+        }
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            result(nil)
+        case .notDetermined:
+            #if !os(macOS)
+            guard UIApplication.shared.applicationState == .active else {
+                denied("Microphone permission could not be requested because the app is not in the foreground. Request it while the app is active before enabling recording.")
+                return
+            }
+            #endif
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        result(nil)
+                    } else {
+                        denied("Microphone permission was denied.")
+                    }
+                }
+            }
+        case .denied, .restricted:
+            denied("Microphone permission is not granted.")
+        @unknown default:
+            denied("Microphone permission is not granted.")
+        }
+    }
+
     // MARK: - Microphone mute mode
 
     static func muteModeString(_ mode: RTCAudioEngineMuteMode) -> String {
@@ -768,6 +811,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleStopLocalRecording(result: result)
         case "setEngineAvailability":
             handleSetEngineAvailability(args: args, result: result)
+        case "ensureMicrophoneAccess":
+            handleEnsureMicrophoneAccess(result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
         case "getAudioProcessingState":
@@ -800,6 +845,10 @@ extension LiveKitPlugin {
     static let kAudioEngineErrorInsufficientDevicePermission = -9000
     static let kAudioEngineErrorAudioSessionInvalidCategory = -9001
 
+    /// FlutterError code for missing microphone permission. Dart maps it to
+    /// TrackCreateException (see audio_engine_error.dart).
+    static let deviceAccessDeniedErrorCode = "deviceAccessDenied"
+
     /// Maps a non-zero audio device module result to a `FlutterError` whose code
     /// the Dart side can act on. Codes with a known cause get their own error
     /// code, mirroring client-sdk-swift's `checkAdmResult`. Anything else falls
@@ -807,7 +856,7 @@ extension LiveKitPlugin {
     static func flutterError(forAudioEngineResult result: Int, fallbackCode: String) -> FlutterError {
         switch result {
         case kAudioEngineErrorInsufficientDevicePermission:
-            return FlutterError(code: "deviceAccessDenied",
+            return FlutterError(code: deviceAccessDeniedErrorCode,
                                 message: "Microphone permission is not granted (audio engine error \(result))",
                                 details: result)
         case kAudioEngineErrorAudioSessionInvalidCategory:

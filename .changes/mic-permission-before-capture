@@ -1,0 +1,1 @@
+patch type="fixed" "iOS/macOS: request microphone permission before audio capture starts, failing fast with TrackCreateException while the app is not in the foreground"
