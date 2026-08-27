@@ -20,6 +20,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../audio/audio_engine_error.dart';
 import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
@@ -91,10 +92,14 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
         // processing options are applied before WebRTC opens the microphone.
         await Native.startLocalRecording(currentOptions.processing.toMap());
       } on PlatformException catch (error) {
-        throw track_options.AudioProcessingException(
-          _audioProcessingFailureReason(error.code),
-          error.message ?? '',
-        );
+        // Missing microphone permission or an audio session that does not
+        // permit recording are not audio processing failures, so they surface
+        // as their own exception types.
+        throw audioEngineExceptionFrom(error) ??
+            track_options.AudioProcessingException(
+              _audioProcessingFailureReason(error.code),
+              error.message ?? '',
+            );
       }
     }
   }

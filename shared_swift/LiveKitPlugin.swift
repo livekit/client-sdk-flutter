@@ -360,10 +360,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let automatic = args["automatic"] as? Bool ?? false
         let selectCategoryByEngineState = args["selectCategoryByEngineState"] as? Bool ?? false
         let forceSpeakerOutput = args["forceSpeakerOutput"] as? Bool ?? false
+        let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool ?? false
         audioEngineObserver?.updatePolicy(configuration,
                                           automaticManagementEnabled: automatic,
                                           selectCategoryByEngineState: selectCategoryByEngineState,
-                                          forceSpeakerOutput: forceSpeakerOutput)
+                                          forceSpeakerOutput: forceSpeakerOutput,
+                                          preferSpeakerOutput: preferSpeakerOutput)
 
         let shouldApplyNow = !automatic || (audioEngineObserver?.isSessionActive ?? false)
         guard shouldApplyNow else {
@@ -524,11 +526,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 if admResult == 0 {
                     result(nil)
                 } else {
-                    result(FlutterError(
-                        code: "setEngineAvailability",
-                        message: "Audio engine returned error code: \(admResult)",
-                        details: nil
-                    ))
+                    result(LiveKitPlugin.flutterError(forAudioEngineResult: admResult,
+                                                      fallbackCode: "setEngineAvailability"))
                 }
             }
         }
@@ -606,11 +605,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 if admResult == 0 {
                     result(nil)
                 } else {
-                    result(FlutterError(
-                        code: "applyFailed",
-                        message: "Audio engine returned error code: \(admResult)",
-                        details: nil
-                    ))
+                    // Permission and audio session failures get their own codes so
+                    // Dart does not report them as audio processing failures.
+                    result(LiveKitPlugin.flutterError(forAudioEngineResult: admResult,
+                                                      fallbackCode: "applyFailed"))
                 }
             }
         }
@@ -786,14 +784,46 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 }
 
-#if !os(macOS)
-@available(iOS 13.0, *)
 extension LiveKitPlugin {
     /// SDK-side audio engine error code (mirrors client-sdk-swift): returned
     /// from a delegate callback to make WebRTC abort / roll back the engine
     /// operation when the audio session cannot be configured.
     static let kAudioEngineErrorFailedToConfigureAudioSession = -4100
 
+    /// Error codes originating from the WebRTC AudioEngineDevice. Keep in sync
+    /// with `audio_engine_device.h` in the webrtc-sdk fork.
+    static let kAudioEngineErrorInsufficientDevicePermission = -9000
+    static let kAudioEngineErrorAudioSessionInvalidCategory = -9001
+
+    /// Maps a non-zero audio device module result to a `FlutterError` whose code
+    /// the Dart side can act on. Codes with a known cause get their own error
+    /// code, mirroring client-sdk-swift's `checkAdmResult`. Anything else falls
+    /// back to `fallbackCode` with the raw value in the message.
+    static func flutterError(forAudioEngineResult result: Int, fallbackCode: String) -> FlutterError {
+        switch result {
+        case kAudioEngineErrorInsufficientDevicePermission:
+            return FlutterError(code: "deviceAccessDenied",
+                                message: "Microphone permission is not granted (audio engine error \(result))",
+                                details: result)
+        case kAudioEngineErrorAudioSessionInvalidCategory:
+            return FlutterError(code: "audioSessionInvalidCategory",
+                                message: "Audio session category does not support recording (audio engine error \(result))",
+                                details: result)
+        case kAudioEngineErrorFailedToConfigureAudioSession:
+            return FlutterError(code: "audioSessionConfigureFailed",
+                                message: "Failed to configure the audio session (audio engine error \(result))",
+                                details: result)
+        default:
+            return FlutterError(code: fallbackCode,
+                                message: "Audio engine returned error code: \(result)",
+                                details: result)
+        }
+    }
+}
+
+#if !os(macOS)
+@available(iOS 13.0, *)
+extension LiveKitPlugin {
     /// Applies an `RTCAudioSessionConfiguration` to the shared `RTCAudioSession`.
     /// Returns `nil` on success or the thrown error. Safe to call on any thread.
     static func applyAudioSessionConfiguration(_ configuration: RTCAudioSessionConfiguration,
@@ -869,6 +899,13 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private weak var channel: FlutterMethodChannel?
 
     #if !os(macOS)
+    // Policy pushed from Dart, if any. It is an override: when nothing has been
+    // pushed yet (recording before the room connects, or an engine start driven
+    // from native before the Flutter side exists) the observer resolves a
+    // built-in preset from engine state instead, so the engine never enables
+    // against the app-default soloAmbient category. Mirrors the Swift SDK's
+    // AudioSessionEngineObserver, which derives the session from engine state
+    // alone.
     private var cachedConfiguration: RTCAudioSessionConfiguration?
     // When true, the category is chosen from the live engine state at apply time
     // (playAndRecord while recording, playback for playout-only) rather than
@@ -878,6 +915,9 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // override or manual mode, where the config is applied verbatim.
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
+    // Speaker preference for the built-in recording preset (videoChat routes to
+    // the speaker, voiceChat to the receiver), same as the Dart-side policy.
+    private var preferSpeakerOutput = false
     private var isAutomaticManagementEnabled = true
     // False when an external call system (CallKit) owns session activation:
     // configurations are applied without activating, and the session is never
@@ -916,13 +956,15 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     func updatePolicy(_ configuration: RTCAudioSessionConfiguration,
                       automaticManagementEnabled: Bool,
                       selectCategoryByEngineState: Bool,
-                      forceSpeakerOutput: Bool) {
+                      forceSpeakerOutput: Bool,
+                      preferSpeakerOutput: Bool) {
         let cachedConfiguration = copyConfiguration(configuration)
         lock.lock()
         self.cachedConfiguration = cachedConfiguration
         self.isAutomaticManagementEnabled = automaticManagementEnabled
         self.selectCategoryByEngineState = selectCategoryByEngineState
         self.forceSpeakerOutput = forceSpeakerOutput
+        self.preferSpeakerOutput = preferSpeakerOutput
         lock.unlock()
     }
 
@@ -972,8 +1014,23 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// category would leave playAndRecord-only mode/options (e.g. videoChat,
     /// allowBluetooth) that are invalid for the playback category. Mirrors the
     /// Swift SDK's `.playback` preset (playback + spokenAudio + mixWithOthers).
+    ///
+    /// With no pushed config and automatic management on, the built-in
+    /// recording preset stands in for the Dart policy, so the result is the
+    /// same as if the default policy had been pushed. Returns `nil` only in
+    /// manual mode with nothing pushed, where the app owns the session.
     private func effectiveConfigurationLocked(isRecordingEnabled: Bool) -> RTCAudioSessionConfiguration? {
-        guard let configuration = cachedConfiguration else { return nil }
+        let configuration: RTCAudioSessionConfiguration
+        let selectCategoryByEngineState: Bool
+        if let cachedConfiguration {
+            configuration = cachedConfiguration
+            selectCategoryByEngineState = self.selectCategoryByEngineState
+        } else if isAutomaticManagementEnabled {
+            configuration = defaultRecordingConfigurationLocked()
+            selectCategoryByEngineState = true
+        } else {
+            return nil
+        }
         guard selectCategoryByEngineState, !isRecordingEnabled else { return configuration }
 
         let playback = copyConfiguration(configuration)
@@ -981,6 +1038,21 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         playback.categoryOptions = [.mixWithOthers]
         playback.mode = AVAudioSession.Mode.spokenAudio.rawValue
         return playback
+    }
+
+    /// Built-in playAndRecord preset used until Dart pushes a policy. Must be
+    /// called with `lock` held.
+    ///
+    /// Keep in sync with the automatic-mode branch of
+    /// `ResolvedAudioSessionPolicy.appleConfiguration` in
+    /// `lib/src/audio/audio_session_policy.dart`, so a later push of the default
+    /// policy (on connect) does not change the live session.
+    private func defaultRecordingConfigurationLocked() -> RTCAudioSessionConfiguration {
+        let configuration = RTCAudioSessionConfiguration.webRTC()
+        configuration.category = AVAudioSession.Category.playAndRecord.rawValue
+        configuration.categoryOptions = [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay]
+        configuration.mode = (preferSpeakerOutput ? AVAudioSession.Mode.videoChat : AVAudioSession.Mode.voiceChat).rawValue
+        return configuration
     }
 
     private func copyConfiguration(_ configuration: RTCAudioSessionConfiguration) -> RTCAudioSessionConfiguration {

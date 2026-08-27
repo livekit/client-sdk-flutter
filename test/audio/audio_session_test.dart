@@ -17,9 +17,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/src/audio/android_audio_session_adapter.dart';
+import 'package:livekit_client/src/audio/audio_engine_error.dart';
 import 'package:livekit_client/src/audio/audio_manager.dart';
 import 'package:livekit_client/src/audio/audio_session.dart';
 import 'package:livekit_client/src/audio/audio_session_policy.dart';
+import 'package:livekit_client/src/exceptions.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
 import 'package:livekit_client/src/support/webrtc_initialize_options.dart';
@@ -654,6 +656,7 @@ void main() {
         automatic: true,
         selectCategoryByEngineState: true,
         forceSpeakerOutput: true,
+        preferSpeakerOutput: true,
       );
 
       expect(result, isTrue);
@@ -662,6 +665,25 @@ void main() {
         calls.single.arguments,
         containsPair('forceSpeakerOutput', true),
       );
+      expect(
+        calls.single.arguments,
+        containsPair('preferSpeakerOutput', true),
+      );
+    });
+
+    test('passes speaker preference to native so its built-in preset matches the Dart policy', () async {
+      await Native.configureAudio(
+        native_audio.NativeAudioConfiguration(
+          appleAudioCategory: AppleAudioCategory.playAndRecord,
+          appleAudioMode: AppleAudioMode.voiceChat,
+        ),
+        automatic: true,
+        selectCategoryByEngineState: true,
+      );
+
+      expect(calls.single.method, 'configureNativeAudio');
+      expect(calls.single.arguments, containsPair('preferSpeakerOutput', false));
+      expect(calls.single.arguments, containsPair('forceSpeakerOutput', false));
     });
 
     test('returns platform unavailable when audio processing channel is missing', () async {
@@ -871,6 +893,36 @@ void main() {
         ),
         isEmpty,
       );
+    });
+  });
+
+  group('audioEngineExceptionFrom', () {
+    test('maps missing microphone permission to TrackCreateException', () {
+      final error = audioEngineExceptionFrom(
+        PlatformException(code: audioEngineErrorCodeDeviceAccessDenied, message: 'no mic'),
+      );
+
+      expect(error, isA<TrackCreateException>());
+      expect(error!.message, 'no mic');
+    });
+
+    test('maps audio session failures to AudioSessionException', () {
+      final invalidCategory = audioEngineExceptionFrom(
+        PlatformException(code: audioEngineErrorCodeAudioSessionInvalidCategory),
+      );
+      final configureFailed = audioEngineExceptionFrom(
+        PlatformException(code: audioEngineErrorCodeAudioSessionConfigureFailed, message: '  detail  '),
+      );
+
+      expect(invalidCategory, isA<AudioSessionException>());
+      expect(invalidCategory!.message, 'Audio session category does not support recording');
+      expect(configureFailed, isA<AudioSessionException>());
+      expect(configureFailed!.message, 'detail');
+    });
+
+    test('leaves other codes to the caller', () {
+      expect(audioEngineExceptionFrom(PlatformException(code: 'applyFailed')), isNull);
+      expect(audioEngineExceptionFrom(PlatformException(code: 'setEngineAvailability')), isNull);
     });
   });
 }

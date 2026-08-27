@@ -14,6 +14,8 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:meta/meta.dart';
 
 import '../logger.dart';
@@ -21,6 +23,7 @@ import '../support/native.dart';
 import '../support/platform.dart';
 import 'android_audio_session_adapter.dart';
 import 'audio_engine_availability.dart';
+import 'audio_engine_error.dart';
 import 'audio_processing_state.dart';
 import 'audio_session.dart';
 import 'audio_session_policy.dart';
@@ -214,16 +217,23 @@ class AudioManager {
   /// cross-platform code.
   ///
   /// Throws if the native side rejects the change, so callers never assume
-  /// the engine is gated when it is not.
+  /// the engine is gated when it is not. Enabling input requires microphone
+  /// permission, which is not requested here: a [TrackCreateException] is
+  /// thrown when it is missing, and an [AudioSessionException] when the audio
+  /// session does not permit recording.
   ///
   /// Experimental: this API may change in a future release.
   @experimental
   Future<void> setEngineAvailability(AudioEngineAvailability availability) async {
     if (!lkPlatformIsApple()) return;
-    await Native.setEngineAvailability(
-      isInputAvailable: availability.isInputAvailable,
-      isOutputAvailable: availability.isOutputAvailable,
-    );
+    try {
+      await Native.setEngineAvailability(
+        isInputAvailable: availability.isInputAvailable,
+        isOutputAvailable: availability.isOutputAvailable,
+      );
+    } on PlatformException catch (error) {
+      throw audioEngineExceptionFrom(error) ?? error;
+    }
   }
 
   /// Selects whether LiveKit manages the platform audio session automatically.
@@ -309,6 +319,7 @@ class AudioManager {
           automatic: true,
           selectCategoryByEngineState: true,
           forceSpeakerOutput: policy.forceSpeakerOutput,
+          preferSpeakerOutput: policy.preferSpeakerOutput,
         );
       } else {
         // Manual mode: re-apply the fixed Apple config. Non-forced receiver vs
@@ -359,6 +370,7 @@ class AudioManager {
       automatic: _isAutomaticConfigurationEnabled,
       selectCategoryByEngineState: _isAutomaticConfigurationEnabled,
       forceSpeakerOutput: policy.forceSpeakerOutput,
+      preferSpeakerOutput: policy.preferSpeakerOutput,
     );
   }
 
