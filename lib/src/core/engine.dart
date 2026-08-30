@@ -1113,15 +1113,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
-        // clean up before emitting, room's EngineDisconnectedEvent handler
-        // drops the event while fullReconnectOnNext is still true and
-        // cleanUp() is what resets it
-        await cleanUp();
+        // Reset only the flag the Room gates on, then announce, then tear down.
+        //
+        // `room.dart` drops EngineDisconnectedEvent while `fullReconnectOnNext` is still
+        // true, and `cleanUp()` is what resets it — which is why the cleanUp was moved
+        // ahead of the emit. But `cleanUp()` also disposes the transports, i.e.
+        // `pc.close()` + `pc.dispose()` on the native peer connection, so the whole
+        // teardown ran before anything had been told the connection was gone.
+        //
+        // On iOS that closes a peer connection whose ICE machinery is still live,
+        // moments after failed reconnect attempts were driving it. libwebrtc m144 then
+        // faults on the network thread: the platform thread blocks in
+        // `[peerConnection close]` while a queued ICE task dereferences NULL.
+        //
+        // Clearing the flag is all the emit needs, so the native close can stay where it
+        // belongs — after every listener has been told the connection dropped.
+        fullReconnectOnNext = false;
         events.emit(EngineDisconnectedEvent(
           reason: e is CertificatePinningException
               ? DisconnectReason.signalingConnectionFailure
               : DisconnectReason.disconnected,
         ));
+        await cleanUp();
       }
     } finally {
       _attemptingReconnect = false;
