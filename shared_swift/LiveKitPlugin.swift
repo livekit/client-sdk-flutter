@@ -1044,7 +1044,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// `lib/src/audio/audio_session_policy.dart`, so a later push of the default
     /// policy (on connect) does not change the live session.
     private func defaultRecordingConfigurationLocked() -> RTCAudioSessionConfiguration {
-        let configuration = RTCAudioSessionConfiguration.webRTC()
+        // `webRTC()` returns the process-wide shared configuration object;
+        // mutating it would rewrite WebRTC's defaults for every other consumer
+        // (and the result escapes `lock`), so start from a copy.
+        let configuration = copyConfiguration(RTCAudioSessionConfiguration.webRTC())
         configuration.category = AVAudioSession.Category.playAndRecord.rawValue
         configuration.categoryOptions = [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay]
         configuration.mode = (preferSpeakerOutput ? AVAudioSession.Mode.videoChat : AVAudioSession.Mode.voiceChat).rawValue
