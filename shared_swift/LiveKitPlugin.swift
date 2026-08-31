@@ -57,6 +57,9 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     // the audio device module both hold it weakly, so LiveKit must keep it alive.
     var channel: FlutterMethodChannel?
     var audioEngineObserver: LKAudioEngineObserver?
+    // Process-wide engine observer, kept across plugin registrations so a
+    // second Flutter engine does not wipe the pushed policy / management mode.
+    private static var sharedAudioEngineObserver: LKAudioEngineObserver?
 
     #if os(iOS)
     var cancellable = Set<AnyCancellable>()
@@ -84,8 +87,16 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // engine emits these events on both iOS and macOS. macOS has no
         // AVAudioSession to configure, so there it only surfaces engine state.
         // Set before the peer connection factory is created.
+        //
+        // The observer is shared across plugin registrations: its state (the
+        // pushed policy and management mode) describes the process-wide audio
+        // session, so a later registration (e.g. a second Flutter engine in
+        // the same process) must not reset it. Only the notification channel
+        // is rebound to the latest registration.
         instance.channel = channel
-        let audioEngineObserver = LKAudioEngineObserver(channel: channel)
+        let audioEngineObserver = sharedAudioEngineObserver ?? LKAudioEngineObserver(channel: channel)
+        audioEngineObserver.updateChannel(channel)
+        sharedAudioEngineObserver = audioEngineObserver
         instance.audioEngineObserver = audioEngineObserver
         FlutterWebRTCPlugin.setAudioDeviceModuleObserver(audioEngineObserver)
 
@@ -933,6 +944,14 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         super.init()
     }
 
+    /// Rebinds Dart notifications to the given channel. Called on every plugin
+    /// registration, since the observer itself outlives registrations.
+    func updateChannel(_ channel: FlutterMethodChannel) {
+        lock.lock()
+        self.channel = channel
+        lock.unlock()
+    }
+
     #if !os(macOS)
     var isSessionActive: Bool {
         lock.lock(); defer { lock.unlock() }
@@ -1153,7 +1172,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     }
 
     private func notifyEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
-        guard let channel = channel else { return }
+        lock.lock()
+        let channel = channel
+        lock.unlock()
+        guard let channel else { return }
         DispatchQueue.main.async {
             channel.invokeMethod("onAudioEngineState", arguments: [
                 "isPlayoutEnabled": isPlayoutEnabled,
