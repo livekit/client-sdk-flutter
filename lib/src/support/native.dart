@@ -50,7 +50,6 @@ class Native {
     bool automatic = false,
     bool selectCategoryByEngineState = false,
     bool forceSpeakerOutput = false,
-    bool preferSpeakerOutput = true,
   }) async {
     try {
       final result = await channel.invokeMethod<bool>(
@@ -60,9 +59,6 @@ class Native {
           'automatic': automatic,
           'selectCategoryByEngineState': selectCategoryByEngineState,
           'forceSpeakerOutput': forceSpeakerOutput,
-          // Lets the native built-in recording preset pick the same mode the
-          // Dart policy would, for engine starts that happen before any push.
-          'preferSpeakerOutput': preferSpeakerOutput,
         },
       );
       return result == true;

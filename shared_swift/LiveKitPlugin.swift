@@ -360,12 +360,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let automatic = args["automatic"] as? Bool ?? false
         let selectCategoryByEngineState = args["selectCategoryByEngineState"] as? Bool ?? false
         let forceSpeakerOutput = args["forceSpeakerOutput"] as? Bool ?? false
-        let preferSpeakerOutput = args["preferSpeakerOutput"] as? Bool ?? true
         audioEngineObserver?.updatePolicy(configuration,
                                           automaticManagementEnabled: automatic,
                                           selectCategoryByEngineState: selectCategoryByEngineState,
-                                          forceSpeakerOutput: forceSpeakerOutput,
-                                          preferSpeakerOutput: preferSpeakerOutput)
+                                          forceSpeakerOutput: forceSpeakerOutput)
 
         let shouldApplyNow = !automatic || (audioEngineObserver?.isSessionActive ?? false)
         guard shouldApplyNow else {
@@ -915,10 +913,6 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // override or manual mode, where the config is applied verbatim.
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
-    // Speaker preference for the built-in recording preset (videoChat routes to
-    // the speaker, voiceChat to the receiver). Defaults to true like the Dart
-    // AudioManager, so the preset matches the policy Dart pushes on connect.
-    private var preferSpeakerOutput = true
     private var isAutomaticManagementEnabled = true
     // False when an external call system (CallKit) owns session activation:
     // configurations are applied without activating, and the session is never
@@ -957,15 +951,13 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     func updatePolicy(_ configuration: RTCAudioSessionConfiguration,
                       automaticManagementEnabled: Bool,
                       selectCategoryByEngineState: Bool,
-                      forceSpeakerOutput: Bool,
-                      preferSpeakerOutput: Bool) {
+                      forceSpeakerOutput: Bool) {
         let cachedConfiguration = copyConfiguration(configuration)
         lock.lock()
         self.cachedConfiguration = cachedConfiguration
         self.isAutomaticManagementEnabled = automaticManagementEnabled
         self.selectCategoryByEngineState = selectCategoryByEngineState
         self.forceSpeakerOutput = forceSpeakerOutput
-        self.preferSpeakerOutput = preferSpeakerOutput
         lock.unlock()
     }
 
@@ -1050,7 +1042,11 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         let configuration = copyConfiguration(RTCAudioSessionConfiguration.webRTC())
         configuration.category = AVAudioSession.Category.playAndRecord.rawValue
         configuration.categoryOptions = [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay]
-        configuration.mode = (preferSpeakerOutput ? AVAudioSession.Mode.videoChat : AVAudioSession.Mode.voiceChat).rawValue
+        // videoChat routes to the speaker, matching the Dart AudioManager's
+        // default speaker preference. A non-default preference always arrives
+        // as a pushed policy (its mode carries the preference), which bypasses
+        // this preset entirely.
+        configuration.mode = AVAudioSession.Mode.videoChat.rawValue
         return configuration
     }
 

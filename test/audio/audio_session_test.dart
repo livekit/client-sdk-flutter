@@ -656,7 +656,6 @@ void main() {
         automatic: true,
         selectCategoryByEngineState: true,
         forceSpeakerOutput: true,
-        preferSpeakerOutput: true,
       );
 
       expect(result, isTrue);
@@ -665,26 +664,6 @@ void main() {
         calls.single.arguments,
         containsPair('forceSpeakerOutput', true),
       );
-      expect(
-        calls.single.arguments,
-        containsPair('preferSpeakerOutput', true),
-      );
-    });
-
-    test('passes speaker preference to native so its built-in preset matches the Dart policy', () async {
-      await Native.configureAudio(
-        native_audio.NativeAudioConfiguration(
-          appleAudioCategory: AppleAudioCategory.playAndRecord,
-          appleAudioMode: AppleAudioMode.voiceChat,
-        ),
-        automatic: true,
-        selectCategoryByEngineState: true,
-        preferSpeakerOutput: false,
-      );
-
-      expect(calls.single.method, 'configureNativeAudio');
-      expect(calls.single.arguments, containsPair('preferSpeakerOutput', false));
-      expect(calls.single.arguments, containsPair('forceSpeakerOutput', false));
     });
 
     test('returns platform unavailable when audio processing channel is missing', () async {

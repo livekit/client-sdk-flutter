@@ -319,7 +319,6 @@ class AudioManager {
           automatic: true,
           selectCategoryByEngineState: true,
           forceSpeakerOutput: policy.forceSpeakerOutput,
-          preferSpeakerOutput: policy.preferSpeakerOutput,
         );
       } else {
         // Manual mode: re-apply the fixed Apple config. Non-forced receiver vs
@@ -370,7 +369,6 @@ class AudioManager {
       automatic: _isAutomaticConfigurationEnabled,
       selectCategoryByEngineState: _isAutomaticConfigurationEnabled,
       forceSpeakerOutput: policy.forceSpeakerOutput,
-      preferSpeakerOutput: policy.preferSpeakerOutput,
     );
   }
 
