@@ -583,11 +583,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 if admResult == 0 {
                     result(nil)
                 } else {
-                    result(FlutterError(
-                        code: "setMicrophoneMuteMode",
-                        message: "Audio engine returned error code: \(admResult)",
-                        details: nil
-                    ))
+                    // A mute-mode change can rebuild the engine and hit the same
+                    // permission / audio session checks as a recording start.
+                    result(LiveKitPlugin.flutterError(forAudioEngineResult: admResult,
+                                                      fallbackCode: "setMicrophoneMuteMode"))
                 }
             }
         }
@@ -635,11 +634,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                 if admResult == 0 {
                     result(nil)
                 } else {
-                    result(FlutterError(
-                        code: "stopLocalRecording",
-                        message: "Audio engine returned error code: \(admResult)",
-                        details: nil
-                    ))
+                    result(LiveKitPlugin.flutterError(forAudioEngineResult: admResult,
+                                                      fallbackCode: "stopLocalRecording"))
                 }
             }
         }

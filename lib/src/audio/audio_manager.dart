@@ -424,13 +424,20 @@ class AudioManager {
   /// Bluetooth headsets).
   ///
   /// Throws if the native side rejects the change, so callers never assume
-  /// a muting behavior that is not actually in effect.
+  /// a muting behavior that is not actually in effect. A mode change can
+  /// rebuild the audio engine, so like [setEngineAvailability] it throws a
+  /// [TrackCreateException] when microphone permission is missing and an
+  /// [AudioSessionException] when the audio session does not permit recording.
   ///
   /// This is engine-wide state. Prefer setting it once before connecting.
   Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {
     if (mode == MicrophoneMuteMode.unknown) return;
     if (!lkPlatformIsApple()) return;
-    await Native.setMicrophoneMuteMode(mode.name);
+    try {
+      await Native.setMicrophoneMuteMode(mode.name);
+    } on PlatformException catch (error) {
+      throw audioEngineExceptionFrom(error) ?? error;
+    }
   }
 
   /// Diagnostic snapshot of the resolved audio processing state.
