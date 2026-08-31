@@ -21,6 +21,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import '../../audio/audio_engine_error.dart';
+import '../../audio/audio_manager.dart';
 import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
@@ -87,6 +88,11 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   Future<void> startCapture() async {
     await super.startCapture();
     if (lkPlatformSupportsExplicitAudioRecordingStart()) {
+      // Recording can start before any policy push (pre-connect audio,
+      // pre-join mic). Hand native the resolved Dart policy first — cache-only
+      // while the engine is idle — so the session is not left to the native
+      // built-in preset.
+      await AudioManager.instance.ensureAppleAudioSessionPolicy();
       try {
         // Match Swift: start the ADM before publishing so capture-time audio
         // processing options are applied before WebRTC opens the microphone.

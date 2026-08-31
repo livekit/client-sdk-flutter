@@ -347,6 +347,24 @@ class AudioManager {
     }
   }
 
+  /// Pushes the current resolved policy to native before a local recording
+  /// starts (pre-connect audio, pre-join microphone), so the session comes
+  /// from the real Dart policy instead of the native built-in preset. The
+  /// preset remains as a fallback for engine starts that happen before the
+  /// Flutter side exists (e.g. a CallKit killed-state wake).
+  ///
+  /// In automatic mode with the engine idle this only caches the policy
+  /// natively; it is applied on engine start. iOS only: manual mode (app owns
+  /// the session) and other platforms are untouched.
+  @internal
+  Future<void> ensureAppleAudioSessionPolicy() async {
+    if (!lkPlatformIs(PlatformType.iOS)) return;
+    await _syncAppleAudioSessionManagementMode();
+    if (_isAutomaticConfigurationEnabled) {
+      await _configureAppleAudioSession(_options);
+    }
+  }
+
   Future<void> _syncAppleAudioSessionManagementMode() async {
     if (lkPlatformIs(PlatformType.iOS)) {
       await Native.setAppleAudioSessionAutomaticManagementEnabled(
