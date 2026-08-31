@@ -1,1 +1,1 @@
-minor type="added" "Add AudioSessionException, thrown when the Apple audio session cannot be configured for or does not permit the requested audio operation"
+minor type="added" "Add AudioSessionException for iOS audio session failures"
