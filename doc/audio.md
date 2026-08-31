@@ -139,7 +139,7 @@ The session intent decides how the platform treats audio. Capture options decide
 - Use `AudioProcessingOptions.communication()` when you want all four voice filters on for an existing local audio track.
 - Use `AudioProcessingOptions.noProcessing()` for local capture where you want minimal processing, such as high quality recording or app-managed audio effects.
 
-Create-time processing is configured through `AudioCaptureOptions`. `LocalAudioTrack.create(...)` stores these options, and LiveKit prepares them when local recording starts, such as during publish or preconnect. If the exposed native platform API reports that capture-time setup failed, the start path throws `AudioProcessingException` before publish creates a server-side publication.
+Create-time processing is configured through `AudioCaptureOptions`. `LocalAudioTrack.create(...)` stores these options, and LiveKit prepares them when local recording starts, such as during publish or preconnect. If the exposed native platform API reports that capture-time setup failed, the start path throws before publish creates a server-side publication: `TrackCreateException` when microphone permission is missing, `AudioSessionException` when the audio session cannot be configured for or does not permit recording, and `AudioProcessingException` for other capture-time setup failures.
 
 ```dart
 final track = await LocalAudioTrack.create(
