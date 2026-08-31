@@ -220,7 +220,7 @@ class AudioManager {
   /// the engine is gated when it is not. Enabling input requires microphone
   /// permission, which is not requested here: a [TrackCreateException] is
   /// thrown when it is missing, and an [AudioSessionException] when the audio
-  /// session does not permit recording.
+  /// session does not permit recording (iOS only; macOS has no audio session).
   ///
   /// Experimental: this API may change in a future release.
   @experimental
@@ -445,7 +445,8 @@ class AudioManager {
   /// a muting behavior that is not actually in effect. A mode change can
   /// rebuild the audio engine, so like [setEngineAvailability] it throws a
   /// [TrackCreateException] when microphone permission is missing and an
-  /// [AudioSessionException] when the audio session does not permit recording.
+  /// [AudioSessionException] when the audio session does not permit recording
+  /// (iOS only; macOS has no audio session).
   ///
   /// This is engine-wide state. Prefer setting it once before connecting.
   Future<void> setMicrophoneMuteMode(MicrophoneMuteMode mode) async {

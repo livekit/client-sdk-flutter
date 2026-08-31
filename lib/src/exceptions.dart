@@ -83,7 +83,8 @@ class TrackCreateException extends LiveKitException {
 }
 
 /// The platform audio session could not be configured for, or does not permit,
-/// the requested audio operation (Apple platforms).
+/// the requested audio operation (iOS; macOS has no audio session, so engine
+/// failures there keep their generic error codes).
 /// Common reasons:
 /// - Recording was started while the app-managed audio session
 ///   (`AudioSessionManagementMode.manual`) has a category without input.
