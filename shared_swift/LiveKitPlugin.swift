@@ -966,12 +966,12 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// manual mode and for re-applying while the engine is already running.
     func applyCachedConfiguration() -> Error? {
         lock.lock()
-        let configuration = effectiveConfigurationLocked(isRecordingEnabled: lastIsRecordingEnabled)
+        let resolved = effectiveConfigurationLocked(isRecordingEnabled: lastIsRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
         let isActive = isSessionActivationEnabled
         lock.unlock()
-        guard let configuration else { return nil }
-        return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
+        guard let resolved else { return nil }
+        return LiveKitPlugin.applyAudioSessionConfiguration(resolved.configuration,
                                                             forceSpeakerOutput: forceSpeakerOutput,
                                                             isActive: isActive)
     }
@@ -979,15 +979,26 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private func applyManagedConfiguration(isRecordingEnabled: Bool) -> Error? {
         lock.lock()
         let shouldManageSession = isAutomaticManagementEnabled
-        let configuration = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
+        let resolved = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
         let isActive = isSessionActivationEnabled
         lock.unlock()
 
-        guard shouldManageSession, let configuration else { return nil }
-        return LiveKitPlugin.applyAudioSessionConfiguration(configuration,
-                                                            forceSpeakerOutput: forceSpeakerOutput,
-                                                            isActive: isActive)
+        guard shouldManageSession, let resolved else { return nil }
+        guard let error = LiveKitPlugin.applyAudioSessionConfiguration(resolved.configuration,
+                                                                       forceSpeakerOutput: forceSpeakerOutput,
+                                                                       isActive: isActive)
+        else { return nil }
+        // The built-in preset is best-effort: before it existed, engine starts
+        // with nothing pushed proceeded against whatever session the app had,
+        // and the ADM's own pre-enable checks still gate recording on an
+        // unsuitable category. Only a policy the app actually pushed aborts
+        // the engine operation when it cannot be applied.
+        if resolved.isDefaultPreset {
+            print("[LiveKit] AudioEngine: default audio session preset not applied, continuing: \(error)")
+            return nil
+        }
+        return error
     }
 
     private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
@@ -1012,20 +1023,24 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// recording preset stands in for the Dart policy, so the result is the
     /// same as if the default policy had been pushed. Returns `nil` only in
     /// manual mode with nothing pushed, where the app owns the session.
-    private func effectiveConfigurationLocked(isRecordingEnabled: Bool) -> RTCAudioSessionConfiguration? {
+    private func effectiveConfigurationLocked(isRecordingEnabled: Bool)
+        -> (configuration: RTCAudioSessionConfiguration, isDefaultPreset: Bool)?
+    {
         let usesDefaultPreset = cachedConfiguration == nil
         guard let configuration = cachedConfiguration
             ?? (isAutomaticManagementEnabled ? defaultRecordingConfigurationLocked() : nil)
         else { return nil }
         // The default preset is always resolved by engine state, like the Dart
         // automatic-mode push it stands in for.
-        guard usesDefaultPreset || selectCategoryByEngineState, !isRecordingEnabled else { return configuration }
+        guard usesDefaultPreset || selectCategoryByEngineState, !isRecordingEnabled else {
+            return (configuration, usesDefaultPreset)
+        }
 
         let playback = copyConfiguration(configuration)
         playback.category = AVAudioSession.Category.playback.rawValue
         playback.categoryOptions = [.mixWithOthers]
         playback.mode = AVAudioSession.Mode.spokenAudio.rawValue
-        return playback
+        return (playback, usesDefaultPreset)
     }
 
     /// Built-in playAndRecord preset used until Dart pushes a policy. Must be
