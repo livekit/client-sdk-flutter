@@ -1,0 +1,1 @@
+patch type="fixed" "sendText declares the UTF-8 byte length in the stream header, fixing rejected text streams containing non-ASCII characters"
