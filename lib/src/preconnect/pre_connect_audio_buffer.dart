@@ -124,7 +124,7 @@ class PreConnectAudioBuffer {
       _localTrack = await LocalAudioTrack.create();
     } catch (error) {
       logger.severe('[Preconnect audio] failed to create local track: $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       rethrow;
     }
@@ -145,7 +145,7 @@ class PreConnectAudioBuffer {
     if (!result) {
       final error = StateError('Failed to start audio renderer ($result)');
       logger.severe('[Preconnect audio] $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       await _localTrack?.stop();
       _localTrack = null;
@@ -157,7 +157,7 @@ class PreConnectAudioBuffer {
       _nativeRecordingStarted = lkPlatformSupportsExplicitAudioRecordingStart();
     } catch (error) {
       logger.severe('[Preconnect audio] failed to start local recording: $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       await _localTrack?.stop();
       _localTrack = null;
@@ -191,7 +191,7 @@ class PreConnectAudioBuffer {
           _agentReadyManager.complete();
         } catch (error) {
           _agentReadyManager.completeError(error);
-          _onError?.call(error);
+          _notifyError(error);
         }
       },
     );
@@ -352,5 +352,16 @@ class PreConnectAudioBuffer {
   /// Updates the callback invoked when pre-connect audio fails.
   void setErrorHandler(PreConnectOnError? onError) {
     _onError = onError;
+  }
+
+  /// Invokes the app-provided error callback without letting a throwing
+  /// callback derail the failure path it is called from: cleanup must still
+  /// run and the original error must stay the one callers see.
+  void _notifyError(Object error) {
+    try {
+      _onError?.call(error);
+    } catch (callbackError) {
+      logger.warning('[Preconnect audio] onError callback threw: $callbackError');
+    }
   }
 }

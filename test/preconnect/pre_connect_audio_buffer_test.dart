@@ -62,5 +62,25 @@ void main() {
       // a TimeoutException and fail this test as an unhandled error.
       await Future<void>.delayed(const Duration(milliseconds: 100));
     });
+
+    test('cleans up even when the error handler throws', () async {
+      final buffer = container.room.preConnectAudioBuffer;
+      var callbackCalls = 0;
+      buffer.setErrorHandler((error) {
+        callbackCalls++;
+        throw StateError('app callback bug');
+      });
+
+      // The original track creation failure must reach the caller, not the
+      // callback's own error, and cleanup must still run.
+      await expectLater(
+        buffer.startRecording(timeout: const Duration(milliseconds: 50)),
+        throwsA(isNot(isA<StateError>())),
+      );
+
+      expect(callbackCalls, 1);
+      expect(buffer.isRecording, isFalse);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
   });
 }
