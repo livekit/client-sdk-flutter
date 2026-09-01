@@ -1,0 +1,1 @@
+patch type="fixed" "Pre-connect audio buffer returns to a reusable state when recording fails to start, instead of ignoring retries and leaking the agent timeout"

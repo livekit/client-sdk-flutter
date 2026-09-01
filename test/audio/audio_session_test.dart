@@ -876,6 +876,37 @@ void main() {
     });
   });
 
+  group('Native.ensureMicrophoneAccess', () {
+    test('is a no-op when the platform does not implement it', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async => throw PlatformException(code: 'Unimplemented'),
+      );
+      await expectLater(Native.ensureMicrophoneAccess(), completes);
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        null,
+      );
+      await expectLater(Native.ensureMicrophoneAccess(), completes);
+    });
+
+    test('propagates a denied permission so callers can map it', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        Native.channel,
+        (call) async {
+          expect(call.method, 'ensureMicrophoneAccess');
+          throw PlatformException(code: audioEngineErrorCodeDeviceAccessDenied, message: 'denied');
+        },
+      );
+
+      await expectLater(
+        Native.ensureMicrophoneAccess(),
+        throwsA(isA<PlatformException>().having((error) => error.code, 'code', audioEngineErrorCodeDeviceAccessDenied)),
+      );
+    });
+  });
+
   group('audioEngineExceptionFrom', () {
     test('maps missing microphone permission to TrackCreateException', () {
       final error = audioEngineExceptionFrom(

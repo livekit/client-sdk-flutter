@@ -266,12 +266,39 @@ class Native {
     }
   }
 
+  /// Requests microphone permission before audio capture starts (iOS/macOS).
+  ///
+  /// The WebRTC audio device only checks the permission and fails when it is
+  /// missing, so the SDK requests it here. On iOS the prompt is only shown while
+  /// the app is active. Throws a [PlatformException] with code
+  /// `deviceAccessDenied` when permission is denied, restricted, or could not be
+  /// requested. A no-op where the platform does not implement it, or while the
+  /// engine's input availability is disabled via [setEngineAvailability] (the
+  /// audio device defers opening input there, so no permission is needed yet).
+  @internal
+  static Future<void> ensureMicrophoneAccess() async {
+    try {
+      await channel.invokeMethod<void>('ensureMicrophoneAccess', <String, dynamic>{});
+    } on PlatformException catch (error) {
+      if (error.code == 'Unimplemented') return;
+      rethrow;
+    } on MissingPluginException {
+      return;
+    }
+  }
+
   /// Sets whether the WebRTC audio engine is allowed to run (iOS/macOS).
   ///
   /// Unlike most methods in this class this deliberately does not swallow
   /// platform errors: a failed availability change means the engine may run
   /// outside the window the caller intended (e.g. CallKit's
   /// didActivate/didDeactivate), so the error must reach the caller.
+  ///
+  /// Microphone permission is not requested here. A recording requested while
+  /// input was unavailable is honored on re-enable, but the audio device only
+  /// passively checks permission at that point, so it must be granted before
+  /// input availability is restored. Otherwise this throws a
+  /// [PlatformException] with code `deviceAccessDenied`.
   @internal
   static Future<void> setEngineAvailability({
     required bool isInputAvailable,
