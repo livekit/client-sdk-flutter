@@ -120,7 +120,14 @@ class PreConnectAudioBuffer {
     // Set up timeout for agent readiness
     _agentReadyManager.setTimer(timeout, timeoutReason: 'Agent did not become ready within timeout');
 
-    _localTrack = await LocalAudioTrack.create();
+    try {
+      _localTrack = await LocalAudioTrack.create();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to create local track: $error');
+      _onError?.call(error);
+      await stopRecording(withError: error);
+      rethrow;
+    }
     logger.fine('[Preconnect audio] created local track ${_localTrack!.mediaStreamTrack.id}');
 
     final rendererId = Uuid().v4();

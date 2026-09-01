@@ -93,6 +93,25 @@ void main() {
         }
       });
 
+      test('should complete an unobserved error silently', () async {
+        // No call to `future` before the error: nothing can ever observe it
+        // (accessing `future` afterwards returns a fresh completer), so it
+        // must not surface as an unhandled async error.
+        final result = completer.completeError(Exception('unobserved'));
+
+        expect(result, isTrue);
+        expect(completer.isCompleted, isTrue);
+
+        // Let any (incorrect) unhandled error surface and fail the test.
+        await Future<void>.delayed(Duration.zero);
+
+        // The completer stays reusable.
+        final future = completer.future;
+        expect(completer.isActive, isTrue);
+        completer.complete('next');
+        await expectLater(future, completion('next'));
+      });
+
       test('should return false when completing already completed completer', () {
         completer.complete('first');
         final result1 = completer.complete('second');
