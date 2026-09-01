@@ -556,6 +556,20 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     ///
     /// Method channel handlers run on the main thread, which UIApplication needs.
     public func handleEnsureMicrophoneAccess(result: @escaping FlutterResult) {
+        // With engine input availability disabled (the CallKit flow, see
+        // setEngineAvailability) the audio device module defers opening input
+        // entirely and runs no permission check, so gating here would turn a
+        // working background connect into a deviceAccessDenied failure. The
+        // last-set value is tracked by both the channel and native static
+        // paths, so it covers gating done before the Flutter engine exists.
+        LiveKitPlugin.engineAvailabilityLock.lock()
+        let pendingAvailability = LiveKitPlugin.pendingEngineAvailability
+        LiveKitPlugin.engineAvailabilityLock.unlock()
+        if let pendingAvailability, !pendingAvailability.isInputAvailable.boolValue {
+            result(nil)
+            return
+        }
+
         let denied = { (message: String) in
             result(FlutterError(code: LiveKitPlugin.deviceAccessDeniedErrorCode, message: message, details: nil))
         }

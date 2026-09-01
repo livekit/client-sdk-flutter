@@ -42,11 +42,11 @@ extension RoomPreConnect on Room {
   /// ```
   ///
   /// - Note: Requires microphone permission. On iOS/macOS the SDK requests it
-  ///   when recording starts, but only while the app is in the foreground, so
-  ///   call this from a foreground context (for example a user tap) where the
-  ///   system prompt can appear. Otherwise it throws a [TrackCreateException].
-  ///   Requesting permission earlier in the app lifecycle avoids the prompt
-  ///   delaying the first recording.
+  ///   when recording starts, but only while the app is active, so call this
+  ///   once the app has become active and the system prompt can appear. At app
+  ///   launch the app may not be active yet, so when calling this early,
+  ///   request permission up front (for example with the permission_handler
+  ///   package). Otherwise it throws a [TrackCreateException].
   /// - SeeAlso: [PreConnectAudioBuffer]
   Future<T> withPreConnectAudio<T>(
     Future<T> Function() operation, {
