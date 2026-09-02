@@ -4,18 +4,18 @@
 #include <memory>
 #include <mutex>
 #include <queue>
- #include <functional>
- 
- using TaskClosure = std::function<void()>;
+#include <functional>
+
+using TaskClosure = std::function<void()>;
 
 namespace livekit_client_plugin {
 
-// Owned via std::shared_ptr by its creator (never std::unique_ptr): EnqueueTask
+// Owned via std::shared_ptr by its creator (never std::unique_ptr). EnqueueTask
 // schedules a GLib idle callback that runs asynchronously on the main loop, and
 // enable_shared_from_this lets that callback hold a weak reference so it can
-// detect the runner having been destroyed in the meantime (e.g. stopAudioRenderer
-// tearing down the sink while a callback is still queued) instead of dereferencing
-// freed memory.
+// detect the runner having been destroyed in the meantime (for example
+// stopAudioRenderer tearing down the sink while a callback is still queued)
+// instead of dereferencing freed memory.
 class TaskRunnerLinux : public std::enable_shared_from_this<TaskRunnerLinux> {
  public:
   TaskRunnerLinux() = default;
