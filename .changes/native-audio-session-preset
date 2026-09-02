@@ -1,0 +1,1 @@
+patch type="fixed" "iOS: the audio session is configured from engine state even before a policy is pushed (pre-connect audio, pre-join mic, playout-only), fixing audio engine error -9001"

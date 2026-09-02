@@ -105,8 +105,9 @@ class PreConnectAudioBuffer {
   /// [agentReadyFuture] completes with an error and callers should [reset] the
   /// buffer.
   ///
-  /// Ensure microphone permissions are granted before calling this.
-  /// Audio capture may fail without permissions.
+  /// Requires microphone permission. On iOS/macOS it is requested here while
+  /// the app is in the foreground. Throws a [TrackCreateException] when it is
+  /// denied or cannot be requested (app not in the foreground).
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {
@@ -119,7 +120,14 @@ class PreConnectAudioBuffer {
     // Set up timeout for agent readiness
     _agentReadyManager.setTimer(timeout, timeoutReason: 'Agent did not become ready within timeout');
 
-    _localTrack = await LocalAudioTrack.create();
+    try {
+      _localTrack = await LocalAudioTrack.create();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to create local track: $error');
+      _notifyError(error);
+      await stopRecording(withError: error);
+      rethrow;
+    }
     logger.fine('[Preconnect audio] created local track ${_localTrack!.mediaStreamTrack.id}');
 
     final rendererId = Uuid().v4();
@@ -137,7 +145,7 @@ class PreConnectAudioBuffer {
     if (!result) {
       final error = StateError('Failed to start audio renderer ($result)');
       logger.severe('[Preconnect audio] $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       await _localTrack?.stop();
       _localTrack = null;
@@ -149,7 +157,7 @@ class PreConnectAudioBuffer {
       _nativeRecordingStarted = lkPlatformSupportsExplicitAudioRecordingStart();
     } catch (error) {
       logger.severe('[Preconnect audio] failed to start local recording: $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       await _localTrack?.stop();
       _localTrack = null;
@@ -183,7 +191,7 @@ class PreConnectAudioBuffer {
           _agentReadyManager.complete();
         } catch (error) {
           _agentReadyManager.completeError(error);
-          _onError?.call(error);
+          _notifyError(error);
         }
       },
     );
@@ -344,5 +352,16 @@ class PreConnectAudioBuffer {
   /// Updates the callback invoked when pre-connect audio fails.
   void setErrorHandler(PreConnectOnError? onError) {
     _onError = onError;
+  }
+
+  /// Invokes the app-provided error callback without letting a throwing
+  /// callback derail the failure path it is called from: cleanup must still
+  /// run and the original error must stay the one callers see.
+  void _notifyError(Object error) {
+    try {
+      _onError?.call(error);
+    } catch (callbackError) {
+      logger.warning('[Preconnect audio] onError callback threw: $callbackError');
+    }
   }
 }

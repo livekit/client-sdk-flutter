@@ -13,6 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# The repository-root analysis_options.yaml has to exclude `web/**`: Flutter's
+# AnalysisOptionsMigration appends that pattern on every `flutter analyze` and
+# offers no way to opt out. These files are real Dart source (the E2EE worker),
+# not web assets, so this file gives them their own analysis context and keeps
+# them covered. CI analyzes them via `dart analyze web/`.
+
 include: package:lints/recommended.yaml
 
 analyzer:
@@ -21,30 +27,6 @@ analyzer:
     use_super_parameters: ignore
     avoid_print: ignore
     deprecated_member_use_from_same_package: ignore
-
-  # Exclude protobuf files
-  exclude:
-    - "**/*.pb.dart"
-    - "**/*.pbenum.dart"
-    - "**/*.pbjson.dart"
-    - "**/*.pbserver.dart"
-    # - 'web/*.dart'
-    # Xcode vendors Swift package checkouts under build when Swift Package
-    # Manager is enabled and this package ships Package.swift.
-    - build/**
-    - example/build/**
-    # Flutter's AnalysisOptionsMigration (flutter_tools) appends these seven
-    # patterns to this file on every `flutter analyze`/`pub get`/`run`. There is
-    # no opt-out, so they are committed here to stop the file being rewritten.
-    # Note this excludes web/, which in this package holds real Dart source (the
-    # E2EE worker) rather than just assets -- CI analyzes it explicitly with
-    # `dart analyze web/`, which does not run migrators.
-    - android/**
-    - ios/**
-    - web/**
-    - windows/**
-    - macos/**
-    - linux/**
 
 linter:
   rules:

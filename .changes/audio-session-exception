@@ -1,0 +1,1 @@
+patch type="added" "Add AudioSessionException for iOS audio session failures"
