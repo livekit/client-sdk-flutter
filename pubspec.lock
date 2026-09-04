@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "13.0.0"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.9"
   args:
     dependency: transitive
     description:
@@ -432,6 +440,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  livekit_uniffi:
+    dependency: "direct main"
+    description:
+      path: "../rust-sdks/livekit-uniffi/packages/dart"
+      relative: true
+    source: path
+    version: "0.1.8"
   logger:
     dependency: transitive
     description:
@@ -616,6 +631,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: bc1bad54ad2b735816e31f8d4600cfde6c7839975085ddfbca48b6c9f7c4044e
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.2"
   protobuf:
     dependency: "direct main"
     description:

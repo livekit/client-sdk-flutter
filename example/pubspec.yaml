@@ -25,6 +25,13 @@ dependencies:
   livekit_client:
     path: ../
 
+dependency_overrides:
+  # Overrides do not propagate from a dependency, so livekit_client's override of
+  # livekit_uniffi has to be repeated here. Drop both once it is on pub.dev.
+  livekit_uniffi:
+    path: ../../rust-sdks/livekit-uniffi/packages/dart
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
