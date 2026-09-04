@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2.12.0
+
+* Added: Add AudioSessionException for iOS audio session failures
+* Changed: Microphone permission and audio session failures now throw TrackCreateException / AudioSessionException instead of AudioProcessingException
+* Changed: Raise minimum supported versions to Flutter 3.38 / Dart 3.10, the floor for stable native assets support
+* Changed: Update json_annotation to 4.12 and regenerate serialization code with json_serializable 6.14
+* Fixed: BaseKeyProvider.create now honors the discardFrameWhenCryptorNotReady option instead of always using the default
+* Fixed: Pre-connect audio buffer returns to a reusable state when recording fails to start, instead of ignoring retries and leaking the agent timeout
+* Fixed: Subscriber data channel state events now report the subscriber channel state and correct reliability type, and no longer leak listeners
+* Fixed: CachingTokenSource.fetch now awaits its result, so errors surface and the in-flight entry is cleared correctly
+* Fixed: sendText declares the UTF-8 byte length in the stream header, fixing rejected text streams containing non-ASCII characters
+* Fixed: Android: a failed local recording pre-warm no longer aborts microphone capture with AudioProcessingException(applyFailed)
+* Fixed: iOS: the audio session is configured from engine state even before a policy is pushed (pre-connect audio, pre-join mic, playout-only), fixing audio engine error -9001
+* Fixed: iOS/macOS: request microphone permission before audio capture starts, failing fast with TrackCreateException while the app is not in the foreground
+* Fixed: Fix use-after-free crash in TaskRunnerLinux::EnqueueTask when the runner is destroyed before the main loop dispatches a queued task
+
 ## 2.11.0
 
 * Added: New DisconnectReason members for newer server disconnect reasons, previously reported as unknown
