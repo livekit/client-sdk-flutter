@@ -1,1 +1,0 @@
-patch type="fixed" "Fix use-after-free crash in TaskRunnerLinux::EnqueueTask when the runner is destroyed before the main loop dispatches a queued task"
