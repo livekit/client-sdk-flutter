@@ -51,6 +51,8 @@ class LiveKitClient {
   static Future<void> initialize({
     bool bypassVoiceProcessing = false,
     AudioSessionOptions? initialAudioSessionOptions,
+    bool enableWARP = false,
+    bool zeroPlayoutDelay = false,
   }) async {
     if (lkPlatformIsMobile()) {
       // bypassVoiceProcessing controls only WebRTC voice processing. Android
@@ -62,6 +64,8 @@ class LiveKitClient {
           bypassVoiceProcessing: bypassVoiceProcessing,
           initialAudioSessionOptions: initialAudioSessionOptions,
           includeAndroidAudioConfiguration: lkPlatformIs(PlatformType.android),
+          enableWARP: enableWARP,
+          zeroPlayoutDelay: zeroPlayoutDelay,
         ),
       );
       if (lkPlatformIs(PlatformType.android) && initialAudioSessionOptions != null) {
