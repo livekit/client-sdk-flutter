@@ -22,8 +22,8 @@ Map<String, dynamic> liveKitWebRTCInitializeOptions({
   required bool bypassVoiceProcessing,
   required AudioSessionOptions? initialAudioSessionOptions,
   required bool includeAndroidAudioConfiguration,
-  required bool enableWARP,
-  required bool zeroPlayoutDelay,
+  bool enableWARP = false,
+  bool zeroPlayoutDelay = false,
 }) => {
   if (bypassVoiceProcessing) 'bypassVoiceProcessing': bypassVoiceProcessing,
   if (includeAndroidAudioConfiguration && initialAudioSessionOptions != null)
