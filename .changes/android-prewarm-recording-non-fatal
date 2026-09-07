@@ -1,1 +1,0 @@
-patch type="fixed" "Android: a failed local recording pre-warm no longer aborts microphone capture with AudioProcessingException(applyFailed)"
