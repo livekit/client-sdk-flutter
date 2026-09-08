@@ -17,7 +17,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'audio/audio_manager.dart';
 import 'audio/audio_session.dart';
 import 'support/native.dart';
-import 'support/platform.dart' show PlatformType, lkPlatformIs, lkPlatformIsMobile;
+import 'support/platform.dart' show PlatformType, lkPlatformIs, lkPlatformIsMobile, lkPlatformIsDesktop;
 import 'support/webrtc_initialize_options.dart';
 
 /// Main entry point to connect to a room.
@@ -51,6 +51,8 @@ class LiveKitClient {
   static Future<void> initialize({
     bool bypassVoiceProcessing = false,
     AudioSessionOptions? initialAudioSessionOptions,
+    bool enableWARP = false,
+    bool zeroPlayoutDelay = false,
   }) async {
     if (lkPlatformIsMobile()) {
       // bypassVoiceProcessing controls only WebRTC voice processing. Android
@@ -62,11 +64,23 @@ class LiveKitClient {
           bypassVoiceProcessing: bypassVoiceProcessing,
           initialAudioSessionOptions: initialAudioSessionOptions,
           includeAndroidAudioConfiguration: lkPlatformIs(PlatformType.android),
+          enableWARP: enableWARP,
+          zeroPlayoutDelay: zeroPlayoutDelay,
         ),
       );
       if (lkPlatformIs(PlatformType.android) && initialAudioSessionOptions != null) {
         AudioManager.instance.setInitialAudioSessionOptions(initialAudioSessionOptions);
       }
+    } else if (lkPlatformIsDesktop()) {
+      await rtc.WebRTC.initialize(
+        options: liveKitWebRTCInitializeOptions(
+          bypassVoiceProcessing: false,
+          initialAudioSessionOptions: null,
+          includeAndroidAudioConfiguration: false,
+          enableWARP: enableWARP,
+          zeroPlayoutDelay: zeroPlayoutDelay,
+        ),
+      );
     }
   }
 }

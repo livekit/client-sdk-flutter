@@ -1,0 +1,1 @@
+minor type="changed" "Bump libwebrtc to m150(flutter-webrtc 1.6.2), added `enableWARP` and `zeroPlayoutDelay` options to LiveKitClient.initialize"
