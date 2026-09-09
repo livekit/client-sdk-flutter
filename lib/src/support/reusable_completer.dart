@@ -72,6 +72,14 @@ class ReusableCompleter<T> {
       return false;
     }
 
+    if (!_hasPendingListener) {
+      // No one can observe this error: [future] creates a fresh completer once
+      // completed, so delivering it would only surface an unhandled async
+      // error. Mark completed silently, like reset() and dispose() do.
+      _markCompletedWithoutNotify();
+      return true;
+    }
+
     _completeCurrent((completer) => completer.completeError(error, stackTrace));
     return true;
   }

@@ -74,6 +74,32 @@ void main() {
       expect(info, isNotNull);
     });
 
+    test('Send Text Message With UTF-8 Byte Length For Special Characters', () async {
+      const text = 'Café résumé – emoji 😀';
+
+      // Completed by the handler so the test cannot pass without the
+      // assertions on the received stream having run.
+      final received = Completer<void>();
+      room.registerTextStreamHandler('chat-utf8', (TextStreamReader reader, String participantIdentity) async {
+        try {
+          expect(await reader.readAll(), text);
+          expect(reader.info!.size, utf8.encode(text).length);
+          received.complete();
+        } catch (error, stackTrace) {
+          received.completeError(error, stackTrace);
+        }
+      });
+
+      final info = await room.localParticipant?.sendText(
+        text,
+        options: SendTextOptions(
+          topic: 'chat-utf8',
+        ),
+      );
+      expect(info, isNotNull);
+      await received.future.timeout(const Duration(seconds: 5));
+    });
+
     test('Send Large Text Message With Progress Tracking', () async {
       final longText = 'a' * 100000;
 

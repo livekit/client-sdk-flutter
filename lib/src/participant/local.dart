@@ -15,6 +15,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data' show Uint8List;
@@ -1034,8 +1035,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 extension DataStreamParticipantMethods on LocalParticipant {
   Future<TextStreamInfo> sendText(String text, {SendTextOptions? options}) async {
     final streamId = Uuid().v4();
-    final textInBytes = text.codeUnits;
-    final totalTextLength = textInBytes.length;
+    final totalTextLength = utf8.encode(text).length;
 
     final fileIds = options?.attachments.map((f) => Uuid().v4()).toList();
     var len = 0;

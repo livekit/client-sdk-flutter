@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 /*
  * Copyright 2025 LiveKit
  *
