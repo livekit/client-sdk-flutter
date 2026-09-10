@@ -1,0 +1,1 @@
+patch type="fixed" "Reconcile the participant roster after a signal resume: participants who left while the connection was down are now removed instead of lingering as stale entries"
