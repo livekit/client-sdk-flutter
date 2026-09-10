@@ -30,6 +30,7 @@ import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
+import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
 
 void main() {
@@ -67,21 +68,34 @@ void main() {
     ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
   }
 
+  lk_models.ParticipantInfo info(String identity) => lk_models.ParticipantInfo(
+    sid: '${identity}_sid',
+    identity: identity,
+    state: lk_models.ParticipantInfo_State.ACTIVE,
+  );
+
   /// The roster snapshot the server sends right after the `ReconnectResponse`.
+  /// It always carries the local participant — the server includes it so
+  /// metadata changes propagate — which is what marks it as a full roster
+  /// rather than an ordinary partial update.
   void sendRosterSnapshot(List<String> identities) {
     ws.onData(
       lk_rtc.SignalResponse(
         update: lk_rtc.ParticipantUpdate(
-          participants: identities
-              .map(
-                (identity) => lk_models.ParticipantInfo(
-                  sid: '${identity}_sid',
-                  identity: identity,
-                  state: lk_models.ParticipantInfo_State.ACTIVE,
-                ),
-              )
-              .toList(),
+          participants: [
+            localParticipantData,
+            ...identities.map(info),
+          ],
         ),
+      ).writeToBuffer(),
+    );
+  }
+
+  /// An ordinary update: only the participants that changed, no local entry.
+  void sendPartialUpdate(List<String> identities) {
+    ws.onData(
+      lk_rtc.SignalResponse(
+        update: lk_rtc.ParticipantUpdate(participants: identities.map(info).toList()),
       ).writeToBuffer(),
     );
   }
@@ -144,6 +158,48 @@ void main() {
     expect(room.remoteParticipants.keys, containsAll(<String>['leaver', 'witness']));
   });
 
+  test('a partial update is not mistaken for the roster snapshot', () async {
+    // An ordinary update lists only the participants that changed. Treating one
+    // as a full roster would evict everybody else, so it must not disarm or
+    // trigger the reconciliation.
+    final disconnected = <String>[];
+    final cancel = room.events.listen((event) {
+      if (event is ParticipantDisconnectedEvent) {
+        disconnected.add(event.participant.identity);
+      }
+    });
+
+    await resumeSignalConnection();
+    sendPartialUpdate(['newcomer']);
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await cancel();
+
+    expect(disconnected, isEmpty, reason: 'a partial update must not evict participants');
+    expect(room.remoteParticipants.keys, containsAll(<String>['leaver', 'witness', 'newcomer']));
+  });
+
+  test('the arming expires so a much later update cannot trigger it', () async {
+    final disconnected = <String>[];
+    final cancel = room.events.listen((event) {
+      if (event is ParticipantDisconnectedEvent) {
+        disconnected.add(event.participant.identity);
+      }
+    });
+
+    await resumeSignalConnection();
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    // No snapshot ever arrives. Once the window closes, a later snapshot-shaped
+    // update is just a normal update and must not reconcile against it.
+    await Future<void>.delayed(const Duration(seconds: 6));
+    sendRosterSnapshot(['newcomer']);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await cancel();
+
+    expect(disconnected, isEmpty);
+    expect(room.remoteParticipants.keys, containsAll(<String>['leaver', 'witness', 'newcomer']));
+  }, timeout: const Timeout(Duration(seconds: 30)));
+
   test('a full reconnect does not run the resume reconciliation', () async {
     // The full-restart path unwinds the roster itself and rebuilds it from the
     // JoinResponse; the armed snapshot must not double-fire on top of that.
@@ -153,6 +209,11 @@ void main() {
         disconnected.add(event.participant.identity);
       }
     });
+
+    // Arm the reconciliation first, then escalate: a resume that reaches the
+    // ReconnectResponse and then fails takes exactly this path, and the
+    // arming must not survive into the restart.
+    await resumeSignalConnection();
 
     final previousHandlers = ws.handlers;
     container.engine.fullReconnectOnNext = true;

@@ -131,11 +131,22 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   RegionUrlProvider? _regionUrlProvider;
   String? _regionUrl;
 
-  /// Identities seen in participant updates since the signal link came back up
-  /// during a resume, used to reconcile the roster (see
-  /// [_reconcileAbsentParticipants]). Non-null only while a resume is waiting
-  /// for the server's post-`ReconnectResponse` roster snapshot.
+  /// Identities seen in the server's post-resume roster snapshot, used to
+  /// reconcile the roster (see [_reconcileAbsentParticipants]). Non-null only
+  /// while a resume is waiting for that snapshot.
   Set<String>? _resumeRosterSnapshot;
+
+  /// Disarms [_resumeRosterSnapshot] if the snapshot never arrives. Without
+  /// this the arming would sit there indefinitely and the next *ordinary*
+  /// participant update — which lists only what changed — would be mistaken
+  /// for a full roster and evict everyone else.
+  Timer? _resumeRosterSnapshotTimeout;
+
+  /// How long after a resume the next qualifying participant update is treated
+  /// as the roster snapshot. The server sends it immediately after the
+  /// `ReconnectResponse` on the same socket, so this only has to cover
+  /// scheduling, never a real wait.
+  static const _resumeRosterSnapshotWindow = Duration(seconds: 5);
 
   // Agents
   final Map<String, DateTime> _transcriptionReceivedTimes = {};
@@ -415,7 +426,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // against the update that follows — `SignalReconnectedEvent` is emitted
       // only after the engine's async ReconnectResponse handling and can lose
       // that race.
-      _resumeRosterSnapshot = <String>{};
+      _armResumeRosterSnapshot();
     })
     ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
     ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
@@ -618,7 +629,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       // a full reconnect rebuilds the roster from the JoinResponse, so any
       // armed resume reconciliation is moot
-      _resumeRosterSnapshot = null;
+      _disarmResumeRosterSnapshot();
 
       // reset params
       _name = null;
@@ -834,8 +845,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     // Captured before the loop: if a resume armed the reconciliation, this
-    // batch is the server's post-resume roster snapshot.
+    // batch may be the server's post-resume roster snapshot. The snapshot
+    // always carries the local participant (the server includes it so metadata
+    // changes propagate), which is what distinguishes it from an ordinary
+    // partial update listing only what changed.
     final rosterSnapshot = _resumeRosterSnapshot;
+    var sawLocalParticipant = false;
     for (final info in updates) {
       // The local participant is not ready yet, waiting for the
       // `RoomConnectedEvent` to create the local participant.
@@ -846,6 +861,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (localParticipant?.identity == info.identity) {
+        sawLocalParticipant = true;
         await localParticipant?.updateFromInfo(info);
         continue;
       }
@@ -890,14 +906,31 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // Disarm before reconciling so a nested update can't reconcile twice. The
     // identity check keeps a concurrent re-arm (another resume) intact.
-    if (rosterSnapshot != null && identical(rosterSnapshot, _resumeRosterSnapshot)) {
-      _resumeRosterSnapshot = null;
+    if (rosterSnapshot != null && sawLocalParticipant && identical(rosterSnapshot, _resumeRosterSnapshot)) {
+      _disarmResumeRosterSnapshot();
       hasChanged = await _reconcileAbsentParticipants(rosterSnapshot) || hasChanged;
     }
 
     if (hasChanged) {
       notifyListeners();
     }
+  }
+
+  void _armResumeRosterSnapshot() {
+    _resumeRosterSnapshotTimeout?.cancel();
+    _resumeRosterSnapshot = <String>{};
+    _resumeRosterSnapshotTimeout = Timer(_resumeRosterSnapshotWindow, () {
+      if (_resumeRosterSnapshot != null) {
+        logger.fine('resume roster snapshot never arrived, skipping reconciliation');
+      }
+      _disarmResumeRosterSnapshot();
+    });
+  }
+
+  void _disarmResumeRosterSnapshot() {
+    _resumeRosterSnapshotTimeout?.cancel();
+    _resumeRosterSnapshotTimeout = null;
+    _resumeRosterSnapshot = null;
   }
 
   /// Remove participants who left while the signal link was down.
@@ -1142,7 +1175,7 @@ extension RoomPrivateMethods on Room {
   Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
     logger.fine('[${objectId}] cleanUp()');
 
-    _resumeRosterSnapshot = null;
+    _disarmResumeRosterSnapshot();
 
     // clean up RemoteParticipants
     final participants = _remoteParticipants.toList();
