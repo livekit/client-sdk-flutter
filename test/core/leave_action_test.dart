@@ -70,12 +70,22 @@ void main() {
     final sub = room.events.listen(roomEvents.add);
     final previousHandlers = ws.handlers;
 
+    // The server also drops the socket right after the Leave, but that is
+    // deliberately not simulated here: a bare socket drop reconnects with reason
+    // `signal`, which resumes on its own. Delivering it before the leave-driven
+    // attempt runs (in production it arrives a round-trip later, so it never
+    // wins) makes this test pass even when the leave action is ignored entirely.
     sendLeave(lk_rtc.LeaveRequest_Action.RESUME, lk_models.DisconnectReason.MIGRATION);
 
     await answerReconnectAttempt(previousHandlers);
     await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
     await sub();
 
+    expect(
+      ws.uri?.queryParameters['reconnect'],
+      '1',
+      reason: 'a resume must re-open the signal connection with reconnect=1',
+    );
     expect(
       roomEvents.whereType<RoomResumingEvent>(),
       isNotEmpty,
