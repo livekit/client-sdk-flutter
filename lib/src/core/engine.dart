@@ -114,7 +114,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
 
+  /// A *pending* full-reconnect request. Consumed at the start of each
+  /// reconnect attempt, so it is false while an attempt runs unless a new
+  /// request arrived mid-attempt — use [isFullReconnectInProgress] to ask
+  /// what the running attempt is doing.
   bool fullReconnectOnNext = false;
+
+  bool _attemptIsFullReconnect = false;
+
+  /// Whether the reconnect attempt currently running is a full reconnect
+  /// (as opposed to a resume). False when no attempt is in flight.
+  bool get isFullReconnectInProgress => _attemptIsFullReconnect;
 
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
@@ -1064,6 +1074,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.info('onDisconnected state:${connectionState} reason:${reason.name}');
 
+    // Capture the escalation the moment the request is made. A later
+    // handleReconnect (e.g. the socket close that follows a server Leave)
+    // replaces the pending timer and with it the reason, so deciding this
+    // later — when attemptReconnect finally runs — can silently lose it.
+    if ([
+      ClientDisconnectReason.negotiationFailed,
+      ClientDisconnectReason.peerConnectionFailed,
+    ].contains(reason)) {
+      fullReconnectOnNext = true;
+    }
+
     _isReconnecting = true;
 
     if (_reconnectAttempts == 0) {
@@ -1126,18 +1147,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    // `leaveReconnect` is intentionally not escalated here: since protocol v13 a server
-    // Leave carries an action, and `RESUME` (what the server sends for a node migration)
-    // must stay a resume. The callers that need a full reconnect (`RECONNECT` leave,
-    // connection check) set `fullReconnectOnNext` themselves before handing over.
-    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED ||
-        [
-          ClientDisconnectReason.negotiationFailed,
-          ClientDisconnectReason.peerConnectionFailed,
-        ].contains(reason)) {
+    // Reason-driven escalation is captured in handleReconnect, where the
+    // request originates. This is config, not a request, so it belongs here.
+    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
       fullReconnectOnNext = true;
     }
 
+    // Consume the flag up front: this attempt's mode is now fixed, and from
+    // here a `true` value unambiguously means a *new* full-reconnect request
+    // arrived while we were running (e.g. a server RECONNECT leave during a
+    // resume), which the finally block dispatches. Mirrors client-sdk-js.
+    final fullReconnect = fullReconnectOnNext;
+    fullReconnectOnNext = false;
+    _attemptIsFullReconnect = fullReconnect;
+
+    var succeeded = false;
     try {
       _attemptingReconnect = true;
 
@@ -1153,7 +1177,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
 
-      if (fullReconnectOnNext) {
+      if (fullReconnect) {
         await restartConnection();
       } else {
         await resumeConnection(
@@ -1164,11 +1188,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _clearPendingReconnect();
       _attemptingReconnect = false;
       _isReconnecting = false;
+      succeeded = true;
     } catch (e) {
       _reconnectAttempts = _reconnectAttempts + 1;
       bool recoverable = true;
-      if (e is WebSocketException || e is MediaConnectException) {
-        // cannot resume connection, need to do full reconnect
+      if (fullReconnect || e is WebSocketException || e is MediaConnectException) {
+        // a failed full reconnect stays a full reconnect; a resume that failed
+        // at the transport or media layer cannot be resumed again
         fullReconnectOnNext = true;
       }
 
@@ -1196,6 +1222,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     } finally {
       _attemptingReconnect = false;
+      _attemptIsFullReconnect = false;
+
+      // A full reconnect requested while this attempt was running that a
+      // successful attempt didn't act on — dispatch it now. The failure path
+      // already retries, so only the success path needs this.
+      if (succeeded && fullReconnectOnNext && !_isClosed) {
+        logger.fine('attemptReconnect: full reconnect requested mid-attempt, dispatching');
+        unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
+      }
     }
   }
 
