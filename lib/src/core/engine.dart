@@ -1126,9 +1126,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
+    // `leaveReconnect` is intentionally not escalated here: since protocol v13 a server
+    // Leave carries an action, and `RESUME` (what the server sends for a node migration)
+    // must stay a resume. The callers that need a full reconnect (`RECONNECT` leave,
+    // connection check) set `fullReconnectOnNext` themselves before handing over.
     if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED ||
         [
-          ClientDisconnectReason.leaveReconnect,
           ClientDisconnectReason.negotiationFailed,
           ClientDisconnectReason.peerConnectionFailed,
         ].contains(reason)) {
@@ -1526,7 +1529,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // canReconnect is still checked for backward compatibility with v12 servers
       // (where action defaults to DISCONNECT=0 since it's unset).
       if (event.action == lk_rtc.LeaveRequest_Action.RESUME) {
-        fullReconnectOnNext = false;
+        // The server (e.g. a node migration) expects us to resume the session, so
+        // fullReconnectOnNext is deliberately left alone rather than forced to false:
+        // an escalation from an already-failed resume must not be downgraded here.
         // reconnect immediately instead of waiting for next attempt
         await handleReconnect(ClientDisconnectReason.leaveReconnect);
       } else if (event.action == lk_rtc.LeaveRequest_Action.RECONNECT || event.canReconnect) {
